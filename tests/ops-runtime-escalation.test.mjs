@@ -47,6 +47,18 @@ describe('findOpenIssueByTitle (pagination-safe lookup)', () => {
     expect(query).toContain('"OPS — X"');
   });
 
+  it('escapes quotes and backslashes so a title containing them cannot break the quoted search phrase', async () => {
+    const requestImpl = vi.fn().mockResolvedValue({ items: [] });
+    const title = 'OPS — "weird" \\ title';
+    await findOpenIssueByTitle({ token: 't', owner: 'o', repo: 'r', title, requestImpl });
+
+    const [path] = requestImpl.mock.calls[0];
+    const query = new URLSearchParams(path.split('?')[1]).get('q');
+    // the quoted phrase must contain only escaped quotes/backslashes, so it
+    // stays a single well-formed phrase instead of terminating early
+    expect(query).toContain('in:title "OPS — \\"weird\\" \\\\ title"');
+  });
+
   it('finds the exact-title match even when the search result set is large or has near-matches', async () => {
     const requestImpl = vi.fn().mockResolvedValue({
       items: [
@@ -89,7 +101,29 @@ describe('upsertOpsRuntimeIssue (dedup via injectable findOpen)', () => {
     });
     expect(result.action).toBe('updated');
     expect(result.issue).toBe('https://x/42');
-    expect(findOpen).toHaveBeenCalledWith({ token: 't', owner: 'o', repo: 'r', title: 'OPS — X' });
+    // requestImpl must be forwarded into findOpen too, so a caller that only
+    // overrides requestImpl (not findOpen) still gets consistent DI instead
+    // of the default findOpenIssueByTitle silently making real network calls.
+    expect(findOpen).toHaveBeenCalledWith({ token: 't', owner: 'o', repo: 'r', title: 'OPS — X', requestImpl });
+  });
+
+  it('a caller overriding only requestImpl (not findOpen) still gets it used by the real default findOpenIssueByTitle — no real network call escapes the override', async () => {
+    const requestImpl = vi.fn().mockImplementation(async (path) => {
+      if (path.startsWith('/search/issues')) return { items: [] };
+      return { number: 7, html_url: 'https://x/7' };
+    });
+    const result = await upsertOpsRuntimeIssue({
+      token: 't',
+      owner: 'o',
+      repo: 'r',
+      title: 'OPS — X',
+      body: 'body',
+      requestImpl,
+    });
+    expect(result.action).toBe('created');
+    // every call — the search lookup AND the create — went through the single injected requestImpl
+    expect(requestImpl.mock.calls.some(([path]) => path.startsWith('/search/issues'))).toBe(true);
+    expect(requestImpl.mock.calls.some(([path]) => path === '/repos/o/r/issues')).toBe(true);
   });
 
   it('creates a new issue when findOpen finds nothing', async () => {

@@ -78,8 +78,13 @@ async function request(path, token, options = {}) {
  * matching, not exact matching, so this still verifies exact title equality
  * client-side before returning a match.
  */
+/** Escapes `\` and `"` so the title can't break out of the quoted `in:title` search phrase — an unescaped quote/backslash would make the query syntactically invalid, the search would silently return zero results, and the caller would create a duplicate issue instead of finding the existing one. */
+function escapeSearchQuotedPhrase(text) {
+  return String(text || '').replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+}
+
 export async function findOpenIssueByTitle({ token, owner, repo, title, requestImpl = request }) {
-  const query = `repo:${owner}/${repo} is:issue is:open in:title "${title}"`;
+  const query = `repo:${owner}/${repo} is:issue is:open in:title "${escapeSearchQuotedPhrase(title)}"`;
   const params = new URLSearchParams({ q: query, per_page: '20' });
   const result = await requestImpl(`/search/issues?${params.toString()}`, token);
   const items = Array.isArray(result?.items) ? result.items : [];
@@ -96,7 +101,7 @@ export async function upsertOpsRuntimeIssue({
   findOpen = findOpenIssueByTitle,
   requestImpl = request,
 }) {
-  const existing = await findOpen({ token, owner, repo, title });
+  const existing = await findOpen({ token, owner, repo, title, requestImpl });
 
   if (existing?.number) {
     await requestImpl(`/repos/${owner}/${repo}/issues/${existing.number}`, token, {
