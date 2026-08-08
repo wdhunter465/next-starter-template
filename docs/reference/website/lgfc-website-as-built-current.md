@@ -63,8 +63,8 @@ This document may record implementation evidence and bounded follow-up, but it d
 |---|---|---|
 | Search | **Implemented in source** | `src/app/search/page.tsx` provides query, pagination, public/member-aware results, loading/error states, and `/api/search` integration. Deployment/live indexing remains an operational verification concern, not an implementation-absence finding. |
 | `/faq` | **Legacy compatibility** | Redirects to `/ask/` (query preserved). Canonical FAQ browse + Ask workflow lives on `/ask` (#3148). |
-| `/privacy` | **Disclosure gap** | Current fallback text omits the newer Ask/member-verification data flow. Follow-up #3149 owns bounded correction and Terms factual review. |
-| `/terms` | **Review required, no defect assumed** | Current fallback terms cover respectful use, submissions, copyright/attribution, no-warranty, and contact. #3149 must change Terms only if current Join/Login/Ask/member behavior creates a concrete factual inconsistency. |
+| `/privacy` | **Implemented in source (#3149)** | Fallback and migration `0045_privacy_join_ask_disclosure.sql` disclose Join/Ask identity fields, optional screen name, Ask question text, member creation/welcome or transactional email, and session cookies, plus an explicit negative disclosure that magic-link authentication is not used (`auth-model.md`). |
+| `/terms` | **Reviewed — no change (#3149)** | Fallback Terms remain factually consistent with Join/Login/Ask/member session behavior; no Terms rewrite required. |
 | `/login` | **Legacy compatibility** | Canonical design requires redirect to `/`. |
 | `/auth` | **Legacy compatibility** | Canonical design requires redirect to `/join`. |
 | `/ask` | **Canonical active question workflow** | Product Authority decision in #3074; runtime details remain governed by current implementation and follow-up validation. |
@@ -90,8 +90,8 @@ A future live/D1 verification must record the rendered state and redacted milest
 
 ## Known bounded follow-up
 
-- #3148 — `/faq` → `/ask` compatibility (implemented in source when this row is current; closeout follows independent review).
-- #3149 — reconcile Privacy disclosure with Join/Ask member-verification flow and record Terms disposition.
+- #3148 — `/faq` → `/ask` compatibility (merged via #3205 / remediation #3208).
+- #3149 — Privacy Join/Ask disclosure + Terms disposition (implemented in source when this row is current; closeout follows independent review).
 
 These are implementation/content corrections and must not be silently folded into this documentation-only reconciliation.
 
