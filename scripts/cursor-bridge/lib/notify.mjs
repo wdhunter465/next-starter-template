@@ -29,7 +29,7 @@ export function notifyLocal(config, title, body) {
 export function postIssueComment(issueNumber, body) {
   const r = spawnSync(
     'gh',
-    ['issue', 'comment', String(issueNumber), '--repo', 'wdhunter645/next-starter-template', '--body', body],
+    ['issue', 'comment', String(issueNumber), '--repo', 'wdhunter465/next-starter-template', '--body', body],
     { encoding: 'utf8' },
   );
   if (r.status !== 0) {

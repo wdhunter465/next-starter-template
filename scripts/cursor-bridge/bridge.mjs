@@ -45,7 +45,7 @@ import {
   runPreflight,
 } from './lib/preflight.mjs';
 
-const REPO = 'wdhunter645/next-starter-template';
+const REPO = 'wdhunter465/next-starter-template';
 
 function ghJson(args) {
   const r = spawnSync('gh', args, { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 });

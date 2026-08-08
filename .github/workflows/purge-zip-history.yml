@@ -21,7 +21,7 @@ jobs:
         run: |
           TAG="pre-zip-purge-$(date +%Y%m%d-%H%M%S)"
           git tag "$TAG"
-          git push https://x-access-token:${{ secrets.HISTORY_PURGE_PAT }}@github.com/wdhunter645/next-starter-template.git "$TAG"
+          git push https://x-access-token:${{ secrets.HISTORY_PURGE_PAT }}@github.com/wdhunter465/next-starter-template.git "$TAG"
 
       - name: Rewrite history (remove all *.zip)
         run: |
@@ -34,4 +34,4 @@ jobs:
           GIT_COMMITTER_NAME: history-purge-bot
           GIT_COMMITTER_EMAIL: bot@users.noreply.github.com
         run: |
-          git push --force --mirror https://x-access-token:${{ secrets.HISTORY_PURGE_PAT }}@github.com/wdhunter645/next-starter-template.git
+          git push --force --mirror https://x-access-token:${{ secrets.HISTORY_PURGE_PAT }}@github.com/wdhunter465/next-starter-template.git

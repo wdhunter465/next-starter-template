@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   build:
-    if: github.repository == 'wdhunter645/next-starter-template'
+    if: github.repository == 'wdhunter465/next-starter-template'
     runs-on: [self-hosted, linux, x64, lgfc-repo-runner]
     timeout-minutes: 30
     steps:

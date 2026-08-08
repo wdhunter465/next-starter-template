@@ -21,7 +21,7 @@ export function activeSerialClaimBlocks(config) {
   }
 }
 
-const DEFAULT_REPO = 'wdhunter645/next-starter-template';
+const DEFAULT_REPO = 'wdhunter465/next-starter-template';
 
 function ghJson(args) {
   const r = spawnSync('gh', args, { encoding: 'utf8', maxBuffer: 10 * 1024 * 1024 });

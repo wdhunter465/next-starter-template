@@ -17,7 +17,7 @@ Document the **legacy backup** local Cursor GitHub poll-wake operation. Primary 
 
 ## Scope
 
-Covers operator behavior for `~/.cursor/github-poller/` while working in `wdhunter645/next-starter-template`. The scripts are user-local tooling and are not part of the repository tree.
+Covers operator behavior for `~/.cursor/github-poller/` while working in `wdhunter465/next-starter-template`. The scripts are user-local tooling and are not part of the repository tree.
 
 ## Current known truth
 

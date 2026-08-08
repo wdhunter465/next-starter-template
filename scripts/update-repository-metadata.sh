@@ -4,7 +4,7 @@
 
 set -e
 
-REPO_OWNER="wdhunter645"
+REPO_OWNER="wdhunter465"
 REPO_NAME="next-starter-template"
 DESCRIPTION="A modern Next.js 15 starter template with TypeScript, Tailwind CSS 4, React 19, and Cloudflare Pages deployment configuration"
 WEBSITE="https://next-starter-template.templates.workers.dev"

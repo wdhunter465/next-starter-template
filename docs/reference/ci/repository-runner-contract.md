@@ -68,7 +68,7 @@ Split responsibility:
 | Field | Value |
 | --- | --- |
 | Scope | repository |
-| Repository | `wdhunter645/next-starter-template` |
+| Repository | `wdhunter465/next-starter-template` |
 | Name | `lgfc-chromebook-linux` |
 | Platform | Debian 12, Linux, x64 |
 | Service | systemd |
@@ -107,7 +107,7 @@ manual health + wake-packet delivery only
 
 `wakeDelivery` in `config/github-actions/repository-runner.json` authorizes `.github/workflows/cursor-local-wake.yml` to write host packets only when:
 
-- repository is `wdhunter645/next-starter-template`;
+- repository is `wdhunter465/next-starter-template`;
 - event is gated `issues`/`issue_comment`/`workflow_dispatch` per workflow `if:`;
 - labels include the required Cursor handoff pair when applicable;
 - `mayLaunchCursor`, `mayHoldApiKeys`, and `mayClaimSerialLane` remain false.
