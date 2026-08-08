@@ -38,6 +38,11 @@ import { pathToFileURL } from 'node:url';
  *   still-open protected Product/Production decisions, if any
  * @returns {{ ready: boolean, blockers: string[], detail: object }}
  */
+/** True only for a well-formed `{ ok: true, ... }` sub-result — anything else (null, a thrown-away string, `{ ok: false }`, a missing `ok` field) is treated as not-ok rather than dereferenced and thrown on. */
+function isOkResult(result) {
+  return Boolean(result) && typeof result === 'object' && result.ok === true;
+}
+
 export function buildDispositionReadiness({
   registryResult,
   evidenceResult,
@@ -46,11 +51,13 @@ export function buildDispositionReadiness({
   unresolvedProtectedDecisions = [],
 }) {
   const blockers = [];
-  if (!registryResult.ok) blockers.push('journey_registry_invalid');
-  if (!evidenceResult.ok) blockers.push('evidence_incomplete');
-  if (!ledgerResult.ok) blockers.push('defect_ledger_invalid');
-  if (!retestResult.ok) blockers.push('retest_coverage_incomplete');
-  if (Array.isArray(unresolvedProtectedDecisions) && unresolvedProtectedDecisions.length > 0) {
+  if (!isOkResult(registryResult)) blockers.push('journey_registry_invalid');
+  if (!isOkResult(evidenceResult)) blockers.push('evidence_incomplete');
+  if (!isOkResult(ledgerResult)) blockers.push('defect_ledger_invalid');
+  if (!isOkResult(retestResult)) blockers.push('retest_coverage_incomplete');
+  if (!Array.isArray(unresolvedProtectedDecisions)) {
+    blockers.push('unresolved_protected_decisions_malformed');
+  } else if (unresolvedProtectedDecisions.length > 0) {
     blockers.push('unresolved_protected_decisions_present');
   }
 
@@ -94,6 +101,7 @@ export function main(argv = process.argv.slice(2)) {
   const evidenceResultPath = readOptionValue(argv, '--evidence-result');
   const ledgerResultPath = readOptionValue(argv, '--ledger-result');
   const retestResultPath = readOptionValue(argv, '--retest-result');
+  const decisionsFlagPresent = argv.includes('--unresolved-decisions');
   const decisionsPath = readOptionValue(argv, '--unresolved-decisions');
 
   if (!registryResultPath || !evidenceResultPath || !ledgerResultPath || !retestResultPath) {
@@ -101,6 +109,12 @@ export function main(argv = process.argv.slice(2)) {
       'FAIL-CLOSED: --registry-result, --evidence-result, --ledger-result, and --retest-result are all required ' +
         '(each the JSON output of the corresponding #2927/#2928 harness mode).',
     );
+    process.exitCode = 1;
+    return null;
+  }
+
+  if (decisionsFlagPresent && !decisionsPath) {
+    console.error('FAIL-CLOSED: --unresolved-decisions requires a <path> value when provided — omit the flag entirely if there are none.');
     process.exitCode = 1;
     return null;
   }
@@ -130,7 +144,10 @@ export function main(argv = process.argv.slice(2)) {
     unresolvedProtectedDecisions,
   });
   console.log(JSON.stringify(result, null, 2));
-  if (!result.ready) process.exitCode = 1;
+  // Set deterministically (not just on failure) so a successful call after an
+  // earlier failing call in the same process — e.g. repeated main() calls in
+  // a test run — doesn't inherit a stale non-zero exit code.
+  process.exitCode = result.ready ? 0 : 1;
   return result;
 }
 

@@ -41,6 +41,18 @@ judgment made once real rehearsal evidence exists — and it does not redefine
   handoff checklist below describes what it will receive, not anything already
   transferred.
 
+## Intended final state
+
+This document is evolving scaffolding pending #2926/#2927/#2928. Its stable,
+post-execution state — once #2929 actually runs — replaces every bracketed
+placeholder in the "Final rehearsal disposition report" structure below with the
+real candidate SHA, evidence/defect-ledger links, disposition-readiness result,
+and recorded GO/HOLD/ADJUSTMENT/NO-GO recommendation, and either completes the
+"#2782 handoff checklist" (on GO) or records why it was not completed. The
+disposition-readiness harness and report structure themselves are not expected to
+change once real data lands — only "Current known truth" above is expected to
+update, from "no rehearsal has run" to a summary of the actual disposition.
+
 ## Non-blocking prerequisite rule
 
 Per #2929's non-blocking prerequisite rule, this document and the disposition-

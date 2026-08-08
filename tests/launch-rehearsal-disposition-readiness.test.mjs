@@ -109,6 +109,60 @@ describe('buildDispositionReadiness', () => {
     });
     expect(result.detail.registryResult).toEqual(registryResult);
   });
+
+  it('does not throw when a sub-result is null, and treats it as a blocker instead of dereferencing .ok', () => {
+    expect(() =>
+      buildDispositionReadiness({
+        registryResult: null,
+        evidenceResult: okResult(),
+        ledgerResult: okResult(),
+        retestResult: okResult(),
+      }),
+    ).not.toThrow();
+    const result = buildDispositionReadiness({
+      registryResult: null,
+      evidenceResult: okResult(),
+      ledgerResult: okResult(),
+      retestResult: okResult(),
+    });
+    expect(result.ready).toBe(false);
+    expect(result.blockers).toContain('journey_registry_invalid');
+  });
+
+  it('does not throw when a sub-result is a non-object (e.g. malformed JSON parsed to a string/number)', () => {
+    expect(() =>
+      buildDispositionReadiness({
+        registryResult: 'not-an-object',
+        evidenceResult: okResult(),
+        ledgerResult: okResult(),
+        retestResult: okResult(),
+      }),
+    ).not.toThrow();
+  });
+
+  it('blocks on a non-array unresolvedProtectedDecisions instead of silently treating it as empty', () => {
+    const result = buildDispositionReadiness({
+      registryResult: okResult(),
+      evidenceResult: okResult(),
+      ledgerResult: okResult(),
+      retestResult: okResult(),
+      unresolvedProtectedDecisions: 'not-an-array',
+    });
+    expect(result.ready).toBe(false);
+    expect(result.blockers).toEqual(['unresolved_protected_decisions_malformed']);
+  });
+
+  it('blocks on unresolvedProtectedDecisions explicitly set to null', () => {
+    const result = buildDispositionReadiness({
+      registryResult: okResult(),
+      evidenceResult: okResult(),
+      ledgerResult: okResult(),
+      retestResult: okResult(),
+      unresolvedProtectedDecisions: null,
+    });
+    expect(result.ready).toBe(false);
+    expect(result.blockers).toEqual(['unresolved_protected_decisions_malformed']);
+  });
 });
 
 describe('main() CLI (fails closed instead of throwing on bad input)', () => {
@@ -175,7 +229,7 @@ describe('main() CLI (fails closed instead of throwing on bad input)', () => {
       '--retest-result', paths['retest-result'],
     ]);
     expect(result.ready).toBe(true);
-    expect(process.exitCode).toBeUndefined();
+    expect(process.exitCode).toBe(0);
   });
 
   it('exits 1 when an unresolved-decisions file lists any entry', () => {
@@ -191,6 +245,34 @@ describe('main() CLI (fails closed instead of throwing on bad input)', () => {
     ]);
     expect(result.ready).toBe(false);
     expect(process.exitCode).toBe(1);
+  });
+
+  it('fails closed when --unresolved-decisions is passed with no following value, instead of silently ignoring it', () => {
+    const paths = writeResultFiles(tmpDir);
+    const result = main([
+      '--registry-result', paths['registry-result'],
+      '--evidence-result', paths['evidence-result'],
+      '--ledger-result', paths['ledger-result'],
+      '--retest-result', paths['retest-result'],
+      '--unresolved-decisions',
+    ]);
+    expect(result).toBeNull();
+    expect(process.exitCode).toBe(1);
+  });
+
+  it('resets the exit code to 0 on a later successful call after an earlier failing call in the same process', () => {
+    const paths = writeResultFiles(tmpDir);
+    main(['--registry-result', path.join(tmpDir, 'nope.json')]);
+    expect(process.exitCode).toBe(1);
+
+    const result = main([
+      '--registry-result', paths['registry-result'],
+      '--evidence-result', paths['evidence-result'],
+      '--ledger-result', paths['ledger-result'],
+      '--retest-result', paths['retest-result'],
+    ]);
+    expect(result.ready).toBe(true);
+    expect(process.exitCode).toBe(0);
   });
 
   it('propagates a failing sub-result through to the blockers list', () => {
