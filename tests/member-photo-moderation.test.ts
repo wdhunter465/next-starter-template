@@ -120,6 +120,33 @@ describe('#2900 member photo moderation', () => {
     sqlite.close();
   });
 
+  it('returns 409 when a concurrent review already transitioned the row', async () => {
+    const sqlite = new DatabaseSync(':memory:');
+    applyMigrations(sqlite);
+    sqlite.exec(`
+      INSERT INTO photos (url, status, submitted_by, quarantine_key, consent_confirmed)
+      VALUES ('member-photos/quarantine/a.jpg', 'pending', 'a@example.com', 'member-photos/quarantine/a.jpg', 1)
+    `);
+    const db = wrapSqliteAsD1(sqlite);
+    await reviewPendingPhoto(db, {}, {
+      photoId: 1,
+      action: 'reject',
+      reviewer: 'first@example.com',
+    });
+    const second = await reviewPendingPhoto(db, {}, {
+      photoId: 1,
+      action: 'approve',
+      reviewer: 'second@example.com',
+      skipObjectPromote: true,
+    });
+    expect(second.ok).toBe(false);
+    if (!second.ok) {
+      expect(second.code).toBe('NOT_PENDING');
+      expect(second.status).toBe(409);
+    }
+    sqlite.close();
+  });
+
   it('admin list/review handlers enforce admin token and review transitions', async () => {
     const sqlite = new DatabaseSync(':memory:');
     applyMigrations(sqlite);

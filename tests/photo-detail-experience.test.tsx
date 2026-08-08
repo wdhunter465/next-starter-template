@@ -44,8 +44,13 @@ describe('#2900 photo detail experience', () => {
     expect(onClose).toHaveBeenCalled();
   });
 
-  it('shows unavailable state for stale/missing ids', () => {
-    render(
+  it('shows loading while waiting and unavailable only when flagged', () => {
+    const { rerender } = render(
+      <PhotoDetailPanel items={items} activeId={999} unavailable={false} onClose={() => undefined} onNavigate={() => undefined} />,
+    );
+    expect(screen.getByTestId('photo-detail-loading')).toBeTruthy();
+
+    rerender(
       <PhotoDetailPanel items={items} activeId={999} unavailable onClose={() => undefined} onNavigate={() => undefined} />,
     );
     expect(screen.getByTestId('photo-detail-unavailable').textContent).toMatch(/unavailable/i);

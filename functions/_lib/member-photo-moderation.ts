@@ -4,6 +4,7 @@
 
 import { AwsClient } from './aws4fetch';
 import { requireB2, type B2Bindings } from './b2';
+import { MAX_UPLOAD_BYTES } from './member-photo-upload';
 
 export type PhotoModerationAction = 'approve' | 'reject';
 
@@ -107,7 +108,20 @@ async function promoteQuarantineObject(
       const text = await getRes.text();
       return { ok: false, error: `B2 GET quarantine failed: HTTP ${getRes.status} ${text.slice(0, 200)}` };
     }
+    const declaredLength = Number(getRes.headers.get('content-length') || '');
+    if (Number.isFinite(declaredLength) && declaredLength > MAX_UPLOAD_BYTES) {
+      return {
+        ok: false,
+        error: `Quarantine object exceeds maximum allowed size of ${MAX_UPLOAD_BYTES} bytes.`,
+      };
+    }
     const bytes = new Uint8Array(await getRes.arrayBuffer());
+    if (bytes.byteLength > MAX_UPLOAD_BYTES) {
+      return {
+        ok: false,
+        error: `Quarantine object exceeds maximum allowed size of ${MAX_UPLOAD_BYTES} bytes.`,
+      };
+    }
     const contentType = getRes.headers.get('content-type') || 'application/octet-stream';
     const putRes = await aws.fetch(b2ObjectUrl(cfg, publishedKey), {
       method: 'PUT',
@@ -175,7 +189,7 @@ export async function reviewPendingPhoto(
   const notes = params.notes ? String(params.notes).slice(0, 2000) : null;
 
   if (params.action === 'reject') {
-    await db
+    const rejectResult = await db
       .prepare(
         `UPDATE photos
             SET status = 'rejected',
@@ -186,6 +200,10 @@ export async function reviewPendingPhoto(
       )
       .bind(reviewer, notes, photoId)
       .run();
+    const rejectChanges = Number((rejectResult as any)?.meta?.changes ?? 0);
+    if (rejectChanges < 1) {
+      return { ok: false, error: 'Only pending photos can be reviewed.', code: 'NOT_PENDING', status: 409 };
+    }
     return { ok: true, id: photoId, status: 'rejected' };
   }
 
@@ -202,7 +220,7 @@ export async function reviewPendingPhoto(
     publishedKey = publishedKeyFromQuarantine(quarantineKey) || quarantineKey;
   }
 
-  await db
+  const approveResult = await db
     .prepare(
       `UPDATE photos
           SET status = 'published',
@@ -214,6 +232,10 @@ export async function reviewPendingPhoto(
     )
     .bind(publishedKey || (row as any).url, reviewer, notes, photoId)
     .run();
+  const approveChanges = Number((approveResult as any)?.meta?.changes ?? 0);
+  if (approveChanges < 1) {
+    return { ok: false, error: 'Only pending photos can be reviewed.', code: 'NOT_PENDING', status: 409 };
+  }
 
   return { ok: true, id: photoId, status: 'published', publishedKey };
 }

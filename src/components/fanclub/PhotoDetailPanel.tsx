@@ -35,12 +35,14 @@ export default function PhotoDetailPanel({
 }: PhotoDetailPanelProps) {
   const titleId = useId();
   const closeRef = useRef<HTMLButtonElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
   const index = items.findIndex((item) => item.id === activeId);
   const item = index >= 0 ? items[index] : null;
   const open = activeId !== null;
 
   useEffect(() => {
     if (!open) return;
+    previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     closeRef.current?.focus();
     function onKey(event: KeyboardEvent) {
       if (event.key === 'Escape') {
@@ -59,7 +61,10 @@ export default function PhotoDetailPanel({
       }
     }
     window.addEventListener('keydown', onKey);
-    return () => window.removeEventListener('keydown', onKey);
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      previousFocusRef.current?.focus?.();
+    };
   }, [open, item, unavailable, index, items, onClose, onNavigate]);
 
   if (!open) return null;
@@ -113,9 +118,13 @@ export default function PhotoDetailPanel({
           </button>
         </div>
 
-        {unavailable || !item ? (
+        {unavailable ? (
           <p data-testid="photo-detail-unavailable" style={{ marginTop: 18, opacity: 0.9 }}>
             This photo is unavailable or no longer published.
+          </p>
+        ) : !item ? (
+          <p data-testid="photo-detail-loading" style={{ marginTop: 18, opacity: 0.9 }}>
+            Loading photo detail…
           </p>
         ) : (
           <>

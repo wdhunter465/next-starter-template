@@ -1,10 +1,14 @@
 import { normalizePhotoUrl } from "../../_lib/photo-url";
 
+let cachedHasStatusColumn: boolean | null = null;
+
 async function photosHasStatusColumn(db: any): Promise<boolean> {
+  if (cachedHasStatusColumn !== null) return cachedHasStatusColumn;
   try {
     const result = await db.prepare(`PRAGMA table_info(photos)`).all();
     const names = new Set((result?.results || []).map((row: any) => row.name));
-    return names.has("status");
+    cachedHasStatusColumn = names.has("status");
+    return cachedHasStatusColumn;
   } catch {
     return false;
   }
