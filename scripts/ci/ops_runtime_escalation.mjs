@@ -64,6 +64,28 @@ async function request(path, token, options = {}) {
   return response.status === 204 ? null : response.json();
 }
 
+/**
+ * Finds an open issue with an exact title match, using the Search Issues
+ * API rather than listing open issues by `per_page=100` — a plain list call
+ * only ever sees the first page, so on a repository with more than 100 open
+ * issues (this one currently has ~177) a title created earlier can silently
+ * fall off page 1 as newer issues accumulate, breaking dedup and letting
+ * every caller of `upsertOpsRuntimeIssue` create duplicate issues instead of
+ * reusing the existing one. Search indexes the whole repository regardless
+ * of open-issue count, at the cost of a short (typically sub-minute) index
+ * lag versus a direct list read — an acceptable tradeoff for hourly-or-less
+ * dedup checks. The `in:title` search qualifier does substring/tokenized
+ * matching, not exact matching, so this still verifies exact title equality
+ * client-side before returning a match.
+ */
+export async function findOpenIssueByTitle({ token, owner, repo, title, requestImpl = request }) {
+  const query = `repo:${owner}/${repo} is:issue is:open in:title "${title}"`;
+  const params = new URLSearchParams({ q: query, per_page: '20' });
+  const result = await requestImpl(`/search/issues?${params.toString()}`, token);
+  const items = Array.isArray(result?.items) ? result.items : [];
+  return items.find((issue) => issue.title === title && !issue.pull_request);
+}
+
 export async function upsertOpsRuntimeIssue({
   token,
   owner,
@@ -71,25 +93,24 @@ export async function upsertOpsRuntimeIssue({
   title,
   body,
   labels = [DEFAULT_OPS_RUNTIME_LABEL],
+  findOpen = findOpenIssueByTitle,
+  requestImpl = request,
 }) {
-  const openIssues = await request(`/repos/${owner}/${repo}/issues?state=open&per_page=100`, token);
-  const existing = Array.isArray(openIssues)
-    ? openIssues.find((issue) => issue.title === title && !issue.pull_request)
-    : undefined;
+  const existing = await findOpen({ token, owner, repo, title });
 
   if (existing?.number) {
-    await request(`/repos/${owner}/${repo}/issues/${existing.number}`, token, {
+    await requestImpl(`/repos/${owner}/${repo}/issues/${existing.number}`, token, {
       method: 'PATCH',
       body: JSON.stringify({ body }),
     });
-    await request(`/repos/${owner}/${repo}/issues/${existing.number}/comments`, token, {
+    await requestImpl(`/repos/${owner}/${repo}/issues/${existing.number}/comments`, token, {
       method: 'POST',
       body: JSON.stringify({ body: `Updated escalation evidence at ${new Date().toISOString()}\n\n${body}` }),
     });
     return { action: 'updated', issue: existing.html_url || `#${existing.number}` };
   }
 
-  const created = await request(`/repos/${owner}/${repo}/issues`, token, {
+  const created = await requestImpl(`/repos/${owner}/${repo}/issues`, token, {
     method: 'POST',
     body: JSON.stringify({ title, body, labels }),
   });

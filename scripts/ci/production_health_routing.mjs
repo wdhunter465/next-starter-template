@@ -27,11 +27,21 @@
  * update body/comment, close). It has no code path that touches
  * Production D1/B2/deploy state — "no unbounded auto-remediation exists"
  * is true because there is no remediation code here at all, only routing.
+ *
+ * Issue lookup (find/dedup/hold/close) delegates entirely to
+ * ops_runtime_escalation.mjs's findOpenIssueByTitle/upsertOpsRuntimeIssue,
+ * which search the whole repository via the Search Issues API rather than
+ * listing only the first 100 open issues — this repository already has
+ * ~177 open issues, well past a single list page, so a naive list-based
+ * lookup would silently stop finding older per-check issues and start
+ * duplicating them.
  */
 
 import fs from 'node:fs';
 import { pathToFileURL } from 'node:url';
-import { upsertOpsRuntimeIssue } from './ops_runtime_escalation.mjs';
+import { findOpenIssueByTitle, upsertOpsRuntimeIssue } from './ops_runtime_escalation.mjs';
+
+export { findOpenIssueByTitle };
 
 export const ROUTING_MARKER = '<!-- production-health-routing-2916 -->';
 export const HOLD_LABEL = 'monitoring-hold';
@@ -115,13 +125,6 @@ async function request(path, token, options = {}) {
     throw new Error(`${options.method || 'GET'} ${path} failed: ${response.status} ${await response.text()}`);
   }
   return response.status === 204 ? null : response.json();
-}
-
-export async function findOpenIssueByTitle({ token, owner, repo, title }) {
-  const openIssues = await request(`/repos/${owner}/${repo}/issues?state=open&per_page=100`, token);
-  return Array.isArray(openIssues)
-    ? openIssues.find((issue) => issue.title === title && !issue.pull_request)
-    : undefined;
 }
 
 function isOnHold(issue) {
