@@ -120,7 +120,10 @@ export function auditEvidence(registry, evidenceLog) {
 
   const evidenceEntries = Array.isArray(evidenceLog)
     ? evidenceLog
-    : Object.keys(evidenceLog || {}).map((journeyId) => ({ journeyId, ...evidenceLog[journeyId] }));
+    : Object.keys(evidenceLog || {}).map((journeyId) => ({
+        journeyId,
+        ...(evidenceLog[journeyId] && typeof evidenceLog[journeyId] === 'object' ? evidenceLog[journeyId] : {}),
+      }));
 
   const evidencedIds = new Set(
     evidenceEntries.map((entry) => entry?.journeyId).filter((id) => typeof id === 'string' && id.length > 0),
@@ -138,8 +141,28 @@ export function auditEvidence(registry, evidenceLog) {
   };
 }
 
+/** Reads and parses a JSON file, wrapping any read/parse failure in a single descriptive error so callers can fail closed instead of leaking a raw stack trace. */
 function readJson(filePath) {
-  return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+  let raw;
+  try {
+    raw = fs.readFileSync(filePath, 'utf8');
+  } catch (error) {
+    throw new Error(`could not read "${filePath}": ${error.message}`);
+  }
+  try {
+    return JSON.parse(raw);
+  } catch (error) {
+    throw new Error(`could not parse "${filePath}" as JSON: ${error.message}`);
+  }
+}
+
+/** Returns the value following `flag` in argv, or undefined if the flag is absent or has no value (including when the next token is itself another `--flag`). */
+function readOptionValue(argv, flag) {
+  const idx = argv.indexOf(flag);
+  if (idx < 0) return undefined;
+  const value = argv[idx + 1];
+  if (typeof value !== 'string' || value.startsWith('--')) return undefined;
+  return value;
 }
 
 function printResult(mode, result) {
@@ -147,13 +170,17 @@ function printResult(mode, result) {
 }
 
 export function main(argv = process.argv.slice(2)) {
-  const registryPathIdx = argv.indexOf('--registry');
-  const registryPath =
-    registryPathIdx >= 0 ? argv[registryPathIdx + 1] : 'docs/ops/reports/launch-rehearsal-journey-registry-2927.json';
-  const registry = readJson(registryPath);
+  const registryPath = readOptionValue(argv, '--registry') || 'docs/ops/reports/launch-rehearsal-journey-registry-2927.json';
+  const mode = readOptionValue(argv, '--mode') || 'validate-registry';
 
-  const modeIdx = argv.indexOf('--mode');
-  const mode = modeIdx >= 0 ? argv[modeIdx + 1] : 'validate-registry';
+  let registry;
+  try {
+    registry = readJson(registryPath);
+  } catch (error) {
+    console.error(`FAIL-CLOSED: ${error.message}`);
+    process.exitCode = 1;
+    return null;
+  }
 
   if (mode === 'validate-registry') {
     const result = validateRegistry(registry);
@@ -163,20 +190,27 @@ export function main(argv = process.argv.slice(2)) {
   }
 
   if (mode === 'evidence-audit') {
-    const evidenceIdx = argv.indexOf('--evidence');
-    if (evidenceIdx < 0) {
-      console.error('FAIL: --evidence <path> is required for evidence-audit mode.');
+    const evidencePath = readOptionValue(argv, '--evidence');
+    if (!evidencePath) {
+      console.error('FAIL-CLOSED: --evidence <path> is required for evidence-audit mode.');
       process.exitCode = 1;
       return null;
     }
-    const evidenceLog = readJson(argv[evidenceIdx + 1]);
+    let evidenceLog;
+    try {
+      evidenceLog = readJson(evidencePath);
+    } catch (error) {
+      console.error(`FAIL-CLOSED: ${error.message}`);
+      process.exitCode = 1;
+      return null;
+    }
     const result = auditEvidence(registry, evidenceLog);
     printResult(mode, result);
     if (!result.ok) process.exitCode = 1;
     return result;
   }
 
-  console.error(`FAIL: unknown --mode "${mode}". Expected validate-registry or evidence-audit.`);
+  console.error(`FAIL-CLOSED: unknown --mode "${mode}". Expected validate-registry or evidence-audit.`);
   process.exitCode = 1;
   return null;
 }

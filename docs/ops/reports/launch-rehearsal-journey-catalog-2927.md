@@ -11,15 +11,42 @@ Last Reviewed: 2026-08-08
 
 # Launch rehearsal journey catalog, automation, and scenarios — #2927
 
-## Scope and non-blocking prerequisite
+## Purpose
 
-This is #2781 Task 002. Per #2927's non-blocking prerequisite rule, this document and
-its companion registry/harness are **journey design, automation scaffolding, and
-evidence-template work** — the collision-safe category of work #2927 explicitly
-authorizes before #2926's candidate/environment identity is accepted. No formal
-rehearsal journey has been executed against a live candidate. `#2928` owns that
-execution; this deliverable only builds what #2928 will run against and how its
-results will be proven complete.
+Deliver #2927 (#2781 Task 002): the journey catalog, automation harness, evidence
+model, and approved scenario set the integrated launch rehearsal executes against,
+so #2928 has a complete, tested, machine-checkable basis for formal execution
+instead of deriving one from scratch.
+
+## Scope
+
+Covers journey design, the completeness-automation harness, the evidence-log shape,
+and the approved failure/monitoring/rollback/recovery/communication/stop/resume
+scenario tables for the rehearsal defined in #2781. It does not cover #2926's
+candidate/environment identity, #2928's actual rehearsal execution/results, or
+#2929's final GO/HOLD/ADJUSTMENT/NO-GO disposition — each of those is owned by its
+own task and, where applicable, its own future report.
+
+## Current known truth
+
+- The registry (`docs/ops/reports/launch-rehearsal-journey-registry-2927.json`)
+  contains 22 journeys, one or more per each of the 7 required categories from
+  #2781's "Required journeys" list, and passes `launch_rehearsal_harness.mjs --mode
+  validate-registry` with zero defects as of this document's `Last Reviewed` date.
+- No formal rehearsal journey has been executed against a live candidate. #2926's
+  candidate/environment identity is not yet accepted, so every journey's
+  `executionPath` describes a *repeatable safe* path, not a completed run.
+- The scenario tables reflect #2781's and #2927's own already-recorded protected-stop
+  and rollback language; they are not new policy invented by this document.
+
+## Non-blocking prerequisite rule
+
+Per #2927's non-blocking prerequisite rule, this document and its companion
+registry/harness are **journey design, automation scaffolding, and evidence-template
+work** — the collision-safe category of work #2927 explicitly authorizes before
+#2926's candidate/environment identity is accepted. `#2928` owns formal execution;
+this deliverable only builds what #2928 will run against and how its results will be
+proven complete.
 
 ## Journey catalog
 

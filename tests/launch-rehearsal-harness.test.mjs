@@ -1,9 +1,12 @@
-import { describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import {
   APPROVED_CATEGORIES,
   REQUIRED_JOURNEY_FIELDS,
   auditEvidence,
+  main,
   validateJourney,
   validateRegistry,
 } from '../scripts/ci/launch_rehearsal_harness.mjs';
@@ -69,7 +72,7 @@ describe('validateJourney', () => {
 });
 
 describe('validateRegistry', () => {
-  it('passes a registry of fully-compliant, uniquely-idd journeys covering every approved category', () => {
+  it('passes a registry of fully-compliant journeys, each with a unique id, covering every approved category', () => {
     const registry = { journeys: APPROVED_CATEGORIES.map((category, i) => baseJourney({ id: `j${i}`, category })) };
     const result = validateRegistry(registry);
     expect(result.ok).toBe(true);
@@ -131,6 +134,12 @@ describe('auditEvidence', () => {
     const result = auditEvidence(registry, { a: { capturedAt: 't' }, b: { capturedAt: 't' } });
     expect(result.ok).toBe(true);
   });
+
+  it('does not throw when an object-keyed evidence log has a null/undefined value for a journeyId', () => {
+    expect(() => auditEvidence(registry, { a: null, b: undefined })).not.toThrow();
+    const result = auditEvidence(registry, { a: null, b: undefined });
+    expect(result.ok).toBe(true);
+  });
 });
 
 describe('the committed #2927 registry file', () => {
@@ -152,5 +161,86 @@ describe('the committed #2927 registry file', () => {
     for (const category of APPROVED_CATEGORIES) {
       expect(byCategory[category]).toBeGreaterThan(0);
     }
+  });
+});
+
+describe('main() CLI (fails closed instead of throwing on bad input)', () => {
+  let tmpDir;
+  let errorSpy;
+
+  beforeEach(() => {
+    tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'launch-rehearsal-harness-'));
+    errorSpy = vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'log').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    fs.rmSync(tmpDir, { recursive: true, force: true });
+    vi.restoreAllMocks();
+    process.exitCode = undefined;
+  });
+
+  it('exits 1 with a clear message when --registry points at a nonexistent file, instead of throwing', () => {
+    const result = main(['--registry', path.join(tmpDir, 'does-not-exist.json')]);
+    expect(result).toBeNull();
+    expect(process.exitCode).toBe(1);
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('FAIL-CLOSED'));
+  });
+
+  it('exits 1 with a clear message when --registry points at invalid JSON, instead of throwing', () => {
+    const badFile = path.join(tmpDir, 'bad.json');
+    fs.writeFileSync(badFile, '{ not valid json');
+    const result = main(['--registry', badFile]);
+    expect(result).toBeNull();
+    expect(process.exitCode).toBe(1);
+  });
+
+  it('falls back to the default registry path when --registry is the last argument with no following value, instead of treating --registry itself as a path and throwing', () => {
+    const result = main(['--registry']);
+    expect(result.ok).toBe(true);
+    expect(process.exitCode).toBeUndefined();
+  });
+
+  it('exits 1 when --evidence is the last argument with no following value', () => {
+    const validRegistry = path.join(tmpDir, 'registry.json');
+    fs.writeFileSync(validRegistry, JSON.stringify({ journeys: [] }));
+    const result = main(['--registry', validRegistry, '--mode', 'evidence-audit', '--evidence']);
+    expect(result).toBeNull();
+    expect(process.exitCode).toBe(1);
+    expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('--evidence <path> is required'));
+  });
+
+  it('exits 1 with a clear message when --evidence points at invalid JSON, instead of throwing', () => {
+    const validRegistry = path.join(tmpDir, 'registry.json');
+    fs.writeFileSync(validRegistry, JSON.stringify({ journeys: [] }));
+    const badEvidence = path.join(tmpDir, 'bad-evidence.json');
+    fs.writeFileSync(badEvidence, 'not json');
+    const result = main(['--registry', validRegistry, '--mode', 'evidence-audit', '--evidence', badEvidence]);
+    expect(result).toBeNull();
+    expect(process.exitCode).toBe(1);
+  });
+
+  it('runs validate-registry end-to-end against a real temp registry file', () => {
+    const validRegistry = path.join(tmpDir, 'registry.json');
+    fs.writeFileSync(
+      validRegistry,
+      JSON.stringify({
+        journeys: APPROVED_CATEGORIES.map((category, i) => ({
+          id: `j${i}`,
+          category,
+          name: 'n',
+          expectedResult: 'e',
+          evidence: 'ev',
+          owner: 'o',
+          privacyControl: 'p',
+          cleanup: 'c',
+          defectRouting: 'd',
+          executionPath: 'x',
+        })),
+      }),
+    );
+    const result = main(['--registry', validRegistry]);
+    expect(result.ok).toBe(true);
+    expect(process.exitCode).toBeUndefined();
   });
 });
