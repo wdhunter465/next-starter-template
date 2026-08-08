@@ -167,6 +167,36 @@ the next routing run can evaluate and close it normally.
 - No new containment or rate-limiting mechanism is added.
 - CI/delivery-pipeline incidents remain #2680's domain
   (`docs/ops/ci-monitoring-ownership.md`).
+- Live Production failure injection is out of scope — #2917 proves the
+  create/update/recover/hold/disable loop with an **offline fixture
+  exercise** only (`scripts/ci/production_health_failure_exercise.mjs`).
+
+## #2917 additive: controlled exercise and independent disable
+
+### Offline failure/recovery exercise
+
+Operators and agents may re-run the offline exercise without touching
+Production or opening real Issues:
+
+```bash
+node scripts/ci/production_health_failure_exercise.mjs
+```
+
+Qualification evidence and Day-2 handoff live in:
+
+- `docs/ops/reports/production-monitoring-failure-exercise-and-qualification-2917.md`
+- `docs/ops/reports/production-monitoring-day2-handoff-2917.md`
+
+### Independent collector / routing disable (rollback)
+
+| Disable | How | Preserves |
+| --- | --- | --- |
+| Collectors | Disable the workflow schedule / skip the collect step in `production-health-collectors-2915.yml` | Manual Ops Issue intake; routing has no new results to upsert |
+| Routing | Skip/remove the routing step while collectors still run | Manual Ops Issue intake; collector artifacts remain for diagnosis |
+| Hold | Apply `monitoring-hold` on a per-check Issue | Operator investigation without auto-update/auto-close noise |
+
+Disabling automation must never be the only Ops intake path — humans can
+always open an Operations Issue directly on GitHub.
 
 ## Related documents
 
@@ -176,3 +206,6 @@ the next routing run can evaluate and close it normally.
 | `scripts/ci/production_health_collectors.mjs` | #2915 — the collectors this runbook's issues are raised from |
 | `scripts/ci/production_health_routing.mjs` | #2916 — the routing/dedup/close logic this runbook describes |
 | `scripts/ci/ops_runtime_escalation.mjs` | Shared idempotent Operations-Issue primitive reused (not duplicated) by the routing script |
+| `scripts/ci/production_health_failure_exercise.mjs` | #2917 — offline controlled failure/recovery exercise |
+| `docs/ops/reports/production-monitoring-failure-exercise-and-qualification-2917.md` | #2917 qualification evidence |
+| `docs/ops/reports/production-monitoring-day2-handoff-2917.md` | #2917 Day-2 / stabilization handoff |
