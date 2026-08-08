@@ -20,6 +20,16 @@ Full classification register for every occurrence of `wdhunter645` on the defaul
 
 Live repository identity was verified directly against the GitHub API for this session (`wdhunter465/next-starter-template`, owner login `wdhunter465`, id `203789911`).
 
+## Scope
+
+Covers every `wdhunter645` occurrence found by a full-repository text search of the default branch (`main`) at the commit recorded below — source files, workflows, config, scripts, docs, and tests. It does not cover GitHub-native surfaces outside repository file content (Issues, PR bodies/comments, past commit messages, branch names) — #3215 explicitly scoped Grok's source report to repository files only, and this register follows the same scope. It does not decide or change CODEOWNERS/actor-allowlist policy; it only classifies whether an *existing* occurrence correctly identifies the repository owner or the Product Authority user account.
+
+## Current known truth
+
+- Live repository owner/slug: `wdhunter465` / `wdhunter465/next-starter-template` (verified via GitHub API, this session).
+- Product Authority GitHub user account: `wdhunter645` (referred to elsewhere in this repository as "Bill").
+- As of the corrections in this PR, `main` will contain 91 fewer `wdhunter645` occurrences (all `REPOSITORY_OWNER_INCORRECT`) and 301 remaining occurrences, each with a recorded non-error classification (`USER_ACCOUNT_CORRECT`, `HISTORICAL_EVIDENCE_CORRECT`, or `OTHER_VALID_REFERENCE`) — see the Register and Classification totals sections below for the authoritative breakdown. This document does not evolve after merge; a future audit that finds new occurrences should produce a new dated register rather than amend this one, so this file has no "Intended final state" beyond what is recorded here.
+
 ## Initial search
 
 Re-run on default branch `main` at commit `e8907b1911f001f3aa825dc664101871840ec644` (`git grep -n wdhunter645`):
