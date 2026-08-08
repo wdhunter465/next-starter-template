@@ -1,18 +1,24 @@
-name: OPS — Production Health Collectors (#2915)
+name: OPS — Production Health Collectors & Routing (#2915/#2916)
 
-# Zero-cost, read-only signal collectors for #2780 Task 002 (#2915).
+# Zero-cost, read-only signal collectors (#2780 Task 002, #2915) plus
+# deduplicated Operations Issue routing (#2780 Task 003, #2916).
 #
-# Hits a curated set of public, unauthenticated GET endpoints identified as
-# monitoring gaps in #2914's service/journey map, and normalizes each result
-# into one of five deterministic health states (healthy/degraded/unavailable
-# /stale/missing-evidence). Every request is a plain GET — this workflow
-# performs no Production write under any code path.
+# Collectors: hits a curated set of public, unauthenticated GET endpoints
+# identified as monitoring gaps in #2914's service/journey map, and
+# normalizes each result into one of five deterministic health states
+# (healthy/degraded/unavailable/stale/missing-evidence). Every request is a
+# plain GET — this workflow performs no Production write under any code
+# path.
 #
-# This is the collector/normalization layer only. Operations Issue routing
-# and escalation (#2916) is a separate, later work unit and is intentionally
-# not wired in here — this workflow currently only fails its own job on a
-# detected "unavailable" state, matching this repo's existing pattern of
-# advisory-first OPS runtime workflows before escalation wiring is added.
+# Routing: for every non-healthy result, creates or updates ONE stable
+# per-check Operations Issue (reusing scripts/ci/ops_runtime_escalation.mjs's
+# idempotent upsert primitive), and closes that issue with a resolution
+# comment the first time the check recovers to healthy. See
+# docs/ops/reports/production-monitoring-incident-runbook-2916.md for the
+# full incident lifecycle this issue routing feeds into. The routing step
+# runs even when the collectors step reports failure (an "unavailable"
+# check IS exactly when routing needs to run), and itself performs no
+# Production write — its only side effect is GitHub Issues API calls.
 
 on:
   schedule:
@@ -25,6 +31,7 @@ concurrency:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   collect:
@@ -48,7 +55,20 @@ jobs:
 
       - name: Run Production health collectors
         id: collect
+        continue-on-error: true
         run: node scripts/ci/production_health_collectors.mjs
+
+      - name: Run Production health routing
+        id: route
+        if: always() && hashFiles('production-health-collectors-2915-result.json') != ''
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          OPS_ROUTING_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: node scripts/ci/production_health_routing.mjs
+
+      - name: Fail the job if any check was unavailable or routing failed
+        if: always() && (steps.collect.outcome == 'failure' || steps.route.outcome == 'failure')
+        run: exit 1
 
       - name: Save health-check baseline cache
         if: always() && hashFiles('.cache/production-health-2915-baseline.json') != ''
@@ -57,7 +77,7 @@ jobs:
           path: .cache/production-health-2915-baseline.json
           key: production-health-2915-baseline-${{ github.run_id }}
 
-      - name: Upload collector evidence
+      - name: Upload collector and routing evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
@@ -65,8 +85,9 @@ jobs:
           path: |
             production-health-collectors-2915-result.json
             production-health-collectors-2915-result.md
+            production-health-routing-2916-result.md
           if-no-files-found: warn
 
-      - name: Write step summary
+      - name: Write collector step summary
         if: always() && hashFiles('production-health-collectors-2915-result.md') != ''
         run: cat production-health-collectors-2915-result.md >> "$GITHUB_STEP_SUMMARY"
