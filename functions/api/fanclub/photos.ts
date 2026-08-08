@@ -15,18 +15,13 @@ function parseTags(raw: string | null): string[] {
     .filter(Boolean);
 }
 
-/**
- * True when photos.status exists (migration #0045 / #3119).
- * Once present, member gallery reads must return only status = 'published'
- * so pending/rejected submissions stay non-public.
- */
-async function photosHasStatusColumn(db: any): Promise<boolean> {
+/** Column inventory for schema-gated published-only + attribution selects. */
+async function photosColumnNames(db: any): Promise<Set<string>> {
   try {
     const result = await db.prepare(`PRAGMA table_info(photos)`).all();
-    const names = new Set((result?.results || []).map((row: any) => row.name));
-    return names.has('status');
+    return new Set((result?.results || []).map((row: any) => row.name));
   } catch {
-    return false;
+    return new Set();
   }
 }
 
@@ -49,7 +44,8 @@ export const onRequestGet = async (context: any): Promise<Response> => {
     const where: string[] = ['(is_memorabilia IS NULL OR is_memorabilia = 0)'];
     const args: any[] = [];
 
-    if (await photosHasStatusColumn(auth.db)) {
+    const columns = await photosColumnNames(auth.db);
+    if (columns.has('status')) {
       where.push(`status = 'published'`);
     }
 
@@ -65,6 +61,13 @@ export const onRequestGet = async (context: any): Promise<Response> => {
     }
 
     const whereSql = where.length ? `WHERE ${where.join(' AND ')}` : '';
+    const attributionSelect = [
+      columns.has('credit_line') ? 'credit_line' : null,
+      columns.has('rights_owner') ? 'rights_owner' : null,
+    ]
+      .filter(Boolean)
+      .join(', ');
+    const selectCols = `id, photo_id, url, title, description, tags, source${attributionSelect ? `, ${attributionSelect}` : ''}`;
 
     const countRow = await auth.db
       .prepare(`SELECT COUNT(1) AS n FROM photos ${whereSql}`)
@@ -74,7 +77,7 @@ export const onRequestGet = async (context: any): Promise<Response> => {
 
     const rows = await auth.db
       .prepare(
-        `SELECT id, photo_id, url, title, description, tags, source
+        `SELECT ${selectCols}
          FROM photos
          ${whereSql}
          ORDER BY id DESC
@@ -92,6 +95,8 @@ export const onRequestGet = async (context: any): Promise<Response> => {
       tags: row.tags || null,
       // Design field required; nearest available schema field is `source`.
       uploaded_by: row.source || null,
+      credit_line: row.credit_line || null,
+      rights_owner: row.rights_owner || null,
     }));
 
     return new Response(

@@ -99,9 +99,9 @@ Below the grid:
 
 ## Photo Detail
 
-**Current known truth (#2898):** clicking a thumbnail in the Photo Grid above does nothing today — no modal or dedicated detail route exists. The "may include" list below is the intended #2900 scope, not current behavior.
+**Current known truth (#2900):** `/fanclub/photo` opens a linkable detail panel via `?id=<photoId>` with keyboard navigation (Escape/arrows), attribution (`credit_line` / source), and an unavailable state when the id is missing from the published gallery set. Pending/rejected rows remain excluded by published-only API filters.
 
-**Intended final state (#2900):** a detail view (modal or dedicated route) showing the larger image, full title/description, tags, credit/source, and navigation between photos.
+**Intended final state (#2900):** a detail view (modal or dedicated route) showing the larger image, full title/description, tags, credit/source, and navigation between photos — delivered as the `PhotoDetailPanel` deep-link panel on the gallery page.
 
 ## Data
 
