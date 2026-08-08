@@ -150,6 +150,22 @@ describe('auditRetestCoverage', () => {
   it('accepts an object-keyed evidence log without throwing on null/undefined values', () => {
     expect(() => auditRetestCoverage({ j1: null }, { defects: [] })).not.toThrow();
   });
+
+  it('does not throw when ledger.defects contains null/non-object entries, and excludes them rather than crashing', () => {
+    const evidenceLog = [{ journeyId: 'j1', result: 'fail', candidateSha: 'sha-a' }];
+    const ledger = { defects: [null, undefined, 'not-an-object', baseDefect({ journeyId: 'j1', candidateSha: 'sha-a', disposition: 'resolved' })] };
+    expect(() => auditRetestCoverage(evidenceLog, ledger)).not.toThrow();
+    const result = auditRetestCoverage(evidenceLog, ledger);
+    expect(result.ok).toBe(true);
+    expect(result.defectCount).toBe(1);
+  });
+
+  it('does not throw when a requires-retest defect in the ledger is malformed, and reports "(missing id)" instead of crashing on defect.id', () => {
+    const ledger = { defects: [null, { journeyId: 'j1', disposition: 'requires-retest', candidateSha: 'sha-a' }] };
+    expect(() => auditRetestCoverage([{ journeyId: 'j1', result: 'fail', candidateSha: 'sha-a' }], ledger)).not.toThrow();
+    const result = auditRetestCoverage([{ journeyId: 'j1', result: 'fail', candidateSha: 'sha-a' }], ledger);
+    expect(result.uncoveredRetests).toEqual(['(missing id)']);
+  });
 });
 
 describe('main() CLI (fails closed instead of throwing on bad input)', () => {

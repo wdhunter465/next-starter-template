@@ -3,7 +3,7 @@
  * #2928 (#2781 Task 003) — deterministic, zero-cost defect-ledger and
  * retest-coverage harness for the formal launch rehearsal.
  *
- * Like #2927's `launch_rehearsal_harness.mjs`, this never performs a live
+ * Like #2927's journey-registry harness, this never performs a live
  * request or touches any environment — #2926's candidate/environment
  * identity is not yet accepted, so no formal rehearsal has run. What this
  * *does* do, deterministically and repeatably, once #2928 formally executes
@@ -96,10 +96,9 @@ export function validateLedger(ledger) {
 
 /**
  * Cross-checks a defect ledger against an #2927-style evidence log.
- * `evidenceLog` is the same array-or-object-keyed shape `auditEvidence` in
- * `launch_rehearsal_harness.mjs` accepts, but here every entry must also
- * carry `result` ('pass' | 'fail') and `candidateSha` for retest-coverage
- * to be checkable.
+ * `evidenceLog` is the same array-or-object-keyed shape #2927's harness
+ * `auditEvidence` accepts, but here every entry must also carry `result`
+ * ('pass' | 'fail') and `candidateSha` for retest-coverage to be checkable.
  */
 export function auditRetestCoverage(evidenceLog, ledger) {
   const entries = Array.isArray(evidenceLog)
@@ -110,7 +109,11 @@ export function auditRetestCoverage(evidenceLog, ledger) {
       }));
 
   const failingEntries = entries.filter((entry) => entry?.result === 'fail' && isNonEmptyString(entry?.journeyId));
-  const defects = Array.isArray(ledger?.defects) ? ledger.defects : [];
+  // Malformed (null/non-object) ledger entries are excluded rather than thrown on — the
+  // ledger's own structural well-formedness is validateLedger()'s job, not this audit's.
+  const defects = (Array.isArray(ledger?.defects) ? ledger.defects : []).filter(
+    (defect) => defect && typeof defect === 'object',
+  );
 
   const missingDefectRecord = failingEntries
     .filter((entry) => !defects.some((defect) => defect.journeyId === entry.journeyId && defect.candidateSha === entry.candidateSha))
@@ -130,7 +133,7 @@ export function auditRetestCoverage(evidenceLog, ledger) {
       );
       return !laterPass;
     })
-    .map((defect) => defect.id)
+    .map((defect) => (isNonEmptyString(defect.id) ? defect.id : '(missing id)'))
     .sort();
 
   return {

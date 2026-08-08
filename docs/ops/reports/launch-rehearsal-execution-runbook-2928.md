@@ -40,6 +40,19 @@ final disposition — each is owned by its own task/report.
 - This runbook consumes #2927's journey registry and evidence-log shape unchanged;
   it does not redefine them.
 
+## Intended final state
+
+This document is evolving scaffolding pending #2926 (candidate/environment
+acceptance) and #2927 (accepted journeys/harness for final execution). Its stable,
+post-execution state — once a real rehearsal has actually run — adds, without
+removing the procedure above: a completed defect ledger for that run, the
+`retest-coverage` result proving every `requires-retest` defect was genuinely
+retested against a requalified candidate, and a final count of defects by
+severity/disposition that #2929 cites verbatim in its disposition report. The
+runbook procedure itself is not expected to change once #2926/#2927 land — only
+the "Current known truth" section above is expected to update, from "no rehearsal
+has run" to a summary of the actual run(s).
+
 ## Non-blocking prerequisite rule
 
 Per #2928's non-blocking prerequisite rule, this document and its companion
@@ -56,13 +69,14 @@ for real.
    from #2926 before starting. The candidate must not change for the duration of a
    rehearsal pass — this is what "unchanged qualified candidate" in #2928's
    objective means.
-2. Run every journey in `docs/ops/reports/launch-rehearsal-journey-registry-2927.json`
-   via its `executionPath`, recording one evidence-log entry per journey per
-   `docs/ops/reports/launch-rehearsal-journey-catalog-2927.md`'s evidence-model shape,
+2. Run every journey in #2927's canonical journey registry via its `executionPath`,
+   recording one evidence-log entry per journey per #2927's evidence-model shape,
    extended with `result` (`pass`/`fail`) and `candidateSha` (required for this
-   runbook's defect-ledger cross-checks).
-3. Run `node scripts/ci/launch_rehearsal_harness.mjs --mode evidence-audit --evidence <log>`
-   to prove every journey has evidence before triaging results.
+   runbook's defect-ledger cross-checks). #2927 is the sole authority for the
+   registry/catalog's canonical file location — this runbook intentionally does not
+   embed that path so it cannot drift out of sync if #2927 relocates or renames it.
+3. Run #2927's evidence-audit harness (`--mode evidence-audit --evidence <log>`) to
+   prove every journey has evidence before triaging results.
 4. For every `fail` result, open one defect record (see taxonomy below) referencing
    the failing journey id and the candidate SHA the failure occurred on.
 5. Route each defect per its severity (see Remediation routing below).
