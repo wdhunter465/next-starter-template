@@ -11,6 +11,37 @@ Last Reviewed: 2026-08-08
 
 # Production monitoring failure exercise and qualification (#2917)
 
+## Purpose
+
+Record offline controlled-failure / recovery exercise evidence and the
+Promotion Candidate qualification decision for the
+`component/production-monitoring-response` monitoring capability delivered by
+#2914–#2917.
+
+## Scope
+
+In scope: fixture-only exercise of collectors→routing create/update/recover/hold/disable
+paths; component-capability Go/No-Go; rollback/disable proofs that preserve
+manual Ops Issue intake.
+
+Out of scope: Production activation, live Production failure injection,
+CI/delivery monitoring (#2680), and auto-remediation.
+
+## Current known truth
+
+Collectors (#2915) and deduplicated Ops routing (#2916) already exist on the
+component tip. #2917 adds `scripts/ci/production_health_failure_exercise.mjs`
+and focused tests that prove the failure/recovery/hold/disable loop offline
+without live GitHub or Production side effects. Production activation is not
+authorized by this report.
+
+## Intended final state
+
+After independent review and authorized component integration, the monitoring
+capability is qualified for continued Day-2 use on the component branch, with
+durable exercise/qualification evidence and an explicit No-Go for Production
+activation until Product Authority issues a separate Production Go.
+
 ## Candidate identity
 
 | Field | Value |

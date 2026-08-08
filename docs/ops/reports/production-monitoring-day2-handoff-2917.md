@@ -11,6 +11,34 @@ Last Reviewed: 2026-08-08
 
 # Production monitoring Day-2 handoff (#2917)
 
+## Purpose
+
+Hand Day-2 / stabilization ownership, operator surfaces, and explicit
+deferrals for the production-monitoring-response capability to Bill / Day-2
+Operations after the #2917 offline exercise and component qualification.
+
+## Scope
+
+In scope: owners, operator surfaces, stabilization expectations, zero-cost
+constraints, and successor pointers (#2781).
+
+Out of scope: Production activation authority, CI/delivery monitoring (#2680),
+and launch-rehearsal entry criteria implementation (#2781).
+
+## Current known truth
+
+Monitoring collectors, routing, and the #2916 incident runbook are present on
+`component/production-monitoring-response`. #2917 adds offline exercise
+evidence and this handoff packet. Production activation remains separately
+protected and is not granted here.
+
+## Intended final state
+
+Day-2 operators can triage `OPS — Production health: *` Issues using the
+runbook, apply `monitoring-hold`, independently disable collectors or routing
+without losing manual Ops intake, and escalate only material exceptions —
+while Production activation waits for a separate Product Authority decision.
+
 ## Ownership
 
 | Concern | Owner |
