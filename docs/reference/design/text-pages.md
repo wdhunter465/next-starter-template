@@ -1,11 +1,12 @@
 ---
-Doc Type: Specification
+Doc Type: Reference
 Audience: Human + AI
-Authority Level: Canonical Design Specification
+Authority Level: Controlled
 Owns: Routes, navigation invariants, UI/UX contracts, page content contracts
 Does Not Own: How-to procedures; operational runbooks; governance policies
 Canonical Reference: /docs/reference/design/LGFC-Production-Design-and-Standards.md
-Last Reviewed: 2026-02-20
+Related Issues: #3149
+Last Reviewed: 2026-08-08
 ---
 
 # Text Page Specifications — LGFC
@@ -120,11 +121,11 @@ This page consolidates both contact and support destinations.
 **Header state:** Visitor header (public)
 **Purpose:** Privacy policy.
 
-**Content:** Awaiting legal copy.
+**Content:** Public disclosure of current Join/Login/Ask/member data handling (#3149). Source fallback in `src/app/privacy/page.tsx` and D1 `page_content` (migration `0045_privacy_join_ask_disclosure.sql`) must stay materially aligned. Does not claim magic-link collection; Day-1 auth is cookie session per `auth-model.md`.
 
 **Notes:**
 
-- Static prose only.
+- Prefer D1 `page_content` when live; fallback must not understate Join/Ask fields.
 - Linked from footer: Privacy → `/privacy`
 
 -----
@@ -136,11 +137,10 @@ This page consolidates both contact and support destinations.
 **Header state:** Visitor header (public)
 **Purpose:** Terms of service.
 
-**Content:** Awaiting legal copy.
+**Content:** Current fallback covers respectful use, submissions, copyright/attribution, no-warranty, and contact. #3149 reviewed Join/Login/Ask/member session facts against Terms and recorded **no Terms rewrite** (no concrete factual inconsistency).
 
 **Notes:**
 
-- Static prose only.
 - Linked from footer: Terms → `/terms`
 
 -----

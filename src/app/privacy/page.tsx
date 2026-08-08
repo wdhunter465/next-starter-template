@@ -17,8 +17,8 @@ export default async function Page() {
         <p style={{ ...styles.lead }} dangerouslySetInnerHTML={{ __html: leadHtml }} />
       ) : (
         <p style={{ ...styles.lead }}>
-          This is a fan‑run site. We collect the minimum information needed to operate the Join list and accept
-          submissions.
+          This is a fan-run site. We collect the minimum information needed to operate Join/Login, Ask a
+          Question, member verification, and content submissions.
         </p>
       )}
 
@@ -28,21 +28,49 @@ export default async function Page() {
         <>
           <h2 style={{ ...styles.h2 }}>What we collect</h2>
           <ul style={{ ...styles.ul }}>
-            <li style={{ ...styles.li }}>Join form: name and email address.</li>
+            <li style={{ ...styles.li }}>
+              Join / Login: first name, last name, optional screen name, email address, and optional email
+              opt-in for updates.
+            </li>
+            <li style={{ ...styles.li }}>
+              Ask a Question: first name, last name, optional screen name, email address, and the question
+              text you submit for moderator review.
+            </li>
+            <li style={{ ...styles.li }}>
+              Member creation and verification: when you Join or Ask with a new email, we may create a
+              member record and send a welcome or transactional confirmation email related to that request.
+            </li>
+            <li style={{ ...styles.li }}>
+              Session authentication: a short-lived session cookie used to keep you signed in to Fan Club
+              member surfaces after Login.
+            </li>
             <li style={{ ...styles.li }}>
               Library submissions: the content you submit, your provided name/email, and timestamps.
             </li>
             <li style={{ ...styles.li }}>
-              Photo submissions (when enabled): the media URL, description/caption text you provide, and timestamps.
+              Photo submissions (when enabled): the media URL, description/caption text you provide, and
+              timestamps.
             </li>
             <li style={{ ...styles.li }}>
-              Basic technical logs (e.g., request timing/errors) used for reliability and abuse prevention.
+              Basic technical logs (for example request timing/errors) used for reliability, security, and
+              rate limiting.
             </li>
           </ul>
 
           <h2 style={{ ...styles.h2 }}>How we use it</h2>
           <ul style={{ ...styles.ul }}>
-            <li style={{ ...styles.li }}>To send email updates you explicitly requested via the Join form.</li>
+            <li style={{ ...styles.li }}>
+              To operate Join/Login and member access, including session cookies for authenticated Fan Club
+              pages.
+            </li>
+            <li style={{ ...styles.li }}>
+              To review and reply to Ask questions, and to add approved answers to the public FAQ when
+              appropriate.
+            </li>
+            <li style={{ ...styles.li }}>
+              To send email updates only when you explicitly opt in via Join (non-opted-in members may still
+              receive strictly transactional confirmations related to their request).
+            </li>
             <li style={{ ...styles.li }}>To publish and manage user submissions (Library and photo/media captions).</li>
             <li style={{ ...styles.li }}>To keep the site secure and functioning (rate limiting, troubleshooting).</li>
           </ul>
@@ -56,7 +84,8 @@ export default async function Page() {
           </p>
 
           <p style={{ ...styles.p }}>
-            This policy will be refined as features expand. When we add new data collection, we’ll update this page.
+            This policy will be refined as features expand. When we add new data collection, we will update
+            this page.
           </p>
         </>
       )}
