@@ -21,6 +21,23 @@ Reconcile repository fixtures/configuration, D1 schema and seed migrations, B2 r
 
 This report does **not** authorize Production mutation or publication.
 
+## Scope
+
+**In scope**
+
+- Repository-side evidence only: fixtures under `data/` and `seed/`, D1 migration/schema/seed SQL under `migrations/`, B2 reference inventory and sync path documentation, launch-readiness manifest, and the #2906 matrix on `component/production-content-readiness`.
+- Privacy-safe structural classifications (schema present, seed file present, fixture present, live count unqueried).
+- Mapping every `missing-actionable` and protected matrix row to a sourcing class, rights gate, and successor batch *plan*.
+- Explicit register of Product/editorial/rights/legal decisions that block publication scheduling.
+
+**Out of scope**
+
+- Live Production D1 or B2 reads that return population counts or private payloads.
+- Production D1/B2 writes, media uploads, or publication state changes.
+- Rights clearance, partner permission, attorney review, or editorial approval decisions.
+- Implementation of #2908 batch execution or #2909 Production verification.
+- Nav/IA finalization, fundraiser enablement, or any paid dependency.
+
 ## Current known truth
 
 - Parent #2859 active; #2906 matrix merged on `component/production-content-readiness` via PR #3202.
@@ -209,5 +226,3 @@ Revert this report via reviewed PR. Documentation rollback does not alter D1/B2 
 ---
 
 *End of #2907 reconciliation.*
-
-<!-- gate-rerun: 2026-08-08T20:22Z component-integration after required checks settled -->
