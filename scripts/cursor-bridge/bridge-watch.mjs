@@ -394,7 +394,7 @@ function main() {
               'run',
               wf,
               '--repo',
-              'wdhunter645/next-starter-template',
+              'wdhunter465/next-starter-template',
               '-f',
               `source_commit=${sourceCommit}`,
             ],

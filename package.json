@@ -18,11 +18,11 @@
   "private": true,
   "repository": {
     "type": "git",
-    "url": "https://github.com/wdhunter645/next-starter-template.git"
+    "url": "https://github.com/wdhunter465/next-starter-template.git"
   },
   "homepage": "https://www.lougehrigfanclub.com",
   "bugs": {
-    "url": "https://github.com/wdhunter645/next-starter-template/issues"
+    "url": "https://github.com/wdhunter465/next-starter-template/issues"
   },
   "cloudflare": {
     "label": "Next.js Framework Starter",

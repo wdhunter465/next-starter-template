@@ -68,7 +68,7 @@ git config --global user.email "your.email@example.com"
 2. [Add the SSH key to your GitHub account](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/adding-a-new-ssh-key-to-your-github-account)
 3. Update the remote URL:
    ```bash
-   git remote set-url origin git@github.com:wdhunter645/next-starter-template.git
+   git remote set-url origin git@github.com:wdhunter465/next-starter-template.git
    ```
 
 For more detailed instructions on local Git setup, see the troubleshooting section below.
@@ -146,7 +146,7 @@ Alternatively, you can update the remote URL to include your credentials:
 git remote remove origin
 
 # Add the remote with your credentials
-git remote add origin https://YOUR_USERNAME:YOUR_PAT@github.com/wdhunter645/next-starter-template.git
+git remote add origin https://YOUR_USERNAME:YOUR_PAT@github.com/wdhunter465/next-starter-template.git
 ```
 
 ⚠️ **Security Note**: Never commit tokens to your repository!

@@ -4,7 +4,7 @@
 
 set -e
 
-REPO="wdhunter645/next-starter-template"
+REPO="wdhunter465/next-starter-template"
 BRANCHES=(
     "copilot/fix-codespaces-instability"
     "copilot/fix-codespaces-login-issue"

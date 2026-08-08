@@ -31,7 +31,7 @@ concurrency:
 jobs:
   deliver:
     if: >-
-      github.repository == 'wdhunter645/next-starter-template' &&
+      github.repository == 'wdhunter465/next-starter-template' &&
       (
         (
           github.event_name == 'issues' &&
@@ -53,7 +53,7 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           REPOSITORY: ${{ github.repository }}
         run: |
-          test "$REPOSITORY" = "wdhunter645/next-starter-template"
+          test "$REPOSITORY" = "wdhunter465/next-starter-template"
           test "$EVENT_NAME" = "issues" -o "$EVENT_NAME" = "workflow_dispatch"
           echo "delivery_only=true"
 

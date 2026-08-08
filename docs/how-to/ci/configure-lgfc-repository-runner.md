@@ -37,7 +37,7 @@ Confirm the Chromebook Linux environment is Debian 12 x64, systemd is available,
 
 ### Create the repository runner
 
-In `wdhunter645/next-starter-template`:
+In `wdhunter465/next-starter-template`:
 
 1. Open **Settings → Actions → Runners**.
 2. Select **New self-hosted runner**.
@@ -59,7 +59,7 @@ After downloading and extracting the runner package, register it with the genera
 
 ```bash
 ./config.sh \
-  --url https://github.com/wdhunter645/next-starter-template \
+  --url https://github.com/wdhunter465/next-starter-template \
   --token <REGISTRATION_TOKEN> \
   --name lgfc-chromebook-linux \
   --labels lgfc-repo-runner,chromebook,debian-12 \

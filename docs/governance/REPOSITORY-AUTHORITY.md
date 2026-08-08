@@ -17,7 +17,7 @@ This document is the repository constitution for LGFC. It defines precedence, do
 
 ## Temporary constitutional adjustment register
 
-Project [#2678](https://github.com/wdhunter645/next-starter-template/issues/2678) contains the temporary constitutional adjustment register while its approved governance refinements are being implemented.
+Project [#2678](https://github.com/wdhunter465/next-starter-template/issues/2678) contains the temporary constitutional adjustment register while its approved governance refinements are being implemented.
 
 All governance-sensitive agents must read this constitution and the section of the #2678 Issue body delimited exactly by:
 

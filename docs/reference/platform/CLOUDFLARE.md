@@ -22,7 +22,7 @@ This file is **not** a Domain Policy co-owner. Conflicts with domain policy, Pro
 ## Cloudflare Pages
 
 **Project:** `next-starter-template`  
-**Connected repo:** `wdhunter645/next-starter-template`  
+**Connected repo:** `wdhunter465/next-starter-template`  
 **Production branch:** `main`  
 **Automatic deployments:** enabled  
 **Domains:**  

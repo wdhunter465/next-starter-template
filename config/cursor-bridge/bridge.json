@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "repository": "wdhunter645/next-starter-template",
+  "repository": "wdhunter465/next-starter-template",
   "workspacePathEnv": "LGFC_CURSOR_BRIDGE_WORKSPACE",
   "defaultWorkspaceHint": "next-starter-template/next-starter-template",
   "queueDir": "queue",

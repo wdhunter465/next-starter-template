@@ -107,9 +107,9 @@ Use this ordered restoration when a Model B promotion to `main` fails or must be
 Verification commands (operator):
 
 ```bash
-gh api repos/wdhunter645/next-starter-template/rulesets
-gh api repos/wdhunter645/next-starter-template --jq '{allow_auto_merge, allow_merge_commit, allow_rebase_merge, allow_squash_merge}'
-gh api repos/wdhunter645/next-starter-template/rulesets/15885337
+gh api repos/wdhunter465/next-starter-template/rulesets
+gh api repos/wdhunter465/next-starter-template --jq '{allow_auto_merge, allow_merge_commit, allow_rebase_merge, allow_squash_merge}'
+gh api repos/wdhunter465/next-starter-template/rulesets/15885337
 ```
 
 ## Verification checklist

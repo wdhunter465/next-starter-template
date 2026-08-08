@@ -5,7 +5,7 @@
  */
 import { execFileSync } from 'node:child_process';
 
-const REPO = 'wdhunter645/next-starter-template';
+const REPO = 'wdhunter465/next-starter-template';
 
 const METADATA = {
   2286: `Dashboard Lifecycle: active

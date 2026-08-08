@@ -98,7 +98,7 @@ Canonical ingress predicate: `scripts/cursor-bridge/lib/wake-ingress.mjs` (`shou
 2. Required routing labels from Bridge config are present (default: `agent:cursor` and `handoff:ready`).
 3. Positive Cursor routing signal is present (`agent:cursor`), and **exactly one** `agent:*` label is present. Multiple/conflicting `agent:*` labels fail closed with deterministic reason `conflicting_agent_routing_labels:<sorted-labels>` (#3013 remediation). Non-Cursor-only `agent:*` traffic is rejected as `non_cursor_directed_traffic`.
 4. Issue does not already carry an already-handed-off status label (`status:review`, `status:complete`, `status:post-merge-verify`) — a stale label/status pairing does not re-launch a finished handoff. `status:implementation` does not block (Cursor may still be actively working it).
-5. Repository matches the configured expected repository (`wdhunter645/next-starter-template`).
+5. Repository matches the configured expected repository (`wdhunter465/next-starter-template`).
 6. Serial lane has no active conflicting claim.
 7. Delivery key is not already consumed (wake packet `deliveryId`; otherwise issue-number fallback). Unsafe delivery identities are encoded as a stable SHA-256 digest of the complete original value (`enc-<hex>`) before use in `consumed/`, recovery filenames, and claims — never a truncated reversible encoding.
 8. Bridge, workspace, GitHub, and Cursor authentication/preflight readiness succeed.

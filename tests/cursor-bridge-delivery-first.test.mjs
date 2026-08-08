@@ -216,7 +216,7 @@ describe('cursor bridge label- and status-driven eligibility', () => {
 });
 
 describe('cursor-only wake ingress / packet boundary (label-driven)', () => {
-  const repo = 'wdhunter645/next-starter-template';
+  const repo = 'wdhunter465/next-starter-template';
   const cursorLabels = ['agent:cursor', 'handoff:ready'];
 
   it('delivers on a handoff:ready labeled event when agent:cursor is already present', () => {

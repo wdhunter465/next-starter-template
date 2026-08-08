@@ -18,7 +18,7 @@ concurrency:
 jobs:
   health:
     if: >-
-      github.repository == 'wdhunter645/next-starter-template' &&
+      github.repository == 'wdhunter465/next-starter-template' &&
       github.actor == 'wdhunter645' &&
       github.ref == 'refs/heads/main' &&
       inputs.confirmation == 'RUNNER_HEALTH'
@@ -33,7 +33,7 @@ jobs:
           ACTOR: ${{ github.actor }}
         run: |
           test "$EVENT_NAME" = "workflow_dispatch"
-          test "$REPOSITORY" = "wdhunter645/next-starter-template"
+          test "$REPOSITORY" = "wdhunter465/next-starter-template"
           test "$REF_NAME" = "refs/heads/main"
           test "$ACTOR" = "wdhunter645"
 

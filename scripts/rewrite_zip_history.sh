@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# ZIP history purge for wdhunter645/next-starter-template
+# ZIP history purge for wdhunter465/next-starter-template
 # Removes all *.zip from git history and force-pushes rewritten history.
 # SAFETY: creates a remote backup tag first.
 
-REPO_URL="${REPO_URL:-https://github.com/wdhunter645/next-starter-template.git}"
+REPO_URL="${REPO_URL:-https://github.com/wdhunter465/next-starter-template.git}"
 WORKDIR="${WORKDIR:-/tmp/lgfc-zip-history-rewrite}"
 ZIP_GLOB="${ZIP_GLOB:-*.zip}"
 DRY_RUN="${DRY_RUN:-0}"
