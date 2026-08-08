@@ -61,13 +61,20 @@ export function validatePreflightRecord(preflight) {
  * is #2930's manifest `candidateSha` — passed in directly (not imported)
  * per the established JSON-pipeline contract between these harnesses.
  */
-export function buildDeploymentReadiness({ preflight, deploymentCandidateSha }) {
+export function buildDeploymentReadiness({ preflight, deploymentCandidateSha, manifestProvided = false }) {
   const problems = validatePreflightRecord(preflight);
   const blockers = [];
   if (problems.length > 0) blockers.push('preflight_incomplete');
 
   const rollbackSha = preflight && typeof preflight === 'object' ? preflight.rollbackCandidateSha : undefined;
-  if (
+
+  if (manifestProvided && !isNonEmptyString(deploymentCandidateSha)) {
+    // A manifest was supplied specifically to run the rollback-distinctness
+    // invariant. Silently skipping that check because the manifest omitted
+    // candidateSha would let `ready: true` through without ever comparing
+    // rollback vs deployment candidate — fail closed instead.
+    blockers.push('manifest_candidate_sha_missing_or_invalid');
+  } else if (
     isNonEmptyString(rollbackSha) &&
     isNonEmptyString(deploymentCandidateSha) &&
     rollbackSha === deploymentCandidateSha
@@ -82,6 +89,7 @@ export function buildDeploymentReadiness({ preflight, deploymentCandidateSha }) 
       preflightProblems: problems,
       deploymentCandidateSha: deploymentCandidateSha ?? null,
       rollbackCandidateSha: rollbackSha ?? null,
+      manifestProvided,
     },
   };
 }
@@ -120,9 +128,10 @@ export function main(argv = process.argv.slice(2)) {
 
   let preflight;
   let deploymentCandidateSha;
+  const manifestProvided = Boolean(manifestPath);
   try {
     preflight = readJson(preflightPath);
-    if (manifestPath) {
+    if (manifestProvided) {
       const manifest = readJson(manifestPath);
       deploymentCandidateSha = manifest && typeof manifest === 'object' ? manifest.candidateSha : undefined;
     }
@@ -132,7 +141,7 @@ export function main(argv = process.argv.slice(2)) {
     return null;
   }
 
-  const result = buildDeploymentReadiness({ preflight, deploymentCandidateSha });
+  const result = buildDeploymentReadiness({ preflight, deploymentCandidateSha, manifestProvided });
   console.log(JSON.stringify(result, null, 2));
   process.exitCode = result.ready ? 0 : 1;
   return result;

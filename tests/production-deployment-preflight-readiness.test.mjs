@@ -106,6 +106,26 @@ describe('buildDeploymentReadiness', () => {
       expect.arrayContaining(['preflight_incomplete', 'rollback_candidate_same_as_deployment_candidate']),
     );
   });
+
+  it('fails closed when a manifest was supplied but carries no usable candidateSha, instead of silently skipping the invariant', () => {
+    const result = buildDeploymentReadiness({
+      preflight: compliantPreflight(),
+      deploymentCandidateSha: undefined,
+      manifestProvided: true,
+    });
+    expect(result.ready).toBe(false);
+    expect(result.blockers).toEqual(['manifest_candidate_sha_missing_or_invalid']);
+  });
+
+  it('fails closed on a manifest-provided but whitespace-only candidateSha', () => {
+    const result = buildDeploymentReadiness({
+      preflight: compliantPreflight(),
+      deploymentCandidateSha: '   ',
+      manifestProvided: true,
+    });
+    expect(result.ready).toBe(false);
+    expect(result.blockers).toEqual(['manifest_candidate_sha_missing_or_invalid']);
+  });
 });
 
 describe('main() CLI (fails closed instead of throwing on bad input)', () => {
@@ -169,6 +189,17 @@ describe('main() CLI (fails closed instead of throwing on bad input)', () => {
     fs.writeFileSync(manifestPath, JSON.stringify({ candidateSha: 'sha-deploy' }));
     const result = main(['--preflight', preflightPath, '--manifest', manifestPath]);
     expect(result.ready).toBe(false);
+    expect(process.exitCode).toBe(1);
+  });
+
+  it('fails closed end-to-end when --manifest is given but the file omits candidateSha, rather than reporting ready: true', () => {
+    const preflightPath = path.join(tmpDir, 'preflight.json');
+    const manifestPath = path.join(tmpDir, 'manifest.json');
+    fs.writeFileSync(preflightPath, JSON.stringify(compliantPreflight()));
+    fs.writeFileSync(manifestPath, JSON.stringify({ someOtherField: 'value' }));
+    const result = main(['--preflight', preflightPath, '--manifest', manifestPath]);
+    expect(result.ready).toBe(false);
+    expect(result.blockers).toContain('manifest_candidate_sha_missing_or_invalid');
     expect(process.exitCode).toBe(1);
   });
 
