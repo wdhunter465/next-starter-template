@@ -2,13 +2,41 @@
 Doc Type: Ops Report
 Audience: Human + AI
 Authority Level: Design Evidence (Phase 1)
+Status: Draft — #3212 Phase 1 security design
+Source Issue: #3212
 Owns: Phase 1 design and security proof for replacing Cursor Local polling / loop-wake dependency with event-driven GitHub self-hosted runner dispatch (#3212)
 Does Not Own: Host runner registration, live systemd install, production cutover, or retirement of the existing Bridge without Phase 3 qualification evidence
-Source Issue: #3212
+Canonical Reference: /docs/ops/reports/issue-3212-phase1-cursor-runner-dispatch-security-design.md
+related issues: #3212, #3215
 Last Reviewed: 2026-08-08
+Executor: Grok
 ---
 
 # Issue #3212 Phase 1 — Cursor runner dispatch security design
+
+## Purpose
+
+Record Phase 1 design and security proof for replacing Cursor Local polling / loop-wake dependency with event-driven GitHub Actions → dedicated self-hosted runner → fixed local wrapper → Cursor headless CLI dispatch.
+
+This report is durable repository evidence only. It does not register runners, enable dispatch workflows, or mutate the existing Bridge package.
+
+## Scope
+
+**In scope**
+
+- As-built inventory of `lgfc-repo-runner`, wake workflow, and local Bridge launch path.
+- Target architecture with dedicated `lgfc-cursor` runner identity and fixed identifiers-only wrapper.
+- Public-repository threat model and non-negotiable controls (no PR-head execution, no body interpolation into shell/argv).
+- Trusted trigger allowlist, concurrency/dedupe, observability including independent offline detection.
+- Phase 2–4 gates, rollback, and zero-cost boundaries.
+
+**Out of scope**
+
+- Host runner registration or systemd install.
+- Enabling a live Cursor dispatch workflow on `main`.
+- Bridge package behavior changes or polling retirement.
+- Bulk rewrite of `wdhunter645` repository-slug strings (separate OPS track).
+- Paid tunnels, extra cloud VMs, or additional AI subscriptions.
 
 ## Current known truth
 
