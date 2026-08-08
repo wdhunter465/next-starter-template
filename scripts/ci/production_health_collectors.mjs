@@ -99,16 +99,25 @@ export function evidenceFingerprint(name, state) {
   return `production-health:${name}:${state}`;
 }
 
-function truncateReason(text, max = 160) {
-  const value = String(text || '').trim();
-  if (!value) return '';
-  return value.length > max ? `${value.slice(0, max)}…` : value;
+/** Fixed vocabulary only — never the raw exception message, which can carry hostnames, TLS detail, or other environment-specific text into published evidence. */
+function classifyNetworkError(error) {
+  if (error?.name === 'AbortError') return 'timeout';
+  const code = error?.cause?.code || error?.code;
+  if (code === 'ENOTFOUND' || code === 'EAI_AGAIN') return 'dns_error';
+  if (code === 'ECONNREFUSED' || code === 'ECONNRESET' || code === 'ETIMEDOUT') return 'connection_error';
+  return 'network_error';
 }
 
-/** Classifies one HTTP outcome into a deterministic health state. Never inspects response body content beyond the `ok`/target-specific boolean fields already expected in this codebase's `{ ok: boolean, ... }` convention. */
+/**
+ * Classifies one HTTP outcome into a deterministic health state. `reason` is
+ * always built from fixed strings, HTTP status codes, or the fixed
+ * `classifyNetworkError` vocabulary above — never from response body
+ * content (including `json.error`), so it cannot carry server-provided or
+ * PII-adjacent text into published evidence.
+ */
 export function classifyResult({ target, status, json, parseError, networkError }) {
   if (networkError) {
-    return { state: 'unavailable', reason: truncateReason(`network error: ${networkError}`) };
+    return { state: 'unavailable', reason: `network error: ${networkError}` };
   }
   if (status >= 500) {
     return { state: 'unavailable', reason: `http ${status}` };
@@ -127,7 +136,7 @@ export function classifyResult({ target, status, json, parseError, networkError 
     if (extra) return extra;
   }
   if (json.ok === false) {
-    return { state: 'degraded', reason: truncateReason(json.error) || 'endpoint responded ok:false' };
+    return { state: 'degraded', reason: 'endpoint responded ok:false' };
   }
   return { state: 'healthy', reason: '' };
 }
@@ -153,7 +162,7 @@ async function fetchWithTimeout(url, timeoutMs, fetchImpl) {
       json: null,
       parseError: false,
       timingMs: Date.now() - startedAt,
-      networkError: error?.name === 'AbortError' ? 'timeout' : String(error?.message || error),
+      networkError: classifyNetworkError(error),
     };
   } finally {
     clearTimeout(timer);
@@ -217,6 +226,14 @@ export function buildNextCache(results, previousCache = {}, now = new Date()) {
   return next;
 }
 
+/** Markdown table cells can't safely contain a literal "|" or a newline — escape/collapse both so a check's reason text can never break the table structure. */
+function sanitizeMarkdownCell(text) {
+  return String(text || '')
+    .replace(/\|/g, '\\|')
+    .replace(/[\r\n]+/g, ' ')
+    .trim();
+}
+
 export function buildResultMarkdown(results, { checkedAt } = {}) {
   const stateCounts = HEALTH_STATES.reduce((acc, state) => {
     acc[state] = results.filter((r) => r.state === state).length;
@@ -233,7 +250,7 @@ export function buildResultMarkdown(results, { checkedAt } = {}) {
     '| Check | State | HTTP | Timing (ms) | Reason |',
     '| --- | --- | --- | --- | --- |',
     ...results.map(
-      (r) => `| \`${r.name}\` | ${r.state} | ${r.status_code} | ${r.timing_ms} | ${r.reason || '—'} |`,
+      (r) => `| \`${r.name}\` | ${r.state} | ${r.status_code} | ${r.timing_ms} | ${sanitizeMarkdownCell(r.reason) || '—'} |`,
     ),
     '',
     'No response body content is captured — only HTTP status, timing, and the',
