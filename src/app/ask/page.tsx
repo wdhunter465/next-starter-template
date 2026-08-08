@@ -151,7 +151,7 @@ function AskForm() {
           />
 
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', marginTop: 20 }}>
-            <button type="button" onClick={submit} disabled={!canSubmit || busy}>
+            <button type="submit" disabled={!canSubmit || busy}>
               {busy ? 'Submitting…' : 'Submit'}
             </button>
           </div>

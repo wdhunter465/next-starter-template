@@ -133,6 +133,27 @@ describe('FaqBrowse (canonical /ask FAQ surface)', () => {
 
     expect(screen.getByText('Visit the Join page.')).toBeInTheDocument();
     expect(screen.getByText('Check the Events page.')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /How do I join\?/ })).toHaveAttribute(
+      'aria-expanded',
+      'true',
+    );
+  });
+
+  it('expands an FAQ entry with keyboard Enter', async () => {
+    mockedApiGet.mockResolvedValue({ ok: true, items: SAMPLE_ITEMS } as never);
+
+    render(<FaqBrowse />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/How do I join\?/)).toBeInTheDocument();
+    });
+
+    const row = screen.getByRole('button', { name: /How do I join\?/ });
+    row.focus();
+    await userEvent.keyboard('{Enter}');
+
+    expect(screen.getByText('Visit the Join page.')).toBeInTheDocument();
+    expect(row).toHaveAttribute('aria-expanded', 'true');
   });
 
   it('increments view count and posts to the view API when an entry expands', async () => {
