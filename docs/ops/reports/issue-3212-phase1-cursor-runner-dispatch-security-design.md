@@ -299,3 +299,5 @@ External authority (re-verify at Phase 2):
 
 - GitHub Actions self-hosted runner security hardening and compromised-runner guidance
 - Cursor CLI headless / GitHub Actions integration docs
+
+<!-- gate-rerun: 2026-08-08T20:37Z Model A delivery profile -->
