@@ -12,6 +12,21 @@ function parseOffset(raw: string | null): number {
   return Math.max(0, Math.floor(n));
 }
 
+/**
+ * True when photos.status exists (migration #0045 / #3119).
+ * Pending rows can only exist after this column is present; once present,
+ * gallery reads must return only status = 'published'.
+ */
+async function photosHasStatusColumn(db: any): Promise<boolean> {
+  try {
+    const result = await db.prepare(`PRAGMA table_info(photos)`).all();
+    const names = new Set((result?.results || []).map((row: any) => row.name));
+    return names.has('status');
+  } catch {
+    return false;
+  }
+}
+
 export const onRequestGet = async (context: any): Promise<Response> => {
   const { env, request } = context;
 
@@ -24,6 +39,10 @@ export const onRequestGet = async (context: any): Promise<Response> => {
     let sql = 'SELECT id, photo_id, url, is_memorabilia, title, description, tags, created_at FROM photos';
     const where: string[] = [];
     const args: any[] = [];
+
+    if (await photosHasStatusColumn(env.DB)) {
+      where.push(`status = 'published'`);
+    }
 
     if (memorabilia === '1') {
       where.push('is_memorabilia = 1');

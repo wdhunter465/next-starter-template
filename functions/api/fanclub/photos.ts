@@ -15,6 +15,21 @@ function parseTags(raw: string | null): string[] {
     .filter(Boolean);
 }
 
+/**
+ * True when photos.status exists (migration #0045 / #3119).
+ * Once present, member gallery reads must return only status = 'published'
+ * so pending/rejected submissions stay non-public.
+ */
+async function photosHasStatusColumn(db: any): Promise<boolean> {
+  try {
+    const result = await db.prepare(`PRAGMA table_info(photos)`).all();
+    const names = new Set((result?.results || []).map((row: any) => row.name));
+    return names.has('status');
+  } catch {
+    return false;
+  }
+}
+
 export const onRequestGet = async (context: any): Promise<Response> => {
   const auth = await requireMember(context);
   if (!auth.ok) {
@@ -31,10 +46,12 @@ export const onRequestGet = async (context: any): Promise<Response> => {
     const page = parsePage(url.searchParams.get('page'));
     const offset = (page - 1) * PAGE_SIZE;
 
-    // NOTE: current schema does not have an explicit approval column for photos.
-    // We treat current rows as already-approved catalog content.
     const where: string[] = ['(is_memorabilia IS NULL OR is_memorabilia = 0)'];
     const args: any[] = [];
+
+    if (await photosHasStatusColumn(auth.db)) {
+      where.push(`status = 'published'`);
+    }
 
     if (q) {
       where.push('(lower(COALESCE(title,\'\')) LIKE ? OR lower(COALESCE(description,\'\')) LIKE ? OR lower(COALESCE(tags,\'\')) LIKE ?)');
