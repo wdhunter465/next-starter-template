@@ -36,6 +36,14 @@ export const onRequestGet = async (context: any): Promise<Response> => {
     const where: string[] = ['is_memorabilia = 1'];
     const args: any[] = [];
 
+    try {
+      const pragma = await auth.db.prepare(`PRAGMA table_info(photos)`).all();
+      const names = new Set((pragma?.results || []).map((row: any) => row.name));
+      if (names.has('status')) where.push(`status = 'published'`);
+    } catch {
+      // Pre-schema environments keep legacy memorabilia reads.
+    }
+
     if (q) {
       where.push('(lower(COALESCE(title,\'\')) LIKE ? OR lower(COALESCE(description,\'\')) LIKE ? OR lower(COALESCE(tags,\'\')) LIKE ?)');
       const like = `%${q}%`;

@@ -1,5 +1,15 @@
 import { normalizePhotoUrl } from "../../_lib/photo-url";
 
+async function photosHasStatusColumn(db: any): Promise<boolean> {
+  try {
+    const result = await db.prepare(`PRAGMA table_info(photos)`).all();
+    const names = new Set((result?.results || []).map((row: any) => row.name));
+    return names.has("status");
+  } catch {
+    return false;
+  }
+}
+
 export const onRequestGet = async (context: any): Promise<Response> => {
   const { env, params, request } = context;
 
@@ -15,8 +25,9 @@ export const onRequestGet = async (context: any): Promise<Response> => {
       });
     }
 
+    const statusFilter = (await photosHasStatusColumn(env.DB)) ? " AND status = 'published'" : "";
     const row = await env.DB.prepare(
-      "SELECT id, url, is_memorabilia, description, created_at FROM photos WHERE id = ? LIMIT 1;"
+      `SELECT id, url, is_memorabilia, description, created_at FROM photos WHERE id = ?${statusFilter} LIMIT 1;`
     )
       .bind(id)
       .first();

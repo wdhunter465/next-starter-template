@@ -9,6 +9,16 @@ function parseTagsField(raw: unknown): string[] {
     .filter(Boolean);
 }
 
+async function photosHasStatusColumn(db: any): Promise<boolean> {
+  try {
+    const result = await db.prepare(`PRAGMA table_info(photos)`).all();
+    const names = new Set((result?.results || []).map((row: any) => row.name));
+    return names.has('status');
+  } catch {
+    return false;
+  }
+}
+
 export const onRequestGet = async (context: any): Promise<Response> => {
   const auth = await requireMember(context);
   if (!auth.ok) {
@@ -19,12 +29,13 @@ export const onRequestGet = async (context: any): Promise<Response> => {
   }
 
   try {
+    const statusFilter = (await photosHasStatusColumn(auth.db)) ? ` AND status = 'published'` : '';
     const rows = await auth.db
       .prepare(
         `SELECT tags
            FROM photos
           WHERE (is_memorabilia IS NULL OR is_memorabilia = 0)
-            AND COALESCE(TRIM(tags), '') != ''`,
+            AND COALESCE(TRIM(tags), '') != ''${statusFilter}`,
       )
       .all();
 
