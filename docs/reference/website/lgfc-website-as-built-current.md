@@ -63,7 +63,7 @@ This document may record implementation evidence and bounded follow-up, but it d
 |---|---|---|
 | Search | **Implemented in source** | `src/app/search/page.tsx` provides query, pagination, public/member-aware results, loading/error states, and `/api/search` integration. Deployment/live indexing remains an operational verification concern, not an implementation-absence finding. |
 | `/faq` | **Legacy compatibility** | Redirects to `/ask/` (query preserved). Canonical FAQ browse + Ask workflow lives on `/ask` (#3148). |
-| `/privacy` | **Implemented in source (#3149)** | Fallback and migration `0045_privacy_join_ask_disclosure.sql` disclose Join/Ask identity fields, optional screen name, Ask question text, member creation/verification emails, and session cookies. Magic-link is not an active Day-1 auth path per `auth-model.md`, so it is not disclosed as collected. |
+| `/privacy` | **Implemented in source (#3149)** | Fallback and migration `0045_privacy_join_ask_disclosure.sql` disclose Join/Ask identity fields, optional screen name, Ask question text, member creation/welcome or transactional email, and session cookies, plus an explicit negative disclosure that magic-link authentication is not used (`auth-model.md`). |
 | `/terms` | **Reviewed — no change (#3149)** | Fallback Terms remain factually consistent with Join/Login/Ask/member session behavior; no Terms rewrite required. |
 | `/login` | **Legacy compatibility** | Canonical design requires redirect to `/`. |
 | `/auth` | **Legacy compatibility** | Canonical design requires redirect to `/join`. |

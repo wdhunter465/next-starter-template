@@ -121,7 +121,7 @@ This page consolidates both contact and support destinations.
 **Header state:** Visitor header (public)
 **Purpose:** Privacy policy.
 
-**Content:** Public disclosure of current Join/Login/Ask/member data handling (#3149). Source fallback in `src/app/privacy/page.tsx` and D1 `page_content` (migration `0045_privacy_join_ask_disclosure.sql`) must stay materially aligned. Does not claim magic-link collection; Day-1 auth is cookie session per `auth-model.md`.
+**Content:** Public disclosure of current Join/Login/Ask/member data handling (#3149). Source fallback in `src/app/privacy/page.tsx` and D1 `page_content` (migration `0045_privacy_join_ask_disclosure.sql`) must stay materially aligned. Explicitly states that magic-link authentication is not used; Day-1 auth is cookie session per `auth-model.md`.
 
 **Notes:**
 
@@ -147,24 +147,8 @@ This page consolidates both contact and support destinations.
 
 ## Implementation Notes
 
-All four pages are implemented as Next.js static pages (App Router).
-No API calls, no database access, no authentication required.
+`/about`, `/contact`, `/privacy`, and `/terms` are App Router pages. `/privacy` and `/terms` (and other CMS-backed text pages) fetch live blocks from D1 `page_content` via `fetchPageContent` and fall back to in-source prose when a section is absent. These routes remain public (no authentication required).
 
-Component pattern:
-
-```tsx
-export default function PageName() {
-  return (
-    <main style={{ maxWidth: '1200px', margin: '0 auto', padding: '40px 20px' }}>
-      <h1 style={{ fontSize: '2rem', fontWeight: 700, color: '#0033cc', marginBottom: '32px' }}>
-        Page Title
-      </h1>
-      <div style={{ maxWidth: '760px', fontSize: '1rem', lineHeight: 1.6, color: '#333' }}>
-        {/* prose content */}
-      </div>
-    </main>
-  );
-}
-```
+Prefer keeping D1 live copy and source fallback materially aligned when disclosure text changes.
 
 CSS variables apply via global stylesheet. No page-specific CSS modules required.

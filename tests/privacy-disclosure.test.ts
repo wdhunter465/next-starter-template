@@ -23,12 +23,14 @@ describe('Privacy disclosure (#3149)', () => {
     expect(privacySource).toMatch(/question[\s\n]+text/i);
     expect(privacySource).toMatch(/member record/i);
     expect(privacySource).toMatch(/session cookie/i);
+    expect(privacySource).toMatch(/welcome email/i);
   });
 
-  it('does not invent an unsupported magic-link collection claim', () => {
-    expect(privacySource.toLowerCase()).not.toContain('magic-link');
-    expect(privacySource.toLowerCase()).not.toContain('magic link');
-    expect(migrationSource.toLowerCase()).not.toContain('magic-link');
+  it('includes a proportionate negative magic-link disclosure', () => {
+    expect(privacySource).toMatch(/do not use magic-link authentication/i);
+    expect(migrationSource).toMatch(/do not use magic-link authentication/i);
+    expect(privacySource).not.toMatch(/magic-link authentication or verification emails/i);
+    expect(privacySource).not.toMatch(/we use magic-link/i);
   });
 
   it('keeps migration body aligned with Join/Ask disclosure keywords', () => {
@@ -36,10 +38,10 @@ describe('Privacy disclosure (#3149)', () => {
     expect(migrationSource).toMatch(/Ask a Question/);
     expect(migrationSource).toMatch(/optional screen name/);
     expect(migrationSource).toMatch(/session cookie/);
+    expect(migrationSource).toMatch(/welcome email/);
   });
 
   it('records Terms as reviewed without requiring a rewrite for Join/Ask facts', () => {
-    // Terms still covers submissions/contact; #3149 disposition is no Terms rewrite.
     expect(termsSource).toMatch(/User submissions/);
     expect(termsSource).toMatch(/admin@lougehrigfanclub\.com/);
     expect(termsSource).not.toMatch(/Join form: name and email only/i);

@@ -42,7 +42,7 @@ export default async function Page() {
             </li>
             <li style={{ ...styles.li }}>
               Session authentication: a short-lived session cookie used to keep you signed in to Fan Club
-              member surfaces after Login.
+              member surfaces after Login. We do not use magic-link authentication.
             </li>
             <li style={{ ...styles.li }}>
               Library submissions: the content you submit, your provided name/email, and timestamps.
@@ -68,15 +68,18 @@ export default async function Page() {
               appropriate.
             </li>
             <li style={{ ...styles.li }}>
-              To send email updates only when you explicitly opt in via Join (non-opted-in members may still
-              receive strictly transactional confirmations related to their request).
+              To send email updates only when you explicitly opt in via Join. First-time Join or Ask
+              requests may also receive a welcome email; other non-opted-in mail is limited to
+              transactional confirmations related to that request.
             </li>
             <li style={{ ...styles.li }}>To publish and manage user submissions (Library and photo/media captions).</li>
             <li style={{ ...styles.li }}>To keep the site secure and functioning (rate limiting, troubleshooting).</li>
           </ul>
 
           <h2 style={{ ...styles.h2 }}>What we do not do</h2>
-          <p style={{ ...styles.p }}>We do not sell personal information.</p>
+          <p style={{ ...styles.p }}>
+            We do not sell personal information. We do not use magic-link authentication or verification.
+          </p>
 
           <h2 style={{ ...styles.h2 }}>Removal requests</h2>
           <p style={{ ...styles.p }}>
