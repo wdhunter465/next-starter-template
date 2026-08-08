@@ -209,3 +209,5 @@ Revert this report via reviewed PR. Documentation rollback does not alter D1/B2 
 ---
 
 *End of #2907 reconciliation.*
+
+<!-- gate-rerun: 2026-08-08T20:22Z component-integration after required checks settled -->
