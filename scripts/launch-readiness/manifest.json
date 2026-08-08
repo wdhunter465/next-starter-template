@@ -66,7 +66,7 @@
     "/about": {
       "requiredHeadings": ["About This Fan Club"]
     },
-    "/faq": {
+    "/ask": {
       "requiredHeadings": ["FAQ"]
     },
     "/events": {
@@ -79,7 +79,6 @@
     "/ask",
     "/contact",
     "/events",
-    "/faq",
     "/join",
     "/login",
     "/search",

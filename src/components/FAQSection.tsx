@@ -149,8 +149,8 @@ export default function FAQSection() {
                     {answerPreview(item.answer)}
                   </p>
                   <div style={{ marginTop: "auto", paddingTop: "0.25rem" }}>
-                    <Link href="/faq" className="link" style={{ fontWeight: 600 }}>
-                      Read full answer in FAQ →
+                    <Link href="/ask/" className="link" style={{ fontWeight: 600 }}>
+                      Read full answer →
                     </Link>
                   </div>
                 </article>
@@ -161,17 +161,17 @@ export default function FAQSection() {
 
         {query && items.length > 0 ? (
           <p className="sub" style={{ marginTop: "1.25rem", marginBottom: 0, textAlign: "center" }}>
-            <Link className="link" href={`/faq?q=${encodeURIComponent(query)}`}>
-              View all results on the FAQ page
+            <Link className="link" href={`/ask/?q=${encodeURIComponent(query)}`}>
+              View all results on FAQ &amp; Ask
             </Link>
           </p>
         ) : null}
 
         <div style={ctaRowStyle}>
-          <Link href="/faq" style={ctaPrimary}>
+          <Link href="/ask/" style={ctaPrimary}>
             View All Questions
           </Link>
-          <Link href="/ask" style={ctaSecondary}>
+          <Link href="/ask/#ask-form" style={ctaSecondary}>
             Ask a Question
           </Link>
         </div>

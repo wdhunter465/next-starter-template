@@ -2,8 +2,9 @@ import type { ReactNode } from 'react';
 import { buildPublicPageMetadata } from '@/lib/publicSiteMetadata';
 
 export const metadata = buildPublicPageMetadata({
-  title: 'Ask a Question',
-  description: 'Submit a question for moderator review on the Lou Gehrig Fan Club website.',
+  title: 'FAQ & Ask a Question',
+  description:
+    'Browse approved FAQ answers and submit a question for moderator review on the Lou Gehrig Fan Club website.',
   path: '/ask/',
 });
 

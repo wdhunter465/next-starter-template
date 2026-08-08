@@ -6,7 +6,7 @@ Owns: Current LGFC website as-built reconciliation and verified design-vs-runtim
 Does Not Own: Product and Design Domain Policy; runtime implementation; live GitHub queue state
 Canonical Reference: /docs/reference/design/LGFC-Production-Design-and-Standards.md
 Related Issues: #3074, #3148, #3149
-Last Reviewed: 2026-08-07
+Last Reviewed: 2026-08-08
 ---
 
 # LGFC Website Current As-Built Reconciliation
@@ -62,7 +62,7 @@ This document may record implementation evidence and bounded follow-up, but it d
 | Surface | Current disposition | Evidence / follow-up |
 |---|---|---|
 | Search | **Implemented in source** | `src/app/search/page.tsx` provides query, pagination, public/member-aware results, loading/error states, and `/api/search` integration. Deployment/live indexing remains an operational verification concern, not an implementation-absence finding. |
-| `/faq` | **Implementation/documentation discrepancy** | Current `src/app/faq/page.tsx` still serves a standalone FAQ UI although Product Authority consolidated Ask/FAQ under `/ask`. Follow-up #3148 owns bounded runtime/design reconciliation. |
+| `/faq` | **Legacy compatibility** | Redirects to `/ask/` (query preserved). Canonical FAQ browse + Ask workflow lives on `/ask` (#3148). |
 | `/privacy` | **Disclosure gap** | Current fallback text omits the newer Ask/member-verification data flow. Follow-up #3149 owns bounded correction and Terms factual review. |
 | `/terms` | **Review required, no defect assumed** | Current fallback terms cover respectful use, submissions, copyright/attribution, no-warranty, and contact. #3149 must change Terms only if current Join/Login/Ask/member behavior creates a concrete factual inconsistency. |
 | `/login` | **Legacy compatibility** | Canonical design requires redirect to `/`. |
@@ -90,7 +90,7 @@ A future live/D1 verification must record the rendered state and redacted milest
 
 ## Known bounded follow-up
 
-- #3148 — reconcile `/faq` into canonical `/ask` route behavior and update affected design/runtime tests.
+- #3148 — `/faq` → `/ask` compatibility (implemented in source when this row is current; closeout follows independent review).
 - #3149 — reconcile Privacy disclosure with Join/Ask member-verification flow and record Terms disposition.
 
 These are implementation/content corrections and must not be silently folded into this documentation-only reconciliation.

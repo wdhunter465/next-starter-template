@@ -24,6 +24,7 @@ const PUBLIC_CORE_ROUTES = [
 /** Required public-core routes intentionally excluded from Playwright public suite. */
 const PLAYWRIGHT_EXCLUDED_PUBLIC_ROUTES: Record<string, string> = {
   '/auth': 'legacy redirect to /join',
+  '/faq': 'legacy redirect to /ask (Ask/FAQ consolidated)',
   '/health': 'ops health probe; minimal shell without full public nav contract',
   '/logout': 'client POST /api/logout flow; not a static browse target',
 };
@@ -80,6 +81,14 @@ describe('public route contract (#1259 Task 002)', () => {
     expect(existsSync(path), `Missing page file: ${path}`).toBe(true);
     const source = readFileSync(path, 'utf8');
     expect(source).toContain('POST_LOGOUT_ROUTE');
+    expect(source).toContain('window.location.replace');
+  });
+
+  it('keeps legacy /faq redirect wired to consolidated /ask route', () => {
+    const path = routePagePath('/faq');
+    expect(existsSync(path), `Missing page file: ${path}`).toBe(true);
+    const source = readFileSync(path, 'utf8');
+    expect(source).toContain('/ask/');
     expect(source).toContain('window.location.replace');
   });
 });

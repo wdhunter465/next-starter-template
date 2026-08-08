@@ -3,7 +3,8 @@ import { buildPublicPageMetadata } from '@/lib/publicSiteMetadata';
 
 export const metadata = buildPublicPageMetadata({
   title: 'FAQ',
-  description: 'Approved public FAQ entries for the Lou Gehrig Fan Club.',
+  description:
+    'Legacy FAQ route. Approved FAQ browsing and Ask a Question are consolidated at /ask/.',
   path: '/faq/',
 });
 
