@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type KeyboardEvent } from 'react';
 import { apiGet, apiPost } from '@/lib/api';
 
 export type FAQItem = {
@@ -104,7 +104,7 @@ export default function FaqBrowse({
     return sortFaqItems(matches);
   }, [items, q]);
 
-  const handleItemClick = (id: number) => {
+  const toggleItem = (id: number) => {
     setExpandedIds((current) => {
       const next = new Set(current);
       if (next.has(id)) {
@@ -119,6 +119,13 @@ export default function FaqBrowse({
       });
       return next;
     });
+  };
+
+  const handleItemKeyDown = (event: KeyboardEvent<HTMLDivElement>, id: number) => {
+    if (event.key === 'Enter' || event.key === ' ') {
+      event.preventDefault();
+      toggleItem(id);
+    }
   };
 
   return (
@@ -158,27 +165,34 @@ export default function FaqBrowse({
             </a>
           </p>
         ) : (
-          filteredItems.map((item) => (
-            <div
-              key={item.id}
-              className="q"
-              style={{ cursor: 'pointer' }}
-              onClick={() => handleItemClick(item.id)}
-            >
-              <strong>
-                {item.pinned ? '📌 ' : ''}
-                {item.question}
-              </strong>
-              {expandedIds.has(item.id) ? (
-                <>
-                  <br />
-                  <span className="sub">{item.answer}</span>
-                  <br />
-                  <small className="sub">Views: {viewCounts[item.id] ?? 0}</small>
-                </>
-              ) : null}
-            </div>
-          ))
+          filteredItems.map((item) => {
+            const expanded = expandedIds.has(item.id);
+            return (
+              <div
+                key={item.id}
+                className="q"
+                style={{ cursor: 'pointer' }}
+                role="button"
+                tabIndex={0}
+                aria-expanded={expanded}
+                onClick={() => toggleItem(item.id)}
+                onKeyDown={(event) => handleItemKeyDown(event, item.id)}
+              >
+                <strong>
+                  {item.pinned ? '📌 ' : ''}
+                  {item.question}
+                </strong>
+                {expanded ? (
+                  <>
+                    <br />
+                    <span className="sub">{item.answer}</span>
+                    <br />
+                    <small className="sub">Views: {viewCounts[item.id] ?? 0}</small>
+                  </>
+                ) : null}
+              </div>
+            );
+          })
         )}
       </div>
     </section>

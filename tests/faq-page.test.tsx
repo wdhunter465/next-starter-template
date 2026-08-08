@@ -12,14 +12,11 @@ vi.mock('next/navigation', () => ({
 describe('FAQ legacy compatibility redirect (#3148)', () => {
   beforeEach(() => {
     replaceMock.mockReset();
-    Object.defineProperty(window, 'location', {
-      configurable: true,
-      value: { ...window.location, replace: replaceMock },
-    });
+    vi.stubGlobal('location', { replace: replaceMock, href: '' });
   });
 
   afterEach(() => {
-    vi.unstubAllGlobals?.();
+    vi.unstubAllGlobals();
   });
 
   it('redirects to /ask/ preserving the query string', () => {
