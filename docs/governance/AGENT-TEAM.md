@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Durable LGFC roles, recognized agent product inventory, current member mapping, approval authority, protected stops, operating modes, launch-control workflow boundaries, member work-precedence mapping, and delegated task-closeout role boundaries
 Does Not Own: Queue and priority semantics, shared execution detail, tool-specific runtime behavior, PMO sizing, promotion-profile policy, communication mutation taxonomy, or production mechanics
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2494, #2640, #2641, #2648, #2699, #2700, #3052, #3145, #3142, #3152
-Last Reviewed: 2026-08-08
+Related Issues: #2494, #2640, #2641, #2648, #2699, #2700, #3052, #3145, #3142, #3152, #3240
+Last Reviewed: 2026-08-09
 ---
 
 # Agent Team
@@ -19,7 +19,7 @@ An agent or system may act only through the roles currently assigned to it. A na
 
 LGFC agents are operating team members. They communicate directly through the canonical GitHub communication workflow whenever it is available. Human relay through Product Authority is the least-desired fallback and does not replace durable agent-to-agent routing.
 
-Queue precedence, team priority namespaces, Project Graduation, and the universal collaboration method are defined in `docs/governance/WORK-QUEUES-AND-COLLABORATION.md`.
+Queue precedence, team priority namespaces, Project Graduation, team vs agent claim lifecycle, and the universal collaboration method are defined in `docs/governance/WORK-QUEUES-AND-COLLABORATION.md`.
 
 ## Durable roles
 
@@ -48,7 +48,7 @@ For every implementation child that requires judgment, WORK independently review
 
 After a Project or Program is Active with a prepared child graph, eligible agents self-claim the next package-complete child under standing parent authority (#3145). WORK does not act as a routine per-task dispatcher or mandatory “release” gate between already-authorized children. Deterministic CI may execute mechanically provable closeout mutations, but WORK owns substantive acceptance decisions and verifies resulting repository state when judgment is required. WORK must not independently approve or verify a PR that WORK implemented. In that case, another authorized independent reviewer supplies the review evidence and Bill retains every required protected Product or Production decision.
 
-`team:*` labels are durable Team ownership. `agent:*` labels are current execution claims only and must not be added merely to make an Issue visible.
+`team:*` labels are durable Team ownership. `agent:*` labels are current execution claims or explicit Product Authority reservations only and must not be added merely to make an Issue visible. Full claim lifecycle (claim, release, reserved-assignment exception, stale-preassignment migration) is defined in `docs/governance/WORK-QUEUES-AND-COLLABORATION.md` under **Team ownership versus agent claim lifecycle** (#3240).
 
 ## Recognized agent products
 
@@ -322,7 +322,7 @@ When Product Authority says `run startup`, the active product identifies itself 
 
 | Topic | Owner |
 | --- | --- |
-| Work queues, priorities, graduation, collaboration | `docs/governance/WORK-QUEUES-AND-COLLABORATION.md` |
+| Work queues, priorities, graduation, collaboration, team vs agent claim lifecycle | `docs/governance/WORK-QUEUES-AND-COLLABORATION.md` |
 | Lane and profile contract | `docs/reference/operations/operating-lanes-and-promotion-profiles.md` |
 | Administration & Communications policy | `docs/governance/ADMINISTRATION-AND-COMMUNICATIONS.md` |
 | Administration mutation and closeout executor contract | `docs/reference/operations/administrative-control-lane-contract.md` |
@@ -337,4 +337,4 @@ When Product Authority says `run startup`, the active product identifies itself 
 
 ## Supersession
 
-Legacy person-specific or agent-specific policy is superseded where it conflicts with this durable role model. Current team mappings belong here or in project manifests; runtime compatibility documents may describe how a current member exercises an assigned role but must not redefine repository-wide authority. Queue, priority, graduation, and collaboration details belong in `WORK-QUEUES-AND-COLLABORATION.md` rather than being redefined per agent.
+Legacy person-specific or agent-specific policy is superseded where it conflicts with this durable role model. Current team mappings belong here or in project manifests; runtime compatibility documents may describe how a current member exercises an assigned role but must not redefine repository-wide authority. Queue, priority, graduation, collaboration, and claim-lifecycle details belong in `WORK-QUEUES-AND-COLLABORATION.md` rather than being redefined per agent.

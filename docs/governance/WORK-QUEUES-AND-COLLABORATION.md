@@ -2,11 +2,11 @@
 Doc Type: Governance
 Audience: Human + AI
 Authority Level: Domain Policy
-Owns: Repository work-queue classification, queue precedence, team-assignment and priority namespaces, Active and Pipeline priority semantics, Project Graduation, queue-state transitions, universal agent collaboration, and collaboration interaction with pull requests
+Owns: Repository work-queue classification, queue precedence, team-assignment and priority namespaces, team vs agent claim lifecycle, Active and Pipeline priority semantics, Project Graduation, queue-state transitions, universal agent collaboration, and collaboration interaction with pull requests
 Does Not Own: Product outcome, final priority decisions, project design, implementation methods, recovery strategy, PR approval decisions, Production authorization, dashboard runtime implementation, or label-migration execution
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2695, #2699, #3055, #3113, #3145, #3152
-Last Reviewed: 2026-08-07
+Related Issues: #2695, #2699, #3055, #3113, #3145, #3152, #3240, #3134
+Last Reviewed: 2026-08-09
 ---
 
 # Work Queues and Collaboration
@@ -131,6 +131,50 @@ gov:priority:1 + pmo:priority:1
 ```
 
 Collaboration labels or collaborator assignments do not change the queue owner.
+
+## Team ownership versus agent claim lifecycle
+
+`team:*` and `agent:*` are orthogonal and must not be conflated (#3240).
+
+- **`team:*`** = durable queue ownership (Where does this work live?). Remains for the Issue lifecycle until completion or formal transfer.
+- **`agent:*`** = active execution claim or explicit Product Authority reservation (Who has this work in hand right now?). Not permanent pre-assignment.
+
+### Required claim lifecycle (summary)
+
+1. New team-queue Issues enter **without** `agent:*` by default.
+2. Eligible agent selects work by team priority, dependencies, collisions, and authority.
+3. Before starting, agent adds its `agent:*` label and records claim/ack on the source Issue.
+4. While the claim is active, other agents must not independently start the same Issue unless collaboration is requested.
+5. At PR-ready / handoff, release the claim unless remediation or post-merge duties remain.
+6. If the agent cannot continue or the claim is stale, remove `agent:*` so the Issue is claimable again.
+7. `team:*` remains until complete or transferred.
+
+### Reserved assignment exception
+
+Product Authority may deliberately reserve an Issue (e.g. "Assign #3215 to Claude"). That `agent:*` remains until the reserved agent starts, authority releases it, or an authorized workflow invalidates the reservation.
+
+### Claim hygiene
+
+- Do not pre-populate `agent:*` on ordinary new team-queue Issues.
+- Do not refuse eligible work solely because an unconfirmed `agent:*` label exists.
+- Claims must be atomic enough to prevent dual independent starts.
+- Stale claims must be releasable without Product Authority as routine messenger.
+- Collaboration does not transfer queue ownership or the primary claim unless execution ownership changes.
+
+### Migration classification
+
+| Class | Action |
+| --- | --- |
+| ACTIVE_CLAIM | Keep |
+| EXPLICIT_RESERVATION | Keep until released |
+| STALE_PREASSIGNMENT | Remove only after evidence |
+| AMBIGUOUS | Leave unchanged; surface |
+
+Full detail and open-Issue audit: `docs/ops/reports/issue-3240-team-agent-claim-semantics-migration-audit.md`.
+
+### Orthogonal example
+
+`team:engineering` + `flow:builder` + `agent:grok` means Engineering owns the queue, Builder Flow governs behavior, and Grok currently has the Issue in hand.
 
 ## Queue labels and priority namespaces
 
@@ -353,9 +397,9 @@ Ordinary predecessor or advisory conditions are **not** `HOLD` or `BLOCKED`. Whe
 
 Project or Program Graduation to Active, with a complete prepared child graph and eligible implementation agents recorded at the parent, is standing implementation authority for that exact graph (#3055 / #3145). It is not consumed after the first child and does not require Administration, PMO, Product Authority, or an agent to restate unchanged authority between prepared serial children.
 
-`team:*` labels record durable Team ownership for the Issue's entire lifecycle. `agent:*` labels record the current execution claim only and do not transfer Team, Project, Program, or portfolio ownership.
+`team:*` labels record durable Team ownership for the Issue's entire lifecycle. `agent:*` labels record the current execution claim or explicit reservation only and do not transfer Team, Project, Program, or portfolio ownership. Full claim lifecycle is defined in **Team ownership versus agent claim lifecycle** above (#3240).
 
-Eligible agents **self-claim** the next package-complete child one task at a time. Routine PMO redispatch, WORK “release,” or administrative confirmation between already-authorized tasks is not required and must not idle an otherwise eligible executor.
+Eligible agents **self-claim** the next package-complete child one task at a time. Routine PMO redispatch, WORK "release," or administrative confirmation between already-authorized tasks is not required and must not idle an otherwise eligible executor.
 
 A serial successor becomes claimable when all of the following are true:
 
@@ -543,3 +587,5 @@ This policy supersedes lower-level or legacy instructions that:
 - use queue-wide `HOLD` or `BLOCKED` for ordinary predecessor or advisory conditions;
 - freeze an entire project or queue because one final step requires a protected stop;
 - delay successor release after verified integration when the successor package is complete.
+- treat `agent:*` as permanent pre-assignment rather than active claim or explicit reservation (#3240);
+- refuse eligible team-queue work solely because a stale or unconfirmed `agent:*` label is present (#3240).
