@@ -4,12 +4,15 @@
 //
 // The upload route (functions/api/fanclub/photos/upload.ts) calls
 // requireB2(env) immediately after auth and fails closed with a 503 before
-// any rate-limit check, form parse, or D1 write when B2 write credentials
-// are absent — the same env shape as a Production environment with member
-// upload deliberately disabled. None of the gallery/detail read routes call
-// requireB2 at all, so they are unaffected by that same env shape. This test
-// exercises both halves of that claim against the real route handlers,
-// rather than asserting it from documentation alone.
+// any rate-limit check, form parse, or photo-record D1 write when B2 write
+// credentials are absent — the same env shape as a Production environment
+// with member upload deliberately disabled. (Auth itself still touches
+// member_sessions via requireMember()/touchSession() — that's expected and
+// unrelated to photo persistence, which is the claim under test here.) None
+// of the gallery/detail read routes call requireB2 at all, so they are
+// unaffected by that same env shape. This test exercises both halves of
+// that claim against the real route handlers, rather than asserting it from
+// documentation alone.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -100,7 +103,7 @@ function memberGalleryRequest(pathAndQuery: string) {
 }
 
 describe('#2901 rollback proof: member upload disabled (B2 write credentials absent)', () => {
-  it('fails the upload route closed with STORAGE_UNAVAILABLE, before any D1 write', async () => {
+  it('fails the upload route closed with STORAGE_UNAVAILABLE, before any photo record is written', async () => {
     const sqlite = new DatabaseSync(':memory:');
     applyMigrations(sqlite);
     seedMemberSession(sqlite);

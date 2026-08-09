@@ -36,9 +36,11 @@ credentials, and does not mutate Production D1/B2 state.
   handlers (`tests/member-photo-upload-rollback.test.ts`), not asserted from
   documentation alone: when B2 write credentials are absent from the
   environment (the "member upload disabled" state), the upload route fails
-  closed with `503 STORAGE_UNAVAILABLE` before any D1 write, while the
-  public gallery, member gallery, and photo-detail routes all remain fully
-  functional against existing published/staff-managed rows.
+  closed with `503 STORAGE_UNAVAILABLE` before any photo record is written
+  to D1, while the public gallery, member gallery, and photo-detail routes
+  all remain fully functional against existing published/staff-managed
+  rows. (Auth itself still writes a `member_sessions` timestamp touch,
+  which is unrelated to photo persistence.)
 - Two of #2857's thirteen scenario categories are genuine, honestly-recorded
   gaps (see Section 2): a mid-write B2 storage-operation failure is not yet
   covered by a test (only credentials-absent is), and there is no dedicated
@@ -67,7 +69,7 @@ passing) against the real route handlers, using the same
 
 | Claim | Test |
 | --- | --- |
-| Upload fails closed with `STORAGE_UNAVAILABLE`, no D1 write, when B2 write credentials are absent | `fails the upload route closed with STORAGE_UNAVAILABLE, before any D1 write` |
+| Upload fails closed with `STORAGE_UNAVAILABLE`, no photo record written, when B2 write credentials are absent | `fails the upload route closed with STORAGE_UNAVAILABLE, before any photo record is written` |
 | Auth is still enforced even in the rollback state (rollback doesn't bypass auth) | `still requires authentication before reporting storage-unavailable` |
 | Public gallery stays fully functional | `keeps the public gallery fully functional` |
 | Member gallery stays fully functional | `keeps the member gallery fully functional` |
@@ -75,7 +77,7 @@ passing) against the real route handlers, using the same
 
 Mechanism: `functions/api/fanclub/photos/upload.ts` calls `requireB2(env)`
 immediately after auth and returns 503 before any rate-limit check, form
-parse, or D1 write when `B2_ENDPOINT`/`B2_BUCKET`/`B2_KEY_ID`/`B2_APP_KEY`
+parse, or photo-record D1 write when `B2_ENDPOINT`/`B2_BUCKET`/`B2_KEY_ID`/`B2_APP_KEY`
 are absent. None of `functions/api/photos.ts`, `functions/api/photos/get.ts`,
 `functions/api/photos/list.ts`, or `functions/api/fanclub/photos.ts` call
 `requireB2` — they only use `PUBLIC_B2_BASE_URL` for read-side URL
