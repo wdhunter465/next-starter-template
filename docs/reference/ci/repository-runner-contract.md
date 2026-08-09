@@ -94,27 +94,28 @@ The initial health workflow is valid only when:
 ## Rollout state
 
 ```text
-host-registered-wake-delivery-enabled
+wake-delivery-retired-phase-4
 ```
 
 Permitted use:
 
 ```text
-manual health + wake-packet delivery only
+manual health + observe only (Bridge wake retired; diagnostic workflow_dispatch optional)
 ```
 
 ### Wake delivery (not Cursor launch)
 
-`wakeDelivery` in `config/github-actions/repository-runner.json` authorizes `.github/workflows/cursor-local-wake.yml` to write host packets only when:
+`wakeDelivery` in `config/github-actions/repository-runner.json` historically authorized `.github/workflows/cursor-local-wake.yml` to write host packets. Under #3212 Phase 4, `wakeDelivery.enabled` is **`false`** (rollout state `wake-delivery-retired-phase-4`). Automatic labeled delivery is retired; trusted diagnostic `workflow_dispatch` with confirmation `CURSOR_WAKE_DIAGNOSTIC` is the only remaining packet path. Primary Cursor wake is `.github/workflows/lgfc-cursor-dispatch.yml`.
 
-- repository is `wdhunter465/next-starter-template`;
-- event is gated `issues`/`issue_comment`/`workflow_dispatch` per workflow `if:`;
-- labels include the required Cursor handoff pair when applicable;
-- `mayLaunchCursor`, `mayHoldApiKeys`, and `mayClaimSerialLane` remain false.
+When `wakeDelivery` remains present in the contract file it must still satisfy:
 
-Cursor Local Bridge revalidates live Issue eligibility before any CLI launch. See `docs/reference/ci/cursor-local-bridge-contract.md`.
+- `mayLaunchCursor: false`
+- `mayHoldApiKeys: false`
+- `mayClaimSerialLane: false`
+- `workflow: .github/workflows/cursor-local-wake.yml`
+- repository is `wdhunter465/next-starter-template`
 
-Health heartbeat, watchdog restart, and missed-handoff reconciliation are **Bridge-local** concerns. The runner remains transport only and must not own Cursor credentials, serial claims, or agent launch. Recovery packets are written only by the Bridge into the same host queue the wake workflow uses.
+Historical Bridge package behavior (when temporarily re-enabled for diagnostics) is documented in `docs/reference/ci/cursor-local-bridge-contract.md`. The `lgfc-repo-runner` remains transport/health only and must not own Cursor credentials, serial claims, or agent launch as a primary path.
 
 Existing product workflows must remain on their current runners until Project #2294 authorizes a specific migration.
 

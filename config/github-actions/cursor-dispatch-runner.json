@@ -63,10 +63,12 @@
     "independentOfSelfHostedRunner": true
   },
   "rollout": {
-    "state": "phase-2-prototype",
+    "state": "phase-4-primary",
     "sourceIssue": "#3212",
     "phase1Report": "docs/ops/reports/issue-3212-phase1-cursor-runner-dispatch-security-design.md",
-    "legacyBridgeRetirement": "prohibited-until-phase-3-and-phase-4-go"
+    "phase3Report": "docs/ops/reports/issue-3212-phase3-reliability-validation.md",
+    "phase4Report": "docs/ops/reports/issue-3212-phase4-bridge-cutover.md",
+    "legacyBridgeRetirement": "retired-phase-4"
   },
   "operations": {
     "workDirectory": "_work",

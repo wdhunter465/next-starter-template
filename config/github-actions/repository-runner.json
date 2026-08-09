@@ -41,12 +41,10 @@
     "executeIssueOrCommentContent": false
   },
   "wakeDelivery": {
-    "enabled": true,
+    "enabled": false,
     "workflow": ".github/workflows/cursor-local-wake.yml",
-    "purpose": "Write host wake packets for Cursor Local Bridge only",
+    "purpose": "RETIRED #3212 Phase 4 — automatic Bridge packet delivery disabled; trusted diagnostic workflow_dispatch only",
     "trustedEvents": [
-      "issues",
-      "issue_comment",
       "workflow_dispatch"
     ],
     "requiredLabels": [
@@ -56,15 +54,21 @@
     "mayLaunchCursor": false,
     "mayHoldApiKeys": false,
     "mayClaimSerialLane": false,
-    "packetAuthority": "none — Bridge revalidates live Issue state"
+    "packetAuthority": "none — Bridge revalidates live Issue state",
+    "retirement": {
+      "issue": "#3212",
+      "phase": 4,
+      "primaryPath": ".github/workflows/lgfc-cursor-dispatch.yml",
+      "diagnosticFallback": "workflow_dispatch with CURSOR_WAKE_DIAGNOSTIC confirmation"
+    }
   },
   "rollout": {
-    "state": "host-registered-wake-delivery-enabled",
+    "state": "wake-delivery-retired-phase-4",
     "healthWorkflow": ".github/workflows/repository-runner-health.yml",
     "wakeWorkflow": ".github/workflows/cursor-local-wake.yml",
     "bridgeContract": "docs/reference/ci/cursor-local-bridge-contract.md",
-    "existingWorkflowMigration": "prohibited-until-health-pass-and-explicit-project-go",
-    "initialUse": "manual-health-and-wake-delivery-only",
+    "existingWorkflowMigration": "completed-phase-4-bridge-cutover",
+    "initialUse": "manual-health-and-observe-only",
     "mutationMode": "disabled"
   },
   "operations": {

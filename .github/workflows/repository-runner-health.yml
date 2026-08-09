@@ -106,12 +106,20 @@ jobs:
           }
           const wake = config.wakeDelivery;
           if (wake) {
-            if (wake.enabled !== true) throw new Error('wakeDelivery.enabled must be true when present');
+            // #3212 Phase 4: automatic Bridge wake delivery is retired (enabled=false).
+            // Diagnostic workflow_dispatch may remain in the wake YAML; runner health
+            // must accept the retired contract without requiring enabled=true.
+            if (wake.enabled !== true && wake.enabled !== false) {
+              throw new Error('wakeDelivery.enabled must be boolean when present');
+            }
             if (wake.mayLaunchCursor !== false) throw new Error('wakeDelivery must not launch Cursor');
             if (wake.mayHoldApiKeys !== false) throw new Error('wakeDelivery must not hold API keys');
             if (wake.mayClaimSerialLane !== false) throw new Error('wakeDelivery must not claim the serial lane');
             if (wake.workflow !== '.github/workflows/cursor-local-wake.yml') {
               throw new Error('wakeDelivery.workflow path mismatch');
+            }
+            if (wake.enabled === false && config.rollout?.state !== 'wake-delivery-retired-phase-4') {
+              throw new Error('wakeDelivery.enabled=false requires rollout.state wake-delivery-retired-phase-4');
             }
           }
           for (const label of requiredLabels) {

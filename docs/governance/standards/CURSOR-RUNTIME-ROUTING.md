@@ -5,8 +5,8 @@ Authority Level: Binding
 Owns: LGFC Cursor runtime selection, local-versus-cloud invocation boundary, assignment runtime metadata, and local resume routing
 Does Not Own: Cursor product configuration, local poller implementation, implementation scope, merge approval, or cloud billing
 Canonical Reference: /Agent.md
-Related Issues: #2477, #2489, #2667, #2997, #3013
-Last Reviewed: 2026-08-03
+Related Issues: #2477, #2489, #2667, #2997, #3013, #3212
+Last Reviewed: 2026-08-09
 ---
 
 # Cursor Runtime Routing
@@ -45,11 +45,13 @@ Local Cursor routing uses the following eligibility signal — labels and status
 
 There is no required resume/response comment. Comments are ordinary context Cursor reads after launch; they carry no routing or gating authority.
 
-**Primary local transport (auto-start):** GitHub Actions wake delivery on the Chromebook runner writes a host packet; **Cursor Local Bridge** revalidates the full eligibility contract, claims the serial lane, and launches authenticated local `cursor agent` — or falls back to notify + unclaimed. Architecture: `docs/explanation/operations/cursor-local-auto-start-architecture.md`. Contract: `docs/reference/ci/cursor-local-bridge-contract.md`. Install: `docs/how-to/cursor/configure-cursor-local-bridge.md`.
+**Primary local transport (auto-start, #3212 Phase 4):** GitHub Actions `lgfc-cursor-dispatch` on the dedicated Chromebook runner labeled `lgfc-cursor` invokes the fixed identifiers-only wrapper (`scripts/lgfc-cursor-dispatch/dispatch.mjs`), which launches authenticated local `cursor agent` / `agent`. Contract: `config/github-actions/cursor-dispatch-runner.json`. How-to: `docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md`. Independent offline observation: `.github/workflows/lgfc-cursor-runner-health.yml`.
 
-**Backup / legacy:** manual operator action or the documented local poll-wake loop (stdout sentinel only; requires an open agent chat).
+**Retired as execution dependencies (#3212 Phase 4):** Cursor Local Bridge automatic wake-packet delivery, scheduled Bridge watch, and the local 12-minute poll-wake loop. Shared ingress predicate `scripts/cursor-bridge/lib/wake-ingress.mjs` remains in use by the dispatch workflow and must not be deleted with the Bridge package.
 
-Labels are the durable routing signal. They do not prove that a local Cursor process is running and must not be described as an automatic cloud invocation. The Actions runner alone does not notify or start Cursor.
+**Approved diagnostic fallback only:** trusted manual `workflow_dispatch` on the retired wake workflow (confirmation `CURSOR_WAKE_DIAGNOSTIC`, actor `wdhunter645`), or explicit Product Authority re-enablement. Do not treat poll-wake or Bridge auto-start as primary.
+
+Labels are the durable routing signal. They do not prove that a local Cursor process is running and must not be described as an automatic cloud invocation.
 
 ## Assignment requirement
 
@@ -66,11 +68,11 @@ For LGFC work:
 
 Local Cursor resumes from repository-controlled state, not chat memory. The detailed procedures are:
 
-- `docs/explanation/operations/cursor-local-auto-start-architecture.md` (as-built design)
-- `docs/reference/ci/cursor-local-bridge-contract.md` (primary auto-start contract)
-- `docs/how-to/cursor/configure-cursor-local-bridge.md`
+- `docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md` (primary auto-start)
+- `docs/governance/standards/CURSOR-RUNTIME-ROUTING.md` (this standard)
 - `docs/ops/ai/chatgpt-cursor-handoff-workflow.md`
-- `docs/how-to/cursor/github-poll-wake-loop.md` (legacy backup)
+- `docs/reference/ci/cursor-local-bridge-contract.md` (retired primary; historical Bridge contract)
+- `docs/how-to/cursor/github-poll-wake-loop.md` (retired execution dependency; diagnostic archive)
 
 If a procedure conflicts with this standard, this standard controls runtime selection and the procedures must be corrected.
 
