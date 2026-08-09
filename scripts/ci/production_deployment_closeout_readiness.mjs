@@ -39,7 +39,7 @@ function isOkResult(result) {
 
 /** Validates one closeout record. Returns a list of human-readable problem strings (empty = compliant). */
 export function validateCloseoutRecord(closeout) {
-  if (!closeout || typeof closeout !== 'object') {
+  if (!closeout || typeof closeout !== 'object' || Array.isArray(closeout)) {
     return ['closeout_not_an_object'];
   }
   const problems = [];
