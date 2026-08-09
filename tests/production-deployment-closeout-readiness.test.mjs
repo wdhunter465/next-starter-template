@@ -132,6 +132,22 @@ describe('buildCloseoutReadiness', () => {
     expect(result.blockers).toContain('unresolved_protected_decisions_malformed');
   });
 
+  it('normalizes detail.unresolvedProtectedDecisions to an array even when the input is malformed', () => {
+    const result = buildCloseoutReadiness({
+      closeout: compliantCloseout(),
+      smokeVerificationResult: readySmokeResult,
+      unresolvedProtectedDecisions: 'not-an-array',
+    });
+    expect(result.detail.unresolvedProtectedDecisions).toEqual([]);
+
+    const objectResult = buildCloseoutReadiness({
+      closeout: compliantCloseout(),
+      smokeVerificationResult: readySmokeResult,
+      unresolvedProtectedDecisions: { bad: true },
+    });
+    expect(objectResult.detail.unresolvedProtectedDecisions).toEqual([]);
+  });
+
   it('reports multiple blockers simultaneously when several conditions fail', () => {
     const result = buildCloseoutReadiness({
       closeout: compliantCloseout({ day2OwnershipEvidence: '' }),

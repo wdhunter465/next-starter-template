@@ -71,7 +71,8 @@ export function buildCloseoutReadiness({ closeout, smokeVerificationResult, unre
     blockers.push('smoke_verification_not_ready');
   }
 
-  if (!Array.isArray(unresolvedProtectedDecisions)) {
+  const decisionsIsArray = Array.isArray(unresolvedProtectedDecisions);
+  if (!decisionsIsArray) {
     blockers.push('unresolved_protected_decisions_malformed');
   } else if (unresolvedProtectedDecisions.length > 0) {
     blockers.push('unresolved_protected_decisions_present');
@@ -83,7 +84,7 @@ export function buildCloseoutReadiness({ closeout, smokeVerificationResult, unre
     detail: {
       closeoutProblems: problems,
       smokeVerificationReady: isOkResult(smokeVerificationResult),
-      unresolvedProtectedDecisions,
+      unresolvedProtectedDecisions: decisionsIsArray ? unresolvedProtectedDecisions : [],
     },
   };
 }
