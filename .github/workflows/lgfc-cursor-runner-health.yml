@@ -1,0 +1,97 @@
+name: LGFC Cursor Runner Health
+
+# Independent offline detection for the lgfc-cursor runner (#3212 Phase 2).
+# MUST run on GitHub-hosted ubuntu-latest so a dead Chromebook cannot suppress alarms.
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: Type CURSOR_RUNNER_HEALTH to run the check
+        required: true
+        type: string
+  schedule:
+    # Low-noise daily check (zero incremental cost beyond public Actions minutes).
+    - cron: "17 11 * * *"
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: lgfc-cursor-runner-health
+  cancel-in-progress: false
+
+jobs:
+  health:
+    name: Observe lgfc-cursor runner
+    if: >-
+      github.repository == 'wdhunter465/next-starter-template' &&
+      (
+        github.event_name == 'schedule' ||
+        (
+          github.event_name == 'workflow_dispatch' &&
+          github.actor == 'wdhunter645' &&
+          inputs.confirmation == 'CURSOR_RUNNER_HEALTH'
+        )
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Query dedicated Cursor runner presence
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const expectedLabel = 'lgfc-cursor';
+            const expectedRepo = 'wdhunter465/next-starter-template';
+            if (context.repo.owner + '/' + context.repo.repo !== expectedRepo) {
+              throw new Error(`Unexpected repository ${context.repo.owner}/${context.repo.repo}`);
+            }
+
+            const runners = await github.paginate(
+              github.rest.actions.listSelfHostedRunnersForRepo,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                per_page: 100,
+              }
+            );
+
+            const matches = runners.filter((runner) =>
+              (runner.labels || []).some((label) => label.name === expectedLabel)
+            );
+
+            core.info(`Found ${matches.length} runner(s) with label ${expectedLabel}`);
+            for (const runner of matches) {
+              core.info(
+                `runner name=${runner.name} id=${runner.id} status=${runner.status} busy=${runner.busy}`
+              );
+            }
+
+            const summary = [];
+            summary.push('## LGFC Cursor runner health');
+            summary.push(`- Label: \`${expectedLabel}\``);
+            summary.push(`- Match count: ${matches.length}`);
+
+            if (matches.length === 0) {
+              summary.push('- Result: **OFFLINE / UNREGISTERED**');
+              summary.push('- Action: register `lgfc-cursor` per docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md');
+              await core.summary.addRaw(summary.join('\n')).write();
+              core.warning('No lgfc-cursor runner is registered. Phase 2 host registration incomplete.');
+              // Visible failure without depending on the self-hosted host.
+              core.setFailed('lgfc-cursor runner not registered or not visible via API');
+              return;
+            }
+
+            const online = matches.filter((runner) => runner.status === 'online');
+            if (online.length === 0) {
+              summary.push('- Result: **OFFLINE**');
+              summary.push(`- Observed statuses: ${matches.map((r) => r.status).join(', ')}`);
+              await core.summary.addRaw(summary.join('\n')).write();
+              core.setFailed('lgfc-cursor runner is registered but not online');
+              return;
+            }
+
+            summary.push('- Result: **ONLINE**');
+            summary.push(`- Online runners: ${online.map((r) => r.name).join(', ')}`);
+            await core.summary.addRaw(summary.join('\n')).write();

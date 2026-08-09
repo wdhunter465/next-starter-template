@@ -1,0 +1,205 @@
+name: LGFC Cursor Dispatch
+
+# Phase 2 prototype (#3212): wake Cursor Local via dedicated lgfc-cursor runner.
+# Identifiers only — never interpolate Issue/comment bodies into shell or CLI argv.
+# Does NOT use pull_request / pull_request_target / fork-head checkout.
+
+on:
+  issues:
+    types: [labeled]
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: Source Issue number to wake Cursor for
+        required: true
+        type: string
+      confirmation:
+        description: Type CURSOR_DISPATCH to confirm trusted manual wake
+        required: true
+        type: string
+      dry_run:
+        description: If true, run wrapper preflight only (no Cursor invoke)
+        required: false
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+  issues: read
+
+concurrency:
+  group: lgfc-cursor-dispatch
+  cancel-in-progress: false
+
+jobs:
+  security_unit_tests:
+    name: Dispatch security unit tests
+    if: >-
+      github.repository == 'wdhunter465/next-starter-template' &&
+      (
+        github.event_name == 'workflow_dispatch' ||
+        (
+          github.event_name == 'issues' &&
+          github.event.action == 'labeled' &&
+          (github.event.label.name == 'handoff:ready' || github.event.label.name == 'agent:cursor') &&
+          contains(join(github.event.issue.labels.*.name, ','), 'agent:cursor') &&
+          contains(join(github.event.issue.labels.*.name, ','), 'handoff:ready')
+        )
+      )
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout main only
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+          persist-credentials: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Run security-negative unit tests
+        run: node scripts/lgfc-cursor-dispatch/test-dispatch-security.mjs
+
+  dispatch:
+    name: Dispatch Cursor wake
+    needs: security_unit_tests
+    if: >-
+      github.repository == 'wdhunter465/next-starter-template' &&
+      (
+        (
+          github.event_name == 'issues' &&
+          github.event.action == 'labeled' &&
+          (github.event.label.name == 'handoff:ready' || github.event.label.name == 'agent:cursor') &&
+          contains(join(github.event.issue.labels.*.name, ','), 'agent:cursor') &&
+          contains(join(github.event.issue.labels.*.name, ','), 'handoff:ready')
+        ) ||
+        (
+          github.event_name == 'workflow_dispatch' &&
+          github.actor == 'wdhunter645' &&
+          inputs.confirmation == 'CURSOR_DISPATCH'
+        )
+      )
+    runs-on: [self-hosted, linux, x64, lgfc-cursor]
+    timeout-minutes: 30
+    steps:
+      - name: Confirm trusted invocation gates
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REPOSITORY: ${{ github.repository }}
+          ACTOR: ${{ github.actor }}
+          REF_NAME: ${{ github.ref }}
+        run: |
+          set -euo pipefail
+          test "$REPOSITORY" = "wdhunter465/next-starter-template"
+          test "$EVENT_NAME" = "issues" -o "$EVENT_NAME" = "workflow_dispatch"
+          # Never execute from untrusted PR refs; jobs targeting this runner must be main/default.
+          echo "trusted_invocation=true"
+          echo "actor=$ACTOR"
+          echo "ref=$REF_NAME"
+
+      - name: Resolve identifiers
+        id: meta
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          ISSUE_FROM_EVENT: ${{ github.event.issue.number }}
+          ISSUE_FROM_INPUT: ${{ inputs.issue_number }}
+          RUN_ID: ${{ github.run_id }}
+          DRY_RUN_INPUT: ${{ inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            ISSUE="$ISSUE_FROM_INPUT"
+            DRY_RUN="${DRY_RUN_INPUT:-true}"
+          else
+            ISSUE="$ISSUE_FROM_EVENT"
+            # Label-driven wakes are live; still allow host override.
+            DRY_RUN="${LGFC_CURSOR_DISPATCH_DRY_RUN:-false}"
+          fi
+          case "$ISSUE" in
+            ''|*[!0-9]*) echo "invalid issue"; exit 1 ;;
+          esac
+          echo "issue=$ISSUE" >> "$GITHUB_OUTPUT"
+          echo "delivery_id=wake-${RUN_ID}-${ISSUE}" >> "$GITHUB_OUTPUT"
+          echo "dry_run=$DRY_RUN" >> "$GITHUB_OUTPUT"
+
+      - name: Checkout trusted main for wrapper only
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+          clean: true
+          persist-credentials: false
+
+      - name: Enforce Cursor-only routing before invoke
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          ISSUE: ${{ steps.meta.outputs.issue }}
+          ISSUE_LABELS: ${{ join(github.event.issue.labels.*.name, ',') }}
+          LABEL_NAME: ${{ github.event.label.name }}
+          ACTION: ${{ github.event.action }}
+          ACTOR: ${{ github.actor }}
+          REPOSITORY: ${{ github.repository }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            ISSUE_LABELS=$(gh issue view "$ISSUE" --repo "$REPOSITORY" --json labels --jq '[.labels[].name] | join(",")')
+            export ISSUE_LABELS
+          fi
+          node --input-type=module <<'EOF'
+          import { shouldDeliverCursorWake } from './scripts/cursor-bridge/lib/wake-ingress.mjs';
+
+          const labels = String(process.env.ISSUE_LABELS || '')
+            .split(',')
+            .map((s) => s.trim())
+            .filter(Boolean);
+          const decision = shouldDeliverCursorWake({
+            repository: process.env.REPOSITORY,
+            eventName: process.env.EVENT_NAME,
+            action: process.env.ACTION || '',
+            labelName: process.env.LABEL_NAME || '',
+            issueLabels: labels,
+            actor: process.env.ACTOR || '',
+          });
+          if (!decision.deliver) {
+            console.error(JSON.stringify({ deliver: false, reason: decision.reason }));
+            process.exit(1);
+          }
+          console.log(JSON.stringify({ deliver: true, reason: decision.reason }));
+          EOF
+
+      - name: Invoke fixed local dispatch wrapper
+        env:
+          ISSUE: ${{ steps.meta.outputs.issue }}
+          DELIVERY_ID: ${{ steps.meta.outputs.delivery_id }}
+          DRY_RUN: ${{ steps.meta.outputs.dry_run }}
+          RUN_ID: ${{ github.run_id }}
+          EVENT_NAME: ${{ github.event_name }}
+        run: |
+          set -euo pipefail
+          EXTRA=()
+          if [ "$DRY_RUN" = "true" ]; then
+            EXTRA+=(--dry-run)
+          fi
+          node scripts/lgfc-cursor-dispatch/dispatch.mjs \
+            --repo wdhunter465/next-starter-template \
+            --issue "$ISSUE" \
+            --event "$EVENT_NAME" \
+            --delivery-id "$DELIVERY_ID" \
+            --run-id "$RUN_ID" \
+            --workspace "$GITHUB_WORKSPACE" \
+            "${EXTRA[@]}"
+
+      - name: Write dispatch summary
+        if: always()
+        run: |
+          echo "## LGFC Cursor Dispatch" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Event: ${{ github.event_name }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Issue: #${{ steps.meta.outputs.issue }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Delivery id: ${{ steps.meta.outputs.delivery_id }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Dry run: ${{ steps.meta.outputs.dry_run }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "- Runner labels required: self-hosted, linux, x64, lgfc-cursor" >> "$GITHUB_STEP_SUMMARY"

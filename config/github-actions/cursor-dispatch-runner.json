@@ -1,0 +1,80 @@
+{
+  "schemaVersion": 1,
+  "repository": "wdhunter465/next-starter-template",
+  "scope": "repository",
+  "runner": {
+    "name": "lgfc-cursor-chromebook",
+    "operatingSystem": "linux",
+    "distribution": "debian-12",
+    "architecture": "x64",
+    "serviceManager": "systemd",
+    "labels": [
+      "self-hosted",
+      "linux",
+      "x64",
+      "lgfc-cursor"
+    ]
+  },
+  "security": {
+    "publicRepository": true,
+    "trustedEvents": [
+      "issues",
+      "workflow_dispatch"
+    ],
+    "trustedRefs": [
+      "refs/heads/main"
+    ],
+    "trustedActors": [
+      "wdhunter645"
+    ],
+    "allowForkPullRequests": false,
+    "allowPullRequestEvents": false,
+    "allowPullRequestTargetEvents": false,
+    "allowWorkflowRunEvents": false,
+    "allowPushEvents": false,
+    "allowScheduledEvents": false,
+    "allowRepositorySecrets": false,
+    "allowProductionCredentials": false,
+    "allowDeployments": false,
+    "allowPersistentGitCredentials": false,
+    "executeIssueOrCommentContent": false,
+    "mayCheckoutUntrustedRefs": false,
+    "promptAuthority": "identifiers-only — Cursor must fetch the source Issue after start"
+  },
+  "dispatch": {
+    "enabled": true,
+    "workflow": ".github/workflows/lgfc-cursor-dispatch.yml",
+    "wrapper": "scripts/lgfc-cursor-dispatch/dispatch.mjs",
+    "purpose": "Wake Cursor Local headlessly with repository/event identifiers only",
+    "requiredLabels": [
+      "agent:cursor",
+      "handoff:ready"
+    ],
+    "mayLaunchCursor": true,
+    "mayHoldApiKeys": false,
+    "mayClaimSerialLane": false,
+    "prohibitYolo": true,
+    "prohibitForce": true,
+    "packetAuthority": "none — Cursor loads live Issue authority after start"
+  },
+  "observability": {
+    "healthWorkflow": ".github/workflows/lgfc-cursor-runner-health.yml",
+    "healthRunsOn": "ubuntu-latest",
+    "independentOfSelfHostedRunner": true
+  },
+  "rollout": {
+    "state": "phase-2-prototype",
+    "sourceIssue": "#3212",
+    "phase1Report": "docs/ops/reports/issue-3212-phase1-cursor-runner-dispatch-security-design.md",
+    "legacyBridgeRetirement": "prohibited-until-phase-3-and-phase-4-go"
+  },
+  "operations": {
+    "workDirectory": "_work",
+    "runnerApplicationAutoUpdate": true,
+    "preserveStateOnStop": true,
+    "requiredOutboundPort": 443,
+    "hostMustBeDedicatedToRunnerWork": true,
+    "hostMustNotContainPersonalOrProductionSecrets": true,
+    "localLockPath": "~/.lgfc-cursor-dispatch/dispatch.lock"
+  }
+}
