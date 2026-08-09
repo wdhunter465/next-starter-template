@@ -97,6 +97,12 @@ export function validateCrossRouteQaRecord(record, { requiredMatrixIds = [] } = 
 export function buildCrossRouteQaReadiness({ record, requiredMatrixIds = [] }) {
   const problems = validateCrossRouteQaRecord(record, { requiredMatrixIds });
   const blockers = [];
+  if (!Array.isArray(requiredMatrixIds) || requiredMatrixIds.length === 0) {
+    // Fail closed: without a non-empty required-ID list there is nothing to
+    // check row coverage against, so a record can never be trusted as
+    // complete by omission alone.
+    blockers.push('missing_required_matrix_ids');
+  }
   if (problems.length > 0) blockers.push('qa_record_incomplete');
 
   const deferredMatrixIds =
@@ -146,10 +152,17 @@ function readOptionValue(argv, flag) {
 export function main(argv = process.argv.slice(2)) {
   const recordFlagPresent = argv.includes('--record');
   const recordPath = readOptionValue(argv, '--record');
+  const requiredIdsFlagPresent = argv.includes('--required-ids-file');
   const requiredIdsPath = readOptionValue(argv, '--required-ids-file');
 
   if (!recordFlagPresent || !recordPath) {
     console.error('FAIL-CLOSED: --record <path> is required.');
+    process.exitCode = 1;
+    return null;
+  }
+
+  if (!requiredIdsFlagPresent || !requiredIdsPath) {
+    console.error('FAIL-CLOSED: --required-ids-file <path> is required (prevents a false-ready result by omission).');
     process.exitCode = 1;
     return null;
   }
@@ -164,6 +177,11 @@ export function main(argv = process.argv.slice(2)) {
   }
 
   const requiredMatrixIds = readListFile(requiredIdsPath);
+  if (requiredMatrixIds.length === 0) {
+    console.error(`FAIL-CLOSED: "${requiredIdsPath}" contained no matrix IDs.`);
+    process.exitCode = 1;
+    return null;
+  }
 
   const result = buildCrossRouteQaReadiness({ record, requiredMatrixIds });
   console.log(JSON.stringify(result, null, 2));

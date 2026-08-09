@@ -20,6 +20,10 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
+afterEach(() => {
+  vi.restoreAllMocks();
+});
+
 describe('#2909 matrix P-03 WeeklyMatchup: empty state when fewer than 2 current photos exist', () => {
   it('shows "No matchup available this week." instead of crashing or rendering a partial matchup', async () => {
     vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {

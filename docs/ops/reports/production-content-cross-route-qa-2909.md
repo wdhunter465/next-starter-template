@@ -152,9 +152,11 @@ Production verification can claim full readiness.
   the entry gate for final launch packaging.
 - **QA re-run ownership:** whoever picks up the next #2907/#2908-class
   population batch should re-run
-  `node scripts/ci/production_content_cross_route_qa.mjs --record <updated record>`
+  `node scripts/ci/production_content_cross_route_qa.mjs --record <updated record> --required-ids-file <the full 26-ID list>`
   after updating that row's disposition, rather than assuming this
-  document's snapshot stays current indefinitely.
+  document's snapshot stays current indefinitely. `--required-ids-file` is
+  mandatory: omitting it fails closed instead of silently returning
+  `ready: true` on a record that dropped a row.
 
 ### Rollback
 
@@ -178,8 +180,8 @@ triggers when the corresponding query returns zero rows.
 
 - `npx vitest run tests/homepage-sections-empty-state.test.tsx` — 6/6 passing.
 - `npx vitest run tests/faq-page.test.tsx` — 10/10 passing (9 pre-existing + 1 new).
-- `npx vitest run tests/production-content-cross-route-qa.test.mjs` — 23/23 passing.
-- `node scripts/ci/production_content_cross_route_qa.mjs --record <this section 2 record>` — `ready: true`, 20 rows in `deferredMatrixIds`, exactly matching this document's claims.
+- `npx vitest run tests/production-content-cross-route-qa.test.mjs` — 27/27 passing.
+- `node scripts/ci/production_content_cross_route_qa.mjs --record <this section 2 record> --required-ids-file <all 26 matrixId values from this section's record>` — `ready: true`, 20 rows in `deferredMatrixIds`, exactly matching this document's claims. `--required-ids-file` is a mandatory flag (fail-closed if omitted or empty) so a required row can never be silently dropped and still read `ready: true`.
 - No Production credential use, no live D1/B2 mutation, no publication.
 
 ## 6. Handoff

@@ -144,6 +144,18 @@ describe('buildCrossRouteQaReadiness', () => {
     const result = buildCrossRouteQaReadiness({ record: null, requiredMatrixIds: [] });
     expect(result.ready).toBe(false);
   });
+
+  it('blocks with missing_required_matrix_ids when requiredMatrixIds is empty, even with a fully compliant record — the closed false-ready-by-omission gap', () => {
+    const result = buildCrossRouteQaReadiness({ record: compliantRecord(), requiredMatrixIds: [] });
+    expect(result.ready).toBe(false);
+    expect(result.blockers).toContain('missing_required_matrix_ids');
+  });
+
+  it('blocks with missing_required_matrix_ids when requiredMatrixIds is not an array', () => {
+    const result = buildCrossRouteQaReadiness({ record: compliantRecord(), requiredMatrixIds: undefined });
+    expect(result.ready).toBe(false);
+    expect(result.blockers).toContain('missing_required_matrix_ids');
+  });
 });
 
 describe('main() CLI (fails closed instead of throwing on bad input)', () => {
@@ -180,10 +192,30 @@ describe('main() CLI (fails closed instead of throwing on bad input)', () => {
     expect(process.exitCode).toBe(1);
   });
 
-  it('runs end-to-end against a real temp file and exits 0 when ready (no required-ids file)', () => {
+  it('fails closed when --required-ids-file is omitted, even with a fully compliant record', () => {
     const recordPath = path.join(tmpDir, 'record.json');
     fs.writeFileSync(recordPath, JSON.stringify(compliantRecord()));
     const result = main(['--record', recordPath]);
+    expect(result).toBeNull();
+    expect(process.exitCode).toBe(1);
+  });
+
+  it('fails closed when --required-ids-file points at an empty/nonexistent file', () => {
+    const recordPath = path.join(tmpDir, 'record.json');
+    const idsPath = path.join(tmpDir, 'empty-ids.txt');
+    fs.writeFileSync(recordPath, JSON.stringify(compliantRecord()));
+    fs.writeFileSync(idsPath, '');
+    const result = main(['--record', recordPath, '--required-ids-file', idsPath]);
+    expect(result).toBeNull();
+    expect(process.exitCode).toBe(1);
+  });
+
+  it('runs end-to-end against a real temp file and exits 0 when ready (with a required-ids file covering every row)', () => {
+    const recordPath = path.join(tmpDir, 'record.json');
+    const idsPath = path.join(tmpDir, 'ids.txt');
+    fs.writeFileSync(recordPath, JSON.stringify(compliantRecord()));
+    fs.writeFileSync(idsPath, 'P-03\nF-02\n');
+    const result = main(['--record', recordPath, '--required-ids-file', idsPath]);
     expect(result.ready).toBe(true);
     expect(process.exitCode).toBe(0);
   });
