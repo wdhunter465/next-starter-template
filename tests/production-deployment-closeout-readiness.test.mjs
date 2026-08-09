@@ -44,6 +44,11 @@ describe('validateCloseoutRecord', () => {
     expect(validateCloseoutRecord('x')).toEqual(['closeout_not_an_object']);
   });
 
+  it('rejects an array closeout record as closeout_not_an_object rather than reporting every field missing', () => {
+    expect(validateCloseoutRecord(['not', 'a', 'closeout'])).toEqual(['closeout_not_an_object']);
+    expect(validateCloseoutRecord([])).toEqual(['closeout_not_an_object']);
+  });
+
   it('covers every element #2933 requires', () => {
     expect(REQUIRED_CLOSEOUT_FIELDS).toEqual([
       'publicBehaviorAcceptanceEvidence',
