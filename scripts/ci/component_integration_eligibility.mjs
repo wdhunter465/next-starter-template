@@ -6,6 +6,7 @@ import {
   assessActorIndependentApproval,
   isActorApprovalReview,
   parseImplementationActor,
+  reviewerActor,
 } from './reviewer_lifecycle_gate.mjs';
 
 export const HOLD_LABELS = ['component-integration-hold', 'hold:component-integration'];
@@ -191,6 +192,78 @@ export function assessReviews(reviews = [], { headSha = '' } = {}) {
   return blockers;
 }
 
+function normalizeActorIdentity(value = '') {
+  return String(value || '').trim().toLowerCase();
+}
+
+/**
+ * Determines whether a protected-change PR's required independent review is
+ * satisfied for the current head (#3151). Distinguishes:
+ *
+ * 1. pending — no independent APPROVED review exists yet for the current head;
+ * 2. satisfied — an APPROVED review from someone other than the implementer
+ *    is linked to the current head (`protected_change` is cleared);
+ * 3. stale — an independent APPROVED review exists, but only for a prior
+ *    head; a fresh review is required after the head changed;
+ * 4. current-head CHANGES_REQUESTED remains blocking via the separate,
+ *    unchanged `assessReviews()` check — not handled here;
+ * 5. self-approval — an APPROVED review exists only from the implementer
+ *    itself, which can never satisfy this requirement.
+ *
+ * This only ever reads real GitHub review state (author identity, review
+ * state, and commit_id) — it verifies that authorized review evidence
+ * exists, it never invents or infers the Engineering decision.
+ */
+export function assessProtectedChangeReview({
+  implementationActor = '',
+  implementationLogin = '',
+  reviews = [],
+  headSha = '',
+} = {}) {
+  const implementer = normalizeActorIdentity(implementationActor || implementationLogin);
+  const currentHeadReviews = selectLatestReviewsByAuthor(reviews, { headSha });
+
+  const independentCurrentHeadApproval = currentHeadReviews
+    .filter(isActorApprovalReview)
+    .find((review) => {
+      const author = normalizeActorIdentity(reviewerActor(review));
+      return Boolean(author) && author !== implementer;
+    });
+
+  if (independentCurrentHeadApproval) {
+    return { satisfied: true, blockers: [] };
+  }
+
+  // An independent APPROVED review exists somewhere in the PR's history, but
+  // not for the current head — the approval was superseded by a new commit
+  // and must be refreshed. Distinct from "never reviewed" for operator clarity.
+  const hasStaleIndependentApproval = reviews.some((review) => {
+    if (!isActorApprovalReview(review)) return false;
+    const author = normalizeActorIdentity(reviewerActor(review));
+    if (!author || author === implementer) return false;
+    const commitId = review.commit_id || review.commitId || '';
+    return Boolean(commitId) && commitId !== headSha;
+  });
+
+  if (hasStaleIndependentApproval) {
+    return {
+      satisfied: false,
+      blockers: [integrationError(
+        'protected_change_stale_approval',
+        'Prior protected-change approval no longer covers the current head; a fresh independent review is required.',
+      )],
+    };
+  }
+
+  return {
+    satisfied: false,
+    blockers: [integrationError(
+      'protected_change',
+      'Protected paths changed; independent PR Approver / Engineering review is required before component integration.',
+    )],
+  };
+}
+
 /**
  * Map GitHub combined status to green/red only.
  * Hold is never inferred from pending/absent legacy status — only explicit labels.
@@ -297,11 +370,13 @@ export function evaluateComponentIntegration({
   }
 
   if (protectedChange || approvalProfile === 'protected-change-review') {
-    requiresChatReview = true;
-    blockedReasons.push(integrationError(
-      'protected_change',
-      'Protected paths changed; Chat review is required before component integration.',
-    ));
+    const protectedChangeReview = assessProtectedChangeReview({
+      implementationActor: implementationActor || implementationLogin,
+      reviews,
+      headSha: resolvedHeadSha,
+    });
+    requiresChatReview = !protectedChangeReview.satisfied;
+    blockedReasons.push(...protectedChangeReview.blockers);
   }
 
   if (componentState === 'red') {

@@ -5,6 +5,14 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
     branches:
       - 'component/**'
+  # Deterministic reevaluation when review state can materially change
+  # protected-change eligibility (#3151). GitHub does not support
+  # branch-filtering pull_request_review at the trigger level; non-component
+  # PRs proceed harmlessly through the same generic resolution path
+  # workflow_dispatch already uses, and are rejected downstream by the
+  # evaluator's own non_component_base check.
+  pull_request_review:
+    types: [submitted, edited, dismissed]
   # Deterministic settle reevaluation after required peer gates complete.
   workflow_run:
     workflows:
@@ -29,6 +37,7 @@ jobs:
     if: >
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'pull_request' && github.event.pull_request.draft == false) ||
+      (github.event_name == 'pull_request_review' && github.event.pull_request.draft == false) ||
       (github.event_name == 'workflow_run' &&
        github.event.workflow_run.conclusion != null &&
        github.event.workflow_run.event == 'pull_request')
