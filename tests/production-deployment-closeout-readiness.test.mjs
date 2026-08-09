@@ -132,12 +132,14 @@ describe('buildCloseoutReadiness', () => {
     expect(result.blockers).toContain('unresolved_protected_decisions_malformed');
   });
 
-  it('normalizes detail.unresolvedProtectedDecisions to an array even when the input is malformed', () => {
+  it('normalizes detail.unresolvedProtectedDecisions to an array even when the input is malformed, without weakening the fail-closed blocker', () => {
     const result = buildCloseoutReadiness({
       closeout: compliantCloseout(),
       smokeVerificationResult: readySmokeResult,
       unresolvedProtectedDecisions: 'not-an-array',
     });
+    expect(result.ready).toBe(false);
+    expect(result.blockers).toContain('unresolved_protected_decisions_malformed');
     expect(result.detail.unresolvedProtectedDecisions).toEqual([]);
 
     const objectResult = buildCloseoutReadiness({
@@ -145,6 +147,8 @@ describe('buildCloseoutReadiness', () => {
       smokeVerificationResult: readySmokeResult,
       unresolvedProtectedDecisions: { bad: true },
     });
+    expect(objectResult.ready).toBe(false);
+    expect(objectResult.blockers).toContain('unresolved_protected_decisions_malformed');
     expect(objectResult.detail.unresolvedProtectedDecisions).toEqual([]);
   });
 
