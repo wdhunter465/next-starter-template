@@ -143,7 +143,7 @@
 }
 
 .dayCellMuted {
-  opacity: 0.35;
+  color: var(--lgfc-text-muted, #666666);
 }
 
 .dayCellInactive {

@@ -324,6 +324,14 @@ a:hover {
 	margin: 0 0 18px;
 }
 
+/* Links inside muted body text need a non-color cue (WCAG 1.4.1 /
+   link-in-text-block): the link/surrounding-text color contrast alone
+   doesn't clear the 3:1 bar here, so default to underlined instead of
+   relying on hover-only text-decoration. */
+.sub a {
+	text-decoration: underline;
+}
+
 /* Standardized section titles */
 .section-title {
 	margin: 0 0 var(--rhythm-sm) 0;
