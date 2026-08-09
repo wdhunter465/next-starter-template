@@ -7,7 +7,7 @@ Source Issue: #2679
 Owns: Workflow transition SLO definitions, authoritative evidence mapping, measurement rules, breach taxonomy, and daily 5 PM ET report schema for the LGFC continuous implementation chain
 Does Not Own: Automatic merge to main, Production mutation, protected-decision substitution, or weakening of approval boundaries to meet targets
 Canonical Reference: /docs/ops/reports/workflow-transition-slo-2679.md
-related issues: #2679, #2676, #2677, #2682
+Related Issues: #2679, #2676, #2677, #2682, #3241
 Last Reviewed: 2026-08-09
 Executor: Grok
 ---
@@ -61,7 +61,7 @@ Each transition is a single SLO transaction. Start is the **first authoritative 
 
 | ID | Transition | Target | Start evidence (authoritative) | End evidence (authoritative) | Primary owner class |
 | --- | --- | ---: | --- | --- | --- |
-| T1 | Wake event → runner delivery ack | ≤ 2 min | GitHub `issues` labeled event time when `agent:cursor`+`handoff:ready` become jointly true, or authorized `workflow_dispatch` run `created_at` | Wake workflow job step that writes host queue packet completes successfully (`cursor-local-wake` job completion with success) | runner/host |
+| T1 | Wake event → runner delivery ack | ≤ 2 min | Authoritative start is exactly one concrete timestamp chosen by trigger class: (a) when wake is label-driven, the GitHub Issues `labeled` event `created_at` that first establishes both `agent:cursor` and `handoff:ready` on the Issue; or (b) when wake is manually forced, the `workflow_dispatch` run `created_at`. Do not use a later-of tie-break between label and dispatch events. Collectors must use the recorded event or run timestamp, not a reconstructed “when labels become jointly true” inference. | End is the `cursor-local-wake.yml` job named **`deliver`** completing with `conclusion=success` (`jobs.deliver` completion time / job `completed_at`). Do not use a generic “cursor-local-wake job” name. | runner/host |
 | T2 | Runner delivery ack → Bridge start or explicit fallback | ≤ 2 min | Wake job success / packet write completion timestamp | Local Bridge claim/accept evidence (`claim.json` / `in-flight.json` acceptedAt) **or** actionable `CURSOR BRIDGE FALLBACK:*` Issue comment created_at | Bridge/auth/capacity |
 | T3 | Cursor handoff / PR-review request → controller acknowledgment | ≤ 5 min | Canonical Cursor `IMPLEMENTATION HANDOFF` comment or equivalent PR-ready marker on source Issue (`created_at`) | Controller review-packet comment or deterministic controller workflow run start that binds that Issue/PR head SHA | controller/dispatcher |
 | T4 | Bounded actionable review finding → Cursor remediation resume | ≤ 10 min | First unresolved actionable review-thread comment on current head (human or trusted bot disposition required) `created_at` | Source-Issue routing labels re-applied for Cursor (`handoff:ready`+`agent:cursor`) **or** wake workflow run created for that Issue after the finding | review defect / controller |
