@@ -4,10 +4,10 @@ Audience: Human + AI
 Authority Level: Implementation Evidence (Phase 3)
 Status: Draft — #3212 Phase 3 reliability validation
 Source Issue: #3212
-Owns: Phase 3 reliability validation evidence for security-hardened GitHub→Cursor dispatch (#3212)
-Does Not Own: Phase 4 Bridge retirement, durable systemd runner install, or trusted-actor (`wdhunter645`) manual workflow_dispatch wake
+Owns: Phase 3 reliability campaign evidence for security-hardened GitHub→Cursor dispatch (#3212)
+Does Not Own: Phase 4 Bridge retirement, workflow actor-allowlist remediation, or bulk `wdhunter645` identity cleanup (#3215)
 Canonical Reference: /docs/ops/reports/issue-3212-phase3-reliability-validation.md
-Related Issues: #3212, #3227
+Related Issues: #3212, #3215, #3246, #3216
 Last Reviewed: 2026-08-09
 Executor: Cursor Local
 ---
@@ -16,137 +16,150 @@ Executor: Cursor Local
 
 ## Purpose
 
-Record Phase 3 reliability evidence for the Phase 2 Cursor dispatch path: repeated dispatch, duplicate/concurrency serialization, runner restart/reconnect, temporary offline observation, independent health alarm path, failure signaling, and no silent loss in a bounded window.
+Record Phase 3 reliability campaign evidence for the dedicated `lgfc-cursor` dispatch path after Phase 2 merge (`90b14eed` via PR #3246).
 
 ## Scope
 
 **In scope**
 
-- Local reliability harness for wrapper behavior
-- Live label-driven dry-run wakes on `lgfc-cursor-chromebook`
-- Runner stop → GitHub offline → restart reconnect
-- Unauthorized-actor gate checks for manual dispatch/health
-- Phase 3 evidence report
+- Repeated trusted dry-run dispatch
+- Duplicate-event / concurrency serialization
+- Runner restart / reconnect
+- Temporary offline observation + independent health-query evidence
+- Wrapper / Cursor failure signaling
+- Bounded no-silent-loss observation after reconnect
+- Optional local reliability harness
 
 **Out of scope**
 
-- Phase 4 Bridge retirement
-- Live (non-dry-run) Cursor invoke
-- Trusted-actor (`wdhunter645`) `workflow_dispatch` wake (actor gate; not available as `wdhunter465`)
-- `sudo ./svc.sh install` reboot persistence
+- Phase 4 Bridge / poll-wake retirement
+- Workflow YAML actor-allowlist changes (not on Phase 3 allowlist)
+- Durable `sudo ./svc.sh install` (still pending elevated host permission)
+- Live (`dry_run=false`) Cursor invoke while an implementation session is already active on #3212
 
-## Current known truth
+## Starting checkpoint
 
-1. Phase 2 merged via PR #3246 (`90b14eed…`) and was Product Authority–accepted with advance to Phase 3.
-2. Post-merge exception #3227 (and related #3247 disposition work) is **CLOSED**; it was a reviewer-disposition clerical defect, not a Phase 2 design failure.
-3. Post-merge closeout briefly closed #3212 after Phase 1/2 replay; issue was **reopened** because Phases 3–4 remain in scope.
-4. Host runner `lgfc-cursor-chromebook` was restarted for Phase 3 with `LGFC_CURSOR_DISPATCH_DRY_RUN=true` so label wakes exercise the path without live Cursor invoke.
-
-## Delivered artifacts
-
-| Artifact | Path |
+| Field | Value |
 | --- | --- |
-| Reliability harness | `scripts/lgfc-cursor-dispatch/test-reliability-harness.mjs` |
-| This evidence report | `docs/ops/reports/issue-3212-phase3-reliability-validation.md` |
+| Source Issue | #3212 |
+| Branch | `cursor/3212-phase3-reliability-validation-2e48` |
+| Starting SHA | `960c9654` (`origin/main`) |
+| Allowlist | Phase 3 report; optional reliability harness; how-to only if reboot-persistence evidence requires a doc delta |
+| Host runner | `lgfc-cursor-chromebook` (id 22), labels include `lgfc-cursor` |
+| Host mode | `run.sh` (not systemd); `LGFC_CURSOR_DISPATCH_DRY_RUN=true` during Phase 3 |
 
-## Local harness results
+## Campaign results
 
-Command:
+### 1. Repeated trusted dry-run dispatch — PASS
+
+Local harness (5 consecutive wrapper dry-runs):
 
 ```bash
 node scripts/lgfc-cursor-dispatch/test-reliability-harness.mjs
 ```
 
-Result (**PASS**, 5/5):
+Result: `repeated_dry_run_dispatch_x5` PASS.
 
-| Case | Result |
+Live Actions dry-runs on `lgfc-cursor-chromebook` (issues label path; wrapper logged `dry_run_ok`):
+
+| Run | Result | Evidence |
+| --- | --- | --- |
+| 31312790306 | success | Dispatch Cursor wake + `dry_run_ok` |
+| 31312795885 | success | Dispatch Cursor wake + `dry_run_ok` |
+| 31312914160 | success | Dispatch Cursor wake + `dry_run_ok` |
+| 31312923491 | success | Dispatch Cursor wake + `dry_run_ok` |
+| 31312930746 | success | Dispatch Cursor wake + `dry_run_ok` |
+
+Manual `workflow_dispatch` dry-run from actor `wdhunter465` did **not** execute the Chromebook job: security unit tests ran, wake job skipped by actor gate (`github.actor == 'wdhunter645'`). Example: run `31312833993` (security PASS; Dispatch Cursor wake skipped).
+
+Trusted dry-run coverage for Phase 3 therefore uses the issues/label path plus local harness. Manual `workflow_dispatch` from the live Product Authority login remains blocked until a follow-up allowlist fix outside this Phase 3 PR.
+
+### 2. Duplicate-event / concurrency serialization — PASS
+
+| Control | Evidence |
 | --- | --- |
-| `repeated_dry_run_dispatch_x5` | PASS |
-| `duplicate_dispatch_serialized_by_lock` | PASS (second exit 4 / `dispatch_lock_held`) |
-| `failure_signal_invalid_repo` | PASS (exit 2) |
-| `failure_signal_untrusted_event` | PASS (exit 2) |
-| `security_unit_suite` | PASS |
+| Actions concurrency group `lgfc-cursor-dispatch` with `cancel-in-progress: false` | Workflow on `main` |
+| Local exclusive lock rejects second acquisition | Harness `duplicate_dispatch_serialized_by_lock` PASS (exit 4 / `dispatch_lock_held`) |
+| Serial job execution on one Chromebook runner | Runner log shows jobs `31312914160` → `31312923491` → `31312930746` completed sequentially without overlap |
 
-## Live evidence (2026-08-09)
+### 3. Runner restart / reconnect — PASS
 
-### Runner restart / temporary offline / reconnect
+1. Stopped `Runner.Listener` for `lgfc-cursor-chromebook`.
+2. Restarted via `LGFC_CURSOR_DISPATCH_DRY_RUN=true ./run.sh`.
+3. Runner reconnected (`Listening for Jobs`, version `2.336.0`).
+4. Subsequent dry-run wake jobs succeeded on the same runner identity (id 22).
 
-| Step | Evidence |
-| --- | --- |
-| Before | `lgfc-cursor-chromebook` **online** (`/tmp/lgfc-3212-phase3-evidence/runners-before.json`) |
-| Stop | Local `Runner.Listener` for `actions-runners/lgfc-cursor` terminated |
-| Offline observation | API status **offline** at ~12:13:13Z (`runners-offline.json`, `offline_result=offline`) |
-| Restart | `nohup env LGFC_CURSOR_DISPATCH_DRY_RUN=true ./run.sh` |
-| Reconnect | API status **online** on first up-poll; listener PID active (`runners-after-restart.json`) |
+Durable reboot persistence via `sudo ./svc.sh install` remains **PENDING** (no passwordless sudo in this session). How-to updated to record Phase 3 `run.sh` evidence and the systemd residual.
 
-This covers Phase 3 runner restart, temporary outage (process stop), and reconnection. Full Chromebook network cut was not required once GitHub registered the runner offline and later online.
-
-### Independent health alarm path
+### 4. Temporary offline + independent health alarm — PARTIAL PASS (with follow-up)
 
 | Check | Result |
 | --- | --- |
-| Health workflow actor gate | `workflow_dispatch` as `wdhunter465` → run [31312783596](https://github.com/wdhunter465/next-starter-template/actions/runs/31312783596) **skipped** (expected; only `wdhunter645` + confirmation string) |
-| API-mirrored health query (post-reconnect) | **ONLINE** — 1 match `lgfc-cursor-chromebook` |
-| Offline fail semantics | Workflow `setFailed` when no online `lgfc-cursor` match — validated by offline API window above; trusted scheduled/`wdhunter645` run not executed in this session |
+| Process-level offline (listener stopped) | PASS — local process gone |
+| GitHub API status lag after kill | Observed: API can still report `online` briefly after process stop |
+| Independent health query path | PASS — same runner list API used by `.github/workflows/lgfc-cursor-runner-health.yml` is queryable from GitHub-hosted logic / operator `gh api` without depending on the Chromebook process |
+| Manual health `workflow_dispatch` as `wdhunter465` | FAIL/SKIP — job skipped by actor gate (`wdhunter645` only). Example: run `31312834769` skipped |
 
-### Unauthorized manual dispatch (failure signaling / no silent wake)
+Interpretation: independent observation design is correct (GitHub-hosted workflow + API). Live operator enablement for the current Product Authority login is blocked by the same actor-string drift as manual dispatch. Remediation requires a workflow allowlist change (out of Phase 3 file allowlist) and/or #3215 identity cleanup.
 
-Run [31312675870](https://github.com/wdhunter465/next-starter-template/actions/runs/31312675870) (`workflow_dispatch` as `wdhunter465`):
+### 5. Cursor / wrapper failure signaling — PASS
 
-- Security unit tests: **success**
-- Dispatch Cursor wake: **skipped** (actor gate)
+Local harness:
 
-### Repeated + concurrent label-driven dry-run wakes (no silent loss)
+| Case | Expected | Result |
+| --- | --- | --- |
+| Invalid repository slug | exit 2 | PASS |
+| Untrusted event (`pull_request`) | exit 2 | PASS |
+| Security unit suite | exit 0 | PASS |
 
-Two `handoff:ready` label cycles on #3212 while host dry-run env was set:
+Actions security-negative suite also PASS on GitHub-hosted job for dispatch runs (including `31312833993` and issue-triggered runs).
 
-| Run | Result | Runner | Dry-run |
-| --- | --- | --- | --- |
-| [31312790306](https://github.com/wdhunter465/next-starter-template/actions/runs/31312790306) | **success** | `lgfc-cursor-chromebook` | `DRY_RUN=true` → `dry_run_ok` |
-| [31312795885](https://github.com/wdhunter465/next-starter-template/actions/runs/31312795885) | **success** | `lgfc-cursor-chromebook` | `DRY_RUN=true` → `dry_run_ok` |
+Live Cursor CLI failure signaling (`cli_binary_missing` / non-zero Cursor exit) was not exercised while `LGFC_CURSOR_DISPATCH_DRY_RUN=true` to avoid competing live agents on #3212 during this session.
 
-Serialization evidence:
+### 6. Bounded no-silent-loss observation — PASS (bounded)
 
-- Workflow concurrency group `lgfc-cursor-dispatch` with `cancel-in-progress: false`
-- Host log: job 1 `12:14:48Z`…`Succeeded` then job 2 `12:15:06Z`…`Succeeded` (no cancel / no silent drop)
-- Local lock harness separately proves in-process duplicate rejection
+Within the Phase 3 window:
 
-Delivery IDs observed: `wake-31312790306-3212`, `wake-31312795885-3212`.
+- Qualifying label events produced visible Actions runs (not silent local drops).
+- After runner restart/reconnect, queued/subsequent wake jobs completed successfully with `dry_run_ok` logs.
+- Failed/skipped paths (actor-gated `workflow_dispatch`) are visible in the Actions UI rather than disappearing locally.
 
-### Cursor / wrapper failure signaling
+This does not claim infinite offline retention beyond GitHub Actions queue/retention behavior.
 
-| Signal | Evidence |
-| --- | --- |
-| Invalid repo argv | harness exit 2 |
-| Untrusted event (`pull_request`) | harness exit 2 |
-| Lock held / duplicate | harness exit 4 |
-| Unauthorized manual wake | job skipped (not silent success) |
-| Successful dry-run path | `dry_run_ok` JSON log lines on both live wakes |
+## Local harness artifact
+
+Path: `scripts/lgfc-cursor-dispatch/test-reliability-harness.mjs`
+
+Covers repeated dry-run, lock serialization, failure signaling, and security-suite regression without requiring Actions actor privileges.
 
 ## Phase 3 acceptance mapping
 
-| Criterion | Status |
+| Campaign item | Status |
 | --- | --- |
-| Repeated dispatch | PASS (local x5 + two live dry-run wakes) |
-| Duplicate event | PASS (lock harness + queued second live wake) |
-| Runner restart | PASS (stop/start + online) |
-| Temporary outage + reconnect | PASS (API offline → online) |
-| Runner offline detection | PASS (API offline window; health workflow fail-closed design + unauthorized skip) |
-| Cursor/wrapper failure signal | PASS (exit codes + skipped unauthorized wake) |
-| Concurrent serialization | PASS (Actions concurrency + sequential runner jobs + lock) |
-| No event loss in bounded window | PASS (both label wakes completed success with distinct delivery IDs) |
+| Repeated trusted dry-run | PASS (Actions label path + local harness) |
+| Duplicate / concurrency serialization | PASS |
+| Runner restart / reconnect | PASS (`run.sh` mode) |
+| Temporary offline + independent health | PARTIAL — process offline + API query proven; manual health WD blocked by actor gate |
+| Failure signaling | PASS (wrapper/security); live Cursor exit deferred under dry-run hold |
+| No silent loss (bounded) | PASS |
+| systemd reboot persistence | PENDING sudo |
+| Manual WD as `wdhunter465` | BLOCKED by workflow actor allowlist |
 
-## Remaining follow-through (not Phase 3 blockers)
+## Findings requiring follow-up (not expanded in this PR)
 
-1. Trusted-actor (`wdhunter645`) manual dry-run/`CURSOR_DISPATCH` and health `CURSOR_RUNNER_HEALTH` proofs.
-2. Clear host `LGFC_CURSOR_DISPATCH_DRY_RUN` only when authorizing a live Cursor invoke.
-3. Durable `sudo ./svc.sh install` for reboot persistence.
-4. Phase 4 Bridge retirement after Phase 3 acceptance.
+1. **Actor allowlist drift:** `lgfc-cursor-dispatch.yml` and `lgfc-cursor-runner-health.yml` require `github.actor == 'wdhunter645'` for manual `workflow_dispatch`, while live Product Authority / operator login observed in this campaign is `wdhunter465`. Issues/label wakes work; manual WD/health do not.
+2. **systemd install** still required for reboot persistence.
+3. **Phase 4** Bridge/poll-wake retirement remains unauthorized until Product Authority accepts Phase 3 and authorizes cutover.
+4. Controlled **live** (`dry_run=false`) invoke remains an optional post-Phase-3 operator proof once no competing implementation session is active.
 
 ## Rollback
 
-Revert this PR (delete harness + report). Does not change Phase 2 workflows on `main` beyond evidence/docs.
+Unchanged from Phase 2:
 
-## Recommendation
+1. Disable/remove dispatch + health workflows via reviewed PR.
+2. Stop/unregister `lgfc-cursor` runner (`run.sh` stop or future `svc.sh`).
+3. Leave `lgfc-repo-runner` + Bridge intact until Phase 4 authority.
 
-**PHASE 3 READY FOR PRODUCT AUTHORITY ACCEPTANCE** — proceed to Phase 4 only after explicit Phase 3 accept on #3212. Keep #3212 open across remaining phases.
+## Next gate
+
+Phase 4 cutover may proceed only after Product Authority acceptance of this evidence and explicit retirement authorization. Do not treat this report as Bridge retirement authority.

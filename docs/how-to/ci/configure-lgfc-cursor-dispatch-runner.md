@@ -11,6 +11,8 @@ Last Reviewed: 2026-08-09
 
 # Configure the LGFC Cursor dispatch runner
 
+Phase 3 note (#3212): `run.sh` reconnect and `LGFC_CURSOR_DISPATCH_DRY_RUN=true` host mode were evidenced during reliability validation; `sudo ./svc.sh install` remains preferred for reboot persistence.
+
 ## Purpose
 
 Register and verify the dedicated Chromebook Linux self-hosted runner labeled `lgfc-cursor` that executes the Phase 2 Cursor dispatch workflow.
@@ -72,9 +74,21 @@ sudo ./svc.sh install
 sudo ./svc.sh start
 ```
 
+Phase 3 reliability evidence (#3212) validated reconnect using foreground/background `./run.sh` when `sudo ./svc.sh install` was not yet available. Prefer `svc.sh` for reboot persistence; treat `run.sh` as a temporary host mode only.
+
+For reliability dry-runs on the issues/label path, the host may set:
+
+```bash
+export LGFC_CURSOR_DISPATCH_DRY_RUN=true
+```
+
+before starting the runner so label-driven wakes exercise the wrapper without invoking Cursor. Clear that variable (or set `false`) only when a controlled live invoke is explicitly authorized.
+
 6. Confirm GitHub shows the runner online with label `lgfc-cursor`.
 
 7. Run the GitHub-hosted health workflow (`LGFC Cursor Runner Health`) with confirmation `CURSOR_RUNNER_HEALTH`.
+
+   Note: as of Phase 3 evidence, manual `workflow_dispatch` for health/dispatch is gated to actor `wdhunter645` in workflow YAML. If the live Product Authority login differs, use the issues/label dry-run path and/or API runner status until that allowlist is reconciled.
 
 8. Run `LGFC Cursor Dispatch` via `workflow_dispatch` with:
    - `issue_number`: a Cursor-owned Issue carrying `agent:cursor` + `handoff:ready`
