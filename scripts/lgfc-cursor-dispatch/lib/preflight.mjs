@@ -29,7 +29,7 @@ export function resolveAndValidateWorkspace(explicitWorkspace) {
       return { ok: false, error: `git_remote_unavailable:${abs}` };
     }
     const url = String(remote.stdout || '').trim();
-    if (!url.includes('wdhunter465/next-starter-template')) {
+    if (!url.includes(EXPECTED_REPO)) {
       return { ok: false, error: `unexpected_remote:${url}` };
     }
 
@@ -104,7 +104,13 @@ export function resolveAgentBinary() {
   for (const c of candidates) {
     const args = c.kind === 'cursor-agent' ? ['agent', 'status'] : ['status'];
     const r = spawnSync(c.bin, args, { encoding: 'utf8' });
-    if (!r.error) return c;
+    if (r.error) continue;
+    const out = `${r.stdout || ''}${r.stderr || ''}`.trim();
+    if (/not logged in/i.test(out) || /unauthorized/i.test(out)) continue;
+    // Accept exit 0, or ambiguous non-zero output that still looks authenticated.
+    if (r.status === 0 || /logged in|email|@/i.test(out)) {
+      return c;
+    }
   }
   return null;
 }

@@ -79,6 +79,7 @@ jobs:
         ) ||
         (
           github.event_name == 'workflow_dispatch' &&
+          github.ref == 'refs/heads/main' &&
           github.actor == 'wdhunter645' &&
           inputs.confirmation == 'CURSOR_DISPATCH'
         )
@@ -96,7 +97,10 @@ jobs:
           set -euo pipefail
           test "$REPOSITORY" = "wdhunter465/next-starter-template"
           test "$EVENT_NAME" = "issues" -o "$EVENT_NAME" = "workflow_dispatch"
-          # Never execute from untrusted PR refs; jobs targeting this runner must be main/default.
+          # workflow_dispatch must execute the trusted main workflow definition only.
+          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
+            test "$REF_NAME" = "refs/heads/main"
+          fi
           echo "trusted_invocation=true"
           echo "actor=$ACTOR"
           echo "ref=$REF_NAME"

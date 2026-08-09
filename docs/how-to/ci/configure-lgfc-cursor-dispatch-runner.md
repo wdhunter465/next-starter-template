@@ -36,7 +36,7 @@ Register and verify the dedicated Chromebook Linux self-hosted runner labeled `l
 - Repository slug `wdhunter465/next-starter-template`
 - Official GitHub Actions runner package for linux-x64
 
-## Registration steps
+## Steps
 
 1. On the Linux VM, create an isolated directory (example):
 
