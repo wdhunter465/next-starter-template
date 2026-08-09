@@ -5,17 +5,21 @@ Authority Level: Project Contract
 Owns: Cursor Local Bridge component inventory, eligibility auto-start gates, transactional launch acceptance, wake-packet authority boundary, health/watchdog/reconciliation contract, and fallback taxonomy
 Does Not Own: Product decisions, PR approval, Background Agents, or unrestricted workflow migration onto the Chromebook runner
 Canonical Reference: /docs/explanation/operations/cursor-local-auto-start-architecture.md
-Related Issues: #2294, #2667, #2669, #2681, #2694, #2739, #2814, #2997, #3013
-Last Reviewed: 2026-08-03
+Related Issues: #2294, #2667, #2669, #2681, #2694, #2739, #2814, #2997, #3013, #3212
+Last Reviewed: 2026-08-09
 ---
 
 # Cursor Local Bridge Contract
 
+## Status (#3212 Phase 4)
+
+**Retired as the primary auto-start contract.** Automatic wake-packet delivery is disabled (`wakeDelivery.enabled: false`). Primary transport is `lgfc-cursor-dispatch` / `config/github-actions/cursor-dispatch-runner.json`. This document remains the historical Bridge package contract and documents the approved diagnostic fallback (`workflow_dispatch` + `CURSOR_WAKE_DIAGNOSTIC`). Shared module `scripts/cursor-bridge/lib/wake-ingress.mjs` remains live for dispatch routing.
+
 ## Purpose
 
-Define the mandatory **Cursor Local Bridge** that turns trusted GitHub wake delivery into an authenticated local `cursor agent` launch after mechanical safety gates — or an explicit unclaimed fallback when those mechanical gates fail. Semantic task readiness is evaluated by Cursor (#2997).
+Define the **Cursor Local Bridge** package that historically turned trusted GitHub wake delivery into an authenticated local `cursor agent` launch after mechanical safety gates — or an explicit unclaimed fallback when those mechanical gates fail. Semantic task readiness is evaluated by Cursor (#2997).
 
-The Chromebook GitHub Actions runner is **event delivery only**. Without this Bridge, labels and wake jobs do not start Cursor.
+The Chromebook `lgfc-repo-runner` path is **no longer the primary Cursor wake bus** after Phase 4.
 
 Conceptual architecture and as-built evidence: `docs/explanation/operations/cursor-local-auto-start-architecture.md`.
 

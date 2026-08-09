@@ -2,8 +2,8 @@
 Doc Type: How-To
 Audience: Human + AI
 Authority Level: Operational
-Owns: Host registration and verification procedure for the dedicated `lgfc-cursor` GitHub Actions runner used by #3212 Phase 2 dispatch
-Does Not Own: Cursor Bridge package behavior, legacy poll-wake retirement, or Production website deployment
+Owns: Host registration and verification procedure for the dedicated `lgfc-cursor` GitHub Actions runner used by #3212 dispatch (primary after Phase 4)
+Does Not Own: Historical Cursor Bridge package internals or Production website deployment
 Canonical Reference: /docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md
 Related Issues: #3212
 Last Reviewed: 2026-08-09
@@ -11,25 +11,25 @@ Last Reviewed: 2026-08-09
 
 # Configure the LGFC Cursor dispatch runner
 
-Phase 3 note (#3212): `run.sh` reconnect and `LGFC_CURSOR_DISPATCH_DRY_RUN=true` host mode were evidenced during reliability validation; `sudo ./svc.sh install` remains preferred for reboot persistence.
+Phase 4 (#3212): this runner path is the **primary** Cursor Local auto-start transport. Legacy Bridge wake delivery and poll-wake are retired as execution dependencies.
 
 ## Purpose
 
-Register and verify the dedicated Chromebook Linux self-hosted runner labeled `lgfc-cursor` that executes the Phase 2 Cursor dispatch workflow.
+Register and verify the dedicated Chromebook Linux self-hosted runner labeled `lgfc-cursor` that executes the Cursor dispatch workflow.
 
 ## Scope
 
 **In scope**
 
 - Creating a repository-scoped runner with labels `self-hosted`, `linux`, `x64`, `lgfc-cursor`
-- Keeping it separate from `lgfc-repo-runner` wake-delivery
-- Verifying online status and dry-run dispatch
+- Keeping it separate from `lgfc-repo-runner` (delivery/health only; Bridge wake retired)
+- Verifying online status and dry-run / live dispatch
 
 **Out of scope**
 
 - General-purpose CI on the Chromebook
 - Pull-request / fork-head execution
-- Retiring the Cursor Local Bridge (Phase 4)
+- Re-enabling retired Bridge/poll-wake without Product Authority
 
 ## Prerequisites
 

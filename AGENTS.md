@@ -1,12 +1,16 @@
 # Cursor Cloud Agent bootstrap
 
-> **Design shift (#3013, 2026-08-03):** Cursor Local Bridge handoff is now
-> **labels/status only** — `agent:cursor` + `handoff:ready` on an open Issue
-> not already handed off (`status:review`/`status:complete`/`status:post-merge-verify`).
-> There is no comment-marker protocol: `LOCAL CURSOR RESUME`, `CHATGPT RESPONSE`,
-> and similar markers are **not** read or required for Bridge eligibility.
-> Canonical: `docs/reference/ci/cursor-local-bridge-contract.md` and
-> `docs/governance/standards/CURSOR-RUNTIME-ROUTING.md`.
+> **Design shift (#3013, 2026-08-03):** Cursor Local handoff is **labels/status
+> only** — `agent:cursor` + `handoff:ready` on an open Issue not already handed
+> off (`status:review`/`status:complete`/`status:post-merge-verify`). There is
+> no comment-marker protocol.
+>
+> **Transport (#3212 Phase 4):** Primary wake is GitHub Actions
+> `lgfc-cursor-dispatch` on runner label `lgfc-cursor` (identifiers-only
+> wrapper). Cursor Local Bridge automatic packet delivery and the local
+> poll-wake loop are **retired as execution dependencies**. Canonical:
+> `docs/governance/standards/CURSOR-RUNTIME-ROUTING.md` and
+> `docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md`.
 
 When a Cloud Agent session loads this file, the bootstrap is not complete until the agent has read the canonical chain below.
 

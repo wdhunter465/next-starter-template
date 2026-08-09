@@ -22,7 +22,7 @@ Last Reviewed: 2026-07-18
 | Model A / Model B procedures | `docs/how-to/agents/run-model-a.md`, `docs/how-to/agents/run-model-b.md` |
 | Runtime routing | `docs/governance/standards/CURSOR-RUNTIME-ROUTING.md` |
 | Shared execution rules | `docs/ops/ai/CORE-RULES.md` |
-| Cursor handoff and wake loop | `docs/ops/ai/chatgpt-cursor-handoff-workflow.md`, `docs/how-to/cursor/github-poll-wake-loop.md` |
+| Cursor handoff and wake | `docs/ops/ai/chatgpt-cursor-handoff-workflow.md`, `docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md` (primary); `docs/how-to/cursor/github-poll-wake-loop.md` (retired archive) |
 
 ## Read order
 

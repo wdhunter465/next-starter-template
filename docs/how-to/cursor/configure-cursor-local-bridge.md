@@ -5,15 +5,21 @@ Authority Level: Operational Procedure
 Owns: Chromebook install, auth preflight, systemd enablement, transactional launch verification, heartbeat/watchdog/reconciliation verification, and rollback for Cursor Local Bridge
 Does Not Own: Wake workflow gates, runner registration, or Background Agents
 Canonical Reference: /docs/reference/ci/cursor-local-bridge-contract.md
-Related Issues: #2294, #2667, #2669, #2681, #2694, #2739, #2746, #2814, #2997, #3013
-Last Reviewed: 2026-08-03
+Related Issues: #2294, #2667, #2669, #2681, #2694, #2739, #2746, #2814, #2997, #3013, #3212
+Last Reviewed: 2026-08-09
 ---
 
 # Configure Cursor Local Bridge
 
+## Status (#3212 Phase 4)
+
+**Retired as the primary Cursor auto-start path.** Automatic wake-packet delivery is disabled; host Bridge systemd units should remain stopped/disabled unless Product Authority authorizes temporary diagnostics. Primary wake: `docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md`.
+
+This how-to remains for rollback/diagnostic install of the Bridge package only.
+
 ## Purpose
 
-Install the host Bridge that consumes wake packets from the Chromebook Actions runner and launches an authenticated local Cursor Agent only after a positive lifecycle acceptance event. The Bridge also provides local heartbeat, watchdog recovery, bounded missed-handoff reconciliation, and retryable pre-accept failure.
+Install the host Bridge that historically consumed wake packets from the Chromebook Actions runner and launched an authenticated local Cursor Agent after a positive lifecycle acceptance event.
 
 Design rationale: `docs/explanation/operations/cursor-local-auto-start-architecture.md`.
 
