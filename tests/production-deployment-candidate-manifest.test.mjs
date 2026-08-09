@@ -40,6 +40,11 @@ describe('validateManifest', () => {
     expect(validateManifest(undefined)).toEqual(['manifest_not_an_object']);
   });
 
+  it('rejects an array manifest as manifest_not_an_object rather than reporting every field missing', () => {
+    expect(validateManifest(['not', 'a', 'manifest'])).toEqual(['manifest_not_an_object']);
+    expect(validateManifest([])).toEqual(['manifest_not_an_object']);
+  });
+
   it('covers every #2782 Go/No-Go evidence item named in the required-fields list', () => {
     expect(REQUIRED_MANIFEST_FIELDS).toEqual([
       'candidateSha',
@@ -99,6 +104,14 @@ describe('buildGoNoGoReadiness', () => {
     const result = buildGoNoGoReadiness({ manifest: compliantManifest(), unresolvedProtectedDecisions: 'not-an-array' });
     expect(result.ready).toBe(false);
     expect(result.blockers).toEqual(['unresolved_protected_decisions_malformed']);
+  });
+
+  it('normalizes detail.unresolvedProtectedDecisions to an array even when the input is malformed', () => {
+    const result = buildGoNoGoReadiness({ manifest: compliantManifest(), unresolvedProtectedDecisions: 'not-an-array' });
+    expect(result.detail.unresolvedProtectedDecisions).toEqual([]);
+
+    const objectResult = buildGoNoGoReadiness({ manifest: compliantManifest(), unresolvedProtectedDecisions: { bad: true } });
+    expect(objectResult.detail.unresolvedProtectedDecisions).toEqual([]);
   });
 
   it('reports both blockers simultaneously when both conditions fail', () => {

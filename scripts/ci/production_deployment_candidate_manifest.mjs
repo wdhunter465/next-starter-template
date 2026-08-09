@@ -50,7 +50,7 @@ function isNonEmptyString(value) {
 
 /** Validates one manifest object. Returns a list of human-readable problem strings (empty = compliant). */
 export function validateManifest(manifest) {
-  if (!manifest || typeof manifest !== 'object') {
+  if (!manifest || typeof manifest !== 'object' || Array.isArray(manifest)) {
     return ['manifest_not_an_object'];
   }
   const problems = [];
@@ -74,7 +74,8 @@ export function buildGoNoGoReadiness({ manifest, unresolvedProtectedDecisions = 
   const problems = validateManifest(manifest);
   const blockers = [];
   if (problems.length > 0) blockers.push('candidate_manifest_incomplete');
-  if (!Array.isArray(unresolvedProtectedDecisions)) {
+  const decisionsIsArray = Array.isArray(unresolvedProtectedDecisions);
+  if (!decisionsIsArray) {
     blockers.push('unresolved_protected_decisions_malformed');
   } else if (unresolvedProtectedDecisions.length > 0) {
     blockers.push('unresolved_protected_decisions_present');
@@ -85,7 +86,7 @@ export function buildGoNoGoReadiness({ manifest, unresolvedProtectedDecisions = 
     blockers,
     detail: {
       manifestProblems: problems,
-      unresolvedProtectedDecisions,
+      unresolvedProtectedDecisions: decisionsIsArray ? unresolvedProtectedDecisions : [],
     },
   };
 }

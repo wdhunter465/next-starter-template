@@ -94,12 +94,15 @@ accepted; `validateManifest()` fails closed on any missing or empty field.
 
 `scripts/ci/production_deployment_candidate_manifest.mjs`:
 
-- `--mode` (implicit, single mode): reads a manifest JSON file and an optional
-  unresolved-protected-decisions JSON array file, and reports `{ ready, blockers,
-  detail }`. `ready: true` means every required field is a non-empty citation and
-  no unresolved protected decision remains — it does **not** mean Production Go
-  is authorized, only that the manifest is mechanically complete enough for
-  Product Authority to make that decision from.
+- `--manifest <path>` (required): reads a manifest JSON file.
+- `--unresolved-decisions <path>` (optional): reads an unresolved-protected-decisions
+  JSON array file; omit the flag entirely when there are none.
+
+The CLI reports `{ ready, blockers, detail }`. `ready: true` means every
+required field is a non-empty citation and no unresolved protected decision
+remains — it does **not** mean Production Go is authorized, only that the
+manifest is mechanically complete enough for Product Authority to make that
+decision from.
 
 Usage:
 
