@@ -42,7 +42,7 @@ function isNonEmptyString(value) {
 
 /** Validates one entry-criterion item. Returns a list of human-readable problem strings (empty = compliant). */
 export function validateEntryCriterionItem(item) {
-  if (!item || typeof item !== 'object') {
+  if (!item || typeof item !== 'object' || Array.isArray(item)) {
     return ['criterion_not_an_object'];
   }
   const problems = [];
@@ -65,7 +65,7 @@ export function validateEntryCriterionItem(item) {
 
 /** Validates a full entry-criteria record. Returns a list of human-readable problem strings (empty = compliant). */
 export function validateEntryRecord(record) {
-  if (!record || typeof record !== 'object') {
+  if (!record || typeof record !== 'object' || Array.isArray(record)) {
     return ['entry_record_not_an_object'];
   }
   const problems = [];
@@ -88,9 +88,9 @@ export function validateEntryRecord(record) {
 
 /**
  * Combines entry-record structural validation into one reconciliation
- * readiness verdict. Mirrors #2929/#2930/#2931/#2933's `{ ready, blockers,
- * detail }` contract shape so a future orchestration step can treat every
- * stage of the launch-rehearsal pipeline uniformly.
+ * readiness verdict. Mirrors #2929's `buildDispositionReadiness()`
+ * `{ ready, blockers, detail }` contract shape so a future orchestration
+ * step can treat every stage of the launch-rehearsal pipeline uniformly.
  */
 export function buildEntryReadiness({ record }) {
   const problems = validateEntryRecord(record);

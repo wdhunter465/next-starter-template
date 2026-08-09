@@ -78,6 +78,10 @@ describe('validateEntryCriterionItem', () => {
     expect(validateEntryCriterionItem('x')).toEqual(['criterion_not_an_object']);
   });
 
+  it('rejects an array as not-an-object, instead of cascading through as a valid criterion (typeof [] === "object")', () => {
+    expect(validateEntryCriterionItem(['not', 'a', 'criterion'])).toEqual(['criterion_not_an_object']);
+  });
+
   it('covers exactly satisfied and deferred as the valid statuses', () => {
     expect(ENTRY_CRITERION_STATUSES).toEqual(['satisfied', 'deferred']);
   });
@@ -130,6 +134,10 @@ describe('validateEntryRecord', () => {
   it('fails closed on a non-object record instead of throwing', () => {
     expect(validateEntryRecord(null)).toEqual(['entry_record_not_an_object']);
     expect(validateEntryRecord('x')).toEqual(['entry_record_not_an_object']);
+  });
+
+  it('rejects an array as not-an-object, instead of cascading through as a valid record (typeof [] === "object")', () => {
+    expect(validateEntryRecord(['not', 'a', 'record'])).toEqual(['entry_record_not_an_object']);
   });
 });
 
