@@ -169,6 +169,21 @@ describe('FAQ page', () => {
     expect(screen.getAllByRole('link', { name: 'Ask a Question' }).length).toBeGreaterThan(0);
   });
 
+  // #2909 (#2859 Task 004): matrix row P-14 -- distinct from the "zero
+  // search matches" case above, this is zero FAQ entries in D1 at all,
+  // which renders a different message ("No FAQ entries are available yet.").
+  it('shows a distinct fail-closed message when zero FAQ entries exist at all (not just zero search matches)', async () => {
+    mockedApiGet.mockResolvedValue({ ok: true, items: [] } as never);
+
+    render(<FAQPage />);
+
+    await waitFor(() => {
+      expect(screen.getByText(/No FAQ entries are available yet\./i)).toBeInTheDocument();
+    });
+    expect(screen.queryByText(/No questions match your search/i)).not.toBeInTheDocument();
+    expect(screen.getAllByRole('link', { name: 'Ask a Question' }).length).toBeGreaterThan(0);
+  });
+
   it('shows an error message when FAQ loading fails', async () => {
     mockedApiGet.mockRejectedValue(new Error('api_error_500'));
 
