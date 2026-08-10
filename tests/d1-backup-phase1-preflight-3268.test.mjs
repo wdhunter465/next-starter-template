@@ -34,20 +34,31 @@ describe('requireEnv', () => {
 });
 
 describe('extractD1InfoMetadata', () => {
-  it('extracts fields from a wrangler d1 info array-wrapped result', () => {
-    expect(extractD1InfoMetadata([{ file_size: 123, num_tables: 40, version: 'alpha' }])).toEqual({
+  it('extracts fields from a wrangler d1 info array-wrapped result, including the raw record', () => {
+    const raw = { file_size: 123, num_tables: 40, version: 'alpha' };
+    expect(extractD1InfoMetadata([raw])).toEqual({
       fileSize: 123,
       numTables: 40,
       version: 'alpha',
+      raw,
     });
   });
 
   it('extracts fields from a { result: {...} } shape', () => {
-    expect(extractD1InfoMetadata({ result: { file_size: 5, num_tables: 1, version: 'beta' } })).toEqual({
+    const raw = { file_size: 5, num_tables: 1, version: 'beta' };
+    expect(extractD1InfoMetadata({ result: raw })).toEqual({
       fileSize: 5,
       numTables: 1,
       version: 'beta',
+      raw,
     });
+  });
+
+  it('falls back through alternate size/version field name guesses', () => {
+    const raw = { database_size: 999, storage_version: 'v2', num_tables: 2 };
+    const metadata = extractD1InfoMetadata(raw);
+    expect(metadata.fileSize).toBe(999);
+    expect(metadata.version).toBe('v2');
   });
 
   it('returns null for a non-object/empty payload instead of throwing', () => {
@@ -57,19 +68,22 @@ describe('extractD1InfoMetadata', () => {
 });
 
 describe('extractTimeTravelBookmark', () => {
-  it('extracts a bookmark field', () => {
-    expect(extractTimeTravelBookmark([{ bookmark: 'abc123' }])).toBe('abc123');
+  it('extracts a bookmark field and the raw record', () => {
+    const raw = { bookmark: 'abc123' };
+    expect(extractTimeTravelBookmark([raw])).toEqual({ bookmark: 'abc123', raw });
   });
 
   it('falls back to a timestamp field when bookmark is absent', () => {
-    expect(extractTimeTravelBookmark({ result: { timestamp: '2026-08-10T00:00:00Z' } })).toBe(
-      '2026-08-10T00:00:00Z',
-    );
+    const raw = { timestamp: '2026-08-10T00:00:00Z' };
+    expect(extractTimeTravelBookmark({ result: raw })).toEqual({
+      bookmark: '2026-08-10T00:00:00Z',
+      raw,
+    });
   });
 
-  it('returns an empty string for a non-object/empty payload instead of throwing', () => {
-    expect(extractTimeTravelBookmark(null)).toBe('');
-    expect(extractTimeTravelBookmark([])).toBe('');
+  it('returns an empty bookmark and null raw for a non-object/empty payload instead of throwing', () => {
+    expect(extractTimeTravelBookmark(null)).toEqual({ bookmark: '', raw: null });
+    expect(extractTimeTravelBookmark([])).toEqual({ bookmark: '', raw: null });
   });
 });
 
@@ -107,5 +121,32 @@ describe('buildResultMarkdown', () => {
     const md = buildResultMarkdown({ checkedAt: '2026-08-10T00:00:00Z', identityConfirmed: false, infoOk: false });
     expect(md).toContain('not answerable from this preflight');
     expect(md).toContain('no R2-scoped credential exists');
+  });
+
+  it('renders the raw d1 info and time-travel info payloads when present, for field-name evidence', () => {
+    const md = buildResultMarkdown({
+      checkedAt: '2026-08-10T00:00:00Z',
+      identityConfirmed: true,
+      infoOk: true,
+      metadata: { fileSize: null, numTables: 40, version: null, raw: { num_tables: 40, unexpected_field: 'x' } },
+      timeTravelConfirmed: true,
+      timeTravelBookmark: 'abc123',
+      timeTravelRaw: { bookmark: 'abc123', retention_end_time: '2026-09-10T00:00:00Z' },
+    });
+    expect(md).toContain('Raw `wrangler d1 info` response');
+    expect(md).toContain('"unexpected_field": "x"');
+    expect(md).toContain('Raw `wrangler d1 time-travel info` response');
+    expect(md).toContain('"retention_end_time"');
+  });
+
+  it('omits the raw-payload sections when there is nothing to show', () => {
+    const md = buildResultMarkdown({
+      checkedAt: '2026-08-10T00:00:00Z',
+      identityConfirmed: false,
+      infoOk: false,
+      timeTravelConfirmed: false,
+    });
+    expect(md).not.toContain('Raw `wrangler d1 info` response');
+    expect(md).not.toContain('Raw `wrangler d1 time-travel info` response');
   });
 });
