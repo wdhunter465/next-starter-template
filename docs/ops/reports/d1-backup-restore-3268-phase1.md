@@ -172,16 +172,31 @@ ID matches the known-good `CLOUDFLARE_ACCOUNT_ID`, the endpoint format
 (`<account-id>.r2.cloudflarestorage.com`) is correct, no jurisdiction-
 specific endpoint applies, and `lgfc-d1-backups` exists with public access
 disabled — ruling out account/dashboard misconfiguration. This directed
-troubleshooting to the client/network/TLS execution path. The preflight now
-runs two raw `tls.connect()` handshake attempts (default ALPN, and
+troubleshooting to the client/network/TLS execution path. The preflight
+added two raw `tls.connect()` handshake attempts (default ALPN, and
 `http/1.1`-only ALPN) with no HTTP request and no credentials, before the
-S3 read — isolating whether the failure is specific to `fetch()`/undici's
-TLS negotiation or a genuine network/certificate-layer problem affecting
-every client. It also now runs `wrangler r2 bucket list` unconditionally
-(a different host, `api.cloudflare.com`, entirely independent of the
-S3-endpoint failure) rather than only when the S3 read already succeeded,
-so a single run yields maximum diagnostic value regardless of outcome. Not
-yet re-run against this version as of this update.
+S3 read. The fourth live run showed **both raw TLS attempts failed with
+the identical `ERR_SSL_SSL/TLS_ALERT_HANDSHAKE_FAILURE`** — the same error
+`fetch()` produces — which rules out the earlier hypothesis that this was
+specific to `fetch()`/undici's TLS negotiation, since Node's `tls` module
+is a completely separate implementation. `wrangler r2 bucket list` also
+failed independently (exit 1, no detail captured at the time).
+
+Bill reviewed this evidence and pushed back correctly on chasing a
+Bot Fight Mode/WAF hypothesis without evidence, since Cloudflare's R2 S3
+API is a separate account-level endpoint, not documented as governed by a
+zone's WAF. He recommended checking Cloudflare's Security → Events
+dashboard for a matching timestamp instead (his own action item), and
+directed further work toward safe structural/network diagnostics rather
+than another guess: endpoint-suffix/account-ID-label structure validation,
+DNS resolution (address count/family only), TLS version-pinned attempts
+(not just ALPN variants), and two more independent clients (`openssl
+s_client`, `curl`) as a fourth and fifth data point beyond Node's own `tls`
+module and `fetch()`. A general `redactSecrets()` helper now strips every
+known secret value from any diagnostic text before it's included in the
+public result, so richer diagnostic output (openssl's connection banner,
+wrangler's actual stderr) can be safely captured instead of omitted
+out of caution. Not yet re-run against this version as of this update.
 
 ## Acceptance checklist (this report)
 

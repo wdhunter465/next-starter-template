@@ -46,6 +46,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import tls from 'node:tls';
+import dns from 'node:dns';
 import { spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { AwsClient } from '../../functions/_lib/aws4fetch.ts';
@@ -79,6 +80,57 @@ export function findBlankAfterTrim(trimmedValuesByName) {
   return Object.entries(trimmedValuesByName)
     .filter(([, value]) => value === '')
     .map(([name]) => name);
+}
+
+/**
+ * Replaces every literal occurrence of any given secret value in `text` with `[REDACTED]`.
+ * This is the general safety net for any diagnostic text this preflight captures from an
+ * external tool (openssl, curl, wrangler stderr) whose exact output shape isn't fully under
+ * this script's control: rather than trying to predict which fields a tool might echo a
+ * secret back in, this strips every known secret value wherever it literally appears, so any
+ * such text can be safely included in the public #3268 issue-comment result. Values shorter
+ * than 6 characters are skipped to avoid mass-redacting trivially common short substrings.
+ */
+export function redactSecrets(text, secretValues) {
+  let out = String(text ?? '');
+  for (const secret of secretValues ?? []) {
+    if (typeof secret === 'string' && secret.length >= 6) {
+      out = out.split(secret).join('[REDACTED]');
+    }
+  }
+  return out;
+}
+
+/**
+ * Safe, non-leaking structural checks on the constructed R2 endpoint: does the hostname end
+ * with the exact suffix Cloudflare documents for non-jurisdictional R2 S3 access, and does the
+ * account-ID label look like a real Cloudflare account ID (32-character lowercase hex)? Reports
+ * only the suffix match, the label's length, and whether it's valid hex -- never the label
+ * value itself.
+ */
+export function validateEndpointStructure(hostname) {
+  const suffix = '.r2.cloudflarestorage.com';
+  const suffixOk = typeof hostname === 'string' && hostname.endsWith(suffix) && hostname.length > suffix.length;
+  const label = suffixOk ? hostname.slice(0, hostname.length - suffix.length) : '';
+  return {
+    suffixOk,
+    labelLength: label.length,
+    labelIsHex32: /^[0-9a-f]{32}$/i.test(label),
+  };
+}
+
+/**
+ * Resolves `hostname` via DNS without ever surfacing the hostname itself or the resolved
+ * addresses -- only the address family/families seen and how many addresses resolved. Enough
+ * to confirm "DNS resolution works and returns N addresses of family X" as independent
+ * evidence from the TLS-layer checks, without adding any new secret-leak surface.
+ */
+export function summarizeDnsResult(addresses) {
+  if (!Array.isArray(addresses) || addresses.length === 0) {
+    return { addressCount: 0, families: [] };
+  }
+  const families = [...new Set(addresses.map((a) => (a?.family === 6 ? 'IPv6' : 'IPv4')))].sort();
+  return { addressCount: addresses.length, families };
 }
 
 function decodeXmlInner(text) {
@@ -135,19 +187,20 @@ function runWrangler(args) {
 
 /**
  * Attempts a bare TLS handshake (no HTTP request at all) against `hostname:443` with the given
- * ALPN protocol list, using Node's `tls` module directly -- a different underlying
- * implementation from the global `fetch()` (undici). A TLS handshake completes or fails
- * entirely at the connection layer, before any HTTP headers/body/signing are ever sent, so
- * this isolates whether a `fetch()`-level failure is specific to undici's TLS negotiation
- * (e.g. its default ALPN offer or TLS version/cipher preferences) versus a genuine
- * network/DNS/certificate problem that would affect every client equally.
+ * extra `tls.connect()` options (e.g. `{ ALPNProtocols: [...] }`, `{ minVersion, maxVersion }`),
+ * using Node's `tls` module directly -- a different underlying implementation from the global
+ * `fetch()` (undici). A TLS handshake completes or fails entirely at the connection layer,
+ * before any HTTP headers/body/signing are ever sent, so this isolates whether a
+ * `fetch()`-level failure is specific to undici's TLS negotiation (its ALPN offer, TLS version
+ * range, or cipher preferences) versus a genuine network/DNS/certificate problem that would
+ * affect every client equally, regardless of implementation.
  *
- * Resolves `{ ok, alpnProtocol, protocolVersion, code }` -- never throws, and never includes
- * `hostname` or any error `.message` in the result (Node's TLS/DNS error messages can embed
- * the literal hostname, which would leak the R2_ACCOUNT_ID secret into this preflight's public
- * issue-comment result; only the short `.code` is safe to surface).
+ * Resolves `{ ok, alpnProtocol, protocolVersion, cipherName, code }` -- never throws, and never
+ * includes `hostname` or any error `.message` in the result (Node's TLS/DNS error messages can
+ * embed the literal hostname, which would leak the R2_ACCOUNT_ID secret into this preflight's
+ * public issue-comment result; only the short `.code` is safe to surface).
  */
-export function attemptTlsHandshake(hostname, alpnProtocols, { timeoutMs = 10000 } = {}) {
+export function attemptTlsHandshake(hostname, tlsOptions, { timeoutMs = 10000 } = {}) {
   return new Promise((resolve) => {
     let settled = false;
     const settle = (value) => {
@@ -156,33 +209,96 @@ export function attemptTlsHandshake(hostname, alpnProtocols, { timeoutMs = 10000
       resolve(value);
     };
 
-    const options = { host: hostname, port: 443, servername: hostname, timeout: timeoutMs };
-    if (alpnProtocols) options.ALPNProtocols = alpnProtocols;
+    const options = { host: hostname, port: 443, servername: hostname, timeout: timeoutMs, ...tlsOptions };
 
     let socket;
     try {
       socket = tls.connect(options, () => {
+        const cipher = socket.getCipher ? socket.getCipher() : null;
         settle({
           ok: true,
           alpnProtocol: socket.alpnProtocol || null,
           protocolVersion: socket.getProtocol ? socket.getProtocol() : null,
+          cipherName: cipher?.name ?? null,
           code: null,
         });
         socket.end();
       });
     } catch (error) {
-      settle({ ok: false, alpnProtocol: null, protocolVersion: null, code: error.code ?? 'SYNC_THROW' });
+      settle({ ok: false, alpnProtocol: null, protocolVersion: null, cipherName: null, code: error.code ?? 'SYNC_THROW' });
       return;
     }
 
     socket.on('error', (error) => {
-      settle({ ok: false, alpnProtocol: null, protocolVersion: null, code: error.code ?? 'UNKNOWN' });
+      settle({ ok: false, alpnProtocol: null, protocolVersion: null, cipherName: null, code: error.code ?? 'UNKNOWN' });
     });
     socket.on('timeout', () => {
-      settle({ ok: false, alpnProtocol: null, protocolVersion: null, code: 'ETIMEDOUT' });
+      settle({ ok: false, alpnProtocol: null, protocolVersion: null, cipherName: null, code: 'ETIMEDOUT' });
       socket.destroy();
     });
   });
+}
+
+/**
+ * Resolves `hostname` via `dns.lookup` and returns only the safe DNS-layer summary
+ * (`summarizeDnsResult`'s shape) plus a failure code when resolution itself fails -- never the
+ * hostname or the resolved addresses. Independent evidence from the TLS-layer checks: DNS
+ * resolution succeeding (or failing) tells us whether the problem is before or at the TLS
+ * handshake.
+ */
+export function resolveHostnameSafe(hostname) {
+  return new Promise((resolve) => {
+    dns.lookup(hostname, { all: true, verbatim: true }, (error, addresses) => {
+      if (error) {
+        resolve({ ok: false, addressCount: 0, families: [], code: error.code ?? 'UNKNOWN' });
+        return;
+      }
+      resolve({ ok: true, ...summarizeDnsResult(addresses), code: null });
+    });
+  });
+}
+
+/**
+ * Shells out to the system `openssl s_client` binary -- a completely independent TLS
+ * implementation from both undici and Node's own `tls` module -- as a third independent client
+ * against the same host. Pipes empty stdin (`-quiet`, no interactive session) and applies a
+ * hard timeout via the `timeout` coreutil, since `s_client` can otherwise hang. Captures only
+ * the connection outcome and the "Verify return code" line if present; the raw combined
+ * output, which openssl always echoes the hostname/servername into, is redacted through
+ * `redact` before being kept for the diagnostic bundle.
+ */
+export function runOpensslDiagnostic(hostname, redact) {
+  const result = spawnSync(
+    'timeout',
+    ['12', 'openssl', 's_client', '-connect', `${hostname}:443`, '-servername', hostname, '-quiet'],
+    { encoding: 'utf8', input: '' },
+  );
+  const combined = redact(`${result.stdout ?? ''}\n${result.stderr ?? ''}`);
+  const verifyMatch = combined.match(/Verify return code:\s*(\d+)\s*\(([^)]*)\)/);
+  return {
+    ranOk: !result.error,
+    exitCode: result.status ?? null,
+    timedOut: result.status === 124,
+    verifyReturnCode: verifyMatch ? Number(verifyMatch[1]) : null,
+    verifyReturnMessage: verifyMatch ? verifyMatch[2] : null,
+  };
+}
+
+/**
+ * Shells out to `curl` -- a fourth, widely-used independent HTTP/TLS client -- against the
+ * same host. Reports only curl's numeric exit code (a small, well-documented, non-leaking
+ * integer -- e.g. 35 = SSL connect error, 6 = couldn't resolve host, 28 = timeout) and, when
+ * curl did connect, the HTTP status it saw. Never captures curl's own stdout/stderr text,
+ * which could otherwise echo the URL/hostname back on error.
+ */
+export function runCurlDiagnostic(hostname) {
+  const result = spawnSync(
+    'curl',
+    ['-sS', '-o', '/dev/null', '-w', '%{http_code}', '--max-time', '12', `https://${hostname}/`],
+    { encoding: 'utf8' },
+  );
+  const httpCode = result.status === 0 ? (result.stdout || '').trim() : null;
+  return { ranOk: !result.error, exitCode: result.status ?? null, httpCode };
 }
 
 /**
@@ -214,9 +330,37 @@ export function extractR2BucketListing(parsed, bucketName) {
 function formatTlsAttempt(label, attempt) {
   if (!attempt) return `  - ${label}: not attempted`;
   if (attempt.ok) {
-    return `  - ${label}: OK (ALPN: ${attempt.alpnProtocol ?? 'none negotiated'}, protocol: ${attempt.protocolVersion ?? 'unknown'})`;
+    return `  - ${label}: OK (ALPN: ${attempt.alpnProtocol ?? 'none negotiated'}, protocol: ${attempt.protocolVersion ?? 'unknown'}, cipher: ${attempt.cipherName ?? 'unknown'})`;
   }
   return `  - ${label}: FAILED (code: ${attempt.code ?? 'unknown'})`;
+}
+
+function formatDnsResult(dnsResult) {
+  if (!dnsResult) return '  - DNS resolution: not attempted';
+  if (!dnsResult.ok) return `  - DNS resolution: FAILED (code: ${dnsResult.code ?? 'unknown'})`;
+  return `  - DNS resolution: OK (${dnsResult.addressCount} address(es), families: ${dnsResult.families.join(', ') || 'none'})`;
+}
+
+function formatEndpointStructure(structure) {
+  if (!structure) return '  - Endpoint structure: not checked';
+  return `  - Endpoint structure: suffix matches \`.r2.cloudflarestorage.com\`: ${structure.suffixOk ? 'YES' : 'NO'}; account-ID label length: ${structure.labelLength}; label is 32-char hex: ${structure.labelIsHex32 ? 'YES' : 'NO'}`;
+}
+
+function formatOpensslResult(result) {
+  if (!result) return '  - `openssl s_client` (independent TLS client): not attempted';
+  if (!result.ranOk) return '  - `openssl s_client` (independent TLS client): could not run (binary/timeout coreutil unavailable)';
+  if (result.timedOut) return '  - `openssl s_client` (independent TLS client): TIMED OUT (12s)';
+  if (result.verifyReturnCode !== null) {
+    return `  - \`openssl s_client\` (independent TLS client): exit ${result.exitCode}, verify return code ${result.verifyReturnCode} (${result.verifyReturnMessage})`;
+  }
+  return `  - \`openssl s_client\` (independent TLS client): exit ${result.exitCode}, no verify return code seen (connection likely did not reach the TLS verify stage)`;
+}
+
+function formatCurlResult(result) {
+  if (!result) return '  - `curl` (independent HTTP/TLS client): not attempted';
+  if (!result.ranOk) return '  - `curl` (independent HTTP/TLS client): could not run (binary unavailable)';
+  if (result.httpCode) return `  - \`curl\` (independent HTTP/TLS client): exit 0, HTTP ${result.httpCode}`;
+  return `  - \`curl\` (independent HTTP/TLS client): exit ${result.exitCode} (see https://curl.se/libcurl/c/libcurl-errors.html for exit-code meaning; e.g. 35 = SSL connect error, 6 = couldn't resolve host, 28 = timeout)`;
 }
 
 export function buildResultMarkdown(result) {
@@ -227,9 +371,16 @@ export function buildResultMarkdown(result) {
     `- Checked at: ${result.checkedAt}`,
     `- Bucket: \`${result.bucketName}\``,
     `- One or more R2 secret values had leading/trailing whitespace (trimmed before use, values never logged): ${result.hadUntrimmedCredential ? 'YES' : 'NO'}`,
+    formatEndpointStructure(result.endpointStructure),
+    formatDnsResult(result.dnsResult),
     '- Raw TLS handshake diagnostics (no HTTP request, no credentials; isolates fetch()/undici-specific behavior from a genuine network/certificate problem):',
     formatTlsAttempt('default ALPN (Node/undici default offer)', result.tlsDefault),
     formatTlsAttempt('http/1.1-only ALPN', result.tlsHttp1Only),
+    formatTlsAttempt('TLS 1.2 forced', result.tlsForced12),
+    formatTlsAttempt('TLS 1.3 forced', result.tlsForced13),
+    '- Independent client diagnostics (different implementations from Node/undici entirely):',
+    formatOpensslResult(result.opensslResult),
+    formatCurlResult(result.curlResult),
     `- S3 \`ListObjectsV2\` read: ${result.listOk ? 'OK' : 'FAILED'}`,
     result.listOk
       ? `  - object count in this page: ${result.objectCount} (single page, max 1000 keys — not a full inventory)${result.isTruncated ? ' — more objects exist beyond this page' : ''}`
@@ -305,14 +456,29 @@ export async function main() {
   }
 
   const hostname = `${accountId}.r2.cloudflarestorage.com`;
+  const redact = (text) => redactSecrets(text, [accountId, bucketName, accessKeyId, secretAccessKey]);
+
+  const endpointStructure = validateEndpointStructure(hostname);
+  const dnsResult = await resolveHostnameSafe(hostname);
 
   // Raw TLS handshake diagnostics run first and unconditionally: they isolate whether a
   // fetch()-level failure below is specific to undici's TLS negotiation (a different
   // implementation from Node's tls module) versus a genuine network/DNS/certificate problem
   // that would affect every client equally. No HTTP request, no credentials involved --
-  // pure connection-layer evidence.
+  // pure connection-layer evidence. Four variants: default, http/1.1-only, and each TLS
+  // version pinned individually, to isolate a version-specific negotiation issue from an
+  // ALPN-specific one.
   const tlsDefault = await attemptTlsHandshake(hostname, undefined);
-  const tlsHttp1Only = await attemptTlsHandshake(hostname, ['http/1.1']);
+  const tlsHttp1Only = await attemptTlsHandshake(hostname, { ALPNProtocols: ['http/1.1'] });
+  const tlsForced12 = await attemptTlsHandshake(hostname, { minVersion: 'TLSv1.2', maxVersion: 'TLSv1.2' });
+  const tlsForced13 = await attemptTlsHandshake(hostname, { minVersion: 'TLSv1.3', maxVersion: 'TLSv1.3' });
+
+  // Two independent clients entirely outside Node (openssl's own TLS stack, and curl's),
+  // against the same host -- if either succeeds where Node's tls module and fetch() both
+  // fail, that narrows the fault to something Node-specific on this runner; if all fail
+  // identically, that points at the network path or the edge itself.
+  const opensslResult = runOpensslDiagnostic(hostname, redact);
+  const curlResult = runCurlDiagnostic(hostname);
 
   // wrangler r2 bucket list hits a completely different host (api.cloudflare.com, via
   // Cloudflare's own REST API) than the S3-compatible endpoint below -- run it unconditionally
@@ -324,7 +490,11 @@ export async function main() {
   if (process.env.CLOUDFLARE_API_TOKEN && process.env.CLOUDFLARE_ACCOUNT_ID) {
     const listing = runWrangler(['r2', 'bucket', 'list', '--json']);
     if (listing.error || listing.status !== 0) {
-      wranglerFailureReason = `wrangler r2 bucket list did not succeed (exit ${listing.status ?? 'spawn error'}).`;
+      // Capture wrangler's actual stderr (redacted) instead of just the exit code, so a
+      // credential/API-token-scope problem is distinguishable from a network/TLS problem on
+      // this different host.
+      const stderrSnippet = redact((listing.stderr || '').trim()).slice(0, 500);
+      wranglerFailureReason = `wrangler r2 bucket list did not succeed (exit ${listing.status ?? 'spawn error'})${stderrSnippet ? `: ${stderrSnippet}` : '.'}`;
     } else {
       try {
         const parsed = JSON.parse(listing.stdout);
@@ -388,8 +558,14 @@ export async function main() {
     checkedAt: new Date().toISOString(),
     bucketName,
     hadUntrimmedCredential,
+    endpointStructure,
+    dnsResult,
     tlsDefault,
     tlsHttp1Only,
+    tlsForced12,
+    tlsForced13,
+    opensslResult,
+    curlResult,
     listOk,
     listFailureReason: listOk ? null : listFailureReason || 'R2 ListObjectsV2 did not succeed.',
     objectCount,
