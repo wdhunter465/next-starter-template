@@ -7,7 +7,7 @@ Source Issue: #2679
 Owns: Workflow transition SLO definitions, authoritative evidence mapping, measurement rules, breach taxonomy, and daily 5 PM ET report schema for the LGFC continuous implementation chain
 Does Not Own: Automatic merge to main, Production mutation, protected-decision substitution, or weakening of approval boundaries to meet targets
 Canonical Reference: /docs/ops/reports/workflow-transition-slo-2679.md
-Related Issues: #2679, #2676, #2677, #2682, #3212, #3241, #3288
+Related Issues: #2679, #2676, #2677, #2682, #3212, #3241, #3278, #3288, #3298
 Last Reviewed: 2026-08-10
 Executor: Cursor Local
 ---
@@ -152,7 +152,7 @@ Publish window: **17:00–17:30 America/New_York** for the prior 24 hours ending
 
 1. Durable markdown under `docs/ops/reports/daily/` (or ops artifact upload) — preferred for audit.
 2. Optional Issue comment on a standing ops report Issue once automation exists.
-3. Scheduled GitHub Actions job on `ubuntu-latest` at **17:00 America/New_York** year-round (`cron: '0 17 * * *'` + `timezone: 'America/New_York'` in `.github/workflows/ops-workflow-transition-slo-report.yml`; #3288 remediates the prior UTC-only `21:00` winter drift) — **protected path**; workflow already reviewed via Phase 2 / #3288.
+3. Scheduled GitHub Actions job on `ubuntu-latest` at **17:00 America/New_York** year-round (`cron: '0 17 * * *'` + `timezone: 'America/New_York'` in `.github/workflows/ops-workflow-transition-slo-report.yml`) — **protected path**. Workflow introduction/review: Phase 2 via #3278; DST-correct schedule remediation: #3288 (closes the prior UTC-only `21:00` winter drift).
 
 ---
 
