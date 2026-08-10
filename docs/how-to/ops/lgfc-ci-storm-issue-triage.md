@@ -33,6 +33,15 @@ This is not a general backlog cleaner. Default mode is report-only.
 - Node 18+ (repo pins Node 22)
 - Working directory: repository root
 
+## Steps
+
+1. Run report-only mode with an explicit incident window (required first use).
+2. Review the Markdown reports and candidate JSON under `ops-artifacts/issue-triage/`.
+3. Confirm clusters are CI storm noise and identify/open a root tracking issue.
+4. Obtain Bill/Atlas authorization before any close run.
+5. Only then run close-reviewed-storm with the exact confirmation phrase.
+6. If a candidate was misclassified, reopen it with distinct-cause evidence.
+
 ## Report-only (required first use)
 
 ```bash
