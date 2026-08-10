@@ -10,6 +10,7 @@ import { expect, test, type Page, type TestInfo } from '@playwright/test';
 // Production static hosting redirects bare paths to trailing-slash URLs (308).
 // Scan the settled trailing-slash forms and wait for load before axe so
 // analyze() does not race a destroyed browsing context (#1806).
+// Head refresh: drop stale Component Integration Eligibility false-red from prior review event.
 
 const SCANNED_ROUTES = ['/', '/search/', '/join/', '/ask/', '/about/'] as const;
 
