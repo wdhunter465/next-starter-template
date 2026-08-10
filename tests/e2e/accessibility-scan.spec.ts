@@ -4,8 +4,12 @@ import { expect, test, type Page, type TestInfo } from '@playwright/test';
 // Prototype for #3165 (feeds #2858/#2859). Scans a small representative set of
 // public routes, matching the routes named in #3165's own scope.
 // Design notes: docs/ops/reports/accessibility-scan-prototype-design-3165.md
+//
+// Production static hosting redirects bare paths to trailing-slash URLs (308).
+// Scan the settled trailing-slash forms and wait for load before axe so
+// analyze() does not race a destroyed browsing context (#1806).
 
-const SCANNED_ROUTES = ['/', '/search', '/join', '/faq', '/about'] as const;
+const SCANNED_ROUTES = ['/', '/search/', '/join/', '/faq/', '/about/'] as const;
 
 // "Critical/serious" per #3165's acceptance criteria; moderate/minor are recorded
 // as advisory evidence, not asserted against, so this spec doesn't silently start
@@ -13,8 +17,11 @@ const SCANNED_ROUTES = ['/', '/search', '/join', '/faq', '/about'] as const;
 const BLOCKING_IMPACTS = ['critical', 'serious'] as const;
 
 async function scanRoute(page: Page, route: string, testInfo: TestInfo) {
-  const response = await page.goto(route);
+  const response = await page.goto(route, { waitUntil: 'load' });
   expect(response?.ok(), `expected ${route} to load successfully`).toBeTruthy();
+  await page.waitForLoadState('domcontentloaded');
+  // Ensure the document URL has finished any trailing-slash redirect before axe.
+  await expect.poll(() => page.url()).toMatch(new RegExp(`${route.replace(/\/$/, '')}/?$`));
 
   const results = await new AxeBuilder({ page }).analyze();
 
