@@ -120,11 +120,12 @@ responsive-contract ACCEPT before final launch packaging."
 
 #2858's own issue thread contains an explicit WORK PMO closeout comment
 (2026-08-08T15:52:31Z, `issuecomment-5226863778`): **"Disposition: ACCEPT /
-COMPLETE."** — citing all five #2858 children closed complete (#2902, #2903,
-#2904, #2905, plus the #3197 audit/Promotion-Candidate packet and the #3199
-protected main-sync reconciliation merged to
-`component/fanclub-responsive-completion` at `c88d4278d47a05cffc14c0d62c44d7140b132a25`)
-and stating "No unresolved #2858 child remains."
+COMPLETE."** — citing all six closed-complete #2858 closeout items (the four
+linked children #2902, #2903, #2904, #2905, plus the #3197
+audit/Promotion-Candidate packet and the #3199 protected main-sync
+reconciliation merged to `component/fanclub-responsive-completion` at
+`c88d4278d47a05cffc14c0d62c44d7140b132a25`) and stating "No unresolved
+#2858 child remains."
 
 **Finding:** X-10's stated release condition — "#2858 ACCEPT" — is met by
 this comment, in the exact terms the matrix and QA record themselves
@@ -201,7 +202,11 @@ on #2913's precedent for #2860, would be: a secret-backed,
 posts its result as durable evidence — never touching Production, never
 requiring backup proof, and never requiring the sandbox to hold a
 credential (the secret is consumed only at Actions runtime, same pattern
-as `production_d1_preflight_2913.mjs`).
+as `scripts/ci/production_d1_preflight_2913.mjs` +
+`.github/workflows/library-content-production-preflight-2913.yml`, both on
+`main` — **not present on this `component/production-content-readiness`
+branch**, so a reader should look on `main` for the actual precedent
+rather than this branch's tree).
 
 This is **identified, not built, in this report** — it is a new
 `.github/workflows/**` + `scripts/ci/**` change, both protected paths
