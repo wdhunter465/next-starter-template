@@ -31,6 +31,49 @@ package." No implementation code ships in this PR. It exists so the design,
 and specifically the two genuinely open questions below, can be reviewed
 before any write-capable script is built.
 
+## Scope
+
+Covers #3268 Phase 2 only: the one-shot design and package plan for a real
+D1 export, private R2 upload, checksum/integrity verification, and an
+isolated non-Production restore proof. Does not cover Phase 1 (see
+`d1-backup-restore-3268-phase1.md`, complete), Phase 3 (scheduled/recurring
+service), or Phase 4/quarterly recovery-drill cadence — all explicitly
+deferred, per the "What this increment is not" section below. This
+document's job is done once the design is reviewed and each of the four
+packages it defines has landed with its own evidence.
+
+## Current known truth
+
+- Phase 1 is complete (2026-08-10): all 7 items answered, including item 3
+  (Workers Free plan; D1 Time Travel retention = 7 days), confirmed by Bill
+  directly from the Cloudflare dashboard.
+- `lgfc_lite` (UUID `22d0dc3e-ad34-43af-8e6a-2063df1a1e04`) is the only D1
+  database in this repository, and is production-shared — no separate
+  Preview D1 exists (`docs/reference/platform/component-environment-isolation.md`).
+  Any restore-drill target must therefore be a newly created database, not
+  an existing non-Production one.
+- The private R2 bucket `lgfc-d1-backups` (Standard storage, public access
+  disabled) and its least-privilege S3 credential
+  (`R2_ACCESS_KEY_ID`/`R2_SECRET_ACCESS_KEY`/`R2_BUCKET_NAME`, keyed off
+  `CLOUDFLARE_ACCOUNT_ID`) are provisioned and proven reachable for reads
+  (`ListObjectsV2`, PR #3302/#3303) — write capability (`PutObject`) is not
+  yet proven.
+- A real grep of `migrations/*.sql` (37 `CREATE TABLE` statements) confirms
+  the database contains member/auth/PII-bearing tables (`members`,
+  `join_requests`, `login_attempts`, `member_sessions`, etc.), driving this
+  design's handling constraints (see "Data sensitivity" below) — this repo
+  has not yet completed #3268 item 6's full classification pass.
+
+## Intended final state
+
+This design is superseded piece by piece as each of the four packages below
+lands: Package 1's own preflight result (posted as a `#3268` issue comment,
+not an edit to this file) answers the two open capability questions;
+Packages 2-3 produce the real backup/restore evidence; Package 4 records
+final disposition. This document's job is done once all four packages have
+landed and their evidence is linked from here, at which point the Gate 1
+evidence chain (#2859 → #2780 → #2926) has what it needs from Phase 2.
+
 ## What this increment is not
 
 - **Not Phase 3.** A recurring/scheduled backup service (cadence, alerting,
@@ -106,7 +149,7 @@ the job ends regardless of outcome.
 SHA-256 of the local export file, computed before upload. Stored as a
 companion object (`backup.sql.sha256`) alongside the backup in R2, not
 relied upon via R2's own ETag (single-part PUT ETags are MD5-based and not
-a integrity primitive this design should depend on). Verification re-hashes
+an integrity primitive this design should depend on). Verification re-hashes
 the object after a fresh download from R2 and compares byte-for-byte to the
 stored checksum before any restore attempt proceeds — a checksum mismatch
 must fail the run closed, not attempt a restore anyway.
@@ -192,8 +235,7 @@ constraints already assume "treat the whole export as sensitive."
   discipline — it is not a "safe to expose" copy merely because it is
   non-Production.
 
-## Open questions — must be answered by a bounded capability preflight
-## before the real export/upload/restore package is written
+## Open questions — must be answered by a bounded capability preflight before the real export/upload/restore package is written
 
 Consistent with Phase 1's own methodology (never assume a credential's
 scope; prove it with a bounded, reversible preflight first), two
