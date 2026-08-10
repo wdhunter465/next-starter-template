@@ -2,11 +2,11 @@
 Doc Type: Operations Report
 Audience: Bill, Work, Cursor, LGFC maintainers, and implementation agents
 Authority Level: Evidence Snapshot
-Owns: Aggregate parent-level status reconciliation for #2859 against its own 9 acceptance criteria, following Bill's 2026-08-10 instruction ("proceed with #2859 next") after all four linked children (#2906–#2909) closed complete
-Does Not Own: Any child's own evidence (#2906/#2907/#2908/#2909 — only cited here); the #2859 closeout decision itself (Product Authority / WORK); the #2779/#3268 backup-recovery gap this report cites but does not close; any Production D1/B2 population, verification, or publication
+Owns: Aggregate parent-level status reconciliation for #2859 against its own 9 acceptance criteria, following Bill's 2026-08-10 instruction ("proceed with #2859 next") after all four linked children (#2906–#2909) closed complete; the X-10/#2858 dependency re-verification WORK requested on 2026-08-10 after #2780's entry gate was raised
+Does Not Own: Any child's own evidence (#2906/#2907/#2908/#2909 — only cited here); the #2859 closeout decision itself (Product Authority / WORK); the #2780 successor decision (this report only checks its entry gate against #2859's own findings); the #2779/#3268 backup-recovery gap this report cites but does not close; any Production D1/B2 population, verification, or publication
 Source Issue: #2859
 Canonical Reference: /docs/ops/reports/production-content-parent-closeout-status-2859.md
-Related Issues: #2859, #2906, #2907, #2908, #2909, #2860, #2779, #2858, #3268
+Related Issues: #2859, #2906, #2907, #2908, #2909, #2860, #2779, #2858, #2780, #3268, #3277
 Last Reviewed: 2026-08-10
 Executor: Claude Code
 ---
@@ -106,20 +106,51 @@ population has occurred, and none can safely occur until the #2779/#3268
 backup gap closes and Product Authority separately authorizes it, exactly
 as #2860 already established for the library-content migration.**
 
-## 3. One item worth flagging: #2858 dependency may now be resolvable
+## 3. X-10 re-verification — RESOLVED (2026-08-10)
 
-#2909's QA record lists row `X-10` as deferred with release condition
-"#2858 responsive-contract ACCEPT before final launch packaging," owned by
-Cursor Local / WORK. #2858 (PROJECT: Complete Responsive Fan Club
-Experience) closed complete on 2026-08-08, after #2909's PR #3249 merged
-(2026-08-09). This means X-10's stated release condition may now be met —
-but confirming that requires WORK/Cursor Local to actually re-verify the
-responsive-contract acceptance against #2909's row, not this report
-asserting it. Per #2909's own handoff instructions, updating that row's
-disposition and re-running
-`node scripts/ci/production_content_cross_route_qa.mjs --record <updated record> --required-ids-file <full 26-ID list>`
-is the correct next action for whoever owns that reconciliation — flagged
-here, not performed here, since it is not this report's evidence to assert.
+Per WORK's 2026-08-10 instruction ("perform the #2858/X-10 re-verification,
+update the #2859 evidence state"), this section replaces the prior
+"flagged, not verified" note with an actual verification.
+
+**#2906's matrix row X-10** ("Accessibility / responsive," all public +
+Fan Club surfaces) records its release condition verbatim as "#2858 ACCEPT
+before final launch claim." **#2909's QA record** carries the same row as
+`deferred`, owner "Cursor Local / WORK," release condition "#2858
+responsive-contract ACCEPT before final launch packaging."
+
+#2858's own issue thread contains an explicit WORK PMO closeout comment
+(2026-08-08T15:52:31Z, `issuecomment-5226863778`): **"Disposition: ACCEPT /
+COMPLETE."** — citing all six closed-complete #2858 closeout items (the four
+linked children #2902, #2903, #2904, #2905, plus the #3197
+audit/Promotion-Candidate packet and the #3199 protected main-sync
+reconciliation merged to `component/fanclub-responsive-completion` at
+`c88d4278d47a05cffc14c0d62c44d7140b132a25`) and stating "No unresolved
+#2858 child remains."
+
+**Finding:** X-10's stated release condition — "#2858 ACCEPT" — is met by
+this comment, in the exact terms the matrix and QA record themselves
+require. This is a real citation, not an inference from #2858's `closed`
+label alone (a closed issue does not by itself prove ACCEPT; this comment
+does).
+
+**What this does and does not change:**
+- It does **not** flip any of #2859's 9 criteria in Section 2 above — X-10
+  is a #2906 cross-cutting matrix row (accessibility/responsive contract
+  evidence availability), not itself one of #2859's 9 acceptance criteria.
+- It reduces the honestly-outstanding-dependency count in #2909's 20
+  deferred rows from 20 to 19 whose release condition is still unmet — X-10
+  is now resolved; the other 19 still require real content population
+  (#2907/#2908-class), IA/navigation decisions (P-16, P-26), or legal review
+  (P-22, P-23).
+- #2909's QA harness output does not need to be regenerated to reflect this:
+  `deferred` was always a valid, accounted-for disposition (the harness's
+  `ready: true` means every required row has *an* explicit disposition, not
+  that every dependency is closed) — this section is the authoritative
+  record that X-10's specific dependency is now closed, superseding the
+  prior "flagged, not verified" note in this document only.
+- No Production, D1/B2, or credential action was performed to reach this
+  finding — it is a citation-only reconciliation between two already-merged,
+  already-public repository/issue records.
 
 ## 4. Recommendation
 
@@ -135,15 +166,56 @@ existing gap explicit and itemized:
 - The IA/navigation (P-16, P-26) and legal (P-22, P-23) decisions #2909
   deferred to Bill/ChatGPT and Legal/Bill remain outstanding Product/Legal
   decisions, not implementation work.
-- The #2858 dependency behind X-10 may now be satisfied on paper (#2858
-  closed 2026-08-08) but needs an explicit re-verification, not an
-  assumption, before that row's disposition changes.
+- The X-10 / #2858 dependency is now resolved (Section 3) with a real
+  citation, not an assumption.
 
-No further #2859 implementation work is safely executable without one of:
-(a) the #2779/#3268 backup/recovery capability actually closing, (b) a
-secret-backed CI path for real D1/B2 population modeled on #2913's
-preflight pattern, or (c) explicit Product Authority risk-acceptance —
-mirroring exactly the disposition already recorded for #2860.
+Per the authoritative portfolio sequence, **#2780's own entry gate is
+"#2859 completed and accepted," and #2859 is not yet completed and
+accepted** — 4 of 9 criteria remain outstanding (Section 2), all requiring
+either real Production population (blocked, Section 4 above) or Product/
+Legal decisions this report cannot make. **#2780 remains ineligible; this
+report does not recommend starting it.**
+
+## 5. Next executable blocker-reduction action (identified, not performed)
+
+With X-10 resolved, the honest remaining blocker set for #2859 is:
+
+1. Real D1/B2 population (criteria 3, 5, 6) — blocked on #2779/#3268 backup
+   proof and Cloudflare/D1/B2 credentials this sandbox does not have.
+2. Attribution/rights/privacy verification (criterion 4, remainder) —
+   depends on #1.
+3. Preview/Production evidence (criterion 7) — depends on #1 for
+   Production; a **Preview-only** verification may not, in principle,
+   require the same backup proof a Production *write* does, since Preview
+   reads/writes are not the durable Production record.
+4. IA/navigation decisions (P-16, P-26) and legal review (P-22, P-23) —
+   Product/Legal decisions, not engineering work; not this report's or
+   Claude's authority to make or accelerate.
+
+Of these, **item 3's Preview-only sub-case is the one candidate for a
+genuinely new executable step that does not require the #2779/#3268 backup
+gap to close first**, because Preview data is not the durable Production
+record #2779/#3268 exists to protect. The concrete shape, modeled exactly
+on #2913's precedent for #2860, would be: a secret-backed,
+`workflow_dispatch`-gated, human-confirmed CI workflow that performs a
+**real, read-only** Preview D1/B2 check (schema/row-presence, no write) and
+posts its result as durable evidence — never touching Production, never
+requiring backup proof, and never requiring the sandbox to hold a
+credential (the secret is consumed only at Actions runtime, same pattern
+as `scripts/ci/production_d1_preflight_2913.mjs` +
+`.github/workflows/library-content-production-preflight-2913.yml`, both on
+`main` — **not present on this `component/production-content-readiness`
+branch**, so a reader should look on `main` for the actual precedent
+rather than this branch's tree).
+
+This is **identified, not built, in this report** — it is a new
+`.github/workflows/**` + `scripts/ci/**` change, both protected paths
+requiring `protected-change-review` (Chat/Bill review, not
+component-auto-integration), and #2859 has not received the equivalent of
+#2860's explicit "post evidence before any D1 write" authorization for this
+specific step. Building it without that authorization would be scope
+creep beyond what WORK asked this report to do. Recommending it to
+Product Authority for an explicit Go/No-Go is the correct next step.
 
 ## Acceptance checklist (this report)
 
@@ -155,8 +227,15 @@ mirroring exactly the disposition already recorded for #2860.
       performed.
 - [x] No fabricated "done" status — outstanding items are named as
       outstanding, with the specific blocking dependency identified.
-- [x] The #2858/X-10 observation is flagged as needing independent
-      re-verification, not asserted as resolved by this report.
+- [x] The #2858/X-10 dependency is re-verified with a real citation
+      (`issuecomment-5226863778`), not asserted from #2858's closed label
+      alone.
+- [x] #2780's entry gate ("#2859 completed and accepted") is checked
+      against this report's own findings and confirmed unmet; #2780 is not
+      recommended.
+- [x] The next candidate executable action is identified with its scope
+      and required authorization named, not built without that
+      authorization.
 
 ## Rollback (of this report)
 
