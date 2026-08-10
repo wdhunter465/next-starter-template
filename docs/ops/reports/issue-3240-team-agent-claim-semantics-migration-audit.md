@@ -2,11 +2,13 @@
 Doc Type: Ops Report
 Audience: Human + AI
 Authority Level: Evidence Snapshot
+Owns: Migration classification evidence (ACTIVE_CLAIM / EXPLICIT_RESERVATION / STALE_PREASSIGNMENT / AMBIGUOUS) for open `agent:*` Issues, produced for #3240
+Does Not Own: The team-vs-agent claim-lifecycle policy itself (owned by `docs/governance/WORK-QUEUES-AND-COLLABORATION.md`); execution of any label removal, which remains a separate, evidence-backed operation per Rollback below
 Source Issue: #3240
 Canonical Reference: /docs/ops/reports/issue-3240-team-agent-claim-semantics-migration-audit.md
 Related Issues: #3240
-Last Reviewed: 2026-08-09
-Executor: Grok
+Last Reviewed: 2026-08-10
+Executor: Grok (original), Claude Code (2026-08-10 evidence pass)
 ---
 
 # Issue #3240 — team vs agent claim semantics migration audit
@@ -14,6 +16,21 @@ Executor: Grok
 ## Purpose
 
 Classify open `agent:*` Issues against the claim lifecycle defined in `docs/governance/WORK-QUEUES-AND-COLLABORATION.md` so only proven `STALE_PREASSIGNMENT` labels are removed.
+
+## Scope
+
+Covers classification of every open GitHub Issue carrying an `agent:*` label at audit time, against the four classes defined in the Classification rules table below. It does not decide or change any `team:*` label (out of scope per Policy constraints), and it does not itself remove any label — classification is evidence collection; removal is a separate follow-up action gated on proven `STALE_PREASSIGNMENT` evidence.
+
+## Current known truth
+
+- `agent:claude` (15 open Issues, audited 2026-08-10): 0 `STALE_PREASSIGNMENT`; 9 `ACTIVE_CLAIM`, 6 `EXPLICIT_RESERVATION` — see the per-issue table below.
+- `agent:grok` (4 open Issues, audited 2026-08-10): 1 `ACTIVE_CLAIM` (#3240 itself), 3 `AMBIGUOUS` (label/body ownership contradictions requiring Grok or Cursor confirmation).
+- `agent:cursor` (19 open Issues at audit time): not yet classified by this pass — deferred as a follow-up requiring Cursor-side activity confirmation this pass could not obtain.
+- No `agent:*` label has been removed by this document or its remediation pass.
+
+## Intended final state
+
+Once the deferred `agent:cursor` set is classified with real activity evidence (by #3240's primary executor or Cursor itself) and any `AMBIGUOUS` cases in the `agent:grok` set are resolved with Grok/Cursor confirmation, this doc's classification section is complete for the full open-Issue `agent:*` label surface. Any `STALE_PREASSIGNMENT` findings from that completed pass would be removed only via a separate, evidence-backed follow-up PR per the Policy constraints below — never bulk-deleted from this report alone.
 
 ## Classification rules
 
