@@ -1,6 +1,8 @@
 name: OPS — Enable AI Review Access (#2215)
 
 # Operator-authorized Cloudflare provisioning for tokenized /_ai-review/* access.
+# Uses existing repo secrets: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID,
+# CLOUDFLARE_PROJECT_NAME (and GH_AW_TOKEN when available to write AI_REVIEW_TOKEN).
 # Does not print AI_REVIEW_TOKEN. Requires Bill/operator Implementation Go on #2215.
 on:
   workflow_dispatch:
@@ -27,9 +29,8 @@ jobs:
     env:
       CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-      CLOUDFLARE_PROJECT_NAME: ${{ secrets.CLOUDFLARE_PROJECT_NAME || 'next-starter-template' }}
+      CLOUDFLARE_PROJECT_NAME: ${{ secrets.CLOUDFLARE_PROJECT_NAME }}
       AI_REVIEW_ALLOW_ADMIN: ${{ inputs.allow_admin }}
-      AI_REVIEW_TOKEN_OUT: ${{ runner.temp }}/ai-review-token
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -41,13 +42,19 @@ jobs:
 
       - name: Guard Cloudflare secrets
         run: |
-          if [ -z "$CLOUDFLARE_API_TOKEN" ] || [ -z "$CLOUDFLARE_ACCOUNT_ID" ]; then
-            echo "Missing CLOUDFLARE_API_TOKEN or CLOUDFLARE_ACCOUNT_ID"
+          if [ -z "${CLOUDFLARE_API_TOKEN}" ] || [ -z "${CLOUDFLARE_ACCOUNT_ID}" ]; then
+            echo "Missing CLOUDFLARE_API_TOKEN or CLOUDFLARE_ACCOUNT_ID repo secrets"
             exit 1
           fi
-          echo "CF account/project present; enabling AI review secrets (values not logged)."
+          if [ -z "${CLOUDFLARE_PROJECT_NAME}" ]; then
+            echo "CLOUDFLARE_PROJECT_NAME secret empty; defaulting to next-starter-template"
+            echo "CLOUDFLARE_PROJECT_NAME=next-starter-template" >> "$GITHUB_ENV"
+          fi
+          echo "Using repo Cloudflare secrets for Pages AI review enablement (values not logged)."
 
       - name: Provision Cloudflare Pages AI review secrets
+        env:
+          AI_REVIEW_TOKEN_OUT: ${{ runner.temp }}/ai-review-token
         run: node scripts/ops/enable-ai-review-access.mjs
 
       - name: Redeploy production for secret pickup
@@ -72,7 +79,6 @@ jobs:
             "https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/${PROJECT}/deployments/${dep}/retry" \
             >/dev/null
           echo "Redeploy/retry requested for ${dep}."
-          echo "Waiting for deployment to progress…"
           for i in 1 2 3 4 5 6 7 8 9 10 11 12; do
             sleep 20
             status=$(curl -fsSL -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
@@ -96,13 +102,14 @@ jobs:
           fi
 
       - name: Verify authorized fanclub review URL
+        env:
+          AI_REVIEW_TOKEN_OUT: ${{ runner.temp }}/ai-review-token
         run: |
           set -euo pipefail
           TOKEN=$(cat "$AI_REVIEW_TOKEN_OUT")
           code=$(curl -sS -o /dev/null -w '%{http_code}' \
             "https://www.lougehrigfanclub.com/_ai-review/fanclub?token=${TOKEN}" || true)
           echo "Authorized /_ai-review/fanclub => HTTP ${code}"
-          # After enable+redeploy expect 200. If still 404, secrets may not have propagated yet.
           if [ "$code" != "200" ]; then
             echo "::warning::Authorized check returned ${code} (may need another deploy/propagation). Cloudflare secrets were set."
           fi
@@ -110,6 +117,7 @@ jobs:
       - name: Store AI_REVIEW_TOKEN as GitHub Actions secret
         env:
           GH_TOKEN: ${{ secrets.GH_AW_TOKEN || github.token }}
+          AI_REVIEW_TOKEN_OUT: ${{ runner.temp }}/ai-review-token
         run: |
           set -euo pipefail
           if [ ! -f "$AI_REVIEW_TOKEN_OUT" ]; then
@@ -119,7 +127,7 @@ jobs:
           if gh secret set AI_REVIEW_TOKEN < "$AI_REVIEW_TOKEN_OUT" --repo "${{ github.repository }}"; then
             echo "GitHub Actions secret AI_REVIEW_TOKEN set."
           else
-            echo "::warning::Could not set GitHub secret AI_REVIEW_TOKEN (token permissions). Cloudflare secrets were still set."
+            echo "::warning::Could not set GitHub secret AI_REVIEW_TOKEN (token permissions). Cloudflare Pages secrets were still set."
           fi
           shred -u "$AI_REVIEW_TOKEN_OUT" 2>/dev/null || rm -f "$AI_REVIEW_TOKEN_OUT"
 
@@ -128,13 +136,9 @@ jobs:
           {
             echo "## AI review enablement (#2215)"
             echo ""
+            echo "- Auth: existing repo Cloudflare secrets (CLOUDFLARE_API_TOKEN / ACCOUNT_ID / PROJECT_NAME)"
             echo "- Cloudflare Pages secrets set: AI_REVIEW_ENABLED, AI_REVIEW_TOKEN, AI_REVIEW_ALLOW_ADMIN=${{ inputs.allow_admin }}"
             echo "- GitHub secret AI_REVIEW_TOKEN: attempted"
             echo "- Production redeploy retry: ${{ inputs.trigger_redeploy }}"
             echo "- Token value: not logged"
-            echo ""
-            echo "Agent URL patterns (inject secret; do not commit):"
-            echo "- /_ai-review/home?token=…"
-            echo "- /_ai-review/fanclub?token=…"
-            echo "- /_ai-review/admin?token=…"
           } >> "$GITHUB_STEP_SUMMARY"
