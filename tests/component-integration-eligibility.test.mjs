@@ -89,6 +89,28 @@ describe('component integration negative fixtures', () => {
 
     expect(result.eligible).toBe(false);
     expect(result.blockedReasons.map((reason) => reason.code)).toContain('non_component_base');
+    expect(result.notApplicable).toBe(true);
+  });
+
+  it('marks Model A / production delivery as not applicable for child auto-integration', () => {
+    const result = evaluate({
+      profile: {
+        deliveryModel: 'A',
+        gateProfile: 'production-candidate',
+        approvalProfile: 'work-bill-production',
+        componentBranch: '',
+        componentMaster: '',
+        baseRef: 'main',
+      },
+    }, {
+      changedFiles: ['tests/e2e/accessibility-scan.spec.ts'],
+    });
+
+    expect(result.eligible).toBe(false);
+    expect(result.notApplicable).toBe(true);
+    expect(result.blockedReasons.map((reason) => reason.code)).toEqual(
+      expect.arrayContaining(['invalid_delivery_model', 'non_component_base']),
+    );
   });
 
   it('blocks protected changes and requires Chat review', () => {
@@ -193,6 +215,7 @@ describe('component integration positive fixture', () => {
       eligible: true,
       blockedReasons: [],
       requiresChatReview: false,
+      notApplicable: false,
       componentState: 'green',
       deliveryModel: 'B-child',
       gateProfile: 'component-child',
