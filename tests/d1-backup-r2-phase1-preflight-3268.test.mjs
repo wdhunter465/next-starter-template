@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildResultMarkdown,
-  extractR2BucketListing,
+  extractR2BucketListingFromText,
   extractS3ErrorCode,
   findBlankAfterTrim,
   parseListObjectsV2Page,
@@ -17,7 +17,7 @@ import {
 
 describe('requireR2Env', () => {
   it('lists every missing required credential', () => {
-    expect(requireR2Env({})).toEqual(['R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY', 'R2_BUCKET_NAME', 'R2_ACCOUNT_ID']);
+    expect(requireR2Env({})).toEqual(['R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY', 'R2_BUCKET_NAME', 'CLOUDFLARE_ACCOUNT_ID']);
   });
 
   it('returns an empty list when every credential is present', () => {
@@ -26,9 +26,24 @@ describe('requireR2Env', () => {
         R2_ACCESS_KEY_ID: 'x',
         R2_SECRET_ACCESS_KEY: 'x',
         R2_BUCKET_NAME: 'x',
-        R2_ACCOUNT_ID: 'x',
+        CLOUDFLARE_ACCOUNT_ID: 'x',
       }),
     ).toEqual([]);
+  });
+
+  // #3268 root cause (2026-08-10): a separate R2_ACCOUNT_ID secret duplicated the already-correct
+  // CLOUDFLARE_ACCOUNT_ID with an invalid 53-character value, causing every R2 S3 TLS handshake
+  // to fail identically across four independent clients. R2_ACCOUNT_ID has been removed; the R2
+  // S3 endpoint now uses CLOUDFLARE_ACCOUNT_ID, the same account ID already used for D1 access.
+  it('does not require a separate R2_ACCOUNT_ID secret', () => {
+    expect(
+      requireR2Env({
+        R2_ACCESS_KEY_ID: 'x',
+        R2_SECRET_ACCESS_KEY: 'x',
+        R2_BUCKET_NAME: 'x',
+        CLOUDFLARE_ACCOUNT_ID: 'x',
+      }),
+    ).not.toContain('R2_ACCOUNT_ID');
   });
 });
 
@@ -62,9 +77,9 @@ describe('parseListObjectsV2Page', () => {
 describe('findBlankAfterTrim', () => {
   it('catches a whitespace-only value that requireR2Env alone would not', () => {
     // requireR2Env's presence check treats a whitespace-only string as present (truthy).
-    expect(requireR2Env({ R2_ACCOUNT_ID: '   ', R2_BUCKET_NAME: 'x', R2_ACCESS_KEY_ID: 'x', R2_SECRET_ACCESS_KEY: 'x' })).toEqual([]);
+    expect(requireR2Env({ CLOUDFLARE_ACCOUNT_ID: '   ', R2_BUCKET_NAME: 'x', R2_ACCESS_KEY_ID: 'x', R2_SECRET_ACCESS_KEY: 'x' })).toEqual([]);
     // findBlankAfterTrim, run on the already-trimmed values, catches it.
-    expect(findBlankAfterTrim({ R2_ACCOUNT_ID: '   '.trim(), R2_BUCKET_NAME: 'x' })).toEqual(['R2_ACCOUNT_ID']);
+    expect(findBlankAfterTrim({ CLOUDFLARE_ACCOUNT_ID: '   '.trim(), R2_BUCKET_NAME: 'x' })).toEqual(['CLOUDFLARE_ACCOUNT_ID']);
   });
 
   it('lists every name whose trimmed value is blank', () => {
@@ -162,33 +177,46 @@ describe('extractS3ErrorCode', () => {
   });
 });
 
-describe('extractR2BucketListing', () => {
-  it('finds the matching bucket by name and extracts non-sensitive metadata', () => {
-    const parsed = [
-      { name: 'other-bucket', creation_date: '2025-01-01T00:00:00Z' },
-      { name: 'lgfc-d1-backups', creation_date: '2026-08-10T00:00:00Z', location: 'ENAM', storage_class: 'Standard' },
-    ];
-    expect(extractR2BucketListing(parsed, 'lgfc-d1-backups')).toEqual({
+describe('extractR2BucketListingFromText', () => {
+  // Real output shape confirmed (2026-08-10) from the installed wrangler 4.60.0's own source
+  // (tableFromR2BucketsListResponse + formatLabelledValues in
+  // node_modules/wrangler/wrangler-dist/cli.js): a `name:`/`creation_date:` labelled pair per
+  // bucket, blocks separated by a blank line -- no `--json` flag exists for this subcommand, and
+  // this command emits no location or storage-class fields at all.
+  it('finds the matching bucket by name and extracts its creation date', () => {
+    const text = [
+      'Listing buckets...',
+      'name:            other-bucket',
+      'creation_date:   2025-01-01T00:00:00.000Z',
+      '',
+      'name:            lgfc-d1-backups',
+      'creation_date:   2026-08-10T00:00:00.000Z',
+      '',
+    ].join('\n');
+    expect(extractR2BucketListingFromText(text, 'lgfc-d1-backups')).toEqual({
       found: true,
-      creationDate: '2026-08-10T00:00:00Z',
-      location: 'ENAM',
-      storageClass: 'Standard',
+      creationDate: '2026-08-10T00:00:00.000Z',
+      location: null,
+      storageClass: null,
     });
   });
 
   it('reports found: false when the bucket name is not in the list', () => {
-    expect(extractR2BucketListing([{ name: 'other-bucket' }], 'lgfc-d1-backups')).toEqual({ found: false });
+    const text = 'Listing buckets...\nname:            other-bucket\ncreation_date:   2025-01-01T00:00:00.000Z\n';
+    expect(extractR2BucketListingFromText(text, 'lgfc-d1-backups')).toEqual({ found: false });
   });
 
-  it('handles a { result: [...] } or { buckets: [...] } wrapper shape', () => {
-    const bucket = { name: 'lgfc-d1-backups' };
-    expect(extractR2BucketListing({ result: [bucket] }, 'lgfc-d1-backups').found).toBe(true);
-    expect(extractR2BucketListing({ buckets: [bucket] }, 'lgfc-d1-backups').found).toBe(true);
+  it('strips ANSI color codes before parsing', () => {
+    const text = 'name:            [32mlgfc-d1-backups[0m\ncreation_date:   2026-08-10T00:00:00.000Z\n';
+    expect(extractR2BucketListingFromText(text, 'lgfc-d1-backups').found).toBe(true);
   });
 
-  it('returns null for a non-array/unrecognized payload instead of throwing', () => {
-    expect(extractR2BucketListing(null, 'x')).toBeNull();
-    expect(extractR2BucketListing({}, 'x')).toBeNull();
+  it('returns null for empty output or a missing bucket name instead of throwing', () => {
+    expect(extractR2BucketListingFromText('', 'lgfc-d1-backups')).toBeNull();
+    expect(extractR2BucketListingFromText('   \n  ', 'lgfc-d1-backups')).toBeNull();
+    expect(extractR2BucketListingFromText('name: lgfc-d1-backups', '')).toBeNull();
+    expect(extractR2BucketListingFromText(null, 'lgfc-d1-backups')).toBeNull();
+    expect(extractR2BucketListingFromText(undefined, 'lgfc-d1-backups')).toBeNull();
   });
 });
 
@@ -201,13 +229,13 @@ describe('buildResultMarkdown', () => {
       objectCount: 0,
       isTruncated: false,
       wranglerConfirmed: true,
-      wranglerBucket: { found: true, creationDate: '2026-08-10T00:00:00Z', location: 'ENAM', storageClass: 'Standard' },
+      wranglerBucket: { found: true, creationDate: '2026-08-10T00:00:00Z', location: null, storageClass: null },
     });
     expect(md).toContain('Bucket: `lgfc-d1-backups`');
     expect(md).toContain('S3 `ListObjectsV2` read: OK');
     expect(md).toContain('object count in this page: 0');
     expect(md).toContain('found in account bucket list: YES');
-    expect(md).toContain('storage_class: Standard');
+    expect(md).toContain('creation_date: 2026-08-10T00:00:00Z');
   });
 
   it('renders a failed S3 read with its reason', () => {
