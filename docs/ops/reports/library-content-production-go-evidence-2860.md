@@ -107,6 +107,8 @@ INSERT INTO content_inventory (
 
 **What still needs building, separately, before this batch can execute against Production**: a secret-backed GitHub Actions `workflow_dispatch` path — modeled directly on the already-merged #2913 read-only preflight (`library-content-production-preflight-2913.yml` / `production_d1_preflight_2913.mjs`) — that runs this exact planning code against real Production data and executes the generated statements via `wrangler d1 execute lgfc_lite --remote`. This report does not build that path; per Bill's instruction, this package is posted first, for WORK's review, before that implementation step is authorized.
 
+The four repository secrets that path would consume already exist (per the 2026-08-08 Product Authority clarification on #2913, and reused unchanged from that merged workflow): `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `D1_DATABASE_ID`, `D1_DATABASE_NAME`. No new credential provisioning is required to build the write path itself — only the backup gap in Section 2 stands between this package and that implementation step being authorized.
+
 **Pre/post count evidence to record** (redacted, no PII, exactly as #2911/#2912's local evidence did):
 
 ```sql
