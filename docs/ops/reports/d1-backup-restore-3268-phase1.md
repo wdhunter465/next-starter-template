@@ -6,8 +6,8 @@ Owns: #3268 Phase 1 ("Current-state and security preflight") current-state/decis
 Does Not Own: #3268 Phase 2 (export/backup proof), Phase 3 (scheduled service), or Phase 4 (restore drill) — all explicitly deferred to later increments; any R2 resource (none exists yet); any Production D1 write, export, or restore; the #2860/#2859 Production population decisions themselves
 Source Issue: #3268
 Canonical Reference: /docs/ops/reports/d1-backup-restore-3268-phase1.md
-Related Issues: #3268, #2860, #2779, #2780, #2859, #2913, #3282
-Last Reviewed: 2026-08-10
+Related Issues: #3268, #2860, #2779, #2780, #2859, #2913, #3282, #3283, #3285, #3287
+Last Reviewed: 2026-08-10 (updated same day: R2 bucket provisioned)
 Executor: Claude Code
 ---
 
@@ -47,13 +47,15 @@ require either a live preflight result or Bill's decision.
   D1." **There is no isolated Preview D1 database in this repository or
   account as currently configured.** Any read against "the database" is a
   read against the same database Production uses.
-- No Cloudflare R2 resource is configured anywhere in this repository: no
-  `[[r2_buckets]]` block in `wrangler.toml`, and a repo-wide search of
-  `.github/workflows/**` for `secrets.R2_*` returns zero matches (confirmed
-  by direct grep this pass). Backblaze B2 (`secrets.B2_*`, `functions/_lib/b2.ts`,
-  `functions/_lib/aws4fetch.ts`) is a separate, already-configured service used
-  for media storage — it is not Cloudflare R2 and does not satisfy #3268's
-  "private R2-backed" requirement.
+- **Update, same day:** Bill provisioned the private R2 bucket (`lgfc-d1-backups`,
+  Standard storage, public access disabled) and its least-privilege S3-compatible
+  credentials as repo secrets (`R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`,
+  `R2_BUCKET_NAME`, `R2_ACCOUNT_ID`). Section 5 below adds the corresponding
+  read-only R2 investigation preflight. Backblaze B2 (`secrets.B2_*`,
+  `functions/_lib/b2.ts`, `functions/_lib/aws4fetch.ts`) remains a separate,
+  already-configured service used for media storage — it is not this new R2
+  bucket and does not satisfy #3268's requirement on its own; this update does
+  not change that distinction.
 - Existing repo secrets `CLOUDFLARE_API_TOKEN`/`CLOUDFLARE_ACCOUNT_ID`/
   `D1_DATABASE_NAME`/`D1_DATABASE_ID` already exist (established by #2913's
   successful real preflight run) and are sufficient for a **read-only** D1
@@ -75,8 +77,8 @@ items are named for Bill's decision.
 | 1 | Exact Production D1 database name and UUID | **Answered** (repo evidence) | `wrangler.toml` (above) |
 | 2 | Storage version supports Time Travel | **Needs the new preflight** (best-effort `wrangler d1 time-travel info`) | New workflow, Section 2 |
 | 3 | Account plan and applicable Time Travel retention | **Cannot be answered by any CLI read this script can make** | Requires Bill to check the Cloudflare dashboard directly, or a separate account-level API call out of this preflight's scope |
-| 4 | Inventory existing R2 buckets; dedicated bucket vs. isolated prefix | **Cannot proceed — no R2 resource or R2-scoped credential exists yet** | Requires Bill to create the bucket and provision a least-privilege R2 API token as a new repo secret before any R2 investigation can run |
-| 5 | Inventory existing tokens/bindings/secret patterns/CI deployment authority | **Partially answered** (repo evidence: known secret names enumerated above); token *scope* (what permissions `CLOUDFLARE_API_TOKEN` actually has) is not verifiable without either a live permissions-introspection call or Bill confirming it directly | Repo evidence + Bill confirmation |
+| 4 | Inventory existing R2 buckets; dedicated bucket vs. isolated prefix | **Bucket decided and provisioned by Bill** (`lgfc-d1-backups`, Standard storage, public access disabled); **needs the new R2 preflight** to confirm reachability with the provisioned credential | Section 5 |
+| 5 | Inventory existing tokens/bindings/secret patterns/CI deployment authority | **Answered for R2**: least-privilege S3 credential provisioned (`R2_ACCESS_KEY_ID`/`R2_SECRET_ACCESS_KEY`/`R2_BUCKET_NAME`/`R2_ACCOUNT_ID`). `CLOUDFLARE_API_TOKEN`'s own R2 scope is still unverified — the new preflight's best-effort `wrangler r2 bucket list` corroboration will confirm or refute it | Section 5 |
 | 6 | Classify D1 data sensitivity (member/auth/moderation/attribution/audit/PII) | **Not attempted this pass** — this is a data-classification/documentation task, not a live read; appropriately Phase 1's next repository-evidence increment, not this preflight | Deferred to next increment |
 | 7 | Confirm no backup object is publicly reachable | **Not yet applicable — no backup object exists yet** (Phase 2 has not run) | Deferred until a real export exists |
 
@@ -100,37 +102,71 @@ reason).
 
 ## 3. Decisions genuinely required from Bill before Phase 2 can start
 
-- Account plan tier and Time Travel retention window (item 3) — dashboard-only fact.
-- Dedicated R2 bucket vs. isolated prefix in an existing bucket, exact bucket
-  name, and jurisdiction if applicable (item 4) — Product Authority decision
-  plus account-level bucket creation and credential provisioning, neither of
-  which this sandbox can perform.
-- Confirmation of `CLOUDFLARE_API_TOKEN`'s actual permission scope (item 5) —
-  or a decision to provision a separate, more narrowly-scoped token for
-  backup operations specifically, per #3268's own least-privilege requirement.
+- Account plan tier and Time Travel retention window (item 3) — dashboard-only
+  fact. **Still outstanding** — the one remaining Phase 1 blocker as of this
+  update.
+- ~~Dedicated R2 bucket vs. isolated prefix...~~ — **resolved**: `lgfc-d1-backups`,
+  Standard storage, public access disabled, least-privilege credentials
+  provisioned.
 
 None of these are engineering work this report can substitute for; they are
 named here exactly as #3268 already named them, not invented by this report.
 
-## 4. What this PR does not do (explicitly, so it isn't assumed)
+## 4. What this report does not do (explicitly, so it isn't assumed)
 
 - Does not export any data.
-- Does not create, configure, or reference any R2 bucket.
+- Does not upload, write, or delete any R2 object.
 - Does not attempt a restore or restore drill (Phase 4 — needs Phase 1/2 facts first).
 - Does not change #2860's or #2859's own Production-write eligibility — those
   remain gated on this project's real backup proof (Phase 2), not on Phase 1
   alone.
+- Does not begin Phase 2 (real D1 export → R2 upload → checksum → restore
+  proof) — per Bill's explicit 2026-08-10 instruction, that step waits for
+  the account plan tier / Time Travel retention fact (item 3 above).
+
+## 5. Update, 2026-08-10 — R2 bucket provisioned; new read-only R2 investigation preflight
+
+Bill provisioned the private R2 bucket and credentials (Current known truth,
+above). This adds `scripts/ci/d1_backup_r2_phase1_preflight_3268.mjs` +
+`.github/workflows/ops-d1-backup-r2-phase1-preflight-3268.yml`: a
+`workflow_dispatch`-gated, human-confirmed CI job that performs exactly one
+bounded, read-only S3 `ListObjectsV2` call (max 1000 keys, single page)
+against the bucket using the provisioned least-privilege credential, plus a
+best-effort `wrangler r2 bucket list` corroboration using the existing
+Cloudflare API token. It reuses `AwsClient` from
+`functions/_lib/aws4fetch.ts` — the same S3 SigV4 signer already used for
+the existing, already-shipped, read-only B2 integration in
+`functions/_lib/b2.ts` (classified **read-only** in
+`docs/reference/platform/component-environment-isolation.md`). It performs
+no write, upload, or delete, and does not itself confirm "public access
+disabled" (no S3-API bucket-ACL-read operation is exposed by R2 for that;
+it remains a Cloudflare-account-level fact Bill has stated).
+
+**Verified locally:** `npx vitest run tests/d1-backup-r2-phase1-preflight-3268.test.mjs`
+— 15/15 passing (pure-function coverage of the XML-parsing, bucket-listing
+extraction, and markdown-rendering helpers; `main()` requires live R2
+credentials this sandbox does not have and is verified by the real CI run,
+same precedent as the D1 preflight and #2913).
+
+This answers Phase 1 item 4's reachability half and corroborates item 5's R2
+credential half. It does not answer item 3 (plan tier / retention), which
+remains the one fact standing between this report and Phase 2's real backup
+path, per Bill's explicit sequencing.
 
 ## Acceptance checklist (this report)
 
 - [x] Every Phase 1 item is individually classified (answered / needs
       preflight / needs Bill), not summarized vaguely.
-- [x] The R2 non-existence finding is backed by an actual repo grep, not an
-      assumption.
-- [x] No R2 resource, credential, or Production write is created or requested.
-- [x] The new preflight's tested scope (pure functions only) is disclosed
+- [x] The original R2 non-existence finding was backed by an actual repo
+      grep, not an assumption, and this update reflects the real, later
+      change (Bill's provisioning), not a silent contradiction.
+- [x] No R2 write, upload, delete, or Production D1 action is created or requested.
+- [x] Both preflights' tested scope (pure functions only) is disclosed
       honestly, matching the same limitation already accepted for #2913's
       precedent script.
+- [x] Phase 2 (the real backup path) is explicitly named as still waiting on
+      item 3, per Bill's own instruction — not implied as unblocked by R2
+      provisioning alone.
 
 ## Rollback (of this PR)
 
