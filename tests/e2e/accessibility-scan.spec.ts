@@ -2,14 +2,17 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page, type TestInfo } from '@playwright/test';
 
 // Prototype for #3165 (feeds #2858/#2859). Scans a small representative set of
-// public routes, matching the routes named in #3165's own scope.
+// public routes. The original #3165 design named `/faq`; Ask/FAQ consolidation
+// (#3148) moved that content to `/ask/`, so this set scans `/ask/` instead of
+// the legacy `/faq` client-redirect stub (OPS Production Audit #3194).
 // Design notes: docs/ops/reports/accessibility-scan-prototype-design-3165.md
 //
 // Production static hosting redirects bare paths to trailing-slash URLs (308).
 // Scan the settled trailing-slash forms and wait for load before axe so
 // analyze() does not race a destroyed browsing context (#1806).
+// Head refresh: drop stale Component Integration Eligibility false-red from prior review event.
 
-const SCANNED_ROUTES = ['/', '/search/', '/join/', '/faq/', '/about/'] as const;
+const SCANNED_ROUTES = ['/', '/search/', '/join/', '/ask/', '/about/'] as const;
 
 // "Critical/serious" per #3165's acceptance criteria; moderate/minor are recorded
 // as advisory evidence, not asserted against, so this spec doesn't silently start
