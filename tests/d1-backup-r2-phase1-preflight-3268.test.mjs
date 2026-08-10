@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   buildResultMarkdown,
   extractR2BucketListing,
+  extractS3ErrorCode,
   parseListObjectsV2Page,
   requireR2Env,
 } from '../scripts/ci/d1_backup_r2_phase1_preflight_3268.mjs';
@@ -51,6 +52,26 @@ describe('parseListObjectsV2Page', () => {
   it('does not throw on empty or malformed input', () => {
     expect(parseListObjectsV2Page('')).toEqual({ keys: [], isTruncated: false });
     expect(parseListObjectsV2Page(undefined)).toEqual({ keys: [], isTruncated: false });
+  });
+});
+
+describe('extractS3ErrorCode', () => {
+  it('extracts the short Code field without the surrounding body', () => {
+    const xml = `<?xml version="1.0"?><Error><Code>AccessDenied</Code><Message>Access Denied.</Message><BucketName>lgfc-d1-backups</BucketName></Error>`;
+    expect(extractS3ErrorCode(xml)).toBe('AccessDenied');
+  });
+
+  it('does not surface BucketName, RequestId, or any other field the body might contain', () => {
+    const xml = `<Error><Code>NoSuchBucket</Code><BucketName>lgfc-d1-backups</BucketName></Error>`;
+    const code = extractS3ErrorCode(xml);
+    expect(code).toBe('NoSuchBucket');
+    expect(code).not.toContain('lgfc-d1-backups');
+  });
+
+  it('returns an empty string for a body with no Code field or malformed input, instead of throwing', () => {
+    expect(extractS3ErrorCode('<Error><Message>oops</Message></Error>')).toBe('');
+    expect(extractS3ErrorCode('')).toBe('');
+    expect(extractS3ErrorCode(undefined)).toBe('');
   });
 });
 
