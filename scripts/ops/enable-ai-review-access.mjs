@@ -8,7 +8,8 @@
  * Never prints the review token.
  *
  * Required env: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID
- * Optional: CLOUDFLARE_PROJECT_NAME, AI_REVIEW_TOKEN, AI_REVIEW_ALLOW_ADMIN,
+ * Optional: CLOUDFLARE_PROJECT_NAME, AI_REVIEW_TOKEN, AI_REVIEW_ALLOW_ADMIN
+ *           (defaults false — opt-in only per docs/ops/ai/AI-REVIEW-ACCESS.md),
  *           AI_REVIEW_TOKEN_OUT
  */
 
@@ -23,7 +24,7 @@ const project =
   process.env.CF_PAGES_PROJECT ||
   process.env.CLOUDFLARE_PAGES_PROJECT ||
   'next-starter-template';
-const allowAdmin = String(process.env.AI_REVIEW_ALLOW_ADMIN ?? 'true').toLowerCase() === 'true' ? 'true' : 'false';
+const allowAdmin = String(process.env.AI_REVIEW_ALLOW_ADMIN ?? 'false').toLowerCase() === 'true' ? 'true' : 'false';
 const outPath = process.env.AI_REVIEW_TOKEN_OUT || '';
 
 function fail(msg) {

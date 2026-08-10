@@ -8,17 +8,21 @@ on:
   workflow_dispatch:
     inputs:
       allow_admin:
-        description: Set AI_REVIEW_ALLOW_ADMIN (true/false)
+        description: Set AI_REVIEW_ALLOW_ADMIN (opt-in; default false)
         required: false
-        default: 'true'
-      trigger_redeploy:
-        description: Retry latest production deployment so secrets apply
-        required: false
-        default: 'true'
+        default: 'false'
         type: choice
         options:
-          - 'true'
           - 'false'
+          - 'true'
+      trigger_redeploy:
+        description: Retry latest production deployment so secrets apply (default false)
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
 
 permissions:
   contents: read
