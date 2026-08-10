@@ -32,7 +32,8 @@ with citations, so the remaining gap is explicit rather than implied.
 
 ## Scope
 
-Covers only the aggregate status reconciliation below (Sections 1–4). It
+Covers only the aggregate status reconciliation below (Sections 1–4) and
+this report's own acceptance/rollback bookkeeping. It
 consumes #2906–#2909's already-merged, already-accepted evidence on
 `component/production-content-readiness` (tip `6f3b5f16326bdafedc6fe35e781703507d683ba5`
 at time of writing — PR #3249 merge commit `b1c06467461327d3f784a8be8e2880a4743e80a9`)
