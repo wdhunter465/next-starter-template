@@ -35,7 +35,7 @@ describe('requireEnv', () => {
 
 describe('extractD1InfoMetadata', () => {
   // Field names below match the real, live wrangler d1 info response confirmed on 2026-08-10:
-  // https://github.com/wdhunter645/next-starter-template/issues/3268#issuecomment-5244205336
+  // https://github.com/wdhunter465/next-starter-template/issues/3268#issuecomment-5244205336
   it('extracts fields from a wrangler d1 info array-wrapped result, including the raw record', () => {
     const raw = {
       database_size: 794624,
@@ -75,6 +75,11 @@ describe('extractD1InfoMetadata', () => {
   it('does not throw when read_replication is absent', () => {
     const metadata = extractD1InfoMetadata({ num_tables: 1 });
     expect(metadata.readReplicationMode).toBeNull();
+  });
+
+  it('distinguishes jurisdiction explicitly present-and-null from the field being entirely absent', () => {
+    expect(extractD1InfoMetadata({ num_tables: 1, jurisdiction: null }).jurisdiction).toBeNull();
+    expect(extractD1InfoMetadata({ num_tables: 1 }).jurisdiction).toBeUndefined();
   });
 
   it('returns null for a non-object/empty payload instead of throwing', () => {
@@ -118,6 +123,24 @@ describe('buildResultMarkdown', () => {
     expect(md).toContain('database_size: 794624 bytes, num_tables: 38, region: ENAM, jurisdiction: none set, read_replication: disabled');
     expect(md).toContain('Time Travel confirmed via CLI: YES');
     expect(md).toContain('bookmark present: YES');
+  });
+
+  it('renders jurisdiction as "unknown (field not returned)" when absent, vs "none set" when explicitly null', () => {
+    const withField = buildResultMarkdown({
+      checkedAt: '2026-08-10T00:00:00Z',
+      identityConfirmed: true,
+      infoOk: true,
+      metadata: { numTables: 1, jurisdiction: null },
+    });
+    expect(withField).toContain('jurisdiction: none set');
+
+    const withoutField = buildResultMarkdown({
+      checkedAt: '2026-08-10T00:00:00Z',
+      identityConfirmed: true,
+      infoOk: true,
+      metadata: { numTables: 1 },
+    });
+    expect(withoutField).toContain('jurisdiction: unknown (field not returned)');
   });
 
   it('renders a Time Travel not-confirmed result with its reason, without throwing', () => {

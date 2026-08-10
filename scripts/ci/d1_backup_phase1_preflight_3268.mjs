@@ -70,7 +70,7 @@ function runWrangler(args) {
  * --json`, plus the full raw record verbatim.
  *
  * Confirmed against the real, live response (#3268 issue comment, 2026-08-10 —
- * https://github.com/wdhunter645/next-starter-template/issues/3268#issuecomment-5244205336):
+ * https://github.com/wdhunter465/next-starter-template/issues/3268#issuecomment-5244205336):
  * `{ uuid, name, created_at, num_tables, running_in_region, read_replication: { mode },
  * jurisdiction, database_size, read_queries_24h, write_queries_24h, rows_read_24h,
  * rows_written_24h }`. There is no `version`/`storage_version`/similar field in this API's
@@ -88,7 +88,10 @@ export function extractD1InfoMetadata(parsed) {
     fileSize: record.database_size ?? record.file_size ?? record.size ?? null,
     numTables: record.num_tables ?? null,
     runningInRegion: record.running_in_region ?? null,
-    jurisdiction: record.jurisdiction ?? null,
+    // Distinguish "field absent" (unknown) from "field present and explicitly null" (confirmed
+    // no jurisdictional restriction) -- collapsing them with `??` would misrepresent an older/
+    // newer CLI response missing this field entirely as a confirmed "none set".
+    jurisdiction: 'jurisdiction' in record ? record.jurisdiction : undefined,
     readReplicationMode: record.read_replication?.mode ?? null,
     raw: record,
   };
@@ -114,7 +117,7 @@ export function buildResultMarkdown(result) {
     `- Database identity confirmed: ${result.identityConfirmed ? 'YES' : 'NO'}`,
     `- \`wrangler d1 info\`: ${result.infoOk ? 'OK' : 'FAILED'}`,
     result.infoOk
-      ? `  - database_size: ${result.metadata?.fileSize ?? 'unknown'} bytes, num_tables: ${result.metadata?.numTables ?? 'unknown'}, region: ${result.metadata?.runningInRegion ?? 'unknown'}, jurisdiction: ${result.metadata?.jurisdiction ?? 'none set'}, read_replication: ${result.metadata?.readReplicationMode ?? 'unknown'}`
+      ? `  - database_size: ${result.metadata?.fileSize ?? 'unknown'} bytes, num_tables: ${result.metadata?.numTables ?? 'unknown'}, region: ${result.metadata?.runningInRegion ?? 'unknown'}, jurisdiction: ${result.metadata?.jurisdiction === undefined ? 'unknown (field not returned)' : result.metadata.jurisdiction === null ? 'none set' : result.metadata.jurisdiction}, read_replication: ${result.metadata?.readReplicationMode ?? 'unknown'}`
       : `  - reason: ${result.infoFailureReason ?? 'unknown'}`,
     `- Time Travel confirmed via CLI: ${result.timeTravelConfirmed ? 'YES' : 'NO'}`,
     result.timeTravelConfirmed
