@@ -5,7 +5,7 @@ Authority Level: Operational Authority
 Owns: Generating the #2679 workflow transition SLO daily scorecard from repository evidence
 Does Not Own: Auto-merge to main, protected-decision substitution, Cloudflare token work (#2215), or claiming two-week baseline complete
 Canonical Reference: /docs/ops/reports/workflow-transition-slo-2679.md
-Related Issues: #2679, #3212, #2676, #2677
+Related Issues: #2679, #3212, #2676, #2677, #3288
 Last Reviewed: 2026-08-10
 ---
 
@@ -66,8 +66,26 @@ Outputs (gitignored under `ops-artifacts/`):
 Workflow: `.github/workflows/ops-workflow-transition-slo-report.yml`
 
 - `workflow_dispatch` for on-demand runs
-- Daily cron near 5:00 PM America/New_York (21:00 UTC standard / adjust for DST in follow-up if needed)
+- Daily schedule at **5:00 PM America/New_York** year-round via GitHub Actions IANA timezone support (`cron: '0 17 * * *'` + `timezone: 'America/New_York'`; remediates #3288 — no winter 4 PM EST drift)
 - Uploads the artifact; does not commit reports into `docs/`
+
+### Schedule verification (EDT vs EST)
+
+GitHub evaluates the cron in `America/New_York`, so wall-clock 17:00 ET is preserved across DST. Equivalent UTC instants for sample dates (Node `Intl`):
+
+```bash
+node --input-type=module -e '
+const fmt = new Intl.DateTimeFormat("en-US", {
+  timeZone: "America/New_York", timeZoneName: "shortOffset",
+  year: "numeric", month: "2-digit", day: "2-digit",
+  hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false,
+});
+for (const iso of ["2026-07-15T21:00:00.000Z", "2026-01-15T22:00:00.000Z"]) {
+  console.log(iso, "->", fmt.format(new Date(iso)));
+}
+'
+# Expect: July sample shows 17:00 GMT-4 (EDT); January sample shows 17:00 GMT-5 (EST).
+```
 
 ## Safety
 

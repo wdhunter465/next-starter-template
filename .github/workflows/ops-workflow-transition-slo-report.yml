@@ -1,11 +1,11 @@
 name: OPS — Workflow Transition SLO Report
 
 # Phase 2 publisher for #2679. Read-only scorecard generation; no Issue mutation.
+# Schedule remediation #3288: native IANA timezone keeps 5:00 PM ET year-round.
 on:
   schedule:
-    # Approx 5:00 PM America/New_York during standard time (EST = UTC-5).
-    # DST (EDT = UTC-4) shifts wall-clock by one hour; refine in a follow-up if needed.
-    - cron: '0 21 * * *'
+    - cron: '0 17 * * *'
+      timezone: 'America/New_York'
   workflow_dispatch:
     inputs:
       window_end:
