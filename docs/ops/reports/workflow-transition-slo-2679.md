@@ -2,14 +2,14 @@
 Doc Type: Ops Report
 Audience: Human + AI
 Authority Level: Program Contract
-Status: Active — #2679 Phase 1 instrumentation contract
+Status: Active — #2679 Phase 2 collector/publisher landed; baseline observation continues
 Source Issue: #2679
 Owns: Workflow transition SLO definitions, authoritative evidence mapping, measurement rules, breach taxonomy, and daily 5 PM ET report schema for the LGFC continuous implementation chain
 Does Not Own: Automatic merge to main, Production mutation, protected-decision substitution, or weakening of approval boundaries to meet targets
 Canonical Reference: /docs/ops/reports/workflow-transition-slo-2679.md
-Related Issues: #2679, #2676, #2677, #2682, #3241
-Last Reviewed: 2026-08-09
-Executor: Grok
+Related Issues: #2679, #2676, #2677, #2682, #3212, #3241
+Last Reviewed: 2026-08-10
+Executor: Cursor Local
 ---
 
 # Workflow Transition SLO and Daily Performance Report (#2679)
@@ -40,10 +40,10 @@ The SLO measures the **full operating chain**, not runner uptime alone.
 ## Current known truth
 
 - Source defect #2676 and controller project #2677 are closed; continuous-loop controller evidence exists in repository workflows and contracts.
-- Cursor Local Bridge is delivery + mechanical launch control (`docs/reference/ci/cursor-local-bridge-contract.md`). Routine Bridge ACK/STARTED/COMPLETED Issue comments are **prohibited**; shared lifecycle is Issue labels/status + Cursor handoff comments + local Bridge evidence.
-- Wake delivery: `.github/workflows/cursor-local-wake.yml` + `lgfc-repo-runner`.
+- Cursor Local Bridge automatic wake is **retired** as an execution dependency (#3212 Phase 4). Primary wake is GitHub Actions `lgfc-cursor-dispatch` on runner label `lgfc-cursor`. Host Bridge remain available only for residual local evidence; routine Bridge ACK/STARTED/COMPLETED Issue comments remain prohibited.
+- Wake delivery: `.github/workflows/lgfc-cursor-dispatch.yml` (primary) and residual `.github/workflows/cursor-local-wake.yml` paths where still present.
 - PR process metrics exist for closed/merged PRs (`.github/workflows/ops-pr-process-metrics.yml`) but do **not** yet cover the full transition chain in #2679.
-- No repository-native scheduled 5 PM ET SLO publisher existed at contract authoring time.
+- Phase 2 collector/publisher: `scripts/ops/workflow-transition-slo-report.mjs` + `.github/workflows/ops-workflow-transition-slo-report.yml` (dispatch + daily cron). How-to: `docs/how-to/ops/workflow-transition-slo-daily-report.md`.
 
 ## Intended final state
 
@@ -61,8 +61,8 @@ Each transition is a single SLO transaction. Start is the **first authoritative 
 
 | ID | Transition | Target | Start evidence (authoritative) | End evidence (authoritative) | Primary owner class |
 | --- | --- | ---: | --- | --- | --- |
-| T1 | Wake event → runner delivery ack | ≤ 2 min | Authoritative start is exactly one concrete timestamp chosen by trigger class: (a) when wake is label-driven, the GitHub Issues `labeled` event `created_at` that first establishes both `agent:cursor` and `handoff:ready` on the Issue; or (b) when wake is manually forced, the `workflow_dispatch` run `created_at`. Do not use a later-of tie-break between label and dispatch events. Collectors must use the recorded event or run timestamp, not a reconstructed “when labels become jointly true” inference. | End is the `cursor-local-wake.yml` job named **`deliver`** completing with `conclusion=success` (`jobs.deliver` completion time / job `completed_at`). Do not use a generic “cursor-local-wake job” name. | runner/host |
-| T2 | Runner delivery ack → Bridge start or explicit fallback | ≤ 2 min | Wake job success / packet write completion timestamp | Local Bridge claim/accept evidence (`claim.json` / `in-flight.json` acceptedAt) **or** actionable `CURSOR BRIDGE FALLBACK:*` Issue comment created_at | Bridge/auth/capacity |
+| T1 | Wake event → runner delivery ack | ≤ 2 min | Authoritative start is exactly one concrete timestamp chosen by trigger class: (a) when wake is label-driven, the GitHub Issues `labeled` event `created_at` that first establishes both `agent:cursor` and `handoff:ready` on the Issue; or (b) when wake is manually forced, the `workflow_dispatch` run `created_at`. Do not use a later-of tie-break between label and dispatch events. Collectors must use the recorded event or run timestamp, not a reconstructed “when labels become jointly true” inference. | End is the successful completion of the active wake delivery job: prefer `lgfc-cursor-dispatch.yml` delivery/complete job `completed_at` after #3212 Phase 4; residual `cursor-local-wake.yml` job named **`deliver`** `conclusion=success` remains valid for historical samples. Do not invent a generic “any wake job” name. Phase 2 collector may temporarily use workflow-run duration as an explicit proxy and must label that proxy in sample rationale. | runner/host |
+| T2 | Runner delivery ack → Bridge start or explicit fallback | ≤ 2 min | Wake job success / packet or dispatch claim write completion timestamp | Local runner/dispatch accept evidence **or** actionable `CURSOR BRIDGE FALLBACK:*` Issue comment created_at. After #3212, prefer dispatch-runner accept evidence over retired Bridge automatic-wake paths. | Bridge/auth/capacity / dispatch runner |
 | T3 | Cursor handoff / PR-review request → controller acknowledgment | ≤ 5 min | Canonical Cursor `IMPLEMENTATION HANDOFF` comment or equivalent PR-ready marker on source Issue (`created_at`) | Controller review-packet comment or deterministic controller workflow run start that binds that Issue/PR head SHA | controller/dispatcher |
 | T4 | Bounded actionable review finding → Cursor remediation resume | ≤ 10 min | First unresolved actionable review-thread comment on current head (human or trusted bot disposition required) `created_at` | Source-Issue routing labels re-applied for Cursor (`handoff:ready`+`agent:cursor`) **or** wake workflow run created for that Issue after the finding | review defect / controller |
 | T5 | Clean authorized component PR → component-branch integration | ≤ 15 min | Component Integration Eligibility check conclusion `success` at head SHA **and** no unresolved human CHANGES_REQUESTED | PR `merged_at` into `component/**` | CI/checks + controller |
@@ -162,12 +162,12 @@ This contract does **not** enable that workflow by itself.
 
 | Gap | Impacted transitions | Required remediation |
 | --- | --- | --- |
-| No GitHub-visible Bridge start timestamp by design | T2 | Export accept timestamps via artifact/API or controlled ops signal without restoring prohibited routine comments |
-| Wake job success not always correlated to Issue in queryable form | T1 | Ensure wake workflow summary includes issue number + delivery id in job summary/artifact |
+| No GitHub-visible Bridge/dispatch accept timestamp by design | T2 | Export accept timestamps via artifact/API or controlled ops signal without restoring prohibited routine comments |
+| Wake job success not always correlated to Issue in queryable form | T1 | Ensure wake/dispatch workflow summary includes issue number + delivery id in job summary/artifact |
 | Controller acknowledgment not uniformly schema’d | T3 | Standard review-packet marker or workflow output binding Issue+PR+SHA |
 | Successor activation not always timestamp-linked to parent close | T7 | Require activation comment or label event with parent issue reference |
-| No scheduled daily publisher | Report | Follow-up implementation Issue under Operations after this contract merges |
-| PR process metrics cover merge checks only | T5–T6 partial | Extend collector or separate SLO collector script |
+| Scheduled daily publisher | Report | **Phase 2 landed** — `.github/workflows/ops-workflow-transition-slo-report.yml` + collector script; DST cron refinement and durable `docs/ops/reports/daily/` commit path remain optional follow-ups |
+| PR process metrics cover merge checks only | T5–T6 partial | Extend collector correlation (eligibility check → merge → post-merge verify) |
 
 Until gaps close, affected transitions report `measurement_failure` rather than green compliance.
 
@@ -190,28 +190,36 @@ Initial compliance objective for **deterministic non-protected** transitions wit
 | Criterion | Status in this revision |
 | --- | --- |
 | Every SLO transition has authoritative start/end evidence defined | **Met** (catalog §1); live completeness tracked in gap register |
-| Deterministic report generable from repository state | **Partial** — schema defined; collector/publisher is follow-up |
+| Deterministic report generable from repository state | **Partial → Phase 2** — collector emits scorecard; several transitions still `measurement_failure` until gaps close |
 | Holds and protected waits separated from avoidable delay | **Met** in measurement rules |
-| Daily reports identify exact breaches and owners | **Schema met**; first automated publication is follow-up |
+| Daily reports identify exact breaches and owners | **Schema + publisher met**; breach rows depend on measured samples |
 | Missing instrumentation → bounded defect, not false pass | **Met** |
-| Two-week baseline and recommendation produced | **Not yet** — plan only |
+| Two-week baseline and recommendation produced | **Not yet** — observation continues after Phase 2 publisher |
 | SLO does not authorize auto-merge to main or bypass protected decisions | **Met** (explicit non-goal) |
 
 ---
 
-## 9. Follow-up work (not this PR)
+## 9. Follow-up work
 
-1. Implement `scripts/ci/workflow_transition_slo_report.mjs` (or ops path) to compute T1–T8 from GitHub API + optional Bridge export.
-2. Add scheduled workflow (protected review) for 5 PM ET publication.
-3. Close instrumentation gaps in §6 with bounded Issues.
-4. After two weeks, revise targets with observed percentiles.
+### Phase 2 (this increment)
+
+1. `scripts/ops/workflow-transition-slo-report.mjs` + offline self-test harness.
+2. How-to: `docs/how-to/ops/workflow-transition-slo-daily-report.md`.
+3. Scheduled/manual workflow: `.github/workflows/ops-workflow-transition-slo-report.yml`.
+4. Remap T1/T2 evidence notes for `#3212` dispatch cutover.
+
+### Remaining
+
+1. Close instrumentation gaps in §6 with bounded Issues (job-level T1 end, T2 accept export, T3–T4/T7–T8 correlation, T5/T6 eligibility→verify linkage).
+2. After two weeks of published scorecards, revise targets with observed percentiles.
+3. Optional: DST-aware cron and durable commit path under `docs/ops/reports/daily/`.
 
 ---
 
 ## 10. Rollback
 
-Revert this document via reviewed PR. No runtime behavior changes in this increment.
+Revert collector, how-to, workflow, and this document via reviewed PR. Runtime site behavior is unchanged.
 
 ---
 
-*End of #2679 Phase 1 SLO contract.*
+*End of #2679 SLO contract (Phase 2 collector/publisher).*
