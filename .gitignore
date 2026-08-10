@@ -392,6 +392,9 @@ docs/snapshots/*.md
 # Build artifacts (do not commit)
 LGFC-Lite-CF-FixPack-v1.zip
 
+# Local ops triage outputs (#2095) — never commit storm candidate closures evidence dumps
+/ops-artifacts/
+
 ### Archive Files ###
 # ZIP files
 *.zip
