@@ -17,7 +17,9 @@
 
 import { spawnSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { writeFileSync, chmodSync } from 'node:fs';
+import { writeFileSync, chmodSync, mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 
 const accountId = process.env.CLOUDFLARE_ACCOUNT_ID || process.env.CF_ACCOUNT_ID;
 const apiToken = process.env.CLOUDFLARE_API_TOKEN || process.env.CF_API_TOKEN;
