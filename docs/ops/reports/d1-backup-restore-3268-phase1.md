@@ -153,6 +153,18 @@ credential half. It does not answer item 3 (plan tier / retention), which
 remains the one fact standing between this report and Phase 2's real backup
 path, per Bill's explicit sequencing.
 
+**Live run history:** the first live run failed with an uninformative
+generic error; a follow-up fixed the preflight to surface a real,
+safely-redacted diagnostic (never the raw hostname or bucket-name-bearing
+response text, which could otherwise leak `R2_ACCOUNT_ID`/`R2_BUCKET_NAME`
+into this public issue). The second live run returned a specific,
+actionable diagnostic: `ERR_SSL_SSL/TLS_ALERT_HANDSHAKE_FAILURE` against the
+constructed R2 endpoint. A further fix now trims and reports (as a
+non-leaking boolean only) whether any R2 secret value had leading/trailing
+whitespace, since that is a plausible, cheap-to-rule-out cause of a
+malformed hostname/SNI producing exactly this class of TLS failure. Not yet
+re-run against this fix as of this update.
+
 ## Acceptance checklist (this report)
 
 - [x] Every Phase 1 item is individually classified (answered / needs

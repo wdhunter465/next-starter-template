@@ -3,6 +3,7 @@ import {
   buildResultMarkdown,
   extractR2BucketListing,
   extractS3ErrorCode,
+  findBlankAfterTrim,
   parseListObjectsV2Page,
   requireR2Env,
 } from '../scripts/ci/d1_backup_r2_phase1_preflight_3268.mjs';
@@ -52,6 +53,23 @@ describe('parseListObjectsV2Page', () => {
   it('does not throw on empty or malformed input', () => {
     expect(parseListObjectsV2Page('')).toEqual({ keys: [], isTruncated: false });
     expect(parseListObjectsV2Page(undefined)).toEqual({ keys: [], isTruncated: false });
+  });
+});
+
+describe('findBlankAfterTrim', () => {
+  it('catches a whitespace-only value that requireR2Env alone would not', () => {
+    // requireR2Env's presence check treats a whitespace-only string as present (truthy).
+    expect(requireR2Env({ R2_ACCOUNT_ID: '   ', R2_BUCKET_NAME: 'x', R2_ACCESS_KEY_ID: 'x', R2_SECRET_ACCESS_KEY: 'x' })).toEqual([]);
+    // findBlankAfterTrim, run on the already-trimmed values, catches it.
+    expect(findBlankAfterTrim({ R2_ACCOUNT_ID: '   '.trim(), R2_BUCKET_NAME: 'x' })).toEqual(['R2_ACCOUNT_ID']);
+  });
+
+  it('lists every name whose trimmed value is blank', () => {
+    expect(findBlankAfterTrim({ A: '', B: 'x', C: '' })).toEqual(['A', 'C']);
+  });
+
+  it('returns an empty list when every trimmed value is non-blank', () => {
+    expect(findBlankAfterTrim({ A: 'x', B: 'y' })).toEqual([]);
   });
 });
 
@@ -152,5 +170,25 @@ describe('buildResultMarkdown', () => {
     const md = buildResultMarkdown({ checkedAt: '2026-08-10T00:00:00Z', bucketName: 'x', listOk: false });
     expect(md).toContain('Does NOT confirm "public access disabled" directly');
     expect(md).toContain('Does NOT write, upload, or delete any object');
+  });
+
+  it('reports whether an R2 secret had leading/trailing whitespace, without ever printing the value', () => {
+    const withWhitespace = buildResultMarkdown({
+      checkedAt: '2026-08-10T00:00:00Z',
+      bucketName: 'lgfc-d1-backups',
+      listOk: false,
+      listFailureReason: 'fetch failed',
+      hadUntrimmedCredential: true,
+    });
+    expect(withWhitespace).toContain('had leading/trailing whitespace (trimmed before use, values never logged): YES');
+
+    const clean = buildResultMarkdown({
+      checkedAt: '2026-08-10T00:00:00Z',
+      bucketName: 'lgfc-d1-backups',
+      listOk: false,
+      listFailureReason: 'fetch failed',
+      hadUntrimmedCredential: false,
+    });
+    expect(clean).toContain('had leading/trailing whitespace (trimmed before use, values never logged): NO');
   });
 });

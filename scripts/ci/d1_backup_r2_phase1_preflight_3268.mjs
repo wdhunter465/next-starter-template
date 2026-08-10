@@ -56,6 +56,18 @@ export function requireR2Env(env = process.env) {
   );
 }
 
+/**
+ * Given a { NAME: trimmedValue } map, returns the names whose trimmed value is an empty
+ * string -- i.e. present but blank/whitespace-only. Used to fail closed after trimming
+ * (requireR2Env's presence check alone does not catch a whitespace-only value, since a
+ * non-empty string is truthy).
+ */
+export function findBlankAfterTrim(trimmedValuesByName) {
+  return Object.entries(trimmedValuesByName)
+    .filter(([, value]) => value === '')
+    .map(([name]) => name);
+}
+
 function decodeXmlInner(text) {
   return text
     .replace(/&lt;/g, '<')
@@ -141,6 +153,7 @@ export function buildResultMarkdown(result) {
     '',
     `- Checked at: ${result.checkedAt}`,
     `- Bucket: \`${result.bucketName}\``,
+    `- One or more R2 secret values had leading/trailing whitespace (trimmed before use, values never logged): ${result.hadUntrimmedCredential ? 'YES' : 'NO'}`,
     `- S3 \`ListObjectsV2\` read: ${result.listOk ? 'OK' : 'FAILED'}`,
     result.listOk
       ? `  - object count in this page: ${result.objectCount} (single page, max 1000 keys — not a full inventory)${result.isTruncated ? ' — more objects exist beyond this page' : ''}`
@@ -180,11 +193,45 @@ export async function main() {
     return;
   }
 
-  const bucketName = process.env.R2_BUCKET_NAME;
-  const endpoint = `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`;
+  // Defensive trim: leading/trailing whitespace or a stray newline in a copy-pasted secret
+  // value (a common mistake when setting a GitHub Actions secret from a dashboard UI) would
+  // silently produce a malformed hostname/credential and could plausibly explain a TLS
+  // handshake failure at Cloudflare's edge rather than a clean HTTP error. Track whether
+  // trimming actually changed anything (a safe, non-leaking boolean) so that fact -- not the
+  // value -- can be reported if it's ever relevant.
+  const rawAccountId = process.env.R2_ACCOUNT_ID ?? '';
+  const rawBucketName = process.env.R2_BUCKET_NAME ?? '';
+  const rawAccessKeyId = process.env.R2_ACCESS_KEY_ID ?? '';
+  const rawSecretAccessKey = process.env.R2_SECRET_ACCESS_KEY ?? '';
+  const accountId = rawAccountId.trim();
+  const bucketName = rawBucketName.trim();
+  const accessKeyId = rawAccessKeyId.trim();
+  const secretAccessKey = rawSecretAccessKey.trim();
+  const hadUntrimmedCredential =
+    accountId !== rawAccountId ||
+    bucketName !== rawBucketName ||
+    accessKeyId !== rawAccessKeyId ||
+    secretAccessKey !== rawSecretAccessKey;
+
+  // requireR2Env() above only checks presence, so a whitespace-only secret value passes it
+  // (a non-empty string is truthy) and would trim to an empty string here -- silently producing
+  // an invalid endpoint like "https://.r2.cloudflarestorage.com" and a confusing downstream
+  // TLS/DNS failure instead of a clear one. Fail closed now, by name only, never by value.
+  const blankAfterTrim = findBlankAfterTrim({
+    R2_ACCOUNT_ID: accountId,
+    R2_BUCKET_NAME: bucketName,
+    R2_ACCESS_KEY_ID: accessKeyId,
+    R2_SECRET_ACCESS_KEY: secretAccessKey,
+  });
+  if (blankAfterTrim.length > 0) {
+    failClosed(`required R2 credential(s) present but blank/whitespace-only after trimming: ${blankAfterTrim.join(', ')} (values are never logged).`);
+    return;
+  }
+
+  const endpoint = `https://${accountId}.r2.cloudflarestorage.com`;
   const aws = new AwsClient({
-    accessKeyId: process.env.R2_ACCESS_KEY_ID,
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+    accessKeyId,
+    secretAccessKey,
     service: 's3',
     region: 'auto',
   });
@@ -238,6 +285,7 @@ export async function main() {
       wranglerConfirmed: false,
       wranglerFailureReason: 'Not attempted: R2 read-only check failed first.',
       wranglerBucket: null,
+      hadUntrimmedCredential,
     };
     fs.writeFileSync(RESULT_JSON_PATH, `${JSON.stringify(failureResult, null, 2)}\n`);
     fs.writeFileSync(RESULT_MD_PATH, `${buildResultMarkdown(failureResult)}\n`);
@@ -280,6 +328,7 @@ export async function main() {
     wranglerConfirmed,
     wranglerFailureReason: wranglerConfirmed ? null : wranglerFailureReason,
     wranglerBucket: wranglerConfirmed ? wranglerBucket : null,
+    hadUntrimmedCredential,
   };
 
   fs.writeFileSync(RESULT_JSON_PATH, `${JSON.stringify(result, null, 2)}\n`);
