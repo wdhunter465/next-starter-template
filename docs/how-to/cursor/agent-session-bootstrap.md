@@ -69,7 +69,8 @@ Both commands must pass before marking the PR ready for review.
 
 ## Related procedures
 
-- Local GitHub poll-wake loop (optional activity watcher for open agent chats): [`github-poll-wake-loop.md`](./github-poll-wake-loop.md)
+- Cursor Local environment and agent runbook (restart without chat memory): [`local-environment-and-agent-runbook.md`](./local-environment-and-agent-runbook.md)
+- Local GitHub poll-wake loop (retired execution dependency; archive only): [`github-poll-wake-loop.md`](./github-poll-wake-loop.md)
 
 ## Execution
 
