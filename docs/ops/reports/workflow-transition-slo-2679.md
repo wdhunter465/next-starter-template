@@ -7,7 +7,7 @@ Source Issue: #2679
 Owns: Workflow transition SLO definitions, authoritative evidence mapping, measurement rules, breach taxonomy, and daily 5 PM ET report schema for the LGFC continuous implementation chain
 Does Not Own: Automatic merge to main, Production mutation, protected-decision substitution, or weakening of approval boundaries to meet targets
 Canonical Reference: /docs/ops/reports/workflow-transition-slo-2679.md
-Related Issues: #2679, #2676, #2677, #2682, #3212, #3241
+Related Issues: #2679, #2676, #2677, #2682, #3212, #3241, #3288
 Last Reviewed: 2026-08-10
 Executor: Cursor Local
 ---
@@ -152,9 +152,7 @@ Publish window: **17:00–17:30 America/New_York** for the prior 24 hours ending
 
 1. Durable markdown under `docs/ops/reports/daily/` (or ops artifact upload) — preferred for audit.
 2. Optional Issue comment on a standing ops report Issue once automation exists.
-3. Scheduled GitHub Actions job on `ubuntu-latest` at 21:00 UTC (approx 17:00 ET standard) / 22:00 UTC (EDT) — **protected path**; requires separate reviewed workflow PR.
-
-This contract does **not** enable that workflow by itself.
+3. Scheduled GitHub Actions job on `ubuntu-latest` at **17:00 America/New_York** year-round (`cron: '0 17 * * *'` + `timezone: 'America/New_York'` in `.github/workflows/ops-workflow-transition-slo-report.yml`; #3288 remediates the prior UTC-only `21:00` winter drift) — **protected path**; workflow already reviewed via Phase 2 / #3288.
 
 ---
 
@@ -166,7 +164,7 @@ This contract does **not** enable that workflow by itself.
 | Wake job success not always correlated to Issue in queryable form | T1 | Ensure wake/dispatch workflow summary includes issue number + delivery id in job summary/artifact |
 | Controller acknowledgment not uniformly schema’d | T3 | Standard review-packet marker or workflow output binding Issue+PR+SHA |
 | Successor activation not always timestamp-linked to parent close | T7 | Require activation comment or label event with parent issue reference |
-| Scheduled daily publisher | Report | **Phase 2 landed** — `.github/workflows/ops-workflow-transition-slo-report.yml` + collector script; DST cron refinement and durable `docs/ops/reports/daily/` commit path remain optional follow-ups |
+| Scheduled daily publisher | Report | **Phase 2 landed** — `.github/workflows/ops-workflow-transition-slo-report.yml` + collector script; **DST-correct 17:00 America/New_York schedule landed via #3288**; durable `docs/ops/reports/daily/` commit path remains an optional follow-up |
 | PR process metrics cover merge checks only | T5–T6 partial | Extend collector correlation (eligibility check → merge → post-merge verify) |
 
 Until gaps close, affected transitions report `measurement_failure` rather than green compliance.
@@ -194,7 +192,7 @@ Initial compliance objective for **deterministic non-protected** transitions wit
 | Holds and protected waits separated from avoidable delay | **Met** in measurement rules |
 | Daily reports identify exact breaches and owners | **Schema + publisher met**; breach rows depend on measured samples |
 | Missing instrumentation → bounded defect, not false pass | **Met** |
-| Two-week baseline and recommendation produced | **Not yet** — observation continues after Phase 2 publisher |
+| Two-week baseline and recommendation produced | **In progress** — #2679 reopened under `status:remediation` after premature Phase 2 closeout (#3288); observation/baseline continues until two weeks of published scorecards + recommendation |
 | SLO does not authorize auto-merge to main or bypass protected decisions | **Met** (explicit non-goal) |
 
 ---
@@ -211,8 +209,8 @@ Initial compliance objective for **deterministic non-protected** transitions wit
 ### Remaining
 
 1. Close instrumentation gaps in §6 with bounded Issues (job-level T1 end, T2 accept export, T3–T4/T7–T8 correlation, T5/T6 eligibility→verify linkage).
-2. After two weeks of published scorecards, revise targets with observed percentiles.
-3. Optional: DST-aware cron and durable commit path under `docs/ops/reports/daily/`.
+2. After two weeks of published scorecards, revise targets with observed percentiles (baseline **in progress** on #2679; do not close solely on Phase 2 / #3288 schedule remediation).
+3. Optional: durable commit path under `docs/ops/reports/daily/` (DST-correct schedule already landed in #3288).
 
 ---
 
