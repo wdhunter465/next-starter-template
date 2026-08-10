@@ -586,6 +586,6 @@ This policy supersedes lower-level or legacy instructions that:
 - treat advisory collaboration as formal PR approval;
 - use queue-wide `HOLD` or `BLOCKED` for ordinary predecessor or advisory conditions;
 - freeze an entire project or queue because one final step requires a protected stop;
-- delay successor release after verified integration when the successor package is complete.
+- delay successor release after verified integration when the successor package is complete;
 - treat `agent:*` as permanent pre-assignment rather than active claim or explicit reservation (#3240);
 - refuse eligible team-queue work solely because a stale or unconfirmed `agent:*` label is present (#3240).
