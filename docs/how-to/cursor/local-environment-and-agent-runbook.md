@@ -119,7 +119,9 @@ When starting a fresh Cursor chat:
 
 Do not reconstruct task intent from remembered chat.
 
-## Standard execution loop
+## Steps
+
+Standard execution loop for a claimed Issue:
 
 1. Post pre-implementation checkpoint on the Issue (SHA, branch, allowlist, non-goals).
 2. Implement inside the allowlist.
