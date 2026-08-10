@@ -5,7 +5,10 @@ import {
   extractS3ErrorCode,
   findBlankAfterTrim,
   parseListObjectsV2Page,
+  redactSecrets,
   requireR2Env,
+  summarizeDnsResult,
+  validateEndpointStructure,
 } from '../scripts/ci/d1_backup_r2_phase1_preflight_3268.mjs';
 
 // #3268 Phase 1 R2 preflight — covers the pure helper functions only. `main()` invokes the
@@ -70,6 +73,72 @@ describe('findBlankAfterTrim', () => {
 
   it('returns an empty list when every trimmed value is non-blank', () => {
     expect(findBlankAfterTrim({ A: 'x', B: 'y' })).toEqual([]);
+  });
+});
+
+describe('redactSecrets', () => {
+  it('replaces every literal occurrence of a secret value', () => {
+    expect(redactSecrets('error connecting to abc123secret.example.com', ['abc123secret'])).toBe(
+      'error connecting to [REDACTED].example.com',
+    );
+  });
+
+  it('redacts multiple distinct secrets in the same text', () => {
+    const text = 'key=AKIAEXAMPLE123 bucket=my-bucket-name-x host=account123456.example.com';
+    const redacted = redactSecrets(text, ['AKIAEXAMPLE123', 'my-bucket-name-x', 'account123456']);
+    expect(redacted).not.toContain('AKIAEXAMPLE123');
+    expect(redacted).not.toContain('my-bucket-name-x');
+    expect(redacted).not.toContain('account123456');
+  });
+
+  it('skips values shorter than 6 characters to avoid mass-redacting common short substrings', () => {
+    expect(redactSecrets('the cat sat on the mat', ['cat'])).toBe('the cat sat on the mat');
+  });
+
+  it('handles null/undefined text and an empty/missing secrets list without throwing', () => {
+    expect(redactSecrets(null, ['abcdef'])).toBe('');
+    expect(redactSecrets(undefined, ['abcdef'])).toBe('');
+    expect(redactSecrets('hello', undefined)).toBe('hello');
+    expect(redactSecrets('hello', [])).toBe('hello');
+  });
+});
+
+describe('validateEndpointStructure', () => {
+  it('confirms a valid endpoint suffix and a real-shaped 32-char hex account-ID label', () => {
+    const hostname = `${'a'.repeat(32)}.r2.cloudflarestorage.com`;
+    expect(validateEndpointStructure(hostname)).toEqual({ suffixOk: true, labelLength: 32, labelIsHex32: true });
+  });
+
+  it('flags a wrong suffix without ever needing the actual hostname value to do so', () => {
+    expect(validateEndpointStructure('example.com')).toEqual({ suffixOk: false, labelLength: 0, labelIsHex32: false });
+  });
+
+  it('flags a label that is present but not 32-char hex', () => {
+    const hostname = 'not-a-real-account-id.r2.cloudflarestorage.com';
+    const result = validateEndpointStructure(hostname);
+    expect(result.suffixOk).toBe(true);
+    expect(result.labelIsHex32).toBe(false);
+  });
+
+  it('does not throw on non-string/empty input', () => {
+    expect(validateEndpointStructure(null)).toEqual({ suffixOk: false, labelLength: 0, labelIsHex32: false });
+    expect(validateEndpointStructure('')).toEqual({ suffixOk: false, labelLength: 0, labelIsHex32: false });
+  });
+});
+
+describe('summarizeDnsResult', () => {
+  it('summarizes address count and de-duplicated families, never the addresses themselves', () => {
+    const addresses = [
+      { address: '1.2.3.4', family: 4 },
+      { address: '1.2.3.5', family: 4 },
+      { address: '::1', family: 6 },
+    ];
+    expect(summarizeDnsResult(addresses)).toEqual({ addressCount: 3, families: ['IPv4', 'IPv6'] });
+  });
+
+  it('returns a zero/empty summary for no addresses, without throwing', () => {
+    expect(summarizeDnsResult([])).toEqual({ addressCount: 0, families: [] });
+    expect(summarizeDnsResult(null)).toEqual({ addressCount: 0, families: [] });
   });
 });
 
@@ -198,11 +267,11 @@ describe('buildResultMarkdown', () => {
       bucketName: 'lgfc-d1-backups',
       listOk: false,
       listFailureReason: 'fetch failed',
-      tlsDefault: { ok: true, alpnProtocol: 'h2', protocolVersion: 'TLSv1.3', code: null },
-      tlsHttp1Only: { ok: true, alpnProtocol: 'http/1.1', protocolVersion: 'TLSv1.3', code: null },
+      tlsDefault: { ok: true, alpnProtocol: 'h2', protocolVersion: 'TLSv1.3', cipherName: 'TLS_AES_256_GCM_SHA384', code: null },
+      tlsHttp1Only: { ok: true, alpnProtocol: 'http/1.1', protocolVersion: 'TLSv1.3', cipherName: 'TLS_AES_256_GCM_SHA384', code: null },
     });
-    expect(md).toContain('default ALPN (Node/undici default offer): OK (ALPN: h2, protocol: TLSv1.3)');
-    expect(md).toContain('http/1.1-only ALPN: OK (ALPN: http/1.1, protocol: TLSv1.3)');
+    expect(md).toContain('default ALPN (Node/undici default offer): OK (ALPN: h2, protocol: TLSv1.3, cipher: TLS_AES_256_GCM_SHA384)');
+    expect(md).toContain('http/1.1-only ALPN: OK (ALPN: http/1.1, protocol: TLSv1.3, cipher: TLS_AES_256_GCM_SHA384)');
   });
 
   it('renders failed TLS handshake diagnostics with only the short error code', () => {
@@ -222,5 +291,71 @@ describe('buildResultMarkdown', () => {
     const md = buildResultMarkdown({ checkedAt: '2026-08-10T00:00:00Z', bucketName: 'x', listOk: false });
     expect(md).toContain('default ALPN (Node/undici default offer): not attempted');
     expect(md).toContain('http/1.1-only ALPN: not attempted');
+    expect(md).toContain('TLS 1.2 forced: not attempted');
+    expect(md).toContain('TLS 1.3 forced: not attempted');
+    expect(md).toContain('Endpoint structure: not checked');
+    expect(md).toContain('DNS resolution: not attempted');
+    expect(md).toContain('openssl s_client` (independent TLS client): not attempted');
+    expect(md).toContain('curl` (independent HTTP/TLS client): not attempted');
+  });
+
+  it('renders endpoint structure and DNS results', () => {
+    const md = buildResultMarkdown({
+      checkedAt: '2026-08-10T00:00:00Z',
+      bucketName: 'x',
+      listOk: false,
+      endpointStructure: { suffixOk: true, labelLength: 32, labelIsHex32: true },
+      dnsResult: { ok: true, addressCount: 2, families: ['IPv4'] },
+    });
+    expect(md).toContain('suffix matches `.r2.cloudflarestorage.com`: YES; account-ID label length: 32; label is 32-char hex: YES');
+    expect(md).toContain('DNS resolution: OK (2 address(es), families: IPv4)');
+  });
+
+  it('renders a failed DNS result with its code', () => {
+    const md = buildResultMarkdown({
+      checkedAt: '2026-08-10T00:00:00Z',
+      bucketName: 'x',
+      listOk: false,
+      dnsResult: { ok: false, addressCount: 0, families: [], code: 'ENOTFOUND' },
+    });
+    expect(md).toContain('DNS resolution: FAILED (code: ENOTFOUND)');
+  });
+
+  it('renders the openssl s_client verify-return-code result when present', () => {
+    const md = buildResultMarkdown({
+      checkedAt: '2026-08-10T00:00:00Z',
+      bucketName: 'x',
+      listOk: false,
+      opensslResult: { ranOk: true, exitCode: 0, timedOut: false, verifyReturnCode: 0, verifyReturnMessage: 'ok' },
+    });
+    expect(md).toContain('exit 0, verify return code 0 (ok)');
+  });
+
+  it('renders an openssl timeout distinctly from a normal failure', () => {
+    const md = buildResultMarkdown({
+      checkedAt: '2026-08-10T00:00:00Z',
+      bucketName: 'x',
+      listOk: false,
+      opensslResult: { ranOk: true, exitCode: 124, timedOut: true, verifyReturnCode: null, verifyReturnMessage: null },
+    });
+    expect(md).toContain('openssl s_client` (independent TLS client): TIMED OUT (12s)');
+  });
+
+  it('renders the curl HTTP status when curl connected, or the exit code when it did not', () => {
+    const connected = buildResultMarkdown({
+      checkedAt: '2026-08-10T00:00:00Z',
+      bucketName: 'x',
+      listOk: false,
+      curlResult: { ranOk: true, exitCode: 0, httpCode: '403' },
+    });
+    expect(connected).toContain('curl` (independent HTTP/TLS client): exit 0, HTTP 403');
+
+    const failed = buildResultMarkdown({
+      checkedAt: '2026-08-10T00:00:00Z',
+      bucketName: 'x',
+      listOk: false,
+      curlResult: { ranOk: true, exitCode: 35, httpCode: null },
+    });
+    expect(failed).toContain('curl` (independent HTTP/TLS client): exit 35');
   });
 });
