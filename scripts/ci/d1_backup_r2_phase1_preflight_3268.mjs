@@ -71,6 +71,18 @@ function extractXmlTag(block, tag) {
   return m ? decodeXmlInner(m[1].trim()) : '';
 }
 
+/**
+ * Extracts only the short, generic `<Code>` field (e.g. "AccessDenied", "NoSuchBucket",
+ * "SignatureDoesNotMatch") from an S3-compatible XML error response. Deliberately does not
+ * return the full body: S3/R2 error XML commonly echoes back the bucket name (and sometimes
+ * the request path) in fields like `<BucketName>`/`<Resource>`, which would leak the
+ * R2_BUCKET_NAME secret into this preflight's public #3268 issue-comment result.
+ */
+export function extractS3ErrorCode(xml) {
+  const m = String(xml || '').match(/<Code>([\s\S]*?)<\/Code>/);
+  return m ? m[1].trim() : '';
+}
+
 /** Parses a bounded, single-page ListObjectsV2 XML response into { keys, isTruncated }. */
 export function parseListObjectsV2Page(xml) {
   const keys = [];
@@ -189,7 +201,8 @@ export async function main() {
     const res = await aws.fetch(url, { method: 'GET' });
     if (!res.ok) {
       const text = await res.text();
-      listFailureReason = `HTTP ${res.status}: ${text.slice(0, 400)}`;
+      const code = extractS3ErrorCode(text);
+      listFailureReason = code ? `HTTP ${res.status}: ${code}` : `HTTP ${res.status} (no S3 error code in response body)`;
     } else {
       const xml = await res.text();
       const page = parseListObjectsV2Page(xml);
@@ -198,11 +211,37 @@ export async function main() {
       listOk = true;
     }
   } catch (error) {
-    listFailureReason = error.message;
+    // error.cause.code carries a short, generic reason code (ENOTFOUND, ECONNREFUSED,
+    // ETIMEDOUT, a TLS error code, etc.) for Node's uninformative generic "fetch failed"
+    // message. Deliberately NOT surfacing error.cause.message here: for DNS failures in
+    // particular, Node's underlying error message embeds the literal hostname being resolved
+    // (e.g. "getaddrinfo ENOTFOUND <account-id>.r2.cloudflarestorage.com"), which would leak
+    // the R2_ACCOUNT_ID secret into this result -- and this result is posted to the public
+    // #3268 issue comment, where GitHub's log-output secret masking does not apply (masking
+    // only redacts what's echoed to the Actions run log, not content a script posts directly
+    // to the GitHub API via `gh issue comment --body-file`).
+    listFailureReason = [error.message, error.cause?.code].filter(Boolean).join(' — ');
   }
 
   if (!listOk) {
-    failClosed(listFailureReason || 'R2 ListObjectsV2 did not succeed.');
+    // Write the (already leak-checked) failure evidence before failing closed, so the workflow's
+    // "Record result" step posts the real, safe reason instead of falling back to its generic
+    // "did not complete, see logs" message -- matching this preflight's own "surface real
+    // evidence" design rather than hiding a diagnosable failure behind a dead end.
+    const failureResult = {
+      checkedAt: new Date().toISOString(),
+      bucketName,
+      listOk: false,
+      listFailureReason: listFailureReason || 'R2 ListObjectsV2 did not succeed.',
+      objectCount: null,
+      isTruncated: false,
+      wranglerConfirmed: false,
+      wranglerFailureReason: 'Not attempted: R2 read-only check failed first.',
+      wranglerBucket: null,
+    };
+    fs.writeFileSync(RESULT_JSON_PATH, `${JSON.stringify(failureResult, null, 2)}\n`);
+    fs.writeFileSync(RESULT_MD_PATH, `${buildResultMarkdown(failureResult)}\n`);
+    failClosed(failureResult.listFailureReason);
     return;
   }
 
