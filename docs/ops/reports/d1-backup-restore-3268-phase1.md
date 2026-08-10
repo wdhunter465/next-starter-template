@@ -51,7 +51,12 @@ require either a live preflight result or Bill's decision.
   Standard storage, public access disabled) and its least-privilege S3-compatible
   credentials as repo secrets (`R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`,
   `R2_BUCKET_NAME`, `R2_ACCOUNT_ID`). Section 5 below adds the corresponding
-  read-only R2 investigation preflight. Backblaze B2 (`secrets.B2_*`,
+  read-only R2 investigation preflight. **`R2_ACCOUNT_ID` was later found
+  (same day, Section 5's "Live run history") to be an unnecessary duplicate
+  of the already-correct `CLOUDFLARE_ACCOUNT_ID` with an invalid value, and
+  has since been removed** — the current R2-specific secret set is just
+  `R2_ACCESS_KEY_ID`/`R2_SECRET_ACCESS_KEY`/`R2_BUCKET_NAME`; the R2 S3
+  endpoint now reuses `CLOUDFLARE_ACCOUNT_ID`. Backblaze B2 (`secrets.B2_*`,
   `functions/_lib/b2.ts`, `functions/_lib/aws4fetch.ts`) remains a separate,
   already-configured service used for media storage — it is not this new R2
   bucket and does not satisfy #3268's requirement on its own; this update does
@@ -77,8 +82,8 @@ items are named for Bill's decision.
 | 1 | Exact Production D1 database name and UUID | **Answered** (repo evidence) | `wrangler.toml` (above) |
 | 2 | Storage version supports Time Travel | **Needs the new preflight** (best-effort `wrangler d1 time-travel info`) | New workflow, Section 2 |
 | 3 | Account plan and applicable Time Travel retention | **Cannot be answered by any CLI read this script can make** | Requires Bill to check the Cloudflare dashboard directly, or a separate account-level API call out of this preflight's scope |
-| 4 | Inventory existing R2 buckets; dedicated bucket vs. isolated prefix | **Bucket decided and provisioned by Bill** (`lgfc-d1-backups`, Standard storage, public access disabled); **needs the new R2 preflight** to confirm reachability with the provisioned credential | Section 5 |
-| 5 | Inventory existing tokens/bindings/secret patterns/CI deployment authority | **Answered for R2**: least-privilege S3 credential provisioned (`R2_ACCESS_KEY_ID`/`R2_SECRET_ACCESS_KEY`/`R2_BUCKET_NAME`/`R2_ACCOUNT_ID`). `CLOUDFLARE_API_TOKEN`'s own R2 scope is still unverified — the new preflight's best-effort `wrangler r2 bucket list` corroboration will confirm or refute it | Section 5 |
+| 4 | Inventory existing R2 buckets; dedicated bucket vs. isolated prefix | **Answered — confirmed** (`lgfc-d1-backups`, Standard storage, public access disabled; reachability confirmed by a live, successful, read-only `ListObjectsV2` call) | Section 5 |
+| 5 | Inventory existing tokens/bindings/secret patterns/CI deployment authority | **Answered for R2**: least-privilege S3 credential provisioned (`R2_ACCESS_KEY_ID`/`R2_SECRET_ACCESS_KEY`/`R2_BUCKET_NAME`) and confirmed working, keyed off the existing `CLOUDFLARE_ACCOUNT_ID`. `CLOUDFLARE_API_TOKEN`'s own R2 scope is now a **known negative** (confirmed via `wrangler r2 bucket list`'s `Authentication error [code: 10000]`), not merely unverified — informational only, since the S3-level read is this item's primary, required evidence | Section 5 |
 | 6 | Classify D1 data sensitivity (member/auth/moderation/attribution/audit/PII) | **Not attempted this pass** — this is a data-classification/documentation task, not a live read; appropriately Phase 1's next repository-evidence increment, not this preflight | Deferred to next increment |
 | 7 | Confirm no backup object is publicly reachable | **Not yet applicable — no backup object exists yet** (Phase 2 has not run) | Deferred until a real export exists |
 
@@ -238,9 +243,36 @@ own source, `tableFromR2BucketsListResponse`/`formatLabelledValues` in
 labelled pair per bucket) instead of JSON.
 
 **Verified locally (this update):** `npx vitest run tests/d1-backup-r2-phase1-preflight-3268.test.mjs`
-— 41/41 passing. The next live CI run of this workflow will be the first
-attempt against the corrected `CLOUDFLARE_ACCOUNT_ID`-based endpoint and is
-expected to be this preflight's first fully-successful run.
+— 41/41 passing. This was the first live CI dispatch of this workflow
+against the corrected `CLOUDFLARE_ACCOUNT_ID`-based endpoint; its result is
+the sixth live run recorded immediately below, and it was in fact this
+preflight's first fully-successful run.
+
+**Sixth live run (2026-08-10) — first fully-successful R2 preflight,
+confirming the fix:** dispatched against `main` at merge commit `566822f4`
+(PR #3302): https://github.com/wdhunter465/next-starter-template/actions/runs/31432312643,
+result: https://github.com/wdhunter465/next-starter-template/issues/3268#issuecomment-5246051467
+
+- Endpoint structure: account-ID label length **32**, **32-char hex** — confirms
+  the fix correctly builds the endpoint from `CLOUDFLARE_ACCOUNT_ID`.
+- All four TLS handshake diagnostics (default ALPN, http/1.1-only, TLS 1.2
+  forced, TLS 1.3 forced) **succeeded** — the exact failure class from the
+  first five live runs is resolved.
+- **S3 `ListObjectsV2` read: OK**, 0 objects (expected for a freshly
+  provisioned, empty bucket) — the primary, required Phase 1 evidence that
+  the provisioned least-privilege R2 credential can read the bucket.
+- `wrangler r2 bucket list` corroboration remains not confirmed, now for an
+  informational, non-blocking reason: `Authentication error [code: 10000]`
+  — `CLOUDFLARE_API_TOKEN` does not currently have R2 API scope. This
+  matches Section 5's original caveat ("`CLOUDFLARE_API_TOKEN`'s own R2
+  scope is still unverified") and converts it from unverified to a known
+  negative; it does not gate this preflight, since the S3-level read is the
+  primary evidence.
+
+This closes out Phase 1 item 4 and the R2 half of item 5 (see the updated
+table in Section 1). It does not change Gate 1 (HOLD) or Gate 2 (NO-GO):
+item 3 (account plan tier / Time Travel retention) remains the sole
+outstanding Phase 1 blocker.
 
 ## Acceptance checklist (this report)
 
