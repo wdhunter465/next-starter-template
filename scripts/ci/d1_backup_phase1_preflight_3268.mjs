@@ -4,8 +4,9 @@
  *
  * Gathers the facts #3268's own "Phase 1 — Current-state and security preflight"
  * asks for that are answerable from the live database itself: confirmed database
- * identity, `wrangler d1 info` metadata (size/table count/version), and a
- * best-effort Time Travel bookmark read via `wrangler d1 time-travel info`.
+ * identity, `wrangler d1 info` metadata (size/table count/region/jurisdiction/
+ * read-replication mode), and a best-effort Time Travel bookmark read via
+ * `wrangler d1 time-travel info`.
  *
  * This script performs exactly two read-only wrangler invocations
  * (`d1 info`, `d1 time-travel info`) and never runs `d1 execute`, `d1 export`,
@@ -66,20 +67,29 @@ function runWrangler(args) {
 
 /**
  * Extracts the non-sensitive metadata fields #3268 Phase 1 asks about from `wrangler d1 info
- * --json`, plus the full raw record verbatim. The first live run (2026-08-10) confirmed
- * `num_tables` is the real field name but returned `unknown` for a file-size and a version
- * field under every name guessed here — rather than guess again, `raw` is surfaced in the
- * result artifact/issue comment so the next run's actual field names settle this by evidence,
- * not another guess. `raw` is schema/metadata-level only (whatever `d1 info` itself returns;
- * no row content, no credentials), matching this script's existing non-sensitive-data scope.
+ * --json`, plus the full raw record verbatim.
+ *
+ * Confirmed against the real, live response (#3268 issue comment, 2026-08-10 —
+ * https://github.com/wdhunter645/next-starter-template/issues/3268#issuecomment-5244205336):
+ * `{ uuid, name, created_at, num_tables, running_in_region, read_replication: { mode },
+ * jurisdiction, database_size, read_queries_24h, write_queries_24h, rows_read_24h,
+ * rows_written_24h }`. There is no `version`/`storage_version`/similar field in this API's
+ * response at all — Time Travel support is confirmed instead by
+ * `extractTimeTravelBookmark` returning a real bookmark, which is stronger evidence than a
+ * version flag would have been. `runningInRegion` and `jurisdiction` are extracted because
+ * they directly answer part of #3268's own "regional/jurisdictional considerations" decision
+ * item for the R2 backup bucket. `raw` stays included for any future field this extraction
+ * doesn't yet surface — schema/metadata-level only (no row content, no credentials).
  */
 export function extractD1InfoMetadata(parsed) {
   const record = Array.isArray(parsed) ? parsed[0] : parsed?.result ?? parsed;
   if (!record || typeof record !== 'object') return null;
   return {
-    fileSize: record.file_size ?? record.fileSize ?? record.database_size ?? record.size ?? null,
-    numTables: record.num_tables ?? record.numTables ?? null,
-    version: record.version ?? record.storage_version ?? null,
+    fileSize: record.database_size ?? record.file_size ?? record.size ?? null,
+    numTables: record.num_tables ?? null,
+    runningInRegion: record.running_in_region ?? null,
+    jurisdiction: record.jurisdiction ?? null,
+    readReplicationMode: record.read_replication?.mode ?? null,
     raw: record,
   };
 }
@@ -104,7 +114,7 @@ export function buildResultMarkdown(result) {
     `- Database identity confirmed: ${result.identityConfirmed ? 'YES' : 'NO'}`,
     `- \`wrangler d1 info\`: ${result.infoOk ? 'OK' : 'FAILED'}`,
     result.infoOk
-      ? `  - file_size: ${result.metadata?.fileSize ?? 'unknown'}, num_tables: ${result.metadata?.numTables ?? 'unknown'}, version: ${result.metadata?.version ?? 'unknown'}`
+      ? `  - database_size: ${result.metadata?.fileSize ?? 'unknown'} bytes, num_tables: ${result.metadata?.numTables ?? 'unknown'}, region: ${result.metadata?.runningInRegion ?? 'unknown'}, jurisdiction: ${result.metadata?.jurisdiction ?? 'none set'}, read_replication: ${result.metadata?.readReplicationMode ?? 'unknown'}`
       : `  - reason: ${result.infoFailureReason ?? 'unknown'}`,
     `- Time Travel confirmed via CLI: ${result.timeTravelConfirmed ? 'YES' : 'NO'}`,
     result.timeTravelConfirmed
@@ -138,9 +148,9 @@ export function buildResultMarkdown(result) {
     '### Phase 1 items this preflight can and cannot answer',
     '',
     '- Item 1 (exact database name/UUID): answered above (identity confirmed against `wrangler.toml`, no secret value printed).',
-    '- Item 2 (storage version / Time Travel support): answered above, best-effort.',
+    '- Item 2 (storage version / Time Travel support): answered above — `wrangler d1 info` exposes no separate storage-version field; Time Travel support is instead confirmed directly by a real bookmark being returned, which is stronger evidence.',
     '- Item 3 (account plan / Time Travel retention): **not answerable from this preflight** — `wrangler d1 info`/`time-travel info` do not expose plan tier; requires the Cloudflare dashboard or a separate account-level API call this script does not make.',
-    '- Items 4-5 (R2 bucket inventory, non-D1 token inventory): **not answerable — no R2-scoped credential exists in this repository\'s secrets** (confirmed by grep of `.github/workflows/**` for `secrets.R2_*`, no matches). Requires Bill to provision an R2 API token before any R2 investigation can run.',
+    '- Items 4-5 (R2 bucket inventory, non-D1 token inventory): **not answerable — no R2-scoped credential exists in this repository\'s secrets** (confirmed by grep of `.github/workflows/**` for `secrets.R2_*`, no matches). Requires Bill to provision an R2 API token before any R2 investigation can run. `region`/`jurisdiction` above partially inform the bucket\'s own regional/jurisdictional decision once R2 investigation is possible.',
     '- Items 6-7 (data sensitivity classification, no-public-exposure proof): out of this script\'s scope — documentation/design work, not a live read.',
   ];
   return lines.join('\n');

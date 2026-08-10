@@ -34,31 +34,47 @@ describe('requireEnv', () => {
 });
 
 describe('extractD1InfoMetadata', () => {
+  // Field names below match the real, live wrangler d1 info response confirmed on 2026-08-10:
+  // https://github.com/wdhunter645/next-starter-template/issues/3268#issuecomment-5244205336
   it('extracts fields from a wrangler d1 info array-wrapped result, including the raw record', () => {
-    const raw = { file_size: 123, num_tables: 40, version: 'alpha' };
+    const raw = {
+      database_size: 794624,
+      num_tables: 38,
+      running_in_region: 'ENAM',
+      jurisdiction: null,
+      read_replication: { mode: 'disabled' },
+    };
     expect(extractD1InfoMetadata([raw])).toEqual({
-      fileSize: 123,
-      numTables: 40,
-      version: 'alpha',
+      fileSize: 794624,
+      numTables: 38,
+      runningInRegion: 'ENAM',
+      jurisdiction: null,
+      readReplicationMode: 'disabled',
       raw,
     });
   });
 
   it('extracts fields from a { result: {...} } shape', () => {
-    const raw = { file_size: 5, num_tables: 1, version: 'beta' };
+    const raw = { database_size: 5, num_tables: 1, running_in_region: 'WEUR', jurisdiction: 'eu' };
     expect(extractD1InfoMetadata({ result: raw })).toEqual({
       fileSize: 5,
       numTables: 1,
-      version: 'beta',
+      runningInRegion: 'WEUR',
+      jurisdiction: 'eu',
+      readReplicationMode: null,
       raw,
     });
   });
 
-  it('falls back through alternate size/version field name guesses', () => {
-    const raw = { database_size: 999, storage_version: 'v2', num_tables: 2 };
+  it('falls back through alternate file-size field name guesses for API shapes without database_size', () => {
+    const raw = { file_size: 999, num_tables: 2 };
     const metadata = extractD1InfoMetadata(raw);
     expect(metadata.fileSize).toBe(999);
-    expect(metadata.version).toBe('v2');
+  });
+
+  it('does not throw when read_replication is absent', () => {
+    const metadata = extractD1InfoMetadata({ num_tables: 1 });
+    expect(metadata.readReplicationMode).toBeNull();
   });
 
   it('returns null for a non-object/empty payload instead of throwing', () => {
@@ -93,13 +109,13 @@ describe('buildResultMarkdown', () => {
       checkedAt: '2026-08-10T00:00:00Z',
       identityConfirmed: true,
       infoOk: true,
-      metadata: { fileSize: 100, numTables: 40, version: 'alpha' },
+      metadata: { fileSize: 794624, numTables: 38, runningInRegion: 'ENAM', jurisdiction: null, readReplicationMode: 'disabled' },
       timeTravelConfirmed: true,
       timeTravelBookmark: 'abc123',
     });
     expect(md).toContain('Database identity confirmed: YES');
     expect(md).toContain('`wrangler d1 info`: OK');
-    expect(md).toContain('file_size: 100, num_tables: 40, version: alpha');
+    expect(md).toContain('database_size: 794624 bytes, num_tables: 38, region: ENAM, jurisdiction: none set, read_replication: disabled');
     expect(md).toContain('Time Travel confirmed via CLI: YES');
     expect(md).toContain('bookmark present: YES');
   });
@@ -109,7 +125,7 @@ describe('buildResultMarkdown', () => {
       checkedAt: '2026-08-10T00:00:00Z',
       identityConfirmed: true,
       infoOk: true,
-      metadata: { fileSize: 100, numTables: 40, version: 'alpha' },
+      metadata: { fileSize: 794624, numTables: 38, runningInRegion: 'ENAM', jurisdiction: null, readReplicationMode: 'disabled' },
       timeTravelConfirmed: false,
       timeTravelFailureReason: 'wrangler d1 time-travel info did not succeed (exit 1)',
     });
@@ -128,7 +144,7 @@ describe('buildResultMarkdown', () => {
       checkedAt: '2026-08-10T00:00:00Z',
       identityConfirmed: true,
       infoOk: true,
-      metadata: { fileSize: null, numTables: 40, version: null, raw: { num_tables: 40, unexpected_field: 'x' } },
+      metadata: { fileSize: null, numTables: 40, raw: { num_tables: 40, unexpected_field: 'x' } },
       timeTravelConfirmed: true,
       timeTravelBookmark: 'abc123',
       timeTravelRaw: { bookmark: 'abc123', retention_end_time: '2026-09-10T00:00:00Z' },
