@@ -162,8 +162,26 @@ actionable diagnostic: `ERR_SSL_SSL/TLS_ALERT_HANDSHAKE_FAILURE` against the
 constructed R2 endpoint. A further fix now trims and reports (as a
 non-leaking boolean only) whether any R2 secret value had leading/trailing
 whitespace, since that is a plausible, cheap-to-rule-out cause of a
-malformed hostname/SNI producing exactly this class of TLS failure. Not yet
-re-run against this fix as of this update.
+malformed hostname/SNI producing exactly this class of TLS failure. The
+third live run showed `hadUntrimmedCredential: NO` and the identical
+`ERR_SSL_SSL/TLS_ALERT_HANDSHAKE_FAILURE` recurred, ruling out the
+whitespace hypothesis with real evidence.
+
+Bill then verified from the Cloudflare dashboard: R2 is active, the account
+ID matches the known-good `CLOUDFLARE_ACCOUNT_ID`, the endpoint format
+(`<account-id>.r2.cloudflarestorage.com`) is correct, no jurisdiction-
+specific endpoint applies, and `lgfc-d1-backups` exists with public access
+disabled — ruling out account/dashboard misconfiguration. This directed
+troubleshooting to the client/network/TLS execution path. The preflight now
+runs two raw `tls.connect()` handshake attempts (default ALPN, and
+`http/1.1`-only ALPN) with no HTTP request and no credentials, before the
+S3 read — isolating whether the failure is specific to `fetch()`/undici's
+TLS negotiation or a genuine network/certificate-layer problem affecting
+every client. It also now runs `wrangler r2 bucket list` unconditionally
+(a different host, `api.cloudflare.com`, entirely independent of the
+S3-endpoint failure) rather than only when the S3 read already succeeded,
+so a single run yields maximum diagnostic value regardless of outcome. Not
+yet re-run against this version as of this update.
 
 ## Acceptance checklist (this report)
 

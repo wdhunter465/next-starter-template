@@ -191,4 +191,36 @@ describe('buildResultMarkdown', () => {
     });
     expect(clean).toContain('had leading/trailing whitespace (trimmed before use, values never logged): NO');
   });
+
+  it('renders successful TLS handshake diagnostics with ALPN/protocol, never the hostname', () => {
+    const md = buildResultMarkdown({
+      checkedAt: '2026-08-10T00:00:00Z',
+      bucketName: 'lgfc-d1-backups',
+      listOk: false,
+      listFailureReason: 'fetch failed',
+      tlsDefault: { ok: true, alpnProtocol: 'h2', protocolVersion: 'TLSv1.3', code: null },
+      tlsHttp1Only: { ok: true, alpnProtocol: 'http/1.1', protocolVersion: 'TLSv1.3', code: null },
+    });
+    expect(md).toContain('default ALPN (Node/undici default offer): OK (ALPN: h2, protocol: TLSv1.3)');
+    expect(md).toContain('http/1.1-only ALPN: OK (ALPN: http/1.1, protocol: TLSv1.3)');
+  });
+
+  it('renders failed TLS handshake diagnostics with only the short error code', () => {
+    const md = buildResultMarkdown({
+      checkedAt: '2026-08-10T00:00:00Z',
+      bucketName: 'lgfc-d1-backups',
+      listOk: false,
+      listFailureReason: 'fetch failed',
+      tlsDefault: { ok: false, alpnProtocol: null, protocolVersion: null, code: 'ERR_SSL_TLSV1_ALERT_HANDSHAKE_FAILURE' },
+      tlsHttp1Only: { ok: false, alpnProtocol: null, protocolVersion: null, code: 'ERR_SSL_TLSV1_ALERT_HANDSHAKE_FAILURE' },
+    });
+    expect(md).toContain('default ALPN (Node/undici default offer): FAILED (code: ERR_SSL_TLSV1_ALERT_HANDSHAKE_FAILURE)');
+    expect(md).toContain('http/1.1-only ALPN: FAILED (code: ERR_SSL_TLSV1_ALERT_HANDSHAKE_FAILURE)');
+  });
+
+  it('renders "not attempted" for a missing TLS diagnostic entry instead of throwing', () => {
+    const md = buildResultMarkdown({ checkedAt: '2026-08-10T00:00:00Z', bucketName: 'x', listOk: false });
+    expect(md).toContain('default ALPN (Node/undici default offer): not attempted');
+    expect(md).toContain('http/1.1-only ALPN: not attempted');
+  });
 });
