@@ -12,6 +12,18 @@
  * the existing Cloudflare API token to independently corroborate the bucket's
  * account-level metadata (creation date, location) if that token has R2 scope.
  *
+ * The first two live runs (2026-08-10) both failed with an identical
+ * ERR_SSL_SSL/TLS_ALERT_HANDSHAKE_FAILURE against the S3-compatible endpoint, and Bill
+ * confirmed from the Cloudflare dashboard that R2 is active, the account ID matches, the
+ * endpoint format is correct, and the bucket exists with public access disabled -- ruling
+ * out account/dashboard-side misconfiguration. This version adds two raw `tls.connect()`
+ * handshake attempts (no HTTP, no credentials) run unconditionally before the S3 read, to
+ * isolate whether the failure is specific to `fetch()`/undici's TLS negotiation versus a
+ * genuine network/certificate problem that would affect every client. It also runs
+ * `wrangler r2 bucket list` unconditionally (previously skipped whenever the S3 read failed
+ * first), since it hits a different host (`api.cloudflare.com`) and is independent evidence
+ * either way.
+ *
  * This script never runs PutObject, DeleteObject, or any bucket-admin mutation — there
  * is no write code path here. It reuses `AwsClient` from `functions/_lib/aws4fetch.ts`
  * (the same S3 SigV4 signer already used for the existing, already-shipped, read-only
@@ -33,6 +45,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import tls from 'node:tls';
 import { spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { AwsClient } from '../../functions/_lib/aws4fetch.ts';
@@ -121,6 +134,58 @@ function runWrangler(args) {
 }
 
 /**
+ * Attempts a bare TLS handshake (no HTTP request at all) against `hostname:443` with the given
+ * ALPN protocol list, using Node's `tls` module directly -- a different underlying
+ * implementation from the global `fetch()` (undici). A TLS handshake completes or fails
+ * entirely at the connection layer, before any HTTP headers/body/signing are ever sent, so
+ * this isolates whether a `fetch()`-level failure is specific to undici's TLS negotiation
+ * (e.g. its default ALPN offer or TLS version/cipher preferences) versus a genuine
+ * network/DNS/certificate problem that would affect every client equally.
+ *
+ * Resolves `{ ok, alpnProtocol, protocolVersion, code }` -- never throws, and never includes
+ * `hostname` or any error `.message` in the result (Node's TLS/DNS error messages can embed
+ * the literal hostname, which would leak the R2_ACCOUNT_ID secret into this preflight's public
+ * issue-comment result; only the short `.code` is safe to surface).
+ */
+export function attemptTlsHandshake(hostname, alpnProtocols, { timeoutMs = 10000 } = {}) {
+  return new Promise((resolve) => {
+    let settled = false;
+    const settle = (value) => {
+      if (settled) return;
+      settled = true;
+      resolve(value);
+    };
+
+    const options = { host: hostname, port: 443, servername: hostname, timeout: timeoutMs };
+    if (alpnProtocols) options.ALPNProtocols = alpnProtocols;
+
+    let socket;
+    try {
+      socket = tls.connect(options, () => {
+        settle({
+          ok: true,
+          alpnProtocol: socket.alpnProtocol || null,
+          protocolVersion: socket.getProtocol ? socket.getProtocol() : null,
+          code: null,
+        });
+        socket.end();
+      });
+    } catch (error) {
+      settle({ ok: false, alpnProtocol: null, protocolVersion: null, code: error.code ?? 'SYNC_THROW' });
+      return;
+    }
+
+    socket.on('error', (error) => {
+      settle({ ok: false, alpnProtocol: null, protocolVersion: null, code: error.code ?? 'UNKNOWN' });
+    });
+    socket.on('timeout', () => {
+      settle({ ok: false, alpnProtocol: null, protocolVersion: null, code: 'ETIMEDOUT' });
+      socket.destroy();
+    });
+  });
+}
+
+/**
  * Extracts non-sensitive account-level bucket metadata from `wrangler r2 bucket list --json`.
  * Returns null when the response shape can't be interpreted as a bucket list at all (distinct
  * from `{ found: false }`, which means a real, parseable list was checked and the bucket
@@ -146,6 +211,14 @@ export function extractR2BucketListing(parsed, bucketName) {
   };
 }
 
+function formatTlsAttempt(label, attempt) {
+  if (!attempt) return `  - ${label}: not attempted`;
+  if (attempt.ok) {
+    return `  - ${label}: OK (ALPN: ${attempt.alpnProtocol ?? 'none negotiated'}, protocol: ${attempt.protocolVersion ?? 'unknown'})`;
+  }
+  return `  - ${label}: FAILED (code: ${attempt.code ?? 'unknown'})`;
+}
+
 export function buildResultMarkdown(result) {
   const lines = [
     '<!-- d1-backup-r2-phase1-preflight-3268 -->',
@@ -154,6 +227,9 @@ export function buildResultMarkdown(result) {
     `- Checked at: ${result.checkedAt}`,
     `- Bucket: \`${result.bucketName}\``,
     `- One or more R2 secret values had leading/trailing whitespace (trimmed before use, values never logged): ${result.hadUntrimmedCredential ? 'YES' : 'NO'}`,
+    '- Raw TLS handshake diagnostics (no HTTP request, no credentials; isolates fetch()/undici-specific behavior from a genuine network/certificate problem):',
+    formatTlsAttempt('default ALPN (Node/undici default offer)', result.tlsDefault),
+    formatTlsAttempt('http/1.1-only ALPN', result.tlsHttp1Only),
     `- S3 \`ListObjectsV2\` read: ${result.listOk ? 'OK' : 'FAILED'}`,
     result.listOk
       ? `  - object count in this page: ${result.objectCount} (single page, max 1000 keys — not a full inventory)${result.isTruncated ? ' — more objects exist beyond this page' : ''}`
@@ -228,7 +304,45 @@ export async function main() {
     return;
   }
 
-  const endpoint = `https://${accountId}.r2.cloudflarestorage.com`;
+  const hostname = `${accountId}.r2.cloudflarestorage.com`;
+
+  // Raw TLS handshake diagnostics run first and unconditionally: they isolate whether a
+  // fetch()-level failure below is specific to undici's TLS negotiation (a different
+  // implementation from Node's tls module) versus a genuine network/DNS/certificate problem
+  // that would affect every client equally. No HTTP request, no credentials involved --
+  // pure connection-layer evidence.
+  const tlsDefault = await attemptTlsHandshake(hostname, undefined);
+  const tlsHttp1Only = await attemptTlsHandshake(hostname, ['http/1.1']);
+
+  // wrangler r2 bucket list hits a completely different host (api.cloudflare.com, via
+  // Cloudflare's own REST API) than the S3-compatible endpoint below -- run it unconditionally
+  // too (previously gated behind the S3 check's success, silently discarding this evidence on
+  // every failed run) so a single preflight run always yields the maximum diagnostic value.
+  let wranglerConfirmed = false;
+  let wranglerFailureReason = '';
+  let wranglerBucket = null;
+  if (process.env.CLOUDFLARE_API_TOKEN && process.env.CLOUDFLARE_ACCOUNT_ID) {
+    const listing = runWrangler(['r2', 'bucket', 'list', '--json']);
+    if (listing.error || listing.status !== 0) {
+      wranglerFailureReason = `wrangler r2 bucket list did not succeed (exit ${listing.status ?? 'spawn error'}).`;
+    } else {
+      try {
+        const parsed = JSON.parse(listing.stdout);
+        wranglerBucket = extractR2BucketListing(parsed, bucketName);
+        if (wranglerBucket === null) {
+          wranglerFailureReason = 'wrangler r2 bucket list returned a response shape this script could not interpret as a bucket list.';
+        } else {
+          wranglerConfirmed = true;
+        }
+      } catch (error) {
+        wranglerFailureReason = `could not parse "wrangler r2 bucket list --json" output: ${error.message}`;
+      }
+    }
+  } else {
+    wranglerFailureReason = 'CLOUDFLARE_API_TOKEN/CLOUDFLARE_ACCOUNT_ID not set for this run.';
+  }
+
+  const endpoint = `https://${hostname}`;
   const aws = new AwsClient({
     accessKeyId,
     secretAccessKey,
@@ -270,65 +384,19 @@ export async function main() {
     listFailureReason = [error.message, error.cause?.code].filter(Boolean).join(' — ');
   }
 
-  if (!listOk) {
-    // Write the (already leak-checked) failure evidence before failing closed, so the workflow's
-    // "Record result" step posts the real, safe reason instead of falling back to its generic
-    // "did not complete, see logs" message -- matching this preflight's own "surface real
-    // evidence" design rather than hiding a diagnosable failure behind a dead end.
-    const failureResult = {
-      checkedAt: new Date().toISOString(),
-      bucketName,
-      listOk: false,
-      listFailureReason: listFailureReason || 'R2 ListObjectsV2 did not succeed.',
-      objectCount: null,
-      isTruncated: false,
-      wranglerConfirmed: false,
-      wranglerFailureReason: 'Not attempted: R2 read-only check failed first.',
-      wranglerBucket: null,
-      hadUntrimmedCredential,
-    };
-    fs.writeFileSync(RESULT_JSON_PATH, `${JSON.stringify(failureResult, null, 2)}\n`);
-    fs.writeFileSync(RESULT_MD_PATH, `${buildResultMarkdown(failureResult)}\n`);
-    failClosed(failureResult.listFailureReason);
-    return;
-  }
-
-  let wranglerConfirmed = false;
-  let wranglerFailureReason = '';
-  let wranglerBucket = null;
-
-  if (process.env.CLOUDFLARE_API_TOKEN && process.env.CLOUDFLARE_ACCOUNT_ID) {
-    const listing = runWrangler(['r2', 'bucket', 'list', '--json']);
-    if (listing.error || listing.status !== 0) {
-      wranglerFailureReason = `wrangler r2 bucket list did not succeed (exit ${listing.status ?? 'spawn error'}).`;
-    } else {
-      try {
-        const parsed = JSON.parse(listing.stdout);
-        wranglerBucket = extractR2BucketListing(parsed, bucketName);
-        if (wranglerBucket === null) {
-          wranglerFailureReason = 'wrangler r2 bucket list returned a response shape this script could not interpret as a bucket list.';
-        } else {
-          wranglerConfirmed = true;
-        }
-      } catch (error) {
-        wranglerFailureReason = `could not parse "wrangler r2 bucket list --json" output: ${error.message}`;
-      }
-    }
-  } else {
-    wranglerFailureReason = 'CLOUDFLARE_API_TOKEN/CLOUDFLARE_ACCOUNT_ID not set for this run; R2 evidence above stands on its own.';
-  }
-
   const result = {
     checkedAt: new Date().toISOString(),
     bucketName,
+    hadUntrimmedCredential,
+    tlsDefault,
+    tlsHttp1Only,
     listOk,
-    listFailureReason: listOk ? null : listFailureReason,
+    listFailureReason: listOk ? null : listFailureReason || 'R2 ListObjectsV2 did not succeed.',
     objectCount,
     isTruncated,
     wranglerConfirmed,
     wranglerFailureReason: wranglerConfirmed ? null : wranglerFailureReason,
     wranglerBucket: wranglerConfirmed ? wranglerBucket : null,
-    hadUntrimmedCredential,
   };
 
   fs.writeFileSync(RESULT_JSON_PATH, `${JSON.stringify(result, null, 2)}\n`);
@@ -336,6 +404,14 @@ export async function main() {
 
   writeOutput('list_ok', String(listOk));
   writeOutput('object_count', String(objectCount ?? ''));
+
+  if (!listOk) {
+    // The workflow's "Record result" step posts result.md (written above) either way, so the
+    // real, full diagnostic bundle -- including the TLS handshake evidence and wrangler
+    // corroboration -- is always what gets reported, never a generic "see logs" fallback.
+    failClosed(result.listFailureReason);
+    return;
+  }
 
   console.log(`OK: R2 ListObjectsV2 succeeded, ${objectCount} object(s) in this page.`);
 }
