@@ -64,22 +64,35 @@ function runWrangler(args) {
   return spawnSync(cmd[0], [...cmd.slice(1), ...args], { encoding: 'utf8', env: process.env });
 }
 
-/** Extracts the non-sensitive metadata fields #3268 Phase 1 asks about from `wrangler d1 info --json`. */
+/**
+ * Extracts the non-sensitive metadata fields #3268 Phase 1 asks about from `wrangler d1 info
+ * --json`, plus the full raw record verbatim. The first live run (2026-08-10) confirmed
+ * `num_tables` is the real field name but returned `unknown` for a file-size and a version
+ * field under every name guessed here — rather than guess again, `raw` is surfaced in the
+ * result artifact/issue comment so the next run's actual field names settle this by evidence,
+ * not another guess. `raw` is schema/metadata-level only (whatever `d1 info` itself returns;
+ * no row content, no credentials), matching this script's existing non-sensitive-data scope.
+ */
 export function extractD1InfoMetadata(parsed) {
   const record = Array.isArray(parsed) ? parsed[0] : parsed?.result ?? parsed;
   if (!record || typeof record !== 'object') return null;
   return {
-    fileSize: record.file_size ?? record.fileSize ?? null,
+    fileSize: record.file_size ?? record.fileSize ?? record.database_size ?? record.size ?? null,
     numTables: record.num_tables ?? record.numTables ?? null,
-    version: record.version ?? null,
+    version: record.version ?? record.storage_version ?? null,
+    raw: record,
   };
 }
 
-/** Extracts a Time Travel bookmark identifier from `wrangler d1 time-travel info --json`, if present. */
+/**
+ * Extracts a Time Travel bookmark identifier from `wrangler d1 time-travel info --json`, if
+ * present, plus the full raw record verbatim (same "surface raw, don't re-guess" rationale as
+ * extractD1InfoMetadata above).
+ */
 export function extractTimeTravelBookmark(parsed) {
   const record = Array.isArray(parsed) ? parsed[0] : parsed?.result ?? parsed;
-  if (!record || typeof record !== 'object') return '';
-  return String(record.bookmark ?? record.timestamp ?? '');
+  if (!record || typeof record !== 'object') return { bookmark: '', raw: null };
+  return { bookmark: String(record.bookmark ?? record.timestamp ?? ''), raw: record };
 }
 
 export function buildResultMarkdown(result) {
@@ -97,6 +110,30 @@ export function buildResultMarkdown(result) {
     result.timeTravelConfirmed
       ? `  - bookmark present: ${result.timeTravelBookmark ? 'YES' : 'NO (empty bookmark field)'}`
       : `  - reason: ${result.timeTravelFailureReason ?? 'unknown'}`,
+    ...(result.infoOk && result.metadata?.raw
+      ? [
+          '',
+          '<details><summary>Raw `wrangler d1 info` response (schema/metadata only, no row content or credentials)</summary>',
+          '',
+          '```json',
+          JSON.stringify(result.metadata.raw, null, 2),
+          '```',
+          '',
+          '</details>',
+        ]
+      : []),
+    ...(result.timeTravelConfirmed && result.timeTravelRaw
+      ? [
+          '',
+          '<details><summary>Raw `wrangler d1 time-travel info` response</summary>',
+          '',
+          '```json',
+          JSON.stringify(result.timeTravelRaw, null, 2),
+          '```',
+          '',
+          '</details>',
+        ]
+      : []),
     '',
     '### Phase 1 items this preflight can and cannot answer',
     '',
@@ -185,13 +222,16 @@ export async function main() {
   let timeTravelConfirmed = false;
   let timeTravelFailureReason = '';
   let timeTravelBookmark = '';
+  let timeTravelRaw = null;
 
   if (timeTravel.error || timeTravel.status !== 0) {
     timeTravelFailureReason = `wrangler d1 time-travel info did not succeed (exit ${timeTravel.status ?? 'spawn error'}) — CLI may not support this subcommand, or the account/plan may not expose it.`;
   } else {
     try {
       const ttParsed = parseWranglerJson(timeTravel.stdout);
-      timeTravelBookmark = extractTimeTravelBookmark(ttParsed);
+      const extracted = extractTimeTravelBookmark(ttParsed);
+      timeTravelBookmark = extracted.bookmark;
+      timeTravelRaw = extracted.raw;
       timeTravelConfirmed = true;
     } catch (error) {
       timeTravelFailureReason = `could not parse "wrangler d1 time-travel info --json" output: ${error.message}`;
@@ -207,6 +247,7 @@ export async function main() {
     timeTravelConfirmed,
     timeTravelFailureReason: timeTravelConfirmed ? null : timeTravelFailureReason,
     timeTravelBookmark: timeTravelConfirmed ? timeTravelBookmark : null,
+    timeTravelRaw: timeTravelConfirmed ? timeTravelRaw : null,
   };
 
   fs.writeFileSync(RESULT_JSON_PATH, `${JSON.stringify(result, null, 2)}\n`);
