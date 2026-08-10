@@ -141,6 +141,7 @@ export function buildResultMarkdown(result) {
     '',
     `- Checked at: ${result.checkedAt}`,
     `- Bucket: \`${result.bucketName}\``,
+    `- One or more R2 secret values had leading/trailing whitespace (trimmed before use, values never logged): ${result.hadUntrimmedCredential ? 'YES' : 'NO'}`,
     `- S3 \`ListObjectsV2\` read: ${result.listOk ? 'OK' : 'FAILED'}`,
     result.listOk
       ? `  - object count in this page: ${result.objectCount} (single page, max 1000 keys — not a full inventory)${result.isTruncated ? ' — more objects exist beyond this page' : ''}`
@@ -180,11 +181,30 @@ export async function main() {
     return;
   }
 
-  const bucketName = process.env.R2_BUCKET_NAME;
-  const endpoint = `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`;
+  // Defensive trim: leading/trailing whitespace or a stray newline in a copy-pasted secret
+  // value (a common mistake when setting a GitHub Actions secret from a dashboard UI) would
+  // silently produce a malformed hostname/credential and could plausibly explain a TLS
+  // handshake failure at Cloudflare's edge rather than a clean HTTP error. Track whether
+  // trimming actually changed anything (a safe, non-leaking boolean) so that fact -- not the
+  // value -- can be reported if it's ever relevant.
+  const rawAccountId = process.env.R2_ACCOUNT_ID ?? '';
+  const rawBucketName = process.env.R2_BUCKET_NAME ?? '';
+  const rawAccessKeyId = process.env.R2_ACCESS_KEY_ID ?? '';
+  const rawSecretAccessKey = process.env.R2_SECRET_ACCESS_KEY ?? '';
+  const accountId = rawAccountId.trim();
+  const bucketName = rawBucketName.trim();
+  const accessKeyId = rawAccessKeyId.trim();
+  const secretAccessKey = rawSecretAccessKey.trim();
+  const hadUntrimmedCredential =
+    accountId !== rawAccountId ||
+    bucketName !== rawBucketName ||
+    accessKeyId !== rawAccessKeyId ||
+    secretAccessKey !== rawSecretAccessKey;
+
+  const endpoint = `https://${accountId}.r2.cloudflarestorage.com`;
   const aws = new AwsClient({
-    accessKeyId: process.env.R2_ACCESS_KEY_ID,
-    secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+    accessKeyId,
+    secretAccessKey,
     service: 's3',
     region: 'auto',
   });
@@ -238,6 +258,7 @@ export async function main() {
       wranglerConfirmed: false,
       wranglerFailureReason: 'Not attempted: R2 read-only check failed first.',
       wranglerBucket: null,
+      hadUntrimmedCredential,
     };
     fs.writeFileSync(RESULT_JSON_PATH, `${JSON.stringify(failureResult, null, 2)}\n`);
     fs.writeFileSync(RESULT_MD_PATH, `${buildResultMarkdown(failureResult)}\n`);
@@ -280,6 +301,7 @@ export async function main() {
     wranglerConfirmed,
     wranglerFailureReason: wranglerConfirmed ? null : wranglerFailureReason,
     wranglerBucket: wranglerConfirmed ? wranglerBucket : null,
+    hadUntrimmedCredential,
   };
 
   fs.writeFileSync(RESULT_JSON_PATH, `${JSON.stringify(result, null, 2)}\n`);

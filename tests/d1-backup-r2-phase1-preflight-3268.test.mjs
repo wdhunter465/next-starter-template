@@ -153,4 +153,24 @@ describe('buildResultMarkdown', () => {
     expect(md).toContain('Does NOT confirm "public access disabled" directly');
     expect(md).toContain('Does NOT write, upload, or delete any object');
   });
+
+  it('reports whether an R2 secret had leading/trailing whitespace, without ever printing the value', () => {
+    const withWhitespace = buildResultMarkdown({
+      checkedAt: '2026-08-10T00:00:00Z',
+      bucketName: 'lgfc-d1-backups',
+      listOk: false,
+      listFailureReason: 'fetch failed',
+      hadUntrimmedCredential: true,
+    });
+    expect(withWhitespace).toContain('had leading/trailing whitespace (trimmed before use, values never logged): YES');
+
+    const clean = buildResultMarkdown({
+      checkedAt: '2026-08-10T00:00:00Z',
+      bucketName: 'lgfc-d1-backups',
+      listOk: false,
+      listFailureReason: 'fetch failed',
+      hadUntrimmedCredential: false,
+    });
+    expect(clean).toContain('had leading/trailing whitespace (trimmed before use, values never logged): NO');
+  });
 });
