@@ -51,7 +51,12 @@ require either a live preflight result or Bill's decision.
   Standard storage, public access disabled) and its least-privilege S3-compatible
   credentials as repo secrets (`R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`,
   `R2_BUCKET_NAME`, `R2_ACCOUNT_ID`). Section 5 below adds the corresponding
-  read-only R2 investigation preflight. Backblaze B2 (`secrets.B2_*`,
+  read-only R2 investigation preflight. **`R2_ACCOUNT_ID` was later found
+  (same day, Section 5's "Live run history") to be an unnecessary duplicate
+  of the already-correct `CLOUDFLARE_ACCOUNT_ID` with an invalid value, and
+  has since been removed** — the current R2-specific secret set is just
+  `R2_ACCESS_KEY_ID`/`R2_SECRET_ACCESS_KEY`/`R2_BUCKET_NAME`; the R2 S3
+  endpoint now reuses `CLOUDFLARE_ACCOUNT_ID`. Backblaze B2 (`secrets.B2_*`,
   `functions/_lib/b2.ts`, `functions/_lib/aws4fetch.ts`) remains a separate,
   already-configured service used for media storage — it is not this new R2
   bucket and does not satisfy #3268's requirement on its own; this update does
@@ -238,9 +243,10 @@ own source, `tableFromR2BucketsListResponse`/`formatLabelledValues` in
 labelled pair per bucket) instead of JSON.
 
 **Verified locally (this update):** `npx vitest run tests/d1-backup-r2-phase1-preflight-3268.test.mjs`
-— 41/41 passing. The next live CI run of this workflow will be the first
-attempt against the corrected `CLOUDFLARE_ACCOUNT_ID`-based endpoint and is
-expected to be this preflight's first fully-successful run.
+— 41/41 passing. This was the first live CI dispatch of this workflow
+against the corrected `CLOUDFLARE_ACCOUNT_ID`-based endpoint; its result is
+the sixth live run recorded immediately below, and it was in fact this
+preflight's first fully-successful run.
 
 **Sixth live run (2026-08-10) — first fully-successful R2 preflight,
 confirming the fix:** dispatched against `main` at merge commit `566822f4`
