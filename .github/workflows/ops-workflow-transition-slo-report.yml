@@ -41,14 +41,14 @@ jobs:
       - name: Generate SLO report
         env:
           GH_TOKEN: ${{ github.token }}
+          # Defaults applied at expression time so schedule runs never pass empty placeholders.
+          REPORT_HOURS: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.hours || '24' }}
+          REPORT_WINDOW_END: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.window_end || '' }}
         run: |
           set -euo pipefail
-          HOURS='${{ github.event.inputs.hours }}'
-          HOURS="${HOURS:-24}"
-          WINDOW_END='${{ github.event.inputs.window_end }}'
-          ARGS=(--mode=report --repo=wdhunter465/next-starter-template --hours="${HOURS}")
-          if [ -n "${WINDOW_END}" ]; then
-            ARGS+=(--window-end="${WINDOW_END}")
+          ARGS=(--mode=report --repo=wdhunter465/next-starter-template --hours="${REPORT_HOURS}")
+          if [ -n "${REPORT_WINDOW_END}" ]; then
+            ARGS+=(--window-end="${REPORT_WINDOW_END}")
           fi
           node scripts/ops/workflow-transition-slo-report.mjs "${ARGS[@]}"
 

@@ -148,33 +148,53 @@ function emptySample(transitionId, reason) {
 
 function parseWorkflowRuns(repo, workflowFile, createdFrom, createdTo) {
   // Prefer REST via `gh api` to avoid GraphQL secondary limits on `gh run list`.
+  // Paginate until created_at is older than the window start (or pages exhaust).
   const [owner, name] = repo.split('/');
-  const raw = runGh([
-    'api',
-    `repos/${owner}/${name}/actions/workflows/${workflowFile}/runs?per_page=50`,
-    '--jq',
-    '.workflow_runs',
-  ]);
-  /** @type {Array<any>} */
-  const runs = JSON.parse(raw || '[]');
   const fromMs = createdFrom.getTime();
   const toMs = createdTo.getTime();
-  return runs
-    .filter((run) => {
+  /** @type {Array<any>} */
+  const matched = [];
+  let page = 1;
+  const maxPages = 20;
+
+  while (page <= maxPages) {
+    const raw = runGh([
+      'api',
+      `repos/${owner}/${name}/actions/workflows/${workflowFile}/runs?per_page=100&page=${page}`,
+      '--jq',
+      '.workflow_runs',
+    ]);
+    /** @type {Array<any>} */
+    const runs = JSON.parse(raw || '[]');
+    if (!runs.length) break;
+
+    let sawOlderThanWindow = false;
+    for (const run of runs) {
       const t = Date.parse(run.created_at || '');
-      return !Number.isNaN(t) && t >= fromMs && t <= toMs;
-    })
-    .map((run) => ({
-      databaseId: run.id,
-      createdAt: run.created_at,
-      updatedAt: run.updated_at,
-      status: run.status,
-      conclusion: run.conclusion,
-      event: run.event,
-      displayTitle: run.display_title,
-      url: run.html_url,
-      headBranch: run.head_branch,
-    }));
+      if (Number.isNaN(t)) continue;
+      if (t < fromMs) {
+        sawOlderThanWindow = true;
+        continue;
+      }
+      if (t > toMs) continue;
+      matched.push({
+        databaseId: run.id,
+        createdAt: run.created_at,
+        updatedAt: run.updated_at,
+        status: run.status,
+        conclusion: run.conclusion,
+        event: run.event,
+        displayTitle: run.display_title,
+        url: run.html_url,
+        headBranch: run.head_branch,
+      });
+    }
+
+    if (sawOlderThanWindow || runs.length < 100) break;
+    page += 1;
+  }
+
+  return matched;
 }
 
 function collectT1(repo, window) {
@@ -235,35 +255,53 @@ function collectT1(repo, window) {
 
 function collectT5T6(repo, window) {
   const [owner, name] = repo.split('/');
+  const fromMs = window.start.getTime();
+  const toMs = window.end.getTime();
   /** @type {Array<any>} */
-  let prs = [];
+  const prs = [];
   try {
-    const raw = runGh([
-      'api',
-      `repos/${owner}/${name}/pulls?state=closed&per_page=50&sort=updated&direction=desc`,
-      '--jq',
-      '[.[] | select(.merged_at != null) | {number,title,mergedAt:.merged_at,baseRefName:.base.ref,url:.html_url}]',
-    ]);
-    prs = JSON.parse(raw || '[]');
+    let page = 1;
+    const maxPages = 20;
+    while (page <= maxPages) {
+      const raw = runGh([
+        'api',
+        `repos/${owner}/${name}/pulls?state=closed&per_page=100&page=${page}&sort=updated&direction=desc`,
+        '--jq',
+        '[.[] | {number,title,mergedAt:.merged_at,updatedAt:.updated_at,baseRefName:.base.ref,url:.html_url}]',
+      ]);
+      /** @type {Array<any>} */
+      const batch = JSON.parse(raw || '[]');
+      if (!batch.length) break;
+
+      let allUpdatedBeforeWindow = true;
+      for (const pr of batch) {
+        const updatedMs = Date.parse(pr.updatedAt || '');
+        if (!Number.isNaN(updatedMs) && updatedMs >= fromMs) {
+          allUpdatedBeforeWindow = false;
+        }
+        if (!pr.mergedAt) continue;
+        const mergedMs = Date.parse(pr.mergedAt);
+        if (Number.isNaN(mergedMs)) continue;
+        if (mergedMs < fromMs || mergedMs > toMs) continue;
+        prs.push(pr);
+      }
+
+      if (allUpdatedBeforeWindow || batch.length < 100) break;
+      page += 1;
+    }
   } catch (error) {
     return {
       t5: [emptySample('T5', `unable to list merged PRs: ${error.message || error}`)],
       t6: [emptySample('T6', `unable to list merged PRs: ${error.message || error}`)],
     };
   }
-  const fromMs = window.start.getTime();
-  const toMs = window.end.getTime();
-  const inWindow = prs.filter((pr) => {
-    const t = Date.parse(pr.mergedAt || '');
-    return !Number.isNaN(t) && t >= fromMs && t <= toMs;
-  });
 
   /** @type {Array<any>} */
   const t5 = [];
   /** @type {Array<any>} */
   const t6 = [];
 
-  for (const pr of inWindow) {
+  for (const pr of prs) {
     const base = String(pr.baseRefName || '');
     if (base.startsWith('component/')) {
       t5.push({
@@ -301,7 +339,21 @@ function collectUninstrumented(transitionId, detail) {
   return [emptySample(transitionId, detail)];
 }
 
-export function buildReportModel({ window, generator, samplesByTransition, dataComplete }) {
+export function deriveDataCompleteness(samplesByTransition) {
+  let measured = 0;
+  let failures = 0;
+  for (const samples of Object.values(samplesByTransition || {})) {
+    for (const sample of samples || []) {
+      if (sample.status === 'measured') measured += 1;
+      if (sample.status === 'measurement_failure') failures += 1;
+    }
+  }
+  if (failures === 0 && measured > 0) return 'complete';
+  if (measured > 0) return 'partial';
+  return 'incomplete';
+}
+
+export function buildReportModel({ window, generator, samplesByTransition }) {
   const scorecard = {};
   for (const t of TRANSITIONS) {
     const samples = samplesByTransition[t.id] || [];
@@ -345,7 +397,7 @@ export function buildReportModel({ window, generator, samplesByTransition, dataC
       window_start: window.start.toISOString(),
       window_end: window.end.toISOString(),
       generator,
-      data_completeness: dataComplete ? 'partial' : 'incomplete',
+      data_completeness: deriveDataCompleteness(samplesByTransition),
       source_issue: 2679,
       notes:
         'Phase 2 collector: T1 uses workflow-run duration proxy; T2–T4/T7–T8 and full T5/T6 correlation remain measurement_failure until instrumentation gaps close (#3212 dispatch cutover noted).',
@@ -461,7 +513,6 @@ function runSelfTest() {
   const model = buildReportModel({
     window,
     generator: 'self-test',
-    dataComplete: false,
     samplesByTransition: {
       T1: [{ status: 'measured', durationSeconds: 30, transitionId: 'T1', reason: 'ok', refs: [] }],
       T2: [emptySample('T2', 'gap')],
@@ -473,6 +524,9 @@ function runSelfTest() {
       T8: [emptySample('T8', 'gap')],
     },
   });
+  if (model.header.data_completeness !== 'partial') {
+    fail(`self-test expected partial completeness, got ${model.header.data_completeness}`);
+  }
   const md = renderMarkdown(model);
   if (!md.includes('## SLO scorecard') || !md.includes('measurement_failure')) {
     fail('self-test markdown missing required sections');
@@ -523,7 +577,6 @@ function runReport() {
     window,
     generator,
     samplesByTransition,
-    dataComplete: false,
   });
 
   mkdirSync(OUTPUT_DIR, { recursive: true });
