@@ -414,10 +414,18 @@ export function evaluateComponentIntegration({
 
   const eligible = blockedReasons.length === 0;
 
+  // PRs that are not Model B children targeting component/** are out of scope for
+  // this check. Callers must publish neutral (not failure) so Model A / main PRs
+  // do not show a false-red Component Integration Eligibility gate (#3294).
+  const notApplicable = blockedReasons.some((reason) =>
+    reason.code === 'non_component_base' || reason.code === 'invalid_delivery_model',
+  );
+
   return {
     eligible,
     blockedReasons,
     requiresChatReview,
+    notApplicable,
     componentState: componentState || 'green',
     deliveryModel,
     gateProfile,
@@ -438,6 +446,7 @@ export function renderIntegrationReport(result) {
     `- Protected change: ${result.protectedChange ? 'yes' : 'no'}`,
     `- Component state: ${result.componentState}`,
     `- Requires Chat review: ${result.requiresChatReview ? 'yes' : 'no'}`,
+    `- Not applicable (non-component / non-B-child): ${result.notApplicable ? 'yes' : 'no'}`,
   ];
 
   if (result.blockedReasons.length) {
@@ -503,6 +512,7 @@ export function runCli(env = process.env) {
   if (env.GITHUB_OUTPUT) {
     fs.appendFileSync(env.GITHUB_OUTPUT, `eligible=${result.eligible}\n`);
     fs.appendFileSync(env.GITHUB_OUTPUT, `requires_chat_review=${result.requiresChatReview}\n`);
+    fs.appendFileSync(env.GITHUB_OUTPUT, `not_applicable=${result.notApplicable === true}\n`);
     fs.appendFileSync(env.GITHUB_OUTPUT, `blocked_reason_count=${result.blockedReasons.length}\n`);
     fs.appendFileSync(env.GITHUB_OUTPUT, `component_state=${result.componentState}\n`);
   }
