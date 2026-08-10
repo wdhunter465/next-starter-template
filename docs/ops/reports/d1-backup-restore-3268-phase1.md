@@ -198,6 +198,50 @@ public result, so richer diagnostic output (openssl's connection banner,
 wrangler's actual stderr) can be safely captured instead of omitted
 out of caution. Not yet re-run against this version as of this update.
 
+**Root cause found (fifth live run, 2026-08-10):** the enriched preflight
+added `validateEndpointStructure()` — a safe, non-leaking structural check
+reporting only the endpoint suffix match and the account-ID label's length
+and hex-validity, never the label value itself. The fifth live run reported
+the account-ID label was **53 characters and not 32-character hex** — not a
+valid Cloudflare account ID. This fully explains every prior TLS handshake
+failure across all four independent clients (`fetch()`/undici, Node `tls`,
+`openssl s_client`, `curl`): Cloudflare's edge has no valid backend for an
+invalid account-ID hostname label, so the connection fails identically at
+the TLS layer for any client, before any client-specific behavior (ALPN
+offer, TLS version, cipher preferences) ever matters. This also fully
+explains why Bill's dashboard check found nothing wrong: the dashboard
+review was of the *correct* `CLOUDFLARE_ACCOUNT_ID` and the bucket, not of
+the actual (bad) value stored in the separate `R2_ACCOUNT_ID` secret this
+preflight was reading from.
+
+Bill confirmed the root cause directly: `R2_ACCOUNT_ID` was an unnecessary
+duplicate secret with a bad value, duplicating the already-correct,
+already-working `CLOUDFLARE_ACCOUNT_ID` (established by #2913's and this
+project's own D1 preflight). Bill instructed this preflight's R2
+workflow/script to use `CLOUDFLARE_ACCOUNT_ID` for the R2 S3 endpoint
+instead of a second account-ID secret, and stated he would delete
+`R2_ACCOUNT_ID` from GitHub Secrets after this fix merges and is verified.
+
+**Fix applied (this update):** `scripts/ci/d1_backup_r2_phase1_preflight_3268.mjs`
+now reads `CLOUDFLARE_ACCOUNT_ID` (already aliased from `CF_ACCOUNT_ID`) to
+build the R2 S3 endpoint hostname instead of `R2_ACCOUNT_ID`; `requireR2Env()`
+and the post-trim blank check were updated to match. The three R2-specific
+secrets (`R2_ACCESS_KEY_ID`, `R2_SECRET_ACCESS_KEY`, `R2_BUCKET_NAME`) are
+unchanged. The workflow no longer passes `R2_ACCOUNT_ID` as an env var. A
+second, unrelated bug found in the same live run — `wrangler r2 bucket list
+--json` is not a supported flag on this repo's installed wrangler (4.60.0;
+confirmed via `wrangler r2 bucket list --help`, which lists only
+`-J/--jurisdiction`) — was fixed in the same change: the corroboration step
+now parses the command's real plain-text output (confirmed from wrangler's
+own source, `tableFromR2BucketsListResponse`/`formatLabelledValues` in
+`node_modules/wrangler/wrangler-dist/cli.js`: one `name:`/`creation_date:`
+labelled pair per bucket) instead of JSON.
+
+**Verified locally (this update):** `npx vitest run tests/d1-backup-r2-phase1-preflight-3268.test.mjs`
+— 41/41 passing. The next live CI run of this workflow will be the first
+attempt against the corrected `CLOUDFLARE_ACCOUNT_ID`-based endpoint and is
+expected to be this preflight's first fully-successful run.
+
 ## Acceptance checklist (this report)
 
 - [x] Every Phase 1 item is individually classified (answered / needs

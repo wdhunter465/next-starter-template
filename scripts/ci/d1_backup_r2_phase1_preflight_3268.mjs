@@ -24,6 +24,16 @@
  * first), since it hits a different host (`api.cloudflare.com`) and is independent evidence
  * either way.
  *
+ * A fifth live run (2026-08-10) added the `validateEndpointStructure()` check below, which
+ * revealed the actual root cause: the `R2_ACCOUNT_ID` secret held a 53-character value that was
+ * not a valid 32-character hex Cloudflare account ID — a stray duplicate secret, distinct from
+ * the already-correct `CLOUDFLARE_ACCOUNT_ID` already used elsewhere in this repo for D1 access.
+ * That explained every prior TLS handshake failure identically across four independent clients
+ * (fetch/undici, Node `tls`, openssl, curl): Cloudflare's edge has no valid backend for an
+ * invalid account-ID hostname label, so the connection fails at the TLS layer before any
+ * client-specific behavior matters. This version removes `R2_ACCOUNT_ID` entirely and uses the
+ * existing `CLOUDFLARE_ACCOUNT_ID` secret to build the R2 S3 endpoint.
+ *
  * This script never runs PutObject, DeleteObject, or any bucket-admin mutation — there
  * is no write code path here. It reuses `AwsClient` from `functions/_lib/aws4fetch.ts`
  * (the same S3 SigV4 signer already used for the existing, already-shipped, read-only
@@ -36,11 +46,13 @@
  * used by scripts/ci/**.
  *
  * Required env (GitHub Actions repository secrets; values are never logged):
- *   R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME, R2_ACCOUNT_ID
- *   Optionally CLOUDFLARE_API_TOKEN/CLOUDFLARE_ACCOUNT_ID (aliases CF_API_TOKEN/
- *   CF_ACCOUNT_ID accepted) for the best-effort `wrangler r2 bucket list` corroboration —
- *   its absence or failure does not fail this preflight closed, since the S3-level read
- *   is the primary, required evidence.
+ *   R2_ACCESS_KEY_ID, R2_SECRET_ACCESS_KEY, R2_BUCKET_NAME, CLOUDFLARE_ACCOUNT_ID
+ *   (alias CF_ACCOUNT_ID accepted) — the R2 S3-compatible endpoint is
+ *   `https://<CLOUDFLARE_ACCOUNT_ID>.r2.cloudflarestorage.com`; R2 does not use a separate
+ *   account-scoped ID from the one already used for D1 access.
+ *   Optionally CLOUDFLARE_API_TOKEN (alias CF_API_TOKEN accepted) for the best-effort
+ *   `wrangler r2 bucket list` corroboration — its absence or failure does not fail this
+ *   preflight closed, since the S3-level read is the primary, required evidence.
  */
 
 import fs from 'node:fs';
@@ -65,7 +77,7 @@ function aliasEnv(primary, aliases) {
 }
 
 export function requireR2Env(env = process.env) {
-  return ['R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY', 'R2_BUCKET_NAME', 'R2_ACCOUNT_ID'].filter(
+  return ['R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY', 'R2_BUCKET_NAME', 'CLOUDFLARE_ACCOUNT_ID'].filter(
     (name) => !env[name],
   );
 }
@@ -197,8 +209,8 @@ function runWrangler(args) {
  *
  * Resolves `{ ok, alpnProtocol, protocolVersion, cipherName, code }` -- never throws, and never
  * includes `hostname` or any error `.message` in the result (Node's TLS/DNS error messages can
- * embed the literal hostname, which would leak the R2_ACCOUNT_ID secret into this preflight's
- * public issue-comment result; only the short `.code` is safe to surface).
+ * embed the literal hostname, which would leak the CLOUDFLARE_ACCOUNT_ID secret into this
+ * preflight's public issue-comment result; only the short `.code` is safe to surface).
  */
 export function attemptTlsHandshake(hostname, tlsOptions, { timeoutMs = 10000 } = {}) {
   return new Promise((resolve) => {
@@ -302,29 +314,35 @@ export function runCurlDiagnostic(hostname) {
 }
 
 /**
- * Extracts non-sensitive account-level bucket metadata from `wrangler r2 bucket list --json`.
- * Returns null when the response shape can't be interpreted as a bucket list at all (distinct
- * from `{ found: false }`, which means a real, parseable list was checked and the bucket
- * genuinely isn't in it — conflating the two would misreport "could not confirm" as "confirmed
- * absent").
+ * Extracts non-sensitive account-level bucket metadata from `wrangler r2 bucket list`'s
+ * plain-text output. This installed wrangler version (4.60.0) has no `--json` flag for this
+ * subcommand (confirmed via `wrangler r2 bucket list --help`, which lists only
+ * `-J/--jurisdiction` under OPTIONS), and its own source
+ * (`tableFromR2BucketsListResponse`/`formatLabelledValues` in
+ * node_modules/wrangler/wrangler-dist/cli.js) confirms the real output shape: one
+ * `name:`/`creation_date:` labelled pair per bucket, blocks separated by a blank line — this
+ * command emits no location or storage-class fields at all. A leading "Listing buckets..." line
+ * and ANSI color codes (from wrangler's own colored output) are tolerated.
+ *
+ * Returns null when the output can't be interpreted as a bucket list at all (distinct from
+ * `{ found: false }`, which means a real, parseable list was checked and the bucket genuinely
+ * isn't in it — conflating the two would misreport "could not confirm" as "confirmed absent").
  */
-export function extractR2BucketListing(parsed, bucketName) {
-  const records = Array.isArray(parsed)
-    ? parsed
-    : Array.isArray(parsed?.result)
-      ? parsed.result
-      : Array.isArray(parsed?.buckets)
-        ? parsed.buckets
-        : null;
-  if (!records) return null;
-  const match = records.find((b) => b && typeof b === 'object' && b.name === bucketName);
-  if (!match) return { found: false };
-  return {
-    found: true,
-    creationDate: match.creation_date ?? match.creationDate ?? null,
-    location: match.location ?? null,
-    storageClass: match.storage_class ?? match.storageClass ?? null,
-  };
+export function extractR2BucketListingFromText(text, bucketName) {
+  const raw = String(text ?? '').replace(/\x1B\[[0-9;]*m/g, '');
+  if (!raw.trim() || !bucketName) return null;
+  const blocks = raw.split(/\n\s*\n/);
+  for (const block of blocks) {
+    const fields = {};
+    for (const line of block.split('\n')) {
+      const m = line.match(/^\s*([A-Za-z_]+):\s*(.*)$/);
+      if (m) fields[m[1]] = m[2].trim();
+    }
+    if (fields.name === bucketName) {
+      return { found: true, creationDate: fields.creation_date ?? null, location: null, storageClass: null };
+    }
+  }
+  return { found: false };
 }
 
 function formatTlsAttempt(label, attempt) {
@@ -387,7 +405,7 @@ export function buildResultMarkdown(result) {
       : `  - reason: ${result.listFailureReason ?? 'unknown'}`,
     `- \`wrangler r2 bucket list\` corroboration: ${result.wranglerConfirmed ? 'OK' : 'not confirmed'}`,
     result.wranglerConfirmed
-      ? `  - found in account bucket list: ${result.wranglerBucket?.found ? 'YES' : 'NO'}${result.wranglerBucket?.found ? `, creation_date: ${result.wranglerBucket.creationDate ?? 'unknown'}, location: ${result.wranglerBucket.location ?? 'unknown'}, storage_class: ${result.wranglerBucket.storageClass ?? 'unknown'}` : ''}`
+      ? `  - found in account bucket list: ${result.wranglerBucket?.found ? 'YES' : 'NO'}${result.wranglerBucket?.found ? `, creation_date: ${result.wranglerBucket.creationDate ?? 'unknown'}` : ''}`
       : `  - reason: ${result.wranglerFailureReason ?? 'CLOUDFLARE_API_TOKEN may lack R2 scope, or the CLI does not support this subcommand'}`,
     '',
     '### What this preflight confirms and does not confirm',
@@ -426,7 +444,7 @@ export async function main() {
   // handshake failure at Cloudflare's edge rather than a clean HTTP error. Track whether
   // trimming actually changed anything (a safe, non-leaking boolean) so that fact -- not the
   // value -- can be reported if it's ever relevant.
-  const rawAccountId = process.env.R2_ACCOUNT_ID ?? '';
+  const rawAccountId = process.env.CLOUDFLARE_ACCOUNT_ID ?? '';
   const rawBucketName = process.env.R2_BUCKET_NAME ?? '';
   const rawAccessKeyId = process.env.R2_ACCESS_KEY_ID ?? '';
   const rawSecretAccessKey = process.env.R2_SECRET_ACCESS_KEY ?? '';
@@ -445,7 +463,7 @@ export async function main() {
   // an invalid endpoint like "https://.r2.cloudflarestorage.com" and a confusing downstream
   // TLS/DNS failure instead of a clear one. Fail closed now, by name only, never by value.
   const blankAfterTrim = findBlankAfterTrim({
-    R2_ACCOUNT_ID: accountId,
+    CLOUDFLARE_ACCOUNT_ID: accountId,
     R2_BUCKET_NAME: bucketName,
     R2_ACCESS_KEY_ID: accessKeyId,
     R2_SECRET_ACCESS_KEY: secretAccessKey,
@@ -484,11 +502,17 @@ export async function main() {
   // Cloudflare's own REST API) than the S3-compatible endpoint below -- run it unconditionally
   // too (previously gated behind the S3 check's success, silently discarding this evidence on
   // every failed run) so a single preflight run always yields the maximum diagnostic value.
+  // CLOUDFLARE_ACCOUNT_ID is guaranteed present at this point (required above); only
+  // CLOUDFLARE_API_TOKEN is genuinely optional for this best-effort corroboration.
   let wranglerConfirmed = false;
   let wranglerFailureReason = '';
   let wranglerBucket = null;
-  if (process.env.CLOUDFLARE_API_TOKEN && process.env.CLOUDFLARE_ACCOUNT_ID) {
-    const listing = runWrangler(['r2', 'bucket', 'list', '--json']);
+  if (process.env.CLOUDFLARE_API_TOKEN) {
+    // This installed wrangler version (4.60.0) has no `--json` flag for `r2 bucket list`
+    // (confirmed via `wrangler r2 bucket list --help`, which lists only `-J/--jurisdiction`
+    // under OPTIONS), so this parses the plain-text output instead -- see
+    // extractR2BucketListingFromText for the confirmed real output shape.
+    const listing = runWrangler(['r2', 'bucket', 'list']);
     if (listing.error || listing.status !== 0) {
       // Capture wrangler's actual stderr (redacted) instead of just the exit code, so a
       // credential/API-token-scope problem is distinguishable from a network/TLS problem on
@@ -496,20 +520,15 @@ export async function main() {
       const stderrSnippet = redact((listing.stderr || '').trim()).slice(0, 500);
       wranglerFailureReason = `wrangler r2 bucket list did not succeed (exit ${listing.status ?? 'spawn error'})${stderrSnippet ? `: ${stderrSnippet}` : '.'}`;
     } else {
-      try {
-        const parsed = JSON.parse(listing.stdout);
-        wranglerBucket = extractR2BucketListing(parsed, bucketName);
-        if (wranglerBucket === null) {
-          wranglerFailureReason = 'wrangler r2 bucket list returned a response shape this script could not interpret as a bucket list.';
-        } else {
-          wranglerConfirmed = true;
-        }
-      } catch (error) {
-        wranglerFailureReason = `could not parse "wrangler r2 bucket list --json" output: ${error.message}`;
+      wranglerBucket = extractR2BucketListingFromText(listing.stdout, bucketName);
+      if (wranglerBucket === null) {
+        wranglerFailureReason = 'wrangler r2 bucket list returned output this script could not interpret as a bucket list.';
+      } else {
+        wranglerConfirmed = true;
       }
     }
   } else {
-    wranglerFailureReason = 'CLOUDFLARE_API_TOKEN/CLOUDFLARE_ACCOUNT_ID not set for this run.';
+    wranglerFailureReason = 'CLOUDFLARE_API_TOKEN not set for this run.';
   }
 
   const endpoint = `https://${hostname}`;
@@ -547,7 +566,7 @@ export async function main() {
     // message. Deliberately NOT surfacing error.cause.message here: for DNS failures in
     // particular, Node's underlying error message embeds the literal hostname being resolved
     // (e.g. "getaddrinfo ENOTFOUND <account-id>.r2.cloudflarestorage.com"), which would leak
-    // the R2_ACCOUNT_ID secret into this result -- and this result is posted to the public
+    // the CLOUDFLARE_ACCOUNT_ID secret into this result -- and this result is posted to the public
     // #3268 issue comment, where GitHub's log-output secret masking does not apply (masking
     // only redacts what's echoed to the Actions run log, not content a script posts directly
     // to the GitHub API via `gh issue comment --body-file`).
