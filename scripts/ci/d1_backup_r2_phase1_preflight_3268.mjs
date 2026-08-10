@@ -56,6 +56,18 @@ export function requireR2Env(env = process.env) {
   );
 }
 
+/**
+ * Given a { NAME: trimmedValue } map, returns the names whose trimmed value is an empty
+ * string -- i.e. present but blank/whitespace-only. Used to fail closed after trimming
+ * (requireR2Env's presence check alone does not catch a whitespace-only value, since a
+ * non-empty string is truthy).
+ */
+export function findBlankAfterTrim(trimmedValuesByName) {
+  return Object.entries(trimmedValuesByName)
+    .filter(([, value]) => value === '')
+    .map(([name]) => name);
+}
+
 function decodeXmlInner(text) {
   return text
     .replace(/&lt;/g, '<')
@@ -200,6 +212,21 @@ export async function main() {
     bucketName !== rawBucketName ||
     accessKeyId !== rawAccessKeyId ||
     secretAccessKey !== rawSecretAccessKey;
+
+  // requireR2Env() above only checks presence, so a whitespace-only secret value passes it
+  // (a non-empty string is truthy) and would trim to an empty string here -- silently producing
+  // an invalid endpoint like "https://.r2.cloudflarestorage.com" and a confusing downstream
+  // TLS/DNS failure instead of a clear one. Fail closed now, by name only, never by value.
+  const blankAfterTrim = findBlankAfterTrim({
+    R2_ACCOUNT_ID: accountId,
+    R2_BUCKET_NAME: bucketName,
+    R2_ACCESS_KEY_ID: accessKeyId,
+    R2_SECRET_ACCESS_KEY: secretAccessKey,
+  });
+  if (blankAfterTrim.length > 0) {
+    failClosed(`required R2 credential(s) present but blank/whitespace-only after trimming: ${blankAfterTrim.join(', ')} (values are never logged).`);
+    return;
+  }
 
   const endpoint = `https://${accountId}.r2.cloudflarestorage.com`;
   const aws = new AwsClient({
