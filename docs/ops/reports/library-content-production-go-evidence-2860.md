@@ -97,13 +97,15 @@ Real, end-to-end evidence against a real local D1 instance (not simulated), from
 INSERT INTO content_inventory (
   tag, title, text, credit_line, source_name, source_url, story_type,
   allowed_sections, canonical, priority, feature_weight, status, search_text,
-  summary, media, created_at
+  summary, media
 ) VALUES (
   'legacy-library-{id}', '{title}', '{content}', '{credit_line}',
   'LGFC Fan Club Library (legacy submission)', NULL, 'brief',
-  '["library"]', 1, 0, 1, 'draft', '{search_text}', '{summary}', '[]', '{created_at}'
+  '["library"]', 1, 0, 1, 'draft', '{search_text}', '{summary}', '[]'
 );
 ```
+
+`buildInsertStatement` appends two columns conditionally, not unconditionally as the base template above shows: `created_at` is only added (with the legacy row's original timestamp) when the legacy row actually has one — `buildMigratedFields` sets `created_at: row.created_at || null`, and a `null` value is omitted from the column list entirely rather than written as SQL `NULL`. `published_at` is only added, set to the current time, when a row transitions to `published` for the first time (`setPublishedAtNow`) — which never happens in this batch, since every row here migrates as `draft` (Section 1).
 
 **What still needs building, separately, before this batch can execute against Production**: a secret-backed GitHub Actions `workflow_dispatch` path — modeled directly on the already-merged #2913 read-only preflight (`library-content-production-preflight-2913.yml` / `production_d1_preflight_2913.mjs`) — that runs this exact planning code against real Production data and executes the generated statements via `wrangler d1 execute lgfc_lite --remote`. This report does not build that path; per Bill's instruction, this package is posted first, for WORK's review, before that implementation step is authorized.
 
