@@ -57,6 +57,18 @@ protected action it identifies.
   criterion 3, part of criterion 4/7, and #2860's Production write** — a
   closed Issue number does not mean the underlying capability exists.
 
+## Intended final state
+
+This snapshot is superseded, not updated in place, once its own findings
+change: if #2779/#3268's real backup/recovery proof lands, if #2859 closes
+any of its 4 outstanding criteria, if #2780 is accepted, or if the Preview
+preflight (Section 9) is authorized and run. Each such event produces its
+own later evidence artifact (an updated #2859/#2860 report, a #2926 real
+entry-criteria record, a #2780 acceptance record, or the preflight's own
+report) rather than an edit to this file. This report's job ends at
+Gate 1's HOLD/PASS determination; Gate 2 and Gate 3 get their own reports
+once Gate 1 actually passes.
+
 ## 1. Gate 1 prerequisite matrix
 
 | Requirement | Authoritative Issue/evidence | Status | Exact action | Owner |
