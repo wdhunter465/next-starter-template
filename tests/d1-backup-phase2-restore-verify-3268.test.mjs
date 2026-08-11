@@ -321,7 +321,7 @@ describe('buildResultMarkdown', () => {
     expect(md).toContain('Isolated restore proof complete: NO');
   });
 
-  it('renders a table count mismatch with the exact name diff, distinctly from a verification failure', () => {
+  it('renders a table-name mismatch (same count, different names) with the exact name diff, distinctly from a verification failure', () => {
     const md = buildResultMarkdown({
       ...fullyOk,
       restore: {
