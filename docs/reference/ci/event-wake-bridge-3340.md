@@ -95,18 +95,9 @@ Issue labeled agent:cursor + handoff:ready
 | `tests/lgfc-event-wake.test.mjs` | Unit evidence |
 | Reuses | `scripts/lgfc-cursor-dispatch/dispatch.mjs` |
 
-### Operator commands
+### Historical CLI surface (abandoned — not an operating procedure)
 
-```bash
-# Unit tests (no network; vitest)
-npx vitest run tests/lgfc-event-wake.test.mjs
-
-# One-shot status-only poll (GitHub read + dispatch --dry-run)
-node scripts/lgfc-event-wake/poll.mjs --once --status-only
-
-# Continuous non-AI loop (still dry-run until Go)
-node scripts/lgfc-event-wake/poll.mjs --interval-sec 60 --status-only
-```
+PoC entrypoints that existed for evidence only (do not run as the LGFC pager): `poll.mjs` one-shot / interval modes with `--status-only` or `--dry-run`, and unit tests under `tests/lgfc-event-wake.test.mjs`. Operating authority is runner dispatch (#3347), not this poller.
 
 ## Threat / security assessment (public repo)
 
@@ -119,13 +110,13 @@ node scripts/lgfc-event-wake/poll.mjs --interval-sec 60 --status-only
 | Chromebook exposure | Outbound-only |
 | Impersonating Bill | Does not forge human approvals; no authority invention |
 
-## Evidence (this PR / branch)
+## Evidence (prototype record)
 
-| Check | Result |
+| Evidence class | Result |
 | --- | --- |
-| `node --test tests/lgfc-event-wake.test.mjs` | Recorded in PR verification |
-| `--once --status-only` live poll | Record latency / newWakes in Issue comment when run |
-| Offline recovery | State file persists; next poll resumes; missed events reappear if still actionable and `updated_at` changes — note: unchanged issues already seen stay suppressed (document as Adapt item: TTL / label-change detection) |
+| Unit tests for event-wake helpers | Recorded in prototype PR verification |
+| Status-only live poll | Latency / newWakes recorded on the source Issue when executed during the PoC |
+| Offline recovery behavior | Watermark state file persists across polls; unchanged already-seen issues stay suppressed unless `updated_at` / label predicates change |
 
 ## Comparison vs one-minute AI tick
 
@@ -149,6 +140,6 @@ node scripts/lgfc-event-wake/poll.mjs --interval-sec 60 --status-only
 3. **Abandoned:** non-AI `lgfc-event-wake` / #3340 bridge as an LGFC connection type — do not adopt as the pager.
 4. **Reject:** My Machines / public inbound webhook as the Local pager.
 
-## Rollback
+## Historical rollback note
 
-No live poller service was commissioned. Optional host cleanup: delete `~/.lgfc-event-wake`. Retain runner + optional AI tick per #3347.
+No live event-wake poller service was commissioned under #3340. Host leftover state, if any, lived under `~/.lgfc-event-wake`. Canonical wake remains `lgfc-cursor-dispatch` plus optional AI tick per #3347.
