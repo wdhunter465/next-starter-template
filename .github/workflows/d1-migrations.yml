@@ -23,7 +23,9 @@ jobs:
 
       - name: Fail-closed Prod vs Dev D1 identity
         env:
+          D1_DATABASE_NAME: ${{ secrets.D1_DATABASE_NAME }}
           D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
+          D1_DEV_DATABASE_NAME: ${{ secrets.D1_DEV_DATABASE_NAME }}
           D1_DEV_DATABASE_ID: ${{ secrets.D1_DEV_DATABASE_ID }}
         run: node scripts/ci/d1_prod_dev_identity_check.mjs
 

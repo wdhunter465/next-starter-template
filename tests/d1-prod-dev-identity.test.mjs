@@ -64,4 +64,16 @@ describe('d1 prod/dev identity check', () => {
     expect(result.ok).toBe(false);
     expect(result.failures.some((f) => f.includes('D1_DEV_DATABASE_ID'))).toBe(true);
   });
+
+  it('fails closed when Dev secret name mismatches wrangler', () => {
+    const result = evaluateIdentities(
+      {
+        production: { databaseName: PROD_NAME, databaseId: PROD_ID, binding: 'DB' },
+        preview: { databaseName: DEV_NAME, databaseId: DEV_ID, binding: 'DB' },
+      },
+      { D1_DEV_DATABASE_NAME: 'wrong-name' },
+    );
+    expect(result.ok).toBe(false);
+    expect(result.failures.some((f) => f.includes('D1_DEV_DATABASE_NAME'))).toBe(true);
+  });
 });

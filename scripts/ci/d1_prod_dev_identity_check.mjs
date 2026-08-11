@@ -74,15 +74,26 @@ export function evaluateIdentities({ production, preview }, env = process.env) {
   }
 
   const prodSecretId = env.D1_DATABASE_ID || '';
+  const prodSecretName = env.D1_DATABASE_NAME || '';
   const devSecretId = env.D1_DEV_DATABASE_ID || '';
+  const devSecretName = env.D1_DEV_DATABASE_NAME || '';
   if (prodSecretId && devSecretId && prodSecretId === devSecretId) {
     failures.push('Env D1_DATABASE_ID and D1_DEV_DATABASE_ID must not be identical');
+  }
+  if (prodSecretName && devSecretName && prodSecretName === devSecretName) {
+    failures.push('Env D1_DATABASE_NAME and D1_DEV_DATABASE_NAME must not be identical');
   }
   if (prodSecretId && production.databaseId && prodSecretId !== production.databaseId) {
     failures.push('Env D1_DATABASE_ID does not match wrangler Production database_id');
   }
+  if (prodSecretName && production.databaseName && prodSecretName !== production.databaseName) {
+    failures.push('Env D1_DATABASE_NAME does not match wrangler Production database_name');
+  }
   if (devSecretId && preview.databaseId && devSecretId !== preview.databaseId) {
     failures.push('Env D1_DEV_DATABASE_ID does not match wrangler Preview database_id');
+  }
+  if (devSecretName && preview.databaseName && devSecretName !== preview.databaseName) {
+    failures.push('Env D1_DEV_DATABASE_NAME does not match wrangler Preview database_name');
   }
 
   return { ok: failures.length === 0, failures };

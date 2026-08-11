@@ -15,6 +15,18 @@ Last Reviewed: 2026-08-11
 
 Point Cloudflare Pages **Preview** Functions binding `DB` at Development D1 `lgfc-litedev` while leaving **Production** `DB` on `lgfc_lite`. Repo `wrangler.toml` already records both identities; Pages dashboard bindings must match.
 
+## Scope
+
+- In scope: Dashboard Preview/Production `DB` D1 binding steps; recommended GitHub secret names; first remote Dev migration apply; verification commands.
+- Out of scope: Prod→Dev data refresh (#3359), sanitization policy (#3358), Production schema redesign, R2 backup changes, token value handling.
+
+## Current known truth
+
+- Production D1: `lgfc_lite` / `22d0dc3e-ad34-43af-8e6a-2063df1a1e04` (top-level `wrangler.toml`).
+- Development D1: `lgfc-litedev` / `35232809-b4c1-4df9-9f39-2f178b13c378` (`[[env.preview.d1_databases]]`; created in Cloudflare Dashboard for #3357).
+- Live Preview isolation is **not** claimed until the Pages Preview `DB` binding matches Dev UUID.
+- Fail-closed repo check: `node scripts/ci/d1_prod_dev_identity_check.mjs`.
+
 ## Preconditions
 
 - Dev database exists: name `lgfc-litedev`, id `35232809-b4c1-4df9-9f39-2f178b13c378` (#3357).
