@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildInternalTableExclusionSql,
   buildResultMarkdown,
   countCreateTableStatements,
   diffTableNames,
@@ -129,6 +130,23 @@ describe('extractCreateTableNames', () => {
   it('returns an empty array for text with no CREATE TABLE statements, instead of throwing', () => {
     expect(extractCreateTableNames('')).toEqual([]);
     expect(extractCreateTableNames(undefined)).toEqual([]);
+  });
+});
+
+// Regression coverage for a Copilot finding on PR #3327: the internal-table exclusion list must
+// come from a single source so the file-side predicate (extractCreateTableNames) and the
+// restored-database-side SQL query can never drift apart.
+describe('buildInternalTableExclusionSql', () => {
+  it('builds one NOT LIKE clause per internal table prefix', () => {
+    const sql = buildInternalTableExclusionSql();
+    expect(sql).toContain("NOT LIKE 'sqlite_%'");
+    expect(sql).toContain("NOT LIKE 'd1_migrations%'");
+    expect(sql).toContain("NOT LIKE '_cf_%'");
+  });
+
+  it('produces a clause usable directly in a WHERE condition', () => {
+    const sql = `SELECT name FROM sqlite_master WHERE type='table' ${buildInternalTableExclusionSql()} ORDER BY name`;
+    expect(sql).toMatch(/WHERE type='table' AND name NOT LIKE/);
   });
 });
 

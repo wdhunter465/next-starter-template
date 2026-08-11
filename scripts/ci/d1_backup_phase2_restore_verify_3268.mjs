@@ -100,6 +100,16 @@ function isInternalTableName(name) {
 }
 
 /**
+ * Derives the `sqlite_master` query's exclusion clauses from the same `INTERNAL_TABLE_PREFIXES`
+ * list `isInternalTableName()` uses, so the file-side (JS predicate) and restored-database-side
+ * (SQL `WHERE` clause) exclusions can never drift apart -- the exact risk a Copilot review
+ * comment on this PR flagged when they were two separately-maintained representations.
+ */
+export function buildInternalTableExclusionSql() {
+  return INTERNAL_TABLE_PREFIXES.map((prefix) => `AND name NOT LIKE '${prefix}%'`).join(' ');
+}
+
+/**
  * Extracts the names of application tables a SQL dump's `CREATE TABLE` statements create,
  * excluding internal bookkeeping tables neither the export nor a fresh restore actually
  * originates from an explicit `CREATE TABLE` in application code: SQLite's own `sqlite_%`
@@ -185,11 +195,11 @@ export function parseD1ExecuteFileResult(stdout) {
 
 /**
  * Parses `wrangler d1 execute <db> --command="SELECT name FROM sqlite_master WHERE type='table'
- * AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'd1_migrations%' AND name NOT LIKE '_cf_%' ORDER
- * BY name" --remote --json`'s response: `[{ results: [{ name: "..." }, ...], success, meta }]`
- * (the standard Cloudflare D1 query API response shape, one row per table). Returns a sorted
- * array of names, or null when the shape isn't recognized. Table names are schema-only, safe to
- * report directly -- unlike this restored database's actual row content, which this script never
+ * <exclusion clauses from buildInternalTableExclusionSql()> ORDER BY name" --remote --json`'s
+ * response: `[{ results: [{ name: "..." }, ...], success, meta }]` (the standard Cloudflare D1
+ * query API response shape, one row per table). Returns a sorted array of names, or null when
+ * the shape isn't recognized. Table names are schema-only, safe to report directly -- unlike
+ * this restored database's actual row content, which this script never
  * queries.
  */
 export function parseTableNamesResult(stdout) {
@@ -507,8 +517,7 @@ export async function main() {
           }
 
           if (restore.importOk) {
-            const namesCmd =
-              "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' AND name NOT LIKE 'd1_migrations%' AND name NOT LIKE '_cf_%' ORDER BY name";
+            const namesCmd = `SELECT name FROM sqlite_master WHERE type='table' ${buildInternalTableExclusionSql()} ORDER BY name`;
             const namesExec = runWrangler(['d1', 'execute', dbName, '--command', namesCmd, '--remote', '--json', '-y']);
             if (namesExec.error || namesExec.status !== 0) {
               restore.tableCountFailureReason = redact((namesExec.stderr || '').trim()).slice(0, 500) || `exit ${namesExec.status ?? 'spawn error'}`;
