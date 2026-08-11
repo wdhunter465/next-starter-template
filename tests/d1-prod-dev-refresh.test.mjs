@@ -203,6 +203,59 @@ INSERT INTO "footer_quotes" ("id", "quote", "attribution", "status", "created_at
     );
   });
 
+  it('omits D1-rejected SQL transaction control from Dev load SQL (#3373)', () => {
+    const load = buildDevLoadSql(
+      {
+        footer_quotes: [
+          {
+            id: 1,
+            quote: 'Hello',
+            attribution: 'Lou',
+            status: 'published',
+            created_at: '2026-01-01',
+            updated_at: '2026-01-01',
+          },
+        ],
+      },
+      { footer_quotes: manifest.schema_fingerprint.footer_quotes },
+    );
+    expect(load).toMatch(/PRAGMA foreign_keys=OFF/i);
+    expect(load).toMatch(/DELETE FROM "footer_quotes"/);
+    expect(load).toMatch(/INSERT INTO "footer_quotes"/);
+    expect(load).not.toMatch(/\bBEGIN(?:\s+TRANSACTION)?\b/i);
+    expect(load).not.toMatch(/\bCOMMIT\b/i);
+    expect(load).not.toMatch(/\bROLLBACK\b/i);
+    expect(load).not.toMatch(/\bSAVEPOINT\b/i);
+    expect(load).not.toMatch(/\bRELEASE\b/i);
+  });
+
+  it('propagates Dev apply failures fail-closed without throwing (#3373)', () => {
+    const sql = `
+INSERT INTO "footer_quotes" ("id", "quote", "attribution", "status", "created_at", "updated_at") VALUES (1, 'Hello', 'Lou', 'published', '2026-01-01', '2026-01-01');
+`;
+    const result = runRefreshPipeline({
+      dryRun: false,
+      confirm: CONFIRM_TOKEN,
+      confirmDevReset: CONFIRM_DEV_RESET_TOKEN,
+      reason: '#3373 apply failure propagation',
+      allowRemoteDestructive: true,
+      skipRemoteExport: true,
+      fixtureSqlText: sql,
+      applyDevImpl: () => {
+        throw new Error('Dev SQL apply failed (exit 1): BEGIN TRANSACTION rejected');
+      },
+      env: {
+        D1_DATABASE_NAME: PROD_NAME,
+        D1_DATABASE_ID: PROD_ID,
+        D1_DEV_DATABASE_NAME: DEV_NAME,
+        D1_DEV_DATABASE_ID: DEV_ID,
+      },
+    });
+    expect(result.ok).toBe(false);
+    expect(result.failures.some((f) => f.includes('Dev SQL apply failed'))).toBe(true);
+    expect(result.evidence).toBeNull();
+  });
+
   it('workflow file is workflow_dispatch only', () => {
     const text = fs.readFileSync('.github/workflows/ops-d1-prod-dev-refresh.yml', 'utf8');
     expect(text).toMatch(/workflow_dispatch:/);
