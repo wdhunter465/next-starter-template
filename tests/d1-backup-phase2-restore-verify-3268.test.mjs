@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  buildInternalTableExclusionSql,
   buildResultMarkdown,
   countCreateTableStatements,
   diffTableNames,
@@ -111,9 +112,41 @@ describe('extractCreateTableNames', () => {
     expect(extractCreateTableNames(sql)).toEqual(['a']);
   });
 
+  // Regression coverage for a real live-run finding (2026-08-11, fourth Package 3 dispatch):
+  // D1 creates its own internal `_cf_KV` table automatically (never appearing in the exported
+  // SQL text), which made a correct restore's live table count (39) disagree with this file-side
+  // count (38) until the live query also excluded it. Matches the exact exclusion list this repo
+  // already uses elsewhere (scripts/d1-seed-all.mjs's getTables()).
+  it('excludes d1_migrations% and _cf_% internal tables in addition to sqlite_%', () => {
+    const sql = [
+      'CREATE TABLE members (id INTEGER);',
+      'CREATE TABLE d1_migrations (id INTEGER);',
+      'CREATE TABLE _cf_KV (key TEXT);',
+      'CREATE TABLE events (id INTEGER);',
+    ].join('\n');
+    expect(extractCreateTableNames(sql)).toEqual(['events', 'members']);
+  });
+
   it('returns an empty array for text with no CREATE TABLE statements, instead of throwing', () => {
     expect(extractCreateTableNames('')).toEqual([]);
     expect(extractCreateTableNames(undefined)).toEqual([]);
+  });
+});
+
+// Regression coverage for a Copilot finding on PR #3327: the internal-table exclusion list must
+// come from a single source so the file-side predicate (extractCreateTableNames) and the
+// restored-database-side SQL query can never drift apart.
+describe('buildInternalTableExclusionSql', () => {
+  it('builds one NOT LIKE clause per internal table prefix', () => {
+    const sql = buildInternalTableExclusionSql();
+    expect(sql).toContain("NOT LIKE 'sqlite_%'");
+    expect(sql).toContain("NOT LIKE 'd1_migrations%'");
+    expect(sql).toContain("NOT LIKE '_cf_%'");
+  });
+
+  it('produces a clause usable directly in a WHERE condition', () => {
+    const sql = `SELECT name FROM sqlite_master WHERE type='table' ${buildInternalTableExclusionSql()} ORDER BY name`;
+    expect(sql).toMatch(/WHERE type='table' AND name NOT LIKE/);
   });
 });
 

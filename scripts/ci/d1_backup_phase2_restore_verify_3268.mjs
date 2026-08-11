@@ -92,23 +92,44 @@ export function findLatestBackupKey(keys, databaseName) {
   return candidates.length > 0 ? candidates[candidates.length - 1] : null;
 }
 
+const INTERNAL_TABLE_PREFIXES = ['sqlite_', 'd1_migrations', '_cf_'];
+
+function isInternalTableName(name) {
+  const lower = name.toLowerCase();
+  return INTERNAL_TABLE_PREFIXES.some((prefix) => lower.startsWith(prefix));
+}
+
+/**
+ * Derives the `sqlite_master` query's exclusion clauses from the same `INTERNAL_TABLE_PREFIXES`
+ * list `isInternalTableName()` uses, so the file-side (JS predicate) and restored-database-side
+ * (SQL `WHERE` clause) exclusions can never drift apart -- the exact risk a Copilot review
+ * comment on this PR flagged when they were two separately-maintained representations.
+ */
+export function buildInternalTableExclusionSql() {
+  return INTERNAL_TABLE_PREFIXES.map((prefix) => `AND name NOT LIKE '${prefix}%'`).join(' ');
+}
+
 /**
  * Extracts the names of application tables a SQL dump's `CREATE TABLE` statements create,
- * excluding SQLite's own internal `sqlite_%` bookkeeping tables (e.g. `sqlite_sequence`,
- * auto-managed whenever any table uses `AUTOINCREMENT`) -- the same exclusion this repo already
- * applies when enumerating "real" tables elsewhere (`functions/api/admin/d1-inspect.ts`:
- * `... AND name NOT LIKE 'sqlite_%'`). Table *names* are schema-only, not row content, so they
- * are safe to report directly (unlike this script's other queries, which are aggregate-only by
- * necessity because they touch the restored data itself). Only matches literal `CREATE TABLE`
- * (not `CREATE VIRTUAL TABLE`, a different statement this regex intentionally does not claim to
- * count -- see the live query in main(), which applies the identical `sqlite_%` exclusion and is
- * what this list is actually compared against).
+ * excluding internal bookkeeping tables neither the export nor a fresh restore actually
+ * originates from an explicit `CREATE TABLE` in application code: SQLite's own `sqlite_%`
+ * (e.g. `sqlite_sequence`, auto-managed whenever any table uses `AUTOINCREMENT`), D1's own
+ * migration-tracking `d1_migrations%`, and D1's own internal `_cf_%` tables (e.g. `_cf_KV`,
+ * confirmed present in a real restored database by a live run on 2026-08-11 despite never
+ * appearing in the exported SQL text -- D1 creates it automatically, outside the export).
+ * This is the exact exclusion list this repo already uses elsewhere for the same purpose
+ * (`scripts/d1-seed-all.mjs`'s `getTables()`: `... AND name NOT LIKE 'sqlite_%' AND name NOT
+ * LIKE 'd1_migrations%' AND name NOT LIKE '_cf_%'`). Table *names* are schema-only, not row
+ * content, so they are safe to report directly (unlike this script's other queries, which are
+ * aggregate-only by necessity because they touch the restored data itself). Only matches literal
+ * `CREATE TABLE` (not `CREATE VIRTUAL TABLE`) -- see the live query in main(), which applies the
+ * identical exclusion list and is what this list is actually compared against.
  */
 export function extractCreateTableNames(sqlText) {
   const matches = String(sqlText ?? '').matchAll(/^\s*CREATE TABLE\s+(?:IF NOT EXISTS\s+)?["'`]?(\w+)["'`]?/gim);
   const names = new Set();
   for (const match of matches) {
-    if (!match[1].toLowerCase().startsWith('sqlite_')) names.add(match[1]);
+    if (!isInternalTableName(match[1])) names.add(match[1]);
   }
   return [...names].sort();
 }
@@ -174,11 +195,12 @@ export function parseD1ExecuteFileResult(stdout) {
 
 /**
  * Parses `wrangler d1 execute <db> --command="SELECT name FROM sqlite_master WHERE type='table'
- * AND name NOT LIKE 'sqlite_%' ORDER BY name" --remote --json`'s response: `[{ results: [{ name:
- * "..." }, ...], success, meta }]` (the standard Cloudflare D1 query API response shape, one row
- * per table). Returns a sorted array of names, or null when the shape isn't recognized. Table
- * names are schema-only, safe to report directly -- unlike this restored database's actual row
- * content, which this script never queries.
+ * <exclusion clauses from buildInternalTableExclusionSql()> ORDER BY name" --remote --json`'s
+ * response: `[{ results: [{ name: "..." }, ...], success, meta }]` (the standard Cloudflare D1
+ * query API response shape, one row per table). Returns a sorted array of names, or null when
+ * the shape isn't recognized. Table names are schema-only, safe to report directly -- unlike
+ * this restored database's actual row content, which this script never
+ * queries.
  */
 export function parseTableNamesResult(stdout) {
   const parsed = extractJsonArray(stdout);
@@ -495,7 +517,7 @@ export async function main() {
           }
 
           if (restore.importOk) {
-            const namesCmd = "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name";
+            const namesCmd = `SELECT name FROM sqlite_master WHERE type='table' ${buildInternalTableExclusionSql()} ORDER BY name`;
             const namesExec = runWrangler(['d1', 'execute', dbName, '--command', namesCmd, '--remote', '--json', '-y']);
             if (namesExec.error || namesExec.status !== 0) {
               restore.tableCountFailureReason = redact((namesExec.stderr || '').trim()).slice(0, 500) || `exit ${namesExec.status ?? 'spawn error'}`;
