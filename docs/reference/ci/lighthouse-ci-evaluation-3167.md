@@ -1,19 +1,23 @@
 ---
-Doc Type: Operations Report
-Audience: Bill, WORK, Cursor, PMO
-Authority Level: Evidence / Evaluation Record
+Doc Type: Reference
+Audience: Human + AI
+Authority Level: Informational
 Owns: #3167 Lighthouse CI evaluation evidence, overlap analysis, and Adopt/Adapt/Reject recommendation
 Does Not Own: CI gate enablement, Production mutation, defect remediation, or #2878 project scope changes
-Canonical Reference: /docs/ops/reports/lighthouse-ci-baseline-prototype-design-3182.md
+Canonical Reference: /docs/reference/ci/lighthouse-ci-evaluation-3167.md
 Related Issues: #3167, #3182, #3165, #3172, #2453, #2858, #2878
 Last Reviewed: 2026-08-11
 ---
 
 # Lighthouse CI evaluation (#3167)
 
+## Purpose
+
+Record the bounded non-Production evaluation of `@lhci/cli` for LGFC launch-readiness evidence, including repeatability, overlap with existing checks, and an Adopt/Adapt/Reject recommendation. Prior prototype design context lives in `docs/ops/reports/lighthouse-ci-baseline-prototype-design-3182.md` (#3182).
+
 ## Scope
 
-Bounded non-Production evaluation of `@lhci/cli` (`npm run lighthouse:baseline`) against representative public static routes from a fresh `main` build. No blocking thresholds. No Production mutation. No paid hosted Lighthouse service.
+Evaluation against representative public static routes from a fresh `main` build. No blocking thresholds. No Production mutation. No paid hosted Lighthouse service.
 
 ## Environment
 
@@ -22,10 +26,12 @@ Bounded non-Production evaluation of `@lhci/cli` (`npm run lighthouse:baseline`)
 | Base | `origin/main` @ evaluation start |
 | Tool | `@lhci/cli` ^0.15.1 (already in `package.json`) |
 | Command | `npm run lighthouse:baseline` → `lhci collect --staticDistDir=out` for `/`, `/search/`, `/join/`, `/faq/`, `/about/` (`--numberOfRuns=1`) |
-| Browser | Playwright Chromium via `CHROME_PATH=~/.cache/ms-playwright/chromium-1194/chrome-linux/chrome` (required on this host; without it LHCI fails immediately) |
+| Browser | Playwright Chromium via `CHROME_PATH=$HOME/.cache/ms-playwright/chromium-1194/chrome-linux/chrome` (required on this host; without it LHCI fails immediately) |
 | Artifacts | `.lighthouseci/` (gitignored); not committed |
 
-## Fresh baselines (2026-08-11)
+## Current known truth
+
+Baselines captured 2026-08-11 (two consecutive collects).
 
 ### Run 1 (~94s wall)
 
