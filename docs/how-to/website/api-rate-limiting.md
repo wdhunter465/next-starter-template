@@ -23,7 +23,7 @@ State the single authoritative control plane for LGFC Production API rate limiti
 | `functions/api/_middleware.ts` | Optional: if `env.API_RATE_LIMITER.limit` exists, applies limits on mutating sensitive API routes; otherwise continues (graceful degrade). |
 | Cloudflare dashboard Rate Limiting / WAF | **Intended authoritative enforcement** for the public Pages site. |
 
-## How to modify safely
+## Steps
 
 1. Prefer creating or adjusting **dashboard** Rate Limiting / WAF rules for the Production hostname (and Preview if separately required).
 2. Do **not** re-add `[[ratelimits]]` to `wrangler.toml` for this Pages project unless Cloudflare Pages documents support for that binding and Pages builds stop warning.

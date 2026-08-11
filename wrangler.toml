@@ -12,7 +12,7 @@ database_name = "lgfc_lite"        # Must match CF dashboard
 database_id = "22d0dc3e-ad34-43af-8e6a-2063df1a1e04"   # Will fill after fetching via wrangler
 
 # Rate limiting: do NOT declare [[ratelimits]] here.
-# Cloudflare Pages build rejects/ignores top-level ratelimits (warning: Unexpected fields).
+# Cloudflare Pages build warns on and ignores top-level ratelimits (Unexpected fields).
 # Intended control plane: Cloudflare dashboard Rate Limiting / WAF.
 # functions/api/_middleware.ts still calls env.API_RATE_LIMITER when present and degrades if absent.
 # See docs/how-to/website/api-rate-limiting.md (#527).
