@@ -95,10 +95,9 @@ export async function main(env = process.env) {
   // Disable path always forces admin off (#2215 closeout).
   const effectiveAllowAdmin = enabled === 'false' ? 'false' : allowAdmin;
 
-  const reviewToken =
-    env.AI_REVIEW_TOKEN && env.AI_REVIEW_TOKEN.length >= 32
-      ? env.AI_REVIEW_TOKEN
-      : randomBytes(32).toString('hex');
+  const suppliedToken = Boolean(env.AI_REVIEW_TOKEN && env.AI_REVIEW_TOKEN.length >= 32);
+  const reviewToken = suppliedToken ? env.AI_REVIEW_TOKEN : randomBytes(32).toString('hex');
+  const tokenRotated = !suppliedToken;
 
   const base = `https://api.cloudflare.com/client/v4/accounts/${accountId}/pages/projects/${encodeURIComponent(project)}`;
 
@@ -211,7 +210,7 @@ export async function main(env = process.env) {
       ai_review_allow_admin: effectiveAllowAdmin === 'true',
       token_length: reviewToken.length,
       token_written_to_out: Boolean(outPath),
-      token_rotated: true,
+      token_rotated: tokenRotated,
     }),
   );
 }

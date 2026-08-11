@@ -224,7 +224,7 @@ jobs:
             echo "- Target environment: ${{ inputs.target_environment }}"
             echo "- Confirm production: ${{ inputs.confirm_production }}"
             echo "- Verify base URL: ${VERIFY_BASE_URL}"
-            echo "- Cloudflare Pages secrets set: AI_REVIEW_ENABLED=${{ inputs.ai_review_enabled }}, AI_REVIEW_TOKEN (rotated), AI_REVIEW_ALLOW_ADMIN=${{ inputs.allow_admin }}"
+            echo "- Cloudflare Pages secrets set: AI_REVIEW_ENABLED=${{ inputs.ai_review_enabled }}, AI_REVIEW_TOKEN (rotated unless operator-supplied), AI_REVIEW_ALLOW_ADMIN(effective)=${{ inputs.ai_review_enabled == 'false' && 'false' || inputs.allow_admin }}"
             echo "- GitHub secret AI_REVIEW_TOKEN: attempted"
             echo "- Redeploy retry: ${{ inputs.trigger_redeploy }}"
             echo "- Token value: not logged"
