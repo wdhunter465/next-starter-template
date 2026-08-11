@@ -5,8 +5,8 @@ Authority Level: Operational Authority
 Owns: Verified PMO backlog state, preparation status, active assignment summary, and closeout-remediation visibility
 Does Not Own: Product priority decisions, implementation authority, Production approval, or status inferred without repository evidence
 Canonical Reference: /docs/governance/PMO-PORTFOLIO.md
-Related Issues: #1255, #1719, #2615, #2678, #2779, #2784
-Last Reviewed: 2026-08-04
+Related Issues: #1255, #1719, #2215, #2615, #2678, #2779, #2784
+Last Reviewed: 2026-08-11
 ---
 
 # PMO Backlog
@@ -61,6 +61,10 @@ Previous statements that #2775 was still active or that #1719 was awaiting Produ
 - Post-merge exceptions return immediately to the implementer of the originating PR.
 - Deferred work requires a separate source Issue and must not be counted as incomplete work inside a closed project.
 - Historical backlog detail remains available in Git history and project reports; stale historical statements are not current authority.
+
+## Ops enablement closeout — #2215 (AI review access)
+
+`#2215` is **ops enablement**, not a project with an AS-BUILT/promotion graph. Durable tracking remains the GitHub Issue (`pmo-backlog` label). Canonical backlog documentation entry for this Issue is **explicitly waived** beyond this note: enablement/disable procedure lives in `docs/ops/ai/AI-REVIEW-ACCESS.md`; no separate PMO project row is required.
 
 ## Completion gate
 

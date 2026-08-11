@@ -73,6 +73,7 @@ Use `.github/workflows/ops-ai-review-enable.yml` (script: `scripts/ops/enable-ai
 | `confirm_production` | `false` | Must be `true` when targeting production; otherwise the job fails closed. |
 | `verify_base_url` | _(empty)_ | **Required** for preview (Pages preview hostname). Production defaults to `https://www.lougehrigfanclub.com` when empty. |
 | `allow_admin` | `false` | Keep false unless admin layout review is explicitly required. |
+| `ai_review_enabled` | `true` | Set `false` to end the review window (forces admin off and rotates `AI_REVIEW_TOKEN`). |
 | `trigger_redeploy` | `false` | Retry the latest deployment in the selected environment so secrets apply. |
 
 Do not treat a successful production enablement run as permanent admin or permanent review access. Rotate/disable after the short review window.

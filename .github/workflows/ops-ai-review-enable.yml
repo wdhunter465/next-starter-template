@@ -38,6 +38,14 @@ on:
         options:
           - 'false'
           - 'true'
+      ai_review_enabled:
+        description: Set AI_REVIEW_ENABLED (false disables review window and rotates token)
+        required: false
+        default: 'true'
+        type: choice
+        options:
+          - 'true'
+          - 'false'
       trigger_redeploy:
         description: Retry latest deployment so secrets apply (default false)
         required: false
@@ -59,6 +67,7 @@ jobs:
       CLOUDFLARE_PROJECT_NAME: ${{ secrets.CLOUDFLARE_PROJECT_NAME }}
       AI_REVIEW_ALLOW_ADMIN: ${{ inputs.allow_admin }}
       AI_REVIEW_TARGET_ENV: ${{ inputs.target_environment }}
+      AI_REVIEW_ENABLED: ${{ inputs.ai_review_enabled }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -161,6 +170,7 @@ jobs:
           fi
 
       - name: Verify authorized fanclub review URL
+        if: ${{ inputs.ai_review_enabled == 'true' }}
         env:
           AI_REVIEW_TOKEN_OUT: ${{ runner.temp }}/ai-review-token
         run: |
@@ -171,6 +181,21 @@ jobs:
           echo "Authorized /_ai-review/fanclub => HTTP ${code}"
           if [ "$code" != "200" ]; then
             echo "::warning::Authorized check returned ${code} (may need another deploy/propagation). Cloudflare secrets were set."
+          fi
+
+      - name: Verify disabled window rejects token
+        if: ${{ inputs.ai_review_enabled == 'false' }}
+        env:
+          AI_REVIEW_TOKEN_OUT: ${{ runner.temp }}/ai-review-token
+        run: |
+          set -euo pipefail
+          TOKEN=$(cat "$AI_REVIEW_TOKEN_OUT")
+          code=$(curl -sS -o /dev/null -w '%{http_code}' \
+            "${VERIFY_BASE_URL}/_ai-review/fanclub?token=${TOKEN}" || true)
+          echo "Disabled-window tokenized /_ai-review/fanclub => HTTP ${code}"
+          if [ "$code" = "200" ]; then
+            echo "Unexpected 200 while AI_REVIEW_ENABLED=false"
+            exit 1
           fi
 
       - name: Store AI_REVIEW_TOKEN as GitHub Actions secret
@@ -199,7 +224,7 @@ jobs:
             echo "- Target environment: ${{ inputs.target_environment }}"
             echo "- Confirm production: ${{ inputs.confirm_production }}"
             echo "- Verify base URL: ${VERIFY_BASE_URL}"
-            echo "- Cloudflare Pages secrets set: AI_REVIEW_ENABLED, AI_REVIEW_TOKEN, AI_REVIEW_ALLOW_ADMIN=${{ inputs.allow_admin }}"
+            echo "- Cloudflare Pages secrets set: AI_REVIEW_ENABLED=${{ inputs.ai_review_enabled }}, AI_REVIEW_TOKEN (rotated), AI_REVIEW_ALLOW_ADMIN=${{ inputs.allow_admin }}"
             echo "- GitHub secret AI_REVIEW_TOKEN: attempted"
             echo "- Redeploy retry: ${{ inputs.trigger_redeploy }}"
             echo "- Token value: not logged"
