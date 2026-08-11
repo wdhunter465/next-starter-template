@@ -7,7 +7,7 @@ Does Not Own: #3268 Phase 2 (export/backup proof), Phase 3 (scheduled service), 
 Source Issue: #3268
 Canonical Reference: /docs/ops/reports/d1-backup-restore-3268-phase1.md
 Related Issues: #3268, #2860, #2779, #2780, #2859, #2913, #3282, #3283, #3285, #3287
-Last Reviewed: 2026-08-10 (updated same day: R2 bucket provisioned)
+Last Reviewed: 2026-08-10 (updated same day: R2 bucket provisioned; item 3 answered by Bill; Phase 1 complete)
 Executor: Claude Code
 ---
 
@@ -81,7 +81,7 @@ items are named for Bill's decision.
 | --- | --- | --- | --- |
 | 1 | Exact Production D1 database name and UUID | **Answered** (repo evidence) | `wrangler.toml` (above) |
 | 2 | Storage version supports Time Travel | **Needs the new preflight** (best-effort `wrangler d1 time-travel info`) | New workflow, Section 2 |
-| 3 | Account plan and applicable Time Travel retention | **Cannot be answered by any CLI read this script can make** | Requires Bill to check the Cloudflare dashboard directly, or a separate account-level API call out of this preflight's scope |
+| 3 | Account plan and applicable Time Travel retention | **Answered — confirmed by Bill from the Cloudflare dashboard (2026-08-10): Workers Free plan; D1 Time Travel retention = 7 days.** No CLI read exposes this fact; it is a direct operator statement, not a script-verified result | Bill, 2026-08-10 |
 | 4 | Inventory existing R2 buckets; dedicated bucket vs. isolated prefix | **Answered — confirmed** (`lgfc-d1-backups`, Standard storage, public access disabled; reachability confirmed by a live, successful, read-only `ListObjectsV2` call) | Section 5 |
 | 5 | Inventory existing tokens/bindings/secret patterns/CI deployment authority | **Answered for R2**: least-privilege S3 credential provisioned (`R2_ACCESS_KEY_ID`/`R2_SECRET_ACCESS_KEY`/`R2_BUCKET_NAME`) and confirmed working, keyed off the existing `CLOUDFLARE_ACCOUNT_ID`. `CLOUDFLARE_API_TOKEN`'s own R2 scope is now a **known negative** (confirmed via `wrangler r2 bucket list`'s `Authentication error [code: 10000]`), not merely unverified — informational only, since the S3-level read is this item's primary, required evidence | Section 5 |
 | 6 | Classify D1 data sensitivity (member/auth/moderation/attribution/audit/PII) | **Not attempted this pass** — this is a data-classification/documentation task, not a live read; appropriately Phase 1's next repository-evidence increment, not this preflight | Deferred to next increment |
@@ -107,15 +107,27 @@ reason).
 
 ## 3. Decisions genuinely required from Bill before Phase 2 can start
 
-- Account plan tier and Time Travel retention window (item 3) — dashboard-only
-  fact. **Still outstanding** — the one remaining Phase 1 blocker as of this
-  update.
+- ~~Account plan tier and Time Travel retention window (item 3)~~ — **resolved**:
+  Bill confirmed from the Cloudflare dashboard (2026-08-10) — Workers Free
+  plan, D1 Time Travel retention = 7 days.
 - ~~Dedicated R2 bucket vs. isolated prefix...~~ — **resolved**: `lgfc-d1-backups`,
   Standard storage, public access disabled, least-privilege credentials
   provisioned.
 
 None of these are engineering work this report can substitute for; they are
 named here exactly as #3268 already named them, not invented by this report.
+
+**All Phase 1 blockers are now resolved. Phase 1 is complete as of
+2026-08-10.** Per Bill's explicit authorization, work proceeds to Phase 2
+(real D1 export → private R2 backup → checksum/integrity verification →
+isolated non-Production restore proof), tracked in a new document,
+`docs/ops/reports/d1-backup-restore-3268-phase2.md`, not in this one — this
+report's frontmatter already scopes Phase 2 as out of its ownership. Every
+Production/destructive-data/credential gate from Phase 1 carries forward
+unchanged: no Production D1 write or restore is authorized by Phase 1's
+completion, and Gate 1 remains HOLD until real backup/restore evidence
+feeds through #2859 → #2780 → #2926 (Gate 2 remains NO-GO until Gate 1
+passes).
 
 ## 4. What this report does not do (explicitly, so it isn't assumed)
 
@@ -125,9 +137,10 @@ named here exactly as #3268 already named them, not invented by this report.
 - Does not change #2860's or #2859's own Production-write eligibility — those
   remain gated on this project's real backup proof (Phase 2), not on Phase 1
   alone.
-- Does not begin Phase 2 (real D1 export → R2 upload → checksum → restore
-  proof) — per Bill's explicit 2026-08-10 instruction, that step waits for
-  the account plan tier / Time Travel retention fact (item 3 above).
+- Does not itself perform Phase 2 (real D1 export → R2 upload → checksum →
+  restore proof) — with item 3 now answered, Phase 2 is authorized and
+  tracked separately in `docs/ops/reports/d1-backup-restore-3268-phase2.md`,
+  not in this document.
 
 ## 5. Update, 2026-08-10 — R2 bucket provisioned; new read-only R2 investigation preflight
 
@@ -285,9 +298,10 @@ outstanding Phase 1 blocker.
 - [x] Both preflights' tested scope (pure functions only) is disclosed
       honestly, matching the same limitation already accepted for #2913's
       precedent script.
-- [x] Phase 2 (the real backup path) is explicitly named as still waiting on
-      item 3, per Bill's own instruction — not implied as unblocked by R2
-      provisioning alone.
+- [x] Phase 2 (the real backup path) is explicitly named as authorized only
+      once item 3 was answered by Bill directly — not implied as unblocked
+      by R2 provisioning alone, and tracked in its own document rather than
+      folded into this one.
 
 ## Rollback (of this PR)
 
