@@ -1,0 +1,108 @@
+name: OPS — D1 Backup Phase 2 Package 3 Restore Verify (#3268)
+
+# Operator-triggered, bounded #3268 Phase 2 Package 3 job: finds the most recent real
+# backup produced by Package 2 (PR #3311) under d1-backups/<D1_DATABASE_NAME>/ in the
+# private lgfc-d1-backups R2 bucket, independently re-verifies its checksum, restores it
+# into a brand-new, uniquely named D1 database that is never referenced in
+# wrangler.toml, checks the restored database's table count against the backup file's
+# own schema, then deletes the restore-drill database unconditionally (including on
+# failure). This is the "isolated restore -> content/schema verification -> teardown"
+# step of the Phase 2 sequence.
+#
+# This workflow never reads, writes, or otherwise touches lgfc_lite (Production D1)
+# directly -- only the already-produced R2 backup is read. Every query it runs against
+# the restored database is aggregate-only (counts/names), never a query that could
+# return actual row content.
+#
+# This file (and scripts/ci/d1_backup_phase2_restore_verify_3268.mjs) matches this
+# repo's protected-path patterns in scripts/ci/delivery_profile.mjs. Per that script's
+# own rules, protected-path status only changes the required Approval profile for
+# Model B child PRs (protected-change-review); Model A PRs -- what every #3268 PR in
+# this series uses -- require Approval profile: work-bill-production regardless.
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_restore_verify:
+        description: 'Type "confirm" to run the #3268 Phase 2 Package 3 isolated restore proof'
+        required: true
+        type: string
+
+concurrency:
+  group: d1-backup-phase2-restore-verify-3268
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  restore-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require explicit confirmation
+        run: |
+          if [ "${{ inputs.confirm_restore_verify }}" != "confirm" ]; then
+            echo "confirm_restore_verify must be exactly 'confirm' — refusing to run."
+            exit 1
+          fi
+
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run #3268 Phase 2 Package 3 restore proof
+        id: restore_verify
+        env:
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DATABASE_NAME: ${{ secrets.D1_DATABASE_NAME }}
+        run: node scripts/ci/d1_backup_phase2_restore_verify_3268.mjs
+
+      - name: Upload result evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: d1-backup-phase2-restore-verify-3268-result
+          path: |
+            d1-backup-phase2-restore-verify-3268-result.json
+            d1-backup-phase2-restore-verify-3268-result.md
+          if-no-files-found: warn
+
+      - name: Write step summary
+        if: always() && hashFiles('d1-backup-phase2-restore-verify-3268-result.md') != ''
+        run: cat d1-backup-phase2-restore-verify-3268-result.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Record result on #3268
+        if: always() && hashFiles('d1-backup-phase2-restore-verify-3268-result.md') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue comment 3268 --body-file d1-backup-phase2-restore-verify-3268-result.md
+
+      - name: Record failure on #3268
+        if: failure() && steps.checkout.outcome == 'success' && hashFiles('d1-backup-phase2-restore-verify-3268-result.md') == ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue comment 3268 --body "$(cat <<'EOF'
+          <!-- d1-backup-phase2-restore-verify-3268 -->
+          ## #3268 Phase 2 Package 3 restore proof — FAILED (fail-closed)
+
+          The isolated, non-Production restore proof did not complete. No Production D1
+          read or write was attempted. See the workflow run logs and uploaded artifact
+          (if any) for details.
+
+          Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          EOF
+          )"
