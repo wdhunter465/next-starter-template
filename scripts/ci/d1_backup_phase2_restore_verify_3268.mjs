@@ -439,7 +439,7 @@ export async function main() {
               // here as real diagnostic evidence rather than leaving the next run to guess
               // blindly at what changed about the response shape.
               const snippet = redact((exec.stdout || '').trim()).slice(0, 800);
-              restore.importFailureReason = `import succeeded but its response could not be interpreted.${snippet ? ` Raw (redacted) response snippet: ${snippet}` : ' (no stdout captured)'}`;
+              restore.importFailureReason = `wrangler exited 0 but its response could not be interpreted (this does not necessarily mean the import itself succeeded).${snippet ? ` Raw (redacted) response snippet: ${snippet}` : ' (no stdout captured)'}`;
             } else {
               restore.importOk = parsedExec.success;
               restore.numQueries = parsedExec.numQueries;
@@ -462,7 +462,7 @@ export async function main() {
                 // only the single count this query selected, so a redacted, truncated snippet
                 // is safe real evidence rather than another guess.
                 const snippet = redact((countExec.stdout || '').trim()).slice(0, 800);
-                restore.tableCountFailureReason = `table count query succeeded but its response could not be interpreted.${snippet ? ` Raw (redacted) response snippet: ${snippet}` : ' (no stdout captured)'}`;
+                restore.tableCountFailureReason = `wrangler exited 0 but its response could not be interpreted (this does not necessarily mean the query itself succeeded).${snippet ? ` Raw (redacted) response snippet: ${snippet}` : ' (no stdout captured)'}`;
               } else {
                 restore.tableCountVerified = true;
                 restore.actualTableCount = actual;
