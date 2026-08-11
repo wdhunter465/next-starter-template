@@ -341,8 +341,30 @@ export function sqlLiteral(value) {
   return `'${String(value).replace(/'/g, "''")}'`;
 }
 
+/**
+ * SQL transaction-control forms rejected by D1 remote `wrangler d1 execute --file`
+ * (Durable Object storage requires JS transaction APIs instead).
+ */
+export const FORBIDDEN_D1_REMOTE_TXN_RE =
+  /\b(BEGIN(?:\s+TRANSACTION)?|COMMIT|ROLLBACK|SAVEPOINT|RELEASE)\b/i;
+
+export function assertNoForbiddenD1RemoteTxnStatements(sqlText) {
+  const match = String(sqlText || '').match(FORBIDDEN_D1_REMOTE_TXN_RE);
+  if (match) {
+    throw new Error(
+      `Dev load SQL contains D1-rejected transaction control statement: ${match[0]}`,
+    );
+  }
+  return true;
+}
+
+/**
+ * Build Dev load SQL for remote wrangler apply.
+ * Intentionally omits BEGIN/COMMIT/SAVEPOINT — D1 remote execute rejects them.
+ * Statements run in file order: FK off → DELETE all fingerprint tables → INSERT → FK on.
+ */
 export function buildDevLoadSql(sanitizedTables, schemaFingerprint) {
-  const parts = ['PRAGMA foreign_keys=OFF;', 'BEGIN TRANSACTION;'];
+  const parts = ['PRAGMA foreign_keys=OFF;'];
   const tableOrder = Object.keys(schemaFingerprint);
   for (const table of tableOrder) {
     parts.push(`DELETE FROM "${table}";`);
@@ -357,8 +379,10 @@ export function buildDevLoadSql(sanitizedTables, schemaFingerprint) {
       );
     }
   }
-  parts.push('COMMIT;', 'PRAGMA foreign_keys=ON;');
-  return parts.join('\n');
+  parts.push('PRAGMA foreign_keys=ON;');
+  const sql = parts.join('\n');
+  assertNoForbiddenD1RemoteTxnStatements(sql);
+  return sql;
 }
 
 export function buildEvidenceArtifact({
@@ -457,6 +481,7 @@ export function runRefreshPipeline({
   loadSqlPath,
   skipRemoteExport = false,
   fixtureSqlText = null,
+  applyDevImpl = applyDevSqlFile,
 }) {
   const startedAt = new Date().toISOString();
   const inputGate = validateManualInputs({
@@ -529,12 +554,20 @@ export function runRefreshPipeline({
     fs.writeFileSync(sanitizedPath, loadSql, 'utf8');
 
     if (!dryRun) {
-      applyDevSqlFile({
-        databaseName: identities.target.name,
-        sqlPath: sanitizedPath,
-        env,
-        usePreviewEnv: true,
-      });
+      try {
+        applyDevImpl({
+          databaseName: identities.target.name,
+          sqlPath: sanitizedPath,
+          env,
+          usePreviewEnv: true,
+        });
+      } catch (err) {
+        return {
+          ok: false,
+          failures: [`Dev SQL apply failed: ${err.message}`],
+          evidence: null,
+        };
+      }
     }
 
     const finishedAt = new Date().toISOString();
