@@ -111,6 +111,21 @@ describe('extractCreateTableNames', () => {
     expect(extractCreateTableNames(sql)).toEqual(['a']);
   });
 
+  // Regression coverage for a real live-run finding (2026-08-11, fourth Package 3 dispatch):
+  // D1 creates its own internal `_cf_KV` table automatically (never appearing in the exported
+  // SQL text), which made a correct restore's live table count (39) disagree with this file-side
+  // count (38) until the live query also excluded it. Matches the exact exclusion list this repo
+  // already uses elsewhere (scripts/d1-seed-all.mjs's getTables()).
+  it('excludes d1_migrations% and _cf_% internal tables in addition to sqlite_%', () => {
+    const sql = [
+      'CREATE TABLE members (id INTEGER);',
+      'CREATE TABLE d1_migrations (id INTEGER);',
+      'CREATE TABLE _cf_KV (key TEXT);',
+      'CREATE TABLE events (id INTEGER);',
+    ].join('\n');
+    expect(extractCreateTableNames(sql)).toEqual(['events', 'members']);
+  });
+
   it('returns an empty array for text with no CREATE TABLE statements, instead of throwing', () => {
     expect(extractCreateTableNames('')).toEqual([]);
     expect(extractCreateTableNames(undefined)).toEqual([]);
