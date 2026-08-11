@@ -2,10 +2,12 @@ import { describe, expect, it } from 'vitest';
 import {
   buildResultMarkdown,
   countCreateTableStatements,
+  diffTableNames,
+  extractCreateTableNames,
   findLatestBackupKey,
   generateRestoreDbName,
   parseD1ExecuteFileResult,
-  parseTableCountResult,
+  parseTableNamesResult,
   requireRestoreEnv,
 } from '../scripts/ci/d1_backup_phase2_restore_verify_3268.mjs';
 
@@ -94,6 +96,45 @@ describe('countCreateTableStatements', () => {
   });
 });
 
+describe('extractCreateTableNames', () => {
+  it('extracts and sorts table names, excluding sqlite_% internal tables', () => {
+    const sql = [
+      'CREATE TABLE members (id INTEGER PRIMARY KEY AUTOINCREMENT);',
+      'CREATE TABLE sqlite_sequence(name,seq);',
+      'CREATE TABLE events (id INTEGER);',
+    ].join('\n');
+    expect(extractCreateTableNames(sql)).toEqual(['events', 'members']);
+  });
+
+  it('deduplicates repeated CREATE TABLE statements for the same name', () => {
+    const sql = 'CREATE TABLE a (id INTEGER);\nCREATE TABLE IF NOT EXISTS a (id INTEGER);';
+    expect(extractCreateTableNames(sql)).toEqual(['a']);
+  });
+
+  it('returns an empty array for text with no CREATE TABLE statements, instead of throwing', () => {
+    expect(extractCreateTableNames('')).toEqual([]);
+    expect(extractCreateTableNames(undefined)).toEqual([]);
+  });
+});
+
+describe('diffTableNames', () => {
+  it('reports names present in one list but not the other, both sorted', () => {
+    expect(diffTableNames(['a', 'b', 'c'], ['b', 'c', 'd'])).toEqual({
+      onlyInBackupFile: ['a'],
+      onlyInRestoredDb: ['d'],
+    });
+  });
+
+  it('reports no differences for identical lists', () => {
+    expect(diffTableNames(['a', 'b'], ['b', 'a'])).toEqual({ onlyInBackupFile: [], onlyInRestoredDb: [] });
+  });
+
+  it('handles missing/undefined lists instead of throwing', () => {
+    expect(diffTableNames(undefined, ['a'])).toEqual({ onlyInBackupFile: [], onlyInRestoredDb: ['a'] });
+    expect(diffTableNames(['a'], undefined)).toEqual({ onlyInBackupFile: ['a'], onlyInRestoredDb: [] });
+  });
+});
+
 describe('generateRestoreDbName', () => {
   it('produces a name under the restore-drill prefix, unique per (now, random) pair', () => {
     const a = generateRestoreDbName(1000, 'aaaa');
@@ -159,24 +200,30 @@ describe('parseD1ExecuteFileResult', () => {
   });
 });
 
-describe('parseTableCountResult', () => {
-  it('extracts table_count from a real --command --json response shape', () => {
-    const stdout = JSON.stringify([{ results: [{ table_count: 38 }], success: true, meta: {} }]);
-    expect(parseTableCountResult(stdout)).toBe(38);
+describe('parseTableNamesResult', () => {
+  it('extracts a sorted list of table names from a real --command --json response shape', () => {
+    const stdout = JSON.stringify([{ results: [{ name: 'members' }, { name: 'events' }], success: true, meta: {} }]);
+    expect(parseTableNamesResult(stdout)).toEqual(['events', 'members']);
   });
 
   it('extracts the JSON payload even when preceded by non-JSON wrangler output lines', () => {
-    const stdout = ['🌀 Executing on remote database x (uuid):', JSON.stringify([{ results: [{ table_count: 38 }], success: true }])].join(
-      '\n',
-    );
-    expect(parseTableCountResult(stdout)).toBe(38);
+    const stdout = [
+      '🌀 Executing on remote database x (uuid):',
+      JSON.stringify([{ results: [{ name: 'members' }], success: true }]),
+    ].join('\n');
+    expect(parseTableNamesResult(stdout)).toEqual(['members']);
+  });
+
+  it('handles a zero-table result without throwing', () => {
+    expect(parseTableNamesResult(JSON.stringify([{ results: [], success: true }]))).toEqual([]);
   });
 
   it('returns null for an unrecognized shape or failed query instead of throwing', () => {
-    expect(parseTableCountResult('not json')).toBeNull();
-    expect(parseTableCountResult(JSON.stringify([{ results: [{ table_count: 38 }], success: false }]))).toBeNull();
-    expect(parseTableCountResult(JSON.stringify([{ results: [{ other: 1 }], success: true }]))).toBeNull();
-    expect(parseTableCountResult(undefined)).toBeNull();
+    expect(parseTableNamesResult('not json')).toBeNull();
+    expect(parseTableNamesResult(JSON.stringify([{ results: [{ name: 'members' }], success: false }]))).toBeNull();
+    expect(parseTableNamesResult(JSON.stringify([{ results: [{ other: 1 }], success: true }]))).toBeNull();
+    expect(parseTableNamesResult(JSON.stringify([{ success: true }]))).toBeNull();
+    expect(parseTableNamesResult(undefined)).toBeNull();
   });
 });
 
@@ -198,8 +245,10 @@ describe('buildResultMarkdown', () => {
       rowsRead: 0,
       rowsWritten: 1200,
       tableCountVerified: true,
-      expectedTableCount: 38,
-      actualTableCount: 38,
+      expectedTableNames: Array.from({ length: 38 }, (_, i) => `t${i}`),
+      actualTableNames: Array.from({ length: 38 }, (_, i) => `t${i}`),
+      onlyInBackupFile: [],
+      onlyInRestoredDb: [],
       tableCountMatched: true,
       deleteOk: true,
     },
@@ -239,14 +288,22 @@ describe('buildResultMarkdown', () => {
     expect(md).toContain('Isolated restore proof complete: NO');
   });
 
-  it('renders a table count mismatch distinctly from a verification failure', () => {
+  it('renders a table count mismatch with the exact name diff, distinctly from a verification failure', () => {
     const md = buildResultMarkdown({
       ...fullyOk,
-      restore: { ...fullyOk.restore, actualTableCount: 37, tableCountMatched: false },
+      restore: {
+        ...fullyOk.restore,
+        actualTableNames: [...fullyOk.restore.actualTableNames.slice(0, 37), 'extra_table'],
+        tableCountMatched: false,
+        onlyInBackupFile: ['t37'],
+        onlyInRestoredDb: ['extra_table'],
+      },
       restoreProofComplete: false,
     });
     expect(md).toContain('Table count verification: OK');
     expect(md).toContain('Matched exactly: NO');
+    expect(md).toContain('In backup file but not restored database: `t37`');
+    expect(md).toContain('In restored database but not backup file: `extra_table`');
   });
 
   it('renders a checksum-mismatch failure', () => {

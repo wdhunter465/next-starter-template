@@ -93,22 +93,38 @@ export function findLatestBackupKey(keys, databaseName) {
 }
 
 /**
- * Counts `CREATE TABLE` statements for application tables only, excluding SQLite's own
- * internal `sqlite_%` bookkeeping tables (e.g. `sqlite_sequence`, auto-managed whenever any
- * table uses `AUTOINCREMENT`) -- the same exclusion this repo already applies when enumerating
- * "real" tables elsewhere (`functions/api/admin/d1-inspect.ts`: `... AND name NOT LIKE
- * 'sqlite_%'`). Without this, a dump that includes an explicit `CREATE TABLE sqlite_sequence`
- * statement (or a live database where SQLite created it implicitly) could make this count and
- * the live `sqlite_master` count (see main()'s table-count query, which applies the identical
- * exclusion) disagree even though the restore succeeded correctly.
+ * Extracts the names of application tables a SQL dump's `CREATE TABLE` statements create,
+ * excluding SQLite's own internal `sqlite_%` bookkeeping tables (e.g. `sqlite_sequence`,
+ * auto-managed whenever any table uses `AUTOINCREMENT`) -- the same exclusion this repo already
+ * applies when enumerating "real" tables elsewhere (`functions/api/admin/d1-inspect.ts`:
+ * `... AND name NOT LIKE 'sqlite_%'`). Table *names* are schema-only, not row content, so they
+ * are safe to report directly (unlike this script's other queries, which are aggregate-only by
+ * necessity because they touch the restored data itself). Only matches literal `CREATE TABLE`
+ * (not `CREATE VIRTUAL TABLE`, a different statement this regex intentionally does not claim to
+ * count -- see the live query in main(), which applies the identical `sqlite_%` exclusion and is
+ * what this list is actually compared against).
  */
-export function countCreateTableStatements(sqlText) {
+export function extractCreateTableNames(sqlText) {
   const matches = String(sqlText ?? '').matchAll(/^\s*CREATE TABLE\s+(?:IF NOT EXISTS\s+)?["'`]?(\w+)["'`]?/gim);
-  let count = 0;
+  const names = new Set();
   for (const match of matches) {
-    if (!match[1].toLowerCase().startsWith('sqlite_')) count += 1;
+    if (!match[1].toLowerCase().startsWith('sqlite_')) names.add(match[1]);
   }
-  return count;
+  return [...names].sort();
+}
+
+export function countCreateTableStatements(sqlText) {
+  return extractCreateTableNames(sqlText).length;
+}
+
+/** Names present in one list but not the other, both sorted -- for a real, honest diff. */
+export function diffTableNames(expectedNames, actualNames) {
+  const expectedSet = new Set(expectedNames ?? []);
+  const actualSet = new Set(actualNames ?? []);
+  return {
+    onlyInBackupFile: [...expectedSet].filter((n) => !actualSet.has(n)).sort(),
+    onlyInRestoredDb: [...actualSet].filter((n) => !expectedSet.has(n)).sort(),
+  };
 }
 
 export function generateRestoreDbName(now, random) {
@@ -157,17 +173,20 @@ export function parseD1ExecuteFileResult(stdout) {
 }
 
 /**
- * Parses `wrangler d1 execute <db> --command="SELECT COUNT(*) AS table_count FROM sqlite_master
- * WHERE type='table' AND name NOT LIKE 'sqlite_%'" --remote --json`'s response: `[{ results:
- * [{ table_count: N }], success, meta }]` (the standard Cloudflare D1 query API response shape).
- * Returns null when the shape isn't recognized.
+ * Parses `wrangler d1 execute <db> --command="SELECT name FROM sqlite_master WHERE type='table'
+ * AND name NOT LIKE 'sqlite_%' ORDER BY name" --remote --json`'s response: `[{ results: [{ name:
+ * "..." }, ...], success, meta }]` (the standard Cloudflare D1 query API response shape, one row
+ * per table). Returns a sorted array of names, or null when the shape isn't recognized. Table
+ * names are schema-only, safe to report directly -- unlike this restored database's actual row
+ * content, which this script never queries.
  */
-export function parseTableCountResult(stdout) {
+export function parseTableNamesResult(stdout) {
   const parsed = extractJsonArray(stdout);
   const entry = Array.isArray(parsed) ? parsed[0] : parsed;
-  const row = entry?.results?.[0];
-  if (!entry?.success || typeof row?.table_count !== 'number') return null;
-  return row.table_count;
+  if (!entry?.success || !Array.isArray(entry.results)) return null;
+  const names = entry.results.map((row) => row?.name).filter((name) => typeof name === 'string');
+  if (names.length !== entry.results.length) return null;
+  return names.sort();
 }
 
 function resolveWranglerCmd() {
@@ -215,9 +234,19 @@ function formatRestoreResult(restore) {
       `- Table count verification: ${restore.tableCountVerified ? 'OK' : `FAILED${restore.tableCountFailureReason ? ` (${restore.tableCountFailureReason})` : ''}`}`,
     );
     if (restore.tableCountVerified) {
-      lines.push(`  - Expected (from backup file's own \`CREATE TABLE\` statements): ${restore.expectedTableCount}`);
-      lines.push(`  - Actual (restored database, \`sqlite_master\`): ${restore.actualTableCount}`);
+      lines.push(`  - Expected (from backup file's own \`CREATE TABLE\` statements): ${restore.expectedTableNames.length}`);
+      lines.push(`  - Actual (restored database, \`sqlite_master\`): ${restore.actualTableNames.length}`);
       lines.push(`  - Matched exactly: ${restore.tableCountMatched ? 'YES' : 'NO'}`);
+      if (!restore.tableCountMatched) {
+        // Table names are schema-only, never row content, so listing the exact diff here is
+        // safe and is real diagnostic evidence rather than a bare count mismatch to guess at.
+        if (restore.onlyInBackupFile.length > 0) {
+          lines.push(`  - In backup file but not restored database: ${restore.onlyInBackupFile.map((n) => `\`${n}\``).join(', ')}`);
+        }
+        if (restore.onlyInRestoredDb.length > 0) {
+          lines.push(`  - In restored database but not backup file: ${restore.onlyInRestoredDb.map((n) => `\`${n}\``).join(', ')}`);
+        }
+      }
     }
     lines.push(`- Restore-drill database deleted (teardown): ${restore.deleteOk ? 'OK' : `FAILED${restore.deleteFailureReason ? ` (${restore.deleteFailureReason})` : ''}`}`);
   }
@@ -351,8 +380,10 @@ export async function main() {
     rowsWritten: null,
     tableCountVerified: false,
     tableCountFailureReason: '',
-    expectedTableCount: null,
-    actualTableCount: null,
+    expectedTableNames: [],
+    actualTableNames: [],
+    onlyInBackupFile: [],
+    onlyInRestoredDb: [],
     tableCountMatched: false,
     deleteOk: false,
     deleteFailureReason: '',
@@ -415,7 +446,7 @@ export async function main() {
     }
 
     if (discovery.checksumVerified && tmpFile) {
-      restore.expectedTableCount = countCreateTableStatements(fs.readFileSync(tmpFile, 'utf8'));
+      restore.expectedTableNames = extractCreateTableNames(fs.readFileSync(tmpFile, 'utf8'));
 
       const listing = runWrangler(['d1', 'list', '--json']);
       if (!listing.error && listing.status === 0) {
@@ -464,23 +495,27 @@ export async function main() {
           }
 
           if (restore.importOk) {
-            const countCmd = "SELECT COUNT(*) AS table_count FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'";
-            const countExec = runWrangler(['d1', 'execute', dbName, '--command', countCmd, '--remote', '--json', '-y']);
-            if (countExec.error || countExec.status !== 0) {
-              restore.tableCountFailureReason = redact((countExec.stderr || '').trim()).slice(0, 500) || `exit ${countExec.status ?? 'spawn error'}`;
+            const namesCmd = "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%' ORDER BY name";
+            const namesExec = runWrangler(['d1', 'execute', dbName, '--command', namesCmd, '--remote', '--json', '-y']);
+            if (namesExec.error || namesExec.status !== 0) {
+              restore.tableCountFailureReason = redact((namesExec.stderr || '').trim()).slice(0, 500) || `exit ${namesExec.status ?? 'spawn error'}`;
             } else {
-              const actual = parseTableCountResult(countExec.stdout);
-              if (actual == null) {
-                // Same reasoning as the import-parse-failure path above: this response shape
-                // (`[{ results: [{ table_count: N }], success, meta }]`) is confirmed to carry
-                // only the single count this query selected, so a redacted, truncated snippet
-                // is safe real evidence rather than another guess.
-                const snippet = redact((countExec.stdout || '').trim()).slice(0, 800);
+              const actualNames = parseTableNamesResult(namesExec.stdout);
+              if (actualNames == null) {
+                // Same reasoning as the import-parse-failure path above: table names are
+                // schema-only, never row content, so a redacted, truncated snippet is safe real
+                // evidence rather than another guess.
+                const snippet = redact((namesExec.stdout || '').trim()).slice(0, 800);
                 restore.tableCountFailureReason = `wrangler exited 0 but its response could not be interpreted (this does not necessarily mean the query itself succeeded).${snippet ? ` Raw (redacted) response snippet: ${snippet}` : ' (no stdout captured)'}`;
               } else {
                 restore.tableCountVerified = true;
-                restore.actualTableCount = actual;
-                restore.tableCountMatched = actual === restore.expectedTableCount;
+                restore.actualTableNames = actualNames;
+                restore.tableCountMatched =
+                  restore.expectedTableNames.length === actualNames.length &&
+                  restore.expectedTableNames.every((name, i) => name === actualNames[i]);
+                const diff = diffTableNames(restore.expectedTableNames, actualNames);
+                restore.onlyInBackupFile = diff.onlyInBackupFile;
+                restore.onlyInRestoredDb = diff.onlyInRestoredDb;
               }
             }
           }
@@ -519,7 +554,7 @@ export async function main() {
     return;
   }
 
-  console.log(`OK: isolated restore proof complete (${restore.actualTableCount} tables, ${restore.rowsWritten} rows written).`);
+  console.log(`OK: isolated restore proof complete (${restore.actualTableNames.length} tables, ${restore.rowsWritten} rows written).`);
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
