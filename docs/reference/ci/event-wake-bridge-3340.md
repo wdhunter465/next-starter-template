@@ -95,8 +95,8 @@ Issue labeled agent:cursor + handoff:ready
 ### Operator commands
 
 ```bash
-# Unit tests (no network)
-node --test tests/lgfc-event-wake.test.mjs
+# Unit tests (no network; vitest)
+npx vitest run tests/lgfc-event-wake.test.mjs
 
 # One-shot status-only poll (GitHub read + dispatch --dry-run)
 node scripts/lgfc-event-wake/poll.mjs --once --status-only
