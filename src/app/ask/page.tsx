@@ -207,7 +207,10 @@ export default function AskPage() {
         fallback={
           <>
             <h1 style={{ fontSize: 34, margin: '0 0 10px 0' }}>FAQ &amp; Ask a Question</h1>
-            <p className="sub">Loading...</p>
+            <p className="sub" style={{ marginTop: 0 }}>
+              Browse approved FAQ answers or submit a new question for moderator review. This is the canonical public
+              Ask/FAQ workflow.
+            </p>
           </>
         }
       >

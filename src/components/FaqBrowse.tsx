@@ -33,7 +33,8 @@ export default function FaqBrowse({
   askFormHref = '#ask-form',
 }: FaqBrowseProps) {
   const [items, setItems] = useState<FAQItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Static export must not bake "Loading FAQ…" into HTML (#3305).
+  const [loading, setLoading] = useState(false);
   const [loadError, setLoadError] = useState('');
   const [query, setQuery] = useState(initialQuery);
   const [expandedIds, setExpandedIds] = useState<Set<number>>(() => new Set());

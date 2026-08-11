@@ -33,7 +33,6 @@ function pickErrMsg(err: unknown, fallback: string): string {
 
 function InnerAuthClient({ defaultMode }: { defaultMode?: Mode }) {
   const sp = useSearchParams();
-  const [checkingSession, setCheckingSession] = useState(true);
 
   const initialMode = useMemo<Mode>(() => {
     const queryMode = (sp.get('mode') || '').toLowerCase();
@@ -77,13 +76,10 @@ function InnerAuthClient({ defaultMode }: { defaultMode?: Mode }) {
 
         if (!cancelled && ok && email) {
           window.location.replace(POST_LOGIN_ROUTE);
-          return;
         }
       } catch {
-        // Fail closed to guest join/login surface.
+        // Fail closed to guest join/login surface — keep form visible (#3305).
       }
-
-      if (!cancelled) setCheckingSession(false);
     }
 
     redirectIfAuthenticated();
@@ -194,14 +190,6 @@ function InnerAuthClient({ defaultMode }: { defaultMode?: Mode }) {
     } finally {
       setBusy(false);
     }
-  }
-
-  if (checkingSession) {
-    return (
-      <main style={{ maxWidth: 560, margin: '40px auto', padding: 20 }}>
-        Checking session…
-      </main>
-    );
   }
 
   return (
@@ -334,7 +322,17 @@ function InnerAuthClient({ defaultMode }: { defaultMode?: Mode }) {
 
 export default function AuthClient(props: { defaultMode?: Mode }) {
   return (
-    <Suspense fallback={<div style={{ maxWidth: 560, margin: '40px auto', padding: 20 }}>Loading…</div>}>
+    <Suspense
+      fallback={
+        <main style={{ maxWidth: 560, margin: '40px auto', padding: 20 }}>
+          <h1 style={{ textAlign: 'center', marginBottom: 8 }}>Join / Login</h1>
+          <p style={{ textAlign: 'center', margin: '0 0 16px 0', lineHeight: 1.55, color: 'rgba(0,0,0,0.72)' }}>
+            The public Lou Gehrig Fan Club site is open to everyone. Join or log in to access the member Fan Club area with
+            archives, discussions, and club-only content.
+          </p>
+        </main>
+      }
+    >
       <InnerAuthClient defaultMode={props.defaultMode} />
     </Suspense>
   );

@@ -69,7 +69,8 @@ const ctaSecondary: CSSProperties = {
 
 export default function FAQSection() {
   const [items, setItems] = useState<FAQItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Static export must not bake "Loading FAQ…" into HTML (#3305).
+  const [loading, setLoading] = useState(false);
   const [q, setQ] = useState("");
 
   const query = useMemo(() => q.trim(), [q]);
@@ -87,6 +88,7 @@ export default function FAQSection() {
 
     (async () => {
       try {
+        setLoading(true);
         const limit = query ? 10 : 5;
         const data = await apiGet<{ ok: boolean; items: FAQItem[] }>(
           `/api/faq/list?limit=${limit}${query ? `&q=${encodeURIComponent(query)}` : ""}`
