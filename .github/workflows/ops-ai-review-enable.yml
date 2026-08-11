@@ -4,9 +4,32 @@ name: OPS — Enable AI Review Access (#2215)
 # Uses existing repo secrets: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID,
 # CLOUDFLARE_PROJECT_NAME (and GH_AW_TOKEN when available to write AI_REVIEW_TOKEN).
 # Does not print AI_REVIEW_TOKEN. Requires Bill/operator Implementation Go on #2215.
+#
+# #3289: preview-first by default. Production requires explicit confirm_production=true.
 on:
   workflow_dispatch:
     inputs:
+      target_environment:
+        description: Cloudflare Pages environment to provision (default preview)
+        required: false
+        default: 'preview'
+        type: choice
+        options:
+          - 'preview'
+          - 'production'
+      confirm_production:
+        description: Required when target_environment=production (must be true)
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+      verify_base_url:
+        description: Base URL for verify steps (required for preview; production defaults to www)
+        required: false
+        default: ''
+        type: string
       allow_admin:
         description: Set AI_REVIEW_ALLOW_ADMIN (opt-in; default false)
         required: false
@@ -16,7 +39,7 @@ on:
           - 'false'
           - 'true'
       trigger_redeploy:
-        description: Retry latest production deployment so secrets apply (default false)
+        description: Retry latest deployment so secrets apply (default false)
         required: false
         default: 'false'
         type: choice
@@ -35,6 +58,7 @@ jobs:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_PROJECT_NAME: ${{ secrets.CLOUDFLARE_PROJECT_NAME }}
       AI_REVIEW_ALLOW_ADMIN: ${{ inputs.allow_admin }}
+      AI_REVIEW_TARGET_ENV: ${{ inputs.target_environment }}
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -43,6 +67,32 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+
+      - name: Guard production confirmation and verify URL
+        run: |
+          set -euo pipefail
+          TARGET="${{ inputs.target_environment }}"
+          CONFIRM="${{ inputs.confirm_production }}"
+          VERIFY_IN="${{ inputs.verify_base_url }}"
+          if [ "$TARGET" = "production" ] && [ "$CONFIRM" != "true" ]; then
+            echo "Production target refused: set confirm_production=true (preview-first rule #3289 / #2215)."
+            exit 1
+          fi
+          if [ "$TARGET" = "preview" ]; then
+            if [ -z "$VERIFY_IN" ]; then
+              echo "Preview target requires verify_base_url (Pages preview hostname)."
+              exit 1
+            fi
+            echo "VERIFY_BASE_URL=${VERIFY_IN%/}" >> "$GITHUB_ENV"
+          else
+            if [ -n "$VERIFY_IN" ]; then
+              echo "VERIFY_BASE_URL=${VERIFY_IN%/}" >> "$GITHUB_ENV"
+            else
+              echo "VERIFY_BASE_URL=https://www.lougehrigfanclub.com" >> "$GITHUB_ENV"
+            fi
+          fi
+          echo "Target environment: ${TARGET}"
+          echo "Verify base URL will be used (value logged without secrets)."
 
       - name: Guard Cloudflare secrets
         run: |
@@ -61,22 +111,24 @@ jobs:
           AI_REVIEW_TOKEN_OUT: ${{ runner.temp }}/ai-review-token
         run: node scripts/ops/enable-ai-review-access.mjs
 
-      - name: Redeploy production for secret pickup
+      - name: Redeploy target environment for secret pickup
         if: ${{ inputs.trigger_redeploy == 'true' }}
         run: |
           set -euo pipefail
           PROJECT="${CLOUDFLARE_PROJECT_NAME:-next-starter-template}"
-          url="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/${PROJECT}/deployments?per_page=10"
+          TARGET="${{ inputs.target_environment }}"
+          url="https://api.cloudflare.com/client/v4/accounts/${CLOUDFLARE_ACCOUNT_ID}/pages/projects/${PROJECT}/deployments?per_page=20"
           resp=$(curl -fsSL -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" -H "Accept: application/json" "$url")
-          dep=$(printf '%s' "$resp" | node -e '
+          dep=$(printf '%s' "$resp" | TARGET="$TARGET" node -e '
             let d=""; process.stdin.on("data",c=>d+=c); process.stdin.on("end",()=>{
               const j=JSON.parse(d); const list=j.result||[];
-              const prod=list.find(x=>x.environment==="production")||list[0];
-              if(!prod){console.error("no deployment"); process.exit(2)}
-              console.log(prod.id);
+              const want=process.env.TARGET;
+              const match=list.find(x=>x.environment===want)||list[0];
+              if(!match){console.error("no deployment"); process.exit(2)}
+              console.log(match.id);
             });
           ')
-          echo "Retrying deployment ${dep}…"
+          echo "Retrying ${TARGET} deployment ${dep}…"
           curl -fsS -X POST \
             -H "Authorization: Bearer ${CLOUDFLARE_API_TOKEN}" \
             -H "Content-Type: application/json" \
@@ -98,7 +150,7 @@ jobs:
       - name: Verify fail-closed without token
         run: |
           set -euo pipefail
-          code=$(curl -sS -o /dev/null -w '%{http_code}' "https://www.lougehrigfanclub.com/_ai-review/fanclub" || true)
+          code=$(curl -sS -o /dev/null -w '%{http_code}' "${VERIFY_BASE_URL}/_ai-review/fanclub" || true)
           echo "No-token /_ai-review/fanclub => HTTP ${code}"
           if [ "$code" = "200" ]; then
             echo "Unexpected 200 without token"
@@ -112,7 +164,7 @@ jobs:
           set -euo pipefail
           TOKEN=$(cat "$AI_REVIEW_TOKEN_OUT")
           code=$(curl -sS -o /dev/null -w '%{http_code}' \
-            "https://www.lougehrigfanclub.com/_ai-review/fanclub?token=${TOKEN}" || true)
+            "${VERIFY_BASE_URL}/_ai-review/fanclub?token=${TOKEN}" || true)
           echo "Authorized /_ai-review/fanclub => HTTP ${code}"
           if [ "$code" != "200" ]; then
             echo "::warning::Authorized check returned ${code} (may need another deploy/propagation). Cloudflare secrets were set."
@@ -138,11 +190,14 @@ jobs:
       - name: Summary
         run: |
           {
-            echo "## AI review enablement (#2215)"
+            echo "## AI review enablement (#2215 / #3289)"
             echo ""
             echo "- Auth: existing repo Cloudflare secrets (CLOUDFLARE_API_TOKEN / ACCOUNT_ID / PROJECT_NAME)"
+            echo "- Target environment: ${{ inputs.target_environment }}"
+            echo "- Confirm production: ${{ inputs.confirm_production }}"
+            echo "- Verify base URL: ${VERIFY_BASE_URL}"
             echo "- Cloudflare Pages secrets set: AI_REVIEW_ENABLED, AI_REVIEW_TOKEN, AI_REVIEW_ALLOW_ADMIN=${{ inputs.allow_admin }}"
             echo "- GitHub secret AI_REVIEW_TOKEN: attempted"
-            echo "- Production redeploy retry: ${{ inputs.trigger_redeploy }}"
+            echo "- Redeploy retry: ${{ inputs.trigger_redeploy }}"
             echo "- Token value: not logged"
           } >> "$GITHUB_STEP_SUMMARY"
