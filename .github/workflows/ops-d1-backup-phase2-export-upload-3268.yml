@@ -1,0 +1,103 @@
+name: OPS — D1 Backup Phase 2 Package 2 Export/Upload (#3268)
+
+# Operator-triggered, bounded #3268 Phase 2 Package 2 job: performs exactly one real,
+# read-only `wrangler d1 export --remote` of the Production D1 database (lgfc_lite),
+# computes a SHA-256 checksum, uploads the export and its checksum sidecar to the
+# private lgfc-d1-backups R2 bucket under a dated prefix, then re-downloads and
+# re-hashes the uploaded object to independently verify it. Gated on Package 1
+# (PR #3306/#3309) having already confirmed both R2 write scope and D1 admin scope.
+#
+# This workflow never writes to, restores into, or otherwise mutates lgfc_lite in any
+# way -- D1 export is Cloudflare's documented read-only backup mechanism. It never
+# attempts a restore; that is Package 3, gated on this package's own verified result.
+#
+# This file (and scripts/ci/d1_backup_phase2_export_upload_3268.mjs) matches this
+# repo's protected-path patterns in scripts/ci/delivery_profile.mjs, so PRs touching
+# it require Approval profile: protected-change-review.
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_export_upload:
+        description: 'Type "confirm" to run the #3268 Phase 2 Package 2 real export/upload'
+        required: true
+        type: string
+
+concurrency:
+  group: d1-backup-phase2-export-upload-3268
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  export-upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require explicit confirmation
+        run: |
+          if [ "${{ inputs.confirm_export_upload }}" != "confirm" ]; then
+            echo "confirm_export_upload must be exactly 'confirm' — refusing to run."
+            exit 1
+          fi
+
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run #3268 Phase 2 Package 2 export/upload
+        id: export_upload
+        env:
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DATABASE_NAME: ${{ secrets.D1_DATABASE_NAME }}
+        run: node scripts/ci/d1_backup_phase2_export_upload_3268.mjs
+
+      - name: Upload result evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: d1-backup-phase2-export-upload-3268-result
+          path: |
+            d1-backup-phase2-export-upload-3268-result.json
+            d1-backup-phase2-export-upload-3268-result.md
+          if-no-files-found: warn
+
+      - name: Write step summary
+        if: always() && hashFiles('d1-backup-phase2-export-upload-3268-result.md') != ''
+        run: cat d1-backup-phase2-export-upload-3268-result.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Record result on #3268
+        if: always() && hashFiles('d1-backup-phase2-export-upload-3268-result.md') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue comment 3268 --body-file d1-backup-phase2-export-upload-3268-result.md
+
+      - name: Record failure on #3268
+        if: failure() && steps.checkout.outcome == 'success' && hashFiles('d1-backup-phase2-export-upload-3268-result.md') == ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue comment 3268 --body "$(cat <<'EOF'
+          <!-- d1-backup-phase2-export-upload-3268 -->
+          ## #3268 Phase 2 Package 2 export/upload — FAILED (fail-closed)
+
+          The bounded real D1 export/checksum/R2-upload job did not complete. No
+          Production D1 write or restore was attempted. See the workflow run logs
+          and uploaded artifact (if any) for details.
+
+          Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          EOF
+          )"
