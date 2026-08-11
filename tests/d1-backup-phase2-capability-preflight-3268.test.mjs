@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildResultMarkdown,
+  computeD1Capable,
+  computeR2Capable,
   findOrphanTestDatabases,
   generateTestContent,
   generateTestDbName,
@@ -57,6 +59,47 @@ describe('generateTestKey / generateTestDbName / generateTestContent', () => {
     const content = generateTestContent('deadbeef');
     expect(content).toContain('deadbeef');
     expect(content).toContain('#3268 Phase 2 Package 1');
+  });
+});
+
+// Regression coverage for the two post-merge findings on PR #3306 (#3308): (1) r2Capable
+// must require deleteVerified, not just a 2xx DELETE response, since a DELETE that
+// "succeeded" but left the object readable is not proof of reversibility; (2) the
+// whitespace-only-secret-after-trim gap this preflight shares with the Phase 1 R2
+// preflight (findBlankAfterTrim, reused here) must fail closed rather than silently
+// producing a malformed hostname/credential.
+describe('computeR2Capable', () => {
+  it('requires deleteVerified, not just deleteOk, to report capable', () => {
+    expect(
+      computeR2Capable({ putOk: true, getOk: true, contentMatched: true, deleteOk: true, deleteVerified: true }),
+    ).toBe(true);
+    expect(
+      computeR2Capable({ putOk: true, getOk: true, contentMatched: true, deleteOk: true, deleteVerified: false }),
+    ).toBe(false);
+  });
+
+  it('requires every prior step to have succeeded', () => {
+    expect(computeR2Capable({ putOk: false })).toBe(false);
+    expect(computeR2Capable({ putOk: true, getOk: false })).toBe(false);
+    expect(computeR2Capable({ putOk: true, getOk: true, contentMatched: false })).toBe(false);
+  });
+
+  it('does not throw on a missing/undefined r2 result', () => {
+    expect(computeR2Capable(undefined)).toBe(false);
+    expect(computeR2Capable({})).toBe(false);
+  });
+});
+
+describe('computeD1Capable', () => {
+  it('requires create, execute, and delete to all have succeeded', () => {
+    expect(computeD1Capable({ createOk: true, executeOk: true, deleteOk: true })).toBe(true);
+    expect(computeD1Capable({ createOk: true, executeOk: true, deleteOk: false })).toBe(false);
+    expect(computeD1Capable({ createOk: true, executeOk: false, deleteOk: true })).toBe(false);
+  });
+
+  it('does not throw on a missing/undefined d1 result', () => {
+    expect(computeD1Capable(undefined)).toBe(false);
+    expect(computeD1Capable({})).toBe(false);
   });
 });
 
