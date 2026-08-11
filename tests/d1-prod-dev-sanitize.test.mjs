@@ -4,6 +4,7 @@ import path from 'node:path';
 
 import {
   MANIFEST_RELATIVE,
+  applyTransform,
   assertSchemaCovered,
   evaluateRefreshGate,
   loadManifest,
@@ -108,16 +109,16 @@ describe('d1 prod/dev sanitization policy (#3358)', () => {
     expect(JSON.stringify(result.rows)).not.toContain('ada@secret.example');
   });
 
-  it('refuses to sanitize photos while people is hold_for_product', () => {
-    expect(() =>
-      sanitizeTable(manifest, 'photos', [
-        {
-          id: 1,
-          url: 'https://cdn.example/p.jpg',
-          people: 'Jane Doe, John Smith',
-        },
-      ]),
-    ).toThrow(/hold_for_product/);
+  it('allows photos.people COPY AS-IS after PD-3358-01', () => {
+    const result = sanitizeTable(manifest, 'photos', [
+      {
+        id: 1,
+        url: 'https://cdn.example/p.jpg',
+        people: 'Jane Doe, John Smith',
+        is_memorabilia: 1,
+      },
+    ]);
+    expect(result.rows[0].people).toBe('Jane Doe, John Smith');
   });
 
   it('excludes content_items with non-public privacy_flag (fail-closed)', () => {
@@ -131,25 +132,26 @@ describe('d1 prod/dev sanitization policy (#3358)', () => {
   });
 
   it('dataset sanitization stats never echo source values', () => {
-    const result = sanitizeDataset(
-      manifest,
-      {
-        members: [{ id: 1, email: 'leak@example.com', role: 'member' }],
-        login_attempts: [{ id: 1, email: 'leak@example.com', ip: '1.2.3.4', ok: 0 }],
-      },
-      { ignoreRefreshGate: true },
-    );
+    const result = sanitizeDataset(manifest, {
+      members: [{ id: 1, email: 'leak@example.com', role: 'member' }],
+      login_attempts: [{ id: 1, email: 'leak@example.com', ip: '1.2.3.4', ok: 0 }],
+    });
     expect(result.ok).toBe(true);
     const blob = JSON.stringify(privacySafeSummary(result.summary));
     expect(blob).not.toContain('leak@example.com');
     expect(blob).not.toContain('1.2.3.4');
+    expect(result.summary.find((s) => s.table === 'members')?.excludedCount).toBe(1);
   });
 
-  it('refresh gate recommends HOLD while product decisions remain open', () => {
+  it('refresh gate is GO after Product disposition of photos.people', () => {
     const gate = evaluateRefreshGate(manifest);
-    expect(gate.recommendation).toBe('HOLD');
-    expect(gate.ok).toBe(false);
-    expect(gate.holds.some((h) => h.table === 'photos' && h.column === 'people')).toBe(true);
+    expect(gate.recommendation).toBe('GO');
+    expect(gate.ok).toBe(true);
+    expect(gate.holds).toEqual([]);
+  });
+
+  it('fails closed when a non-copy column is missing its transform', () => {
+    expect(() => applyTransform('', 'seed', 'secret@example.com')).toThrow(/Missing transform/);
   });
 
   it('manifest file path is stable for the refresh workflow', () => {

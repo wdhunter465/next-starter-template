@@ -24,8 +24,8 @@
     "EXCLUDE member_sessions and login_attempts removes auth continuity; Dev uses fixture members only.",
     "REPLACE WITH FIXTURE members must use synthetic emails referenced by any remaining member-linked Dev rows.",
     "EXCLUDE join_email_log; join_requests may remain as transformed rows without matching email log.",
-    "photos.people is HOLD FOR PRODUCT \u2014 refresh Action must refuse until dispositioned.",
-    "content_items rows with non-public privacy_flag are excluded; dependents should tolerate missing parents or be filtered."
+    "content_items rows with non-public privacy_flag are excluded; dependents should tolerate missing parents or be filtered.",
+    "photos.people is COPY AS-IS per PD-3358-01."
   ],
   "product_decisions": [
     {
@@ -33,7 +33,10 @@
       "table": "photos",
       "column": "people",
       "question": "May memorabilia people tags copy as-is into Dev, or must they be redacted/randomized?",
-      "status": "open"
+      "status": "closed_copy_as_is",
+      "disposition": "COPY AS-IS",
+      "disposition_at": "2026-08-11",
+      "disposition_by": "Product Authority (Bill)"
     },
     {
       "id": "PD-3358-02",
@@ -44,8 +47,8 @@
     }
   ],
   "go_hold_recommendation": {
-    "for_remote_refresh_action_3359": "HOLD",
-    "reason": "Open Product decision PD-3358-01 (photos.people). Auth/PII table rules otherwise ready for Action scaffolding after ACCEPT of this policy."
+    "for_remote_refresh_action_3359": "GO",
+    "reason": "PD-3358-01 closed as COPY AS-IS. PD-3358-02 remains proposed fixture-only members default (not a blocking hold). Auth/PII fail-closed rules remain enforced by the manifest."
   },
   "fixtures": {
     "members": [
@@ -1371,8 +1374,8 @@
           "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
         },
         "people": {
-          "class": "hold_for_product",
-          "reason": "May contain identifiable people names; Product must choose redact vs keep for memorabilia"
+          "class": "copy_as_is",
+          "reason": "Product PD-3358-01 (2026-08-11): COPY AS-IS \u2014 public photo/person metadata may match Production"
         },
         "teams": {
           "class": "copy_as_is",
