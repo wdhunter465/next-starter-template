@@ -195,7 +195,7 @@ export function parseInsertDump(sqlText, schemaFingerprint) {
     const table = match[1] || match[2];
     const colBlob = match[3];
     const after = sqlText.slice(match.index + match[0].length);
-    const endMatch = after.match(/^([\s\S]*?)(?:;|\n(?=INSERT\s+INTO|\nCREATE|\nCOMMIT|\nBEGIN|\Z))/i);
+    const endMatch = after.match(/^([\s\S]*?)(?:;|\n(?=INSERT\s+INTO|\nCREATE|\nCOMMIT|\nBEGIN)|$)/i);
     if (!endMatch) {
       failures.push(`Failed to locate VALUES payload for table ${table}`);
       continue;
@@ -235,6 +235,11 @@ export function parseInsertDump(sqlText, schemaFingerprint) {
   }
 
   return { ok: failures.length === 0, failures, dataset };
+}
+
+/** Total parsed data rows across tables (excludes empty table keys). */
+export function countParsedRows(dataset = {}) {
+  return Object.values(dataset).reduce((n, rows) => n + (Array.isArray(rows) ? rows.length : 0), 0);
 }
 
 export function sqlLiteral(value) {
@@ -297,21 +302,25 @@ export function buildEvidenceArtifact({
 
 function resolveWranglerCmd() {
   const local = path.resolve(process.cwd(), 'node_modules', '.bin', 'wrangler');
-  return fs.existsSync(local) ? local : 'npx';
+  if (fs.existsSync(local)) return [local];
+  return ['npx', '--no-install', 'wrangler'];
+}
+
+function runWrangler(args, env = process.env) {
+  const cmd = resolveWranglerCmd();
+  // Discard stdout at OS level — wrangler d1 export may print a presigned URL.
+  return spawnSync(cmd[0], [...cmd.slice(1), ...args], {
+    encoding: 'utf8',
+    env,
+    stdio: ['ignore', 'ignore', 'pipe'],
+  });
 }
 
 export function exportProductionSql({ databaseName = PROD_NAME, outputPath, env = process.env }) {
-  const wrangler = resolveWranglerCmd();
-  const args =
-    wrangler === 'npx'
-      ? ['wrangler', 'd1', 'export', databaseName, '--remote', '--output', outputPath]
-      : ['d1', 'export', databaseName, '--remote', '--output', outputPath];
-  const result = spawnSync(wrangler, args, {
+  const result = runWrangler(
+    ['d1', 'export', databaseName, '--remote', '--output', outputPath],
     env,
-    encoding: 'utf8',
-    maxBuffer: 64 * 1024 * 1024,
-  });
-  // Never print stdout (may contain presigned URLs). Surface only exit code.
+  );
   if (result.status !== 0) {
     const err = (result.stderr || '').split('\n').slice(0, 5).join('\n');
     throw new Error(`Production export failed (exit ${result.status}): ${err}`);
@@ -328,17 +337,9 @@ export function applyDevSqlFile({
   env = process.env,
   usePreviewEnv = true,
 }) {
-  const wrangler = resolveWranglerCmd();
-  const base =
-    wrangler === 'npx'
-      ? ['wrangler', 'd1', 'execute', databaseName, '--remote', '--yes', '--file', sqlPath]
-      : ['d1', 'execute', databaseName, '--remote', '--yes', '--file', sqlPath];
-  if (usePreviewEnv) base.push('--env', 'preview');
-  const result = spawnSync(wrangler, base, {
-    env,
-    encoding: 'utf8',
-    maxBuffer: 64 * 1024 * 1024,
-  });
+  const args = ['d1', 'execute', databaseName, '--remote', '--yes', '--file', sqlPath];
+  if (usePreviewEnv) args.push('--env', 'preview');
+  const result = runWrangler(args, env);
   if (result.status !== 0) {
     const err = (result.stderr || '').split('\n').slice(0, 5).join('\n');
     throw new Error(`Dev SQL apply failed (exit ${result.status}): ${err}`);
@@ -413,6 +414,13 @@ export function runRefreshPipeline({
     const parsed = parseInsertDump(sqlText, manifest.schema_fingerprint);
     if (!parsed.ok) {
       return { ok: false, failures: parsed.failures, evidence: null };
+    }
+    if (countParsedRows(parsed.dataset) === 0) {
+      return {
+        ok: false,
+        failures: ['Fail-closed: export produced zero parsable INSERT rows; refusing Dev DELETE/load'],
+        evidence: null,
+      };
     }
 
     // Ensure every fingerprint table key exists for DELETE generation even if empty.

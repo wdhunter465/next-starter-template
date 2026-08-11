@@ -126,6 +126,24 @@ INSERT INTO "photos" ("id", "url", "is_memorabilia", "description", "created_at"
     expect(parsed.failures.some((f) => f.includes('brand_new_secrets'))).toBe(true);
   });
 
+  it('fails closed when dump has no parsable INSERT rows', () => {
+    const result = runRefreshPipeline({
+      dryRun: true,
+      confirm: CONFIRM_TOKEN,
+      reason: '#3368 empty dump guard',
+      skipRemoteExport: true,
+      fixtureSqlText: '-- schema only\nCREATE TABLE x(id INTEGER);\n',
+      env: {
+        D1_DATABASE_NAME: PROD_NAME,
+        D1_DATABASE_ID: PROD_ID,
+        D1_DEV_DATABASE_NAME: DEV_NAME,
+        D1_DEV_DATABASE_ID: DEV_ID,
+      },
+    });
+    expect(result.ok).toBe(false);
+    expect(result.failures.some((f) => f.includes('zero parsable INSERT'))).toBe(true);
+  });
+
   it('workflow file is workflow_dispatch only', () => {
     const text = fs.readFileSync('.github/workflows/ops-d1-prod-dev-refresh.yml', 'utf8');
     expect(text).toMatch(/workflow_dispatch:/);
