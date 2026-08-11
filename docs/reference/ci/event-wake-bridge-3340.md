@@ -11,6 +11,9 @@ Last Reviewed: 2026-08-11
 
 # Event-driven GitHub → Cursor Local wake bridge (#3340)
 
+> **Operating status (#3347 / Product Authority 2026-08-11): ABANDONED as an LGFC connection type.**  
+> Do **not** run `scripts/lgfc-event-wake` as the live pager. Primary wake is the `lgfc-cursor` self-hosted runner + `lgfc-cursor-dispatch` (#3212 Phase 4 / #3347). This document remains historical prototype evidence only.
+
 ## Purpose
 
 Replace or augment Cursor Local’s **one-minute AI tick loop** with a **non-AI idle listener** that wakes the existing Chromebook Local agent only when repository state becomes actionable — without Cloud Agent / My Machines.
@@ -137,24 +140,15 @@ node scripts/lgfc-event-wake/poll.mjs --interval-sec 60 --status-only
 | Security exposure | Chat session | Local state + `gh` creds | Runner contract |
 | All-day online | Requires IDE chat | systemd/user service candidate | Runner service |
 
-## Recommendation
+## Recommendation (superseded)
 
-**Adapt (hybrid) — do not full-replace yet.**
+**Historical PoC recommendation was Adapt (hybrid).** That operating recommendation is **superseded by #3347**:
 
-1. **Keep** session AI tick as short-term fallback while chat is the operator surface.
-2. **Adopt** non-AI `lgfc-event-wake` as optional Chromebook service (status-only → then bounded live invoke after WORK/Bill Go).
-3. **Keep** `lgfc-cursor-dispatch` as primary for explicit `handoff:ready` when runner healthy.
-4. **Reject** My Machines / public inbound webhook as the Local pager.
-
-### If hardened for production use
-
-- systemd user unit + journald logs
-- Health check Issue or metric when poll fails N times
-- Watermark TTL / reason re-arm when labels change without `updated_at` semantics surprise
-- Expand predicates only with security review
-- Document rollback: stop poller; resume AI tick
-- WORK independent review before disabling the tick
+1. **Primary:** `lgfc-cursor-dispatch` on `lgfc-cursor-chromebook` when the runner is healthy.
+2. **Backup (optional):** wider-interval AI tick only if Product Authority restores it to cover runner gaps — not a permanent 1-minute burn.
+3. **Abandoned:** non-AI `lgfc-event-wake` / #3340 bridge as an LGFC connection type — do not adopt as the pager.
+4. **Reject:** My Machines / public inbound webhook as the Local pager.
 
 ## Rollback
 
-Delete/disable poller process; retain AI tick + label dispatch unchanged. Revert this branch/PR.
+No live poller service was commissioned. Optional host cleanup: delete `~/.lgfc-event-wake`. Retain runner + optional AI tick per #3347.
