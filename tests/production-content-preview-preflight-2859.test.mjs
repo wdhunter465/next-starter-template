@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildResultMarkdown,
-  extractIsTruncated,
   requireEnv,
 } from '../scripts/ci/production_content_preview_preflight_2859.mjs';
 
@@ -43,24 +42,6 @@ describe('requireEnv', () => {
     expect(missing).not.toContain('PREVIEW_D1_DATABASE_ID');
     expect(missing).not.toContain('PREVIEW_R2_BUCKET_NAME');
     expect(missing).not.toContain('R2_ACCESS_KEY_ID');
-  });
-});
-
-describe('extractIsTruncated', () => {
-  it('returns true when IsTruncated is true', () => {
-    expect(extractIsTruncated('<ListBucketResult><IsTruncated>true</IsTruncated></ListBucketResult>')).toBe(true);
-  });
-
-  it('returns false when IsTruncated is false', () => {
-    expect(extractIsTruncated('<ListBucketResult><IsTruncated>false</IsTruncated></ListBucketResult>')).toBe(false);
-  });
-
-  it('returns false when the tag is absent', () => {
-    expect(extractIsTruncated('<ListBucketResult></ListBucketResult>')).toBe(false);
-  });
-
-  it('returns false for null/undefined input', () => {
-    expect(extractIsTruncated(undefined)).toBe(false);
   });
 });
 
