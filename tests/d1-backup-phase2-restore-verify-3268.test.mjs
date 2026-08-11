@@ -68,6 +68,25 @@ describe('countCreateTableStatements', () => {
     expect(countCreateTableStatements(sql)).toBe(2);
   });
 
+  // Regression coverage for a Copilot finding on PR #3314: SQLite's own internal
+  // sqlite_sequence table (auto-managed whenever any table uses AUTOINCREMENT) must be
+  // excluded, matching the same exclusion this repo already applies elsewhere
+  // (functions/api/admin/d1-inspect.ts: `... AND name NOT LIKE 'sqlite_%'`) -- otherwise this
+  // count and the live sqlite_master count could disagree even on a correct restore.
+  it('excludes sqlite_% internal tables like sqlite_sequence', () => {
+    const sql = [
+      'CREATE TABLE members (id INTEGER PRIMARY KEY AUTOINCREMENT);',
+      'CREATE TABLE sqlite_sequence(name,seq);',
+      'CREATE TABLE events (id INTEGER);',
+    ].join('\n');
+    expect(countCreateTableStatements(sql)).toBe(2);
+  });
+
+  it('handles quoted table names and IF NOT EXISTS', () => {
+    const sql = 'CREATE TABLE IF NOT EXISTS "members" (id INTEGER);\nCREATE TABLE `events` (id INTEGER);';
+    expect(countCreateTableStatements(sql)).toBe(2);
+  });
+
   it('returns 0 for text with no CREATE TABLE statements, instead of throwing', () => {
     expect(countCreateTableStatements('')).toBe(0);
     expect(countCreateTableStatements(undefined)).toBe(0);

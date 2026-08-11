@@ -37,6 +37,8 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import crypto from 'node:crypto';
+import { Readable, Transform } from 'node:stream';
+import { pipeline } from 'node:stream/promises';
 import { spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { AwsClient } from '../../functions/_lib/aws4fetch.ts';
@@ -90,9 +92,23 @@ export function findLatestBackupKey(keys, databaseName) {
   return candidates.length > 0 ? candidates[candidates.length - 1] : null;
 }
 
+/**
+ * Counts `CREATE TABLE` statements for application tables only, excluding SQLite's own
+ * internal `sqlite_%` bookkeeping tables (e.g. `sqlite_sequence`, auto-managed whenever any
+ * table uses `AUTOINCREMENT`) -- the same exclusion this repo already applies when enumerating
+ * "real" tables elsewhere (`functions/api/admin/d1-inspect.ts`: `... AND name NOT LIKE
+ * 'sqlite_%'`). Without this, a dump that includes an explicit `CREATE TABLE sqlite_sequence`
+ * statement (or a live database where SQLite created it implicitly) could make this count and
+ * the live `sqlite_master` count (see main()'s table-count query, which applies the identical
+ * exclusion) disagree even though the restore succeeded correctly.
+ */
 export function countCreateTableStatements(sqlText) {
-  const matches = String(sqlText ?? '').match(/^\s*CREATE TABLE\b/gim);
-  return matches ? matches.length : 0;
+  const matches = String(sqlText ?? '').matchAll(/^\s*CREATE TABLE\s+(?:IF NOT EXISTS\s+)?["'`]?(\w+)["'`]?/gim);
+  let count = 0;
+  for (const match of matches) {
+    if (!match[1].toLowerCase().startsWith('sqlite_')) count += 1;
+  }
+  return count;
 }
 
 export function generateRestoreDbName(now, random) {
@@ -124,9 +140,9 @@ export function parseD1ExecuteFileResult(stdout) {
 
 /**
  * Parses `wrangler d1 execute <db> --command="SELECT COUNT(*) AS table_count FROM sqlite_master
- * WHERE type='table'" --remote --json`'s response: `[{ results: [{ table_count: N }], success,
- * meta }]` (the standard Cloudflare D1 query API response shape). Returns null when the shape
- * isn't recognized.
+ * WHERE type='table' AND name NOT LIKE 'sqlite_%'" --remote --json`'s response: `[{ results:
+ * [{ table_count: N }], success, meta }]` (the standard Cloudflare D1 query API response shape).
+ * Returns null when the shape isn't recognized.
  */
 export function parseTableCountResult(stdout) {
   try {
@@ -227,6 +243,7 @@ function failClosed(message) {
   process.exitCode = 1;
 }
 
+/** For small objects only (the checksum sidecar, a few dozen bytes) -- buffers fully in memory. */
 async function downloadR2Object(aws, endpoint, bucketName, key) {
   const pathBucket = bucketName.split('/').map(encodeURIComponent).join('/');
   const url = `${endpoint}/${pathBucket}/${key.split('/').map(encodeURIComponent).join('/')}`;
@@ -237,6 +254,35 @@ async function downloadR2Object(aws, endpoint, bucketName, key) {
     return { ok: false, reason: code ? `HTTP ${res.status}: ${code}` : `HTTP ${res.status}` };
   }
   return { ok: true, buffer: Buffer.from(await res.arrayBuffer()) };
+}
+
+/**
+ * For the backup itself, which can be arbitrarily large: streams the R2 response body directly
+ * to `destPath` on disk while hashing it incrementally in the same pass, rather than buffering
+ * the whole download into memory first. Peak memory during download stays bounded by chunk size
+ * regardless of backup size, and the destination file is exactly what gets passed to
+ * `wrangler d1 execute --file=` afterward -- no separate buffer-then-write step.
+ */
+async function streamDownloadToFile(aws, endpoint, bucketName, key, destPath) {
+  const pathBucket = bucketName.split('/').map(encodeURIComponent).join('/');
+  const url = `${endpoint}/${pathBucket}/${key.split('/').map(encodeURIComponent).join('/')}`;
+  const res = await aws.fetch(url, { method: 'GET' });
+  if (!res.ok) {
+    const text = await res.text();
+    const code = extractS3ErrorCode(text);
+    return { ok: false, reason: code ? `HTTP ${res.status}: ${code}` : `HTTP ${res.status}` };
+  }
+  const hash = crypto.createHash('sha256');
+  let fileSizeBytes = 0;
+  const hashingPassThrough = new Transform({
+    transform(chunk, _encoding, callback) {
+      hash.update(chunk);
+      fileSizeBytes += chunk.length;
+      callback(null, chunk);
+    },
+  });
+  await pipeline(Readable.fromWeb(res.body), hashingPassThrough, fs.createWriteStream(destPath));
+  return { ok: true, sha256Hex: hash.digest('hex'), fileSizeBytes };
 }
 
 export async function main() {
@@ -299,7 +345,7 @@ export async function main() {
   };
 
   let tmpDir = null;
-  let sqlBuffer = null;
+  let tmpFile = null;
 
   try {
     const pathBucket = bucketName.split('/').map(encodeURIComponent).join('/');
@@ -313,40 +359,49 @@ export async function main() {
     } else {
       const xml = await listRes.text();
       const page = parseListObjectsV2Page(xml);
-      const sqlKey = findLatestBackupKey(page.keys, databaseName);
-      if (!sqlKey) {
-        discovery.failureReason = 'no backup object found under this database\'s R2 prefix.';
+      if (page.isTruncated) {
+        // Silently proceeding here could pick the latest key among only the first 1000 (in
+        // lexicographic/chronological order, i.e. the *oldest* 1000), missing the true latest
+        // backup entirely. Fail closed rather than risk misleading restore evidence; this
+        // script does not implement ListObjectsV2 continuation-token pagination.
+        discovery.failureReason =
+          'backup listing was truncated (more than 1000 objects under this prefix) -- cannot safely determine the true latest backup without pagination this script does not implement.';
       } else {
-        const checksumKey = `${sqlKey}.sha256`;
-        const [sqlDownload, checksumDownload] = await Promise.all([
-          downloadR2Object(aws, endpoint, bucketName, sqlKey),
-          downloadR2Object(aws, endpoint, bucketName, checksumKey),
-        ]);
-        if (!sqlDownload.ok) {
-          discovery.failureReason = redact(`backup download failed: ${sqlDownload.reason}`);
-        } else if (!checksumDownload.ok) {
-          discovery.failureReason = redact(`checksum sidecar download failed: ${checksumDownload.reason}`);
+        const sqlKey = findLatestBackupKey(page.keys, databaseName);
+        if (!sqlKey) {
+          discovery.failureReason = 'no backup object found under this database\'s R2 prefix.';
         } else {
-          const parsedChecksum = parseChecksumFileContent(checksumDownload.buffer.toString('utf8'));
-          const actualHex = computeSha256Hex(sqlDownload.buffer);
-          discovery.found = true;
-          discovery.sqlKey = sqlKey;
-          discovery.fileSizeBytes = sqlDownload.buffer.length;
-          discovery.checksumVerified = Boolean(parsedChecksum) && parsedChecksum.sha256Hex === actualHex;
-          if (discovery.checksumVerified) {
-            sqlBuffer = sqlDownload.buffer;
+          const checksumKey = `${sqlKey}.sha256`;
+          const checksumDownload = await downloadR2Object(aws, endpoint, bucketName, checksumKey);
+          if (!checksumDownload.ok) {
+            discovery.failureReason = redact(`checksum sidecar download failed: ${checksumDownload.reason}`);
           } else {
-            discovery.failureReason = 'downloaded backup does not match its stored checksum sidecar.';
+            const parsedChecksum = parseChecksumFileContent(checksumDownload.buffer.toString('utf8'));
+            if (!parsedChecksum) {
+              discovery.failureReason = 'checksum sidecar could not be parsed.';
+            } else {
+              tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'd1-restore-3268-'));
+              tmpFile = path.join(tmpDir, 'backup.sql');
+              const streamed = await streamDownloadToFile(aws, endpoint, bucketName, sqlKey, tmpFile);
+              if (!streamed.ok) {
+                discovery.failureReason = redact(`backup download failed: ${streamed.reason}`);
+              } else {
+                discovery.found = true;
+                discovery.sqlKey = sqlKey;
+                discovery.fileSizeBytes = streamed.fileSizeBytes;
+                discovery.checksumVerified = streamed.sha256Hex === parsedChecksum.sha256Hex;
+                if (!discovery.checksumVerified) {
+                  discovery.failureReason = 'downloaded backup does not match its stored checksum sidecar.';
+                }
+              }
+            }
           }
         }
       }
     }
 
-    if (discovery.checksumVerified && sqlBuffer) {
-      tmpDir = fs.mkdtempSync(path.join(os.tmpdir(), 'd1-restore-3268-'));
-      const tmpFile = path.join(tmpDir, 'backup.sql');
-      fs.writeFileSync(tmpFile, sqlBuffer);
-      restore.expectedTableCount = countCreateTableStatements(sqlBuffer.toString('utf8'));
+    if (discovery.checksumVerified && tmpFile) {
+      restore.expectedTableCount = countCreateTableStatements(fs.readFileSync(tmpFile, 'utf8'));
 
       const listing = runWrangler(['d1', 'list', '--json']);
       if (!listing.error && listing.status === 0) {
@@ -389,7 +444,7 @@ export async function main() {
           }
 
           if (restore.importOk) {
-            const countCmd = "SELECT COUNT(*) AS table_count FROM sqlite_master WHERE type='table'";
+            const countCmd = "SELECT COUNT(*) AS table_count FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'";
             const countExec = runWrangler(['d1', 'execute', dbName, '--command', countCmd, '--remote', '--json', '-y']);
             if (countExec.error || countExec.status !== 0) {
               restore.tableCountFailureReason = redact((countExec.stderr || '').trim()).slice(0, 500) || `exit ${countExec.status ?? 'spawn error'}`;
