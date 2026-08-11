@@ -10,6 +10,7 @@
  * Required env: CLOUDFLARE_API_TOKEN, CLOUDFLARE_ACCOUNT_ID
  * Optional: CLOUDFLARE_PROJECT_NAME, AI_REVIEW_TOKEN, AI_REVIEW_ALLOW_ADMIN
  *           (defaults false — opt-in only per docs/ops/ai/AI-REVIEW-ACCESS.md),
+ *           AI_REVIEW_ENABLED (true|false; default true for enable path — #2215),
  *           AI_REVIEW_TARGET_ENV (preview|production; default preview — #3289),
  *           AI_REVIEW_TOKEN_OUT
  */
@@ -25,6 +26,12 @@ export function resolveTargetEnv(raw = process.env.AI_REVIEW_TARGET_ENV) {
   const trimmed = String(raw ?? '').trim().toLowerCase();
   const value = trimmed || 'preview';
   if (value === 'production' || value === 'preview') return value;
+  return null;
+}
+
+export function resolveEnabledFlag(raw = process.env.AI_REVIEW_ENABLED) {
+  const value = String(raw ?? 'true').trim().toLowerCase();
+  if (value === 'true' || value === 'false') return value;
   return null;
 }
 
@@ -75,12 +82,18 @@ export async function main(env = process.env) {
   const allowAdmin = String(env.AI_REVIEW_ALLOW_ADMIN ?? 'false').toLowerCase() === 'true' ? 'true' : 'false';
   const outPath = env.AI_REVIEW_TOKEN_OUT || '';
   const targetEnv = resolveTargetEnv(env.AI_REVIEW_TARGET_ENV);
+  const enabled = resolveEnabledFlag(env.AI_REVIEW_ENABLED);
 
   if (!apiToken) fail('CLOUDFLARE_API_TOKEN is required');
   if (!accountId) fail('CLOUDFLARE_ACCOUNT_ID is required');
   if (!targetEnv) {
     fail('AI_REVIEW_TARGET_ENV must be "preview" or "production" (default preview).');
   }
+  if (!enabled) {
+    fail('AI_REVIEW_ENABLED must be "true" or "false" (default true).');
+  }
+  // Disable path always forces admin off (#2215 closeout).
+  const effectiveAllowAdmin = enabled === 'false' ? 'false' : allowAdmin;
 
   const reviewToken =
     env.AI_REVIEW_TOKEN && env.AI_REVIEW_TOKEN.length >= 32
@@ -128,9 +141,9 @@ export async function main(env = process.env) {
   }
 
   const aiVars = {
-    AI_REVIEW_ENABLED: { type: 'plain_text', value: 'true' },
+    AI_REVIEW_ENABLED: { type: 'plain_text', value: enabled },
     AI_REVIEW_TOKEN: { type: 'secret_text', value: reviewToken },
-    AI_REVIEW_ALLOW_ADMIN: { type: 'plain_text', value: allowAdmin },
+    AI_REVIEW_ALLOW_ADMIN: { type: 'plain_text', value: effectiveAllowAdmin },
   };
 
   // Prefer isolated wrangler install when foreign secrets exist (safe put without full map replace).
@@ -168,9 +181,9 @@ export async function main(env = process.env) {
     }
     // secret put for token; plain vars via PATCH merge of plain only is unsafe with foreign secrets.
     // Put all three as secrets so Functions still read them as env.
-    put('AI_REVIEW_ENABLED', 'true');
+    put('AI_REVIEW_ENABLED', enabled);
     put('AI_REVIEW_TOKEN', reviewToken);
-    put('AI_REVIEW_ALLOW_ADMIN', allowAdmin);
+    put('AI_REVIEW_ALLOW_ADMIN', effectiveAllowAdmin);
   } else {
     console.log(`No foreign Pages secrets on ${targetEnv}; PATCHing ${targetEnv} env_vars with AI_REVIEW_*…`);
     const nextEnv = { ...targetBuilt.next, ...aiVars };
@@ -194,10 +207,11 @@ export async function main(env = process.env) {
       project,
       target_env: targetEnv,
       foreign_secret_keys: foreign.length,
-      ai_review_enabled: true,
-      ai_review_allow_admin: allowAdmin === 'true',
+      ai_review_enabled: enabled === 'true',
+      ai_review_allow_admin: effectiveAllowAdmin === 'true',
       token_length: reviewToken.length,
       token_written_to_out: Boolean(outPath),
+      token_rotated: true,
     }),
   );
 }
