@@ -123,6 +123,34 @@ describe('parseD1ExecuteFileResult', () => {
     });
   });
 
+  // Regression coverage for a real live-run finding (2026-08-11, first Package 3 dispatch):
+  // `wrangler d1 execute --file=...` prints file-upload progress lines to stdout *before* the
+  // JSON payload, even with --json set, so a naive JSON.parse(stdout) fails outright even
+  // though the import genuinely succeeded.
+  it('extracts the JSON payload even when preceded by wrangler upload-progress lines', () => {
+    const stdout = [
+      '├ Checking if file needs uploading',
+      '│',
+      '├ 🌀 Uploading fa896971-05ef-472d-8cc8-5832462f630e.c45989b96d68a085.sql',
+      '│ 🌀 Uploading complete.',
+      '│',
+      JSON.stringify([
+        {
+          results: [{ 'Total queries executed': 1313, 'Rows read': 10897, 'Rows written': 5711, 'Database size (MB)': '0.79' }],
+          success: true,
+          finalBookmark: '00000000-0000008d-000050c4-f052bd14ba8cdabe8f05bd37a8f8da45',
+          meta: { rows_read: 10897, rows_written: 5711 },
+        },
+      ]),
+    ].join('\n');
+    expect(parseD1ExecuteFileResult(stdout)).toEqual({
+      success: true,
+      numQueries: 1313,
+      rowsRead: 10897,
+      rowsWritten: 5711,
+    });
+  });
+
   it('returns null for an unrecognized shape instead of throwing', () => {
     expect(parseD1ExecuteFileResult('not json')).toBeNull();
     expect(parseD1ExecuteFileResult('{}')).toBeNull();
@@ -134,6 +162,13 @@ describe('parseD1ExecuteFileResult', () => {
 describe('parseTableCountResult', () => {
   it('extracts table_count from a real --command --json response shape', () => {
     const stdout = JSON.stringify([{ results: [{ table_count: 38 }], success: true, meta: {} }]);
+    expect(parseTableCountResult(stdout)).toBe(38);
+  });
+
+  it('extracts the JSON payload even when preceded by non-JSON wrangler output lines', () => {
+    const stdout = ['🌀 Executing on remote database x (uuid):', JSON.stringify([{ results: [{ table_count: 38 }], success: true }])].join(
+      '\n',
+    );
     expect(parseTableCountResult(stdout)).toBe(38);
   });
 

@@ -116,26 +116,44 @@ export function generateRestoreDbName(now, random) {
 }
 
 /**
+ * `wrangler d1 execute --file=...` prints file-upload progress lines (e.g. "Checking if file
+ * needs uploading", "Uploading <name>", "Uploading complete.") directly to stdout *before* the
+ * JSON payload, even with `--json` set -- confirmed from a real live run (2026-08-11) whose
+ * stdout began with several `├`/`│`/`🌀`-prefixed progress lines ahead of the actual `[ ... ]`
+ * array. `JSON.parse()` on the raw string fails outright in that case. Since none of those
+ * progress-line characters can appear before the real payload, this finds the first `[` in the
+ * text and parses from there -- the response shape this script consumes is always a top-level
+ * JSON array (confirmed from wrangler's own source, both the file-import and query-API response
+ * paths). Returns null (never throws) when no `[` is found or the remainder isn't valid JSON.
+ */
+function extractJsonArray(stdout) {
+  const text = String(stdout ?? '');
+  const start = text.indexOf('[');
+  if (start === -1) return null;
+  try {
+    return JSON.parse(text.slice(start).trim());
+  } catch {
+    return null;
+  }
+}
+
+/**
  * Parses `wrangler d1 execute <db> --file=... --remote -y --json`'s response: an array with one
  * element shaped `{ results: [{ "Total queries executed", "Rows read", "Rows written", ... }],
  * success, meta }` for a file-based import (confirmed from wrangler's own source, executeRemotely
  * in node_modules/wrangler/wrangler-dist/cli.js). Returns null when the shape isn't recognized.
  */
 export function parseD1ExecuteFileResult(stdout) {
-  try {
-    const parsed = JSON.parse(String(stdout ?? ''));
-    const entry = Array.isArray(parsed) ? parsed[0] : parsed;
-    const row = entry?.results?.[0];
-    if (!entry || typeof entry.success !== 'boolean' || !row) return null;
-    return {
-      success: entry.success,
-      numQueries: row['Total queries executed'] ?? null,
-      rowsRead: row['Rows read'] ?? null,
-      rowsWritten: row['Rows written'] ?? null,
-    };
-  } catch {
-    return null;
-  }
+  const parsed = extractJsonArray(stdout);
+  const entry = Array.isArray(parsed) ? parsed[0] : parsed;
+  const row = entry?.results?.[0];
+  if (!entry || typeof entry.success !== 'boolean' || !row) return null;
+  return {
+    success: entry.success,
+    numQueries: row['Total queries executed'] ?? null,
+    rowsRead: row['Rows read'] ?? null,
+    rowsWritten: row['Rows written'] ?? null,
+  };
 }
 
 /**
@@ -145,15 +163,11 @@ export function parseD1ExecuteFileResult(stdout) {
  * Returns null when the shape isn't recognized.
  */
 export function parseTableCountResult(stdout) {
-  try {
-    const parsed = JSON.parse(String(stdout ?? ''));
-    const entry = Array.isArray(parsed) ? parsed[0] : parsed;
-    const row = entry?.results?.[0];
-    if (!entry?.success || typeof row?.table_count !== 'number') return null;
-    return row.table_count;
-  } catch {
-    return null;
-  }
+  const parsed = extractJsonArray(stdout);
+  const entry = Array.isArray(parsed) ? parsed[0] : parsed;
+  const row = entry?.results?.[0];
+  if (!entry?.success || typeof row?.table_count !== 'number') return null;
+  return row.table_count;
 }
 
 function resolveWranglerCmd() {
