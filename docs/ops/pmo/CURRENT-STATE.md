@@ -5,7 +5,7 @@ Authority Level: Current-State Routing
 Owns: Current LGFC repo/program status routing
 Does Not Own: Detailed implementation scope, PR evidence, or Drive planning authority
 Source Issue: #2086
-Canonical Reference: /docs/ops/pmo/PMO-V3-OPERATING-MODEL.md
+Canonical Reference: /docs/ops/pmo/PMO-JULY-2026-OPERATING-MODEL.md
 Last Reviewed: 2026-08-11
 ---
 
@@ -27,11 +27,44 @@ It answers:
 
 It does **not** replace GitHub Issues as the executable source of truth. It routes; it does not duplicate full issue bodies or compete with Issues/PRs.
 
+## Scope
+
+In scope:
+
+- Routing summary of active, queued, blocked, maturity-gap, future, and historical work
+- Authority rules for this surface versus Issues/PRs and governance docs
+- Required read paths and operator stop conditions
+- Update cadence and ownership for this file
+
+Out of scope:
+
+- Replacing GitHub Issues as executable work truth
+- Duplicating full issue bodies or PR evidence
+- Runtime code, workflow YAML, secrets, or production config changes
+- Treating Drive, chat, or memory as repository authority
+- Closing, relabeling, or bulk-mutating Issues as part of maintaining this page
+
+## Current known truth
+
+As of Last Reviewed:
+
+- GitHub Issues and PRs are the executable source of truth for work.
+- This file is a routing surface only; when it and a live Issue disagree, the live Issue wins until this page is updated.
+- Active PMO implementation assignments and closeout holds are summarized from `program-registry.md`, `pmo-backlog.md`, and live Issues; those sources must be rechecked before acting.
+- Maturity-gap Issues #2086–#2093 and future collection Issues #2073–#2085 are cataloged here for orientation only until Product Authority promotes them.
+
+## Intended final state
+
+- One durable, continuously maintained current-state routing document exists under `docs/ops/pmo/`.
+- README and primary PMO entrypoints can route here without competing trackers.
+- Humans and agents can answer active / queued / blocked / historical questions from this page plus live Issue links.
+- Update ownership and cadence are explicit; stale routing is corrected via Issue-scoped docs PRs.
+
 ## How to use this page
 
 1. Start here for orientation of current work.
 2. Follow links to the live Issue or authoritative doc for detail.
-3. Do not treat this file as a substitute for reading the source Issue, PR, or `_MASTER` document.
+3. Do not treat this file as a substitute for reading the source Issue, PR, or canonical governance document.
 4. If this page and a live Issue disagree, the live Issue wins until this page is updated.
 
 ## Authority rules
@@ -42,10 +75,10 @@ It does **not** replace GitHub Issues as the executable source of truth. It rout
 | This file (`CURRENT-STATE.md`) | Routing and disposition summary |
 | `docs/ops/pmo/pmo-backlog.md` | PMO backlog summary |
 | `docs/ops/pmo/program-registry.md` | Program status registry |
-| `docs/governance/*` and `*_MASTER` docs | Policy and standards authority |
+| `docs/governance/*` and domain policy docs | Policy and standards authority |
 | Drive / chat / memory | Non-authoritative; never repository truth |
 
-Document precedence follows `docs/governance/standards/document-authority-hierarchy_MASTER.md`.
+Document precedence follows `docs/governance/REPOSITORY-AUTHORITY.md`.
 
 ## Active implementation lane
 
@@ -74,7 +107,7 @@ Exact ordering is controlled by live Issue labels, assignee, and Product Authori
 
 ## Active issues and PRs
 
-- Prefer GitHub search: `is:open label:status:active` and `is:pr is:open`.
+- Prefer GitHub search: `is:open label:"status:active"` and `is:pr is:open`.
 - Team queue ownership uses durable `team:*` labels; active claims use `agent:*` labels (see `docs/governance/WORK-QUEUES-AND-COLLABORATION.md`).
 - This section intentionally stays thin. Snapshot the highest-signal items when updating; do not enumerate every open issue.
 
@@ -112,7 +145,7 @@ Treat as future until explicitly claimed and labeled active.
 
 - Historical tracker/status files under `docs/ops/trackers/` and older PMO dashboards are not current authority unless a source Issue explicitly scopes reconciliation.
 - Superseded statements in older comments or reports yield to newer AS-BUILT, this file, `program-registry.md`, and live Issues.
-- `docs/ops/pmo/PMO-V2-OPERATING-MODEL.md` and similar legacy files are historical; prefer V3 and current registry.
+- `docs/ops/pmo/PMO-V2-OPERATING-MODEL.md` and `docs/ops/pmo/PMO-V3-OPERATING-MODEL.md` are historical relative to the July 2026 operating model; prefer `PMO-JULY-2026-OPERATING-MODEL.md` and the current registry.
 
 ## Required read paths
 
@@ -149,10 +182,11 @@ Do not bulk-edit this file for every trivial Issue state change. Prefer routing 
 
 ## Related documents
 
-- `docs/ops/pmo/PMO-V3-OPERATING-MODEL.md`
+- `docs/ops/pmo/PMO-JULY-2026-OPERATING-MODEL.md`
 - `docs/ops/pmo/pmo-backlog.md`
 - `docs/ops/pmo/program-registry.md`
 - `docs/ops/pmo/queue-watch-and-dispatch-protocol.md`
+- `docs/governance/REPOSITORY-AUTHORITY.md`
 - `docs/governance/WORK-QUEUES-AND-COLLABORATION.md`
 - `docs/governance/PROJECT-DOCUMENTATION-AND-AS-BUILT.md`
 - `Agent.md` / `README.md`
