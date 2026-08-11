@@ -5,8 +5,8 @@ Authority Level: Operational Authority
 Owns: Tokenized AI review access configuration, security constraints, and operator usage
 Does Not Own: Member/admin authentication model, production merge approval, or Program #1685 scope
 Canonical Reference: /docs/ops/ai/SHARED-AGENT-RULES.md
-Related Issues: #1973
-Last Reviewed: 2026-06-23
+Related Issues: #1973, #2215, #3289
+Last Reviewed: 2026-08-11
 ---
 
 # AI Review Access
@@ -62,6 +62,20 @@ Source pages live under `src/app/ai-review/` and are exported to `/_ai-review/` 
 3. Share review URLs with ChatGPT/Bill only through secure channels (not in issues, PRs, or repo files).
 4. Enable `AI_REVIEW_ALLOW_ADMIN=true` only when admin layout review is explicitly required.
 5. **Disable immediately** after review: set `AI_REVIEW_ENABLED=false` and rotate `AI_REVIEW_TOKEN`.
+
+### Workflow dispatch (`OPS — Enable AI Review Access`)
+
+Use `.github/workflows/ops-ai-review-enable.yml` (script: `scripts/ops/enable-ai-review-access.mjs`):
+
+| Input | Default | Rule |
+| --- | --- | --- |
+| `target_environment` | `preview` | Preview-first (#3289 / #2215). |
+| `confirm_production` | `false` | Must be `true` when targeting production; otherwise the job fails closed. |
+| `verify_base_url` | _(empty)_ | **Required** for preview (Pages preview hostname). Production defaults to `https://www.lougehrigfanclub.com` when empty. |
+| `allow_admin` | `false` | Keep false unless admin layout review is explicitly required. |
+| `trigger_redeploy` | `false` | Retry the latest deployment in the selected environment so secrets apply. |
+
+Do not treat a successful production enablement run as permanent admin or permanent review access. Rotate/disable after the short review window.
 
 ## Disable immediately
 
