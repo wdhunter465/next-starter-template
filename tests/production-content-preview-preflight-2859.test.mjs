@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   buildResultMarkdown,
+  countListObjectsV2Contents,
   extractIsTruncated,
   requireEnv,
 } from '../scripts/ci/production_content_preview_preflight_2859.mjs';
@@ -10,11 +11,13 @@ import {
 // have, and is verified by the real CI run, same precedent as every other #3268/#2913
 // preflight/package script.
 //
-// This is the #3343 correction: #3341 established that this repo's own canonical isolation
-// record classifies Preview D1 as production-shared (no isolated Preview D1 database exists)
-// and that this repo's actual object storage for content media is Backblaze B2, not
-// Cloudflare R2. The script no longer attempts any D1 check, and the storage check now
-// targets B2_ENDPOINT/B2_BUCKET/B2_KEY_ID/B2_APP_KEY instead of R2_*/PREVIEW_R2_BUCKET_NAME.
+// This is the #3343 correction + #3346 Node-load fix: #3341 established that this repo's own
+// canonical isolation record classifies Preview D1 as production-shared (no isolated Preview
+// D1 database exists) and that this repo's actual object storage for content media is
+// Backblaze B2, not Cloudflare R2. The script no longer attempts any D1 check, and the storage
+// check now targets B2_ENDPOINT/B2_BUCKET/B2_KEY_ID/B2_APP_KEY instead of
+// R2_*/PREVIEW_R2_BUCKET_NAME. #3346 removes the `b2.ts` import (extensionless aws4fetch break
+// under plain Node) and counts <Contents> locally without retaining keys.
 
 describe('requireEnv', () => {
   it('lists every missing required credential', () => {
@@ -61,6 +64,19 @@ describe('extractIsTruncated', () => {
 
   it('returns false for null/undefined input', () => {
     expect(extractIsTruncated(undefined)).toBe(false);
+  });
+});
+
+describe('countListObjectsV2Contents', () => {
+  it('counts Contents blocks without requiring Key tags', () => {
+    const xml =
+      '<ListBucketResult><Contents><Key>a</Key></Contents><Contents><Key>b</Key></Contents></ListBucketResult>';
+    expect(countListObjectsV2Contents(xml)).toBe(2);
+  });
+
+  it('returns 0 when Contents is absent', () => {
+    expect(countListObjectsV2Contents('<ListBucketResult></ListBucketResult>')).toBe(0);
+    expect(countListObjectsV2Contents(undefined)).toBe(0);
   });
 });
 
