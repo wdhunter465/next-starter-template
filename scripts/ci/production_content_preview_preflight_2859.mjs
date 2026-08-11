@@ -32,6 +32,17 @@
  * flag are recorded — individual object keys/filenames are never persisted. There is no
  * `PutObject`/`DeleteObject`/D1-write code path anywhere in this file.
  *
+ * Parses the ListObjectsV2 XML with `parseListObjectsV2Page` from
+ * `d1_backup_r2_phase1_preflight_3268.mjs` (a self-contained, plain-Node-compatible
+ * duplicate of the same parsing logic `functions/_lib/b2.ts`'s `parseListObjectsV2Xml`
+ * implements) rather than cross-importing `b2.ts` directly: `b2.ts` itself imports
+ * `./aws4fetch` without a file extension, which only resolves inside the Next.js/Workers
+ * build pipeline. A first version of this file imported `b2.ts` directly and passed under
+ * `vitest` (whose Vite-based resolver tolerates the missing extension) but failed under
+ * plain `node scripts/ci/...` in real CI with `ERR_MODULE_NOT_FOUND` -- exactly the
+ * documented reason `d1_backup_r2_phase1_preflight_3268.mjs` avoided the same cross-import
+ * for its own R2 equivalent. Fixed by reusing that already-Node-compatible helper instead.
+ *
  * Required env (GitHub Actions repository secrets; values are never logged):
  *   B2_ENDPOINT, B2_BUCKET, B2_KEY_ID, B2_APP_KEY — the existing, already-approved
  *   Backblaze B2 credentials this repo's own `.github/workflows/b2-d1-daily-sync.yml`
@@ -41,19 +52,13 @@
 import fs from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import { AwsClient } from '../../functions/_lib/aws4fetch.ts';
-import { parseListObjectsV2Xml } from '../../functions/_lib/b2.ts';
-import { redactSecrets, extractS3ErrorCode } from './d1_backup_r2_phase1_preflight_3268.mjs';
+import { redactSecrets, extractS3ErrorCode, parseListObjectsV2Page } from './d1_backup_r2_phase1_preflight_3268.mjs';
 
 export const RESULT_JSON_PATH = 'production-content-preview-preflight-2859-result.json';
 export const RESULT_MD_PATH = 'production-content-preview-preflight-2859-result.md';
 
 export function requireEnv(env = process.env) {
   return ['B2_ENDPOINT', 'B2_BUCKET', 'B2_KEY_ID', 'B2_APP_KEY'].filter((name) => !env[name]);
-}
-
-export function extractIsTruncated(xml) {
-  const match = String(xml || '').match(/<IsTruncated>\s*(true|false)\s*<\/IsTruncated>/i);
-  return Boolean(match && match[1].toLowerCase() === 'true');
 }
 
 export function buildResultMarkdown(result) {
@@ -126,10 +131,10 @@ export async function main() {
       b2.failureReason = code ? `HTTP ${res.status}: ${code}` : `HTTP ${res.status}`;
     } else {
       const xml = await res.text();
-      const objects = parseListObjectsV2Xml(xml);
+      const page = parseListObjectsV2Page(xml);
       b2.reachable = true;
-      b2.objectCount = objects.length;
-      b2.truncated = extractIsTruncated(xml);
+      b2.objectCount = page.keys.length;
+      b2.truncated = page.isTruncated;
     }
   } catch (error) {
     b2.failureReason = redact(error.message || 'fetch failed');
