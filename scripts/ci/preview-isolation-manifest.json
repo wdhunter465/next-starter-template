@@ -1,7 +1,7 @@
 {
   "version": 1,
-  "lastAudited": "2026-07-13",
-  "auditIssue": 2496,
+  "lastAudited": "2026-08-11",
+  "auditIssue": 3357,
   "canonicalReference": "docs/reference/platform/component-environment-isolation.md",
   "classifications": [
     "isolated",
@@ -33,12 +33,22 @@
     },
     {
       "id": "d1-lgfc-lite",
-      "name": "D1 database lgfc_lite",
+      "name": "D1 database lgfc_lite (Production)",
       "category": "d1",
       "classification": "production-shared",
-      "evidence": ["wrangler.toml", "functions/_lib/d1.ts"],
+      "evidence": ["wrangler.toml", "functions/_lib/d1.ts", "docs/how-to/operations/bind-pages-preview-d1-dev.md"],
       "databaseId": "22d0dc3e-ad34-43af-8e6a-2063df1a1e04",
-      "blockingRule": "Preview and component deployments bind the same database_id; all API writes hit production D1 until a separate preview database is provisioned.",
+      "blockingRule": "Top-level wrangler [[d1_databases]] and Pages Production DB binding must remain lgfc_lite. Never retarget Production to lgfc-litedev.",
+      "protected": true
+    },
+    {
+      "id": "d1-lgfc-litedev",
+      "name": "D1 database lgfc-litedev (Preview/Development)",
+      "category": "d1",
+      "classification": "isolated",
+      "evidence": ["wrangler.toml", "scripts/ci/d1_prod_dev_identity_check.mjs", "docs/how-to/operations/bind-pages-preview-d1-dev.md"],
+      "databaseId": "35232809-b4c1-4df9-9f39-2f178b13c378",
+      "blockingRule": "Preview/Development must bind DB to lgfc-litedev only. Fail closed if Preview UUID equals Production UUID (#3357).",
       "protected": true
     },
     {
@@ -110,7 +120,7 @@
       "category": "ci",
       "classification": "production-shared",
       "evidence": [".github/workflows/d1-migrations.yml", ".github/workflows/lgfc-d1-migrate.yml"],
-      "blockingRule": "Remote wrangler d1 migrations apply targets production lgfc_lite; not preview-triggered."
+      "blockingRule": "On main, apply migrations to Production lgfc_lite and Development lgfc-litedev in separate jobs after identity check; never retarget Production job to Dev."
     },
     {
       "id": "ci-b2-d1-sync",

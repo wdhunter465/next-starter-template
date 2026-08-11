@@ -6,10 +6,19 @@ compatibility_flags = ["nodejs_compat"]
 # LGFC Pages project config
 pages_build_output_dir = "./out"
 
+# Production D1 — keep top-level so Production parsers/jobs stay pointed at lgfc_lite.
 [[d1_databases]]
 binding = "DB"                     # Must match Cloudflare binding name
 database_name = "lgfc_lite"        # Must match CF dashboard
-database_id = "22d0dc3e-ad34-43af-8e6a-2063df1a1e04"   # Will fill after fetching via wrangler
+database_id = "22d0dc3e-ad34-43af-8e6a-2063df1a1e04"   # Production D1 (#3355/#3357)
+
+# Preview / Development D1 — repo contract for isolation (#3357).
+# Cloudflare Pages Production vs Preview bindings are also set in the dashboard;
+# see docs/how-to/operations/bind-pages-preview-d1-dev.md
+[[env.preview.d1_databases]]
+binding = "DB"
+database_name = "lgfc-litedev"
+database_id = "35232809-b4c1-4df9-9f39-2f178b13c378"
 
 # Rate limiting: do NOT declare [[ratelimits]] here.
 # Cloudflare Pages build warns about and ignores top-level ratelimits (Unexpected fields).
