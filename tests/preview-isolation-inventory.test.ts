@@ -132,12 +132,17 @@ describe('preview isolation inventory', () => {
     }
   });
 
-  it('keeps wrangler.toml bound to the audited production D1 id', () => {
+  it('keeps wrangler.toml Production D1 id and a distinct Preview D1 override', () => {
     const wrangler = readFileSync('wrangler.toml', 'utf8');
-    const d1Resource = manifest.resources.find((resource) => resource.id === 'd1-lgfc-lite');
-    expect(d1Resource?.databaseId).toBeTruthy();
-    expect(wrangler).toContain(`database_id = "${d1Resource?.databaseId}"`);
-    expect(wrangler).not.toMatch(/\[\[env\.[^\]]+\.d1_databases\]\]/);
+    const prod = manifest.resources.find((resource) => resource.id === 'd1-lgfc-lite');
+    const preview = manifest.resources.find((resource) => resource.id === 'd1-lgfc-litedev');
+    expect(prod?.databaseId).toBeTruthy();
+    expect(preview?.databaseId).toBeTruthy();
+    expect(prod?.databaseId).not.toBe(preview?.databaseId);
+    expect(wrangler).toContain(`database_id = "${prod?.databaseId}"`);
+    expect(wrangler).toContain(`database_id = "${preview?.databaseId}"`);
+    expect(wrangler).toMatch(/\[\[env\.preview\.d1_databases\]\]/);
+    expect(preview?.classification).toBe('isolated');
   });
 
   it('keeps preview-safe defaults in .env.example', () => {

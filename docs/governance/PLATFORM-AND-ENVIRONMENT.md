@@ -6,7 +6,7 @@ Owns: Platform architecture ownership, environment classification, preview/compo
 Does Not Own: Delivery Model A/B selection, agent approval routing, CI gate implementation, product/UX behavior, or day-to-day operator checklists
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
 Related Issues: #2688, #2686
-Last Reviewed: 2026-07-21
+Last Reviewed: 2026-08-11
 ---
 
 # Platform and Environment
@@ -67,11 +67,12 @@ Rules:
 
 As of the supporting isolation inventory:
 
-- Cloudflare Pages project bindings, D1 database `lgfc_lite`, shared rate-limiter namespace, and admin/media mutation surfaces are **production-shared** between preview/component and production unless separately provisioned controls exist.
+- Cloudflare Pages project bindings other than D1 may still be shared; **D1** is split in the repo contract: Production `lgfc_lite` (`22d0dc3e-…`) vs Preview/Development `lgfc-litedev` (`35232809-…`) via `wrangler.toml` + required dashboard Preview `DB` binding (`docs/how-to/operations/bind-pages-preview-d1-dev.md`, #3357). Live Preview isolation is not claimed until that dashboard binding is verified.
+- Shared rate-limiter namespace and admin/media mutation surfaces remain **production-shared** risk when production credentials are mirrored onto preview.
 - B2 object listing at runtime is **read-only** in Pages Functions; admin B2→D1 sync paths remain **production-shared** when secrets and admin credentials are present.
 - Outbound email and analytics are **disabled by default** and become **production-shared** when enabled with production values.
 - Admin mutation surfaces are blocked when `ADMIN_TOKEN` is unset and are **production-shared** when production credentials are mirrored onto preview.
-- Separate preview D1, runtime environment write guards, and Wrangler env-specific production-safe bindings are **not** established as completed isolation. They remain protected platform follow-up work.
+- Fail-closed Prod≠Dev D1 identity checks live in `scripts/ci/d1_prod_dev_identity_check.mjs` and `d1-migrations.yml`.
 
 Required controls while isolation is incomplete:
 

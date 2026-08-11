@@ -85,7 +85,7 @@ export async function requireTables(
         body: {
           ok: false,
           error: 'Database schema incomplete',
-          detail: `Missing required table(s): ${missingTables.join(', ')}. Run migrations with: npx wrangler d1 migrations apply lgfc_lite`,
+          detail: `Missing required table(s): ${missingTables.join(', ')}. Run migrations with: npx wrangler d1 migrations apply lgfc_lite --remote (Production) or npx wrangler d1 migrations apply lgfc-litedev --remote (Preview/Dev). See docs/how-to/operations/bind-pages-preview-d1-dev.md`,
           missingTables,
           docs: 'See /docs/governance/PR_GOVERNANCE.md § D1 Database Seeding'
         }

@@ -152,7 +152,7 @@ Key constraints:
 
 - Pages build output is `./out`.
 - D1 binding name is `DB`.
-- D1 database name is `lgfc_lite`.
+- Production D1 database name is `lgfc_lite`; Preview/Development D1 is `lgfc-litedev` (#3357).
 - Node compatibility is enabled for the Cloudflare runtime.
 - Next.js image optimization is disabled because Cloudflare Pages does not provide the Node.js image optimizer for this export model.
 

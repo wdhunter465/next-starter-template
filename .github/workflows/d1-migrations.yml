@@ -7,11 +7,31 @@ on:
       - "migrations/**"
       - "wrangler.toml"
       - ".github/workflows/d1-migrations.yml"
+      - "scripts/ci/d1_prod_dev_identity_check.mjs"
 
 jobs:
-  apply-migrations:
+  identity-check:
     runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
 
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Fail-closed Prod vs Dev D1 identity
+        env:
+          D1_DATABASE_NAME: ${{ secrets.D1_DATABASE_NAME }}
+          D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
+          D1_DEV_DATABASE_NAME: ${{ secrets.D1_DEV_DATABASE_NAME }}
+          D1_DEV_DATABASE_ID: ${{ secrets.D1_DEV_DATABASE_ID }}
+        run: node scripts/ci/d1_prod_dev_identity_check.mjs
+
+  apply-migrations-production:
+    needs: identity-check
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -24,9 +44,36 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Apply D1 migrations to lgfc_lite (remote)
+      - name: Apply D1 migrations to lgfc_lite Production (remote)
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
+          echo "Target database_name=lgfc_lite (Production)"
+          echo "Target database_id=22d0dc3e-ad34-43af-8e6a-2063df1a1e04"
           npx wrangler d1 migrations apply lgfc_lite --remote
+
+  apply-migrations-development:
+    needs: identity-check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Apply D1 migrations to lgfc-litedev Development (remote)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          echo "Target database_name=lgfc-litedev (Development)"
+          echo "Target database_id=35232809-b4c1-4df9-9f39-2f178b13c378"
+          node scripts/ci/d1_prod_dev_identity_check.mjs
+          npx wrangler d1 migrations apply lgfc-litedev --remote

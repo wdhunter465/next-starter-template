@@ -34,7 +34,7 @@ Out of scope: redesign, Production remediation, design-doc rewrites, design arch
 | --- | --- |
 | Hosting | Cloudflare Pages (`pages_build_output_dir = "./out"`) |
 | App | Next.js App Router static export + Pages Functions under `functions/api/**` |
-| D1 binding | `DB` → database name `lgfc_lite` |
+| D1 binding | Production `DB` → `lgfc_lite`; Preview/Dev `DB` → `lgfc-litedev` (#3357) |
 | Health | `GET /api/health` returned `{"ok":true,"db_ok":true}` |
 | Media | Photo URLs observed on Backblaze B2 (`s3.us-east-005.backblazeb2.com/LouGehrigFanClub/...`) |
 | Analytics | GA4 measurement ID / gtag identifier `G-BRV48J1VE` present in Production HTML |

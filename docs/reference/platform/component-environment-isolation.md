@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: Preview and component-environment isolation classifications, blocking rules, and mutating-resource inventory as a supporting specification
 Does Not Own: Platform and Environment Domain Policy; delivery approval policy; PR lifecycle; runtime deployment credentials
 Canonical Reference: /docs/governance/PLATFORM-AND-ENVIRONMENT.md
-Related Issues: #2688, #2496, #2495, #2478
-Last Reviewed: 2026-07-21
+Related Issues: #2688, #2496, #2495, #2478, #3355, #3357
+Last Reviewed: 2026-08-11
 ---
 
 # Component and Preview Environment Isolation
@@ -24,12 +24,12 @@ Audit evidence: `docs/ops/reports/delivery-system-preview-isolation-audit.md`
 
 ## Scope
 
-| Environment | Definition | Isolation status (2026-07-13) |
+| Environment | Definition | Isolation status (2026-08-11) |
 | --- | --- | --- |
-| **Production** | `main` branch deploy to `www.lougehrigfanclub.com` | Authoritative write target |
-| **Preview** | Per-PR or per-branch Cloudflare Pages URL | **Not isolated** — shares production bindings |
-| **Component** | Model B child branch (e.g. `component/delivery-system-v1`) preview URL | **Not isolated** — shares production bindings |
-| **Local** | `npm run dev` with optional `PAGES_SITE_URL` proxy | Depends on operator `.env`; defaults safe |
+| **Production** | `main` branch deploy to `www.lougehrigfanclub.com` | Authoritative write target — D1 `lgfc_lite` |
+| **Preview** | Per-PR or per-branch Cloudflare Pages URL | **D1 isolated in repo contract** — `[[env.preview.d1_databases]]` → `lgfc-litedev`; **dashboard Preview `DB` binding must match** (see `docs/how-to/operations/bind-pages-preview-d1-dev.md`) |
+| **Component** | Model B child branch (e.g. `component/delivery-system-v1`) preview URL | Same Preview D1 contract as Preview once dashboard binding is set |
+| **Local** | `npm run dev` with optional `PAGES_SITE_URL` proxy | Depends on operator `.env`; defaults safe; local D1 is not `lgfc-litedev` |
 
 Delivery policy (#2495) classifies PR **intent** (`Target environment: component|preview|production|recovery`). This document classifies **runtime resource behavior**. Auto-integration on Model B child PRs remains blocked for protected paths until runtime isolation is proven (`docs/explanation/projects/two-model-delivery-system-design.md`, Environment isolation section).
 
@@ -62,9 +62,10 @@ Every resource below has exactly one primary classification.
 
 | Resource | Class | Evidence | Blocking rule |
 | --- | --- | --- | --- |
-| Database `lgfc_lite` (`22d0dc3e-ad34-43af-8e6a-2063df1a1e04`) | **production-shared** | `wrangler.toml`, `functions/_lib/d1.ts` | Single `database_id` in repo with no `[[env.preview.d1_databases]]` override. All Pages Functions use `env.DB` with no environment guard. |
+| Database `lgfc_lite` (`22d0dc3e-ad34-43af-8e6a-2063df1a1e04`) | **production-shared** (Production only) | Top-level `wrangler.toml` `[[d1_databases]]`, Pages Production `DB` | Must remain Production-only. Never use as Preview fallback. |
+| Database `lgfc-litedev` (`35232809-b4c1-4df9-9f39-2f178b13c378`) | **isolated** (Preview/Development) | `wrangler.toml` `[[env.preview.d1_databases]]`, Pages Preview `DB`, `scripts/ci/d1_prod_dev_identity_check.mjs` | Preview must bind this UUID. Fail closed if Preview id equals Production id (#3357). |
 
-**Protected:** provisioning a separate preview D1 or runtime write guard requires platform decision and is out of scope for documentation-only corrections.
+**Operator procedure:** `docs/how-to/operations/bind-pages-preview-d1-dev.md`. Isolation is not claimed for live Preview until the dashboard Preview `DB` binding matches `lgfc-litedev`.
 
 ### Backblaze B2
 
