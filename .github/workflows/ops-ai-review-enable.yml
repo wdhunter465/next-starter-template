@@ -123,8 +123,11 @@ jobs:
             let d=""; process.stdin.on("data",c=>d+=c); process.stdin.on("end",()=>{
               const j=JSON.parse(d); const list=j.result||[];
               const want=process.env.TARGET;
-              const match=list.find(x=>x.environment===want)||list[0];
-              if(!match){console.error("no deployment"); process.exit(2)}
+              const match=list.find(x=>x.environment===want);
+              if(!match){
+                console.error("FAIL-CLOSED: no deployment found for environment " + want + " (refusing list[0] fallback)");
+                process.exit(2);
+              }
               console.log(match.id);
             });
           ')
