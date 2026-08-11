@@ -46,7 +46,7 @@ import crypto from 'node:crypto';
 import { spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { AwsClient } from '../../functions/_lib/aws4fetch.ts';
-import { redactSecrets, extractS3ErrorCode } from './d1_backup_r2_phase1_preflight_3268.mjs';
+import { redactSecrets, extractS3ErrorCode, findBlankAfterTrim } from './d1_backup_r2_phase1_preflight_3268.mjs';
 
 export const RESULT_JSON_PATH = 'd1-backup-phase2-capability-preflight-3268-result.json';
 export const RESULT_MD_PATH = 'd1-backup-phase2-capability-preflight-3268-result.md';
@@ -199,6 +199,20 @@ function failClosed(message) {
   process.exitCode = 1;
 }
 
+/**
+ * Requires `deleteVerified`, not just a 2xx DELETE response: R2/S3-compatible DELETE can
+ * report success even when the underlying object wasn't actually removed, and this
+ * preflight's entire purpose is to prove full, genuine reversibility -- a DELETE that
+ * "succeeded" but left the object readable is not that proof.
+ */
+export function computeR2Capable(r2) {
+  return Boolean(r2?.putOk && r2?.getOk && r2?.contentMatched && r2?.deleteOk && r2?.deleteVerified);
+}
+
+export function computeD1Capable(d1) {
+  return Boolean(d1?.createOk && d1?.executeOk && d1?.deleteOk);
+}
+
 async function runR2CapabilityTest({ accountId, bucketName, accessKeyId, secretAccessKey, redact }) {
   const hostname = `${accountId}.r2.cloudflarestorage.com`;
   const endpoint = `https://${hostname}`;
@@ -349,13 +363,31 @@ export async function main() {
   const bucketName = process.env.R2_BUCKET_NAME.trim();
   const accessKeyId = process.env.R2_ACCESS_KEY_ID.trim();
   const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY.trim();
+
+  // requireCapabilityEnv() above only checks presence, so a whitespace-only secret value
+  // passes it (a non-empty string is truthy) and would trim to an empty string here --
+  // silently producing a malformed R2 hostname or an empty CLOUDFLARE_ACCOUNT_ID/token
+  // downstream instead of a clear error. Fail closed now, by name only, never by value.
+  // (Same class of gap the Phase 1 R2 preflight already fixed once -- see
+  // findBlankAfterTrim in d1_backup_r2_phase1_preflight_3268.mjs.)
+  const blankAfterTrim = findBlankAfterTrim({
+    CLOUDFLARE_ACCOUNT_ID: accountId,
+    R2_BUCKET_NAME: bucketName,
+    R2_ACCESS_KEY_ID: accessKeyId,
+    R2_SECRET_ACCESS_KEY: secretAccessKey,
+  });
+  if (blankAfterTrim.length > 0) {
+    failClosed(`required credential(s) present but blank/whitespace-only after trimming: ${blankAfterTrim.join(', ')} (values are never logged).`);
+    return;
+  }
+
   const redact = (text) => redactSecrets(text, [accountId, bucketName, accessKeyId, secretAccessKey]);
 
   const r2 = await runR2CapabilityTest({ accountId, bucketName, accessKeyId, secretAccessKey, redact });
   const d1 = await runD1CapabilityTest({ redact });
 
-  const r2Capable = r2.putOk && r2.getOk && r2.contentMatched && r2.deleteOk;
-  const d1Capable = d1.createOk && d1.executeOk && d1.deleteOk;
+  const r2Capable = computeR2Capable(r2);
+  const d1Capable = computeD1Capable(d1);
 
   const result = {
     checkedAt: new Date().toISOString(),
