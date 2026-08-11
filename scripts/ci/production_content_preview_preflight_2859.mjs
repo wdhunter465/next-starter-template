@@ -1,80 +1,139 @@
 #!/usr/bin/env node
 /**
- * #2859 Preview evidence preflight — corrected for shared D1 and Backblaze B2 (#3343).
+ * #2859 Preview/Development evidence preflight — post-#3355/#3360 D1 split (#3337).
  *
- * PR #3334's original design assumed an isolated Preview D1 database and a "PREVIEW_R2_*"
- * bucket existed to check. Neither assumption held: this repo's own canonical isolation
- * record (`scripts/ci/preview-isolation-manifest.json`, audit #2496, and
- * `docs/reference/platform/component-environment-isolation.md`, Last Reviewed 2026-07-21)
- * classifies the D1 database as `production-shared` — Preview and Production bind the
- * exact same `lgfc_lite` database and `database_id`. There is no separate Preview D1
- * database to provision an identity for (#3341, closed not_planned; #3343).
+ * Environment model (controlling):
+ *   Production D1: lgfc_lite
+ *   Preview/Development D1: lgfc-litedev
+ *   Logical binding: DB
  *
- * Given that, this script deliberately does NOT attempt any D1 check. Reading the shared
- * `lgfc_lite` database and labeling the result "Preview evidence" would misrepresent real
- * Production member/auth/PII data as something lower-risk than it is — that is the
- * "workaround" #3343 explicitly says not to invent. The absence of a D1 check here is a
- * deliberate, permanent design decision, not a gap to fill by relaxing this file.
+ * Always validates Production vs Preview D1 identities from current wrangler.toml
+ * (fail-closed on shared/mismatched IDs). Does not trust a duplicated hardcoded
+ * Production UUID as the sole source of truth (#3337 late-review finding).
  *
- * The storage half is rebuilt against this repo's actual Backblaze B2 integration
- * (`functions/_lib/b2.ts`, `.github/workflows/b2-d1-daily-sync.yml`) instead of Cloudflare
- * R2, which PR #3334 incorrectly modeled on #3268's D1-backup-bucket precedent. B2 stores
- * public-facing media (photos, memorabilia), not private member data, and this repo's own
- * isolation manifest already classifies read-only B2 listing as safe (`b2-runtime-list`,
- * classification `read-only`). Like D1, there is no separate Preview B2 bucket recorded
- * anywhere in this repo, so this reads the one bucket that actually exists — the same one
- * Production uses — and reports it honestly as shared evidence, not fabricated
- * Preview-isolated evidence.
+ * Live D1 table/count probes (Dev only) run when Cloudflare + D1_DEV credentials
+ * are present. The Actions workflow may still supply B2-only credentials; in that
+ * case the script records the wrangler identity contract and skips the live Dev
+ * probe without inventing Production-as-Preview evidence.
  *
- * Performs exactly one read-only check: a single bounded `ListObjectsV2` call (max 1000
- * keys, one page) against the Backblaze B2 bucket, using the same path-style request shape
- * as `functions/_lib/b2.ts`'s own `listB2Objects()`. Only the object count and truncation
- * flag are recorded — individual object keys/filenames are never persisted. There is no
- * `PutObject`/`DeleteObject`/D1-write code path anywhere in this file.
- *
- * Parses the ListObjectsV2 XML with `parseListObjectsV2Page` from
- * `d1_backup_r2_phase1_preflight_3268.mjs` (a self-contained, plain-Node-compatible
- * duplicate of the same parsing logic `functions/_lib/b2.ts`'s `parseListObjectsV2Xml`
- * implements) rather than cross-importing `b2.ts` directly: `b2.ts` itself imports
- * `./aws4fetch` without a file extension, which only resolves inside the Next.js/Workers
- * build pipeline. A first version of this file imported `b2.ts` directly and passed under
- * `vitest` (whose Vite-based resolver tolerates the missing extension) but failed under
- * plain `node scripts/ci/...` in real CI with `ERR_MODULE_NOT_FOUND` -- exactly the
- * documented reason `d1_backup_r2_phase1_preflight_3268.mjs` avoided the same cross-import
- * for its own R2 equivalent. Fixed by reusing that already-Node-compatible helper instead.
- *
- * Required env (GitHub Actions repository secrets; values are never logged):
- *   B2_ENDPOINT, B2_BUCKET, B2_KEY_ID, B2_APP_KEY — the existing, already-approved
- *   Backblaze B2 credentials this repo's own `.github/workflows/b2-d1-daily-sync.yml`
- *   already uses in production. No new secret is introduced by this script.
+ * Backblaze B2: one read-only ListObjectsV2 page (object count only; no keys stored).
+ * No Put/Delete/D1-write paths.
  */
 
 import fs from 'node:fs';
+import path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { pathToFileURL } from 'node:url';
 import { AwsClient } from '../../functions/_lib/aws4fetch.ts';
 import { redactSecrets, extractS3ErrorCode, parseListObjectsV2Page } from './d1_backup_r2_phase1_preflight_3268.mjs';
+import { parseProdAndPreviewD1, evaluateIdentities } from './d1_prod_dev_identity_check.mjs';
+import { parseWranglerJson, extractDatabaseUuid, extractD1Rows } from './production_d1_preflight_2913.mjs';
 
 export const RESULT_JSON_PATH = 'production-content-preview-preflight-2859-result.json';
 export const RESULT_MD_PATH = 'production-content-preview-preflight-2859-result.md';
+
+const INTERNAL_TABLE_PREFIXES = ['sqlite_', 'd1_migrations', '_cf_'];
+
+/** Escape a value for use as a SQLite single-quoted string literal. */
+export function quoteSqlStringLiteral(value) {
+  return `'${String(value).replace(/'/g, "''")}'`;
+}
+
+/** Escape a value for use as a SQLite double-quoted identifier. */
+export function quoteSqlIdentifier(value) {
+  return `"${String(value).replace(/"/g, '""')}"`;
+}
 
 export function requireEnv(env = process.env) {
   return ['B2_ENDPOINT', 'B2_BUCKET', 'B2_KEY_ID', 'B2_APP_KEY'].filter((name) => !env[name]);
 }
 
+export function hasLiveDevD1Credentials(env = process.env) {
+  return Boolean(
+    env.CLOUDFLARE_API_TOKEN &&
+      env.CLOUDFLARE_ACCOUNT_ID &&
+      env.D1_DEV_DATABASE_NAME &&
+      env.D1_DEV_DATABASE_ID,
+  );
+}
+
+/**
+ * Load Production + Preview D1 identities from the current repository wrangler.toml.
+ * Fail-closed caller must treat missing/shared IDs as errors (#3337).
+ */
+export function loadD1IdentitiesFromWrangler(wranglerPath = path.resolve(process.cwd(), 'wrangler.toml')) {
+  if (!fs.existsSync(wranglerPath)) {
+    throw new Error(`wrangler.toml not found at ${wranglerPath}`);
+  }
+  return parseProdAndPreviewD1(fs.readFileSync(wranglerPath, 'utf8'));
+}
+
+/** Production database_id sourced from current wrangler.toml (not a stale hardcoded copy). */
+export function productionD1IdFromWrangler(wranglerPath) {
+  return loadD1IdentitiesFromWrangler(wranglerPath).production.databaseId;
+}
+
+export function buildTableExclusionSql() {
+  return INTERNAL_TABLE_PREFIXES.map((prefix) => `AND name NOT LIKE '${prefix}%'`).join(' ');
+}
+
+export function buildTableListSql() {
+  return `SELECT name FROM sqlite_master WHERE type='table' ${buildTableExclusionSql()} ORDER BY name`;
+}
+
+/**
+ * One combined UNION ALL query for every table's row count.
+ * Table names are escaped for both the string literal and the identifier (#3337).
+ */
+export function buildRowCountSql(tableNames) {
+  return (tableNames || [])
+    .map(
+      (table) =>
+        `SELECT ${quoteSqlStringLiteral(table)} AS table_name, COUNT(*) AS row_count FROM ${quoteSqlIdentifier(table)}`,
+    )
+    .join(' UNION ALL ');
+}
+
+export function parseRowCountRows(rows) {
+  return (rows ?? [])
+    .map((row) => ({ table: String(row.table_name ?? ''), rowCount: Number(row.row_count ?? 0) }))
+    .filter((row) => row.table)
+    .sort((a, b) => a.table.localeCompare(b.table));
+}
+
 export function buildResultMarkdown(result) {
+  const d1 = result.d1 || {};
   const lines = [
     '<!-- production-content-preview-preflight-2859 -->',
-    '## #2859 Preview evidence preflight — corrected for shared D1 and Backblaze B2 (#3343)',
+    '## #2859 Preview/Development evidence preflight — post-D1 split (#3355/#3360/#3337)',
     '',
     `- Checked at: ${result.checkedAt}`,
     '',
-    '### D1 — no evidence collected (by design, not a failure)',
+    '### D1 identity contract (from current wrangler.toml)',
     '',
-    "Per #3341/#3343: this repo's own canonical isolation record (`scripts/ci/preview-isolation-manifest.json`, `docs/reference/platform/component-environment-isolation.md`) classifies Preview D1 as `production-shared` — Preview and Production use the same `lgfc_lite` database and `database_id`. No isolated Preview D1 database exists to check. This script does not read `lgfc_lite` and label it \"Preview evidence,\" since that would misrepresent real Production member/auth/PII data. **D1 evidence for #2859 criterion 7 remains an open infrastructure/Product decision** (provision a genuinely isolated Preview D1 database, or accept this evidence gap) — not something this preflight can safely resolve on its own.",
+    `- Production: \`${d1.productionName || ''}\` / \`${d1.productionId || ''}\``,
+    `- Preview/Development: \`${d1.previewName || ''}\` / \`${d1.previewId || ''}\``,
+    `- Distinct IDs: ${d1.distinct ? 'YES' : 'NO'}`,
+    `- Contract: ${d1.contractOk ? 'PASS' : 'FAIL'}${d1.contractFailures?.length ? ` (${d1.contractFailures.join('; ')})` : ''}`,
+    '',
+    '### D1 live Dev probe (lgfc-litedev only when credentials present)',
+    '',
+    d1.liveProbe === 'skipped_missing_credentials'
+      ? '- Live Dev D1 probe skipped: Cloudflare / D1_DEV credentials not provided in this run (identity contract still enforced from wrangler.toml).'
+      : d1.liveProbe === 'ok'
+        ? [
+            `- Live Dev probe: OK against \`${d1.liveDatabaseName}\``,
+            `- Table count: ${d1.tableCount}`,
+            '',
+            '| table | row count |',
+            '| --- | --- |',
+            ...(d1.tables || []).map((t) => `| \`${t.table}\` | ${t.rowCount} |`),
+          ].join('\n')
+        : `- Live Dev probe: ${d1.liveProbe || 'n/a'}${d1.liveFailureReason ? ` (${d1.liveFailureReason})` : ''}`,
     '',
     '### Backblaze B2 — reachability (object count only, no keys/filenames recorded)',
     '',
-    "This checks the one Backblaze B2 bucket this repository actually uses — the same bucket Production reads and writes via `functions/_lib/b2.ts` and `.github/workflows/b2-d1-daily-sync.yml`. No separate Preview B2 bucket is recorded anywhere in this repo either, so this is shared-bucket evidence, reported honestly as such rather than as fabricated Preview-isolated evidence.",
+    '- Shared content-media bucket (B2 remains the LGFC media store; D1 split does not create a separate B2 env).',
     '',
     `- Reachable: ${result.b2.reachable ? 'YES' : 'NO'}${result.b2.failureReason ? ` (${result.b2.failureReason})` : ''}`,
     result.b2.reachable
@@ -83,9 +142,20 @@ export function buildResultMarkdown(result) {
     '',
     '### What this does and does not establish',
     '',
-    "This confirms Backblaze B2 read reachability only — the same low-risk, already-accepted read-only access pattern this repo's own runtime code (`b2-runtime-list`, classified `read-only`) already performs. It does **not** establish isolated Preview evidence for either D1 or B2 (neither has a separate Preview identity today), does not satisfy #2859 criterion 3 (real D1/B2 population), and does not advance #2780's entry gate. Gate 1 remains HOLD; Gate 2 remains NO-GO.",
+    'This validates the post-#3355 Production vs Preview/Development D1 split and optional read-only Dev counts, plus B2 reachability. It does **not** mutate Production, does not satisfy #2859 criterion 3 alone, and does not advance #2780 entry gates by itself.',
   ].filter((line) => line !== '');
   return lines.join('\n');
+}
+
+function resolveWranglerCmd() {
+  const local = path.resolve(process.cwd(), 'node_modules', '.bin', 'wrangler');
+  if (fs.existsSync(local)) return [local];
+  return ['npx', '--no-install', 'wrangler'];
+}
+
+function runWrangler(args) {
+  const cmd = resolveWranglerCmd();
+  return spawnSync(cmd[0], [...cmd.slice(1), ...args], { encoding: 'utf8', env: process.env });
 }
 
 function failClosed(message) {
@@ -99,6 +169,135 @@ export async function main() {
   if (missing.length > 0) {
     failClosed(`missing required credential(s): ${missing.join(', ')} (values are never logged).`);
     return;
+  }
+
+  let identities;
+  try {
+    identities = loadD1IdentitiesFromWrangler();
+  } catch (error) {
+    failClosed(error.message);
+    return;
+  }
+
+  const identityResult = evaluateIdentities(identities, process.env);
+  if (!identityResult.ok) {
+    failClosed(`D1 identity contract failed: ${identityResult.failures.join('; ')}`);
+    return;
+  }
+
+  const d1 = {
+    productionName: identities.production.databaseName,
+    productionId: identities.production.databaseId,
+    previewName: identities.preview.databaseName,
+    previewId: identities.preview.databaseId,
+    distinct: identities.production.databaseId !== identities.preview.databaseId,
+    contractOk: true,
+    contractFailures: [],
+    liveProbe: 'skipped_missing_credentials',
+    liveDatabaseName: null,
+    liveFailureReason: '',
+    tableCount: null,
+    tables: [],
+  };
+
+  if (hasLiveDevD1Credentials(process.env)) {
+    const previewDbName = process.env.D1_DEV_DATABASE_NAME;
+    const previewDbId = process.env.D1_DEV_DATABASE_ID;
+    const productionId = identities.production.databaseId;
+
+    if (previewDbId === productionId) {
+      failClosed('D1_DEV_DATABASE_ID matches Production database_id from wrangler.toml — refusing.');
+      return;
+    }
+    if (previewDbId !== identities.preview.databaseId) {
+      failClosed('D1_DEV_DATABASE_ID does not match wrangler Preview/Development database_id.');
+      return;
+    }
+
+    const info = runWrangler(['d1', 'info', previewDbName, '--json']);
+    if (info.error || info.status !== 0) {
+      failClosed(`wrangler d1 info failed for Dev database (exit ${info.status ?? 'spawn error'}).`);
+      return;
+    }
+    let infoParsed;
+    try {
+      infoParsed = parseWranglerJson(info.stdout);
+    } catch (error) {
+      failClosed(`could not parse wrangler d1 info output: ${error.message}`);
+      return;
+    }
+    const remoteUuid = extractDatabaseUuid(infoParsed);
+    if (!remoteUuid) {
+      failClosed('wrangler d1 info returned no database uuid.');
+      return;
+    }
+    if (remoteUuid === productionId) {
+      failClosed('live database uuid matches Production — refusing to treat Production as Preview/Dev.');
+      return;
+    }
+    if (remoteUuid !== previewDbId) {
+      failClosed('live database uuid does not match D1_DEV_DATABASE_ID.');
+      return;
+    }
+
+    const listRes = runWrangler([
+      'd1',
+      'execute',
+      previewDbName,
+      '--remote',
+      '--env',
+      'preview',
+      '--command',
+      buildTableListSql(),
+      '--json',
+    ]);
+    if (listRes.error || listRes.status !== 0) {
+      failClosed(`wrangler d1 execute failed enumerating Dev tables (exit ${listRes.status ?? 'spawn error'}).`);
+      return;
+    }
+    let listParsed;
+    try {
+      listParsed = parseWranglerJson(listRes.stdout);
+    } catch (error) {
+      failClosed(`could not parse table-listing output: ${error.message}`);
+      return;
+    }
+    const tableNames = extractD1Rows(listParsed)
+      .map((row) => String(row.name || ''))
+      .filter(Boolean)
+      .sort();
+
+    let tables = [];
+    if (tableNames.length > 0) {
+      const countRes = runWrangler([
+        'd1',
+        'execute',
+        previewDbName,
+        '--remote',
+        '--env',
+        'preview',
+        '--command',
+        buildRowCountSql(tableNames),
+        '--json',
+      ]);
+      if (countRes.error || countRes.status !== 0) {
+        failClosed(`wrangler d1 execute failed counting Dev rows (exit ${countRes.status ?? 'spawn error'}).`);
+        return;
+      }
+      let countParsed;
+      try {
+        countParsed = parseWranglerJson(countRes.stdout);
+      } catch (error) {
+        failClosed(`could not parse row-count output: ${error.message}`);
+        return;
+      }
+      tables = parseRowCountRows(extractD1Rows(countParsed));
+    }
+
+    d1.liveProbe = 'ok';
+    d1.liveDatabaseName = previewDbName;
+    d1.tableCount = tableNames.length;
+    d1.tables = tables;
   }
 
   const endpoint = process.env.B2_ENDPOINT.replace(/\/$/, '');
@@ -140,12 +339,14 @@ export async function main() {
     b2.failureReason = redact(error.message || 'fetch failed');
   }
 
-  const result = { checkedAt: new Date().toISOString(), b2 };
+  const result = { checkedAt: new Date().toISOString(), d1, b2 };
 
   fs.writeFileSync(RESULT_JSON_PATH, `${JSON.stringify(result, null, 2)}\n`);
   fs.writeFileSync(RESULT_MD_PATH, `${buildResultMarkdown(result)}\n`);
 
-  console.log(`OK: B2 reachable=${b2.reachable}, objectCount=${b2.objectCount ?? 'n/a'}.`);
+  console.log(
+    `OK: D1 contract PASS (prod=${d1.productionName}, preview=${d1.previewName}); liveProbe=${d1.liveProbe}; B2 reachable=${b2.reachable}.`,
+  );
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
