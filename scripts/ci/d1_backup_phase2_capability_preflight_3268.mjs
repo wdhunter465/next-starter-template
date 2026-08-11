@@ -363,6 +363,7 @@ export async function main() {
   const bucketName = process.env.R2_BUCKET_NAME.trim();
   const accessKeyId = process.env.R2_ACCESS_KEY_ID.trim();
   const secretAccessKey = process.env.R2_SECRET_ACCESS_KEY.trim();
+  const apiToken = process.env.CLOUDFLARE_API_TOKEN.trim();
 
   // requireCapabilityEnv() above only checks presence, so a whitespace-only secret value
   // passes it (a non-empty string is truthy) and would trim to an empty string here --
@@ -375,13 +376,21 @@ export async function main() {
     R2_BUCKET_NAME: bucketName,
     R2_ACCESS_KEY_ID: accessKeyId,
     R2_SECRET_ACCESS_KEY: secretAccessKey,
+    CLOUDFLARE_API_TOKEN: apiToken,
   });
   if (blankAfterTrim.length > 0) {
     failClosed(`required credential(s) present but blank/whitespace-only after trimming: ${blankAfterTrim.join(', ')} (values are never logged).`);
     return;
   }
 
-  const redact = (text) => redactSecrets(text, [accountId, bucketName, accessKeyId, secretAccessKey]);
+  // wrangler subprocesses (runWrangler -> spawnSync with env: process.env) read these two
+  // directly from the environment, not from the local trimmed variables above -- write the
+  // trimmed values back so a leading/trailing-whitespace secret can't reach wrangler
+  // untrimmed even though it already passed the blank-after-trim check.
+  process.env.CLOUDFLARE_ACCOUNT_ID = accountId;
+  process.env.CLOUDFLARE_API_TOKEN = apiToken;
+
+  const redact = (text) => redactSecrets(text, [accountId, bucketName, accessKeyId, secretAccessKey, apiToken]);
 
   const r2 = await runR2CapabilityTest({ accountId, bucketName, accessKeyId, secretAccessKey, redact });
   const d1 = await runD1CapabilityTest({ redact });
