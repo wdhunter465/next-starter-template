@@ -5,8 +5,8 @@ Authority Level: Operational
 Owns: Host registration and verification procedure for the dedicated `lgfc-cursor` GitHub Actions runner used by #3212 dispatch (primary after Phase 4)
 Does Not Own: Historical Cursor Bridge package internals or Production website deployment
 Canonical Reference: /docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md
-Related Issues: #3212
-Last Reviewed: 2026-08-09
+Related Issues: #3212, #3347
+Last Reviewed: 2026-08-11
 ---
 
 # Configure the LGFC Cursor dispatch runner
