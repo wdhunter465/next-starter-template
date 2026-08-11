@@ -1,8 +1,8 @@
 ---
 Doc Type: Reference
 Audience: Human + AI
-Authority Level: Current Website As-Built
-Owns: Evidence-backed description of the LGFC website as currently implemented and deployed in Production
+Authority Level: Controlled
+Owns: Evidence-backed description of the LGFC website as currently implemented and deployed in Production (current as-built baseline)
 Does Not Own: Product design intent; design-vs-as-built gap decisions; Production remediation; runtime configuration secrets
 Canonical Reference: /docs/reference/website/lgfc-website-as-built-current.md
 Source Issue: #3324
@@ -37,7 +37,7 @@ Out of scope: redesign, Production remediation, design-doc rewrites, design arch
 | D1 binding | `DB` → database name `lgfc_lite` |
 | Health | `GET /api/health` returned `{"ok":true,"db_ok":true}` |
 | Media | Photo URLs observed on Backblaze B2 (`s3.us-east-005.backblazeb2.com/LouGehrigFanClub/...`) |
-| Analytics | Google tag manager script id `G-BRV48J1VE` present in Production HTML |
+| Analytics | GA4 measurement ID / gtag identifier `G-BRV48J1VE` present in Production HTML |
 
 ## Intended final state
 
