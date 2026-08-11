@@ -56,7 +56,7 @@ Every resource below has exactly one primary classification.
 | Resource | Class | Evidence | Blocking rule |
 | --- | --- | --- | --- |
 | Pages project `next-starter-template` | **production-shared** | `docs/reference/platform/CLOUDFLARE.md`, `wrangler.toml` | Same project, secrets, and function bindings for preview and production URLs. URL alone does not isolate data. |
-| Rate limiter `API_RATE_LIMITER` | **production-shared** | `wrangler.toml` (`namespace_id = "1001"`) | Shared limiter namespace; changes require `protected-change-review`. |
+| API rate limiting | **production-shared** (intended) | Dashboard Rate Limiting / WAF; middleware optional (`docs/how-to/website/api-rate-limiting.md`, #527) | Do not use `wrangler.toml` `[[ratelimits]]` on Pages (ignored). Dashboard / shared abuse-control changes require `protected-change-review`. |
 
 ### Cloudflare D1
 

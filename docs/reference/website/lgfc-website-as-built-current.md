@@ -227,7 +227,7 @@ Admin APIs under `functions/api/admin/**` cover ask/faq/cms/content/editorial/ev
 - Static pages exported to `out/` (Cloudflare Pages)
 - Dynamic behavior via Pages Functions `functions/api/**`
 - Middleware: `functions/api/_middleware.ts`
-- Rate limit binding: `API_RATE_LIMITER` (60 req / 60 s per key) in `wrangler.toml`
+- Rate limiting: `wrangler.toml` `[[ratelimits]]` removed (#527); Pages ignored that field. Middleware optionally uses `env.API_RATE_LIMITER` if present; authoritative control plane is dashboard Rate Limiting / WAF (`docs/how-to/website/api-rate-limiting.md`)
 
 ### 5.2 D1 tables (from migrations; production-relevant)
 
@@ -337,7 +337,7 @@ Evidence: `VERIFIED_PRODUCTION` (desktop shell) + `VERIFIED_SOURCE_ONLY` (CSS br
 | Matchup loading | Client “Loading matchup…” then images |
 | Placeholder data | Milestones and events APIs return explicit placeholder rows |
 | Client/server split | Static export UI; data via browser `fetch` to Functions |
-| Rate limiting | Configured native Cloudflare rate limit binding |
+| Rate limiting | Dashboard Rate Limiting / WAF intended; `wrangler.toml` `[[ratelimits]]` removed (#527); middleware optional |
 
 ---
 

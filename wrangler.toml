@@ -11,11 +11,8 @@ binding = "DB"                     # Must match Cloudflare binding name
 database_name = "lgfc_lite"        # Must match CF dashboard
 database_id = "22d0dc3e-ad34-43af-8e6a-2063df1a1e04"   # Will fill after fetching via wrangler
 
-# Cloudflare Workers Rate Limiting (native binding)
-# NOTE: namespace_id must be a unique positive integer for your Cloudflare account.
-# If this conflicts with an existing rate limiter, change it to another integer.
-[[ratelimits]]
-name = "API_RATE_LIMITER"
-namespace_id = "1001"
-# 60 requests per 60 seconds per key (per Cloudflare location)
-simple = { limit = 60, period = 60 }
+# Rate limiting: do NOT declare [[ratelimits]] here.
+# Cloudflare Pages build rejects/ignores top-level ratelimits (warning: Unexpected fields).
+# Intended control plane: Cloudflare dashboard Rate Limiting / WAF.
+# functions/api/_middleware.ts still calls env.API_RATE_LIMITER when present and degrades if absent.
+# See docs/how-to/website/api-rate-limiting.md (#527).
