@@ -202,7 +202,7 @@ export async function main(env = process.env) {
   );
 }
 
-if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch((error) => {
     fail(error?.message || String(error));
   });
