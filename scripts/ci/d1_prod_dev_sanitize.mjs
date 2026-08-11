@@ -85,7 +85,8 @@ export function applyTransform(transform, seed, sourceValue) {
     case undefined:
     case null:
     case '':
-      return sourceValue;
+      // Fail closed: never return Production source values for non-copy paths.
+      throw new Error(`Missing transform for seed=${seed}`);
     default:
       throw new Error(`Unknown transform: ${transform}`);
   }
@@ -225,8 +226,10 @@ export function sanitizeTable(manifest, table, rows) {
 
   if (tableMeta.default_class === 'replace_with_fixture') {
     const fixture = manifest.fixtures?.[table] || [];
+    stats.excludedCount = rows.length;
     stats.outputCount = fixture.length;
     stats.classCounts.replace_with_fixture = fixture.length;
+    stats.classCounts.exclude = rows.length;
     return { rows: structuredClone(fixture), excludedCount: rows.length, stats };
   }
 
@@ -268,8 +271,9 @@ export function sanitizeTable(manifest, table, rows) {
 }
 
 /**
- * Sanitize a multi-table dataset. Stops if any hold_for_product column is encountered
- * unless options.allowHoldsForDryRunStats is set (still does not emit those columns' source values).
+ * Sanitize a multi-table dataset. Stops if any hold_for_product column is encountered.
+ * Pass options.ignoreRefreshGate=true only for unit tests that intentionally exercise
+ * transforms while the refresh gate would otherwise HOLD.
  */
 export function sanitizeDataset(manifest, dataset, options = {}) {
   const gate = evaluateRefreshGate(manifest);
@@ -340,7 +344,7 @@ function main() {
   );
 
   if (!covered.ok) process.exit(2);
-  // Policy package itself may recommend HOLD for #3359; CLI exits 0 when schema coverage passes.
+  if (!gate.ok) process.exit(3);
   process.exit(0);
 }
 

@@ -53,20 +53,18 @@ Default: `replace_with_fixture` with a single synthetic admin (`dev-admin@exampl
 
 ## Open Product decisions
 
-1. **PD-3358-01** — `photos.people`: copy as-is vs redact/randomize for memorabilia tags.
-2. **PD-3358-02** — confirm fixture-only members vs transforming Production members.
+1. **PD-3358-01** — `photos.people`: **CLOSED** as **COPY AS-IS** (Bill, 2026-08-11).
+2. **PD-3358-02** — confirm fixture-only members vs transforming Production members. **Proposed default:** `replace_with_fixture` (synthetic members). Not a blocking HOLD for #3359.
 
 ## Referential integrity notes
 
 - Excluding sessions/login attempts means Dev auth must use fixture members only.
 - `content_items` rows whose `privacy_flag` is not in the allowlist are excluded (unknown flags fail closed).
-- Refresh Action must not emit rows that require unresolved `hold_for_product` columns.
+- `photos.people` copies as-is per PD-3358-01.
 
 ## GO / HOLD for #3359
 
-**HOLD** remote refresh Action implementation for Production→Dev data move until **PD-3358-01** is dispositioned and the manifest `go_hold_recommendation` flips to `GO`.
-
-Policy package + unit tests may land under #3358 while that HOLD remains.
+**GO** for remote refresh Action implementation and Bill-triggered runs. Auth/PII fail-closed rules remain enforced by the manifest. Cursor must not autonomously trigger the first remote destructive Dev refresh.
 
 ## Intended final state
 
