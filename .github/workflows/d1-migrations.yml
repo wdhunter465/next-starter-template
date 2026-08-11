@@ -76,4 +76,4 @@ jobs:
           echo "Target database_name=lgfc-litedev (Development)"
           echo "Target database_id=35232809-b4c1-4df9-9f39-2f178b13c378"
           node scripts/ci/d1_prod_dev_identity_check.mjs
-          npx wrangler d1 migrations apply lgfc-litedev --remote
+          npx wrangler d1 migrations apply lgfc-litedev --remote --env preview

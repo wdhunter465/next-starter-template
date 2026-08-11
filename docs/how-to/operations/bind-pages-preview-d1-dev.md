@@ -65,9 +65,10 @@ From a trusted machine or after merge of the #3357 workflow:
 
 ```bash
 node scripts/ci/d1_prod_dev_identity_check.mjs
-npx wrangler d1 migrations apply lgfc-litedev --remote
+npx wrangler d1 migrations apply lgfc-litedev --remote --env preview
 ```
 
+`--env preview` is required so Wrangler resolves `lgfc-litedev` from `[[env.preview.d1_databases]]` rather than looking only at the top-level Production block.
 Print and confirm name/id before apply. **Never** run Dev migrate commands against `lgfc_lite`.
 
 ## Verification
