@@ -9,8 +9,11 @@ import {
   PROD_ID,
   PROD_NAME,
   buildDevLoadSql,
+  isInternalDumpTable,
   parseInsertDump,
+  parseSqlValueToken,
   runRefreshPipeline,
+  splitSqlArgs,
   validateManualInputs,
   validateSourceTargetIdentities,
 } from '../scripts/ci/d1_prod_dev_refresh.mjs';
@@ -142,6 +145,62 @@ INSERT INTO "photos" ("id", "url", "is_memorabilia", "description", "created_at"
     });
     expect(result.ok).toBe(false);
     expect(result.failures.some((f) => f.includes('zero parsable INSERT'))).toBe(true);
+  });
+
+  it('parses replace(..., char(10)) export shapes for content tables (#3371)', () => {
+    // Shape confirmed from live Prod export (scrubbed): replace('text','\\n',char(10))
+    const body = "Line one\\nLine two";
+    const sql = `
+INSERT INTO "membership_card_content" ("id", "title", "body_md", "status", "updated_at") VALUES (1, 'Card Title', replace('${body}', '\\n', char(10)), 'draft', '2026-01-01T00:00:00.000Z');
+INSERT INTO "welcome_email_content" ("id", "title", "body_md", "status", "updated_at") VALUES (1, 'Welcome', replace('Hello\\nWorld', '\\n', char(10)), 'draft', '2026-01-01T00:00:00.000Z');
+INSERT INTO "footer_quotes" ("id", "quote", "attribution", "status", "created_at", "updated_at") VALUES (1, 'Hello', 'Lou', 'published', '2026-01-01', '2026-01-01');
+`;
+    const parsed = parseInsertDump(sql, manifest.schema_fingerprint);
+    expect(parsed.ok).toBe(true);
+    expect(parsed.dataset.membership_card_content).toHaveLength(1);
+    expect(parsed.dataset.membership_card_content[0].body_md).toBe('Line one\nLine two');
+    expect(parsed.dataset.welcome_email_content[0].body_md).toBe('Hello\nWorld');
+
+    expect(splitSqlArgs("1,'a',replace('x','\\n',char(10)),'draft'")).toEqual([
+      '1',
+      "'a'",
+      "replace('x','\\n',char(10))",
+      "'draft'",
+    ]);
+    expect(parseSqlValueToken("replace('a\\nb','\\n',char(10))")).toBe('a\nb');
+  });
+
+  it('skips sqlite_sequence and other internal dump tables (#3371)', () => {
+    expect(isInternalDumpTable('sqlite_sequence')).toBe(true);
+    expect(isInternalDumpTable('d1_migrations')).toBe(true);
+    expect(isInternalDumpTable('_cf_KV')).toBe(true);
+    expect(isInternalDumpTable('members')).toBe(false);
+
+    const sql = `
+INSERT INTO sqlite_sequence (name,seq) VALUES('members',9);
+INSERT INTO sqlite_sequence (name,seq) VALUES('footer_quotes',1);
+INSERT INTO "footer_quotes" ("id", "quote", "attribution", "status", "created_at", "updated_at") VALUES (1, 'Hello', 'Lou', 'published', '2026-01-01', '2026-01-01');
+`;
+    const parsed = parseInsertDump(sql, manifest.schema_fingerprint);
+    expect(parsed.ok).toBe(true);
+    expect(parsed.failures).toEqual([]);
+    expect(parsed.dataset.sqlite_sequence).toBeUndefined();
+    expect(parsed.dataset.footer_quotes).toHaveLength(1);
+  });
+
+  it('fails closed on unknown SQL value expressions (#3371)', () => {
+    expect(() => parseSqlValueToken("hex('abc')")).toThrow(/Unparseable SQL value token/);
+    expect(() => parseSqlValueToken("replace('a','b')")).toThrow(/Unparseable SQL value token/);
+    expect(() => parseSqlValueToken("X'dead'")).toThrow(/Unparseable SQL value token/);
+
+    const sql = `
+INSERT INTO "footer_quotes" ("id", "quote", "attribution", "status", "created_at", "updated_at") VALUES (1, hex('nope'), 'Lou', 'published', '2026-01-01', '2026-01-01');
+`;
+    const parsed = parseInsertDump(sql, manifest.schema_fingerprint);
+    expect(parsed.ok).toBe(false);
+    expect(parsed.failures.some((f) => f.includes('footer_quotes') && f.includes('Unparseable'))).toBe(
+      true,
+    );
   });
 
   it('workflow file is workflow_dispatch only', () => {

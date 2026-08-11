@@ -93,9 +93,53 @@ export function validateSourceTargetIdentities(env = process.env, wranglerText =
   };
 }
 
-/** Parse a single SQL literal / NULL / number from VALUES list. */
+/**
+ * SQLite / D1 internal tables that appear in dumps but are not application tables.
+ * Matches backup-restore internal exclusion prefixes (evidence only — do not import that module).
+ */
+export const INTERNAL_DUMP_TABLE_PREFIXES = ['sqlite_', 'd1_migrations', '_cf_'];
+
+export function isInternalDumpTable(tableName) {
+  const lower = String(tableName || '').toLowerCase();
+  return INTERNAL_DUMP_TABLE_PREFIXES.some((prefix) => lower.startsWith(prefix));
+}
+
+/** Find matching close paren for an open paren at openIdx (quote-aware). */
+function findMatchingCloseParen(text, openIdx) {
+  let depth = 0;
+  let inQuote = null;
+  for (let i = openIdx; i < text.length; i += 1) {
+    const ch = text[i];
+    if (inQuote) {
+      if (ch === inQuote) {
+        if (text[i + 1] === inQuote) i += 1;
+        else inQuote = null;
+      }
+      continue;
+    }
+    if (ch === "'" || ch === '"') {
+      inQuote = ch;
+      continue;
+    }
+    if (ch === '(') depth += 1;
+    else if (ch === ')') {
+      depth -= 1;
+      if (depth === 0) return i;
+    }
+  }
+  return -1;
+}
+
+/**
+ * Parse a single SQL value expression from a VALUES list.
+ * Supported (fail-closed otherwise): NULL, number, quoted string, char(N), replace(a,b,c).
+ */
 export function parseSqlValueToken(token) {
-  const t = token.trim();
+  return evaluateSqlValueExpr(String(token || '').trim());
+}
+
+function evaluateSqlValueExpr(t) {
+  if (!t) throw new Error('Unparseable SQL value token');
   if (/^null$/i.test(t)) return null;
   if (/^-?\d+(\.\d+)?$/.test(t)) {
     return t.includes('.') ? Number(t) : Number.parseInt(t, 10);
@@ -113,6 +157,41 @@ export function parseSqlValueToken(token) {
     }
     return out;
   }
+
+  const call = /^([A-Za-z_][\w]*)\s*\(/i.exec(t);
+  if (call) {
+    const name = call[1].toLowerCase();
+    const openIdx = call[0].length - 1;
+    const closeIdx = findMatchingCloseParen(t, openIdx);
+    if (closeIdx < 0 || closeIdx !== t.length - 1) {
+      throw new Error('Unparseable SQL value token');
+    }
+    const args = splitSqlArgs(t.slice(openIdx + 1, closeIdx));
+
+    if (name === 'char') {
+      if (args.length !== 1) throw new Error('Unparseable SQL value token');
+      const code = evaluateSqlValueExpr(args[0]);
+      if (typeof code !== 'number' || !Number.isInteger(code) || code < 0 || code > 0x10ffff) {
+        throw new Error('Unparseable SQL value token');
+      }
+      return String.fromCodePoint(code);
+    }
+
+    if (name === 'replace') {
+      if (args.length !== 3) throw new Error('Unparseable SQL value token');
+      const haystack = evaluateSqlValueExpr(args[0]);
+      const search = evaluateSqlValueExpr(args[1]);
+      const replacement = evaluateSqlValueExpr(args[2]);
+      if (typeof haystack !== 'string' || typeof search !== 'string' || typeof replacement !== 'string') {
+        throw new Error('Unparseable SQL value token');
+      }
+      // SQLite replace() replaces all occurrences.
+      return haystack.split(search).join(replacement);
+    }
+
+    throw new Error('Unparseable SQL value token');
+  }
+
   throw new Error('Unparseable SQL value token');
 }
 
@@ -157,6 +236,7 @@ export function splitSqlTupleList(valuesBlob) {
 export function splitSqlArgs(argBlob) {
   const args = [];
   let inQuote = null;
+  let depth = 0;
   let start = 0;
   for (let i = 0; i < argBlob.length; i += 1) {
     const ch = argBlob[i];
@@ -171,7 +251,15 @@ export function splitSqlArgs(argBlob) {
       inQuote = ch;
       continue;
     }
-    if (ch === ',') {
+    if (ch === '(') {
+      depth += 1;
+      continue;
+    }
+    if (ch === ')') {
+      depth -= 1;
+      continue;
+    }
+    if (ch === ',' && depth === 0) {
       args.push(argBlob.slice(start, i).trim());
       start = i + 1;
     }
@@ -193,6 +281,10 @@ export function parseInsertDump(sqlText, schemaFingerprint) {
   let match;
   while ((match = insertRe.exec(sqlText)) !== null) {
     const table = match[1] || match[2];
+    // Skip SQLite/D1 internal bookkeeping tables (e.g. sqlite_sequence) — not application data.
+    if (isInternalDumpTable(table)) {
+      continue;
+    }
     const colBlob = match[3];
     const after = sqlText.slice(match.index + match[0].length);
     const endMatch = after.match(/^([\s\S]*?)(?:;|\n(?=INSERT\s+INTO|\nCREATE|\nCOMMIT|\nBEGIN)|$)/i);
