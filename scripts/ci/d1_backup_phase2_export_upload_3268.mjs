@@ -104,7 +104,18 @@ function resolveWranglerCmd() {
 
 function runWrangler(args) {
   const cmd = resolveWranglerCmd();
-  return spawnSync(cmd[0], [...cmd.slice(1), ...args], { encoding: 'utf8', env: process.env });
+  // stdio[1] ('ignore') discards wrangler's stdout at the OS level rather than merely leaving
+  // it unread: with the default 'pipe' behavior, spawnSync still buffers the full stdout into
+  // the returned result even if this script never reads it, which both risks a maxBuffer
+  // overflow on a large/verbose export and leaves the one-hour presigned download URL
+  // `wrangler d1 export` prints on success sitting in process memory. Explicitly discarding it
+  // is a structural guarantee, not just a "we don't happen to read it" convention. stderr stays
+  // piped for diagnostics.
+  return spawnSync(cmd[0], [...cmd.slice(1), ...args], {
+    encoding: 'utf8',
+    env: process.env,
+    stdio: ['ignore', 'ignore', 'pipe'],
+  });
 }
 
 function formatExportResult(exportResult) {
@@ -223,12 +234,21 @@ export async function main() {
   };
 
   try {
-    // Deliberately not capturing/using `.stdout` here -- see the top-of-file comment on why
-    // wrangler's own stdout must never be surfaced from this step.
+    // runWrangler() discards this command's stdout at the OS level (stdio: ['ignore', 'ignore',
+    // 'pipe']) -- see the top-of-file comment on why wrangler's own stdout must never be
+    // surfaced from this step.
     const exp = runWrangler(['d1', 'export', databaseName, '--remote', '--output', tmpFile]);
     if (exp.error || exp.status !== 0 || !fs.existsSync(tmpFile)) {
       exportResult.exportFailureReason = redact((exp.stderr || '').trim()).slice(0, 500) || `exit ${exp.status ?? 'spawn error'}`;
     } else {
+      // Read once into memory and reused for both hashing and as the PUT body, rather than
+      // reading the file twice. A fully-streaming path (hash the file while streaming it to
+      // the PUT request body) is possible -- AwsV4Signer accepts a stream body as long as
+      // X-Amz-Content-Sha256 is set explicitly (see functions/_lib/aws4fetch.ts) -- but also
+      // requires fetch's `duplex: 'half'` streaming-request-body mode, which this sandbox has
+      // no live R2 credentials to validate end-to-end. At the current export size (~800KB,
+      // Phase 1's `wrangler d1 info`), a single in-memory buffer is proportionate; revisit if
+      // Phase 3 finds export size growing enough for this to matter.
       const fileBuffer = fs.readFileSync(tmpFile);
       exportResult.fileSizeBytes = fileBuffer.length;
       exportResult.sha256Hex = computeSha256Hex(fileBuffer);
@@ -276,9 +296,15 @@ export async function main() {
             const code = extractS3ErrorCode(text);
             upload.verifyFailureReason = code ? `HTTP ${getRes.status}: ${code}` : `HTTP ${getRes.status}`;
           } else {
-            const downloaded = Buffer.from(await getRes.arrayBuffer());
+            // Hashed incrementally as each chunk arrives, rather than buffering the whole
+            // downloaded response into memory first, so peak memory during verification stays
+            // bounded by chunk size regardless of export size.
+            const hash = crypto.createHash('sha256');
+            for await (const chunk of getRes.body) {
+              hash.update(chunk);
+            }
             upload.verifyOk = true;
-            upload.checksumMatched = computeSha256Hex(downloaded) === exportResult.sha256Hex;
+            upload.checksumMatched = hash.digest('hex') === exportResult.sha256Hex;
           }
         } catch (error) {
           upload.verifyFailureReason = redact([error.message, error.cause?.code].filter(Boolean).join(' — '));
