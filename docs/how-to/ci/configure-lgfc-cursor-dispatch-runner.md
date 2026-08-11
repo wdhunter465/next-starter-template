@@ -11,7 +11,7 @@ Last Reviewed: 2026-08-09
 
 # Configure the LGFC Cursor dispatch runner
 
-Phase 4 (#3212): this runner path is the **primary** Cursor Local auto-start transport. Legacy Bridge wake delivery and poll-wake are retired as execution dependencies.
+Phase 4 (#3212): this runner path is the **primary** Cursor Local auto-start transport. Legacy Bridge wake delivery and poll-wake are retired as execution dependencies. The #3340 `lgfc-event-wake` poller is **abandoned as a connection type** (#3347) — do not substitute it for this runner.
 
 ## Purpose
 

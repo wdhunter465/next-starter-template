@@ -49,6 +49,8 @@ There is no required resume/response comment. Comments are ordinary context Curs
 
 **Retired as execution dependencies (#3212 Phase 4):** Cursor Local Bridge automatic wake-packet delivery, scheduled Bridge watch, and the local 12-minute poll-wake loop. Shared ingress predicate `scripts/cursor-bridge/lib/wake-ingress.mjs` remains in use by the dispatch workflow and must not be deleted with the Bridge package.
 
+**Abandoned as a connection type (#3347 / #3340):** the non-AI `scripts/lgfc-event-wake` outbound poller / event-wake bridge prototype. Do not operate it as the Local pager. Historical reference only: `docs/reference/ci/event-wake-bridge-3340.md`.
+
 **Approved diagnostic fallback only:** trusted manual `workflow_dispatch` on the retired wake workflow (confirmation `CURSOR_WAKE_DIAGNOSTIC`, actor `wdhunter645`), or explicit Product Authority re-enablement. Do not treat poll-wake or Bridge auto-start as primary.
 
 Labels are the durable routing signal. They do not prove that a local Cursor process is running and must not be described as an automatic cloud invocation.
