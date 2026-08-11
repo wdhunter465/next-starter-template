@@ -73,8 +73,13 @@ export function productionD1IdFromWrangler(wranglerPath) {
   return loadD1IdentitiesFromWrangler(wranglerPath).production.databaseId;
 }
 
+/**
+ * Exclude SQLite/D1/CF bookkeeping tables.
+ * Uses GLOB so `_` is literal (SQLite LIKE treats `_` as a single-char wildcard).
+ */
 export function buildTableExclusionSql() {
-  return INTERNAL_TABLE_PREFIXES.map((prefix) => `AND name NOT LIKE '${prefix}%'`).join(' ');
+  return INTERNAL_TABLE_PREFIXES.map((prefix) => `AND name NOT GLOB '${prefix}*'`)
+    .join(' ');
 }
 
 export function buildTableListSql() {

@@ -56,11 +56,12 @@ describe('SQL quoting / buildRowCountSql (#3337)', () => {
 });
 
 describe('buildTableExclusionSql / buildTableListSql', () => {
-  it('excludes sqlite_/d1_migrations/_cf_ bookkeeping tables', () => {
+  it('excludes sqlite_/d1_migrations/_cf_ bookkeeping tables via GLOB (literal underscores)', () => {
     const sql = buildTableExclusionSql();
-    expect(sql).toContain("NOT LIKE 'sqlite_%'");
-    expect(sql).toContain("NOT LIKE 'd1_migrations%'");
-    expect(sql).toContain("NOT LIKE '_cf_%'");
+    expect(sql).toContain("NOT GLOB 'sqlite_*'");
+    expect(sql).toContain("NOT GLOB 'd1_migrations*'");
+    expect(sql).toContain("NOT GLOB '_cf_*'");
+    expect(sql).not.toContain('NOT LIKE');
   });
 
   it('builds a query selecting table names from sqlite_master with the exclusion applied', () => {
@@ -85,19 +86,22 @@ describe('parseRowCountRows', () => {
 });
 
 describe('Production D1 identity from wrangler.toml (#3337)', () => {
-  it('loads Production database_id from the live wrangler.toml file (not a hardcoded duplicate)', () => {
-    const toml = fs.readFileSync(WRANGLER, 'utf8');
-    const match = toml.match(/database_id\s*=\s*"([^"]+)"/);
-    expect(match).toBeTruthy();
-    const fromFile = match[1];
-    expect(productionD1IdFromWrangler(WRANGLER)).toBe(fromFile);
-
+  it('loads Production/Preview identities from wrangler.toml via the parser (no hardcoded UUID copies)', () => {
     const identities = loadD1IdentitiesFromWrangler(WRANGLER);
     expect(identities.production.databaseName).toBe('lgfc_lite');
-    expect(identities.production.databaseId).toBe(fromFile);
     expect(identities.preview.databaseName).toBe('lgfc-litedev');
-    expect(identities.preview.databaseId).toBe('35232809-b4c1-4df9-9f39-2f178b13c378');
+    expect(identities.production.databaseId).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+    );
+    expect(identities.preview.databaseId).toMatch(
+      /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i,
+    );
     expect(identities.production.databaseId).not.toBe(identities.preview.databaseId);
+    expect(productionD1IdFromWrangler(WRANGLER)).toBe(identities.production.databaseId);
+    // Sanity: Production id appears in the file text (without assuming first-match order).
+    const toml = fs.readFileSync(WRANGLER, 'utf8');
+    expect(toml).toContain(identities.production.databaseId);
+    expect(toml).toContain(identities.preview.databaseId);
   });
 
   it('does not treat Preview as production-shared', () => {
