@@ -15,6 +15,12 @@ Last Reviewed: 2026-08-11
 
 State the single authoritative control plane for LGFC Production API rate limiting and avoid false confidence from ignored `wrangler.toml` fields.
 
+## Scope
+
+In scope: documenting where Pages API rate limiting is configured, how operators should change it, and verification expectations after deploy.
+
+Out of scope: creating or editing Cloudflare dashboard WAF/Rate Limiting rules in this repository change; Workers-only `[[ratelimits]]` bindings for non-Pages deployments.
+
 ## Current known truth
 
 | Layer | Status |
