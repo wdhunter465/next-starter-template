@@ -48,13 +48,15 @@ const compareMilestones = (a: Milestone, b: Milestone): number => {
 
 export default function MilestonesSection() {
   const [items, setItems] = useState<Milestone[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Static export prerenders client components with initial state — do not bake "Loading…" into HTML (#3305).
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
 
     (async () => {
+      setLoading(true);
       try {
         const data = await apiGet<{ ok: boolean; items: Milestone[] }>(`/api/milestones/list?limit=40`);
         if (!alive) return;
@@ -82,7 +84,6 @@ export default function MilestonesSection() {
   return (
     <div>
       <h2 className="section-title">Milestones</h2>
-      <p className="sub">Pulled live from D1 milestones table.</p>
 
       {loading ? (
         <p className="sub">Loading milestones…</p>
