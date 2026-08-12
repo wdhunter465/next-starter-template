@@ -129,7 +129,7 @@ node scripts/ci/production_deployment_candidate_manifest.mjs \
   --unresolved-decisions unresolved-decisions-2930.json
 ```
 
-Real output:
+Real output, verbatim, valid JSON:
 
 ```json
 {
@@ -139,7 +139,22 @@ Real output:
   ],
   "detail": {
     "manifestProblems": [],
-    "unresolvedProtectedDecisions": [ /* the 14 items in Section 2, verbatim */ ]
+    "unresolvedProtectedDecisions": [
+      "#2776 completion contract not accepted -- still Pipeline/Intake",
+      "#2777 delivery sequence not accepted -- still Pipeline/Intake",
+      "#2859 content/data population: 3 of 9 acceptance criteria outstanding for Production",
+      "#2860 library-content migration: Production D1 write dispatch not authorized by Bill/WORK",
+      "#2784 compliance readiness: own completion not independently verified by this manifest, project remains open",
+      "#2778 platform validation: live credentialed Production CF/D1/B2 verification explicitly deferred, never performed",
+      "#3268 backup/recovery: Phase 3 (scheduled service) and Phase 4 (quarterly drill) not built",
+      "#2780 monitoring/incident readiness: entry gate (#2859 accepted) not met, no accepted evidence exists",
+      "#2786 operator training/access continuity/succession: still Pipeline/Intake, not graduated",
+      "#2787 vendor/account/domain continuity: still Pipeline/Intake, not graduated",
+      "#2781 launch rehearsal: entry gate (#2780 accepted) not met; no rehearsal executed; no GO/HOLD/ADJUSTMENT/NO-GO recommendation issued for any candidate",
+      "No immutable Promotion Candidate SHA has been designated for this project",
+      "No rollback target/owner has been designated (no deployment has occurred; Day-2 Operations not yet staffed per #2786)",
+      "Product Authority Production Go has not been recorded on #2782, #2930, #2859, or #2860"
+    ]
   }
 }
 ```
