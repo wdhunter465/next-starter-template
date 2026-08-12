@@ -116,7 +116,14 @@ describe('buildResultMarkdown', () => {
   };
 
   it('confirms Production identity without printing the database name or uuid, matching the #2913 preflight convention', () => {
-    const md = buildResultMarkdown(dryRun);
+    // databaseName/databaseId are included here even though buildResultMarkdown's own
+    // result type no longer carries them -- this proves the function ignores/omits them
+    // if present, rather than merely having nothing to leak in the first place.
+    const md = buildResultMarkdown({
+      ...dryRun,
+      databaseName: 'lgfc_lite',
+      databaseId: '22d0dc3e-ad34-43af-8e6a-2063df1a1e04',
+    });
     expect(md).toContain('confirmed Production');
     expect(md).not.toContain('lgfc_lite');
     expect(md).not.toContain('22d0dc3e');
