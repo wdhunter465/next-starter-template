@@ -11,8 +11,11 @@ name: OPS — Production Content Preview Evidence Preflight (#2859)
 # D1_DEV_DATABASE_NAME/D1_DEV_DATABASE_ID are present, additionally runs a live read-only
 # table/row-count probe against `lgfc-litedev` only -- the same secret names the accepted
 # Prod->Dev refresh workflow (.github/workflows/ops-d1-prod-dev-refresh.yml, #3360) already
-# uses in production. It also performs one bounded, read-only Backblaze B2 ListObjectsV2 call
-# against this repo's actual B2 integration (functions/_lib/b2.ts).
+# uses in production. It also performs one bounded, read-only Backblaze B2 ListObjectsV2 call,
+# mirroring the request shape of this repo's actual B2 integration (functions/_lib/b2.ts) --
+# the preflight script does not import b2.ts directly (that import path only resolves under
+# the Next.js/Workers bundler, not plain Node ESM; see #3348) and instead reuses a
+# self-contained, plain-Node-compatible ListObjectsV2 parser.
 #
 # This workflow performs NO write of any kind, never targets Production D1, and does not
 # satisfy #2859 criterion 3 (real D1/B2 population) or advance #2780's entry gate by itself.
@@ -104,9 +107,12 @@ jobs:
 
           The read-only D1 identity contract / B2 evidence preflight did not complete. No
           write of any kind was attempted, and Production D1 was never targeted. See the
-          workflow run logs and uploaded artifact (if any) for details -- most likely cause
-          is a missing B2_ENDPOINT / B2_BUCKET / B2_KEY_ID / B2_APP_KEY repository secret, or
-          a wrangler.toml Production/Preview D1 identity contract failure.
+          workflow run logs and uploaded artifact (if any) for details -- likely causes
+          include a missing B2_ENDPOINT / B2_BUCKET / B2_KEY_ID / B2_APP_KEY repository
+          secret, a wrangler.toml Production/Preview D1 identity contract failure, invalid or
+          mismatched CLOUDFLARE_API_TOKEN / CLOUDFLARE_ACCOUNT_ID / D1_DEV_DATABASE_NAME /
+          D1_DEV_DATABASE_ID credentials, or a `wrangler` CLI failure during the live Dev
+          probe.
 
           Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
           EOF
