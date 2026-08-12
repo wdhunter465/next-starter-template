@@ -17,8 +17,8 @@ export default async function Page() {
         <p style={{ ...styles.lead }} dangerouslySetInnerHTML={{ __html: leadHtml }} />
       ) : (
         <p style={{ ...styles.lead }}>
-          This is a fan‑run site. We collect the minimum information needed to operate the Join list and accept
-          submissions.
+          This is a fan-run site. We collect the minimum information needed to operate Join/Login, Ask a
+          Question, member verification, and content submissions.
         </p>
       )}
 
@@ -28,27 +28,58 @@ export default async function Page() {
         <>
           <h2 style={{ ...styles.h2 }}>What we collect</h2>
           <ul style={{ ...styles.ul }}>
-            <li style={{ ...styles.li }}>Join form: name and email address.</li>
+            <li style={{ ...styles.li }}>
+              Join / Login: first name, last name, optional screen name, email address, and optional email
+              opt-in for updates.
+            </li>
+            <li style={{ ...styles.li }}>
+              Ask a Question: first name, last name, optional screen name, email address, and the question
+              text you submit for moderator review.
+            </li>
+            <li style={{ ...styles.li }}>
+              Member creation and verification: when you Join or Ask with a new email, we may create a
+              member record and send a welcome or transactional confirmation email related to that request.
+            </li>
+            <li style={{ ...styles.li }}>
+              Session authentication: a short-lived session cookie used to keep you signed in to Fan Club
+              member surfaces after Login. We do not use magic-link authentication.
+            </li>
             <li style={{ ...styles.li }}>
               Library submissions: the content you submit, your provided name/email, and timestamps.
             </li>
             <li style={{ ...styles.li }}>
-              Photo submissions (when enabled): the media URL, description/caption text you provide, and timestamps.
+              Photo submissions (when enabled): the media URL, description/caption text you provide, and
+              timestamps.
             </li>
             <li style={{ ...styles.li }}>
-              Basic technical logs (e.g., request timing/errors) used for reliability and abuse prevention.
+              Basic technical logs (for example request timing/errors) used for reliability, security, and
+              rate limiting.
             </li>
           </ul>
 
           <h2 style={{ ...styles.h2 }}>How we use it</h2>
           <ul style={{ ...styles.ul }}>
-            <li style={{ ...styles.li }}>To send email updates you explicitly requested via the Join form.</li>
+            <li style={{ ...styles.li }}>
+              To operate Join/Login and member access, including session cookies for authenticated Fan Club
+              pages.
+            </li>
+            <li style={{ ...styles.li }}>
+              To review and reply to Ask questions, and to add approved answers to the public FAQ when
+              appropriate.
+            </li>
+            <li style={{ ...styles.li }}>
+              To send email updates only when you explicitly opt in via Join. First-time Join or Ask
+              requests may also receive a welcome email; other non-opted-in mail is limited to
+              transactional confirmations related to that request.
+            </li>
             <li style={{ ...styles.li }}>To publish and manage user submissions (Library and photo/media captions).</li>
             <li style={{ ...styles.li }}>To keep the site secure and functioning (rate limiting, troubleshooting).</li>
           </ul>
 
           <h2 style={{ ...styles.h2 }}>What we do not do</h2>
-          <p style={{ ...styles.p }}>We do not sell personal information.</p>
+          <p style={{ ...styles.p }}>
+            We do not sell personal information. We do not use magic-link authentication or verification.
+          </p>
 
           <h2 style={{ ...styles.h2 }}>Removal requests</h2>
           <p style={{ ...styles.p }}>
@@ -56,10 +87,25 @@ export default async function Page() {
           </p>
 
           <p style={{ ...styles.p }}>
-            This policy will be refined as features expand. When we add new data collection, we’ll update this page.
+            This policy will be refined as features expand. When we add new data collection, we will update
+            this page.
           </p>
         </>
       )}
+
+      {/* Always rendered so D1 body_html cannot omit the analytics disclosure (Product Decision item 2 / #2920). */}
+      <h2 style={{ ...styles.h2 }}>Analytics and cookies</h2>
+      <p style={{ ...styles.p }}>
+        When analytics is enabled for this site, we use Google Analytics 4 (gtag) to collect aggregate usage
+        information such as pages viewed and approximate traffic patterns. The measurement identifier is
+        configured at deploy time. Analytics scripts may set or read cookies or similar storage used by Google
+        Analytics. We do not use analytics data to sell personal information.
+      </p>
+      <p style={{ ...styles.p }}>
+        Independently of analytics, a short-lived session cookie is used only after Login to keep you signed
+        in to Fan Club member surfaces. You can request removal of personal data you submitted by contacting{" "}
+        <strong>admin@lougehrigfanclub.com</strong>.
+      </p>
     </main>
   );
 }

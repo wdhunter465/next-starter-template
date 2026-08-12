@@ -1,50 +1,61 @@
 ---
 Doc Type: Operations
-Audience: Bill, ChatGPT, Cursor, Claude Code, LGFC maintainers, and reviewers
+Audience: Bill, ChatGPT, Cursor, Claude Code, Grok, LGFC maintainers, and reviewers
 Authority Level: Controlled
-Owns: F3 live-state evidence for the Production `NEXT_PUBLIC_GA_ID` configuration, per the #2919 approved Product Decision Record item 2
-Does Not Own: Production configuration changes, disclosure/consent-UI implementation (owned by #2920)
+Owns: F3 live-state evidence for Production Google Analytics presence, per the #2919 approved Product Decision Record item 2 (updated with 2026-08-12 public Production probes under #2920)
+Does Not Own: Production environment-variable mutation, disclosure/consent-UI implementation completion claims, or legal conclusions about consent adequacy
 Canonical Reference: /docs/ops/reports/compliance-product-decision-register-2919.md
 Related Issues: #2784, #2918, #2919, #2920
-Last Reviewed: 2026-08-05
+Last Reviewed: 2026-08-12
 ---
 
-# Production `NEXT_PUBLIC_GA_ID` State — Evidence (#2919)
+# Production Analytics (`NEXT_PUBLIC_GA_ID` / gtag) State — Evidence (#2919 / #2920)
 
 ## Purpose
 
-Record what can and cannot be confirmed about whether Google Analytics is active in Production, per Product Decision Record item 2 ("verify the Production `NEXT_PUBLIC_GA_ID` state through an authorized read-only check... if GA is active, report the protected stop immediately"). This is read-only evidence gathering; it makes no Production configuration change.
+Record whether Google Analytics is active in Production, per Product Decision Record item 2 ("verify the Production `NEXT_PUBLIC_GA_ID` state… if GA is active, keep it disabled or disable it until the required disclosure and consent control are implemented and approved"). This is read-only evidence gathering relative to repository and public HTML; it does not mutate Production configuration.
 
 ## Scope
 
-In scope: repository-only, read-only evidence about the `GoogleAnalytics` component's gating logic and whether any committed repository file sets `NEXT_PUBLIC_GA_ID`, plus an explicit statement of what cannot be confirmed without live Cloudflare Pages Production access. Out of scope: Production environment-variable changes, and the disclosure/consent-UI implementation owned by #2920.
+In scope: repository gating logic for `GoogleAnalytics.tsx` and **public Production HTML probes** (2026-08-12). Out of scope: Cloudflare Pages dashboard mutation, inventing a consent legal regime, and claiming #2920 disclosure/consent UI complete.
 
-## Current known truth
+## Current known truth (repository)
 
-`src/components/GoogleAnalytics.tsx` renders `null` (a complete no-op — no script tag, no network request) whenever `process.env.NEXT_PUBLIC_GA_ID` is unset or empty. It is included unconditionally in `src/app/layout.tsx`, so whether GA actually loads on any page depends entirely on whether `NEXT_PUBLIC_GA_ID` is set in the Production environment at build/deploy time. There is no consent gate, no `/privacy` disclosure mentioning GA, and no DNT handling in the current code regardless of whether the variable is set.
+`src/components/GoogleAnalytics.tsx` renders a no-op unless `process.env.NEXT_PUBLIC_GA_ID` is set. It is included from `src/app/layout.tsx`, so Production load depends entirely on the Cloudflare Pages build-time environment variable. No repository file commits a non-empty `NEXT_PUBLIC_GA_ID`. There is no consent gate and no `/privacy` analytics disclosure in current code paths regardless of whether the variable is set.
 
-## What this evidence step could confirm from the repository alone
+## Public Production probe — 2026-08-12
 
-- The exact conditional logic that gates GA's behavior (confirmed by reading the component source).
-- No repository file sets `NEXT_PUBLIC_GA_ID` to a non-empty value (it is not present in `wrangler.toml`, `.env*`, or any committed config file — Next.js `NEXT_PUBLIC_*` variables are build-time, so a value would have to come from the Cloudflare Pages build environment, not from this repository).
+Method: unauthenticated `curl -sL` of `https://www.lougehrigfanclub.com/`, `/privacy/`, and `/terms/`.
 
-## What this evidence step could not confirm
+| Observation | Result |
+| --- | --- |
+| Measurement ID present in HTML | **`G-BRV48J1VE`** |
+| Loader | `https://www.googletagmanager.com/gtag/js?id=G-BRV48J1VE` preload + inline `gtag('config', 'G-BRV48J1VE')` |
+| Scope | Present on homepage, `/privacy`, and `/terms` |
+| Privacy disclosure of analytics | **Absent** on live `/privacy` text |
 
-**Whether `NEXT_PUBLIC_GA_ID` is actually set in the live Cloudflare Pages Production build/deploy environment.**
+**Conclusion:** Google Analytics **is active** in Production. The prior “unconfirmed” protected stop for *whether* GA loads is **cleared** by public observation. (Cloudflare dashboard confirmation of the env var name remains optional hygiene; user-visible behavior is decisive.)
 
-This requires authorized access to the Cloudflare Pages dashboard's Production environment-variable configuration for this project, or an authenticated `wrangler pages deployment` / `wrangler pages secret list`-equivalent read. This session/environment has no Cloudflare authentication (`wrangler whoami` reports "You are not authenticated") — there is no credential-free way to check this from here, and none is authorized to be added under this task's envelope.
+## Product Decision implications
 
-## Protected stop
+Per approved item 2:
 
-Per Product Decision Record item 2's explicit instruction ("if GA is active, report the protected stop immediately") and the executable package's stop conditions ("credential/Production mutation"): **this verification is blocked on authorized read-only Cloudflare Pages Production access that this implementation session does not have.** Because the state is unconfirmed, no action is taken on GA — it is left exactly as configured today, and no Production configuration is touched by this task.
+1. **Interim requirement while consent/disclosure incomplete:** GA should be kept disabled or disabled until disclosure **and** consent control are implemented and approved.
+2. **Disabling Production** (unsetting `NEXT_PUBLIC_GA_ID` in Cloudflare Pages) is a **protected Production configuration action** — not performed by this document or by a docs-only PR.
+3. **#2920 owns** the disclosure copy and any consent UI that would later allow re-enabling under an approved model.
+4. **Consent model still needs Product direction** if disclosure-only is proposed as an interim without disable: the written decision pairs disclosure **and** consent, with disable as the safe default when active.
 
-## Recommended next step
+## Recommended next steps (operators / #2920)
 
-An operator or agent with authenticated access to the Cloudflare Pages dashboard for this project should confirm the Production value of `NEXT_PUBLIC_GA_ID` and record the result here (or in a follow-up comment on #2919). If it is found set, per the approved decision it should be disabled through the authorized Production configuration path until #2920 implements the required disclosure/consent control — that disabling action itself is Production configuration and is out of this task's envelope regardless of the result.
+1. Product/WORK: choose (a) disable Production GA env until full disclosure+consent ships, or (b) explicitly authorize a disclosure-only interim (would be a new Product note — not assumed here).
+2. #2920: implement privacy analytics disclosure (and consent UI if authorized) on the component branch with an exact allowlist.
+3. Operator with Cloudflare access: if (a) is selected, unset Production `NEXT_PUBLIC_GA_ID` through the authorized configuration path and record the change.
 
 ## Intended final state
 
-The live Production `NEXT_PUBLIC_GA_ID` value is confirmed and recorded here (or in a linked #2919 follow-up comment). If GA is active, it is disabled through the authorized Production configuration path — not by this report — until #2920 implements the required disclosure/consent control. This report does not itself reach that state — it records what remains unconfirmed and exactly why.
+- Production GA state is known (achieved: **active**, ID `G-BRV48J1VE`).
+- Either GA is disabled pending controls, or approved disclosure+consent controls are live and Product-accepted.
+- `/privacy` accurately describes analytics when active.
 
 ## Rollback
 
