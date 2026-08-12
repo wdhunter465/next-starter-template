@@ -308,3 +308,80 @@ export async function recordRotationFeature(
 
   return { ok: true, id: storyId, last_featured: timestamp };
 }
+
+export const CLUB_HOME_PLACEMENT_ZONES = {
+  leadStory: 'lead-story',
+  storyRail: 'story-rail',
+  archiveSpotlight: 'archive-spotlight',
+  mediaFeature: 'media-feature',
+} as const;
+
+export type ClubHomePlacementZone =
+  (typeof CLUB_HOME_PLACEMENT_ZONES)[keyof typeof CLUB_HOME_PLACEMENT_ZONES];
+
+export type PlacementHistoryRecord = {
+  story_id: number;
+  zone_id: ClubHomePlacementZone | string;
+  section_key?: string;
+  placed_at?: string;
+  selection_mode?: 'automatic' | 'pinned' | string;
+  edition_id?: number | null;
+  media_rendition?: string | null;
+  feature_size?: string | null;
+};
+
+/**
+ * Persist Club Home (or other section) placement events.
+ * Fail-open: storage errors are returned without throwing so callers keep serving content.
+ */
+export async function recordPlacementHistory(
+  db: any,
+  placements: PlacementHistoryRecord[],
+): Promise<{ ok: boolean; recorded: number; error?: string }> {
+  if (!Array.isArray(placements) || !placements.length) {
+    return { ok: true, recorded: 0 };
+  }
+
+  try {
+    const nowRow = await db.prepare("SELECT datetime('now') AS now").first();
+    const now = String((nowRow as { now?: string } | null)?.now || new Date().toISOString());
+    let recorded = 0;
+
+    for (const placement of placements) {
+      const storyId = Number(placement.story_id);
+      const zoneId = String(placement.zone_id || '').trim();
+      if (!Number.isFinite(storyId) || storyId <= 0 || !zoneId) continue;
+
+      const placedAt = String(placement.placed_at || now);
+      const sectionKey = String(placement.section_key || 'club_home').trim() || 'club_home';
+      const selectionMode = String(placement.selection_mode || 'automatic').trim() || 'automatic';
+
+      await db
+        .prepare(
+          `INSERT INTO content_inventory_placement_history
+            (story_id, zone_id, section_key, placed_at, selection_mode, edition_id,
+             media_rendition, feature_size, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        )
+        .bind(
+          Math.trunc(storyId),
+          zoneId,
+          sectionKey,
+          placedAt,
+          selectionMode,
+          placement.edition_id ?? null,
+          placement.media_rendition ?? null,
+          placement.feature_size ?? null,
+          now,
+        )
+        .run();
+      recorded += 1;
+    }
+
+    return { ok: true, recorded };
+  } catch (err: any) {
+    const message = String(err?.message || err || 'Placement history write failed.');
+    console.error('content inventory placement history error:', err);
+    return { ok: false, recorded: 0, error: message };
+  }
+}

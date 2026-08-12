@@ -9,16 +9,22 @@ function makeClubHomeDb(options?: {
   inventory?: Array<Record<string, unknown>>;
   photos?: Array<Record<string, unknown>>;
   media?: Array<Record<string, unknown>>;
+  placementHistoryFails?: boolean;
 }) {
   const inventory = options?.inventory ?? [];
   const photos = options?.photos ?? [];
   const media = options?.media ?? [];
+  const placementInserts: Array<{ sql: string; args: unknown[] }> = [];
 
   const db = {
+    placementInserts,
     prepare(sql: string) {
       const query = {
         bind: (...args: unknown[]) => ({
           first: async () => {
+            if (sql.includes("SELECT datetime('now')")) {
+              return { now: '2026-08-12T12:00:00Z' };
+            }
             if (sql.includes('COUNT(1)') && sql.includes('content_inventory')) {
               const count = inventory.filter(
                 (row) =>
@@ -53,8 +59,21 @@ function makeClubHomeDb(options?: {
             }
             return { results: [] };
           },
+          run: async () => {
+            if (sql.includes('INSERT INTO content_inventory_placement_history')) {
+              if (options?.placementHistoryFails) {
+                throw new Error('no such table: content_inventory_placement_history');
+              }
+              placementInserts.push({ sql, args });
+              return { success: true };
+            }
+            return { success: true };
+          },
         }),
         first: async () => {
+          if (sql.includes("SELECT datetime('now')")) {
+            return { now: '2026-08-12T12:00:00Z' };
+          }
           if (sql.includes('COUNT(1)') && sql.includes('content_inventory')) {
             const count = inventory.filter(
               (row) =>
@@ -83,6 +102,7 @@ function makeClubHomeDb(options?: {
           }
           return { results: [] };
         },
+        run: async () => ({ success: true }),
       };
       return query;
     },
@@ -104,66 +124,66 @@ describe('content-inventory-club-home', () => {
   });
 
   it('selects lead, rail, and spotlight stories with credit metadata', async () => {
-    const payload = await fetchClubHomeContent(
-      makeClubHomeDb({
-        inventory: [
-          {
-            id: 1,
-            title: 'Lead headline',
-            text: 'Lead body text',
-            summary: 'Lead summary',
-            credit_line: 'Club Historians',
-            source_name: 'LGFC Archive',
-            story_type: 'primary',
-            allowed_sections: 'club_home',
-            status: 'published',
-            canonical: 1,
-            priority: 10,
-            feature_weight: 2,
-          },
-          {
-            id: 2,
-            title: 'Rail story',
-            summary: 'Rail summary',
-            credit_line: 'Member Historian',
-            source_name: 'Member Notes',
-            story_type: 'secondary',
-            allowed_sections: 'club_home',
-            status: 'published',
-            canonical: 1,
-            priority: 5,
-            feature_weight: 1,
-          },
-          {
-            id: 3,
-            title: 'Another rail story',
-            summary: 'Second rail summary',
-            credit_line: 'Archive Desk',
-            source_name: 'Library',
-            story_type: 'brief',
-            allowed_sections: 'club_home',
-            status: 'published',
-            canonical: 1,
-            priority: 4,
-            feature_weight: 1,
-          },
-          {
-            id: 4,
-            title: 'Spotlight story',
-            summary: 'Spotlight summary',
-            credit_line: 'Archive Desk',
-            source_name: 'Library',
-            story_type: 'primary',
-            allowed_sections: 'club_home',
-            status: 'published',
-            canonical: 1,
-            priority: 1,
-            feature_weight: 1,
-            event_year: new Date().getUTCFullYear(),
-          },
-        ],
-      }),
-    );
+    const db = makeClubHomeDb({
+      inventory: [
+        {
+          id: 1,
+          title: 'Lead headline',
+          text: 'Lead body text',
+          summary: 'Lead summary',
+          credit_line: 'Club Historians',
+          source_name: 'LGFC Archive',
+          story_type: 'primary',
+          allowed_sections: 'club_home',
+          status: 'published',
+          canonical: 1,
+          priority: 10,
+          feature_weight: 2,
+        },
+        {
+          id: 2,
+          title: 'Rail story',
+          summary: 'Rail summary',
+          credit_line: 'Member Historian',
+          source_name: 'Member Notes',
+          story_type: 'secondary',
+          allowed_sections: 'club_home',
+          status: 'published',
+          canonical: 1,
+          priority: 5,
+          feature_weight: 1,
+        },
+        {
+          id: 3,
+          title: 'Another rail story',
+          summary: 'Second rail summary',
+          credit_line: 'Archive Desk',
+          source_name: 'Library',
+          story_type: 'brief',
+          allowed_sections: 'club_home',
+          status: 'published',
+          canonical: 1,
+          priority: 4,
+          feature_weight: 1,
+        },
+        {
+          id: 4,
+          title: 'Spotlight story',
+          summary: 'Spotlight summary',
+          credit_line: 'Archive Desk',
+          source_name: 'Library',
+          story_type: 'primary',
+          allowed_sections: 'club_home',
+          status: 'published',
+          canonical: 1,
+          priority: 1,
+          feature_weight: 1,
+          event_year: new Date().getUTCFullYear(),
+        },
+      ],
+    });
+
+    const payload = await fetchClubHomeContent(db);
 
     expect(payload.source).toBe('content_inventory');
     expect(payload.lead_story?.headline).toBe('Lead headline');
@@ -171,6 +191,49 @@ describe('content-inventory-club-home', () => {
     expect(payload.rail_stories).toHaveLength(2);
     expect(payload.rail_stories[0]?.headline).toBe('Rail story');
     expect(payload.archive_spotlight?.headline).toBe('Spotlight story');
+    expect(db.placementInserts.length).toBeGreaterThanOrEqual(3);
+    expect(db.placementInserts.some((row) => row.args[1] === 'lead-story')).toBe(true);
+    expect(db.placementInserts.some((row) => row.args[1] === 'story-rail')).toBe(true);
+    expect(db.placementInserts.some((row) => row.args[1] === 'archive-spotlight')).toBe(true);
+  });
+
+  it('still renders Club Home when placement history storage is unavailable', async () => {
+    const db = makeClubHomeDb({
+      placementHistoryFails: true,
+      inventory: [
+        {
+          id: 1,
+          title: 'Lead headline',
+          summary: 'Lead summary',
+          credit_line: 'Club Historians',
+          source_name: 'LGFC Archive',
+          story_type: 'primary',
+          allowed_sections: 'club_home',
+          status: 'published',
+          canonical: 1,
+          priority: 10,
+          feature_weight: 2,
+        },
+        {
+          id: 2,
+          title: 'Rail story',
+          summary: 'Rail summary',
+          credit_line: 'Member Historian',
+          source_name: 'Member Notes',
+          story_type: 'secondary',
+          allowed_sections: 'club_home',
+          status: 'published',
+          canonical: 1,
+          priority: 5,
+          feature_weight: 1,
+        },
+      ],
+    });
+
+    const payload = await fetchClubHomeContent(db);
+    expect(payload.source).toBe('content_inventory');
+    expect(payload.lead_story?.id).toBe(1);
+    expect(payload.rail_stories[0]?.id).toBe(2);
   });
 
   it('skips hard-cooldown lead candidates in favor of least-used eligible inventory', async () => {

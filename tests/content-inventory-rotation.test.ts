@@ -15,6 +15,7 @@ import {
   isWithinHardCooldown,
   parseRotationTimestamp,
   recordRotationFeature,
+  recordPlacementHistory,
   sortRotationRows,
 } from '../functions/_lib/content-inventory-rotation';
 
@@ -261,6 +262,53 @@ describe('content inventory rotation queries', () => {
     expect(updates[0]?.sql).toContain('last_featured');
     expect(updates[0]?.sql).toContain('usage_count = COALESCE(usage_count, 0) + 1');
     expect(updates[0]?.sql).toContain("status = 'published'");
+  });
+
+  it('records placement history rows for valid placements', async () => {
+    const inserts: Array<{ sql: string; args: unknown[] }> = [];
+    const db = {
+      prepare: vi.fn((sql: string) => ({
+        first: async () => ({ now: '2026-06-04T12:00:00.000Z' }),
+        bind: (...args: unknown[]) => ({
+          first: async () => ({ now: '2026-06-04T12:00:00.000Z' }),
+          run: async () => {
+            inserts.push({ sql, args });
+            return { success: true };
+          },
+        }),
+      })),
+    };
+
+    const result = await recordPlacementHistory(db, [
+      { story_id: 11, zone_id: 'lead-story', section_key: 'club_home' },
+      { story_id: 12, zone_id: 'story-rail', section_key: 'club_home' },
+      { story_id: 0, zone_id: 'lead-story' },
+    ]);
+
+    expect(result).toEqual({ ok: true, recorded: 2 });
+    expect(inserts).toHaveLength(2);
+    expect(inserts[0]?.sql).toContain('INSERT INTO content_inventory_placement_history');
+    expect(inserts[0]?.args[0]).toBe(11);
+    expect(inserts[0]?.args[1]).toBe('lead-story');
+    expect(inserts[0]?.args[4]).toBe('automatic');
+  });
+
+  it('fails open when placement history storage is unavailable', async () => {
+    const db = {
+      prepare: vi.fn(() => ({
+        first: async () => ({ now: '2026-06-04T12:00:00.000Z' }),
+        bind: () => ({
+          run: async () => {
+            throw new Error('no such table: content_inventory_placement_history');
+          },
+        }),
+      })),
+    };
+
+    const result = await recordPlacementHistory(db, [{ story_id: 11, zone_id: 'lead-story' }]);
+    expect(result.ok).toBe(false);
+    expect(result.recorded).toBe(0);
+    expect(result.error).toContain('no such table');
   });
 
   it('computes anniversary distance for event-aware boosts', () => {
