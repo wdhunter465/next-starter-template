@@ -6,7 +6,7 @@ Owns: Aggregate parent-level status reconciliation for #2859 against its own 9 a
 Does Not Own: Any child's own evidence (#2906/#2907/#2908/#2909 — only cited here); the #2859 closeout decision itself (Product Authority / WORK); the #2780 successor decision (this report only checks its entry gate against #2859's own findings); the #2779/#3268 backup-recovery gap this report cites; any Production D1/B2 population, verification, or publication; any Dev D1 write (this report performs reads-evidence reconciliation only)
 Source Issue: #2859
 Canonical Reference: /docs/ops/reports/production-content-parent-closeout-status-2859.md
-Related Issues: #2859, #2906, #2907, #2908, #2909, #2860, #2779, #2858, #2780, #3268, #3355, #3360, #3380, #3277
+Related Issues: #2859, #2906, #2907, #2908, #2909, #2910, #2911, #2912, #2913, #2860, #2779, #2858, #2780, #3268, #3355, #3357, #3360, #3380, #3277
 Last Reviewed: 2026-08-12
 Executor: Claude Code
 ---
@@ -235,7 +235,7 @@ already-WORK-accepted live Dev-D1 evidence (#2859 comment `5265431661`,
 run `31586983175`) against #2907's Section 4.2 sourcing register, to make
 concrete what is and is not already true in Dev.
 
-### 6.1 What Dev already has (37 tables, real aggregate row counts)
+### 6.1 What Dev already has, for #2907's named batch classes and adjacent domains (out of 37 tables total; only the rows relevant to #2907's register are shown)
 
 | #2907 batch class | Domain | Dev table | Live row count | Reconciliation |
 | --- | --- | --- | --- | --- |
