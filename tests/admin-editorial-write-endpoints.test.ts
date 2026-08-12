@@ -31,16 +31,19 @@ function makeWriteDb(options?: {
   inventory?: Array<Record<string, unknown>>;
   photos?: Array<Record<string, unknown>>;
   mediaAssociations?: Array<Record<string, unknown>>;
+  pins?: Array<Record<string, unknown>>;
   tableNames?: string[];
 }) {
   const submissions = options?.submissions ?? [];
   const inventory = options?.inventory ?? [];
   const photos = options?.photos ?? [];
   const mediaAssociations = options?.mediaAssociations ?? [];
+  const pins = options?.pins ?? [];
   const tableNames = options?.tableNames ?? [
     'submission_queue',
     'content_inventory',
     'content_inventory_media',
+    'content_inventory_club_home_pins',
     'photos',
   ];
   const runs: Array<{ sql: string; args: unknown[] }> = [];
@@ -65,6 +68,7 @@ function makeWriteDb(options?: {
         }
         if (sql.includes('FROM photos')) return { results: photos };
         if (sql.includes('FROM submission_queue')) return { results: submissions };
+        if (sql.includes('FROM content_inventory_club_home_pins')) return { results: pins };
         if (sql.includes('FROM content_inventory')) return { results: inventory };
         return { results: [] };
       };
@@ -83,14 +87,53 @@ function makeWriteDb(options?: {
         if (sql.includes('FROM submission_queue') && sql.includes('WHERE submission_id = ?')) {
           return submissions.find((row) => row.submission_id === args[0]) ?? null;
         }
+        if (sql.includes('FROM content_inventory_club_home_pins') && sql.includes('WHERE zone_id = ?')) {
+          return pins.find((row) => row.zone_id === args[0]) ?? null;
+        }
         if (sql.includes('FROM content_inventory') && sql.includes('WHERE id = ?')) {
-          return inventory.find((row) => row.id === args[0]) ?? null;
+          const row = inventory.find((entry) => entry.id === args[0]) ?? null;
+          if (!row) return null;
+          // Eligibility re-check used by Club Home pin action.
+          if (sql.includes("status = 'published'")) {
+            const allowsClubHome = String(row.allowed_sections || '').includes('club_home');
+            const eligible =
+              row.status === 'published' &&
+              allowsClubHome &&
+              String(row.source_name || '').trim() &&
+              String(row.credit_line || '').trim();
+            return eligible ? row : null;
+          }
+          return row;
         }
         return null;
       };
 
       const runFn = async (...args: unknown[]) => {
         runs.push({ sql, args });
+        if (sql.includes('INSERT INTO content_inventory_club_home_pins')) {
+          const next = {
+            zone_id: args[0],
+            story_id: args[1],
+            pinned_at: args[2],
+            pinned_by: args[3],
+            expires_at: args[4],
+            created_at: args[5],
+            updated_at: args[6],
+          };
+          const existing = pins.findIndex((row) => row.zone_id === next.zone_id);
+          if (existing >= 0) pins[existing] = next;
+          else pins.push(next);
+        }
+        if (sql.includes('DELETE FROM content_inventory_club_home_pins')) {
+          if (sql.includes('WHERE zone_id = ?')) {
+            const idx = pins.findIndex((row) => row.zone_id === args[0]);
+            if (idx >= 0) pins.splice(idx, 1);
+          } else if (sql.includes('WHERE story_id = ?')) {
+            for (let i = pins.length - 1; i >= 0; i -= 1) {
+              if (pins[i].story_id === args[0]) pins.splice(i, 1);
+            }
+          }
+        }
         if (sql.includes('INSERT INTO content_inventory_media')) {
           mediaAssociations.push({
             story_id: args[0],
@@ -120,7 +163,7 @@ function makeWriteDb(options?: {
     }),
   };
 
-  return { db, runs };
+  return { db, runs, pins };
 }
 
 const pendingSubmission = {
@@ -329,6 +372,137 @@ describe('admin editorial write endpoints (#3387 P1-02)', () => {
         ok: false,
         error: 'id and valid status are required.',
       });
+    });
+
+    it('pins an eligible published club_home story to a zone', async () => {
+      const { db, runs, pins } = makeWriteDb({
+        inventory: [
+          {
+            id: 4,
+            status: 'published',
+            source_name: 'Archive',
+            credit_line: 'LGFC Archive',
+            allowed_sections: '["club_home"]',
+            story_type: 'primary',
+          },
+        ],
+      });
+      const response = await publishPost({
+        request: adminPostRequest('/api/admin/editorial/publish', {
+          action: 'pin',
+          id: 4,
+          zone_id: 'lead-story',
+        }),
+        env: { ADMIN_TOKEN: 'secret', DB: db },
+      });
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toMatchObject({
+        ok: true,
+        action: 'pin',
+        zone_id: 'lead-story',
+        story_id: 4,
+      });
+      expect(runs.some((run) => run.sql.includes('INSERT INTO content_inventory_club_home_pins'))).toBe(true);
+      expect(pins).toHaveLength(1);
+    });
+
+    it('rejects pin attempts that bypass publication or zone eligibility', async () => {
+      const draft = await publishPost({
+        request: adminPostRequest('/api/admin/editorial/publish', {
+          action: 'pin',
+          id: 4,
+          zone_id: 'lead-story',
+        }),
+        env: {
+          ADMIN_TOKEN: 'secret',
+          DB: makeWriteDb({
+            inventory: [
+              {
+                id: 4,
+                status: 'draft',
+                source_name: 'Archive',
+                credit_line: 'LGFC Archive',
+                allowed_sections: '["club_home"]',
+                story_type: 'primary',
+              },
+            ],
+          }).db,
+        },
+      });
+      expect(draft.status).toBe(400);
+
+      const badZoneType = await publishPost({
+        request: adminPostRequest('/api/admin/editorial/publish', {
+          action: 'pin',
+          id: 4,
+          zone_id: 'story-rail',
+        }),
+        env: {
+          ADMIN_TOKEN: 'secret',
+          DB: makeWriteDb({
+            inventory: [
+              {
+                id: 4,
+                status: 'published',
+                source_name: 'Archive',
+                credit_line: 'LGFC Archive',
+                allowed_sections: '["club_home"]',
+                story_type: 'primary',
+              },
+            ],
+          }).db,
+        },
+      });
+      expect(badZoneType.status).toBe(400);
+    });
+
+    it('unpins a zone and clears pins when a story leaves published', async () => {
+      const { db, runs, pins } = makeWriteDb({
+        inventory: [
+          {
+            id: 4,
+            status: 'published',
+            source_name: 'Archive',
+            credit_line: 'LGFC Archive',
+            allowed_sections: '["club_home"]',
+            story_type: 'primary',
+          },
+        ],
+        pins: [
+          {
+            zone_id: 'lead-story',
+            story_id: 4,
+            pinned_at: '2026-08-12T12:00:00Z',
+            pinned_by: 'admin-ui',
+            expires_at: null,
+          },
+        ],
+      });
+
+      const unpin = await publishPost({
+        request: adminPostRequest('/api/admin/editorial/publish', {
+          action: 'unpin',
+          zone_id: 'lead-story',
+        }),
+        env: { ADMIN_TOKEN: 'secret', DB: db },
+      });
+      expect(unpin.status).toBe(200);
+      expect(pins).toHaveLength(0);
+
+      pins.push({
+        zone_id: 'lead-story',
+        story_id: 4,
+        pinned_at: '2026-08-12T12:00:00Z',
+        pinned_by: 'admin-ui',
+        expires_at: null,
+      });
+      const archive = await publishPost({
+        request: adminPostRequest('/api/admin/editorial/publish', { id: 4, status: 'archived' }),
+        env: { ADMIN_TOKEN: 'secret', DB: db },
+      });
+      expect(archive.status).toBe(200);
+      expect(runs.some((run) => run.sql.includes('DELETE FROM content_inventory_club_home_pins'))).toBe(true);
+      expect(pins).toHaveLength(0);
     });
   });
 

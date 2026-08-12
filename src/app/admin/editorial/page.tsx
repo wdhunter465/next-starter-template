@@ -18,6 +18,12 @@ const ALLOWED_SECTION_OPTIONS = [
   { key: 'related_content', label: 'Related content' },
 ] as const;
 
+const CLUB_HOME_PIN_ZONES = [
+  { key: 'lead-story', label: 'Lead story' },
+  { key: 'story-rail', label: 'Story rail' },
+  { key: 'archive-spotlight', label: 'Archive spotlight' },
+] as const;
+
 type MediaAssociation = {
   media_id: number;
   media_role: string;
@@ -362,6 +368,47 @@ export default function AdminEditorialArchivePage() {
     [load],
   );
 
+  const updateClubHomePin = useCallback(
+    async (payload: { action: 'pin' | 'unpin'; id?: number; zoneId: string }) => {
+      if (!getStoredAdminToken()) {
+        setStatus('Error: Save an admin API token above before updating Club Home pins.');
+        return;
+      }
+
+      setStatus(
+        payload.action === 'pin'
+          ? `Pinning archive record ${payload.id} to ${payload.zoneId}…`
+          : `Unpinning Club Home zone ${payload.zoneId}…`,
+      );
+
+      const result = await adminJson<{ ok: true; action: string; zone_id: string; story_id?: number }>(
+        '/api/admin/editorial/publish',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: payload.action,
+            id: payload.id,
+            zone_id: payload.zoneId,
+            pinned_by: 'admin-ui',
+          }),
+        },
+      );
+
+      if (!result.ok) {
+        setStatus(`Error: ${result.error}`);
+        return;
+      }
+
+      setStatus(
+        payload.action === 'pin'
+          ? `Pinned archive record ${payload.id} to ${payload.zoneId}.`
+          : `Cleared Club Home pin for ${payload.zoneId}.`,
+      );
+      await load();
+    },
+    [load],
+  );
+
   useEffect(() => {
     if (getStoredAdminToken()) {
       setTokenReady(true);
@@ -485,6 +532,7 @@ export default function AdminEditorialArchivePage() {
                   record={record}
                   onSave={saveInventory}
                   onPublish={updatePublication}
+                  onClubHomePin={updateClubHomePin}
                   onStatus={setStatus}
                   actionsEnabled={tokenReady}
                 />
@@ -725,10 +773,14 @@ function InventoryRecordCard(props: {
   record: InventoryRecord;
   onSave: (payload: Record<string, unknown>, label: string) => Promise<boolean>;
   onPublish: (id: number, status: InventoryRecord['status']) => Promise<void>;
+  onClubHomePin: (payload: { action: 'pin' | 'unpin'; id?: number; zoneId: string }) => Promise<void>;
   onStatus: (message: string) => void;
   actionsEnabled: boolean;
 }) {
   const { record } = props;
+  const [pinZone, setPinZone] = React.useState<string>(CLUB_HOME_PIN_ZONES[0].key);
+  const allowsClubHome = parseAllowedSectionsValue(record.allowed_sections).includes('club_home');
+  const canPin = props.actionsEnabled && record.status === 'published' && allowsClubHome;
 
   return (
     <article style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: 12, padding: 12, display: 'grid', gap: 12 }}>
@@ -774,6 +826,47 @@ function InventoryRecordCard(props: {
         {record.rotation_group || '—'} · weight: {record.feature_weight ?? 1} · last featured:{' '}
         {record.last_featured || '—'} · created: {record.created_at || '—'} · updated: {record.updated_at || '—'} ·
         published: {record.published_at || '—'}
+      </div>
+
+      <div style={{ display: 'grid', gap: 8, borderTop: '1px solid rgba(0,0,0,0.08)', paddingTop: 10 }}>
+        <h4 style={{ margin: 0 }}>Club Home pin</h4>
+        <p style={{ margin: 0, opacity: 0.75, fontSize: 13 }}>
+          Pin overrides rotation for one zone without changing publication status. Unpin restores ordinary selection.
+          {!allowsClubHome ? ' Add club_home to allowed sections before pinning.' : null}
+        </p>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          <label style={{ display: 'flex', gap: 6, alignItems: 'center' }}>
+            Zone
+            <select
+              value={pinZone}
+              onChange={(event) => setPinZone(event.target.value)}
+              disabled={!canPin && !props.actionsEnabled}
+              style={fieldStyle()}
+            >
+              {CLUB_HOME_PIN_ZONES.map((zone) => (
+                <option key={zone.key} value={zone.key}>
+                  {zone.label}
+                </option>
+              ))}
+            </select>
+          </label>
+          <button
+            type="button"
+            onClick={() => void props.onClubHomePin({ action: 'pin', id: record.id, zoneId: pinZone })}
+            disabled={!canPin}
+            style={buttonStyle(!canPin)}
+          >
+            Pin to zone
+          </button>
+          <button
+            type="button"
+            onClick={() => void props.onClubHomePin({ action: 'unpin', zoneId: pinZone })}
+            disabled={!props.actionsEnabled}
+            style={buttonStyle(!props.actionsEnabled)}
+          >
+            Unpin zone
+          </button>
+        </div>
       </div>
 
       <form

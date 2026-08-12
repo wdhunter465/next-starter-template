@@ -19,6 +19,71 @@ export const CLUB_HOME_SECTION = 'club_home';
 const RAIL_STORY_TYPES = new Set(['secondary', 'brief']);
 const PRIMARY_STORY_TYPE = 'primary';
 
+/** Zones that accept a manual pin (media-feature follows lead pairing, not a separate pin slot). */
+export const CLUB_HOME_PINNABLE_ZONES = [
+  CLUB_HOME_PLACEMENT_ZONES.leadStory,
+  CLUB_HOME_PLACEMENT_ZONES.storyRail,
+  CLUB_HOME_PLACEMENT_ZONES.archiveSpotlight,
+] as const;
+
+export type ClubHomePinnableZone = (typeof CLUB_HOME_PINNABLE_ZONES)[number];
+
+export type ClubHomePinRecord = {
+  zone_id: ClubHomePinnableZone | string;
+  story_id: number;
+  pinned_at: string;
+  pinned_by: string | null;
+  expires_at: string | null;
+};
+
+export function isClubHomePinnableZone(value: unknown): value is ClubHomePinnableZone {
+  return CLUB_HOME_PINNABLE_ZONES.includes(String(value || '').trim() as ClubHomePinnableZone);
+}
+
+function pinIsActive(pin: ClubHomePinRecord, asOfDate: Date): boolean {
+  if (!pin.expires_at) return true;
+  const expiresMs = Date.parse(pin.expires_at);
+  if (!Number.isFinite(expiresMs)) return false;
+  return expiresMs > asOfDate.getTime();
+}
+
+/**
+ * Load active Club Home pins. Fail-open when the pin table is absent/unavailable
+ * so Club Home keeps rotating without weakening publication gates.
+ */
+export async function loadActiveClubHomePins(
+  db: any,
+  asOfDate = new Date(),
+): Promise<ClubHomePinRecord[]> {
+  try {
+    const rows = await db
+      .prepare(
+        `SELECT zone_id, story_id, pinned_at, pinned_by, expires_at
+           FROM content_inventory_club_home_pins`,
+      )
+      .all();
+    return ((rows.results ?? []) as ClubHomePinRecord[]).filter(
+      (pin) => isClubHomePinnableZone(pin.zone_id) && pinIsActive(pin, asOfDate),
+    );
+  } catch (err) {
+    console.error('content inventory club home pins load error:', err);
+    return [];
+  }
+}
+
+function findEligiblePinnedRow(
+  rows: ClubHomeInventoryRow[],
+  storyId: number,
+  zoneId: ClubHomePinnableZone,
+): ClubHomeInventoryRow | null {
+  const row = rows.find((candidate) => Number(candidate.id) === storyId) ?? null;
+  if (!row) return null;
+  const storyType = normalizeStoryType(row.story_type);
+  if (zoneId === CLUB_HOME_PLACEMENT_ZONES.storyRail && !RAIL_STORY_TYPES.has(storyType)) {
+    return null;
+  }
+  return row;
+}
 export type ClubHomeStoryPayload = {
   id: number;
   title: string | null;
@@ -224,15 +289,52 @@ export async function fetchClubHomeContent(
 
   const rows = await fetchClubHomeRows(db);
   const asOfDate = new Date();
-  const leadRow = pickLeadStory(rows, asOfDate);
+  const activePins = await loadActiveClubHomePins(db, asOfDate);
+  const pinByZone = new Map(activePins.map((pin) => [String(pin.zone_id), pin]));
+
+  const leadPin = pinByZone.get(CLUB_HOME_PLACEMENT_ZONES.leadStory);
+  const pinnedLeadRow = leadPin
+    ? findEligiblePinnedRow(rows, Number(leadPin.story_id), CLUB_HOME_PLACEMENT_ZONES.leadStory)
+    : null;
+  const leadRow = pinnedLeadRow ?? pickLeadStory(rows, asOfDate);
+  const leadSelectionMode = pinnedLeadRow ? 'pinned' : 'automatic';
   const leadStory = leadRow ? mapClubHomeStory(leadRow) : null;
-  const railStories = pickRailStories(rows, leadStory?.id ?? null, asOfDate).map(mapClubHomeStory);
+
+  const railPin = pinByZone.get(CLUB_HOME_PLACEMENT_ZONES.storyRail);
+  const pinnedRailRow = railPin
+    ? findEligiblePinnedRow(rows, Number(railPin.story_id), CLUB_HOME_PLACEMENT_ZONES.storyRail)
+    : null;
+  let railRows = pickRailStories(rows, leadStory?.id ?? null, asOfDate);
+  let railPinnedStoryId: number | null = null;
+  if (pinnedRailRow && Number(pinnedRailRow.id) !== leadStory?.id) {
+    railPinnedStoryId = Number(pinnedRailRow.id);
+    railRows = [
+      pinnedRailRow,
+      ...railRows.filter((row) => Number(row.id) !== Number(pinnedRailRow.id)),
+    ].slice(0, 4);
+  }
+  const railStories = railRows.map(mapClubHomeStory);
 
   const excludeIds = new Set<number>();
   if (leadStory) excludeIds.add(leadStory.id);
   for (const story of railStories) excludeIds.add(story.id);
 
-  const spotlightRow = pickArchiveSpotlight(rows, excludeIds, asOfDate);
+  const spotlightPin = pinByZone.get(CLUB_HOME_PLACEMENT_ZONES.archiveSpotlight);
+  const pinnedSpotlightRow = spotlightPin
+    ? findEligiblePinnedRow(
+        rows,
+        Number(spotlightPin.story_id),
+        CLUB_HOME_PLACEMENT_ZONES.archiveSpotlight,
+      )
+    : null;
+  const spotlightRow =
+    pinnedSpotlightRow && !excludeIds.has(Number(pinnedSpotlightRow.id))
+      ? pinnedSpotlightRow
+      : pickArchiveSpotlight(rows, excludeIds, asOfDate);
+  const spotlightSelectionMode =
+    pinnedSpotlightRow && spotlightRow && Number(spotlightRow.id) === Number(pinnedSpotlightRow.id)
+      ? 'pinned'
+      : 'automatic';
   const archiveSpotlight = spotlightRow ? mapClubHomeStory(spotlightRow) : null;
   const mediaFeature = await resolveMediaFeature(
     db,
@@ -247,7 +349,7 @@ export async function fetchClubHomeContent(
       story_id: leadStory.id,
       zone_id: CLUB_HOME_PLACEMENT_ZONES.leadStory,
       section_key: CLUB_HOME_SECTION,
-      selection_mode: 'automatic',
+      selection_mode: leadSelectionMode,
     });
   }
   for (const story of railStories) {
@@ -255,7 +357,7 @@ export async function fetchClubHomeContent(
       story_id: story.id,
       zone_id: CLUB_HOME_PLACEMENT_ZONES.storyRail,
       section_key: CLUB_HOME_SECTION,
-      selection_mode: 'automatic',
+      selection_mode: railPinnedStoryId === story.id ? 'pinned' : 'automatic',
     });
   }
   if (archiveSpotlight) {
@@ -263,7 +365,7 @@ export async function fetchClubHomeContent(
       story_id: archiveSpotlight.id,
       zone_id: CLUB_HOME_PLACEMENT_ZONES.archiveSpotlight,
       section_key: CLUB_HOME_SECTION,
-      selection_mode: 'automatic',
+      selection_mode: spotlightSelectionMode,
     });
   }
   // Media feature may resolve from photos rather than inventory; log only when lead-bound.
@@ -272,7 +374,7 @@ export async function fetchClubHomeContent(
       story_id: leadStory.id,
       zone_id: CLUB_HOME_PLACEMENT_ZONES.mediaFeature,
       section_key: CLUB_HOME_SECTION,
-      selection_mode: 'automatic',
+      selection_mode: leadSelectionMode,
       feature_size: mediaFeature.is_memorabilia ? 'memorabilia' : 'photo',
     });
   }
