@@ -123,6 +123,10 @@ describe('buildDiagnosticSnippet', () => {
     expect(buildDiagnosticSnippet({ stderr: '', stdout: 'from stdout' }, identity)).toBe('from stdout');
   });
 
+  it('treats whitespace-only stderr as empty and falls back to stdout', () => {
+    expect(buildDiagnosticSnippet({ stderr: '\n  \n', stdout: 'from stdout' }, identity)).toBe('from stdout');
+  });
+
   it('returns an empty string when both are empty', () => {
     expect(buildDiagnosticSnippet({ stderr: '', stdout: '' }, identity)).toBe('');
     expect(buildDiagnosticSnippet({}, identity)).toBe('');

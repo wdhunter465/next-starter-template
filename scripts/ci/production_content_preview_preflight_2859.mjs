@@ -183,7 +183,9 @@ function failClosed(message) {
  * stdout, for inclusion in a fail-closed diagnostic message. Returns '' when both are empty.
  */
 export function buildDiagnosticSnippet(procResult, redact) {
-  const raw = String(procResult?.stderr || procResult?.stdout || '').trim();
+  const stderr = String(procResult?.stderr ?? '').trim();
+  const stdout = String(procResult?.stdout ?? '').trim();
+  const raw = stderr || stdout;
   if (!raw) return '';
   const redacted = redact(raw);
   return redacted.length > 800 ? `${redacted.slice(0, 800)}...` : redacted;
@@ -213,6 +215,7 @@ export async function main() {
   const redact = (text) =>
     redactSecrets(text, [
       process.env.B2_ENDPOINT,
+      process.env.B2_ENDPOINT?.replace(/\/$/, ''),
       process.env.B2_BUCKET,
       process.env.B2_KEY_ID,
       process.env.B2_APP_KEY,
