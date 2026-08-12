@@ -2,6 +2,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
+  buildDiagnosticSnippet,
   buildResultMarkdown,
   buildRowCountSql,
   buildTableExclusionSql,
@@ -108,6 +109,36 @@ describe('Production D1 identity from wrangler.toml (#3337)', () => {
     const identities = loadD1IdentitiesFromWrangler(WRANGLER);
     expect(identities.preview.databaseId).not.toBe(identities.production.databaseId);
     expect(identities.preview.databaseName).not.toBe(identities.production.databaseName);
+  });
+});
+
+describe('buildDiagnosticSnippet', () => {
+  const identity = (text) => text;
+
+  it('prefers stderr over stdout', () => {
+    expect(buildDiagnosticSnippet({ stderr: 'from stderr', stdout: 'from stdout' }, identity)).toBe('from stderr');
+  });
+
+  it('falls back to stdout when stderr is empty', () => {
+    expect(buildDiagnosticSnippet({ stderr: '', stdout: 'from stdout' }, identity)).toBe('from stdout');
+  });
+
+  it('returns an empty string when both are empty', () => {
+    expect(buildDiagnosticSnippet({ stderr: '', stdout: '' }, identity)).toBe('');
+    expect(buildDiagnosticSnippet({}, identity)).toBe('');
+  });
+
+  it('truncates to 800 chars with a trailing ellipsis', () => {
+    const long = 'x'.repeat(1000);
+    const snippet = buildDiagnosticSnippet({ stderr: long }, identity);
+    expect(snippet).toBe(`${'x'.repeat(800)}...`);
+  });
+
+  it('applies the provided redact function before truncating', () => {
+    const redact = (text) => text.replaceAll('secret-value', '[REDACTED]');
+    expect(buildDiagnosticSnippet({ stderr: 'error near secret-value token' }, redact)).toBe(
+      'error near [REDACTED] token',
+    );
   });
 });
 
