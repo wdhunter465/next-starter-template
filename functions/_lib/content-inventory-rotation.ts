@@ -155,7 +155,9 @@ export function isWithinHardCooldown(
   const featuredAt = parseRotationTimestamp(row.last_featured);
   if (featuredAt === null) return false;
   const daysSince = (asOf.getTime() - featuredAt) / 86_400_000;
-  return daysSince >= 0 && daysSince < cooldownDays;
+  // Fail closed on future timestamps (clock skew / bad data): treat as still cooling.
+  if (daysSince < 0) return true;
+  return daysSince < cooldownDays;
 }
 
 /**

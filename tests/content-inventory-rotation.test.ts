@@ -129,9 +129,13 @@ describe('content inventory rotation scoring', () => {
   it('hard-excludes rows inside the recent-use cooldown window', () => {
     const recent = baseRow({ id: 1, last_featured: '2026-06-01T00:00:00Z', priority: 99 });
     const ready = baseRow({ id: 2, last_featured: '2025-01-01T00:00:00Z', priority: 1 });
+    const future = baseRow({ id: 3, last_featured: '2026-06-10T00:00:00Z', priority: 99 });
     expect(isWithinHardCooldown(recent, AS_OF, DEFAULT_HARD_COOLDOWN_DAYS)).toBe(true);
     expect(isWithinHardCooldown(ready, AS_OF, DEFAULT_HARD_COOLDOWN_DAYS)).toBe(false);
-    expect(filterRotationFairnessPool([recent, ready], { asOfDate: AS_OF }).map((row) => row.id)).toEqual([2]);
+    expect(isWithinHardCooldown(future, AS_OF, DEFAULT_HARD_COOLDOWN_DAYS)).toBe(true);
+    expect(filterRotationFairnessPool([recent, ready, future], { asOfDate: AS_OF }).map((row) => row.id)).toEqual([
+      2,
+    ]);
   });
 
   it('prefers least-used eligible rows when editorial scores tie', () => {
