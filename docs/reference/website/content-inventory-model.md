@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: Content inventory model, field definitions, submission queue requirements, media association requirements, and schema invariants for project #1256
 Does Not Own: D1 migration files, runtime API implementation, UI copy, or editorial fact approval
 Canonical Reference: /docs/reference/design/LGFC-Production-Design-and-Standards.md
-Related issues: #1256, #824, #819, #1137, #1689, #1685
-Last Reviewed: 2026-06-23
+Related issues: #1256, #824, #819, #1137, #1689, #1685, #2859, #2907
+Last Reviewed: 2026-08-12
 ---
 
 # Content Inventory Model
@@ -296,3 +296,23 @@ Future implementation tasks must verify:
 - existing admin/editor flows before creating duplicate tooling.
 
 New build issues should fill documented gaps only.
+
+## Legacy `events` / calendar mapping authority (#2859)
+
+The reviewed mapping from legacy `events` to `content_inventory` lives in
+`docs/ops/reports/events-public-content-inventory-mapping-2859.md`.
+
+Standing rules from that map (do not re-derive ad hoc in later children):
+
+- Deterministic source identity: `tag = legacy-events-{id}` for legacy
+  primary key `id`.
+- `allowed_sections` for migrated rows is `["calendar"]` only; `search`,
+  `library`, `related_content`, and `club_home` must not be added until a
+  separately reviewed child follows the calendar/navigation (IA) decision.
+- `events` rows used for this proving path are pseudo/synthetic Development
+  data (Product Authority, 2026-08-12), not final editorial launch content.
+- The proving write is scoped to isolated Development D1 (`lgfc-litedev`)
+  only; Production writes remain separately authorized.
+- Duplicate/conflict handling and the privacy-safe row-class count model are
+  fail-closed per the map; the successor proving-write child implements
+  tooling against that contract only.
