@@ -2,17 +2,19 @@
   "recordId": "launch-rehearsal-entry-criteria-2926",
   "sourceIssue": 2926,
   "parentProject": 2781,
-  "reconciledAt": "2026-08-12T14:30:00Z",
+  "reconciledAt": "2026-08-12T14:40:00Z",
   "reconciledBy": "Cursor Local",
   "componentBranch": "component/launch-rehearsal",
-  "candidateIdentity": "component/launch-rehearsal@9900f98d3841c806cf20eaa82f91e1849066927a (planning candidate / component lineage tip after PR #3236). Formal Promotion Candidate identity for #2928 qualification remains deferred until an authorized isolated rehearsal deployment SHA is frozen.",
-  "environmentIdentity": "Planned isolated Cloudflare Pages preview/staging deployment of component/launch-rehearsal — not Production. Runtime isolation incomplete: scripts/ci/preview-isolation-manifest.json still classifies D1 lgfc_lite and related bindings as production-shared (auditIssue #2496; isolation task #2818). Formal rehearsal must not bind Production-writable resources.",
+  "candidateIdentity": "component/launch-rehearsal@9900f98d3841c806cf20eaa82f91e1849066927a",
+  "candidateIdentityNotes": "Planning candidate / component lineage tip after PR #3236. Formal Promotion Candidate identity for #2928 qualification remains deferred until an authorized isolated rehearsal deployment SHA is frozen.",
+  "environmentIdentity": "planned-isolated:cloudflare-pages-preview/component/launch-rehearsal",
+  "environmentIdentityNotes": "Not Production. Runtime isolation incomplete: scripts/ci/preview-isolation-manifest.json still classifies D1 lgfc_lite and related bindings as production-shared (auditIssue #2496; isolation task #2818). Formal rehearsal must not bind Production-writable resources.",
   "testDataPlan": "Synthetic and/or redacted fixture datasets only for rehearsal journeys. No private Production member PII, Production D1 dumps, Production B2 private objects, or live credentials as disposable test data. Journey catalog (#2927) privacyControl fields must continue to declare synthetic/redacted handling per journey.",
   "executorRole": "Implementation / Operations executor (Cursor Local or Claude Code under recorded claim on #2781 children)",
   "verifierRole": "PR Approver / Engineering (independent review) + WORK assurance (asynchronous unless material exception)",
   "recoveryOwner": "Day-2 Operations coordination (WORK mapping) with Product Authority escalation for Production-adjacent stops",
   "cleanupPlan": "Remove rehearsal-created Issues/comments/labels created under rehearsal namespaces; tear down any temporary preview deployment artifacts; revoke temporary tokens; restore environment to pre-rehearsal state via documented rollback path before #2929 disposition. No Production cleanup authorized by this record.",
-  "productionDataExclusionEvidence": "Issue #2926 / parent #2781 launch package explicitly prohibit private Production data as disposable test data; preview-isolation-manifest.json documents current production-shared risks (#2818 open). This record uses only public repo SHAs, issue IDs, and synthetic planning identities.",
+  "productionDataExclusionEvidence": "Issue #2926 / parent #2781 launch package explicitly prohibit private Production data as disposable test data; scripts/ci/preview-isolation-manifest.json documents current production-shared risks (#2818 open). This record uses only public repo SHAs, issue IDs, and synthetic planning identities.",
   "entryCriteria": [
     {
       "name": "Platform validation (#2778) accepted",
@@ -37,7 +39,7 @@
     {
       "name": "Journey catalog preparation (#2927) available on component lineage",
       "status": "satisfied",
-      "evidence": "docs/ops/reports/launch-rehearsal-journey-catalog-2927.md and launch-rehearsal-journey-registry-2927.json present on component/launch-rehearsal (collision-safe preparation; formal execution remains #2928)."
+      "evidence": "docs/ops/reports/launch-rehearsal-journey-catalog-2927.md and docs/ops/reports/launch-rehearsal-journey-registry-2927.json present on component/launch-rehearsal (collision-safe preparation; formal execution remains #2928)."
     },
     {
       "name": "Monitoring/incident readiness (#2780) accepted",

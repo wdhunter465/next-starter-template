@@ -53,6 +53,17 @@ owned by its own task.
 - This document does not authorize Production mutation, failure injection, or
   use of Production data as test data. It never performs a live request.
 
+## Intended final state
+
+Once deferred release conditions are met (especially #2780 monitoring
+acceptance, #2818 preview/component isolation, and a frozen isolated
+deployment SHA), the reconciled JSON record holds exact reusable
+`candidateIdentity` / `environmentIdentity` strings (prose only in `*Notes`
+fields), every parent entry criterion is `satisfied` with evidence (or still
+explicitly deferred with owner + release condition), and #2928 can start
+formal write-capable rehearsal from this machine-checked entry state without
+re-discovering missing prerequisites.
+
 ## Non-blocking prerequisite rule
 
 Per #2926's own non-blocking prerequisite rule, this document, harness, and
@@ -67,8 +78,10 @@ reconciliation planning.
 
 | Field | Purpose |
 | --- | --- |
-| `candidateIdentity` | The exact candidate build/SHA the rehearsal targets |
-| `environmentIdentity` | The isolated (non-Production) environment identity |
+| `candidateIdentity` | Exact candidate build/SHA identity string (no explanatory prose) |
+| `candidateIdentityNotes` | Optional prose explaining planning vs frozen Promotion Candidate status |
+| `environmentIdentity` | Exact isolated (non-Production) environment identity string |
+| `environmentIdentityNotes` | Optional prose for isolation gaps and Production-shared risks |
 | `testDataPlan` | Synthetic/redacted test-data plan — private Production data is never disposable test data |
 | `executorRole` | Who performs rehearsal actions (a role, not necessarily a name) |
 | `verifierRole` | Who independently confirms rehearsal results |
@@ -85,7 +98,7 @@ Exact strings live in
 | Identity | Current exact value |
 | --- | --- |
 | Planning candidate | `component/launch-rehearsal@9900f98d3841c806cf20eaa82f91e1849066927a` |
-| Environment | Planned isolated CF Pages preview/staging of that branch — **not** Production; isolation incomplete pending #2818 |
+| Environment | `planned-isolated:cloudflare-pages-preview/component/launch-rehearsal` (isolation incomplete pending #2818; see notes in JSON) |
 | Test data | Synthetic/redacted fixtures only; no private Production disposable data |
 | Roles | Executor = Implementation/Operations under claim; Verifier = PR Approver/Engineering + WORK; Recovery = Day-2 Operations coordination |
 
