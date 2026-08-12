@@ -4,12 +4,12 @@ import { describe, expect, it } from 'vitest';
 import {
   buildDiagnosticSnippet,
   buildResultMarkdown,
-  buildRowCountSql,
   buildTableExclusionSql,
   buildTableListSql,
+  buildTableRowCountSql,
   hasLiveDevD1Credentials,
   loadD1IdentitiesFromWrangler,
-  parseRowCountRows,
+  parseSingleRowCount,
   productionD1IdFromWrangler,
   quoteSqlIdentifier,
   quoteSqlStringLiteral,
@@ -35,7 +35,7 @@ describe('requireEnv', () => {
   });
 });
 
-describe('SQL quoting / buildRowCountSql (#3337)', () => {
+describe('SQL quoting / buildTableRowCountSql (#3337, #3379)', () => {
   it('escapes single quotes in string literals', () => {
     expect(quoteSqlStringLiteral("foo'bar")).toBe("'foo''bar'");
   });
@@ -44,15 +44,10 @@ describe('SQL quoting / buildRowCountSql (#3337)', () => {
     expect(quoteSqlIdentifier('a"b')).toBe('"a""b"');
   });
 
-  it('builds UNION ALL with escaped literals and identifiers for quoted table names', () => {
-    const sql = buildRowCountSql(["mem'bers", 'eve"nts']);
-    expect(sql).toBe(
-      "SELECT 'mem''bers' AS table_name, COUNT(*) AS row_count FROM \"mem'bers\" UNION ALL SELECT 'eve\"nts' AS table_name, COUNT(*) AS row_count FROM \"eve\"\"nts\"",
-    );
-  });
-
-  it('returns an empty string for an empty table list', () => {
-    expect(buildRowCountSql([])).toBe('');
+  it('builds one COUNT(*) query per table with the identifier escaped -- never a combined UNION ALL (D1 compound-SELECT term limit, live finding 2026-08-12)', () => {
+    expect(buildTableRowCountSql('mem"bers')).toBe('SELECT COUNT(*) AS row_count FROM "mem""bers"');
+    expect(buildTableRowCountSql('events')).toBe('SELECT COUNT(*) AS row_count FROM "events"');
+    expect(buildTableRowCountSql('events')).not.toContain('UNION');
   });
 });
 
@@ -72,17 +67,18 @@ describe('buildTableExclusionSql / buildTableListSql', () => {
   });
 });
 
-describe('parseRowCountRows', () => {
-  it('normalizes and sorts rows by table name', () => {
-    expect(
-      parseRowCountRows([
-        { table_name: 'events', row_count: 25 },
-        { table_name: 'members', row_count: '20' },
-      ]),
-    ).toEqual([
-      { table: 'events', rowCount: 25 },
-      { table: 'members', rowCount: 20 },
-    ]);
+describe('parseSingleRowCount', () => {
+  it('extracts the count from a one-row, one-column result', () => {
+    expect(parseSingleRowCount([{ row_count: 25 }])).toBe(25);
+  });
+
+  it('coerces a string count to a number', () => {
+    expect(parseSingleRowCount([{ row_count: '20' }])).toBe(20);
+  });
+
+  it('returns 0 for an empty or missing result', () => {
+    expect(parseSingleRowCount([])).toBe(0);
+    expect(parseSingleRowCount(undefined)).toBe(0);
   });
 });
 
