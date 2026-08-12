@@ -112,7 +112,7 @@ export function buildResultMarkdown(result) {
     '',
     `- Checked at: ${result.checkedAt}`,
     `- Mode: **${result.mode}**`,
-    `- Database identity: \`${result.databaseName || ''}\` / \`${result.databaseId || ''}\` — confirmed Production`,
+    '- Database identity: confirmed Production (name/uuid verified against wrangler.toml and live `wrangler d1 info`; not printed, matching this repo\'s existing D1 preflight convention)',
     '',
     '### Row classification (aggregate counts only — no row content, no email)',
     '',
@@ -255,6 +255,19 @@ export async function main() {
   }
   const approvalColumnPresent = hasApprovalColumn(tableInfoRows);
 
+  // The entire all-drafts-first batch design (#2913's batch plan, and the Go decision built
+  // on it) rests on Production's schema NOT having is_approved, confirmed live above -- not
+  // on the SELECT below happening to omit it. If that assumption is ever violated, fail
+  // closed rather than silently proceed on a batch shape nobody reviewed for this case.
+  if (approvalColumnPresent) {
+    failClosed(
+      "PRAGMA table_info(library_entries) found an is_approved column, contradicting the all-drafts-first batch design this script implements (#2913's batch plan assumed it absent, confirmed live at build time). Refusing to proceed -- this schema state was never reviewed as part of #2860's Production Go decision.",
+    );
+    return;
+  }
+
+  // approvalColumnPresent is guaranteed false past the guard above, so is_approved is
+  // deliberately not selected here -- there is nothing for classifyLegacyRow() to read.
   const legacyRows = runD1Query('SELECT id, name, email, title, content, created_at FROM library_entries;', 'legacy rows');
   if (legacyRows === null) return;
 
@@ -270,8 +283,6 @@ export async function main() {
   const result = {
     checkedAt: new Date().toISOString(),
     mode: applyMode ? 'apply' : 'dry-run',
-    databaseName: dbName,
-    databaseId: expected.databaseId,
     approvalColumnPresent,
     counts: plan.counts,
     summary: plan.summary,
