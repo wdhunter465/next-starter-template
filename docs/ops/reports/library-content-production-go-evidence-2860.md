@@ -2,12 +2,12 @@
 Doc Type: Operations Report
 Audience: Bill, Work, Cursor, LGFC maintainers, and implementation agents
 Authority Level: Evidence Snapshot
-Owns: Consolidated Production Go evidence package for #2860's controlled Production library-content batch (candidate identity, backup status, dry-run evidence, write batch definition, rollback command, verifier) — assembled per Bill's 2026-08-10 bounded-Production-Go instruction on #2860
-Does Not Own: The Production Go decision itself (Product Authority); the #2779 backup/recovery gap this report identifies but does not close; execution of any Production D1 write
+Owns: Consolidated Production Go evidence package for #2860's controlled Production library-content batch (candidate identity, backup status, dry-run evidence, write batch definition, rollback command, verifier) — assembled per Bill's 2026-08-10 bounded-Production-Go instruction on #2860; reconciled 2026-08-12 once the backup gap (#3268) and write-tooling build (this report's own Section 4) both closed
+Does Not Own: The Production Go/dispatch decision itself (Product Authority); execution of any Production D1 write
 Source Issue: #2860
 Canonical Reference: /docs/ops/reports/library-content-production-go-evidence-2860.md
-Related Issues: #2860, #2910, #2911, #2912, #2913, #2778, #2779
-Last Reviewed: 2026-08-10
+Related Issues: #2860, #2910, #2911, #2912, #2913, #2778, #2779, #3268, #3386, #3388, #3390, #3391, #3392
+Last Reviewed: 2026-08-12
 Executor: Claude Code
 ---
 
@@ -17,22 +17,22 @@ Executor: Claude Code
 
 Bill's instruction (2026-08-10, on #2860): "begin with a bounded Production Go for #2860 only. Require Claude to post the exact candidate identity, backup, dry-run evidence, write batch, rollback command, and verifier before executing any D1 write. Then WORK reviews the results before advancing #2859."
 
-This report assembles all six required items. **No Production read or write has been performed or attempted by this report.** Five of the six items are genuinely ready, each citing real, already-reviewed evidence from #2910–#2913. The sixth — backup — is not ready, and this report says so explicitly rather than fabricating it, per #2860's own stop condition: "Stop for uncertain record ownership, **missing backup/restore proof**, destructive statements without explicit Production authority..."
+This report assembles all six required items. **No Production write has been performed, attempted, or authorized by this report or by any of the work it cites.** As of 2026-08-10, five of six items were ready; the sixth (backup) was reported not ready rather than fabricated. As of this 2026-08-12 reconciliation, **all six items are ready**: #3268 Phase 2 closed the backup gap with real, live, checksummed export/restore evidence, and the secret-backed Production write path referenced in Section 4 below (as "what still needs building") has since been built, tested, reviewed, and merged to `main`. Building and merging that tooling is not itself a Production write and did not perform one — see Section 4 for the exact boundary.
 
 ## Scope
 
-Covers the six evidence items Bill's instruction requires, for #2860's library_entries → content_inventory migration only. It does not cover #2859 (explicitly gated behind WORK's review of this package) or any other #2860 sibling project. It does not itself authorize, perform, or build a Production write path — that remains a separate implementation step, itself requiring review, after this package's gaps are resolved or explicitly risk-accepted.
+Covers the six evidence items Bill's instruction requires, for #2860's library_entries → content_inventory migration only. It does not cover #2859 or any other #2860 sibling project. It does not itself authorize or perform any Production write — the write tooling described in Section 4 exists, gated and undispatched, but dispatching it (in either `dry-run` or `apply` mode) requires a separate, explicit Bill/WORK Production-dispatch authorization that this report does not grant.
 
 ## Current known truth
 
-- 5 of 6 required evidence items are ready today, each backed by real, already-merged, already-reviewed work (#2910 map, #2911 tooling + real local-D1 evidence, #2912 recovery proof, #2913 batch plan + live Production schema preflight).
-- The 6th item, backup, is **not ready**: #2860 names #2779 as its backup/recovery gate, but #2779's actual delivered work is a local-only synthetic simulation (disposable `node:sqlite`, fabricated fixtures) that was never merged to `main` and is explicitly self-documented as non-Production ("live wrangler export when credentials authorized" — i.e., aspirational). No real Cloudflare D1 export/backup mechanism exists anywhere in this repository today.
-- Per #2860's own stop conditions, this is a named stop trigger, not a minor gap: "Stop for uncertain record ownership, missing backup/restore proof, destructive statements without explicit Production authority, irreversible identifier changes, privacy exposure, or any paid tooling requirement."
-- No Production D1 write capability exists in this repo's tooling today, at all — #2911's `scripts/migrations/library-content-backfill.mjs` hardcodes `--local` with no override flag, by design.
+- All 6 required evidence items are now ready, each backed by real, already-merged, already-reviewed work: #2910 map, #2911 tooling + real local-D1 evidence, #2912 recovery proof, #2913 batch plan + live Production schema preflight, #3268 Phase 2 real backup/restore proof, and the merged (not dispatched) Production write tooling from PRs #3386 → #3390 → #3392.
+- The backup gap is **closed**: #3268 Phase 2 performed a real `wrangler d1 export --remote` of `lgfc_lite`, uploaded it to private R2 with an independently re-verified SHA-256 checksum, and completed an isolated restore-drill proof (37/37 tables matched exactly, 5,711 rows written) against a disposable, uniquely-named, never-`wrangler.toml`-bound database that was torn down unconditionally afterward. Full citation in Section 2.
+- The write-tooling gap is **closed**: `scripts/ci/library_content_production_write_2860.mjs` and `.github/workflows/library-content-production-write-2860.yml` exist on `main`, are unit-tested (19 tests), and enforce two independent gates (`MODE=apply` AND `CONFIRM_WRITE=confirm`) plus three-way Production identity verification before any write statement would execute. The workflow has never been dispatched, in either mode, by any of the work this report cites.
+- No Production D1 write has occurred. Building, testing, and merging the write tooling is bounded "build + validate + PR + merge only" work, distinct from dispatching it — per Bill's own instruction framing that authorized the build without authorizing execution.
 
 ## Intended final state
 
-Once the backup gap below is closed — either by completing real Production-capable D1 backup/export tooling (a genuine #2779 completion), or by Bill/WORK recording an explicit, documented risk-acceptance decision to proceed without a live export mechanism (citing whatever durability guarantee is being relied on instead) — this report's six items become a complete, actionable Production Go package. At that point, a bounded implementation task builds the actual secret-backed GitHub Actions write path (modeled directly on #2913's existing read-only preflight workflow), which itself requires independent review and a separate explicit dispatch before any row is written. This report does not build that path; it only proves the package that path would consume is otherwise ready.
+This report's six items are now a complete, actionable Production Go package. What remains is a separate, later decision: Bill/WORK reviews this reconciled package and either records an explicit Production-dispatch authorization (specifying batch scope and confirming the two workflow gates) or holds. This report does not request or assume that decision — it exists so that decision can be made against real, current evidence rather than the 2026-08-10 partial package.
 
 ## 1. Exact candidate identity
 
@@ -54,19 +54,16 @@ Once the backup gap below is closed — either by completing real Production-cap
 
 This resolves #2913's own "blocking preflight" item. Per the #2910 map's explicit rule for this exact case: **every legacy row must be treated as unapproved/draft-only.** This also means the migration's only viable batch shape is **all-drafts-first** (#2913's batch plan): since no row becomes `published`, #2912's proven "section-level cutover" visibility risk does not apply to this batch at all — drafts never trigger the legacy-fallback cutover.
 
-## 2. Backup — NOT READY (blocking gap)
+## 2. Backup — READY (closed by #3268 Phase 2, 2026-08-11)
 
-No real Production-capable D1 backup/export/restore mechanism exists in this repository:
+At the time this report was first posted (2026-08-10), no real Production-capable D1 backup/export/restore mechanism existed in this repository — #2779's actual deliverable was a local-only synthetic simulation that never touched real Cloudflare D1 credentials. That gap is now closed by #3268 Phase 2's real, live, independently verified evidence:
 
-- #2860 names #2779 ("Verify LGFC Production Backup, Restore, Rollback, and Disaster Recovery") as its backup/recovery entry gate. #2779 closed complete, but its actual deliverable (PR #3024, merged only to the unmerged `component/platform-recovery-readiness` branch — never promoted to `main`) is `scripts/ci/platform-recovery-d1-b2-isolation.mjs`: it writes a **fabricated, synthetic** fixture SQL file, restores it into a disposable local `node:sqlite` database, and validates row-count/join probes against that synthetic data — never touching real Cloudflare D1 or Production credentials. Its own evidence report states plainly: *"Synthetic/redacted fixtures only — not a live Production D1 export or live B2 ListObjects. Credentialed live CF/D1/B2 restore remains deferred and separately authorized."* The corresponding inventory record's `backupMethod` field literally reads: *"Provider durability + synthetic export/restore proof (#2895); live wrangler export when credentials authorized"* and its `testedStatus` was only ever raised to `partial`, never `tested`.
-- No workflow in `.github/workflows/` performs a D1 export or backup. `d1-migrations.yml` / `lgfc-d1-migrate.yml` run schema migrations against Production (`wrangler d1 migrations apply ... --remote`), not backups. `snapshot.yml` ("OPS — Snapshot Backup") snapshots the repository and Cloudflare Pages project config/deployments — not D1 row data. `b2-d1-daily-sync.yml` is a B2→D1 ingest sync, not a backup.
-- No `wrangler d1 export` (or equivalent) invocation exists anywhere in this repository's committed code.
+- **Package 1 — capability preflight** (PR #3306, corrective PR #3309): confirmed R2 write capability (PUT/GET/DELETE round-trip on a disposable test key) and D1 admin capability (create/execute/delete an isolated, uniquely-named test database, never referenced in `wrangler.toml`). Zero orphaned resources; no write to `lgfc_lite` at any point.
+- **Package 2 — real export, checksum, R2 upload** (PR #3311): a real `wrangler d1 export --remote` of `lgfc_lite` (Cloudflare's documented read-only backup mechanism — no restore, no write), 469,630 bytes, SHA-256 computed and uploaded as a sidecar, then independently re-downloaded and re-hashed to confirm an exact match. Stored privately at `d1-backups/lgfc_lite/2026-08-11T10-33-48-870Z/backup.sql` in the private `lgfc-d1-backups` R2 bucket.
+- **Package 3 — isolated restore proof** (final live run 2026-08-11T12:00:07Z, after 4 earlier dispatches each finding and fixing a real evidence-grounded issue in turn — a wrangler stdout-preamble parsing bug, a genuine table-count mismatch, D1's auto-created `_cf_KV` internal table): backup found and checksum re-verified, an isolated restore-drill database (uniquely named, never in `wrangler.toml`, orphan-swept first) imported the export (1,313 queries executed, 5,711 rows written), and table verification matched exactly — 37 expected vs. 37 actual. The restore-drill database was torn down unconditionally afterward.
+- Full sequence summary: issue #3268, comment [5252882921](https://github.com/wdhunter465/next-starter-template/issues/3268#issuecomment-5252882921). At no point in any package was `lgfc_lite` written to, restored into, or otherwise mutated.
 
-**This is a real stop condition, not a formality.** #2860's acceptance criteria include the unchecked box "Backup, rollback, verification, and stop conditions are executable," and its readiness statement is explicit: "READY FOR LAUNCH — implementation entry-gated by #2778 D1 inventory and #2779 isolated recovery proof before Production migration." That gate has not actually been satisfied for a real Production write, regardless of #2779's closed/complete label.
-
-**What would close this gap** (Product Authority decision required — not something this report resolves):
-- (a) A bounded follow-up task builds a real `wrangler d1 export` (or Cloudflare's D1 Time Travel / point-in-time-recovery, if applicable to this database's plan) invocation, run via a secret-backed CI workflow analogous to #2913's preflight, with its output verified before any write proceeds; or
-- (b) Bill/WORK explicitly records a documented risk-acceptance decision to proceed on Cloudflare's underlying storage durability alone (no independent export taken), understanding that the rollback command in Section 5 below only reverts rows this migration itself wrote — it does not restore from an independent backup, because none would exist.
+**Downstream note, not a #2860 blocker:** #3268's own summary states Gate 1 (feeding this evidence through #2859 → #2780 → #2926) remains HOLD and Gate 2 remains NO-GO pending separate review — that is a different downstream chain than #2860's own six-item checklist. For #2860's purposes specifically, this section's backup/restore-proof requirement is satisfied by the live evidence above.
 
 ## 3. Dry-run evidence
 
@@ -107,9 +104,16 @@ INSERT INTO content_inventory (
 
 `buildInsertStatement` appends two columns conditionally, not unconditionally as the base template above shows: `created_at` is only added (with the legacy row's original timestamp) when the legacy row actually has one — `buildMigratedFields` sets `created_at: row.created_at || null`, and a `null` value is omitted from the column list entirely rather than written as SQL `NULL`. `published_at` is only added, set to the current time, when a row transitions to `published` for the first time (`setPublishedAtNow`) — which never happens in this batch, since every row here migrates as `draft` (Section 1).
 
-**What still needs building, separately, before this batch can execute against Production**: a secret-backed GitHub Actions `workflow_dispatch` path — modeled directly on the already-merged #2913 read-only preflight (`library-content-production-preflight-2913.yml` / `production_d1_preflight_2913.mjs`) — that runs this exact planning code against real Production data and executes the generated statements via `wrangler d1 execute lgfc_lite --remote`. This report does not build that path; per Bill's instruction, this package is posted first, for WORK's review, before that implementation step is authorized.
+**Now built** (2026-08-12): the secret-backed GitHub Actions write path described above as a future step has since been built, reviewed, and merged to `main` — `.github/workflows/library-content-production-write-2860.yml` and `scripts/ci/library_content_production_write_2860.mjs`, modeled directly on the #2913 read-only preflight as planned. It runs this exact planning code (`buildPlanForBackfill`/`buildInsertStatement`/`buildUpdateStatement`, unchanged) against real Production data and, only under two independently-required gates, executes the generated statements via `wrangler d1 execute lgfc_lite --remote -y --file`:
 
-The four repository secrets that path would consume already exist (per the 2026-08-08 Product Authority clarification on #2913, and reused unchanged from that merged workflow): `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `D1_DATABASE_ID`, `D1_DATABASE_NAME`. No new credential provisioning is required to build the write path itself — only the backup gap in Section 2 stands between this package and that implementation step being authorized.
+1. `CONFIRM_WRITE` must be exactly `"confirm"`.
+2. `MODE` must be exactly `"apply"` — the workflow's default, `"dry-run"`, performs the identical Production reads and plan classification but writes nothing, regardless of `CONFIRM_WRITE`.
+
+Both gates are enforced by the script itself, not just the workflow's `workflow_dispatch` input validation — defense in depth, since this is the one script in the repository capable of writing to Production D1. Before any read, the script three-way-verifies the resolved database identity (secret value vs. `wrangler.toml`'s declared Production `database_id` vs. the live `wrangler d1 info` result), failing closed on any mismatch, and fails closed if a live `PRAGMA table_info(library_entries)` check ever finds an `is_approved` column present (this batch's all-drafts-first shape assumes it absent). Merged via PR #3386, with three real Copilot findings from that PR — D1 identity opacity, this exact fail-closed guard being absent, and an independent `is_approved`-SELECT omission bug in the promoted `scripts/migrations/library-content-backfill.mjs` CLI — landed by follow-up PRs #3390 (fixes) and #3392 (a fourth finding, a vacuous test assertion, found on #3390 itself). `main` now carries the fully-reviewed version with no outstanding findings. 46 tests across the write script and the promoted `library-content-backfill.mjs` pass.
+
+**Building and merging this tooling is not a Production write and did not perform one.** The workflow has never been dispatched, in either `dry-run` or `apply` mode, by any of the work this report cites — dispatching it remains a separate, later, explicit decision, per Bill's own instruction that authorized "build + validate + PR + merge only."
+
+The four repository secrets this path consumes already existed (per the 2026-08-08 Product Authority clarification on #2913, reused unchanged): `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `D1_DATABASE_ID`, `D1_DATABASE_NAME`. No new credential provisioning was required.
 
 **Pre/post count evidence to record** (redacted, no PII, exactly as #2911/#2912's local evidence did):
 
@@ -141,7 +145,7 @@ DELETE FROM content_inventory WHERE canonical = 1 AND tag LIKE 'legacy-library-%
 SELECT COUNT(*) AS n FROM content_inventory WHERE canonical = 1 AND tag LIKE 'legacy-library-%';
 ```
 
-This reverts only what this migration itself wrote (proven not to touch unrelated inventory, #2912). **It is not a substitute for the backup gap in Section 2** — it cannot recover from any failure mode other than "these specific rows need to be un-migrated" (e.g., it does nothing for a corrupted `library_entries` source table, unrelated D1 damage, or any failure outside `content_inventory`'s legacy-tagged rows).
+This reverts only what this migration itself wrote (proven not to touch unrelated inventory, #2912). **It is not a substitute for the independent backup/restore proof in Section 2** — it cannot recover from any failure mode other than "these specific rows need to be un-migrated" (e.g., it does nothing for a corrupted `library_entries` source table, unrelated D1 damage, or any failure outside `content_inventory`'s legacy-tagged rows). Section 2's real R2 export/restore path is the recovery mechanism for those other failure modes.
 
 ## 6. Verifier
 
@@ -161,8 +165,10 @@ Post-migration verification checklist, from #2913's batch plan, to run after any
 - [x] Write batch posted: exact deterministic mechanism, exact statement template, exact batch shape and its rationale
 - [x] Rollback command posted, verbatim from proven #2912 evidence
 - [x] Verifier posted, verbatim from #2913's batch plan
-- [ ] Backup — **not ready**; gap identified and explained, not fabricated
-- [ ] No Production read or write performed by this report
+- [x] Backup — **ready**; real, live, checksummed export/restore evidence from #3268 Phase 2 (Section 2)
+- [x] Secret-backed Production write path — **built, tested, reviewed, merged to `main`** (Section 4); never dispatched
+- [x] No Production write performed, attempted, or authorized by this report or any work it cites
+- [ ] Production-dispatch authorization — **not requested by this report**; a separate, later Bill/WORK decision
 
 ## Rollback (of this report)
 
