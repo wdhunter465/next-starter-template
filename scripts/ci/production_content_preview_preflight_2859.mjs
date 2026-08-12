@@ -326,7 +326,7 @@ export async function main() {
       if (countRes.error || countRes.status !== 0) {
         const snippet = buildDiagnosticSnippet(countRes, redact);
         failClosed(
-          `wrangler d1 execute failed counting rows for table "${table}" (exit ${countRes.status ?? 'spawn error'}).${snippet ? ` Raw (redacted) response snippet: ${snippet}` : ' (no output captured)'}`,
+          `wrangler d1 execute failed counting rows for table ${JSON.stringify(table)} (exit ${countRes.status ?? 'spawn error'}).${snippet ? ` Raw (redacted) response snippet: ${snippet}` : ' (no output captured)'}`,
         );
         return;
       }
@@ -334,7 +334,7 @@ export async function main() {
       try {
         countParsed = parseWranglerJson(countRes.stdout);
       } catch (error) {
-        failClosed(`could not parse row-count output for table "${table}": ${error.message}`);
+        failClosed(`could not parse row-count output for table ${JSON.stringify(table)}: ${error.message}`);
         return;
       }
       tables.push({ table, rowCount: parseSingleRowCount(extractD1Rows(countParsed)) });
