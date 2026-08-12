@@ -8,6 +8,7 @@ import {
   CLUB_HOME_PLACEMENT_ZONES,
   filterRotationFairnessPool,
   recordPlacementHistory,
+  type PlacementHistoryRecord,
   type RotationRow,
   sortRotationRows,
 } from './content-inventory-rotation';
@@ -240,7 +241,7 @@ export async function fetchClubHomeContent(
     options?.publicB2BaseUrl,
   );
 
-  const placements = [];
+  const placements: PlacementHistoryRecord[] = [];
   if (leadStory) {
     placements.push({
       story_id: leadStory.id,
