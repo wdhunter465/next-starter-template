@@ -9,11 +9,14 @@ function makeClubHomeDb(options?: {
   inventory?: Array<Record<string, unknown>>;
   photos?: Array<Record<string, unknown>>;
   media?: Array<Record<string, unknown>>;
+  pins?: Array<Record<string, unknown>>;
   placementHistoryFails?: boolean;
+  pinsLoadFails?: boolean;
 }) {
   const inventory = options?.inventory ?? [];
   const photos = options?.photos ?? [];
   const media = options?.media ?? [];
+  const pins = options?.pins ?? [];
   const placementInserts: Array<{ sql: string; args: unknown[] }> = [];
 
   const db = {
@@ -41,6 +44,12 @@ function makeClubHomeDb(options?: {
             return null;
           },
           all: async () => {
+            if (sql.includes('FROM content_inventory_club_home_pins')) {
+              if (options?.pinsLoadFails) {
+                throw new Error('no such table: content_inventory_club_home_pins');
+              }
+              return { results: pins };
+            }
             if (sql.includes('FROM content_inventory')) {
               const rows = inventory.filter(
                 (row) =>
@@ -90,6 +99,12 @@ function makeClubHomeDb(options?: {
           return null;
         },
         all: async () => {
+          if (sql.includes('FROM content_inventory_club_home_pins')) {
+            if (options?.pinsLoadFails) {
+              throw new Error('no such table: content_inventory_club_home_pins');
+            }
+            return { results: pins };
+          }
           if (sql.includes('FROM content_inventory') && !sql.includes('COUNT')) {
             const rows = inventory.filter(
               (row) =>
@@ -293,5 +308,122 @@ describe('content-inventory-club-home', () => {
     expect(payload.source).toBe('content_inventory');
     expect(payload.lead_story?.id).toBe(11);
     expect(payload.lead_story?.headline).toBe('Fresh least-used lead');
+  });
+
+  it('honors an eligible lead-story pin over ordinary rotation', async () => {
+    const db = makeClubHomeDb({
+      pins: [
+        {
+          zone_id: 'lead-story',
+          story_id: 20,
+          pinned_at: '2026-08-12T12:00:00Z',
+          pinned_by: 'admin-ui',
+          expires_at: null,
+        },
+      ],
+      inventory: [
+        {
+          id: 10,
+          title: 'Natural lead',
+          summary: 'Would win without pin',
+          credit_line: 'Archive',
+          source_name: 'LGFC',
+          story_type: 'primary',
+          allowed_sections: 'club_home',
+          status: 'published',
+          canonical: 1,
+          priority: 50,
+          feature_weight: 5,
+          usage_count: 0,
+        },
+        {
+          id: 20,
+          title: 'Pinned lead',
+          summary: 'Forced by pin',
+          credit_line: 'Archive',
+          source_name: 'LGFC',
+          story_type: 'primary',
+          allowed_sections: 'club_home',
+          status: 'published',
+          canonical: 1,
+          priority: 1,
+          feature_weight: 1,
+          usage_count: 0,
+        },
+        {
+          id: 30,
+          title: 'Rail filler',
+          summary: 'Rail',
+          credit_line: 'Archive',
+          source_name: 'LGFC',
+          story_type: 'secondary',
+          allowed_sections: 'club_home',
+          status: 'published',
+          canonical: 1,
+          priority: 1,
+          feature_weight: 1,
+        },
+      ],
+    });
+
+    const payload = await fetchClubHomeContent(db);
+    expect(payload.lead_story?.id).toBe(20);
+    expect(db.placementInserts.some((row) => row.args[1] === 'lead-story' && row.args[4] === 'pinned')).toBe(
+      true,
+    );
+  });
+
+  it('ignores ineligible/expired pins and fails open when pin storage is missing', async () => {
+    const missing = await fetchClubHomeContent(
+      makeClubHomeDb({
+        pinsLoadFails: true,
+        inventory: [
+          {
+            id: 1,
+            title: 'Lead',
+            summary: 'Lead',
+            credit_line: 'Archive',
+            source_name: 'LGFC',
+            story_type: 'primary',
+            allowed_sections: 'club_home',
+            status: 'published',
+            canonical: 1,
+            priority: 10,
+            feature_weight: 1,
+          },
+        ],
+      }),
+    );
+    expect(missing.lead_story?.id).toBe(1);
+
+    const ignored = await fetchClubHomeContent(
+      makeClubHomeDb({
+        pins: [
+          {
+            zone_id: 'lead-story',
+            story_id: 99,
+            pinned_at: '2026-08-12T12:00:00Z',
+            pinned_by: 'admin-ui',
+            expires_at: '2020-01-01T00:00:00Z',
+          },
+        ],
+        inventory: [
+          {
+            id: 1,
+            title: 'Lead',
+            summary: 'Lead',
+            credit_line: 'Archive',
+            source_name: 'LGFC',
+            story_type: 'primary',
+            allowed_sections: 'club_home',
+            status: 'published',
+            canonical: 1,
+            priority: 10,
+            feature_weight: 1,
+          },
+        ],
+      }),
+    );
+    expect(ignored.lead_story?.id).toBe(1);
   });
 });
