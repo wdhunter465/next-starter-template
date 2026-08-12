@@ -96,23 +96,20 @@ export function buildTableListSql() {
 }
 
 /**
- * One combined UNION ALL query for every table's row count.
- * Table names are escaped for both the string literal and the identifier (#3337).
+ * COUNT(*) query for exactly one table. Deliberately not batched into a single combined
+ * UNION ALL across every table: a live run (2026-08-12) against the real lgfc-litedev
+ * schema failed with D1's own "too many terms in compound SELECT: SQLITE_ERROR [code:
+ * 7500]" once the table count crossed D1's compound-SELECT term limit. Running one query
+ * per table trades a few extra wrangler invocations for a design that cannot hit this
+ * limit regardless of how many tables the schema grows to.
  */
-export function buildRowCountSql(tableNames) {
-  return (tableNames || [])
-    .map(
-      (table) =>
-        `SELECT ${quoteSqlStringLiteral(table)} AS table_name, COUNT(*) AS row_count FROM ${quoteSqlIdentifier(table)}`,
-    )
-    .join(' UNION ALL ');
+export function buildTableRowCountSql(table) {
+  return `SELECT COUNT(*) AS row_count FROM ${quoteSqlIdentifier(table)}`;
 }
 
-export function parseRowCountRows(rows) {
-  return (rows ?? [])
-    .map((row) => ({ table: String(row.table_name ?? ''), rowCount: Number(row.row_count ?? 0) }))
-    .filter((row) => row.table)
-    .sort((a, b) => a.table.localeCompare(b.table));
+/** Extracts the single COUNT(*) value from a one-row, one-column D1 query result. */
+export function parseSingleRowCount(rows) {
+  return Number(rows?.[0]?.row_count ?? 0);
 }
 
 export function buildResultMarkdown(result) {
@@ -313,8 +310,8 @@ export async function main() {
       .filter(Boolean)
       .sort();
 
-    let tables = [];
-    if (tableNames.length > 0) {
+    const tables = [];
+    for (const table of tableNames) {
       const countRes = runWrangler([
         'd1',
         'execute',
@@ -323,13 +320,13 @@ export async function main() {
         '--env',
         'preview',
         '--command',
-        buildRowCountSql(tableNames),
+        buildTableRowCountSql(table),
         '--json',
       ]);
       if (countRes.error || countRes.status !== 0) {
         const snippet = buildDiagnosticSnippet(countRes, redact);
         failClosed(
-          `wrangler d1 execute failed counting Dev rows (exit ${countRes.status ?? 'spawn error'}).${snippet ? ` Raw (redacted) response snippet: ${snippet}` : ' (no output captured)'}`,
+          `wrangler d1 execute failed counting rows for table "${table}" (exit ${countRes.status ?? 'spawn error'}).${snippet ? ` Raw (redacted) response snippet: ${snippet}` : ' (no output captured)'}`,
         );
         return;
       }
@@ -337,10 +334,10 @@ export async function main() {
       try {
         countParsed = parseWranglerJson(countRes.stdout);
       } catch (error) {
-        failClosed(`could not parse row-count output: ${error.message}`);
+        failClosed(`could not parse row-count output for table "${table}": ${error.message}`);
         return;
       }
-      tables = parseRowCountRows(extractD1Rows(countParsed));
+      tables.push({ table, rowCount: parseSingleRowCount(extractD1Rows(countParsed)) });
     }
 
     d1.liveProbe = 'ok';
