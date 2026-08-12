@@ -127,7 +127,7 @@ Use **PASS** / **FAIL** / **PENDING** / **WAIVED**. Only Bill / WORK records agg
 | --- | --- | --- | --- |
 | B1 | #2464 Grok recommendations recorded | Product Authority waived external advisory; no recommendation set will be fabricated | **WAIVED** |
 | B2 | #2934 disposition Accept/Reject/Defer against real recommendations | No-advisory / no-change disposition via waiver; #2934 closed complete | **WAIVED** |
-| B3 | Final #2665 incorporation of advisory outcomes | This increment records the waiver and clears obsolete PENDING language | **PASS** (documentation incorporation) |
+| B3 | Final #2665 incorporation of advisory outcomes | This increment records the waiver and clears obsolete PENDING language; independent WORK acceptance of the packet remains required (C1) | Ready for WORK judgment |
 | B4 | Phase 0 contract amendments required by accepted advisories | None — no advisory findings exist to incorporate | **WAIVED** (N/A) |
 
 ### C. Launch gates
