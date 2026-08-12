@@ -2,6 +2,11 @@ import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 import MemberHomePage from '@/app/fanclub/page';
 import ArchivesTiles from '@/components/fanclub/ArchivesTiles';
+import {
+  clubHomePageLayoutCss,
+  clubHomePageStackClassName,
+  clubHomeZoneClassName,
+} from '@/components/fanclub/clubHomeStyles';
 
 const mockUseMemberSession = vi.fn();
 
@@ -79,5 +84,44 @@ describe('Fan Club home newspaper shell (#1688 Task 003)', () => {
 
     const { container } = render(<MemberHomePage />);
     expect(container).toBeEmptyDOMElement();
+  });
+
+  it('keeps numbered zone DOM order and applies responsive composition classes (#3383 P1-01)', () => {
+    const { container } = render(<MemberHomePage />);
+    const stack = screen.getByLabelText('FanClubHomeSections');
+    expect(stack).toHaveClass(clubHomePageStackClassName);
+
+    const zoneLabels = [
+      'Club Home masthead',
+      'Lead story',
+      'Secondary story rail',
+      'Feature link cards',
+      'Photo and memorabilia feature',
+      'Member prompt',
+      'Archive spotlight',
+      'Campaign module',
+      'Events callout',
+      'Recognition tile',
+      'Submission call to action',
+    ];
+    const children = Array.from(stack.children);
+    const labeledOrder = children
+      .map((child) => child.querySelector('[aria-label]')?.getAttribute('aria-label') ?? null)
+      .filter((label): label is string => Boolean(label));
+    expect(labeledOrder).toEqual(zoneLabels);
+    expect(children[0]).toHaveClass('club-home-zone--masthead');
+    expect(children[1]).toHaveClass('club-home-zone--lead-story');
+    expect(children[2]).toHaveClass('club-home-zone--story-rail');
+    expect(children[3]).toHaveClass('club-home-zone--feature-links');
+    expect(children[4]).toHaveClass('club-home-zone--media-feature');
+    expect(children[5]).toHaveClass('club-home-zone--member-prompt');
+    expect(children[11]).toHaveClass(clubHomeZoneClassName.adminLink.split(' ').pop()!);
+
+    const styleTag = container.querySelector('style');
+    expect(styleTag?.textContent).toContain('@media (min-width: 768px)');
+    expect(styleTag?.textContent).toContain('@media (min-width: 920px)');
+    expect(styleTag?.textContent).toContain('grid-template-areas');
+    expect(styleTag?.textContent).toContain('"masthead rail"');
+    expect(clubHomePageLayoutCss).not.toMatch(/(^|[^a-zA-Z-])order\s*:/);
   });
 });
