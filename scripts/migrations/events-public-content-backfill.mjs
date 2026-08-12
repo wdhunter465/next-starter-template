@@ -16,6 +16,7 @@ import { execFileSync } from 'node:child_process';
 import { mkdtempSync, writeFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const DB_NAME = 'lgfc_lite';
 export const MIGRATION_TAG_PREFIX = 'legacy-events-';
@@ -388,8 +389,7 @@ async function main() {
   }
 }
 
-const isMain = process.argv[1] && import.meta.url === `file://${process.argv[1]}`;
-if (isMain) {
+if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
   main().catch((err) => {
     console.error(err);
     process.exit(1);
