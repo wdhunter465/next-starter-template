@@ -2,12 +2,12 @@
 Doc Type: Operations Report
 Audience: Bill, Work, Cursor, LGFC maintainers, and implementation agents
 Authority Level: Evidence Snapshot
-Owns: Aggregate parent-level status reconciliation for #2859 against its own 9 acceptance criteria, following Bill's 2026-08-10 instruction ("proceed with #2859 next") after all four linked children (#2906–#2909) closed complete; the X-10/#2858 dependency re-verification WORK requested on 2026-08-10 after #2780's entry gate was raised
-Does Not Own: Any child's own evidence (#2906/#2907/#2908/#2909 — only cited here); the #2859 closeout decision itself (Product Authority / WORK); the #2780 successor decision (this report only checks its entry gate against #2859's own findings); the #2779/#3268 backup-recovery gap this report cites but does not close; any Production D1/B2 population, verification, or publication
+Owns: Aggregate parent-level status reconciliation for #2859 against its own 9 acceptance criteria, following Bill's 2026-08-10 instruction ("proceed with #2859 next") after all four linked children (#2906–#2909) closed complete; the X-10/#2858 dependency re-verification WORK requested on 2026-08-10 after #2780's entry gate was raised; the 2026-08-12 reconciliation of this report's own Section 5 read-only Preview/Dev check recommendation (now built and run) against the real live `lgfc-litedev` evidence it produced
+Does Not Own: Any child's own evidence (#2906/#2907/#2908/#2909 — only cited here); the #2859 closeout decision itself (Product Authority / WORK); the #2780 successor decision (this report only checks its entry gate against #2859's own findings); the #2779/#3268 backup-recovery gap this report cites; any Production D1/B2 population, verification, or publication; any Dev D1 write (this report performs reads-evidence reconciliation only)
 Source Issue: #2859
 Canonical Reference: /docs/ops/reports/production-content-parent-closeout-status-2859.md
-Related Issues: #2859, #2906, #2907, #2908, #2909, #2860, #2779, #2858, #2780, #3268, #3277
-Last Reviewed: 2026-08-10
+Related Issues: #2859, #2906, #2907, #2908, #2909, #2910, #2911, #2912, #2913, #2860, #2779, #2858, #2780, #3268, #3355, #3357, #3360, #3380, #3277
+Last Reviewed: 2026-08-12
 Executor: Claude Code
 ---
 
@@ -30,16 +30,30 @@ already ruled the project stays ACTIVE pending aggregate acceptance; this
 report documents exactly which of the nine criteria that ruling refers to,
 with citations, so the remaining gap is explicit rather than implied.
 
+**2026-08-12 update:** Section 5 (below) originally identified, but did not
+build, a read-only Preview D1/B2 check as the one candidate step not gated
+on the #2779/#3268 backup proof. That check has since been built
+(`.github/workflows/production-content-preview-preflight-2859.yml` /
+`scripts/ci/production_content_preview_preflight_2859.mjs`, on `main`) and
+run successfully against the genuinely isolated `lgfc-litedev` database
+(post-#3355/#3360 Production/Preview D1 split). Per Bill's 2026-08-12
+direction ("Execute bounded Dev/non-Production work now. Dev D1 work
+targets isolated lgfc-litedev; Production mutation remains separately
+protected."), Section 6 (new) reconciles that real evidence against
+#2907's sourcing register.
+
 ## Scope
 
-Covers only the aggregate status reconciliation below (Sections 1–4) and
+Covers only the aggregate status reconciliation below (Sections 1–6) and
 this report's own acceptance/rollback bookkeeping. It
 consumes #2906–#2909's already-merged, already-accepted evidence on
 `component/production-content-readiness` (tip `6f3b5f16326bdafedc6fe35e781703507d683ba5`
 at time of writing — PR #3249 merge commit `b1c06467461327d3f784a8be8e2880a4743e80a9`)
-but does not re-implement, re-scope, or re-verify that work. It does not
-touch live D1/B2 credentials and does not perform Production content
-verification or publication.
+and (Section 6) the already-collected, already-WORK-accepted live
+`lgfc-litedev` evidence from `main`'s #2859 preflight, but does not
+re-implement, re-scope, or re-verify that work. It does not touch live
+D1/B2 credentials itself and does not perform Production content
+verification, Dev-D1 writes, or publication.
 
 ## Current known truth
 
@@ -92,19 +106,22 @@ All four closed with clean deterministic Post-Merge Intent Verification
 | --- | --- | --- | --- |
 | 1 | Every launch-required route/component has a content/data requirement and accountable owner | **Satisfied** | #2906 matrix — full route/component coverage (P-01…P-28, F-01…F-16, A-01…A-14, X-01…X-10) |
 | 2 | Every required item is classified present, missing, awaiting approval, deferred, or blocked | **Satisfied** | #2906 matrix dispositions; #2909 QA record's 26-row `verified-safe-fallback`/`deferred` set |
-| 3 | Required D1 records and B2 assets are populated through approved workflows | **Outstanding** | Zero real population performed by any child. #2908 delivered batch-tooling/schema only (design and readiness harness, not execution). No Cloudflare/D1/B2 credential exists in this sandbox; the only real backup/recovery capability gap (#2779) remains unresolved (tracked, not closed, at #3268) |
-| 4 | Attribution, rights, privacy, links, dates, and fallback behavior are verified | **Partially satisfied** | Fallback behavior for 6 rows is verified with real tests (#2909 §1). Attribution/rights/privacy verification requires real populated content, which does not yet exist — cannot be verified against content that hasn't been written |
-| 5 | No placeholder, broken media reference, empty required section, or stale launch-critical copy remains | **Not yet verifiable** | Same dependency as #3 — nothing has been populated to check |
-| 6 | Search and navigation expose only approved content | **Not yet verifiable** | Same dependency as #3 |
-| 7 | Preview and Production evidence is recorded without exposing credentials or private member data | **Outstanding** | No Preview or Production verification has been performed under #2859 |
+| 3 | Required D1 records and B2 assets are populated through approved workflows | **Outstanding for Production; partially evidenced in Dev** | Zero Production population performed by any child — that population remains blocked on the #2779/#3268 backup gap and separate Product Authority authorization, unchanged. **New (2026-08-12, Section 6):** the isolated `lgfc-litedev` Dev database already carries real, non-Production seed data for several #2907 `missing-actionable` domains (FAQ, events, friends, milestones, weekly matchup, photos, page content) — but the canonical `content_inventory`-model tables (`content_inventory`, `content_items`, `content_item_tags`, `content_revisions`, `content_blocks`, `content_inventory_media`) and `library_entries` remain empty even in Dev. This is real Dev-side evidence, not Production population — criterion 3 is not satisfied by it |
+| 4 | Attribution, rights, privacy, links, dates, and fallback behavior are verified | **Partially satisfied** | Fallback behavior for 6 rows is verified with real tests (#2909 §1). Attribution/rights/privacy verification requires real populated Production content, which does not yet exist — cannot be verified against content that hasn't been written. Dev's existing seed rows (Section 6) were not individually attribution/rights-audited by this report; they came from already-reviewed migration seed SQL (e.g. `0027_faq_email_and_seed.sql`'s `status: 'approved'` rows), not from this report's own verification pass |
+| 5 | No placeholder, broken media reference, empty required section, or stale launch-critical copy remains | **Not yet verifiable for Production** | Same Production dependency as #3. Dev's populated legacy-domain tables (Section 6) have not been walked row-by-row for placeholder/staleness by this report |
+| 6 | Search and navigation expose only approved content | **Not yet verifiable for Production** | Same Production dependency as #3 |
+| 7 | Preview and Production evidence is recorded without exposing credentials or private member data | **Preview/Dev half satisfied; Production half outstanding** | **Resolved 2026-08-12 for the Preview/Dev half:** real, live, redacted evidence collected against genuinely isolated `lgfc-litedev` (37 tables, aggregate-only row counts, B2 794 objects reachable) — see #2859 comment `5265448516` and WORK's ACCEPT at comment `5265590332`. The Production half is unchanged and still outstanding — no Preview or Production verification against `lgfc_lite` has been performed under #2859 |
 | 8 | No incremental paid service is required | **Satisfied** | Nothing paid was used or proposed by any of the four children |
 | 9 | Day-2 content-update ownership and procedure are recorded | **Satisfied** | #2909 §3 "Operator ownership (Day-2)" names Editorial (population), Bill/ChatGPT (IA/nav), Legal/Bill (legal review), Cursor Local/WORK (responsive-contract), and gives the exact re-run command for the QA harness after any future population batch |
 
-**Net: 4 of 9 satisfied, 1 partially satisfied, 4 outstanding — all four
-outstanding items trace to the same root cause: no real Production
-population has occurred, and none can safely occur until the #2779/#3268
-backup gap closes and Product Authority separately authorizes it, exactly
-as #2860 already established for the library-content migration.**
+**Net: 4 of 9 fully satisfied, 1 now partially-plus (7), 1 unchanged partial (4), 3 outstanding for
+Production (3, 5, 6) — all three Production-outstanding items trace to the
+same root cause: no real Production population has occurred, and none can
+safely occur until the #2779/#3268 backup gap closes and Product Authority
+separately authorizes it, exactly as #2860 already established for the
+library-content migration. Real Dev-side evidence (Section 6) narrows what
+is unverified but does not itself satisfy any criterion that names
+Production specifically.**
 
 ## 3. X-10 re-verification — RESOLVED (2026-08-10)
 
@@ -168,11 +185,16 @@ existing gap explicit and itemized:
   decisions, not implementation work.
 - The X-10 / #2858 dependency is now resolved (Section 3) with a real
   citation, not an assumption.
+- **2026-08-12 update:** criterion 7's Preview/Dev half is now resolved
+  with real evidence (Section 2, Section 6). Criteria 3, 5, and 6 remain
+  outstanding specifically for Production; criterion 4 remains partially
+  satisfied, unchanged.
 
 Per the authoritative portfolio sequence, **#2780's own entry gate is
 "#2859 completed and accepted," and #2859 is not yet completed and
-accepted** — 4 of 9 criteria remain outstanding (Section 2), all requiring
-either real Production population (blocked, Section 4 above) or Product/
+accepted** — 3 criteria remain outstanding for Production (3, 5, 6) and 1
+remains partially satisfied (4) (Section 2), all requiring either real
+Production population (blocked, Section 2/Section 6 above) or Product/
 Legal decisions this report cannot make. **#2780 remains ineligible; this
 report does not recommend starting it.**
 
@@ -192,30 +214,54 @@ With X-10 resolved, the honest remaining blocker set for #2859 is:
    Product/Legal decisions, not engineering work; not this report's or
    Claude's authority to make or accelerate.
 
-Of these, **item 3's Preview-only sub-case is the one candidate for a
-genuinely new executable step that does not require the #2779/#3268 backup
-gap to close first**, because Preview data is not the durable Production
-record #2779/#3268 exists to protect. The concrete shape, modeled exactly
-on #2913's precedent for #2860, would be: a secret-backed,
-`workflow_dispatch`-gated, human-confirmed CI workflow that performs a
-**real, read-only** Preview D1/B2 check (schema/row-presence, no write) and
-posts its result as durable evidence — never touching Production, never
-requiring backup proof, and never requiring the sandbox to hold a
-credential (the secret is consumed only at Actions runtime, same pattern
-as `scripts/ci/production_d1_preflight_2913.mjs` +
-`.github/workflows/library-content-production-preflight-2913.yml`, both on
-`main` — **not present on this `component/production-content-readiness`
-branch**, so a reader should look on `main` for the actual precedent
-rather than this branch's tree).
+Item 3's Preview-only sub-case — identified above as the one candidate not
+gated on the #2779/#3268 backup proof — **is now built and executed**
+(`.github/workflows/production-content-preview-preflight-2859.yml` /
+`scripts/ci/production_content_preview_preflight_2859.mjs`, `main`), with
+real live evidence collected against the genuinely isolated `lgfc-litedev`
+database. See Section 6 (new) for the reconciled evidence.
 
-This is **identified, not built, in this report** — it is a new
-`.github/workflows/**` + `scripts/ci/**` change, both protected paths
-requiring `protected-change-review` (Chat/Bill review, not
-component-auto-integration), and #2859 has not received the equivalent of
-#2860's explicit "post evidence before any D1 write" authorization for this
-specific step. Building it without that authorization would be scope
-creep beyond what WORK asked this report to do. Recommending it to
-Product Authority for an explicit Go/No-Go is the correct next step.
+The remaining items (1, 2, 4) are unchanged: real Production D1/B2
+population stays blocked on the #2779/#3268 backup gap and explicit
+Product Authority authorization; the IA/navigation and legal decisions
+remain outstanding Product/Legal decisions, not engineering work.
+
+## 6. Dev-D1 (`lgfc-litedev`) evidence reconciliation — 2026-08-12
+
+Bill's 2026-08-12 direction: "Execute bounded Dev/non-Production work now.
+Dev D1 work targets isolated `lgfc-litedev`; Production mutation remains
+separately protected." This section reconciles the real, already-collected,
+already-WORK-accepted live Dev-D1 evidence (#2859 comment `5265431661`,
+run `31586983175`) against #2907's Section 4.2 sourcing register, to make
+concrete what is and is not already true in Dev.
+
+### 6.1 What Dev already has, for #2907's named batch classes and adjacent domains (out of 37 tables total; only the rows relevant to #2907's register are shown)
+
+| #2907 batch class | Domain | Dev table | Live row count | Reconciliation |
+| --- | --- | --- | --- | --- |
+| `faq-public-seed` | FAQ | `faq_entries` | **12** | Matches `migrations/0027_faq_email_and_seed.sql`'s 10 `status: 'approved'` seed rows plus 2 additional rows — consistent with real approved submissions accumulating after the seed migration ran. Served directly by `functions/api/faq/*.ts`, which reads `faq_entries` directly — **not** via `content_inventory` |
+| `events-public` | Events | `events` | **21** | Matches `migrations/0028_seed_events_next10.sql`-class seeding; nav inclusion (P-16) remains a separate, still-protected IA decision per #2907 §4.3 |
+| `friends-partners` | Friends/partners | `friends` | **4** | Matches `migrations/0031_seed_friends_partners.sql` / `0020_seed_friend_luckiest_man.sql`; partner permission rights gate (#2907 §4.2) is unaffected by this being present in Dev |
+| `milestones-public` | Milestones | `milestones` | **1** | Matches #2907's own finding: "content thin → sourcing required." One row is not launch-sufficient |
+| `matchup-week-pair` | Weekly matchup | `weekly_matchups`, `weekly_votes` | **9**, **14** | Present; photo-rights gate (#2907 §4.2) for launch pairs is unaffected |
+| (page content, not a named #2907 batch class) | CMS-like blocks | `page_content` | **20** | Matches `migrations/0009_page_content_seed.sql` |
+| (photos, feeds `media-member-gallery`) | Photos | `photos` | **844** | Refreshed from Production per #3357/#3360's own isolation testing, not a new #2908-class population action |
+
+### 6.2 What Dev does not have — the real remaining gap
+
+| #2907 batch class | Canonical table(s) | Live row count | Status |
+| --- | --- | --- | --- |
+| `library-inventory` | `library_entries` | **0** | Nothing to migrate — matches #2913's own live Production finding (also 0), so this is not a Dev-vs-Production discrepancy; the source data itself does not yet exist anywhere |
+| `club-home-content` | `content_inventory`, `content_items`, `content_item_tags` | **0** each | No canonical-model content exists in Dev at all |
+| `media-member-gallery` (canonical form) | `content_inventory_media` | **0** | Same — the legacy `photos` table (844 rows) is populated, but the newer unified gallery model is not |
+| (revision/versioning support) | `content_revisions`, `content_blocks` | **0** each | Same |
+
+### 6.3 What this does and does not establish
+
+- This is **evidence reconciliation only** — no Dev D1 write was performed to produce this section; it reconciles counts already collected and WORK-accepted (comment `5265590332`) against #2907's existing register.
+- It does **not** claim criterion 3, 5, or 6 is satisfied — those criteria name Production, and Dev is explicitly the non-Production, isolated database per #3355/#3360.
+- It identifies, but does not perform, the smallest concrete candidate for actual bounded Dev-D1 *write* work: populating the canonical `content_inventory`-model tables in `lgfc-litedev` for one #2907-approved batch class. Of the eight, `library-inventory` has no source rows to migrate (Section 6.2), and `friends-partners`/`matchup-week-pair`/`media-member-gallery`/`club-home-content` each carry a rights or editorial-selection gate per #2907 §4.2 that this report cannot clear unilaterally. `events-public`'s underlying data has no stated rights gate beyond the (separate, nav-only) IA decision — but writing it into the canonical `content_inventory` model, rather than the already-populated legacy `events` table, is a new data-shape decision (what `content_inventory` row fields an event maps to) that has not been designed or reviewed anywhere in #2906–#2909, unlike library's already-designed, already-tested field mapping (#2860/#2910–#2913).
+- Building new Dev-write tooling or a specific batch mapping without that design/review step would be the same class of scope creep this report's prior Section 5 recommendation was careful to avoid. Recommending a specific batch class and its `content_inventory` field mapping for explicit Product Authority Go/No-Go is the correct next step, not building it speculatively.
 
 ## Acceptance checklist (this report)
 
@@ -236,6 +282,15 @@ Product Authority for an explicit Go/No-Go is the correct next step.
 - [x] The next candidate executable action is identified with its scope
       and required authorization named, not built without that
       authorization.
+- [x] The Section 5 Preview-only read-only check recommendation is
+      reconciled against its real, since-built-and-run outcome, not left
+      stale.
+- [x] Real live Dev-D1 evidence (37 tables, aggregate-only row counts) is
+      reconciled against #2907's sourcing register table-by-table, citing
+      the exact migration each populated table traces to where known.
+- [x] The remaining Dev-D1 gap (canonical `content_inventory`-model tables,
+      all empty) is identified without unilaterally deciding a batch-class
+      field mapping or performing a speculative Dev-D1 write.
 
 ## Rollback (of this report)
 
