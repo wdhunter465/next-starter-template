@@ -5,7 +5,10 @@ import {
   publishedInventoryWhere,
 } from './content-inventory-public';
 import {
+  CLUB_HOME_PLACEMENT_ZONES,
   filterRotationFairnessPool,
+  recordPlacementHistory,
+  type PlacementHistoryRecord,
   type RotationRow,
   sortRotationRows,
 } from './content-inventory-rotation';
@@ -237,6 +240,45 @@ export async function fetchClubHomeContent(
     options?.request ?? new Request('https://www.lougehrigfanclub.com'),
     options?.publicB2BaseUrl,
   );
+
+  const placements: PlacementHistoryRecord[] = [];
+  if (leadStory) {
+    placements.push({
+      story_id: leadStory.id,
+      zone_id: CLUB_HOME_PLACEMENT_ZONES.leadStory,
+      section_key: CLUB_HOME_SECTION,
+      selection_mode: 'automatic',
+    });
+  }
+  for (const story of railStories) {
+    placements.push({
+      story_id: story.id,
+      zone_id: CLUB_HOME_PLACEMENT_ZONES.storyRail,
+      section_key: CLUB_HOME_SECTION,
+      selection_mode: 'automatic',
+    });
+  }
+  if (archiveSpotlight) {
+    placements.push({
+      story_id: archiveSpotlight.id,
+      zone_id: CLUB_HOME_PLACEMENT_ZONES.archiveSpotlight,
+      section_key: CLUB_HOME_SECTION,
+      selection_mode: 'automatic',
+    });
+  }
+  // Media feature may resolve from photos rather than inventory; log only when lead-bound.
+  if (leadStory && mediaFeature) {
+    placements.push({
+      story_id: leadStory.id,
+      zone_id: CLUB_HOME_PLACEMENT_ZONES.mediaFeature,
+      section_key: CLUB_HOME_SECTION,
+      selection_mode: 'automatic',
+      feature_size: mediaFeature.is_memorabilia ? 'memorabilia' : 'photo',
+    });
+  }
+
+  // Fail-open: history storage must not block Club Home rendering or weaken eligibility gates.
+  await recordPlacementHistory(db, placements);
 
   return {
     ok: true,
