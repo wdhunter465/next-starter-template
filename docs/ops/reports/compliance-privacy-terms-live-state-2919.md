@@ -1,51 +1,58 @@
 ---
 Doc Type: Operations
-Audience: Bill, ChatGPT, Cursor, Claude Code, LGFC maintainers, and reviewers
+Audience: Bill, ChatGPT, Cursor, Claude Code, Grok, LGFC maintainers, and reviewers
 Authority Level: Controlled
-Owns: F1/F2 live-state evidence for `/privacy` and `/terms` D1-composed rendering, per the #2919 approved Product Decision Record item 1
-Does Not Own: Legal conclusions, public-copy authorship, or the resulting `/privacy`/`/terms` copy change (owned by #2920)
+Owns: F1/F2 live-state evidence for `/privacy` and `/terms` composed rendering, per the #2919 approved Product Decision Record item 1 (updated with 2026-08-12 public Production probes under #2920)
+Does Not Own: Legal conclusions, public-copy authorship beyond recorded observations, or Production D1 mutation
 Canonical Reference: /docs/ops/reports/compliance-product-decision-register-2919.md
 Related Issues: #2784, #2918, #2919, #2920
-Last Reviewed: 2026-08-05
+Last Reviewed: 2026-08-12
 ---
 
-# `/privacy` and `/terms` Live D1 State — Evidence (#2919)
+# `/privacy` and `/terms` Live State — Evidence (#2919 / #2920)
 
 ## Purpose
 
-Record what can and cannot be confirmed about the live, currently-rendered composition of `/privacy` and `/terms`, per Product Decision Record item 1 ("verify the live D1-composed `/privacy` and `/terms` state"). This is read-only evidence gathering; it makes no copy change and no legal conclusion.
+Record what is confirmed about the live, currently-rendered composition of `/privacy` and `/terms`, per Product Decision Record item 1 ("verify the live D1-composed `/privacy` and `/terms` state"). This is read-only evidence gathering; it makes no copy change and no legal conclusion.
 
 ## Scope
 
-In scope: repository-only, read-only evidence about how `/privacy` and `/terms` are composed (seed migrations and rendering/fallback code), and an explicit statement of what cannot be confirmed without live Production D1 access. Out of scope: any `/privacy`/`/terms` copy change (owned by #2920), legal conclusions, and Production D1 mutation or credential creation.
+In scope: repository evidence about composition (seed migrations and rendering/fallback code) plus **public Production HTML probes** performed 2026-08-12. Out of scope: legal conclusions, D1 mutation, credential creation, and final public-copy publication decisions still owned by #2920 runtime increments.
 
 ## Current known truth
 
-`/privacy` and `/terms` render per-section (`title`, `lead_html`, `body_html`) via `fetchPageContent()` (`src/lib/pageContent.ts`), each section falling back to hardcoded component copy independently when the corresponding D1 `page_content` row/section is absent. Migration `0009_page_content_seed.sql` seeds only `title` and `body_html` for both slugs — no `lead_html` row is seeded by any migration found in this repository (confirmed by reading every `migrations/*.sql` file for a `lead_html` insert or update targeting the `privacy`/`terms` slugs; none exists).
+`/privacy` and `/terms` render per-section (`title`, `lead_html`, `body_html`) via `fetchPageContent()` (`src/lib/pageContent.ts`), each section falling back to hardcoded component copy independently when the corresponding D1 `page_content` row/section is absent. Migration `0009_page_content_seed.sql` seeds only `title` and `body_html` for both slugs — no `lead_html` row is seeded by any migration found in this repository.
 
-## What this evidence step could confirm from the repository alone
+### Public Production probe — 2026-08-12
 
-- The seed migration's exact `body_html` text for both slugs (already quoted in the accepted #2918 inventory and the #2919 decision register).
-- No later migration updates, overwrites, or deletes the `privacy`/`terms` `page_content` rows.
-- The rendering code's fallback behavior is per-section, not all-or-nothing.
+Method: unauthenticated `curl -sL` of `https://www.lougehrigfanclub.com/privacy/` and `/terms/`; inspection of Next.js RSC payload strings (no Cloudflare API / `wrangler` auth used).
 
-## What this evidence step could not confirm
+| Page | Live rendered composition | Notes |
+| --- | --- | --- |
+| `/privacy` | **Detailed fallback copy** matching current `main` `src/app/privacy/page.tsx` | Enumerates Join/Login fields (name, optional screen name, email, opt-in), Ask fields, member creation/welcome behavior, short-lived session cookie (explicitly not magic-link), library/photo submissions, technical logs, opt-in email rules, non-sale statement, removal via `admin@lougehrigfanclub.com` |
+| `/terms` | **Safe component fallback** matching `src/app/terms/page.tsx` | Respectful use; user submissions; copyright/attribution; no warranties; contact. **No** live “zero-profit mission” or “ALS-related charitable giving” / proceeds claim |
 
-**Whether the seeded rows are actually present in the live Production D1 database today, and therefore whether the rendered page is the pure hardcoded fallback, the pure seeded text, or a section-by-section hybrid of both.**
+### Seed vs live (F2)
 
-This requires a live, read-only query against the Production D1 database (e.g., `SELECT slug, title, lead_html, body_html FROM page_content WHERE slug IN ('privacy','terms')` via `wrangler d1 execute --remote` or equivalent authorized access). This session/environment has no Cloudflare authentication (`wrangler whoami` reports "You are not authenticated") and no Production D1 binding — there is no credential-free way to run this query from here, and none is authorized to be added under this task's envelope (credential/Production access changes are explicitly out of scope).
+Migration `0009` still contains seeded `/terms` `body_html` text claiming a zero-profit mission and ALS-related charitable proceeds. **That claim is not present in the 2026-08-12 live HTML.** Live behavior is therefore the safer fallback path, not the seeded claim. A future D1 write that restores the seed body without review would reintroduce the risk; #2920 copy work should treat the seed row as hazardous until softened/removed at the data layer if/when D1 rows are touched.
 
-## Protected stop
+### Auth/member enumeration (Product Decision item 7)
 
-Per the #2919 executable package's stop conditions ("credential/Production mutation" and the requirement to report rather than guess a Production state): **this specific verification is blocked on authorized read-only Production D1 access that this implementation session does not have.** No copy conclusion is drawn from an unconfirmed live state.
+Live `/privacy` already enumerates the specific member/authentication data classes listed in the Product Decision Record. Item 7 is **satisfied on Production/`main`**. The `component/compliance-readiness` branch still carries an older minimal privacy fallback and should be synced before any component-path promotion that relies on fallback copy.
 
-## Recommended next step
+### Analytics disclosure gap (cross-link F3)
 
-An operator or agent with authenticated `wrangler`/Cloudflare dashboard access to the Production D1 database should run the query above and record the result here (or in a follow-up comment on #2919), after which #2920 can proceed with the exact composed-text review Bill approved.
+Live `/privacy` does **not** disclose Google Analytics / cookies despite GA being active in Production (see `compliance-ga-production-state-2919.md`). That gap is owned by #2920 disclosure/consent work, not resolved by this evidence file.
+
+## What remains unverified without D1 credential access
+
+Exact Production `page_content` row presence (whether D1 rows exist and are empty vs absent) was not queried via `wrangler d1 execute --remote`. Public render observation is sufficient to classify the **user-visible** composition and to clear the prior “completely unconfirmed” stop for #2920 planning. Operator D1 inspection remains useful hygiene before any seed-row mutation.
 
 ## Intended final state
 
-The live `page_content` row state for the `privacy` and `terms` slugs is confirmed and recorded here (or in a linked #2919 follow-up comment), resolving whether either page currently renders seeded text, hardcoded fallback, or a section-by-section hybrid. This report does not itself reach that state — it records what remains unconfirmed and exactly why, so #2920's copy review starts from verified evidence rather than an assumption.
+- Live composition for `/privacy` and `/terms` is recorded from Production observation (achieved 2026-08-12 for user-visible text).
+- #2920 implements any remaining approved copy changes (GA disclosure/consent, accessibility publication, seed-row hygiene if D1 is edited) without relying on an unconfirmed-live assumption.
+- No unsupported charitable/tax-status representation remains live (currently true for `/terms` HTML).
 
 ## Rollback
 
