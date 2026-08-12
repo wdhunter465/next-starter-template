@@ -18,6 +18,15 @@
  *
  * Backblaze B2: one read-only ListObjectsV2 page (object count only; no keys stored).
  * No Put/Delete/D1-write paths.
+ *
+ * On any `wrangler d1` failure during the live Dev probe, a redacted, truncated (800-char)
+ * snippet of wrangler's stderr/stdout is included in the fail-closed message -- an initial
+ * live run (2026-08-12) failed on the row-count query with only "exit 1" and no way to see
+ * why. Every response shape `wrangler d1 info`/`wrangler d1 execute --json` can return here
+ * carries only aggregate metadata (uuid, query/row counts) or a schema/count-level query
+ * result -- never row content -- so surfacing a redacted snippet is safe, matching the same
+ * evidence-first diagnostic pattern already proven in
+ * scripts/ci/d1_backup_phase2_restore_verify_3268.mjs (#3268 Phase 2 Package 3).
  */
 
 import fs from 'node:fs';
@@ -169,6 +178,19 @@ function failClosed(message) {
   process.exitCode = 1;
 }
 
+/**
+ * Redacted, truncated (800-char) snippet of a wrangler subprocess's stderr (preferred) or
+ * stdout, for inclusion in a fail-closed diagnostic message. Returns '' when both are empty.
+ */
+export function buildDiagnosticSnippet(procResult, redact) {
+  const stderr = String(procResult?.stderr ?? '').trim();
+  const stdout = String(procResult?.stdout ?? '').trim();
+  const raw = stderr || stdout;
+  if (!raw) return '';
+  const redacted = redact(raw);
+  return redacted.length > 800 ? `${redacted.slice(0, 800)}...` : redacted;
+}
+
 export async function main() {
   const missing = requireEnv(process.env);
   if (missing.length > 0) {
@@ -189,6 +211,19 @@ export async function main() {
     failClosed(`D1 identity contract failed: ${identityResult.failures.join('; ')}`);
     return;
   }
+
+  const redact = (text) =>
+    redactSecrets(text, [
+      process.env.B2_ENDPOINT,
+      process.env.B2_ENDPOINT?.replace(/\/$/, ''),
+      process.env.B2_BUCKET,
+      process.env.B2_KEY_ID,
+      process.env.B2_APP_KEY,
+      process.env.CLOUDFLARE_API_TOKEN,
+      process.env.CLOUDFLARE_ACCOUNT_ID,
+      process.env.D1_DEV_DATABASE_NAME,
+      process.env.D1_DEV_DATABASE_ID,
+    ]);
 
   const d1 = {
     productionName: identities.production.databaseName,
@@ -221,7 +256,10 @@ export async function main() {
 
     const info = runWrangler(['d1', 'info', previewDbName, '--json']);
     if (info.error || info.status !== 0) {
-      failClosed(`wrangler d1 info failed for Dev database (exit ${info.status ?? 'spawn error'}).`);
+      const snippet = buildDiagnosticSnippet(info, redact);
+      failClosed(
+        `wrangler d1 info failed for Dev database (exit ${info.status ?? 'spawn error'}).${snippet ? ` Raw (redacted) response snippet: ${snippet}` : ' (no output captured)'}`,
+      );
       return;
     }
     let infoParsed;
@@ -257,7 +295,10 @@ export async function main() {
       '--json',
     ]);
     if (listRes.error || listRes.status !== 0) {
-      failClosed(`wrangler d1 execute failed enumerating Dev tables (exit ${listRes.status ?? 'spawn error'}).`);
+      const snippet = buildDiagnosticSnippet(listRes, redact);
+      failClosed(
+        `wrangler d1 execute failed enumerating Dev tables (exit ${listRes.status ?? 'spawn error'}).${snippet ? ` Raw (redacted) response snippet: ${snippet}` : ' (no output captured)'}`,
+      );
       return;
     }
     let listParsed;
@@ -286,7 +327,10 @@ export async function main() {
         '--json',
       ]);
       if (countRes.error || countRes.status !== 0) {
-        failClosed(`wrangler d1 execute failed counting Dev rows (exit ${countRes.status ?? 'spawn error'}).`);
+        const snippet = buildDiagnosticSnippet(countRes, redact);
+        failClosed(
+          `wrangler d1 execute failed counting Dev rows (exit ${countRes.status ?? 'spawn error'}).${snippet ? ` Raw (redacted) response snippet: ${snippet}` : ' (no output captured)'}`,
+        );
         return;
       }
       let countParsed;
@@ -309,7 +353,6 @@ export async function main() {
   const bucket = process.env.B2_BUCKET;
   const accessKeyId = process.env.B2_KEY_ID;
   const secretAccessKey = process.env.B2_APP_KEY;
-  const redact = (text) => redactSecrets(text, [endpoint, bucket, accessKeyId, secretAccessKey]);
 
   const aws = new AwsClient({
     accessKeyId,
