@@ -106,8 +106,6 @@ describe('buildResultMarkdown', () => {
   const dryRun = {
     checkedAt: '2026-08-12T00:00:00Z',
     mode: 'dry-run',
-    databaseName: 'lgfc_lite',
-    databaseId: '22d0dc3e-ad34-43af-8e6a-2063df1a1e04',
     approvalColumnPresent: false,
     counts: { LE_TOTAL: 10, CI_LEGACY_TAG: 2 },
     summary: { insert: 5, update: 1, noop: 2, excluded: 1, conflict: 1 },
@@ -116,6 +114,13 @@ describe('buildResultMarkdown', () => {
       { legacyId: 9, code: 'TAG_COLLISION_NON_MIGRATION_SOURCE' },
     ],
   };
+
+  it('confirms Production identity without printing the database name or uuid, matching the #2913 preflight convention', () => {
+    const md = buildResultMarkdown(dryRun);
+    expect(md).toContain('confirmed Production');
+    expect(md).not.toContain('lgfc_lite');
+    expect(md).not.toContain('22d0dc3e');
+  });
 
   it('renders dry-run mode with no write section', () => {
     const md = buildResultMarkdown(dryRun);

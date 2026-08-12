@@ -288,7 +288,11 @@ async function main() {
   const tableInfo = runD1Json('PRAGMA table_info(library_entries)');
   const approvalColumnPresent = hasApprovalColumn(tableInfo);
 
-  const legacyRows = runD1Json('SELECT id, name, email, title, content, created_at FROM library_entries');
+  const legacyRows = runD1Json(
+    approvalColumnPresent
+      ? 'SELECT id, name, email, title, content, created_at, is_approved FROM library_entries'
+      : 'SELECT id, name, email, title, content, created_at FROM library_entries',
+  );
   const existingRows = runD1Json(
     `SELECT id, tag, title, text, credit_line, source_name, status, summary, search_text FROM content_inventory WHERE canonical = 1 AND tag LIKE '${MIGRATION_TAG_PREFIX}%'`,
   );
