@@ -32,11 +32,18 @@ each is owned by its own task.
 ## Current known truth
 
 - #2781 has not been accepted and Product Authority has not recorded a Production
-  Go. No real candidate manifest exists yet — this document and its companion
-  harness are **manifest design, evidence-checklist, and automation scaffolding**.
+  Go. **A real candidate manifest now exists** —
+  `docs/ops/reports/production-deployment-candidate-manifest-2930.md`
+  (2026-08-12) — with every field filled in from real, current, cited repository
+  and issue-tracker evidence and run through the actual harness, producing
+  `ready: false` with 14 named unresolved protected decisions (including #2781's
+  own missing rehearsal disposition). This document and its harness remain
+  **manifest design, evidence-checklist, and automation scaffolding**; the real
+  manifest instance lives in the linked report, not here.
 - `buildGoNoGoReadiness()` is implemented and tested against synthetic fixtures
   (`tests/production-deployment-candidate-manifest.test.mjs`), proving the
-  completeness logic is sound before any real manifest is filled in.
+  completeness logic is sound — since verified against the real manifest above
+  too.
 - This document does not authorize deployment, Production mutation, or credential
   use of any kind — it defines what evidence a future manifest must cite.
 
