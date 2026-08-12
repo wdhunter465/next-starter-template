@@ -5,7 +5,7 @@ import {
   publishedInventoryWhere,
 } from './content-inventory-public';
 import {
-  compareRotationRows,
+  filterRotationFairnessPool,
   type RotationRow,
   sortRotationRows,
 } from './content-inventory-rotation';
@@ -86,7 +86,7 @@ async function fetchClubHomeRows(db: any): Promise<ClubHomeInventoryRow[]> {
     .prepare(
       `SELECT id, title, text, summary, credit_line, source_name, story_type, tag,
               perspective_label, event_date, event_year, rotation_group, last_featured,
-              feature_weight, canonical, priority, allowed_sections, status, updated_at
+              usage_count, feature_weight, canonical, priority, allowed_sections, status, updated_at
          FROM content_inventory
         WHERE ${publishedInventoryWhere(CLUB_HOME_SECTION)}`,
     )
@@ -95,24 +95,39 @@ async function fetchClubHomeRows(db: any): Promise<ClubHomeInventoryRow[]> {
   return (rows.results ?? []) as ClubHomeInventoryRow[];
 }
 
-function pickLeadStory(rows: ClubHomeInventoryRow[]): ClubHomeInventoryRow | null {
-  const ranked = sortRotationRows(rows, { includeAlternates: false });
+function pickLeadStory(rows: ClubHomeInventoryRow[], asOfDate = new Date()): ClubHomeInventoryRow | null {
+  const context = { asOfDate, includeAlternates: false };
+  const pool = filterRotationFairnessPool(rows, context);
+  const ranked = sortRotationRows(pool, context);
   const primary = ranked.find((row) => normalizeStoryType(row.story_type) === PRIMARY_STORY_TYPE);
   return primary ?? ranked[0] ?? null;
 }
 
-function pickRailStories(rows: ClubHomeInventoryRow[], excludeId: number | null): ClubHomeInventoryRow[] {
+function pickRailStories(
+  rows: ClubHomeInventoryRow[],
+  excludeId: number | null,
+  asOfDate = new Date(),
+): ClubHomeInventoryRow[] {
   const eligible = rows.filter((row) => {
     if (excludeId !== null && Number(row.id) === excludeId) return false;
     return RAIL_STORY_TYPES.has(normalizeStoryType(row.story_type));
   });
-  return sortRotationRows(eligible, { includeAlternates: true }).slice(0, 4);
+  const context = { asOfDate, includeAlternates: true };
+  const pool = filterRotationFairnessPool(eligible, context);
+  return sortRotationRows(pool, context).slice(0, 4);
 }
 
-function pickArchiveSpotlight(rows: ClubHomeInventoryRow[], excludeIds: Set<number>): ClubHomeInventoryRow | null {
+function pickArchiveSpotlight(
+  rows: ClubHomeInventoryRow[],
+  excludeIds: Set<number>,
+  asOfDate = new Date(),
+): ClubHomeInventoryRow | null {
   const eligible = rows.filter((row) => !excludeIds.has(Number(row.id)));
   if (!eligible.length) return null;
-  const ranked = [...eligible].sort((left, right) => compareRotationRows(right, left, { includeAlternates: true }));
+  const context = { asOfDate, includeAlternates: true };
+  const pool = filterRotationFairnessPool(eligible, context);
+  if (!pool.length) return null;
+  const ranked = sortRotationRows(pool, context);
   return ranked[0] ?? null;
 }
 
@@ -205,15 +220,16 @@ export async function fetchClubHomeContent(
   }
 
   const rows = await fetchClubHomeRows(db);
-  const leadRow = pickLeadStory(rows);
+  const asOfDate = new Date();
+  const leadRow = pickLeadStory(rows, asOfDate);
   const leadStory = leadRow ? mapClubHomeStory(leadRow) : null;
-  const railStories = pickRailStories(rows, leadStory?.id ?? null).map(mapClubHomeStory);
+  const railStories = pickRailStories(rows, leadStory?.id ?? null, asOfDate).map(mapClubHomeStory);
 
   const excludeIds = new Set<number>();
   if (leadStory) excludeIds.add(leadStory.id);
   for (const story of railStories) excludeIds.add(story.id);
 
-  const spotlightRow = pickArchiveSpotlight(rows, excludeIds);
+  const spotlightRow = pickArchiveSpotlight(rows, excludeIds, asOfDate);
   const archiveSpotlight = spotlightRow ? mapClubHomeStory(spotlightRow) : null;
   const mediaFeature = await resolveMediaFeature(
     db,

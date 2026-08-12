@@ -172,4 +172,63 @@ describe('content-inventory-club-home', () => {
     expect(payload.rail_stories[0]?.headline).toBe('Rail story');
     expect(payload.archive_spotlight?.headline).toBe('Spotlight story');
   });
+
+  it('skips hard-cooldown lead candidates in favor of least-used eligible inventory', async () => {
+    const asOfIso = new Date().toISOString();
+    const payload = await fetchClubHomeContent(
+      makeClubHomeDb({
+        inventory: [
+          {
+            id: 10,
+            title: 'Recently featured lead',
+            summary: 'Should cool down',
+            credit_line: 'Archive',
+            source_name: 'LGFC',
+            story_type: 'primary',
+            allowed_sections: 'club_home',
+            status: 'published',
+            canonical: 1,
+            priority: 50,
+            feature_weight: 5,
+            usage_count: 9,
+            last_featured: asOfIso,
+          },
+          {
+            id: 11,
+            title: 'Fresh least-used lead',
+            summary: 'Should win',
+            credit_line: 'Archive',
+            source_name: 'LGFC',
+            story_type: 'primary',
+            allowed_sections: 'club_home',
+            status: 'published',
+            canonical: 1,
+            priority: 1,
+            feature_weight: 1,
+            usage_count: 0,
+            last_featured: null,
+          },
+          {
+            id: 12,
+            title: 'Rail filler',
+            summary: 'Rail',
+            credit_line: 'Archive',
+            source_name: 'LGFC',
+            story_type: 'secondary',
+            allowed_sections: 'club_home',
+            status: 'published',
+            canonical: 1,
+            priority: 1,
+            feature_weight: 1,
+            usage_count: 0,
+            last_featured: null,
+          },
+        ],
+      }),
+    );
+
+    expect(payload.source).toBe('content_inventory');
+    expect(payload.lead_story?.id).toBe(11);
+    expect(payload.lead_story?.headline).toBe('Fresh least-used lead');
+  });
 });
