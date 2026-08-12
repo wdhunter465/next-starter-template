@@ -2,8 +2,8 @@
 Doc Type: Operations Report
 Audience: Bill, Work, Cursor, LGFC maintainers, and implementation agents
 Authority Level: Evidence Snapshot
-Owns: Consolidated Production Go evidence package for #2860's controlled Production library-content batch (candidate identity, backup status, dry-run evidence, write batch definition, rollback command, verifier) — assembled per Bill's 2026-08-10 bounded-Production-Go instruction on #2860; reconciled 2026-08-12 once the backup gap (#3268) and write-tooling build (this report's own Section 4) both closed
-Does Not Own: The Production Go/dispatch decision itself (Product Authority); execution of any Production D1 write
+Owns: Consolidated Production Go evidence package for #2860's controlled Production library-content batch (candidate identity, backup status, dry-run evidence, write batch definition, rollback command, verifier), and the post-execution reconciliation of that batch's real Production run against #2860's project acceptance criteria (Section 7) — assembled per Bill's 2026-08-10 bounded-Production-Go instruction on #2860; reconciled 2026-08-12 once the backup gap (#3268) and write-tooling build (this report's own Section 4) both closed; updated 2026-08-12 after Bill's Production GO (comment 5268483994) and Cursor's #2913 execution
+Does Not Own: The Production Go/dispatch decision itself (Product Authority, already recorded — Section 7); the `library_entries` retention/retirement decision (still open — Section 7); project-level #2860 closeout (WORK/PMO)
 Source Issue: #2860
 Canonical Reference: /docs/ops/reports/library-content-production-go-evidence-2860.md
 Related Issues: #2860, #2910, #2911, #2912, #2913, #2778, #2779, #3268, #3386, #3388, #3390, #3391, #3392
@@ -17,18 +17,20 @@ Executor: Claude Code
 
 Bill's instruction (2026-08-10, on #2860): "begin with a bounded Production Go for #2860 only. Require Claude to post the exact candidate identity, backup, dry-run evidence, write batch, rollback command, and verifier before executing any D1 write. Then WORK reviews the results before advancing #2859."
 
-This report assembles all six required items. **No Production write has been performed, attempted, or authorized by this report or by any of the work it cites.** As of 2026-08-10, five of six items were ready; the sixth (backup) was reported not ready rather than fabricated. As of this 2026-08-12 reconciliation, **all six items are ready**: #3268 Phase 2 closed the backup gap with real, live, checksummed export/restore evidence, and the secret-backed Production write path referenced in Section 4 below (as "what still needs building") has since been built, tested, reviewed, and merged to `main`. Building and merging that tooling is not itself a Production write and did not perform one — see Section 4 for the exact boundary.
+This report assembles all six required items. As of 2026-08-10, five of six items were ready; the sixth (backup) was reported not ready rather than fabricated. As of the 2026-08-12 reconciliation below, **all six items became ready**: #3268 Phase 2 closed the backup gap with real, live, checksummed export/restore evidence, and the secret-backed Production write path referenced in Section 4 (as "what still needs building") was built, tested, reviewed, and merged to `main`. Building and merging that tooling was not itself a Production write.
+
+**Update (2026-08-12, later the same day):** Bill/Product Authority reviewed this package and recorded Production GO (issue comment 5268483994). Cursor Local then executed the authorized controlled migration end-to-end against real Production D1. **Section 7 records that execution and reconciles it against #2860's project acceptance criteria.** The result: Production `library_entries` was already empty, so the authorized batch ran correctly and wrote zero rows — a fact about the source data, not a migration failure. Two items remain open for Bill/WORK and are named explicitly in Section 7, not resolved here.
 
 ## Scope
 
-Covers the six evidence items Bill's instruction requires, for #2860's library_entries → content_inventory migration only. It does not cover #2859 or any other #2860 sibling project. It does not itself authorize or perform any Production write — the write tooling described in Section 4 exists, gated and undispatched, but dispatching it (in either `dry-run` or `apply` mode) requires a separate, explicit Bill/WORK Production-dispatch authorization that this report does not grant.
+Covers the six evidence items Bill's instruction requires, for #2860's library_entries → content_inventory migration only, plus (Section 7) the post-execution reconciliation once Bill's separate Production-dispatch authorization (comment 5268483994) was granted and Cursor executed it. It does not cover #2859 or any other #2860 sibling project, and it does not decide the two items Section 7 leaves open (whether an empty Production `library_entries` is expected; `library_entries` retention vs. retirement).
 
 ## Current known truth
 
-- All 6 required evidence items are now ready, each backed by real, already-merged, already-reviewed work: #2910 map, #2911 tooling + real local-D1 evidence, #2912 recovery proof, #2913 batch plan + live Production schema preflight, #3268 Phase 2 real backup/restore proof, and the merged (not dispatched) Production write tooling from PRs #3386 → #3390 → #3392.
+- All 6 required evidence items were ready by 2026-08-12, each backed by real, already-merged, already-reviewed work: #2910 map, #2911 tooling + real local-D1 evidence, #2912 recovery proof, #2913 batch plan + live Production schema preflight, #3268 Phase 2 real backup/restore proof, and the merged Production write tooling from PRs #3386 → #3390 → #3392.
 - The backup gap is **closed**: #3268 Phase 2 performed a real `wrangler d1 export --remote` of `lgfc_lite`, uploaded it to private R2 with an independently re-verified SHA-256 checksum, and completed an isolated restore-drill proof (37/37 tables matched exactly, 5,711 rows written) against a disposable, uniquely-named, never-`wrangler.toml`-bound database that was torn down unconditionally afterward. Full citation in Section 2.
-- The write-tooling gap is **closed**: `scripts/ci/library_content_production_write_2860.mjs` and `.github/workflows/library-content-production-write-2860.yml` exist on `main`, are unit-tested (19 tests), and enforce two independent gates (`MODE=apply` AND `CONFIRM_WRITE=confirm`) plus three-way Production identity verification before any write statement would execute. The workflow has never been dispatched, in either mode, by any of the work this report cites.
-- No Production D1 write has occurred. Building, testing, and merging the write tooling is bounded "build + validate + PR + merge only" work, distinct from dispatching it — per Bill's own instruction framing that authorized the build without authorizing execution.
+- The write-tooling gap is **closed**: `scripts/ci/library_content_production_write_2860.mjs` and `.github/workflows/library-content-production-write-2860.yml` exist on `main`, are unit-tested (19 tests), and enforce two independent gates (`MODE=apply` AND `CONFIRM_WRITE=confirm`) plus three-way Production identity verification before any write statement would execute.
+- **Superseded by Section 7:** the two bullets above described tooling as built-but-undispatched. Bill's Production GO (comment 5268483994) authorized dispatch; Cursor Local ran `dry-run` then `apply` for real against Production D1 the same day. Section 7 has the outcome (zero rows, because the source table was empty) and the acceptance-criteria reconciliation. Building, testing, and merging the write tooling was itself bounded "build + validate + PR + merge only" work, distinct from the later, separately authorized dispatch — consistent with Bill's original instruction framing.
 
 ## Intended final state
 
@@ -111,7 +113,7 @@ INSERT INTO content_inventory (
 
 Both gates are enforced by the script itself, not just the workflow's `workflow_dispatch` input validation — defense in depth, since this is the one script in the repository capable of writing to Production D1. Before any read, the script three-way-verifies the resolved database identity (secret value vs. `wrangler.toml`'s declared Production `database_id` vs. the live `wrangler d1 info` result), failing closed on any mismatch, and fails closed if a live `PRAGMA table_info(library_entries)` check ever finds an `is_approved` column present (this batch's all-drafts-first shape assumes it absent). Merged via PR #3386, with three real Copilot findings from that PR — D1 identity opacity, this exact fail-closed guard being absent, and an independent `is_approved`-SELECT omission bug in the promoted `scripts/migrations/library-content-backfill.mjs` CLI — landed by follow-up PRs #3390 (fixes) and #3392 (a fourth finding, a vacuous test assertion, found on #3390 itself). `main` now carries the fully-reviewed version with no outstanding findings. 46 tests across the write script and the promoted `library-content-backfill.mjs` pass.
 
-**Building and merging this tooling is not a Production write and did not perform one.** The workflow has never been dispatched, in either `dry-run` or `apply` mode, by any of the work this report cites — dispatching it remains a separate, later, explicit decision, per Bill's own instruction that authorized "build + validate + PR + merge only."
+**Building and merging this tooling was not itself a Production write and did not perform one** — at that point the workflow had never been dispatched, in either `dry-run` or `apply` mode, consistent with Bill's original instruction authorizing "build + validate + PR + merge only." Dispatch was a separate, later, explicit decision — **now made and executed; see Section 7** for the real `dry-run`/`apply` run and its outcome.
 
 The four repository secrets this path consumes already existed (per the 2026-08-08 Product Authority clarification on #2913, reused unchanged): `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `D1_DATABASE_ID`, `D1_DATABASE_NAME`. No new credential provisioning was required.
 
@@ -151,12 +153,64 @@ This reverts only what this migration itself wrote (proven not to touch unrelate
 
 Post-migration verification checklist, from #2913's batch plan, to run after any authorized batch:
 
-- [ ] Pre/post counts recorded (Section 4) and match expected batch size.
-- [ ] `library_entries` row count unchanged (no deletes performed by this migration).
-- [ ] Member-facing `/api/fanclub/library` list, search, and detail behavior spot-checked — no regression versus the pre-batch legacy-only view for any not-yet-migrated class. (Not applicable in the same way for this specific all-drafts batch, since nothing publishes — but still confirms the legacy fallback remains fully intact.)
-- [ ] No `email` value present in any migrated `content_inventory` row (spot-check).
-- [ ] Every published row has non-empty `source_name`/`credit_line` (not applicable to this batch — no row publishes; schema triggers enforce this regardless).
-- [ ] Legacy retirement/retention disposition explicitly recorded as a separate, later Product Authority decision — not implied or defaulted by this batch.
+- [x] Pre/post counts recorded (Section 4) and match expected batch size. — see Section 7; all counts `0 → 0`, matching the confirmed-empty batch.
+- [x] `library_entries` row count unchanged (no deletes performed by this migration). — `0 → 0`.
+- [ ] Member-facing `/api/fanclub/library` list, search, and detail behavior spot-checked — no regression versus the pre-batch legacy-only view for any not-yet-migrated class. **Not performed as a live HTTP spot-check** (requires a member session); substituted with D1 count evidence + direct inspection of the unchanged `functions/api/fanclub/library.ts` dual-read code path (Section 7). Not applicable in the stronger sense either, since nothing published in this batch.
+- [x] No `email` value present in any migrated `content_inventory` row (spot-check). — vacuously true: zero rows were inserted.
+- [x] Every published row has non-empty `source_name`/`credit_line`. — vacuously true: zero rows published (schema triggers would enforce this regardless).
+- [ ] Legacy retirement/retention disposition explicitly recorded as a separate, later Product Authority decision — **still not decided**; remains open, see Section 7.
+
+## 7. Post-migration execution and closeout reconciliation (2026-08-12)
+
+Bill/Product Authority recorded Production GO for #2860 (issue comment [5268483994](https://github.com/wdhunter465/next-starter-template/issues/2860#issuecomment-5268483994)), authorizing exactly the controlled migration/verification scope this report describes and explicitly excluding destructive cleanup or `library_entries` retirement. Cursor Local then executed the authorized batch end-to-end under #2913, and this section reconciles that real outcome against this report's Section 6 verifier and #2860's own project-level acceptance criteria.
+
+### What actually ran
+
+| Step | Run | Result |
+| --- | --- | --- |
+| Read-only preflight (reconfirm) | [31624912865](https://github.com/wdhunter465/next-starter-template/actions/runs/31624912865) | `PRAGMA table_info(library_entries)`: 6 columns, `is_approved` **absent** — matches Section 1's live evidence exactly; no drift. |
+| Dry-run | [31625083912](https://github.com/wdhunter465/next-starter-template/actions/runs/31625083912) | `library_entries` total **0** rows in Production. Plan: insert/update/noop/excluded/conflict = `0/0/0/0/0`. |
+| Apply | [31625296915](https://github.com/wdhunter465/next-starter-template/actions/runs/31625296915) | Executed: **YES**; statements executed: **0** (the dry-run's empty plan, applied as-is — not skipped). |
+
+Full evidence trail: issue #2860 comments [5270559258](https://github.com/wdhunter465/next-starter-template/issues/2860#issuecomment-5270559258) (dry-run) and [5270604009](https://github.com/wdhunter465/next-starter-template/issues/2860#issuecomment-5270604009) (apply); mirrored on #2913, handoff comment [5270639977](https://github.com/wdhunter465/next-starter-template/issues/2913#issuecomment-5270639977).
+
+### Pre/post counts (Section 4's template, executed for real)
+
+| Metric | Before | After |
+| --- | --- | --- |
+| `library_entries` total | 0 | 0 (unchanged — no deletes, matches Section 6) |
+| `content_inventory` rows tagged `legacy-library-%` | 0 | 0 |
+| Published `legacy-library-%` rows | — | 0 (required for an all-drafts-first batch) |
+
+### Why zero, and what that does and does not mean
+
+Production `library_entries` was already empty before this migration ran — this is a **fact about the source data**, not a migration failure. The write tooling, gates, identity verification, and rollback path were exercised for real against real Production D1 and behaved exactly as designed for an empty input: zero rows classified, zero statements generated, zero statements executed, pre/post counts identical. That is a correct execution of an empty plan, not a skipped or failed one.
+
+What this does **not** establish: whether an empty Production `library_entries` is itself expected. #2860's original purpose assumed migrating existing legacy Library submissions; if Product expected non-zero rows there, that is a content/data-inventory question for #2859's own sourcing work, not evidence of a defect in this migration. Cursor's #2913 handoff named this explicitly rather than treating an empty table as reason to invent scope.
+
+### #2860 acceptance criteria reconciliation
+
+| #2860 acceptance criterion (from the project issue) | Status |
+| --- | --- |
+| Current schema, migration, query, and data-path evidence is documented | Met — #2910, this report Section 1 |
+| Field mapping and duplicate/conflict rules are approved | Met — #2910 |
+| Every required legacy record is accounted for before cutover | Met — 0 records exist; the empty table is itself the full account |
+| Migration or fallback is idempotent and fails closed | Met — proven in #2911/#2912 local evidence and re-exercised live in Section 7's apply run (fail-closed identity/`is_approved` guards held) |
+| Tests cover empty, duplicate, incomplete, malformed, and mixed-version data | Met — #2911/#2912 test suites (Section 3) |
+| Fan Club Library behavior works against the accepted canonical path | Met — dual-read fallback code path unchanged and inspected; no live HTTP spot-check performed (see Section 6) |
+| Backup, rollback, verification, and stop conditions are executable | Met — Sections 2, 5, 6; all exercised or provably ready |
+| Production verification records counts and outcomes without leaking content or credentials | Met — Section 7 above; aggregate counts only |
+| No incremental paid service is required | Met — unchanged |
+| Legacy retirement, retention, or continued fallback is explicitly dispositioned | **Not met — open.** See below. |
+
+### Outstanding, not decided by this report or by #2913's execution
+
+Two items remain open and are named here for Bill/WORK, not resolved by this reconciliation:
+
+1. **Is an empty Production `library_entries` expected?** If not, that is a separate #2859 content-sourcing question, not a #2860 defect.
+2. **`library_entries` retention vs. retirement.** #2860's Production GO explicitly excluded this decision. With the table confirmed empty, retiring it carries negligible data risk, but the decision itself — and any schema/read-path change it would require — remains Bill/WORK's to make, not inferred here.
+
+Pending those two decisions, #2860's implementation work (children #2910–#2913, write-tooling remediation, this evidence package, and the authorized Production execution) is complete. Project-level closeout of #2860 itself is a WORK/PMO disposition, not something this report declares.
 
 ## Acceptance checklist (this report)
 
@@ -166,9 +220,9 @@ Post-migration verification checklist, from #2913's batch plan, to run after any
 - [x] Rollback command posted, verbatim from proven #2912 evidence
 - [x] Verifier posted, verbatim from #2913's batch plan
 - [x] Backup — **ready**; real, live, checksummed export/restore evidence from #3268 Phase 2 (Section 2)
-- [x] Secret-backed Production write path — **built, tested, reviewed, merged to `main`** (Section 4); never dispatched
-- [x] No Production write performed, attempted, or authorized by this report or any work it cites
-- [ ] Production-dispatch authorization — **not requested by this report**; a separate, later Bill/WORK decision
+- [x] Secret-backed Production write path — **built, tested, reviewed, merged to `main`** (Section 4); dispatched and executed (Section 7)
+- [x] Production write performed: **dry-run and apply both executed against real Production D1** (Section 7); zero statements written because the source table was empty — the only outcome the confirmed-empty input permits
+- [x] Production-dispatch authorization — **granted** by Bill/Product Authority, issue comment 5268483994; execution and reconciliation recorded in Section 7
 
 ## Rollback (of this report)
 
