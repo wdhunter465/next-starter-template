@@ -2,46 +2,46 @@
 Doc Type: Implementation Plan
 Audience: Bill, ChatGPT / Atlas / WORK, Cursor, Claude Code, LGFC maintainers, and reviewers
 Authority Level: Operational
-Owns: Club Newspaper Phase 1 master Issue specification, ordered child graph, proposed branches/scopes/dependencies/collision controls, migration/test/rollout/rollback/Production-verification/operator-handoff envelopes, minimum visible runtime slice, and serial release sequence
-Does Not Own: Phase 0 acceptance decision, #2464 advisory recommendations, #2934 disposition, canonical Phase 0 contracts (#2662/#2663/#2664), runtime implementation authorization before WORK release, or Production Go
+Owns: Club Newspaper Phase 1 master Issue specification, ordered child graph (P1-01…P1-10), proposed branches/scopes/dependencies/collision controls, migration/test/rollout/rollback/Production-verification/operator-handoff envelopes, minimum visible runtime slice, and serial release sequence
+Does Not Own: Phase 0 aggregate acceptance decision, fabricating #2464 findings, canonical Phase 0 contracts (#2662/#2663/#2664), Production Go, or self-approval of runtime PRs
 Canonical Reference: /docs/ops/reports/club-newspaper-phase0-acceptance-2665.md
 Related Issues: #2461, #2463, #2464, #2661, #2662, #2663, #2664, #2934, #2665, #3055
-Last Reviewed: 2026-08-06
+Last Reviewed: 2026-08-12
 ---
 
 # Club Newspaper Phase 1 Implementation Launch Package
 
 ## Purpose
 
-Define a complete, chat-independent Phase 1 launch package from accepted Phase 0 authority (#2661–#2664) and #2934 increment-1 evidence — so WORK can create/release serial children later without inference. This document does **not** launch Phase 1.
+Define a complete, chat-independent Phase 1 Development launch package from accepted Phase 0 authority (#2661–#2664), #2934 (complete), and the Product Authority waiver of external advisory #2464 — so WORK can create/release serial children without inference. This document does **not** authorize Production.
 
 ## Scope
 
-In scope: master Issue specification; ordered child graph with exact proposed file scopes; branches; dependencies; collision controls; migrations; tests; rollout; rollback; Production verification; operator handoff; minimum visible runtime slice; serial release sequence; HOLD gate.
+In scope: master Issue specification; ordered child graph with exact proposed file scopes; branches; dependencies; collision controls; migrations; tests; rollout; rollback; Production verification; operator handoff; minimum visible runtime slice; serial release sequence; Development GO / Production HOLD.
 
-Out of scope: inventing #2464 recommendations; editing canonical design/ops docs in this PR; implementing runtime; creating live Phase 1 Issues in this increment; Production merge.
+Out of scope: inventing #2464 recommendations; editing canonical design/ops docs in this PR; implementing runtime in this documentation increment; Production merge.
 
 ## Current known truth
 
-- Phase 0 contracts and as-built maps exist on `component/club-newspaper-phase0` at starting SHA `2780523ec7f3e9174c231378aae8485e1170fbf3`.
-- Known gaps (rotation fairness, placement history, pinning, editions, renditions, responsive two-column CSS, structured audit, admin-write tests, takedown reconciliation) are documented in #2661–#2664 / #2934 — not authorized here.
-- Advisory-dependent final incorporation remains **PENDING** (#2464 / #2934 disposition / #2665 final).
+- Phase 0 contracts and as-built maps exist on `component/club-newspaper-phase0` at starting SHA `9526d79fe2da4dc5ce154b55d7197d01824fc0be` (post PR #3114).
+- Known gaps (rotation fairness, placement history, pinning, editions, renditions, responsive two-column CSS, structured audit, admin-write tests, takedown reconciliation) are documented in #2661–#2664 / #2934 — authorized for Development after Phase 0 reconciliation, not by this docs PR alone.
+- Product Authority (2026-08-10): #2464 waived; #2934 complete with no-advisory/no-change disposition; Phase 1 Development GO after final Phase 0 reconciliation; Production remains separately NO-GO.
 - Companion acceptance framework: `docs/ops/reports/club-newspaper-phase0-acceptance-2665.md`.
 
 ## Intended final state
 
-- WORK can open a Phase 1 project master and serial children directly from this plan after HOLD clears.
+- WORK can open a Phase 1 project master and serial children directly from this plan after Phase 0 reconciliation.
 - Every child has objective, branch/target, exact file scope, dependencies, positive/failure tests, evidence, rollback, review boundary, and successor.
 - First visible runtime slice is explicit and small enough to ship without requiring the full gap matrix.
+- P1-10 advisory incorporation is N/A under the waiver (no findings to apply).
 
-## HOLD (mandatory)
+## Development GO / Production HOLD
 
-**Do not create, assign, or implement Phase 1 runtime children until:**
+**Development:** Product Authority authorized Phase 1 Development GO (2026-08-10) effective after WORK accepts the final #2665 Phase 0 packet and reconciles #2463. Use project branch `component/club-newspaper-runtime` and this P1-01…P1-10 graph; begin with P1-01.
 
-1. Bill / WORK Phase 0 acceptance is recorded (checklist in companion report), and
-2. #2464 recommendations exist and #2934 disposition is WORK-accepted — **or** Product/WORK records a written waiver that a named launch wave may proceed with advisory rows still PENDING/out of scope.
+**Do not create, assign, or implement Phase 1 runtime children until** Bill / WORK Phase 0 acceptance is recorded against the companion checklist (C1 cleared).
 
-Production merge remains separately prohibited without Production authority.
+**Production:** merge, Production D1/B2 mutation, credentials/provider commitments, public publication/editorial approval, and destructive migration remain prohibited without separate Production authority.
 
 ---
 
@@ -52,11 +52,11 @@ Production merge remains separately prohibited without Production authority.
 | Title | `PROJECT: Club Newspaper Phase 1 — Runtime gap closure against Phase 0 contracts` |
 | Parent | #2463 (or successor Phase 1 project Issue created by WORK/PMO) |
 | Delivery model | Model B project with serial Model B children |
-| Component / PR target | `component/club-newspaper-phase1` (create from accepted Phase 0 tip after HOLD clears; do not invent a second parallel Club Home surface) |
+| Component / PR target | `component/club-newspaper-runtime` (create from accepted Phase 0 tip after Phase 0 reconciliation; do not invent a second parallel Club Home surface) |
 | Production merge | Prohibited until Production Go |
 | Self-approve / self-merge | Prohibited |
-| Authority inputs | Phase 0 reports #2661–#2664; #2934 evidence + accepted disposition (when present); `fanclub-home.md`; `content-strategy.md`; club-home runbook; CLUB-001; this plan; companion acceptance report |
-| Non-goals | New `/newspaper` product route; redesign of Gallery/Library/Memorabilia destinations; paid provider commitments without Product; weakening CC-002 rights/privacy gates |
+| Authority inputs | Phase 0 reports #2661–#2664; #2934 complete + Product Authority #2464 waiver; `fanclub-home.md`; `content-strategy.md`; club-home runbook; CLUB-001; this plan; companion acceptance report |
+| Non-goals | New `/newspaper` product route; redesign of Gallery/Library/Memorabilia destinations; paid provider commitments without Product; weakening CC-002 rights/privacy gates; fabricating advisory follow-ups |
 
 ### Master acceptance (project-level)
 
@@ -83,7 +83,7 @@ Release **serially** unless a child is marked docs-only and collision-proof. Sug
 | 7 | P1-07 | Media renditions | Size-specific URLs/generation per contract; cost decision D5 | P1-05 or parallel after collision review with media libs |
 | 8 | P1-08 | Structured editorial audit trail | Per-action audit beyond `review_notes` | P1-05 |
 | 9 | P1-09 | Takedown/suppress reconciliation | Align CC-002 / #2919 fields onto this component lineage | Integration planning D3; may HOLD |
-| 10 | P1-10 | Advisory incorporation wave | Apply accepted #2934 dispositions to contracts and/or runtime follow-ups | #2464 + #2934 disposition ACCEPT |
+| 10 | P1-10 | Advisory incorporation wave | Apply accepted #2934 dispositions to contracts and/or runtime follow-ups | **N/A — waived** (#2464 Product Authority waiver; no findings). Do not invent work. Retain ID for graph stability only. |
 
 **Successor after graph:** Promotion Candidate qualification → Production Go → Production PR (separate authorities; not children of this plan’s runtime wave).
 
@@ -93,9 +93,9 @@ Release **serially** unless a child is marked docs-only and collision-proof. Sug
 
 ### Project branch
 
-- Proposed: `component/club-newspaper-phase1`
-- Base: accepted `component/club-newspaper-phase0` tip after Phase 0 ACCEPT (exact SHA recorded at branch creation)
-- Working-branch pattern: `cursor/newspaper-p1-<child-id>-<short-slug>` (or Claude equivalent per assignment)
+- Proposed: `component/club-newspaper-runtime` (Product Authority 2026-08-10)
+- Base: accepted `component/club-newspaper-phase0` tip after Phase 0 reconciliation (exact SHA recorded at branch creation)
+- Working-branch pattern: `cursor/newspaper-p1-<child-id>-<short-slug>-2e48` (or Claude equivalent per assignment)
 
 ### Per-child proposed file scopes (exact starting allowlists — WORK may narrow, not silently widen)
 
@@ -195,7 +195,7 @@ tests/**
 
 **P1-10 — advisory incorporation**
 
-Allowlist **only after** disposition exists; must cite accepted recommendation IDs. No speculative paths.
+**N/A under Product Authority waiver.** Do not invent allowlist paths or recommendation IDs. Graph ID retained only for stable sequencing references.
 
 ### Collision controls
 
@@ -235,7 +235,7 @@ git diff --check
 
 ### Rollout
 
-1. Merge child → component branch only.
+1. Merge child → component branch only (`component/club-newspaper-runtime`).
 2. Operator verify via `docs/how-to/website/club-home-content-operations-runbook.md` for content-affecting children.
 3. No automatic Production deploy from component merges.
 
@@ -266,35 +266,36 @@ Ship responsive tablet/desktop composition against the already-accepted zone con
 
 Preserved: mobile single-column order; existing content selection; admin flows unchanged.
 
-### Serial release sequence (after HOLD clears)
+### Serial release sequence (after Phase 0 reconciliation)
 
 ```text
-Phase 0 ACCEPT (+ advisory disposition or written waiver)
-  → create component/club-newspaper-phase1 from recorded tip
+Phase 0 ACCEPT (advisory waived by Product Authority 2026-08-10)
+  → create component/club-newspaper-runtime from recorded Phase 0 tip
   → P1-01 (minimum visible slice)
   → P1-02 (test foundation)
   → P1-03 → P1-04 → P1-05
   → D4 decision gate → P1-06
   → P1-07 / P1-08 (serialize on shared files)
   → P1-09 when D3 unblocked
-  → P1-10 when #2934 disposition accepted
+  → P1-10 skipped (N/A — advisory waived)
   → Promotion Candidate → Production Go → Production PR
 ```
 
 ---
 
-## 6. Cross-links and pending fields
+## 6. Cross-links and gate fields
 
 | Item | State |
 | --- | --- |
 | Phase 0 acceptance checklist | Companion report §2 |
-| #2464 recommendations | **PENDING** — do not invent |
-| #2934 disposition | **PENDING** |
-| Final #2665 incorporation | **PENDING** |
+| #2464 recommendations | **WAIVED** — Product Authority 2026-08-10; do not invent |
+| #2934 disposition | **COMPLETE** — no-advisory / no-change via waiver |
+| Final #2665 incorporation | This documentation increment |
 | Product D1 side-rail placement | Open; P1-01 may retain current placement |
 | Architecture D4 edition caching | Blocks P1-06 design detail |
 | Cost D5 renditions | Blocks P1-07 provider/storage choices |
 | Integration D3 takedown | May HOLD P1-09 |
+| Production Go | Separate authority — not granted here |
 
 ---
 
@@ -303,16 +304,16 @@ Phase 0 ACCEPT (+ advisory disposition or written waiver)
 - `bash scripts/ci/docs_check_headers.sh docs/ops/reports/club-newspaper-phase0-acceptance-2665.md docs/ops/implementation-plans/club-newspaper-phase1.md`
 - `node scripts/ci/diataxis_folder_audit.mjs`
 - `git diff --check`
-- Cited Phase 0 authority paths verified present at starting SHA `2780523ec7f3e9174c231378aae8485e1170fbf3`
+- Cited Phase 0 authority paths verified present at starting SHA `9526d79fe2da4dc5ce154b55d7197d01824fc0be`
 - PR diff must contain only the two #2665 allowlisted files
 
 ## Rollback
 
-Revert the documentation-only component PR that adds this plan and the companion acceptance report.
+Revert the documentation-only component PR that updates this plan and the companion acceptance report.
 
 ## Boundaries confirmation
 
-- No Phase 1 runtime authorized by this file alone.
+- No Phase 1 runtime authorized by this docs PR alone (Development GO waits for WORK Phase 0 reconciliation).
 - No advisory content fabricated.
 - No Production commitment.
-- Explicit HOLD until acceptance + advisory disposition (or written waiver).
+- P1-01…P1-09 graph preserved; P1-10 marked N/A under waiver.
