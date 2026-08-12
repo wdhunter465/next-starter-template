@@ -8,6 +8,9 @@ export const HOMEPAGE_MILESTONES_SECTION = 'homepage_milestones';
 
 export const DEFAULT_RECENT_FEATURE_WINDOW_DAYS = 90;
 export const DEFAULT_EVENT_PROXIMITY_WINDOW_DAYS = 30;
+/** Hard recent-use exclusion window (#2663 / content-strategy.md). Soft 90-day penalty remains after this. */
+export const DEFAULT_HARD_COOLDOWN_DAYS = 14;
+const USAGE_COUNT_SCORE_PENALTY = 30;
 
 export type RotationRow = {
   id: number;
@@ -18,6 +21,7 @@ export type RotationRow = {
   event_year?: number | string | null;
   rotation_group?: string | null;
   last_featured?: string | null;
+  usage_count?: number | null;
   feature_weight?: number | null;
   allowed_sections?: string | null;
   status?: string | null;
@@ -32,6 +36,9 @@ export type RotationContext = {
   recentFeaturedGroupCounts?: Record<string, number>;
   recentFeatureWindowDays?: number;
   eventProximityWindowDays?: number;
+  hardCooldownDays?: number;
+  /** When true (default), if every candidate is in hard cooldown, fall back to the soft-penalty pool. */
+  relaxHardCooldownWhenEmpty?: boolean;
 };
 
 export type FetchRotationRankedOptions = {
@@ -135,6 +142,39 @@ export function computeRotationGroupPenalty(
   return recentFeaturedGroupCounts[group] * 40;
 }
 
+export function normalizeUsageCount(value: RotationRow['usage_count']): number {
+  const n = Number(value ?? 0);
+  return Number.isFinite(n) && n > 0 ? Math.trunc(n) : 0;
+}
+
+export function isWithinHardCooldown(
+  row: RotationRow,
+  asOf: Date,
+  cooldownDays = DEFAULT_HARD_COOLDOWN_DAYS,
+): boolean {
+  const featuredAt = parseRotationTimestamp(row.last_featured);
+  if (featuredAt === null) return false;
+  const daysSince = (asOf.getTime() - featuredAt) / 86_400_000;
+  return daysSince >= 0 && daysSince < cooldownDays;
+}
+
+/**
+ * Apply hard recent-use exclusion. If every row is cooling down and relaxation is
+ * enabled, return the original pool so surfaces can still render (soft penalty remains).
+ */
+export function filterRotationFairnessPool<T extends RotationRow>(
+  rows: T[],
+  context: RotationContext = {},
+): T[] {
+  if (!rows.length) return rows;
+  const asOf = context.asOfDate ?? new Date();
+  const cooldownDays = context.hardCooldownDays ?? DEFAULT_HARD_COOLDOWN_DAYS;
+  const outsideCooldown = rows.filter((row) => !isWithinHardCooldown(row, asOf, cooldownDays));
+  if (outsideCooldown.length) return outsideCooldown;
+  if (context.relaxHardCooldownWhenEmpty === false) return [];
+  return rows;
+}
+
 export function computeRotationScore(row: RotationRow, context: RotationContext = {}): number {
   const asOf = context.asOfDate ?? new Date();
   const priority = Number(row.priority ?? 0);
@@ -145,6 +185,7 @@ export function computeRotationScore(row: RotationRow, context: RotationContext 
   score += computeEventProximityBoost(row, asOf, context.eventProximityWindowDays);
   score -= computeRecentFeaturePenalty(row, asOf, context.recentFeatureWindowDays);
   score -= computeRotationGroupPenalty(row, context.recentFeaturedGroupCounts);
+  score -= normalizeUsageCount(row.usage_count) * USAGE_COUNT_SCORE_PENALTY;
 
   if (!context.includeAlternates && !normalizeCanonical(row.canonical)) {
     score -= 200;
@@ -156,6 +197,10 @@ export function computeRotationScore(row: RotationRow, context: RotationContext 
 export function compareRotationRows(a: RotationRow, b: RotationRow, context: RotationContext = {}): number {
   const scoreDelta = computeRotationScore(b, context) - computeRotationScore(a, context);
   if (scoreDelta !== 0) return scoreDelta;
+
+  // Least-used preference after score (contract: prefer least-used eligible row).
+  const usageDelta = normalizeUsageCount(a.usage_count) - normalizeUsageCount(b.usage_count);
+  if (usageDelta !== 0) return usageDelta;
 
   const canonicalDelta = Number(normalizeCanonical(b.canonical)) - Number(normalizeCanonical(a.canonical));
   if (canonicalDelta !== 0) return canonicalDelta;
@@ -205,8 +250,8 @@ export async function fetchRotationEligibleRows(
   const rows = await db
     .prepare(
       `SELECT id, title, text, summary, credit_line, source_name, event_date, event_year,
-              rotation_group, last_featured, feature_weight, canonical, priority, allowed_sections,
-              status, updated_at
+              rotation_group, last_featured, usage_count, feature_weight, canonical, priority,
+              allowed_sections, status, updated_at
        FROM content_inventory
        ${whereSql}`,
     )
@@ -232,7 +277,8 @@ export async function fetchRotationRankedInventory<T extends RotationRow>(
     sectionKey: options.sectionKey,
     q: options.q,
   })) as T[];
-  const ranked = sortRotationRows(eligible, context);
+  const fairnessPool = filterRotationFairnessPool(eligible, context);
+  const ranked = sortRotationRows(fairnessPool, context);
   return {
     items: ranked.slice(offset, offset + limit),
     total: ranked.length,
@@ -250,7 +296,9 @@ export async function recordRotationFeature(
   await db
     .prepare(
       `UPDATE content_inventory
-          SET last_featured = ?, updated_at = ?
+          SET last_featured = ?,
+              usage_count = COALESCE(usage_count, 0) + 1,
+              updated_at = ?
         WHERE id = ? AND status = 'published'`,
     )
     .bind(timestamp, timestamp, storyId)

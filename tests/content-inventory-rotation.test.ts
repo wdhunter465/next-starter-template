@@ -6,10 +6,13 @@ import {
   computeRecentFeaturePenalty,
   computeRotationScore,
   daysUntilAnniversary,
+  DEFAULT_HARD_COOLDOWN_DAYS,
   fetchRotationEligibleRows,
   fetchRotationRankedInventory,
+  filterRotationFairnessPool,
   HOMEPAGE_SPOTLIGHT_SECTION,
   isRotationEligibleRow,
+  isWithinHardCooldown,
   parseRotationTimestamp,
   recordRotationFeature,
   sortRotationRows,
@@ -24,6 +27,7 @@ function baseRow(overrides: Record<string, unknown> = {}) {
     priority: 1,
     canonical: 1,
     feature_weight: 1,
+    usage_count: 0,
     allowed_sections: '["library","homepage_spotlight"]',
     status: 'published',
     source_name: 'NYT',
@@ -121,6 +125,35 @@ describe('content inventory rotation scoring', () => {
     ).toBe(false);
     expect(isRotationEligibleRow(baseRow(), HOMEPAGE_SPOTLIGHT_SECTION)).toBe(true);
   });
+
+  it('hard-excludes rows inside the recent-use cooldown window', () => {
+    const recent = baseRow({ id: 1, last_featured: '2026-06-01T00:00:00Z', priority: 99 });
+    const ready = baseRow({ id: 2, last_featured: '2025-01-01T00:00:00Z', priority: 1 });
+    expect(isWithinHardCooldown(recent, AS_OF, DEFAULT_HARD_COOLDOWN_DAYS)).toBe(true);
+    expect(isWithinHardCooldown(ready, AS_OF, DEFAULT_HARD_COOLDOWN_DAYS)).toBe(false);
+    expect(filterRotationFairnessPool([recent, ready], { asOfDate: AS_OF }).map((row) => row.id)).toEqual([2]);
+  });
+
+  it('prefers least-used eligible rows when editorial scores tie', () => {
+    const heavy = baseRow({ id: 1, title: 'Alpha', usage_count: 5, priority: 2 });
+    const light = baseRow({ id: 2, title: 'Bravo', usage_count: 1, priority: 2 });
+    const ranked = sortRotationRows([heavy, light], { asOfDate: AS_OF });
+    expect(ranked.map((row) => row.id)).toEqual([2, 1]);
+    expect(computeRotationScore(light, { asOfDate: AS_OF })).toBeGreaterThan(
+      computeRotationScore(heavy, { asOfDate: AS_OF }),
+    );
+  });
+
+  it('relaxes hard cooldown only when the eligible pool would otherwise be empty', () => {
+    const onlyCooling = [
+      baseRow({ id: 1, last_featured: '2026-06-02T00:00:00Z', usage_count: 3 }),
+      baseRow({ id: 2, last_featured: '2026-06-03T00:00:00Z', usage_count: 1 }),
+    ];
+    expect(filterRotationFairnessPool(onlyCooling, { asOfDate: AS_OF }).map((row) => row.id)).toEqual([1, 2]);
+    expect(
+      filterRotationFairnessPool(onlyCooling, { asOfDate: AS_OF, relaxHardCooldownWhenEmpty: false }),
+    ).toEqual([]);
+  });
 });
 
 describe('content inventory rotation queries', () => {
@@ -134,7 +167,8 @@ describe('content inventory rotation queries', () => {
         id: 1,
         title: 'Older feature',
         priority: 1,
-        last_featured: '2026-06-01T00:00:00Z',
+        last_featured: '2026-05-01T00:00:00Z',
+        usage_count: 2,
         allowed_sections: '["library"]',
       }),
       baseRow({
@@ -142,12 +176,21 @@ describe('content inventory rotation queries', () => {
         title: 'Event boost',
         priority: 1,
         event_date: '1939-06-04',
+        usage_count: 0,
         allowed_sections: '["library"]',
       }),
       baseRow({
         id: 3,
         title: 'Draft',
         status: 'draft',
+        allowed_sections: '["library"]',
+      }),
+      baseRow({
+        id: 4,
+        title: 'Hard cooldown feature',
+        priority: 99,
+        last_featured: '2026-06-01T00:00:00Z',
+        usage_count: 0,
         allowed_sections: '["library"]',
       }),
     ];
@@ -182,6 +225,7 @@ describe('content inventory rotation queries', () => {
 
     expect(total).toBe(2);
     expect(items.map((row) => row.id)).toEqual([2, 1]);
+    expect(items.some((row) => row.id === 4)).toBe(false);
   });
 
   it('records last_featured through approved rotation behavior only for published rows', async () => {
@@ -211,6 +255,7 @@ describe('content inventory rotation queries', () => {
     const result = await recordRotationFeature(db, 42);
     expect(result).toEqual({ ok: true, id: 42, last_featured: '2026-06-04T12:00:00.000Z' });
     expect(updates[0]?.sql).toContain('last_featured');
+    expect(updates[0]?.sql).toContain('usage_count = COALESCE(usage_count, 0) + 1');
     expect(updates[0]?.sql).toContain("status = 'published'");
   });
 

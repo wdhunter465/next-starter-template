@@ -5,7 +5,7 @@ import {
   publishedInventoryWhere,
 } from './content-inventory-public';
 import {
-  compareRotationRows,
+  filterRotationFairnessPool,
   type RotationRow,
   sortRotationRows,
 } from './content-inventory-rotation';
@@ -86,7 +86,7 @@ async function fetchClubHomeRows(db: any): Promise<ClubHomeInventoryRow[]> {
     .prepare(
       `SELECT id, title, text, summary, credit_line, source_name, story_type, tag,
               perspective_label, event_date, event_year, rotation_group, last_featured,
-              feature_weight, canonical, priority, allowed_sections, status, updated_at
+              usage_count, feature_weight, canonical, priority, allowed_sections, status, updated_at
          FROM content_inventory
         WHERE ${publishedInventoryWhere(CLUB_HOME_SECTION)}`,
     )
@@ -96,7 +96,8 @@ async function fetchClubHomeRows(db: any): Promise<ClubHomeInventoryRow[]> {
 }
 
 function pickLeadStory(rows: ClubHomeInventoryRow[]): ClubHomeInventoryRow | null {
-  const ranked = sortRotationRows(rows, { includeAlternates: false });
+  const pool = filterRotationFairnessPool(rows, { includeAlternates: false });
+  const ranked = sortRotationRows(pool, { includeAlternates: false });
   const primary = ranked.find((row) => normalizeStoryType(row.story_type) === PRIMARY_STORY_TYPE);
   return primary ?? ranked[0] ?? null;
 }
@@ -106,13 +107,16 @@ function pickRailStories(rows: ClubHomeInventoryRow[], excludeId: number | null)
     if (excludeId !== null && Number(row.id) === excludeId) return false;
     return RAIL_STORY_TYPES.has(normalizeStoryType(row.story_type));
   });
-  return sortRotationRows(eligible, { includeAlternates: true }).slice(0, 4);
+  const pool = filterRotationFairnessPool(eligible, { includeAlternates: true });
+  return sortRotationRows(pool, { includeAlternates: true }).slice(0, 4);
 }
 
 function pickArchiveSpotlight(rows: ClubHomeInventoryRow[], excludeIds: Set<number>): ClubHomeInventoryRow | null {
   const eligible = rows.filter((row) => !excludeIds.has(Number(row.id)));
   if (!eligible.length) return null;
-  const ranked = [...eligible].sort((left, right) => compareRotationRows(right, left, { includeAlternates: true }));
+  const pool = filterRotationFairnessPool(eligible, { includeAlternates: true });
+  if (!pool.length) return null;
+  const ranked = sortRotationRows(pool, { includeAlternates: true });
   return ranked[0] ?? null;
 }
 
