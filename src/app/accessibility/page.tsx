@@ -33,7 +33,10 @@ export default function Page() {
       <h2 style={styles.h2}>How to report a problem</h2>
       <p style={styles.p}>
         If you have trouble using any part of this site, please email{" "}
-        <strong>admin@lougehrigfanclub.com</strong> with:
+        <a href="mailto:admin@lougehrigfanclub.com">
+          <strong>admin@lougehrigfanclub.com</strong>
+        </a>{" "}
+        with:
       </p>
       <ul style={styles.ul}>
         <li style={styles.li}>The page URL</li>
