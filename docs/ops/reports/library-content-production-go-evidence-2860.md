@@ -145,7 +145,7 @@ DELETE FROM content_inventory WHERE canonical = 1 AND tag LIKE 'legacy-library-%
 SELECT COUNT(*) AS n FROM content_inventory WHERE canonical = 1 AND tag LIKE 'legacy-library-%';
 ```
 
-This reverts only what this migration itself wrote (proven not to touch unrelated inventory, #2912). **It is not a substitute for the backup gap in Section 2** — it cannot recover from any failure mode other than "these specific rows need to be un-migrated" (e.g., it does nothing for a corrupted `library_entries` source table, unrelated D1 damage, or any failure outside `content_inventory`'s legacy-tagged rows).
+This reverts only what this migration itself wrote (proven not to touch unrelated inventory, #2912). **It is not a substitute for the independent backup/restore proof in Section 2** — it cannot recover from any failure mode other than "these specific rows need to be un-migrated" (e.g., it does nothing for a corrupted `library_entries` source table, unrelated D1 damage, or any failure outside `content_inventory`'s legacy-tagged rows). Section 2's real R2 export/restore path is the recovery mechanism for those other failure modes.
 
 ## 6. Verifier
 
