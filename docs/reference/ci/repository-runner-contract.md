@@ -15,7 +15,7 @@ Last Reviewed: 2026-08-13
 
 Define the repository-side contract for the Chromebook Linux GitHub Actions runner.
 
-Because the repository is public, the runner is repository-scoped and must not accept pull-request, fork, push, schedule, deployment, or secret-bearing work. Permitted jobs are manual health and observe-only work. Historical wake-packet delivery for Cursor Local Bridge is retired (#3212 Phase 4); the Bridge consumer is **decommissioned** (#3424). The runner must not launch Cursor or hold Cursor API keys.
+Because the repository is public, the runner is repository-scoped and must not accept pull-request, fork, push, schedule, deployment, or secret-bearing work. Permitted routine jobs are manual health and observe-only work. Automatic Bridge wake-packet delivery is retired (#3212 Phase 4); the Bridge consumer is **decommissioned** (#3424). Trusted diagnostic `workflow_dispatch` packet write (`CURSOR_WAKE_DIAGNOSTIC`) remains optional and is not Cursor launch. The runner must not launch Cursor or hold Cursor API keys.
 
 ## Scope
 
