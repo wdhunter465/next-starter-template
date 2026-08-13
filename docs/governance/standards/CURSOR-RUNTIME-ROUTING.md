@@ -47,11 +47,13 @@ There is no required resume/response comment. Comments are ordinary context Curs
 
 **Primary local transport (auto-start, #3212 Phase 4):** GitHub Actions `lgfc-cursor-dispatch` on the dedicated Chromebook runner labeled `lgfc-cursor` invokes the fixed identifiers-only wrapper (`scripts/lgfc-cursor-dispatch/dispatch.mjs`), which launches authenticated local `cursor agent` / `agent`. Contract: `config/github-actions/cursor-dispatch-runner.json`. How-to: `docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md`. Independent offline observation: `.github/workflows/lgfc-cursor-runner-health.yml`.
 
-**Decommissioned as primary local auto-start (#3424 / #3212 Phase 4):** Cursor Local Bridge automatic wake-packet delivery, scheduled Bridge watch, and the local 12-minute poll-wake loop are **not** operationally supported primary paths. Bridge-specific docs remain superseded historical reference only. Shared ingress predicate `scripts/cursor-bridge/lib/wake-ingress.mjs` remains in use by the dispatch workflow and must not be deleted with the Bridge package.
+**Decommissioned (#3424):** Cursor Local Bridge is not an operationally supported primary local auto-start path. Host Bridge units stay stopped unless Product Authority authorizes temporary diagnostics.
+
+**Retired as execution dependencies (#3212 Phase 4):** automatic Bridge wake-packet delivery, scheduled Bridge watch, and the local poll-wake loop. Shared ingress predicate `scripts/cursor-bridge/lib/wake-ingress.mjs` remains in use by the dispatch workflow and must not be deleted with the Bridge package.
 
 **Abandoned as a connection type (#3347 / #3340):** the non-AI `scripts/lgfc-event-wake` outbound poller / event-wake bridge prototype. Do not operate it as the Local pager. Historical reference only: `docs/reference/ci/event-wake-bridge-3340.md`.
 
-**Approved diagnostic fallback only:** trusted manual `workflow_dispatch` on the retired wake workflow (confirmation `CURSOR_WAKE_DIAGNOSTIC`, actor `wdhunter645`), or explicit Product Authority re-enablement. Do not treat poll-wake or Bridge auto-start as primary or default.
+**Approved diagnostic fallback only:** trusted manual `workflow_dispatch` on the retired wake workflow (confirmation `CURSOR_WAKE_DIAGNOSTIC`, actor `wdhunter645`), or explicit Product Authority re-enablement. Do not treat poll-wake or Bridge auto-start as primary.
 
 Labels are the durable routing signal. They do not prove that a local Cursor process is running and must not be described as an automatic cloud invocation.
 
@@ -73,7 +75,7 @@ Local Cursor resumes from repository-controlled state, not chat memory. The deta
 - `docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md` (primary auto-start)
 - `docs/governance/standards/CURSOR-RUNTIME-ROUTING.md` (this standard)
 - `docs/ops/ai/chatgpt-cursor-handoff-workflow.md`
-- `docs/reference/ci/cursor-local-bridge-contract.md` (decommissioned/superseded; historical Bridge contract only — #3424)
+- `docs/reference/ci/cursor-local-bridge-contract.md` (decommissioned; historical Bridge contract)
 - `docs/how-to/cursor/github-poll-wake-loop.md` (retired execution dependency; diagnostic archive)
 
 If a procedure conflicts with this standard, this standard controls runtime selection and the procedures must be corrected.

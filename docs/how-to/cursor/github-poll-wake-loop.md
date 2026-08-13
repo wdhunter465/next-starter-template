@@ -13,13 +13,13 @@ Last Reviewed: 2026-08-13
 
 ## Status (#3212 Phase 4 / #3424)
 
-**Retired / decommissioned as an execution dependency.** Do not run `poll-wake-loop.sh` as part of normal LGFC Cursor wake. Primary transport is `lgfc-cursor-dispatch` (`docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md`). Bridge and this poller are not primary/default local auto-start paths (#3424). Restarting this loop requires an explicit Product Authority decision.
+**Retired as an execution dependency.** Do not run `poll-wake-loop.sh` as part of normal LGFC Cursor wake. Cursor Local Bridge is **decommissioned** and is not a fallback that reactivates this loop. Primary transport is `lgfc-cursor-dispatch` (`docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md`). Restarting this loop requires an explicit Product Authority decision.
 
 Host marker: `~/.cursor/github-poller/RETIRED-3212-PHASE4.txt`.
 
 ## Purpose
 
-Archive the **legacy** local Cursor GitHub poll-wake operation formerly used as backup when Bridge auto-start was primary.
+Archive the **legacy** local Cursor GitHub poll-wake operation formerly used as backup when Bridge auto-start was primary. That Bridge path is decommissioned (#3424).
 
 ## Scope
 
@@ -28,7 +28,7 @@ Covers operator behavior for `~/.cursor/github-poller/` while working in `wdhunt
 ## Current known truth
 
 - **Primary path (#3212 Phase 4):** `lgfc-cursor-dispatch` → dedicated `lgfc-cursor` runner → identifiers-only wrapper → local Cursor CLI.
-- **Bridge packet wake and this poller are retired** as execution dependencies.
+- **Cursor Local Bridge is decommissioned (#3424).** Bridge packet wake and this poller remain retired as execution dependencies.
 - Historical poller behavior (below) is retained only for forensic/operator archive reference.
 
 ## Components

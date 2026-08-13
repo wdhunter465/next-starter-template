@@ -22,7 +22,7 @@ Last Reviewed: 2026-08-13
 | Model A / Model B procedures | `docs/how-to/agents/run-model-a.md`, `docs/how-to/agents/run-model-b.md` |
 | Runtime routing | `docs/governance/standards/CURSOR-RUNTIME-ROUTING.md` |
 | Shared execution rules | `docs/ops/ai/CORE-RULES.md` |
-| Cursor handoff and wake | `docs/ops/ai/chatgpt-cursor-handoff-workflow.md`, `docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md` (primary); Bridge and poll-wake docs are superseded/decommissioned archives (`docs/how-to/cursor/configure-cursor-local-bridge.md`, `docs/how-to/cursor/github-poll-wake-loop.md`) — #3424 |
+| Cursor handoff and wake | `docs/ops/ai/chatgpt-cursor-handoff-workflow.md`, `docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md` (primary); Cursor Local Bridge is decommissioned (`docs/reference/ci/cursor-local-bridge-contract.md`); `docs/how-to/cursor/github-poll-wake-loop.md` (retired archive) |
 | Cursor Local operator runbook | `docs/how-to/cursor/local-environment-and-agent-runbook.md` |
 
 ## Read order

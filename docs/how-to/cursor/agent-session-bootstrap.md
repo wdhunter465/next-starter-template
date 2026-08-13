@@ -70,10 +70,8 @@ Both commands must pass before marking the PR ready for review.
 ## Related procedures
 
 - Cursor Local environment and agent runbook (restart without chat memory): [`local-environment-and-agent-runbook.md`](./local-environment-and-agent-runbook.md)
-- Primary Cursor local auto-start (dispatch runner): [`../ci/configure-lgfc-cursor-dispatch-runner.md`](../ci/configure-lgfc-cursor-dispatch-runner.md)
-- Runtime routing standard: [`../../governance/standards/CURSOR-RUNTIME-ROUTING.md`](../../governance/standards/CURSOR-RUNTIME-ROUTING.md)
-- Cursor Local Bridge configure (superseded/decommissioned): [`configure-cursor-local-bridge.md`](./configure-cursor-local-bridge.md)
-- Local GitHub poll-wake loop (retired execution dependency; archive only): [`github-poll-wake-loop.md`](./github-poll-wake-loop.md)
+- Local GitHub poll-wake loop (retired execution dependency; archive only — Bridge is decommissioned and does not replace this loop): [`github-poll-wake-loop.md`](./github-poll-wake-loop.md)
+- Current Cursor runtime routing: [`CURSOR-RUNTIME-ROUTING.md`](../../governance/standards/CURSOR-RUNTIME-ROUTING.md)
 
 ## Execution
 

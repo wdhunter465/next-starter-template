@@ -13,15 +13,13 @@ Last Reviewed: 2026-08-13
 
 ## Status (#3212 Phase 4 / #3424)
 
-**Superseded / decommissioned as current architecture.** Cursor Local Bridge is no longer the operationally supported primary local auto-start path. Current primary transport is GitHub Actions `lgfc-cursor-dispatch` on runner label `lgfc-cursor` — see `docs/governance/standards/CURSOR-RUNTIME-ROUTING.md` and `docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md`.
-
-This explanation remains as historical as-built design for the retired Bridge package. Do not treat the Decision table below as the active default route.
+**Historical as-built.** Cursor Local Bridge is **decommissioned** as the primary local auto-start path. Current routing is `docs/governance/standards/CURSOR-RUNTIME-ROUTING.md` (`lgfc-cursor-dispatch`). This explanation retains the Bridge-era design so operators can interpret leftover host artifacts; it is not current operating procedure.
 
 ## Purpose
 
-Explain the **historical** event-driven **GitHub Actions wake delivery → Chromebook runner → Cursor Local Bridge → local `cursor agent`** path: why the Actions runner alone was not a Cursor notifier, and why a spawned CLI process is not proof that the agent accepted work.
+Explain why LGFC historically used an event-driven **GitHub Actions wake delivery → Chromebook runner → Cursor Local Bridge → local `cursor agent`** path, why the Actions runner alone is not a Cursor notifier, and why a spawned CLI process is not proof that the agent accepted work.
 
-This document records the as-built Bridge design derived from Issue #2667 / PR #2669, extended by #2694 for heartbeat, watchdog recovery, and missed-handoff reconciliation, corrected by #2739 for transactional launch acceptance, extended by #2681 for deterministic preflight before claim/launch, and extended by #2814 for Bridge Watch / Bridge Build package maintenance. It is not standing authority for current wake routing after #3424.
+This document is the **historical** as-built design record derived from Issue #2667 / PR #2669, extended by #2694, #2739, #2681, and #2814. It is not current operating procedure. Current Cursor runtime routing is `docs/governance/standards/CURSOR-RUNTIME-ROUTING.md`.
 
 ## Problem
 
@@ -37,9 +35,9 @@ The third boundary is critical. Transport success, process creation, connection 
 
 A fourth reliability boundary surfaced later: the eligibility/routing logic had drifted into parsing specific comment text (`LOCAL CURSOR RESUME`, `CHATGPT RESPONSE`, action-count and chronology checks) as a de-facto second gate on top of labels, even though #2997 had already established labels as the routing signal. That made the handoff brittle — a missing or malformed comment could block a Cursor-labeled, ready Issue indefinitely — and duplicated notification steps (ACK/STARTED/COMPLETED-style comments) added noise without adding safety. #3013 removed comment-text parsing entirely: routing and gating are decided from Issue **labels and status only**.
 
-## Decision
+## Decision (historical Bridge package)
 
-**Auto-start local CLI agent with transactional acceptance, local health, and recovery.**
+**Auto-start local CLI agent with transactional acceptance, local health, and recovery** was the Bridge-era choice. It is not the current primary transport.
 
 | Decision | Choice |
 | --- | --- |
@@ -216,9 +214,8 @@ Repository tests must prove spawn-without-acceptance timeout, pre-accept retryab
 
 ## Related documents
 
-- **Current primary wake:** `docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md`
-- **Current runtime routing:** `docs/governance/standards/CURSOR-RUNTIME-ROUTING.md`
-- Historical Bridge contract (superseded): `docs/reference/ci/cursor-local-bridge-contract.md`
-- Historical Bridge install (superseded): `docs/how-to/cursor/configure-cursor-local-bridge.md`
+- Current runtime routing: `docs/governance/standards/CURSOR-RUNTIME-ROUTING.md`
+- Decommissioned Bridge contract: `docs/reference/ci/cursor-local-bridge-contract.md`
+- Decommissioned Bridge install how-to: `docs/how-to/cursor/configure-cursor-local-bridge.md`
 - Runner contract: `docs/reference/ci/repository-runner-contract.md`
 - Retired poll-wake archive: `docs/how-to/cursor/github-poll-wake-loop.md`

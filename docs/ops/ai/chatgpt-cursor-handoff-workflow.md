@@ -251,13 +251,15 @@ Unaffected work resume: <authorized | not authorized>
 
 Day-2 Operations authorizes hold release. Administration & Communications records the state and routes `RESUME`.
 
-## Local Cursor wake and resume adapter (Bridge decommissioned — #3013 / #3212 / #3424)
+## Local Cursor wake and resume adapter (labels/status only — #3013; Bridge decommissioned — #3424)
 
-Cursor Local Bridge is **decommissioned as the primary local auto-start path** (#3424). Primary wake is GitHub Actions `lgfc-cursor-dispatch` (`docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md`). Eligibility for Cursor Local work remains Issue **labels and status only** (`agent:cursor` + `handoff:ready`, open, not already handed off — see `docs/governance/standards/CURSOR-RUNTIME-ROUTING.md`).
+Cursor Local routing eligibility is Issue **labels and status only** (`agent:cursor` + `handoff:ready`, open, not already handed off). There is no comment-marker protocol. Posting `LOCAL CURSOR RESUME`, `CHATGPT RESPONSE`, or `CHATGPT CLOSEOUT` is ordinary cross-agent context and has no effect on eligibility.
 
-When Bridge was still operated, it no longer required, read, or gated launch on a `LOCAL CURSOR RESUME` (or `CHATGPT RESPONSE`/`CHATGPT CLOSEOUT`) comment (#3013). Posting a resume comment is not necessary to trigger Cursor Local wake and has no effect on eligibility.
+**Current primary transport:** GitHub Actions `lgfc-cursor-dispatch` on runner label `lgfc-cursor`. Canonical: `docs/governance/standards/CURSOR-RUNTIME-ROUTING.md`.
 
-Any of the legacy markers named in this workflow may still be posted as ordinary cross-agent context/evidence — Cursor reads comments after launch the same way it reads the Issue body — but none of them are transport or gating mechanisms for current dispatch wake, and none should be described as Bridge launch triggers.
+**Decommissioned:** Cursor Local Bridge is not an operationally supported primary auto-start path (`docs/reference/ci/cursor-local-bridge-contract.md`). Do not treat Bridge packet delivery or the local poll-wake loop as the current wake bus.
+
+Any of the legacy markers named in this workflow may still be posted as ordinary cross-agent context/evidence — Cursor reads comments after launch the same way it reads the Issue body — but none of them are transport or gating mechanisms.
 
 ## Acknowledgment and retry
 

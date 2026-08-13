@@ -15,7 +15,7 @@ Last Reviewed: 2026-08-13
 
 Define the repository-side contract for the Chromebook Linux GitHub Actions runner.
 
-Because the repository is public, the runner is repository-scoped and must not accept pull-request, fork, push, schedule, deployment, or secret-bearing work. Permitted jobs are **manual health** and (historically) **wake-packet delivery** for the now-decommissioned Cursor Local Bridge path. Automatic Bridge wake delivery is retired (#3212 Phase 4 / #3424). Primary Cursor local auto-start is `lgfc-cursor-dispatch` on runner label `lgfc-cursor` — see `docs/governance/standards/CURSOR-RUNTIME-ROUTING.md`. The `lgfc-repo-runner` must not launch Cursor or hold Cursor API keys.
+Because the repository is public, the runner is repository-scoped and must not accept pull-request, fork, push, schedule, deployment, or secret-bearing work. Permitted jobs are manual health and observe-only work. Historical wake-packet delivery for Cursor Local Bridge is retired (#3212 Phase 4); the Bridge consumer is **decommissioned** (#3424). The runner must not launch Cursor or hold Cursor API keys.
 
 ## Scope
 
@@ -60,8 +60,8 @@ Split responsibility:
 - `.github/workflows/repository-runner-health.yml`
 - `.github/workflows/cursor-local-wake.yml`
 - `docs/how-to/ci/configure-lgfc-repository-runner.md`
-- `docs/reference/ci/cursor-local-bridge-contract.md` (superseded/decommissioned historical Bridge contract)
-- `docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md` (primary Cursor local auto-start)
+- `docs/reference/ci/cursor-local-bridge-contract.md` (decommissioned historical Bridge contract)
+- `docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md` (current Cursor wake runner)
 - `docs/reference/operations/operating-lanes-and-promotion-profiles.md`
 
 ## Identity
@@ -116,7 +116,7 @@ When `wakeDelivery` remains present in the contract file it must still satisfy:
 - `workflow: .github/workflows/cursor-local-wake.yml`
 - repository is `wdhunter465/next-starter-template`
 
-Historical Bridge package behavior (when temporarily re-enabled for diagnostics) is documented in `docs/reference/ci/cursor-local-bridge-contract.md`. The `lgfc-repo-runner` remains transport/health only and must not own Cursor credentials, serial claims, or agent launch as a primary path.
+Historical Bridge package behavior (diagnostic re-enablement only) is documented in `docs/reference/ci/cursor-local-bridge-contract.md`. The `lgfc-repo-runner` remains transport/health only and must not own Cursor credentials, serial claims, or agent launch as a primary path. Cursor Local Bridge is decommissioned (#3424).
 
 Existing product workflows must remain on their current runners until Project #2294 authorizes a specific migration.
 
