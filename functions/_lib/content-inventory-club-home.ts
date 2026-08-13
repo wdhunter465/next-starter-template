@@ -694,20 +694,43 @@ async function activateEditionPointer(
   db: any,
   editionId: number,
   activatedBy: string,
-): Promise<void> {
+): Promise<{ ok: true } | { ok: false; error: string; status: number; building_edition_id?: number }> {
   const now = await nowIso(db);
-  await db
+  const result = await db
     .prepare(
       `INSERT INTO content_inventory_club_home_active_edition
          (singleton, edition_id, activated_at, activated_by)
-       VALUES (1, ?, ?, ?)
+       SELECT 1, ?, ?, ?
+        WHERE NOT EXISTS (
+          SELECT 1 FROM content_inventory_club_home_editions WHERE status = ?
+        )
        ON CONFLICT(singleton) DO UPDATE SET
          edition_id = excluded.edition_id,
          activated_at = excluded.activated_at,
-         activated_by = excluded.activated_by`,
+         activated_by = excluded.activated_by
+       WHERE NOT EXISTS (
+         SELECT 1 FROM content_inventory_club_home_editions WHERE status = ?
+       )`,
     )
-    .bind(editionId, now, activatedBy)
+    .bind(editionId, now, activatedBy, EDITION_STATUS.building, EDITION_STATUS.building)
     .run();
+
+  const changes = Number((result as any)?.meta?.changes ?? 0);
+  if (changes < 1) {
+    const building = await db
+      .prepare(
+        `SELECT id FROM content_inventory_club_home_editions WHERE status = ? LIMIT 1`,
+      )
+      .bind(EDITION_STATUS.building)
+      .first();
+    return {
+      ok: false,
+      error: 'Cannot activate while an edition regeneration is in progress.',
+      status: 409,
+      building_edition_id: building?.id ? Number(building.id) : undefined,
+    };
+  }
+  return { ok: true };
 }
 
 export type ClubHomeEditionMutationResult =
@@ -757,14 +780,52 @@ export async function regenerateClubHomeEdition(
   const previousEditionId = previous?.edition.id ?? null;
   const now = await nowIso(db);
 
-  await db
-    .prepare(
-      `INSERT INTO content_inventory_club_home_editions
-         (status, created_at, created_by, completed_at, failure_reason)
-       VALUES (?, ?, ?, NULL, NULL)`,
-    )
-    .bind(EDITION_STATUS.building, now, createdBy)
-    .run();
+  let insertResult: any;
+  try {
+    insertResult = await db
+      .prepare(
+        `INSERT INTO content_inventory_club_home_editions
+           (status, created_at, created_by, completed_at, failure_reason)
+         SELECT ?, ?, ?, NULL, NULL
+          WHERE NOT EXISTS (
+            SELECT 1 FROM content_inventory_club_home_editions WHERE status = ?
+          )`,
+      )
+      .bind(EDITION_STATUS.building, now, createdBy, EDITION_STATUS.building)
+      .run();
+  } catch (err: any) {
+    const message = String(err?.message || err || '');
+    if (/UNIQUE|unique|constraint/i.test(message)) {
+      const building = await db
+        .prepare(
+          `SELECT id FROM content_inventory_club_home_editions WHERE status = ? LIMIT 1`,
+        )
+        .bind(EDITION_STATUS.building)
+        .first();
+      return {
+        ok: false,
+        error: 'A Club Home edition regeneration is already in progress.',
+        status: 409,
+        building_edition_id: building?.id ? Number(building.id) : undefined,
+      };
+    }
+    return { ok: false, error: message || 'Edition insert failed.', status: 500 };
+  }
+
+  if (Number(insertResult?.meta?.changes ?? 0) < 1) {
+    const building = await db
+      .prepare(
+        `SELECT id FROM content_inventory_club_home_editions WHERE status = ? LIMIT 1`,
+      )
+      .bind(EDITION_STATUS.building)
+      .first();
+    return {
+      ok: false,
+      error: 'A Club Home edition regeneration is already in progress.',
+      status: 409,
+      building_edition_id: building?.id ? Number(building.id) : undefined,
+    };
+  }
 
   const idRow = await db.prepare('SELECT last_insert_rowid() AS id').first();
   const editionId = Number((idRow as any)?.id || 0);
@@ -875,7 +936,16 @@ export async function regenerateClubHomeEdition(
       .run();
 
     // Activate only after the edition is complete/valid.
-    await activateEditionPointer(db, editionId, createdBy);
+    const activated = await activateEditionPointer(db, editionId, createdBy);
+    if (!activated.ok) {
+      // Leave the ready edition in place but do not steal activation from a concurrent build.
+      return {
+        ok: false,
+        error: activated.error,
+        status: activated.status,
+        building_edition_id: activated.building_edition_id,
+      };
+    }
 
     const historyPlacements: PlacementHistoryRecord[] = placementRows
       .filter((row) => row.story_id != null)
@@ -966,7 +1036,15 @@ export async function rollbackClubHomeEdition(
     }
 
     const previous = await getActiveClubHomeEdition(db);
-    await activateEditionPointer(db, targetId, activatedBy);
+    const activated = await activateEditionPointer(db, targetId, activatedBy);
+    if (!activated.ok) {
+      return {
+        ok: false,
+        error: activated.error,
+        status: activated.status,
+        building_edition_id: activated.building_edition_id,
+      };
+    }
 
     return {
       ok: true,

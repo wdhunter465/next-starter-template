@@ -17,6 +17,11 @@ CREATE TABLE IF NOT EXISTS content_inventory_club_home_editions (
 CREATE INDEX IF NOT EXISTS idx_club_home_editions_status_created
   ON content_inventory_club_home_editions (status, created_at);
 
+-- At most one in-flight building edition (deterministic concurrency fail-closed).
+CREATE UNIQUE INDEX IF NOT EXISTS idx_club_home_editions_one_building
+  ON content_inventory_club_home_editions (status)
+  WHERE status = 'building';
+
 CREATE TABLE IF NOT EXISTS content_inventory_club_home_edition_placements (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   edition_id INTEGER NOT NULL,

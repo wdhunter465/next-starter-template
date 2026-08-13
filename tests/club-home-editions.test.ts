@@ -175,6 +175,10 @@ function makeEditionDb(options?: {
         },
         run: async () => {
           if (sql.includes('INSERT INTO content_inventory_club_home_editions')) {
+            const buildingExists = editions.some((row) => row.status === 'building');
+            if (sql.includes('WHERE NOT EXISTS') && buildingExists) {
+              return { success: true, meta: { changes: 0, last_row_id: 0 } };
+            }
             const id = nextEditionId++;
             editions.push({
               id,
@@ -184,7 +188,7 @@ function makeEditionDb(options?: {
               completed_at: null,
               failure_reason: null,
             });
-            return { success: true, meta: { last_row_id: id } };
+            return { success: true, meta: { changes: 1, last_row_id: id } };
           }
           if (sql.includes('INSERT INTO content_inventory_club_home_edition_placements')) {
             placements.push({
@@ -197,7 +201,7 @@ function makeEditionDb(options?: {
               feature_size: args[5] == null ? null : String(args[5]),
               created_at: String(args[6]),
             });
-            return { success: true };
+            return { success: true, meta: { changes: 1 } };
           }
           if (sql.includes('UPDATE content_inventory_club_home_editions')) {
             const status = String(args[0]);
@@ -216,17 +220,21 @@ function makeEditionDb(options?: {
                 target.failure_reason = String(args[2]);
               }
             }
-            return { success: true };
+            return { success: true, meta: { changes: 1 } };
           }
           if (sql.includes('INSERT INTO content_inventory_club_home_active_edition')) {
+            const buildingExists = editions.some((row) => row.status === 'building');
+            if (sql.includes('WHERE NOT EXISTS') && buildingExists) {
+              return { success: true, meta: { changes: 0 } };
+            }
             active = {
               edition_id: Number(args[0]),
               activated_at: String(args[1]),
               activated_by: args[2] == null ? null : String(args[2]),
             };
-            return { success: true };
+            return { success: true, meta: { changes: 1 } };
           }
-          return { success: true };
+          return { success: true, meta: { changes: 0 } };
         },
       });
       return {
