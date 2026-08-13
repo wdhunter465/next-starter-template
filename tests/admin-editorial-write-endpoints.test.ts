@@ -33,17 +33,20 @@ function makeWriteDb(options?: {
   mediaAssociations?: Array<Record<string, unknown>>;
   pins?: Array<Record<string, unknown>>;
   tableNames?: string[];
+  auditWriteFails?: boolean;
 }) {
   const submissions = options?.submissions ?? [];
   const inventory = options?.inventory ?? [];
   const photos = options?.photos ?? [];
   const mediaAssociations = options?.mediaAssociations ?? [];
   const pins = options?.pins ?? [];
+  const auditEvents: Array<{ sql: string; args: unknown[] }> = [];
   const tableNames = options?.tableNames ?? [
     'submission_queue',
     'content_inventory',
     'content_inventory_media',
     'content_inventory_club_home_pins',
+    'editorial_audit_events',
     'photos',
   ];
   const runs: Array<{ sql: string; args: unknown[] }> = [];
@@ -110,6 +113,12 @@ function makeWriteDb(options?: {
 
       const runFn = async (...args: unknown[]) => {
         runs.push({ sql, args });
+        if (sql.includes('INSERT INTO editorial_audit_events')) {
+          if (options?.auditWriteFails) {
+            throw new Error('no such table: editorial_audit_events');
+          }
+          auditEvents.push({ sql, args });
+        }
         if (sql.includes('INSERT INTO content_inventory_club_home_pins')) {
           const next = {
             zone_id: args[0],
@@ -163,7 +172,7 @@ function makeWriteDb(options?: {
     }),
   };
 
-  return { db, runs, pins };
+  return { db, runs, pins, auditEvents };
 }
 
 const pendingSubmission = {
@@ -623,6 +632,102 @@ describe('admin editorial write endpoints (#3387 P1-02)', () => {
         ok: false,
         error: 'story_id is required.',
       });
+    });
+  });
+
+  describe('editorial audit (#3416 P1-08)', () => {
+    it('writes structured audit on successful review triage', async () => {
+      const { db, auditEvents } = makeWriteDb({ submissions: [pendingSubmission] });
+      const response = await reviewPost({
+        request: adminPostRequest('/api/admin/editorial/review', {
+          submission_id: 21,
+          action: 'triage',
+          reviewer: 'ops-reviewer',
+        }),
+        env: { ADMIN_TOKEN: 'secret', DB: db },
+      });
+      expect(response.status).toBe(200);
+      expect(auditEvents).toHaveLength(1);
+      expect(auditEvents[0]?.args[0]).toBe('triage');
+      expect(auditEvents[0]?.args[1]).toBe('submission');
+      expect(auditEvents[0]?.args[2]).toBe(21);
+      expect(auditEvents[0]?.args[3]).toBe('ops-reviewer');
+      expect(String(auditEvents[0]?.args[4])).toContain('pending');
+      expect(String(auditEvents[0]?.args[5])).toContain('triaged');
+    });
+
+    it('writes audit on inventory create and publish status change', async () => {
+      const created = makeWriteDb();
+      const createResponse = await inventoryPost({
+        request: adminPostRequest('/api/admin/editorial/inventory', {
+          tag: 'audit-create',
+          title: 'Audit create',
+          text: 'Body',
+          story_type: 'brief',
+          source_name: 'Archive',
+          credit_line: 'LGFC',
+          submitted_by: 'editor',
+        }),
+        env: { ADMIN_TOKEN: 'secret', DB: created.db },
+      });
+      expect(createResponse.status).toBe(200);
+      expect(created.auditEvents.some((row) => row.args[0] === 'inventory_create')).toBe(true);
+
+      const { db, auditEvents } = makeWriteDb({
+        inventory: [
+          {
+            id: 4,
+            status: 'draft',
+            source_name: 'Archive',
+            credit_line: 'LGFC',
+            allowed_sections: 'club_home',
+          },
+        ],
+      });
+      const publishResponse = await publishPost({
+        request: adminPostRequest('/api/admin/editorial/publish', { id: 4, status: 'published' }),
+        env: { ADMIN_TOKEN: 'secret', DB: db },
+      });
+      expect(publishResponse.status).toBe(200);
+      expect(auditEvents.some((row) => row.args[0] === 'status_change' && row.args[2] === 4)).toBe(true);
+    });
+
+    it('does not write success audit for unauthorized or invalid writes', async () => {
+      const denied = makeWriteDb({ submissions: [pendingSubmission] });
+      const deniedResponse = await reviewPost({
+        request: adminPostRequest('/api/admin/editorial/review', { submission_id: 21, action: 'triage' }, ''),
+        env: { ADMIN_TOKEN: 'secret', DB: denied.db },
+      });
+      expect(deniedResponse.status).toBe(401);
+      expect(denied.auditEvents).toHaveLength(0);
+
+      const invalid = makeWriteDb({
+        inventory: [{ id: 4, status: 'draft', source_name: '', credit_line: '' }],
+      });
+      const invalidResponse = await publishPost({
+        request: adminPostRequest('/api/admin/editorial/publish', { id: 4, status: 'published' }),
+        env: { ADMIN_TOKEN: 'secret', DB: invalid.db },
+      });
+      expect(invalidResponse.status).toBe(400);
+      expect(invalid.auditEvents).toHaveLength(0);
+    });
+
+    it('fail-opens when audit storage is unavailable', async () => {
+      const { db, auditEvents } = makeWriteDb({
+        submissions: [pendingSubmission],
+        auditWriteFails: true,
+      });
+      const response = await reviewPost({
+        request: adminPostRequest('/api/admin/editorial/review', {
+          submission_id: 21,
+          action: 'triage',
+          reviewer: 'ops-reviewer',
+        }),
+        env: { ADMIN_TOKEN: 'secret', DB: db },
+      });
+      expect(response.status).toBe(200);
+      await expect(response.json()).resolves.toMatchObject({ ok: true, action: 'triage' });
+      expect(auditEvents).toHaveLength(0);
     });
   });
 });

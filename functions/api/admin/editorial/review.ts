@@ -108,6 +108,44 @@ function defaultCreditFromSubmitter(value: unknown): string {
   return submittedBy.includes("<") ? submittedBy.split("<")[0].trim() : submittedBy;
 }
 
+/** Fail-open structured audit — never blocks a successful editorial mutation. */
+async function recordEditorialAudit(
+  db: any,
+  event: {
+    action: string;
+    objectType: string;
+    objectId?: number | null;
+    actor?: string | null;
+    before?: Record<string, unknown> | null;
+    after?: Record<string, unknown> | null;
+    meta?: Record<string, unknown> | null;
+  },
+): Promise<void> {
+  try {
+    const nowRow = await db.prepare("SELECT datetime('now') AS now").first();
+    const now = String((nowRow as any)?.now || new Date().toISOString());
+    await db
+      .prepare(
+        `INSERT INTO editorial_audit_events
+           (action, object_type, object_id, actor, outcome, before_json, after_json, meta_json, created_at)
+         VALUES (?, ?, ?, ?, 'success', ?, ?, ?, ?)`,
+      )
+      .bind(
+        event.action,
+        event.objectType,
+        event.objectId ?? null,
+        event.actor ?? null,
+        event.before ? JSON.stringify(event.before) : null,
+        event.after ? JSON.stringify(event.after) : null,
+        event.meta ? JSON.stringify(event.meta) : null,
+        now,
+      )
+      .run();
+  } catch (err) {
+    console.error("editorial audit write error:", err);
+  }
+}
+
 export const onRequestPost = async (context: any): Promise<Response> => {
   const { request, env } = context;
 
@@ -170,6 +208,16 @@ export const onRequestPost = async (context: any): Promise<Response> => {
         .bind(triageFlags, duplicateCandidate, reviewNotes, now, reviewer, submissionId)
         .run();
 
+      await recordEditorialAudit(d1.db, {
+        action: "triage",
+        objectType: "submission",
+        objectId: submissionId,
+        actor: reviewer,
+        before: { status: currentStatus },
+        after: { status: "triaged" },
+        meta: { duplicate_candidate: duplicateCandidate },
+      });
+
       return jsonResponse({ ok: true, action: "triage", submission_id: submissionId }, 200);
     }
 
@@ -186,6 +234,15 @@ export const onRequestPost = async (context: any): Promise<Response> => {
         )
         .bind(reviewNotes, now, reviewer, submissionId)
         .run();
+
+      await recordEditorialAudit(d1.db, {
+        action: "start_review",
+        objectType: "submission",
+        objectId: submissionId,
+        actor: reviewer,
+        before: { status: currentStatus },
+        after: { status: "under_review" },
+      });
 
       return jsonResponse({ ok: true, action: "start_review", submission_id: submissionId }, 200);
     }
@@ -207,6 +264,15 @@ export const onRequestPost = async (context: any): Promise<Response> => {
         )
         .bind(reviewNotes, reviewer, now, now, now, reviewer, submissionId)
         .run();
+
+      await recordEditorialAudit(d1.db, {
+        action: "purge",
+        objectType: "submission",
+        objectId: submissionId,
+        actor: reviewer,
+        before: { status: currentStatus },
+        after: { status: "purged" },
+      });
 
       return jsonResponse({ ok: true, action: "purge", submission_id: submissionId }, 200);
     }
@@ -244,6 +310,19 @@ export const onRequestPost = async (context: any): Promise<Response> => {
           submissionId,
         )
         .run();
+
+      await recordEditorialAudit(d1.db, {
+        action: "reject",
+        objectType: "submission",
+        objectId: submissionId,
+        actor: reviewer,
+        before: { status: currentStatus },
+        after: { status: "rejected" },
+        meta: {
+          retention_reason: retentionReason,
+          purge_eligible_at: purgeEligibleAt,
+        },
+      });
 
       return jsonResponse({ ok: true, action: "reject", submission_id: submissionId }, 200);
     }
@@ -289,6 +368,16 @@ export const onRequestPost = async (context: any): Promise<Response> => {
         )
         .bind(mergeNote, duplicateCandidate || String(targetInventoryId), reviewer, now, now, now, reviewer, submissionId)
         .run();
+
+      await recordEditorialAudit(d1.db, {
+        action: "merge",
+        objectType: "submission",
+        objectId: submissionId,
+        actor: reviewer,
+        before: { status: currentStatus },
+        after: { status: "merged" },
+        meta: { inventory_id: targetInventoryId },
+      });
 
       return jsonResponse(
         { ok: true, action: "merge", submission_id: submissionId, inventory_id: targetInventoryId },
@@ -424,6 +513,16 @@ export const onRequestPost = async (context: any): Promise<Response> => {
         )
         .run();
     }
+
+    await recordEditorialAudit(d1.db, {
+      action: "approve",
+      objectType: "submission",
+      objectId: submissionId,
+      actor: reviewer,
+      before: { status: currentStatus },
+      after: { status: "approved" },
+      meta: { inventory_id: inventoryId },
+    });
 
     return jsonResponse(
       {
