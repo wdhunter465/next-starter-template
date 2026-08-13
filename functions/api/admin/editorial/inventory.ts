@@ -69,6 +69,44 @@ function slugifyTag(value: string): string {
     .slice(0, 80);
 }
 
+/** Fail-open structured audit — never blocks a successful editorial mutation. */
+async function recordEditorialAudit(
+  db: any,
+  event: {
+    action: string;
+    objectType: string;
+    objectId?: number | null;
+    actor?: string | null;
+    before?: Record<string, unknown> | null;
+    after?: Record<string, unknown> | null;
+    meta?: Record<string, unknown> | null;
+  },
+): Promise<void> {
+  try {
+    const nowRow = await db.prepare("SELECT datetime('now') AS now").first();
+    const now = String((nowRow as any)?.now || new Date().toISOString());
+    await db
+      .prepare(
+        `INSERT INTO editorial_audit_events
+           (action, object_type, object_id, actor, outcome, before_json, after_json, meta_json, created_at)
+         VALUES (?, ?, ?, ?, 'success', ?, ?, ?, ?)`,
+      )
+      .bind(
+        event.action,
+        event.objectType,
+        event.objectId ?? null,
+        event.actor ?? null,
+        event.before ? JSON.stringify(event.before) : null,
+        event.after ? JSON.stringify(event.after) : null,
+        event.meta ? JSON.stringify(event.meta) : null,
+        now,
+      )
+      .run();
+  } catch (err) {
+    console.error("editorial audit write error:", err);
+  }
+}
+
 function normalizeAllowedSections(value: unknown): { ok: true; value: string } | { ok: false; error: string } {
   let sections: string[] = [];
   if (Array.isArray(value)) {
@@ -259,6 +297,15 @@ export const onRequestPost = async (context: any): Promise<Response> => {
         )
         .run();
 
+      await recordEditorialAudit(d1.db, {
+        action: "inventory_update",
+        objectType: "content_inventory",
+        objectId: id,
+        actor: fields.submittedBy || "admin-ui",
+        before: { status: String((existing as any).status || "draft") },
+        after: { status: String((existing as any).status || "draft"), tag: fields.tag },
+      });
+
       return jsonResponse({ ok: true, action: "update", id, status: String((existing as any).status || "draft") }, 200);
     }
 
@@ -295,6 +342,16 @@ export const onRequestPost = async (context: any): Promise<Response> => {
       .run();
 
     const inventoryId = (insert as any)?.meta?.last_row_id ?? (insert as any)?.meta?.lastRowId ?? null;
+
+    await recordEditorialAudit(d1.db, {
+      action: "inventory_create",
+      objectType: "content_inventory",
+      objectId: inventoryId == null ? null : Number(inventoryId),
+      actor: fields.submittedBy || "admin-ui",
+      before: null,
+      after: { status: "draft", tag: fields.tag },
+    });
+
     return jsonResponse({ ok: true, action: "create", id: inventoryId, status: "draft" }, 200);
   } catch (err: any) {
     const message = String(err?.message || err);

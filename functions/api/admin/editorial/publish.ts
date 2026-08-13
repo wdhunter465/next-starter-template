@@ -50,6 +50,44 @@ function pinZoneAllowsStoryType(zoneId: string, storyType: unknown): boolean {
   return true;
 }
 
+/** Fail-open structured audit — never blocks a successful editorial mutation. */
+async function recordEditorialAudit(
+  db: any,
+  event: {
+    action: string;
+    objectType: string;
+    objectId?: number | null;
+    actor?: string | null;
+    before?: Record<string, unknown> | null;
+    after?: Record<string, unknown> | null;
+    meta?: Record<string, unknown> | null;
+  },
+): Promise<void> {
+  try {
+    const nowRow = await db.prepare("SELECT datetime('now') AS now").first();
+    const now = String((nowRow as any)?.now || new Date().toISOString());
+    await db
+      .prepare(
+        `INSERT INTO editorial_audit_events
+           (action, object_type, object_id, actor, outcome, before_json, after_json, meta_json, created_at)
+         VALUES (?, ?, ?, ?, 'success', ?, ?, ?, ?)`,
+      )
+      .bind(
+        event.action,
+        event.objectType,
+        event.objectId ?? null,
+        event.actor ?? null,
+        event.before ? JSON.stringify(event.before) : null,
+        event.after ? JSON.stringify(event.after) : null,
+        event.meta ? JSON.stringify(event.meta) : null,
+        now,
+      )
+      .run();
+  } catch (err) {
+    console.error("editorial audit write error:", err);
+  }
+}
+
 async function handlePin(db: any, body: any): Promise<Response> {
   const tables = await requireTables(db, ["content_inventory", "content_inventory_club_home_pins"]);
   if (!tables.ok) return jsonResponse(tables.body, tables.status);
@@ -144,6 +182,16 @@ async function handlePin(db: any, body: any): Promise<Response> {
     .bind(zoneId, id, now, pinnedBy, expiresAt, now, now)
     .run();
 
+  await recordEditorialAudit(db, {
+    action: "pin",
+    objectType: "club_home_pin",
+    objectId: id,
+    actor: pinnedBy,
+    before: null,
+    after: { zone_id: zoneId, story_id: id, expires_at: expiresAt },
+    meta: { zone_id: zoneId },
+  });
+
   return jsonResponse(
     {
       ok: true,
@@ -186,6 +234,16 @@ async function handleUnpin(db: any, body: any): Promise<Response> {
     .prepare(`DELETE FROM content_inventory_club_home_pins WHERE zone_id = ?`)
     .bind(zoneId)
     .run();
+
+  await recordEditorialAudit(db, {
+    action: "unpin",
+    objectType: "club_home_pin",
+    objectId: Number((existing as any).story_id),
+    actor: "admin-ui",
+    before: { zone_id: zoneId, story_id: Number((existing as any).story_id) },
+    after: null,
+    meta: { zone_id: zoneId },
+  });
 
   return jsonResponse(
     {
@@ -272,6 +330,15 @@ export const onRequestPost = async (context: any): Promise<Response> => {
         // Pin table may be absent before migration; publication update still succeeds.
       }
     }
+
+    await recordEditorialAudit(d1.db, {
+      action: "status_change",
+      objectType: "content_inventory",
+      objectId: id,
+      actor: "admin-ui",
+      before: { status: String((existing as any).status || "") },
+      after: { status, published_at: publishedAt },
+    });
 
     return jsonResponse({ ok: true, id, status, published_at: publishedAt }, 200);
   } catch (err: any) {
