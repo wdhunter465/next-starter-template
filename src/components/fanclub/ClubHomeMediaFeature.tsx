@@ -7,6 +7,8 @@ type ClubHomeMediaFeatureProps = {
 };
 
 export default function ClubHomeMediaFeature({ media }: ClubHomeMediaFeatureProps) {
+  // Fail-closed: only render <img> when a persisted rendition URL is present.
+  // Never treat a missing thumbnail as a cue to show an origin full-resolution URL.
   const hasMedia = Boolean(media?.thumbnail_url);
 
   return (
