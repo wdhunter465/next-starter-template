@@ -280,7 +280,7 @@ describe('club-home editions P1-06', () => {
     expect(db.active?.edition_id).toBe(1);
 
     const payload = await fetchClubHomeContent(db);
-    expect(payload.source).toBe('edition');
+    expect(payload.source).toBe('content_inventory');
     expect(payload.edition_id).toBe(1);
     expect(payload.lead_story?.id).toBe(1);
     expect(payload.rail_stories[0]?.id).toBe(2);
@@ -325,7 +325,7 @@ describe('club-home editions P1-06', () => {
     );
 
     const payload = await fetchClubHomeContent(db);
-    expect(payload.source).toBe('edition');
+    expect(payload.source).toBe('content_inventory');
     expect(payload.edition_id).toBe(first.edition_id);
   });
 
@@ -338,7 +338,8 @@ describe('club-home editions P1-06', () => {
 
     inventory[0].status = 'draft';
     const payload = await fetchClubHomeContent(db);
-    expect(payload.source).toBe('edition');
+    expect(payload.source).toBe('content_inventory');
+    expect(payload.edition_id).toBe(generated.edition_id);
     expect(payload.lead_story).toBeNull();
     expect(payload.rail_stories[0]?.id).toBe(2);
   });

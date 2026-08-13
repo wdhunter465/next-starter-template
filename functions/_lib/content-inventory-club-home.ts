@@ -140,11 +140,12 @@ export type ClubHomeMediaFeaturePayload = {
 
 export type ClubHomeContentPayload = {
   ok: true;
-  source: 'content_inventory' | 'static' | 'edition';
+  source: 'content_inventory' | 'static';
   lead_story: ClubHomeStoryPayload | null;
   rail_stories: ClubHomeStoryPayload[];
   archive_spotlight: ClubHomeStoryPayload | null;
   media_feature: ClubHomeMediaFeaturePayload | null;
+  /** Present when the payload was hydrated from a persisted active edition. */
   edition_id?: number | null;
 };
 
@@ -571,7 +572,7 @@ async function payloadFromEdition(
 
   return {
     ok: true,
-    source: 'edition',
+    source: 'content_inventory',
     lead_story: leadStory,
     rail_stories: railStories,
     archive_spotlight: archiveSpotlight,

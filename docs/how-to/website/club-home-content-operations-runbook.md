@@ -92,7 +92,7 @@ Club Home serves **one explicit persisted edition** from D1. Rotation/fairness/p
 4. **Failure recovery:** If regeneration fails, the previously active edition remains active. Retry regenerate after fixing eligibility/publication issues.
 5. **Undo boundaries:** Rollback undoes activation only. It does not delete editions, rewrite placements, or restore unpublished inventory. Publication/unpublish remains the gate for member-visible story eligibility even inside an active edition.
 
-After migration `0048_club_home_editions.sql` is applied, member `GET /api/fanclub/home` serves the active edition (`source: "edition"`). With tables present but no active edition, Club Home fails closed to static empty modules until the first successful regenerate. If the migration is absent, the prior live-rotation path remains.
+After migration `0048_club_home_editions.sql` is applied, member `GET /api/fanclub/home` serves the active edition (`source: "content_inventory"` with a non-null `edition_id`). With tables present but no active edition, Club Home fails closed to static empty modules until the first successful regenerate. If the migration is absent, the prior live-rotation path remains.
 
 ### Member surface verification
 
