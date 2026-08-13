@@ -5,8 +5,8 @@ Authority Level: Operational Procedure
 Owns: Chromebook Debian 12 installation and verification sequence for the repository-scoped LGFC GitHub Actions runner
 Does Not Own: Repository runner contract, project launch, workflow migration, or production authorization
 Canonical Reference: /docs/reference/ci/repository-runner-contract.md
-Related Issues: #2294, #2593, #2667
-Last Reviewed: 2026-07-20
+Related Issues: #2294, #2593, #2667, #3212, #3424
+Last Reviewed: 2026-08-13
 ---
 
 # Configure the LGFC Chromebook Repository Runner
@@ -17,15 +17,15 @@ Install and verify one repository-scoped Chromebook Linux GitHub Actions runner 
 
 ## Scope
 
-This How-To covers repository-level registration, Debian 12 systemd service install, idle-state verification, the manual health workflow run from `main`, wake-packet delivery for Cursor Local Bridge, and stop/remove rollback. It does not authorize project launch, general workflow migration, Production routing, or retention of registration tokens in repository files.
+This How-To covers repository-level registration, Debian 12 systemd service install, idle-state verification, the manual health workflow run from `main`, historical wake-packet transport notes (Bridge path decommissioned), and stop/remove rollback. It does not authorize project launch, general workflow migration, Production routing, or retention of registration tokens in repository files.
 
 ## Current known truth
 
-The Chromebook runner `lgfc-chromebook-linux` is registered. Permitted runner jobs are Repository Runner Health and Cursor Local Wake Delivery (packet write only). Cursor launch is owned by Cursor Local Bridge — see `docs/how-to/cursor/configure-cursor-local-bridge.md`.
+The Chromebook runner `lgfc-chromebook-linux` is registered. Permitted routine jobs are Repository Runner Health. Automatic Cursor Local Wake packet delivery for Bridge is **retired** (#3212 Phase 4 / #3424); diagnostic `workflow_dispatch` only when Product Authority authorizes it. Primary Cursor local auto-start is `lgfc-cursor-dispatch` on runner label `lgfc-cursor` — see `docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md`. Bridge install how-to remains superseded historical reference only: `docs/how-to/cursor/configure-cursor-local-bridge.md`.
 
 ## Intended final state
 
-Runner healthy; Bridge installed and authenticated; wake packets delivered and either auto-started or explicitly fallen back; existing product workflows remain on current runners until a separate migration Go.
+Runner healthy for manual health (and optional authorized diagnostic wake observation); Bridge package not required for primary Cursor wake; existing product workflows remain on current runners until a separate migration Go.
 
 ## Prerequisite
 
@@ -125,6 +125,6 @@ If a job remains queued, verify the service is running, the runner is **Idle**, 
 
 If any unexpected workflow is routed to the Chromebook, stop the service and disable the runner in repository settings before investigating.
 
-## Bridge preflight relationship (#2681)
+## Bridge preflight relationship (#2681) — historical / decommissioned (#3424)
 
-The Chromebook runner remains packet transport only. Host readiness before Cursor claim is owned by the Cursor Local Bridge preflight engine and the existing `lgfc-cursor-bridge-watchdog.timer`. Do not add a competing runner-side Cursor launcher.
+When Bridge was primary, the Chromebook runner was packet transport only and host readiness before Cursor claim was owned by the Cursor Local Bridge preflight engine / `lgfc-cursor-bridge-watchdog.timer`. That Bridge auto-start path is decommissioned. Do not re-enable Bridge or add a competing runner-side Cursor launcher on `lgfc-repo-runner`. Primary launch ownership is the `lgfc-cursor` dispatch runner (`docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md`).

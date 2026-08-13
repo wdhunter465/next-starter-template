@@ -5,15 +5,15 @@ Authority Level: Project Contract
 Owns: Cursor Local Bridge component inventory, eligibility auto-start gates, transactional launch acceptance, wake-packet authority boundary, health/watchdog/reconciliation contract, and fallback taxonomy
 Does Not Own: Product decisions, PR approval, Background Agents, or unrestricted workflow migration onto the Chromebook runner
 Canonical Reference: /docs/explanation/operations/cursor-local-auto-start-architecture.md
-Related Issues: #2294, #2667, #2669, #2681, #2694, #2739, #2814, #2997, #3013, #3212
-Last Reviewed: 2026-08-09
+Related Issues: #2294, #2667, #2669, #2681, #2694, #2739, #2814, #2997, #3013, #3212, #3424
+Last Reviewed: 2026-08-13
 ---
 
 # Cursor Local Bridge Contract
 
-## Status (#3212 Phase 4)
+## Status (#3212 Phase 4 / #3424)
 
-**Retired as the primary auto-start contract.** Automatic wake-packet delivery is disabled (`wakeDelivery.enabled: false`). Primary transport is `lgfc-cursor-dispatch` / `config/github-actions/cursor-dispatch-runner.json`. This document remains the historical Bridge package contract and documents the approved diagnostic fallback (`workflow_dispatch` + `CURSOR_WAKE_DIAGNOSTIC`). Shared module `scripts/cursor-bridge/lib/wake-ingress.mjs` remains live for dispatch routing.
+**Decommissioned / superseded as the primary auto-start contract.** Product Authority (#3424) records Cursor Local Bridge as operationally down and no longer the supported primary local auto-start path. Automatic wake-packet delivery is disabled (`wakeDelivery.enabled: false`). Primary transport is `lgfc-cursor-dispatch` / `config/github-actions/cursor-dispatch-runner.json`. This document remains the historical Bridge package contract and documents the approved diagnostic fallback (`workflow_dispatch` + `CURSOR_WAKE_DIAGNOSTIC`). Shared module `scripts/cursor-bridge/lib/wake-ingress.mjs` remains live for dispatch routing.
 
 ## Purpose
 

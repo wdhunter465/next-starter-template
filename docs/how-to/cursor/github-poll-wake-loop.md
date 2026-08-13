@@ -5,15 +5,15 @@ Authority Level: Operational Authority
 Owns: Local Cursor GitHub poll-wake loop operation, watch rules, wake semantics, pickup evidence, and known reliability limits
 Does Not Own: Poller script implementation in `~/.cursor/github-poller/`, merge authority, GitHub webhook configuration, or cloud agent billing
 Canonical Reference: /docs/how-to/cursor/agent-session-bootstrap.md
-Related Issues: #2398, #2492, #2667, #3212
-Last Reviewed: 2026-08-09
+Related Issues: #2398, #2492, #2667, #3212, #3424
+Last Reviewed: 2026-08-13
 ---
 
 # Cursor local GitHub poll-wake loop
 
-## Status (#3212 Phase 4)
+## Status (#3212 Phase 4 / #3424)
 
-**Retired as an execution dependency.** Do not run `poll-wake-loop.sh` as part of normal LGFC Cursor wake. Primary transport is `lgfc-cursor-dispatch` (`docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md`). Restarting this loop requires an explicit Product Authority decision.
+**Retired / decommissioned as an execution dependency.** Do not run `poll-wake-loop.sh` as part of normal LGFC Cursor wake. Primary transport is `lgfc-cursor-dispatch` (`docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md`). Bridge and this poller are not primary/default local auto-start paths (#3424). Restarting this loop requires an explicit Product Authority decision.
 
 Host marker: `~/.cursor/github-poller/RETIRED-3212-PHASE4.txt`.
 

@@ -5,8 +5,8 @@ Authority Level: Operational Procedure
 Owns: GitHub communication markers, cross-lane routing, lightweight problem adjustment, local Cursor wake/resume, acknowledgment, and task-level handoff behavior
 Does Not Own: Role authority, delivery and promotion policy, PR approval, Production authorization, incident recovery strategy, or runner host maintenance
 Canonical Reference: /docs/governance/ADMINISTRATION-AND-COMMUNICATIONS.md
-Related Issues: #2396, #2492, #2640, #2641, #2639, #2648, #2997, #3013
-Last Reviewed: 2026-08-03
+Related Issues: #2396, #2492, #2640, #2641, #2639, #2648, #2997, #3013, #3212, #3424
+Last Reviewed: 2026-08-13
 ---
 
 # Cross-Lane ChatGPT / Cursor Communication Workflow
@@ -251,11 +251,13 @@ Unaffected work resume: <authorized | not authorized>
 
 Day-2 Operations authorizes hold release. Administration & Communications records the state and routes `RESUME`.
 
-## Local Cursor wake and resume adapter (retired for gating — #3013)
+## Local Cursor wake and resume adapter (Bridge decommissioned — #3013 / #3212 / #3424)
 
-Cursor Local Bridge no longer requires, reads, or gates launch on a `LOCAL CURSOR RESUME` (or `CHATGPT RESPONSE`/`CHATGPT CLOSEOUT`) comment. As of #3013, Bridge launch eligibility is decided from Issue **labels and status only** (`agent:cursor` + `handoff:ready`, open, not already handed off — see `docs/reference/ci/cursor-local-bridge-contract.md`). Posting a resume comment is no longer necessary to trigger a Cursor Local launch and has no effect on eligibility.
+Cursor Local Bridge is **decommissioned as the primary local auto-start path** (#3424). Primary wake is GitHub Actions `lgfc-cursor-dispatch` (`docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md`). Eligibility for Cursor Local work remains Issue **labels and status only** (`agent:cursor` + `handoff:ready`, open, not already handed off — see `docs/governance/standards/CURSOR-RUNTIME-ROUTING.md`).
 
-Any of the legacy markers named in this workflow may still be posted as ordinary cross-agent context/evidence — Cursor reads comments after launch the same way it reads the Issue body — but none of them are transport or gating mechanisms for the Bridge.
+When Bridge was still operated, it no longer required, read, or gated launch on a `LOCAL CURSOR RESUME` (or `CHATGPT RESPONSE`/`CHATGPT CLOSEOUT`) comment (#3013). Posting a resume comment is not necessary to trigger Cursor Local wake and has no effect on eligibility.
+
+Any of the legacy markers named in this workflow may still be posted as ordinary cross-agent context/evidence — Cursor reads comments after launch the same way it reads the Issue body — but none of them are transport or gating mechanisms for current dispatch wake, and none should be described as Bridge launch triggers.
 
 ## Acknowledgment and retry
 

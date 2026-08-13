@@ -5,8 +5,8 @@ Authority Level: Project Contract
 Owns: Repository-scoped self-hosted runner identity, labels, trusted invocation policy, rollout state, and control-plane placement for Project #2294
 Does Not Own: Host registration, project launch, workflow migration, deployment, production authorization, or the meaning of lane decisions
 Canonical Reference: /config/github-actions/repository-runner.json
-Related Issues: #2294, #2554, #2593, #2640, #2641, #2667
-Last Reviewed: 2026-07-20
+Related Issues: #2294, #2554, #2593, #2640, #2641, #2667, #3212, #3424
+Last Reviewed: 2026-08-13
 ---
 
 # LGFC Repository Runner Contract
@@ -15,7 +15,7 @@ Last Reviewed: 2026-07-20
 
 Define the repository-side contract for the Chromebook Linux GitHub Actions runner.
 
-Because the repository is public, the runner is repository-scoped and must not accept pull-request, fork, push, schedule, deployment, or secret-bearing work. Permitted jobs are manual health and **wake-packet delivery** for Cursor Local Bridge. The runner must not launch Cursor or hold Cursor API keys.
+Because the repository is public, the runner is repository-scoped and must not accept pull-request, fork, push, schedule, deployment, or secret-bearing work. Permitted jobs are **manual health** and (historically) **wake-packet delivery** for the now-decommissioned Cursor Local Bridge path. Automatic Bridge wake delivery is retired (#3212 Phase 4 / #3424). Primary Cursor local auto-start is `lgfc-cursor-dispatch` on runner label `lgfc-cursor` — see `docs/governance/standards/CURSOR-RUNTIME-ROUTING.md`. The `lgfc-repo-runner` must not launch Cursor or hold Cursor API keys.
 
 ## Scope
 
@@ -60,7 +60,8 @@ Split responsibility:
 - `.github/workflows/repository-runner-health.yml`
 - `.github/workflows/cursor-local-wake.yml`
 - `docs/how-to/ci/configure-lgfc-repository-runner.md`
-- `docs/reference/ci/cursor-local-bridge-contract.md`
+- `docs/reference/ci/cursor-local-bridge-contract.md` (superseded/decommissioned historical Bridge contract)
+- `docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md` (primary Cursor local auto-start)
 - `docs/reference/operations/operating-lanes-and-promotion-profiles.md`
 
 ## Identity
