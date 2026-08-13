@@ -5,8 +5,8 @@ Authority Level: Operational Procedure
 Owns: Operator handoff for Club Home content placement, source/credit review, and member-surface verification after Program #1685 Tasks 004–007
 Does Not Own: Merge authority, production B2 configuration, or issue closure
 Canonical Reference: /docs/reference/website/unified-content-workflow.md
-Related issues: #1693, #1685, #1689, #1690, #1691, #1692, #2461, #2663, #2664
-Last Reviewed: 2026-08-06
+Related issues: #1693, #1685, #1689, #1690, #1691, #1692, #2461, #2663, #2664, #3382, #3399, #3413
+Last Reviewed: 2026-08-13
 ---
 
 # Club Home Content Operations Runbook
@@ -71,13 +71,36 @@ Canonical workflow reference: `docs/reference/website/unified-content-workflow.m
 
 Runtime read path: `GET /api/fanclub/home` aggregates published `club_home` inventory with rotation rules in `functions/_lib/content-inventory-club-home.ts`.
 
+### Club Home pin / unpin (P1-05)
+
+Manual pins override rotation for one zone (`lead-story`, `story-rail`, or `archive-spotlight`) without changing publication status:
+
+1. Publish the row with `club_home` in `allowed_sections` and complete source/credit metadata.
+2. In admin editorial inventory, choose the zone and click **Pin to zone** (or call `POST /api/admin/editorial/publish` with `action: "pin"`, `id`, and `zone_id`).
+3. **Unpin zone** (or `action: "unpin"`) restores ordinary selection for that zone.
+4. Unpublish/archive of a pinned story clears that story's pins automatically.
+
+Pins alone do **not** change the member-facing Club Home surface once editions are in use — regenerate (below) to bake current pins into a new active edition.
+
+### Club Home editions — regenerate / inspect / rollback (P1-06)
+
+Club Home serves **one explicit persisted edition** from D1. Rotation/fairness/pins are applied only when an authorized editor regenerates.
+
+1. **Inspect current:** `GET /api/admin/editorial/club-home-edition-regenerate` (or open `/admin/editorial` → Club Home editions panel).
+2. **Regenerate (on demand):** `POST /api/admin/editorial/club-home-edition-regenerate` with optional `created_by`. Creates a new immutable edition, persists exact zone placements, activates only after the edition is complete/valid. Concurrent regenerations fail closed (409). There is **no** automatic daily/weekly schedule.
+3. **Rollback:** `POST /api/admin/editorial/club-home-edition-rollback` with `edition_id` of a prior **ready** edition. Reactivates that edition without rewriting its historical placements.
+4. **Failure recovery:** If regeneration fails, the previously active edition remains active. Retry regenerate after fixing eligibility/publication issues.
+5. **Undo boundaries:** Rollback undoes activation only. It does not delete editions, rewrite placements, or restore unpublished inventory. Publication/unpublish remains the gate for member-visible story eligibility even inside an active edition.
+
+After migration `0048_club_home_editions.sql` is applied, member `GET /api/fanclub/home` serves the active edition (`source: "edition"`). With tables present but no active edition, Club Home fails closed to static empty modules until the first successful regenerate. If the migration is absent, the prior live-rotation path remains.
+
 ### Member surface verification
 
-After Club Home publish:
+After Club Home publish **and** (when editions are enabled) a successful regenerate:
 
 | Route | Operator check |
 | --- | --- |
-| `/fanclub` | Dynamic modules show published inventory with source/credit; static fallback only when inventory empty |
+| `/fanclub` | Dynamic modules show the active edition placements with source/credit; static fallback when inventory empty or no active edition |
 | `/fanclub/library` | H1 **Gehrig Library**; server search via `?q=` returns published library-section inventory |
 | `/fanclub/photo` | Tag pills load from `GET /api/fanclub/photos/tags`; search uses photo list API |
 | `/fanclub/memorabilia` | H1 **Memorabilia Archive**; server search via memorabilia API; related library stories render when API returns `related_library_entries` |
@@ -108,7 +131,7 @@ Two reversible removal paths exist today, both via `POST /api/admin/editorial/pu
 - **Unpublish (temporary exclusion):** call with `status: "draft"` on an already-published row. This is wired in the admin UI (`src/app/admin/editorial/page.tsx`) as a distinct "unpublish" action, not merely a side effect of archiving. The row stops rendering anywhere immediately; it is not deleted and can be republished with `status: "published"`.
 - **Archive (longer-term removal):** call with `status: "archived"`. Same reversibility — `status: "published"` restores it — but signals a more durable removal than a temporary unpublish.
 
-Neither path deletes data or media associations; both are simple status-field transitions with full history preserved in the row itself.
+Neither path deletes data or media associations; both are simple status-field transitions with full history preserved in the row itself. Unpublish/archive also clears Club Home pins for that story. When editions are enabled, unpublish removes the story from live eligibility inside the active edition at serve time; regenerate to rebuild placements without that story.
 
 ### Substitute or update media (#2664)
 
@@ -116,7 +139,7 @@ Neither path deletes data or media associations; both are simple status-field tr
 2. `POST /api/admin/editorial/media-associations` with the full replacement `media_associations` array (each `media_id` must match an existing `photos` row; `PUBLIC_IMAGE_ROLES` — `primary_image`, `gallery_image`, `memorabilia_reference`, `supporting_image` — require non-empty `alt_text` or the request is rejected).
 3. This replaces the row's `content_inventory_media` associations wholesale for that story, not incrementally; omitting a previously-paired media item removes that pairing.
 
-### Troubleshooting (#2664)
+### Troubleshooting (#2664 / P1-06)
 
 | Symptom | Cause | Fix |
 | --- | --- | --- |
@@ -124,17 +147,17 @@ Neither path deletes data or media associations; both are simple status-field tr
 | `POST /api/admin/editorial/review` with `action: "approve"` returns 409 "canonical content record already exists for that tag" | A published or draft row already owns that `tag` as canonical | Either pick a different `tag`, or submit with `canonical: false` and a `perspective_label` to create an alternate-perspective row instead |
 | `POST /api/admin/editorial/media-associations` returns 400 "media_id values do not match approved photo records" | One or more `media_id` values are not real `photos.id` rows | Confirm the photo exists and use its `photos.id`, not an external reference string |
 | A submission stuck in `under_review` never resolves | No explicit timeout/expiry exists in `review.ts` today | Manually call `approve`, `reject`, or `merge`; there is no automatic escalation |
+| Club Home shows empty modules after editions migration | No active edition yet | Run **Regenerate edition** in admin or `POST .../club-home-edition-regenerate` |
+| Regenerate returns 409 | Another regeneration is `building` | Wait for completion or investigate a stuck `building` edition with WORK/ops |
+| Rollback returns 400 | Target edition is not `ready` or has no placements | Choose a prior successful edition id from inspect/history |
 
-### Not yet available — explicit gaps (#2663/#2664 evidence)
+### Remaining Phase 1 gaps (operator note)
 
-The following #2461-required editorial capabilities do **not** exist in the admin editorial system on `main` or `component/club-newspaper-phase0` today, confirmed by reading every file under `functions/api/admin/editorial/` and `src/app/admin/editorial/page.tsx` directly:
+Still out of scope for this runbook until later Phase 1 children land:
 
-- **Manual pinning** of a row to a specific Club Home zone, overriding rotation scoring.
-- **Edition generation, publication, or regeneration** as a persisted concept — `club_home` content is recomputed fresh on every request; there is nothing to "regenerate."
-- **A dedicated takedown/suppression action.** A `POST /api/admin/editorial/suppress` action exists, but only on `component/compliance-readiness` (from #2919's work) — it has not yet been merged to `main` or this component branch. Do not assume it is available here.
-- **A placement-history audit log.** The only persisted history is `content_inventory.last_featured` (one timestamp per row) plus the free-text `review_notes` append trail — neither is a structured per-placement audit record.
-
-These match the gaps #2663's contract (`docs/explanation/website/content-strategy.md`) already documents as required future work; this runbook does not duplicate that contract, only confirms the same gaps from the operator-procedure side.
+- **Media renditions** (P1-07 / D5)
+- **Structured editorial audit trail** beyond placement history (P1-08)
+- **Dedicated takedown/suppress reconciliation** with CC-002 fields (P1-09 / D3)
 
 ### Escalation
 
@@ -144,6 +167,6 @@ These match the gaps #2663's contract (`docs/explanation/website/content-strateg
 
 ### Verification (operator / Cursor)
 
-1. Run `npm run typecheck`.
-2. Run targeted Vitest suites: `tests/fanclub-operations.test.tsx`, `tests/fanclub-home-shell.test.tsx`, `tests/fanclub-home-dynamic.test.tsx`, `tests/mobile-navigation.test.tsx`.
-3. Record pass/fail outcomes in the PR body when making member-surface changes.
+1. Run focused suites: `tests/content-inventory-club-home.test.ts`, `tests/club-home-editions.test.ts`, plus applicable admin editorial write regressions.
+2. Run `git diff --check` and docs header checks for this runbook when modified.
+3. Record pass/fail outcomes in the PR body when making Club Home runtime or edition changes.

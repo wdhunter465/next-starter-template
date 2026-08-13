@@ -190,6 +190,25 @@ function parseMediaAssociationsJson(raw: string): MediaAssociation[] {
   return parsed as MediaAssociation[];
 }
 
+type ClubHomeEditionInspect = {
+  ok: true;
+  active: { edition_id: number; activated_at: string; activated_by: string | null } | null;
+  edition?: {
+    id: number;
+    status: string;
+    created_at: string;
+    created_by: string | null;
+    completed_at: string | null;
+  };
+  placements?: Array<{
+    zone_id: string;
+    story_id: number | null;
+    position: number;
+    selection_mode: string;
+  }>;
+  message?: string;
+};
+
 export default function AdminEditorialArchivePage() {
   const [status, setStatus] = useState('Idle.');
   const [loading, setLoading] = useState(false);
@@ -198,6 +217,8 @@ export default function AdminEditorialArchivePage() {
   const [submissionFilter, setSubmissionFilter] = useState<SubmissionFilter>('pending');
   const [inventoryFilter, setInventoryFilter] = useState<InventoryFilter>('all');
   const [tokenReady, setTokenReady] = useState(false);
+  const [editionInspect, setEditionInspect] = useState<ClubHomeEditionInspect | null>(null);
+  const [rollbackEditionId, setRollbackEditionId] = useState('');
   const loadRequestRef = useRef(0);
 
   const load = useCallback(async () => {
@@ -242,7 +263,71 @@ export default function AdminEditorialArchivePage() {
       `Loaded ${nextSubmissions.length} ${submissionFilter} submission(s) and ${nextInventory.length} ${inventoryFilter} archive record(s).`,
     );
     setLoading(false);
+
+    const editionResult = await adminJson<ClubHomeEditionInspect>(
+      '/api/admin/editorial/club-home-edition-regenerate',
+    );
+    if (requestId === loadRequestRef.current && editionResult.ok && editionResult.data) {
+      setEditionInspect(editionResult.data);
+      if (editionResult.data.active?.edition_id) {
+        setRollbackEditionId(String(editionResult.data.active.edition_id));
+      }
+    }
   }, [submissionFilter, inventoryFilter]);
+
+  const regenerateClubHomeEdition = useCallback(async () => {
+    if (!getStoredAdminToken()) {
+      setStatus('Error: Save an admin API token above before regenerating Club Home editions.');
+      return;
+    }
+    setStatus('Regenerating Club Home edition…');
+    const result = await adminJson<{
+      ok: true;
+      edition_id: number;
+      previous_edition_id: number | null;
+    }>('/api/admin/editorial/club-home-edition-regenerate', {
+      method: 'POST',
+      body: JSON.stringify({ created_by: 'admin-ui' }),
+    });
+    if (!result.ok) {
+      setStatus(`Error: ${result.error}`);
+      return;
+    }
+    setStatus(
+      `Activated Club Home edition ${result.data?.edition_id}` +
+        (result.data?.previous_edition_id
+          ? ` (previous ${result.data.previous_edition_id}).`
+          : '.'),
+    );
+    await load();
+  }, [load]);
+
+  const rollbackClubHomeEdition = useCallback(async () => {
+    if (!getStoredAdminToken()) {
+      setStatus('Error: Save an admin API token above before rolling back Club Home editions.');
+      return;
+    }
+    const editionId = Number(rollbackEditionId);
+    if (!Number.isFinite(editionId) || editionId <= 0) {
+      setStatus('Error: Enter a valid prior edition_id to roll back to.');
+      return;
+    }
+    setStatus(`Rolling Club Home back to edition ${editionId}…`);
+    const result = await adminJson<{
+      ok: true;
+      edition_id: number;
+      previous_edition_id: number | null;
+    }>('/api/admin/editorial/club-home-edition-rollback', {
+      method: 'POST',
+      body: JSON.stringify({ edition_id: editionId, activated_by: 'admin-ui' }),
+    });
+    if (!result.ok) {
+      setStatus(`Error: ${result.error}`);
+      return;
+    }
+    setStatus(`Club Home active edition is now ${result.data?.edition_id}.`);
+    await load();
+  }, [load, rollbackEditionId]);
 
   const saveInventory = useCallback(
     async (payload: Record<string, unknown>, label: string) => {
@@ -493,6 +578,52 @@ export default function AdminEditorialArchivePage() {
         ) : null}
 
         <CreateStorySection onSave={saveInventory} actionsEnabled={tokenReady} />
+
+        <section style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: 14, padding: 14 }}>
+          <h2 style={{ marginTop: 0 }}>Club Home editions</h2>
+          <p style={{ opacity: 0.8 }}>
+            Member Club Home serves one explicit persisted edition. Regenerate creates a new immutable
+            edition from current publication gates, fairness, and pins, then activates it. Rollback
+            reactivates a prior ready edition without rewriting its placements. There is no automatic
+            schedule.
+          </p>
+          <p style={{ opacity: 0.85, marginTop: 0 }}>
+            {editionInspect?.active
+              ? `Active edition ${editionInspect.active.edition_id} (activated ${editionInspect.active.activated_at}${
+                  editionInspect.active.activated_by ? ` by ${editionInspect.active.activated_by}` : ''
+                }). ${editionInspect.placements?.length ?? 0} persisted placement(s).`
+              : editionInspect?.message ||
+                'No active edition yet. Regenerate after pins/publication changes to publish Club Home content.'}
+          </p>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+            <button
+              type="button"
+              onClick={() => void regenerateClubHomeEdition()}
+              disabled={!tokenReady}
+              style={buttonStyle(!tokenReady)}
+            >
+              Regenerate edition
+            </button>
+            <label style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              Rollback to edition
+              <input
+                value={rollbackEditionId}
+                onChange={(event) => setRollbackEditionId(event.target.value)}
+                disabled={!tokenReady}
+                inputMode="numeric"
+                style={{ ...fieldStyle(), width: 120 }}
+              />
+            </label>
+            <button
+              type="button"
+              onClick={() => void rollbackClubHomeEdition()}
+              disabled={!tokenReady}
+              style={buttonStyle(!tokenReady)}
+            >
+              Rollback
+            </button>
+          </div>
+        </section>
 
         <section style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: 14, padding: 14 }}>
           <h2 style={{ marginTop: 0 }}>Submission Review Queue</h2>
