@@ -1176,6 +1176,9 @@ describe('member submissions and library archive reads', () => {
         name: 'Member Name',
         title: 'A long submitted story',
         content: 'This is a submitted story with enough body text for review.',
+        ownership_statement: 'I wrote this myself.',
+        permission_statement: 'LGFC may use this submission.',
+        credit_preference: 'public_credit',
       }),
       env: { DB: db },
     });

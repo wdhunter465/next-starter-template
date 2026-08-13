@@ -3,7 +3,12 @@
 // - Sends welcome email via MailChannels
 // - Returns 409 for duplicate emails (idempotent)
 
-import { assertEmailEnvOrThrow, sendAdminJoinNotification, sendWelcomeEmail } from "../_lib/email";
+import {
+  assertEmailEnvOrThrow,
+  sendAdminJoinNotification,
+  sendTransactionalJoinConfirmation,
+  sendWelcomeEmail,
+} from "../_lib/email";
 import { requireD1, requireTables, jsonResponse, type Env } from "../_lib/d1";
 
 type EmailLogResult = {
@@ -188,7 +193,12 @@ export async function onRequestPost(context: { env: Env; request: Request }): Pr
       }
 
       // Email (optional). Join succeeds even if email fails; results are returned and logged.
-      const welcomeResult = await sendWelcomeEmail({ env, toEmail: email, toName: name, introMd: welcomeIntroMd });
+      // #2919: email_opt_in gates the promotional/periodic-update welcome message.
+      // Members who did not opt in still receive a strictly-transactional
+      // confirmation that their account was created — never the promotional copy.
+      const welcomeResult = email_opt_in
+        ? await sendWelcomeEmail({ env, toEmail: email, toName: name, introMd: welcomeIntroMd })
+        : await sendTransactionalJoinConfirmation({ env, toEmail: email, toName: name });
       await logEmailAttempt({
         db,
         requestId,

@@ -9,6 +9,12 @@ function slugifyTag(value: string): string {
     .slice(0, 80);
 }
 
+// #2919: rights/consent capture. Kept in this handler (not imported from the
+// separate content-pipeline module) because submission_queue is a distinct
+// schema/table from that system's member_submissions.
+const CREDIT_PREFERENCES = new Set(["public_credit", "anonymous", "private", "custom"]);
+
+
 export const onRequestPost = async (context: any): Promise<Response> => {
   const auth = await requireMember(context);
   if (!auth.ok) {
@@ -41,6 +47,11 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     const mediaReference = String((body as any).media_reference ?? mediaUrl ?? "").trim() || null;
     const proposedTag = slugifyTag(String((body as any).proposed_tag ?? title).trim());
 
+    // #2919: rights/consent capture — required, fail-closed for every new submission.
+    const ownershipStatement = String((body as any).ownership_statement ?? "").trim();
+    const permissionStatement = String((body as any).permission_statement ?? "").trim();
+    const creditPreference = String((body as any).credit_preference ?? "").trim();
+
     // email is derived from the authenticated session — never trust client input
     const email = auth.email;
 
@@ -50,6 +61,35 @@ export const onRequestPost = async (context: any): Promise<Response> => {
           {
             ok: false,
             error: "Fields 'name', 'title', and 'content' are all required",
+          },
+          null,
+          2
+        ),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!ownershipStatement || !permissionStatement || !creditPreference) {
+      return new Response(
+        JSON.stringify(
+          {
+            ok: false,
+            error:
+              "Fields 'ownership_statement', 'permission_statement', and 'credit_preference' are all required",
+          },
+          null,
+          2
+        ),
+        { status: 400, headers: { "Content-Type": "application/json" } }
+      );
+    }
+
+    if (!CREDIT_PREFERENCES.has(creditPreference)) {
+      return new Response(
+        JSON.stringify(
+          {
+            ok: false,
+            error: `credit_preference must be one of: ${[...CREDIT_PREFERENCES].join(", ")}`,
           },
           null,
           2
@@ -70,11 +110,14 @@ export const onRequestPost = async (context: any): Promise<Response> => {
       media_reference: mediaReference,
     });
 
+    // consent_status is never accepted from the client; member intake always
+    // starts 'pending' and only an admin reviewer may grant/restrict/deny it.
     const result = await auth.db.prepare(
       `INSERT INTO submission_queue
         (submitted_by, payload, title, description, source_name, source_url, credit_line,
-         proposed_tag, media_url, media_reference, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending');`
+         proposed_tag, media_url, media_reference, status,
+         ownership_statement, permission_statement, credit_preference, consent_status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?, ?, ?, 'pending');`
     )
       .bind(
         submittedBy,
@@ -87,6 +130,9 @@ export const onRequestPost = async (context: any): Promise<Response> => {
         proposedTag || null,
         mediaUrl,
         mediaReference,
+        ownershipStatement,
+        permissionStatement,
+        creditPreference,
       )
       .run();
 

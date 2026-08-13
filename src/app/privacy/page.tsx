@@ -92,6 +92,20 @@ export default async function Page() {
           </p>
         </>
       )}
+
+      {/* Always rendered so D1 body_html cannot omit the analytics disclosure (Product Decision item 2 / #2920). */}
+      <h2 style={{ ...styles.h2 }}>Analytics and cookies</h2>
+      <p style={{ ...styles.p }}>
+        When analytics is enabled for this site, we use Google Analytics 4 (gtag) to collect aggregate usage
+        information such as pages viewed and approximate traffic patterns. The measurement identifier is
+        configured at deploy time. Analytics scripts may set or read cookies or similar storage used by Google
+        Analytics. We do not use analytics data to sell personal information.
+      </p>
+      <p style={{ ...styles.p }}>
+        Independently of analytics, a short-lived session cookie is used only after Login to keep you signed
+        in to Fan Club member surfaces. You can request removal of personal data you submitted by contacting{" "}
+        <strong>admin@lougehrigfanclub.com</strong>.
+      </p>
     </main>
   );
 }

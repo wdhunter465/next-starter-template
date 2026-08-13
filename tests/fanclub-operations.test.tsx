@@ -272,6 +272,11 @@ describe('Fan Club operational pages', () => {
     fireEvent.change(screen.getByPlaceholderText('Paste your article text here…'), {
       target: { value: 'This is a long enough member submission for review.' },
     });
+    fireEvent.change(screen.getByPlaceholderText(/Ownership:/), { target: { value: 'I wrote this myself.' } });
+    fireEvent.change(screen.getByPlaceholderText(/Permission:/), {
+      target: { value: 'LGFC may use this submission.' },
+    });
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'public_credit' } });
     fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
 
     await waitFor(() => {

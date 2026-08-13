@@ -56,6 +56,7 @@ export function buildPublicPageMetadata({
 export const PUBLIC_SITEMAP_ROUTES = [
   '/',
   '/about/',
+  '/accessibility/',
   '/ask/',
   '/contact/',
   '/events/',
