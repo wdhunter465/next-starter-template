@@ -5,8 +5,8 @@ Authority Level: Operational Procedure
 Owns: Chromebook Debian 12 installation and verification sequence for the repository-scoped LGFC GitHub Actions runner
 Does Not Own: Repository runner contract, project launch, workflow migration, or production authorization
 Canonical Reference: /docs/reference/ci/repository-runner-contract.md
-Related Issues: #2294, #2593, #2667
-Last Reviewed: 2026-07-20
+Related Issues: #2294, #2593, #2667, #3212, #3424
+Last Reviewed: 2026-08-13
 ---
 
 # Configure the LGFC Chromebook Repository Runner
@@ -17,15 +17,15 @@ Install and verify one repository-scoped Chromebook Linux GitHub Actions runner 
 
 ## Scope
 
-This How-To covers repository-level registration, Debian 12 systemd service install, idle-state verification, the manual health workflow run from `main`, wake-packet delivery for Cursor Local Bridge, and stop/remove rollback. It does not authorize project launch, general workflow migration, Production routing, or retention of registration tokens in repository files.
+This How-To covers repository-level registration, Debian 12 systemd service install, idle-state verification, the manual health workflow run from `main`, and stop/remove rollback. Historical wake-packet delivery for Cursor Local Bridge is retired and the Bridge is decommissioned; do not install or enable Bridge as part of runner setup. It does not authorize project launch, general workflow migration, Production routing, or retention of registration tokens in repository files.
 
 ## Current known truth
 
-The Chromebook runner `lgfc-chromebook-linux` is registered. Permitted runner jobs are Repository Runner Health and Cursor Local Wake Delivery (packet write only). Cursor launch is owned by Cursor Local Bridge — see `docs/how-to/cursor/configure-cursor-local-bridge.md`.
+The Chromebook runner `lgfc-chromebook-linux` is registered. Permitted runner jobs are Repository Runner Health and observe-only work. Cursor Local Wake Delivery (packet write) is retired; Cursor Local Bridge is **decommissioned** (`docs/how-to/cursor/configure-cursor-local-bridge.md`). Current Cursor wake is the dedicated `lgfc-cursor` dispatch runner — see `docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md`.
 
 ## Intended final state
 
-Runner healthy; Bridge installed and authenticated; wake packets delivered and either auto-started or explicitly fallen back; existing product workflows remain on current runners until a separate migration Go.
+Runner healthy and idle for permitted health/observe jobs; existing product workflows remain on current runners until a separate migration Go. Bridge auto-start is not part of this runner's intended state.
 
 ## Prerequisite
 
@@ -37,7 +37,7 @@ Confirm the Chromebook Linux environment is Debian 12 x64, systemd is available,
 
 ### Create the repository runner
 
-In `wdhunter645/next-starter-template`:
+In `wdhunter465/next-starter-template`:
 
 1. Open **Settings → Actions → Runners**.
 2. Select **New self-hosted runner**.
@@ -59,7 +59,7 @@ After downloading and extracting the runner package, register it with the genera
 
 ```bash
 ./config.sh \
-  --url https://github.com/wdhunter645/next-starter-template \
+  --url https://github.com/wdhunter465/next-starter-template \
   --token <REGISTRATION_TOKEN> \
   --name lgfc-chromebook-linux \
   --labels lgfc-repo-runner,chromebook,debian-12 \
@@ -125,6 +125,6 @@ If a job remains queued, verify the service is running, the runner is **Idle**, 
 
 If any unexpected workflow is routed to the Chromebook, stop the service and disable the runner in repository settings before investigating.
 
-## Bridge preflight relationship (#2681)
+## Bridge relationship (#2681 / #3424)
 
-The Chromebook runner remains packet transport only. Host readiness before Cursor claim is owned by the Cursor Local Bridge preflight engine and the existing `lgfc-cursor-bridge-watchdog.timer`. Do not add a competing runner-side Cursor launcher.
+The Chromebook `lgfc-repo-runner` remains health/observe transport only. Cursor Local Bridge is **decommissioned** and must not be treated as the Cursor launcher for this runner. Current Cursor wake is `lgfc-cursor-dispatch`. Do not add a competing runner-side Cursor launcher on `lgfc-repo-runner`.

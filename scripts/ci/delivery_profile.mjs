@@ -218,6 +218,7 @@ export function classifyDeliveryProfile({
 
   const componentBranch = normalizeOptionalComponentValue(metadata.componentBranch);
   const componentMaster = normalizeOptionalComponentValue(metadata.componentMaster);
+  const implementationAgent = normalizeMetadataValue(parseLineValue(body, 'Implementation agent'));
 
   if (metadata.deliveryModel === 'A') {
     pushExpectedError(errors, 'targetEnvironment', metadata.targetEnvironment, 'production');
@@ -249,6 +250,12 @@ export function classifyDeliveryProfile({
     );
     pushExpectedError(errors, 'gateProfile', metadata.gateProfile, 'component-child');
     pushExpectedError(errors, 'rollbackProfile', metadata.rollbackProfile, 'multi-step');
+    if (!implementationAgent) {
+      errors.push(deliveryError(
+        'missing_implementationAgent',
+        'Implementation agent is required for Model B child PRs.',
+      ));
+    }
     if (!isComponentRef(baseRef)) {
       errors.push(deliveryError('invalid_baseRef', 'Model B child PRs must target component/**.', {
         expected: 'component/**',
@@ -271,6 +278,12 @@ export function classifyDeliveryProfile({
     pushExpectedError(errors, 'approvalProfile', metadata.approvalProfile, 'work-bill-production');
     pushExpectedError(errors, 'gateProfile', metadata.gateProfile, 'component-promotion');
     pushExpectedError(errors, 'rollbackProfile', metadata.rollbackProfile, 'multi-step');
+    if (!implementationAgent) {
+      errors.push(deliveryError(
+        'missing_implementationAgent',
+        'Implementation agent is required for Model B promotion PRs.',
+      ));
+    }
     if (baseRef !== 'main') {
       errors.push(deliveryError('invalid_baseRef', 'Model B promotion PRs must target main.', {
         expected: 'main',
@@ -319,6 +332,7 @@ export function classifyDeliveryProfile({
     rollbackProfile: metadata.rollbackProfile,
     componentBranch,
     componentMaster,
+    implementationAgent,
     protectedChange,
     errors,
   };

@@ -3,10 +3,10 @@ Doc Type: Reference
 Audience: Human + AI
 Authority Level: Project Contract
 Owns: Claude Code wake-delivery trigger conditions, comment markers, and notification-only scope boundary
-Does Not Own: Cursor Local Bridge, PR approval authority, Production promotion, or any guarantee that a Claude Code session launches
+Does Not Own: Cursor Local Bridge (decommissioned), PR approval authority, Production promotion, or any guarantee that a Claude Code session launches
 Canonical Reference: /.github/workflows/claude-code-wake.yml
-Related Issues: #2994, #3013
-Last Reviewed: 2026-08-03
+Related Issues: #2994, #3013, #3424
+Last Reviewed: 2026-08-13
 ---
 
 # Claude Code Wake Contract
@@ -15,8 +15,9 @@ Last Reviewed: 2026-08-03
 
 Give the repository a deterministic, automated way to alert Claude Code /
 Engineering about work that needs attention, instead of relying on someone
-typing an `@claude` mention by hand. This mirrors the existing
-`cursor-local-wake.yml` delivery-only pattern (`docs/reference/ci/cursor-local-bridge-contract.md`)
+typing an `@claude` mention by hand. This historically mirrored the
+`cursor-local-wake.yml` delivery-only pattern
+(`docs/reference/ci/cursor-local-bridge-contract.md`, now decommissioned)
 but for Claude Code, and with a materially smaller footprint: there is no
 local daemon to keep alive, so the workflow runs on a standard
 GitHub-hosted runner and its only side effect is a comment.
@@ -46,8 +47,9 @@ Every PR eventually needs PR Approver / Engineering review, so the `pull_request
 trigger covers that class without requiring a label. Issue-side routing
 uses a resume marker rather than a dedicated label, keeping this bounded to
 the two use cases that currently exist. (Cursor Local Bridge dropped its
-equivalent comment marker in favor of labels/status only — #3013 — but that
-change is scoped to the Bridge; this workflow's own `CLAUDE CODE RESUME`
+equivalent comment marker in favor of labels/status only — #3013 — and is
+now decommissioned as a Cursor auto-start path — #3424; that change is
+scoped to Cursor routing. This workflow's own `CLAUDE CODE RESUME`
 trigger is unaffected.)
 
 The fork and comment-author restrictions exist because this is a write
@@ -63,8 +65,9 @@ resume marker on any open issue.
   Includes a delivery id and the triggering event name.
 - `CLAUDE CODE RESUME` — the issue-side marker that requests a wake alert
   for Engineering. It exists solely to trigger this delivery workflow and
-  is unrelated to Cursor Local Bridge, which (as of #3013) does not parse
-  any comment marker at all — Bridge eligibility is labels/status only
+  is unrelated to Cursor Local Bridge, which is decommissioned (#3424) and
+  (as of #3013) does not parse any comment marker at all — historical Bridge
+  eligibility was labels/status only
   (`scripts/cursor-bridge/lib/eligibility.mjs`).
 
 ## Deduplication

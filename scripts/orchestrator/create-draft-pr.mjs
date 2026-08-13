@@ -11,23 +11,23 @@ export function isDuplicateIssueBody(body) {
   return /\bDuplicate of (?:Issue )?#\d+\b/i.test(body || '') || /\bclosed as duplicate\b/i.test(body || '');
 }
 
-function firstPrUrlFromSearch(repo, search) {
+function firstPrUrlFromSearch(repo, search, state = 'open') {
   const result = runGh([
     'pr',
     'list',
     '--repo',
     repo,
     '--state',
-    'open',
+    state,
     '--search',
     search,
     '--json',
-    'url',
+    'url,mergedAt',
     '--limit',
     '1'
   ]);
   const prs = JSON.parse(result);
-  return prs.length > 0 ? prs[0].url : '';
+  return prs.length > 0 ? prs[0] : null;
 }
 
 export function issuePrSearchQuery(number) {
@@ -35,7 +35,13 @@ export function issuePrSearchQuery(number) {
 }
 
 function existingOpenPrForIssue(repo, number) {
-  return firstPrUrlFromSearch(repo, issuePrSearchQuery(number));
+  const pr = firstPrUrlFromSearch(repo, issuePrSearchQuery(number), 'open');
+  return pr ? pr.url : '';
+}
+
+export function existingMergedPrForIssue(repo, number) {
+  const pr = firstPrUrlFromSearch(repo, issuePrSearchQuery(number), 'merged');
+  return pr ? pr.url : '';
 }
 
 export function main() {
@@ -87,8 +93,16 @@ export function main() {
 
   if (alreadyOpenPr) {
     runGh(['issue', 'edit', issueNumber, '--repo', repo, '--remove-label', 'status:queued', '--add-label', 'status:pr-draft']);
-    runGh(['issue', 'comment', issueNumber, '--repo', repo, '--body', `Existing active implementation PR found: ${alreadyOpenPr}`]);
-    console.log(`Existing PR found for issue #${issueNumber}: ${alreadyOpenPr}`);
+    runGh(['issue', 'comment', issueNumber, '--repo', repo, '--body', `Existing active implementation PR found: ${alreadyOpenPr}. No new PR created.`]);
+    console.log(`REUSED existing open PR for issue #${issueNumber}: ${alreadyOpenPr}`);
+    process.exit(0);
+  }
+
+  const alreadyMergedPr = existingMergedPrForIssue(repo, issue.number);
+
+  if (alreadyMergedPr) {
+    runGh(['issue', 'comment', issueNumber, '--repo', repo, '--body', `Orchestrator PR creation skipped: a merged PR already satisfies this issue (${alreadyMergedPr}). No new PR will be created unless this issue is explicitly marked follow-up/reopen-required.`]);
+    console.log(`SKIPPED PR creation for issue #${issueNumber}: merged PR already satisfies the issue (${alreadyMergedPr})`);
     process.exit(0);
   }
 

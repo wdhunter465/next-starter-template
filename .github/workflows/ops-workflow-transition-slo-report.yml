@@ -1,0 +1,61 @@
+name: OPS — Workflow Transition SLO Report
+
+# Phase 2 publisher for #2679. Read-only scorecard generation; no Issue mutation.
+# Schedule remediation #3288: native IANA timezone keeps 5:00 PM ET year-round.
+on:
+  schedule:
+    - cron: '0 17 * * *'
+      timezone: 'America/New_York'
+  workflow_dispatch:
+    inputs:
+      window_end:
+        description: ISO window end (default now / runner time)
+        required: false
+        default: ''
+      hours:
+        description: Window length in hours (1–168)
+        required: false
+        default: '24'
+
+permissions:
+  actions: read
+  contents: read
+  pull-requests: read
+  issues: read
+
+jobs:
+  slo-report:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Offline self-test
+        run: node scripts/ops/test-workflow-transition-slo-report.mjs
+
+      - name: Generate SLO report
+        env:
+          GH_TOKEN: ${{ github.token }}
+          # Defaults applied at expression time so schedule runs never pass empty placeholders.
+          REPORT_HOURS: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.hours || '24' }}
+          REPORT_WINDOW_END: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.window_end || '' }}
+        run: |
+          set -euo pipefail
+          ARGS=(--mode=report --repo=wdhunter465/next-starter-template --hours="${REPORT_HOURS}")
+          if [ -n "${REPORT_WINDOW_END}" ]; then
+            ARGS+=(--window-end="${REPORT_WINDOW_END}")
+          fi
+          node scripts/ops/workflow-transition-slo-report.mjs "${ARGS[@]}"
+
+      - name: Upload SLO artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: workflow-transition-slo-${{ github.run_id }}
+          path: ops-artifacts/workflow-transition-slo/
+          if-no-files-found: error
+          retention-days: 30

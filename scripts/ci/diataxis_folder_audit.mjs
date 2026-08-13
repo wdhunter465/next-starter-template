@@ -5,27 +5,35 @@ import fs from 'node:fs';
 export const FOLDER_RULES = [
   {
     prefix: 'docs/tutorials/',
+    folderClass: 'diataxis',
     expectedDocType: 'Tutorial',
     requiredStructure: /^##[ \t]+(Goal|Outcome|Steps|Walkthrough)/im,
     requiredMessage: 'tutorial docs must contain learning-flow structure: Goal, Outcome, Steps, or Walkthrough',
   },
   {
     prefix: 'docs/how-to/',
+    folderClass: 'diataxis',
     expectedDocType: 'How-To',
     requiredStructure: /^##[ \t]+(Steps|Procedure|Execution)/im,
     requiredMessage: 'how-to docs must contain a task execution section: Steps, Procedure, or Execution',
   },
   {
     prefix: 'docs/reference/',
+    folderClass: 'diataxis',
     expectedDocType: 'Reference',
     forbiddenStructure: /^##[ \t]+(Steps|Procedure|How to|Tutorial)|```(bash|sh|zsh|powershell)/im,
     forbiddenMessage: 'reference docs must not contain procedure/tutorial sections or executable command blocks',
   },
   {
     prefix: 'docs/explanation/',
+    folderClass: 'diataxis',
     expectedDocType: 'Explanation',
     forbiddenStructure: /^##[ \t]+(Steps|Procedure|Commands|Runbook)|```(bash|sh|zsh|powershell)/im,
     forbiddenMessage: 'explanation docs must not contain procedural/runbook sections or executable command blocks',
+  },
+  {
+    prefix: 'docs/ops/',
+    folderClass: 'operational',
   },
 ];
 
@@ -38,6 +46,8 @@ export const REQUIRED_HEADER_FIELDS = [
   'Canonical Reference:',
   'Last Reviewed:',
 ];
+
+const DIATAXIS_DOC_TYPE_PATTERN = /^Doc Type:[ \t]+(Tutorial|How-To|Reference|Explanation)\b/im;
 
 export function ruleForFile(file) {
   return FOLDER_RULES.find((rule) => file.startsWith(rule.prefix)) || null;
@@ -56,8 +66,8 @@ export function auditDiataxisFile(file, content) {
     findings.push({
       file,
       code: 'OUTSIDE_DIATAXIS_FOLDER',
-      message: 'file is outside approved DIATAXIS content folders',
-      correction: 'Move the document into docs/tutorials, docs/how-to, docs/reference, or docs/explanation, or remove it from this workflow scope.',
+      message: 'file is outside approved DIATAXIS knowledge folders and approved operational docs/ops classes',
+      correction: 'Move the document into docs/tutorials, docs/how-to, docs/reference, docs/explanation, or an approved docs/ops/** operational path, or remove it from this workflow scope.',
     });
     return findings;
   }
@@ -81,6 +91,20 @@ export function auditDiataxisFile(file, content) {
         correction: `Populate ${field} in the document header.`,
       });
     }
+  }
+
+  if (rule.folderClass === 'operational') {
+    // Approved operational paths: keep header checks, reject only DIATAXIS knowledge types.
+    // Do not enforce a narrow ops Doc Type allowlist (Implementation Plan, Task, etc. are valid).
+    if (DIATAXIS_DOC_TYPE_PATTERN.test(content)) {
+      findings.push({
+        file,
+        code: 'OUTSIDE_DIATAXIS_FOLDER',
+        message: 'DIATAXIS knowledge content must live in docs/tutorials, docs/how-to, docs/reference, or docs/explanation; approved docs/ops/** paths are for operational evidence, plans, and reports',
+        correction: 'Move the document into the matching DIATAXIS knowledge folder, or keep it under docs/ops/** only if it is an operational document.',
+      });
+    }
+    return findings;
   }
 
   const docTypePattern = new RegExp(`^Doc Type: .*${rule.expectedDocType}`, 'im');
@@ -125,7 +149,12 @@ export function auditDiataxisFiles(files, { root = '.' } = {}) {
 }
 
 export function renderDiataxisReport(findings) {
-  const lines = ['## DIATAXIS Folder Hygiene Advisory', ''];
+  const lines = [
+    '## DIATAXIS Folder Hygiene Advisory',
+    '',
+    'This audit distinguishes DIATAXIS knowledge content from approved operational docs/ops evidence classes.',
+    '',
+  ];
   if (findings.length === 0) {
     lines.push('No DIATAXIS folder hygiene defects detected.');
     return lines.join('\n');

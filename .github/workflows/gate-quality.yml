@@ -38,7 +38,6 @@ jobs:
       - name: Classify delivery profile
         if: github.event_name == 'pull_request'
         id: delivery_profile
-        continue-on-error: true
         env:
           PR_BODY_FILE: ${{ runner.temp }}/pr_body.md
           PR_BASE_REF: ${{ github.event.pull_request.base.ref }}

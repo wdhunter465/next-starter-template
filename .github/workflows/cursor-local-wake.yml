@@ -1,22 +1,26 @@
 name: Cursor Local Wake Delivery
 
-# Delivery only: write a wake packet on the Chromebook host for Cursor Local Bridge.
-# Does not launch Cursor, hold API keys, claim the lane, or treat labels as authority.
+# RETIRED as an automatic execution path under #3212 Phase 4 (2026-08-09).
+# Primary Cursor wake is now `.github/workflows/lgfc-cursor-dispatch.yml`
+# on the dedicated `lgfc-cursor` runner.
 #
-# Label- and status-driven routing: Cursor-routed traffic only. ChatGPT/Atlas,
-# Claude/Claude Code, other-agent, and unrelated GitHub traffic must not enter the
-# Chromebook Bridge queue. Canonical predicate:
-# scripts/cursor-bridge/lib/wake-ingress.mjs (shouldDeliverCursorWake). There is no
-# comment-marker trigger — see docs/reference/ci/cursor-local-bridge-contract.md,
-# "Label and status-driven handoff".
+# Approved diagnostic fallback only: trusted manual workflow_dispatch
+# (actor `wdhunter645`) may still write a Bridge packet if Product Authority
+# explicitly authorizes temporary Bridge diagnostics. Automatic `issues`
+# labeled delivery is disabled.
+#
+# Shared ingress predicate `scripts/cursor-bridge/lib/wake-ingress.mjs` remains
+# authoritative for lgfc-cursor-dispatch and must not be deleted.
 
 on:
-  issues:
-    types: [labeled]
   workflow_dispatch:
     inputs:
       issue_number:
-        description: Issue number to deliver a wake packet for
+        description: Issue number to deliver a diagnostic wake packet for (PA-approved fallback only)
+        required: true
+        type: string
+      confirmation:
+        description: Type CURSOR_WAKE_DIAGNOSTIC to confirm intentional Bridge packet write
         required: true
         type: string
 
@@ -25,58 +29,41 @@ permissions:
   issues: read
 
 concurrency:
-  group: cursor-local-wake-${{ github.event.issue.number || inputs.issue_number || github.run_id }}
+  group: cursor-local-wake-${{ inputs.issue_number || github.run_id }}
   cancel-in-progress: false
 
 jobs:
   deliver:
     if: >-
-      github.repository == 'wdhunter645/next-starter-template' &&
-      (
-        (
-          github.event_name == 'issues' &&
-          github.event.action == 'labeled' &&
-          (github.event.label.name == 'handoff:ready' || github.event.label.name == 'agent:cursor') &&
-          contains(join(github.event.issue.labels.*.name, ','), 'agent:cursor') &&
-          contains(join(github.event.issue.labels.*.name, ','), 'handoff:ready')
-        ) ||
-        (
-          github.event_name == 'workflow_dispatch' &&
-          github.actor == 'wdhunter645'
-        )
-      )
+      github.repository == 'wdhunter465/next-starter-template' &&
+      github.event_name == 'workflow_dispatch' &&
+      github.actor == 'wdhunter645' &&
+      inputs.confirmation == 'CURSOR_WAKE_DIAGNOSTIC'
     runs-on: [self-hosted, linux, x64, lgfc-repo-runner]
     timeout-minutes: 5
     steps:
-      - name: Confirm delivery-only gates
+      - name: Confirm diagnostic-only gates
         env:
           EVENT_NAME: ${{ github.event_name }}
           REPOSITORY: ${{ github.repository }}
         run: |
-          test "$REPOSITORY" = "wdhunter645/next-starter-template"
-          test "$EVENT_NAME" = "issues" -o "$EVENT_NAME" = "workflow_dispatch"
-          echo "delivery_only=true"
+          test "$REPOSITORY" = "wdhunter465/next-starter-template"
+          test "$EVENT_NAME" = "workflow_dispatch"
+          echo "diagnostic_fallback_only=true"
+          echo "phase4_bridge_wake_retired=true"
 
       - name: Resolve issue number
         id: meta
         env:
-          EVENT_NAME: ${{ github.event_name }}
-          ISSUE_FROM_EVENT: ${{ github.event.issue.number }}
           ISSUE_FROM_INPUT: ${{ inputs.issue_number }}
           RUN_ID: ${{ github.run_id }}
         run: |
-          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
-            ISSUE="$ISSUE_FROM_INPUT"
-          else
-            ISSUE="$ISSUE_FROM_EVENT"
-          fi
+          ISSUE="$ISSUE_FROM_INPUT"
           test -n "$ISSUE"
           echo "issue=$ISSUE" >> "$GITHUB_OUTPUT"
           DELIVERY="wake-${RUN_ID}-${ISSUE}"
           echo "delivery_id=$DELIVERY" >> "$GITHUB_OUTPUT"
 
-      # Checkout so the queue gate can invoke the canonical Node predicate
-      # (shouldDeliverCursorWake) instead of a divergent shell reimplementation.
       - name: Checkout canonical wake-ingress predicate
         uses: actions/checkout@v4
         with:
@@ -86,22 +73,15 @@ jobs:
 
       - name: Enforce Cursor-only routing before queue write
         env:
-          EVENT_NAME: ${{ github.event_name }}
+          EVENT_NAME: workflow_dispatch
           ISSUE: ${{ steps.meta.outputs.issue }}
-          ISSUE_LABELS: ${{ join(github.event.issue.labels.*.name, ',') }}
-          LABEL_NAME: ${{ github.event.label.name }}
-          ACTION: ${{ github.event.action }}
           ACTOR: ${{ github.actor }}
           REPOSITORY: ${{ github.repository }}
           GH_TOKEN: ${{ github.token }}
         run: |
           set -euo pipefail
-          # Canonical gate: scripts/cursor-bridge/lib/wake-ingress.mjs (shouldDeliverCursorWake).
-          # Job-level if: is a coarse filter; this step is the single authority before queue write.
-          if [ "$EVENT_NAME" = "workflow_dispatch" ]; then
-            ISSUE_LABELS=$(gh issue view "$ISSUE" --repo "$REPOSITORY" --json labels --jq '[.labels[].name] | join(",")')
-            export ISSUE_LABELS
-          fi
+          ISSUE_LABELS=$(gh issue view "$ISSUE" --repo "$REPOSITORY" --json labels --jq '[.labels[].name] | join(",")')
+          export ISSUE_LABELS
           node --input-type=module <<'EOF'
           import { shouldDeliverCursorWake } from './scripts/cursor-bridge/lib/wake-ingress.mjs';
 
@@ -112,8 +92,8 @@ jobs:
           const decision = shouldDeliverCursorWake({
             repository: process.env.REPOSITORY,
             eventName: process.env.EVENT_NAME,
-            action: process.env.ACTION || '',
-            labelName: process.env.LABEL_NAME || '',
+            action: '',
+            labelName: '',
             issueLabels: labels,
             actor: process.env.ACTOR || '',
           });
@@ -126,11 +106,11 @@ jobs:
           console.log(`cursor_routing_ok=true reason=${decision.reason}`);
           EOF
 
-      - name: Write wake packet on host
+      - name: Write diagnostic wake packet on host
         env:
           ISSUE: ${{ steps.meta.outputs.issue }}
           DELIVERY_ID: ${{ steps.meta.outputs.delivery_id }}
-          EVENT_NAME: ${{ github.event_name }}
+          EVENT_NAME: workflow_dispatch
           ACTOR: ${{ github.actor }}
         run: |
           HOME_DIR="${LGFC_CURSOR_BRIDGE_HOME:-$HOME/lgfc-cursor-bridge}"
@@ -150,12 +130,14 @@ jobs:
             "actor": os.environ.get("ACTOR") or "unknown",
             "deliveredAt": datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ"),
             "runId": os.environ.get("GITHUB_RUN_ID"),
+            "diagnosticFallback": True,
+            "retiredPhase": "3212-phase-4",
           }
           path = os.environ["PACKET"]
           with open(path, "w", encoding="utf-8") as f:
               json.dump(packet, f, indent=2)
               f.write("\n")
-          print(f"Wrote wake packet: {path}")
+          print(f"Wrote diagnostic wake packet: {path}")
           PY
 
           # Delivery evidence is local (queue packet + Bridge status). Routine

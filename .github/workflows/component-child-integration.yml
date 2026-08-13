@@ -5,6 +5,14 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
     branches:
       - 'component/**'
+  # Deterministic reevaluation when review state can materially change
+  # protected-change eligibility (#3151). GitHub does not support
+  # branch-filtering pull_request_review at the trigger level; non-component
+  # PRs proceed harmlessly through the same generic resolution path
+  # workflow_dispatch already uses, and are rejected downstream by the
+  # evaluator's own non_component_base check.
+  pull_request_review:
+    types: [submitted, edited, dismissed]
   # Deterministic settle reevaluation after required peer gates complete.
   workflow_run:
     workflows:
@@ -29,6 +37,7 @@ jobs:
     if: >
       github.event_name == 'workflow_dispatch' ||
       (github.event_name == 'pull_request' && github.event.pull_request.draft == false) ||
+      (github.event_name == 'pull_request_review' && github.event.pull_request.draft == false) ||
       (github.event_name == 'workflow_run' &&
        github.event.workflow_run.conclusion != null &&
        github.event.workflow_run.event == 'pull_request')
@@ -73,8 +82,22 @@ jobs:
             echo "number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
             echo "skip=false" >> "$GITHUB_OUTPUT"
           else
-            echo "number=${{ github.event.pull_request.number }}" >> "$GITHUB_OUTPUT"
-            echo "skip=false" >> "$GITHUB_OUTPUT"
+            # pull_request (component/** only) and pull_request_review (no branch
+            # filter). Skip non-component bases so Model A / main PRs do not get a
+            # failing Component Integration Eligibility check (#3294).
+            PR_NUMBER="${{ github.event.pull_request.number }}"
+            BASE_REF="${{ github.event.pull_request.base.ref }}"
+            case "$BASE_REF" in
+              component/*)
+                echo "number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
+                echo "skip=false" >> "$GITHUB_OUTPUT"
+                ;;
+              *)
+                echo "Base ref ${BASE_REF} is not a component branch; skipping."
+                echo "skip=true" >> "$GITHUB_OUTPUT"
+                echo "number=0" >> "$GITHUB_OUTPUT"
+                ;;
+            esac
           fi
 
       - name: Fetch PR metadata
@@ -179,9 +202,13 @@ jobs:
           COMPONENT_STATE: ${{ steps.component_state.outputs.state }}
         run: |
           RESULT_FILE="$RUNNER_TEMP/component_integration_result.json"
+          NOT_APPLICABLE="$(jq -r '.notApplicable // false' "$RESULT_FILE")"
           CONCLUSION="failure"
           if [ "$ELIGIBLE" = "true" ]; then
             CONCLUSION="success"
+          elif [ "$NOT_APPLICABLE" = "true" ]; then
+            # Model A / non-component PRs are out of scope for child auto-integration.
+            CONCLUSION="neutral"
           elif [ "$REQUIRES_CHAT_REVIEW" = "true" ]; then
             CONCLUSION="neutral"
           fi

@@ -1,0 +1,2246 @@
+{
+  "version": 1,
+  "issue": 3358,
+  "parent": 3355,
+  "title": "Prod \u2192 Dev D1 sanitization / data-classification contract",
+  "fail_closed_unknown": true,
+  "classes": [
+    "copy_as_is",
+    "transform",
+    "redact",
+    "randomize",
+    "exclude",
+    "replace_with_fixture",
+    "hold_for_product"
+  ],
+  "never_log_source_values": true,
+  "identity": {
+    "production_database_name": "lgfc_lite",
+    "production_database_id": "22d0dc3e-ad34-43af-8e6a-2063df1a1e04",
+    "dev_database_name": "lgfc-litedev",
+    "dev_database_id": "35232809-b4c1-4df9-9f39-2f178b13c378"
+  },
+  "referential_notes": [
+    "EXCLUDE member_sessions and login_attempts removes auth continuity; Dev uses fixture members only.",
+    "REPLACE WITH FIXTURE members must use synthetic emails referenced by any remaining member-linked Dev rows.",
+    "EXCLUDE join_email_log; join_requests may remain as transformed rows without matching email log.",
+    "content_items rows with non-public privacy_flag are excluded; dependents should tolerate missing parents or be filtered.",
+    "photos.people is COPY AS-IS per PD-3358-01."
+  ],
+  "product_decisions": [
+    {
+      "id": "PD-3358-01",
+      "table": "photos",
+      "column": "people",
+      "question": "May memorabilia people tags copy as-is into Dev, or must they be redacted/randomized?",
+      "status": "closed_copy_as_is",
+      "disposition": "COPY AS-IS",
+      "disposition_at": "2026-08-11",
+      "disposition_by": "Product Authority (Bill)"
+    },
+    {
+      "id": "PD-3358-02",
+      "table": "members",
+      "column": null,
+      "question": "Confirm REPLACE WITH FIXTURE (synthetic members only) vs TRANSFORM of Production membership roster.",
+      "status": "proposed_default_replace_with_fixture"
+    }
+  ],
+  "go_hold_recommendation": {
+    "for_remote_refresh_action_3359": "GO",
+    "reason": "PD-3358-01 closed as COPY AS-IS. PD-3358-02 remains proposed fixture-only members default (not a blocking hold). Auth/PII fail-closed rules remain enforced by the manifest."
+  },
+  "fixtures": {
+    "members": [
+      {
+        "id": 1,
+        "email": "dev-admin@example.invalid",
+        "role": "admin",
+        "created_at": "2026-01-01T00:00:00.000Z",
+        "updated_at": "2026-01-01T00:00:00.000Z",
+        "first_name": "Dev",
+        "last_name": "Admin",
+        "screen_name": "devadmin",
+        "email_opt_in": 0
+      }
+    ]
+  },
+  "tables": {
+    "admin_team_worklist": {
+      "default_class": "copy_as_is",
+      "reason": "Public or operational non-member content eligible for Dev refresh after column rules",
+      "columns": {
+        "id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "task": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "date_opened": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "needed_completion_date": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "owner": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "status": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "created_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "updated_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        }
+      }
+    },
+    "ask_inbox": {
+      "default_class": "transform",
+      "reason": "Ask inbox contains member contact + free-text questions",
+      "columns": {
+        "id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "first_name": {
+          "class": "transform",
+          "transform": "synthetic_name",
+          "reason": "Member/applicant PII"
+        },
+        "last_name": {
+          "class": "transform",
+          "transform": "synthetic_name",
+          "reason": "Member/applicant PII"
+        },
+        "screen_name": {
+          "class": "transform",
+          "transform": "synthetic_name",
+          "reason": "Member/applicant PII"
+        },
+        "email": {
+          "class": "transform",
+          "transform": "synthetic_email",
+          "reason": "Contact identifier"
+        },
+        "question": {
+          "class": "transform",
+          "transform": "synthetic_text",
+          "reason": "User-authored private or semi-private text"
+        },
+        "status": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "created_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "moderation_note": {
+          "class": "redact",
+          "transform": "null",
+          "reason": "Internal moderation notes may quote private content"
+        },
+        "faq_entry_id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        }
+      }
+    },
+    "content_blocks": {
+      "default_class": "copy_as_is",
+      "reason": "Public or operational non-member content eligible for Dev refresh after column rules",
+      "columns": {
+        "key": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "page": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "section": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "title": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "body_md": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "status": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "published_body_md": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "version": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "updated_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "published_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "updated_by": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        }
+      }
+    },
+    "content_inventory": {
+      "default_class": "copy_as_is",
+      "reason": "Public or operational non-member content eligible for Dev refresh after column rules",
+      "columns": {
+        "id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "tag": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "title": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "text": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "media": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "story_type": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "allowed_sections": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "priority": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "search_text": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "canonical": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "source_name": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "source_url": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "credit_line": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "event_date": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "rotation_group": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "last_featured": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "feature_weight": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "status": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "review_notes": {
+          "class": "redact",
+          "transform": "null",
+          "reason": "Internal moderation notes may quote private content"
+        },
+        "submitted_by": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "created_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "updated_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "published_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "summary": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "perspective_label": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "event_year": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        }
+      }
+    },
+    "content_inventory_media": {
+      "default_class": "copy_as_is",
+      "reason": "Public or operational non-member content eligible for Dev refresh after column rules",
+      "columns": {
+        "id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "story_id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "media_id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "media_role": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "display_order": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "caption": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "alt_text": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "source_name": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "source_url": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "credit_line": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "created_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "updated_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        }
+      }
+    },
+    "content_item_tags": {
+      "default_class": "copy_as_is",
+      "reason": "Public or operational non-member content eligible for Dev refresh after column rules",
+      "columns": {
+        "content_item_id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "tag_id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "created_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        }
+      }
+    },
+    "content_items": {
+      "default_class": "copy_as_is",
+      "reason": "Public or operational non-member content eligible for Dev refresh after column rules",
+      "columns": {
+        "id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "candidate_id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "input_stream": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "title": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "source_url": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "source_name": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "source_owner": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "source_domain": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "source_type": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "content_type": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "summary": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "date_or_period": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "provenance_notes": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "rights_status": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "source_trust_status": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "relevance_status": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "review_status": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "publication_status": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "publication_target": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "privacy_flag": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "privacy_review_status": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "credit_line": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "media_asset_id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "duplicate_of": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "review_priority": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "admin_notes": {
+          "class": "redact",
+          "transform": "null",
+          "reason": "Internal moderation notes may quote private content"
+        },
+        "source_metadata": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "source_id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "submission_queue_id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "content_inventory_id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "last_event_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "deleted_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "retention_reason": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "purge_eligible_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "created_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "updated_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        }
+      },
+      "row_filter": {
+        "exclude_where_privacy_flag_not_in": [
+          "public",
+          null,
+          "",
+          "ok"
+        ],
+        "note": "Fail-closed: unknown privacy_flag values are excluded"
+      }
+    },
+    "content_revisions": {
+      "default_class": "copy_as_is",
+      "reason": "Public or operational non-member content eligible for Dev refresh after column rules",
+      "columns": {
+        "id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "key": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "version": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "body_md": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "status": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "updated_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "updated_by": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        }
+      }
+    },
+    "d1_migrations": {
+      "default_class": "exclude",
+      "reason": "Managed by Wrangler; not application data",
+      "columns": {
+        "id": {
+          "class": "exclude",
+          "reason": "Managed by Wrangler; not application data"
+        },
+        "name": {
+          "class": "exclude",
+          "reason": "Managed by Wrangler; not application data"
+        },
+        "applied_at": {
+          "class": "exclude",
+          "reason": "Managed by Wrangler; not application data"
+        }
+      }
+    },
+    "discussions": {
+      "default_class": "transform",
+      "reason": "Discussion posts tied to author email",
+      "columns": {
+        "id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "title": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "body": {
+          "class": "transform",
+          "transform": "synthetic_text",
+          "reason": "User-authored discussion body"
+        },
+        "author_email": {
+          "class": "transform",
+          "transform": "synthetic_email",
+          "reason": "Contact identifier"
+        },
+        "created_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "status": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        }
+      }
+    },
+    "events": {
+      "default_class": "copy_as_is",
+      "reason": "Public or operational non-member content eligible for Dev refresh after column rules",
+      "columns": {
+        "id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "title": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "start_date": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "end_date": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "location": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "host": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "fees": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "description": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "external_url": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "status": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "created_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "updated_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        }
+      }
+    },
+    "faq_entries": {
+      "default_class": "copy_as_is",
+      "reason": "Public or operational non-member content eligible for Dev refresh after column rules",
+      "columns": {
+        "id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "question": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "answer": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "status": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "created_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "updated_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "submitter_email": {
+          "class": "transform",
+          "transform": "synthetic_email",
+          "reason": "Contact identifier"
+        },
+        "view_count": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "pinned": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        }
+      }
+    },
+    "footer_quotes": {
+      "default_class": "copy_as_is",
+      "reason": "Public or operational non-member content eligible for Dev refresh after column rules",
+      "columns": {
+        "id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "quote": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "attribution": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "status": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "created_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "updated_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        }
+      }
+    },
+    "friends": {
+      "default_class": "copy_as_is",
+      "reason": "Public or operational non-member content eligible for Dev refresh after column rules",
+      "columns": {
+        "id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "name": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "kind": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "blurb": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "url": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "photo_url": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "status": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "created_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "updated_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        }
+      }
+    },
+    "join_email_log": {
+      "default_class": "exclude",
+      "reason": "Outbound email recipients and delivery metadata",
+      "columns": {
+        "id": {
+          "class": "exclude",
+          "reason": "Outbound email recipients and delivery metadata"
+        },
+        "request_id": {
+          "class": "exclude",
+          "reason": "Outbound email recipients and delivery metadata"
+        },
+        "message_type": {
+          "class": "exclude",
+          "reason": "Outbound email recipients and delivery metadata"
+        },
+        "recipient_email": {
+          "class": "exclude",
+          "reason": "Outbound email recipients and delivery metadata"
+        },
+        "result": {
+          "class": "exclude",
+          "reason": "Outbound email recipients and delivery metadata"
+        },
+        "provider": {
+          "class": "exclude",
+          "reason": "Outbound email recipients and delivery metadata"
+        },
+        "status_code": {
+          "class": "exclude",
+          "reason": "Outbound email recipients and delivery metadata"
+        },
+        "error": {
+          "class": "exclude",
+          "reason": "Outbound email recipients and delivery metadata"
+        },
+        "created_at": {
+          "class": "exclude",
+          "reason": "Outbound email recipients and delivery metadata"
+        }
+      }
+    },
+    "join_requests": {
+      "default_class": "transform",
+      "reason": "Join applications are PII-heavy",
+      "columns": {
+        "id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "name": {
+          "class": "transform",
+          "transform": "synthetic_name",
+          "reason": "Personal name"
+        },
+        "email": {
+          "class": "transform",
+          "transform": "synthetic_email",
+          "reason": "Contact identifier"
+        },
+        "message": {
+          "class": "transform",
+          "transform": "synthetic_text",
+          "reason": "Applicant free-text"
+        },
+        "created_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "first_name": {
+          "class": "transform",
+          "transform": "synthetic_name",
+          "reason": "Member/applicant PII"
+        },
+        "last_name": {
+          "class": "transform",
+          "transform": "synthetic_name",
+          "reason": "Member/applicant PII"
+        },
+        "screen_name": {
+          "class": "transform",
+          "transform": "synthetic_name",
+          "reason": "Member/applicant PII"
+        },
+        "email_opt_in": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "profile_photo_id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "presence_status": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "presence_updated_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        }
+      }
+    },
+    "library_entries": {
+      "default_class": "transform",
+      "reason": "Library submissions include email + content",
+      "columns": {
+        "id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "name": {
+          "class": "transform",
+          "transform": "synthetic_name",
+          "reason": "Personal name"
+        },
+        "email": {
+          "class": "transform",
+          "transform": "synthetic_email",
+          "reason": "Contact identifier"
+        },
+        "title": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "content": {
+          "class": "transform",
+          "transform": "synthetic_text",
+          "reason": "User-authored library content"
+        },
+        "created_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        }
+      }
+    },
+    "login_attempts": {
+      "default_class": "exclude",
+      "reason": "Security telemetry / credential stuffing evidence",
+      "columns": {
+        "id": {
+          "class": "exclude",
+          "reason": "Security telemetry / credential stuffing evidence"
+        },
+        "ip": {
+          "class": "exclude",
+          "reason": "Security telemetry / credential stuffing evidence"
+        },
+        "email": {
+          "class": "exclude",
+          "reason": "Security telemetry / credential stuffing evidence"
+        },
+        "ok": {
+          "class": "exclude",
+          "reason": "Security telemetry / credential stuffing evidence"
+        },
+        "created_at": {
+          "class": "exclude",
+          "reason": "Security telemetry / credential stuffing evidence"
+        }
+      }
+    },
+    "media_assets": {
+      "default_class": "copy_as_is",
+      "reason": "Public or operational non-member content eligible for Dev refresh after column rules",
+      "columns": {
+        "id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "media_uid": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "b2_key": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "b2_file_id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "size": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "etag": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "ingested_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        }
+      }
+    },
+    "member_sessions": {
+      "default_class": "exclude",
+      "reason": "Auth sessions must never leave Production",
+      "columns": {
+        "id": {
+          "class": "exclude",
+          "reason": "Auth sessions must never leave Production"
+        },
+        "email": {
+          "class": "exclude",
+          "reason": "Auth sessions must never leave Production"
+        },
+        "created_at": {
+          "class": "exclude",
+          "reason": "Auth sessions must never leave Production"
+        },
+        "expires_at": {
+          "class": "exclude",
+          "reason": "Auth sessions must never leave Production"
+        },
+        "last_seen_at": {
+          "class": "exclude",
+          "reason": "Auth sessions must never leave Production"
+        },
+        "ip": {
+          "class": "exclude",
+          "reason": "Auth sessions must never leave Production"
+        },
+        "ua": {
+          "class": "exclude",
+          "reason": "Auth sessions must never leave Production"
+        }
+      }
+    },
+    "member_submissions": {
+      "default_class": "transform",
+      "reason": "Member submission consent/privacy fields",
+      "columns": {
+        "id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "content_item_id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "submitter_id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "submission_type": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "ownership_statement": {
+          "class": "redact",
+          "transform": "null",
+          "reason": "Private consent / privacy text"
+        },
+        "permission_statement": {
+          "class": "redact",
+          "transform": "null",
+          "reason": "Private consent / privacy text"
+        },
+        "credit_preference": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "privacy_notes": {
+          "class": "redact",
+          "transform": "null",
+          "reason": "Private consent / privacy text"
+        },
+        "uploaded_media_reference": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "related_candidate_id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "consent_status": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "admin_followup_required": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "submission_queue_id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "created_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "updated_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        }
+      }
+    },
+    "members": {
+      "default_class": "replace_with_fixture",
+      "reason": "Dev needs a tiny synthetic member set; Production memberships never copy",
+      "columns": {
+        "id": {
+          "class": "replace_with_fixture",
+          "reason": "Dev needs a tiny synthetic member set; Production memberships never copy"
+        },
+        "email": {
+          "class": "replace_with_fixture",
+          "transform": "synthetic_email",
+          "reason": "Dev needs a tiny synthetic member set; Production memberships never copy"
+        },
+        "role": {
+          "class": "replace_with_fixture",
+          "reason": "Dev needs a tiny synthetic member set; Production memberships never copy"
+        },
+        "created_at": {
+          "class": "replace_with_fixture",
+          "reason": "Dev needs a tiny synthetic member set; Production memberships never copy"
+        },
+        "updated_at": {
+          "class": "replace_with_fixture",
+          "reason": "Dev needs a tiny synthetic member set; Production memberships never copy"
+        },
+        "first_name": {
+          "class": "replace_with_fixture",
+          "transform": "synthetic_name",
+          "reason": "Dev needs a tiny synthetic member set; Production memberships never copy"
+        },
+        "last_name": {
+          "class": "replace_with_fixture",
+          "transform": "synthetic_name",
+          "reason": "Dev needs a tiny synthetic member set; Production memberships never copy"
+        },
+        "screen_name": {
+          "class": "replace_with_fixture",
+          "transform": "synthetic_name",
+          "reason": "Dev needs a tiny synthetic member set; Production memberships never copy"
+        },
+        "email_opt_in": {
+          "class": "replace_with_fixture",
+          "reason": "Dev needs a tiny synthetic member set; Production memberships never copy"
+        }
+      }
+    },
+    "membership_card_content": {
+      "default_class": "copy_as_is",
+      "reason": "Public or operational non-member content eligible for Dev refresh after column rules",
+      "columns": {
+        "id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "title": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "body_md": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "status": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "updated_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        }
+      }
+    },
+    "milestones": {
+      "default_class": "copy_as_is",
+      "reason": "Public or operational non-member content eligible for Dev refresh after column rules",
+      "columns": {
+        "id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "year": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "title": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "description": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "photo_id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "status": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "created_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "updated_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        }
+      }
+    },
+    "moderation_events": {
+      "default_class": "copy_as_is",
+      "reason": "Public or operational non-member content eligible for Dev refresh after column rules",
+      "columns": {
+        "id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "content_item_id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "event_type": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "actor": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "from_state": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "to_state": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "notes": {
+          "class": "redact",
+          "transform": "null",
+          "reason": "Internal moderation notes may quote private content"
+        },
+        "created_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        }
+      }
+    },
+    "page_content": {
+      "default_class": "copy_as_is",
+      "reason": "Public or operational non-member content eligible for Dev refresh after column rules",
+      "columns": {
+        "id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "slug": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "section": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "status": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "content": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "asset_url": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "updated_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        }
+      }
+    },
+    "page_content_history": {
+      "default_class": "copy_as_is",
+      "reason": "Public or operational non-member content eligible for Dev refresh after column rules",
+      "columns": {
+        "id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "slug": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "section": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "status": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "content": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "asset_url": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "changed_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "changed_by": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        }
+      }
+    },
+    "photos": {
+      "default_class": "copy_as_is",
+      "reason": "Public or operational non-member content eligible for Dev refresh after column rules",
+      "columns": {
+        "id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "url": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "is_memorabilia": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "description": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "created_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "photo_id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "title": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "year": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "era": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "type": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "game_context": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "location": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "people": {
+          "class": "copy_as_is",
+          "reason": "Product PD-3358-01 (2026-08-11): COPY AS-IS \u2014 public photo/person metadata may match Production"
+        },
+        "teams": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "tags": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "source": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "rights_notes": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "is_featured": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "is_matchup_eligible": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        }
+      }
+    },
+    "publication_candidates": {
+      "default_class": "copy_as_is",
+      "reason": "Public or operational non-member content eligible for Dev refresh after column rules",
+      "columns": {
+        "id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "content_item_id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "publication_target": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "credit_line": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "staging_notes": {
+          "class": "redact",
+          "transform": "null",
+          "reason": "Internal moderation notes may quote private content"
+        },
+        "approved_by": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "approved_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "content_inventory_id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "status": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "created_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "updated_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        }
+      }
+    },
+    "reports": {
+      "default_class": "transform",
+      "reason": "Reports include reporter identity and free-text reasons",
+      "columns": {
+        "id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "kind": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "target_id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "reporter_email": {
+          "class": "transform",
+          "transform": "synthetic_email",
+          "reason": "Contact identifier"
+        },
+        "reason": {
+          "class": "transform",
+          "transform": "synthetic_text",
+          "reason": "Reporter free-text"
+        },
+        "status": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "admin_note": {
+          "class": "redact",
+          "transform": "null",
+          "reason": "Internal moderation notes may quote private content"
+        },
+        "created_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "resolved_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        }
+      }
+    },
+    "sources": {
+      "default_class": "copy_as_is",
+      "reason": "Public or operational non-member content eligible for Dev refresh after column rules",
+      "columns": {
+        "id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "source_domain": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "source_name": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "source_owner": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "source_type": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "source_trust_status": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "source_citation": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "date_accessed": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "blocked_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "admin_notes": {
+          "class": "redact",
+          "transform": "null",
+          "reason": "Internal moderation notes may quote private content"
+        },
+        "created_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "updated_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        }
+      }
+    },
+    "submission_queue": {
+      "default_class": "transform",
+      "reason": "Inbound submissions may embed PII in payload",
+      "columns": {
+        "submission_id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "submitted_by": {
+          "class": "transform",
+          "transform": "synthetic_email",
+          "reason": "Contact identifier"
+        },
+        "payload": {
+          "class": "redact",
+          "transform": "empty_object",
+          "reason": "May embed member PII / private submission body"
+        },
+        "title": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "description": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "source_name": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "source_url": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "credit_line": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "proposed_tag": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "media_url": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "media_reference": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "status": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "triage_flags": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "duplicate_candidate": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "review_notes": {
+          "class": "redact",
+          "transform": "null",
+          "reason": "Internal moderation notes may quote private content"
+        },
+        "decision_by": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "decision_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "rejected_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "purge_eligible_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "retention_reason": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "purge_flag": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "created_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "updated_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "reviewed_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "reviewer": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        }
+      }
+    },
+    "submitters": {
+      "default_class": "transform",
+      "reason": "Submitter contact directory",
+      "columns": {
+        "id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "member_submitter_id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "submitter_name": {
+          "class": "transform",
+          "transform": "synthetic_name",
+          "reason": "Personal name"
+        },
+        "submitter_contact": {
+          "class": "transform",
+          "transform": "synthetic_contact",
+          "reason": "Contact identifier"
+        },
+        "created_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "updated_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        }
+      }
+    },
+    "tags": {
+      "default_class": "copy_as_is",
+      "reason": "Public or operational non-member content eligible for Dev refresh after column rules",
+      "columns": {
+        "id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "tag_name": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "tag_category": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "created_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        }
+      }
+    },
+    "weekly_matchups": {
+      "default_class": "copy_as_is",
+      "reason": "Public or operational non-member content eligible for Dev refresh after column rules",
+      "columns": {
+        "id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "week_start": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "photo_a_id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "photo_b_id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "status": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "created_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        }
+      }
+    },
+    "weekly_votes": {
+      "default_class": "copy_as_is",
+      "reason": "Public or operational non-member content eligible for Dev refresh after column rules",
+      "columns": {
+        "id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "week_start": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "choice": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "source_hash": {
+          "class": "randomize",
+          "transform": "synthetic_hash",
+          "reason": "May fingerprint voters"
+        },
+        "created_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        }
+      }
+    },
+    "welcome_email_content": {
+      "default_class": "copy_as_is",
+      "reason": "Public or operational non-member content eligible for Dev refresh after column rules",
+      "columns": {
+        "id": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "title": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "body_md": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "status": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        },
+        "updated_at": {
+          "class": "copy_as_is",
+          "reason": "Public or operational non-member content eligible for Dev refresh after column rules"
+        }
+      }
+    }
+  },
+  "schema_fingerprint": {
+    "admin_team_worklist": [
+      "id",
+      "task",
+      "date_opened",
+      "needed_completion_date",
+      "owner",
+      "status",
+      "created_at",
+      "updated_at"
+    ],
+    "ask_inbox": [
+      "id",
+      "first_name",
+      "last_name",
+      "screen_name",
+      "email",
+      "question",
+      "status",
+      "created_at",
+      "moderation_note",
+      "faq_entry_id"
+    ],
+    "content_blocks": [
+      "key",
+      "page",
+      "section",
+      "title",
+      "body_md",
+      "status",
+      "published_body_md",
+      "version",
+      "updated_at",
+      "published_at",
+      "updated_by"
+    ],
+    "content_inventory": [
+      "id",
+      "tag",
+      "title",
+      "text",
+      "media",
+      "story_type",
+      "allowed_sections",
+      "priority",
+      "search_text",
+      "canonical",
+      "source_name",
+      "source_url",
+      "credit_line",
+      "event_date",
+      "rotation_group",
+      "last_featured",
+      "feature_weight",
+      "status",
+      "review_notes",
+      "submitted_by",
+      "created_at",
+      "updated_at",
+      "published_at",
+      "summary",
+      "perspective_label",
+      "event_year"
+    ],
+    "content_inventory_media": [
+      "id",
+      "story_id",
+      "media_id",
+      "media_role",
+      "display_order",
+      "caption",
+      "alt_text",
+      "source_name",
+      "source_url",
+      "credit_line",
+      "created_at",
+      "updated_at"
+    ],
+    "content_item_tags": [
+      "content_item_id",
+      "tag_id",
+      "created_at"
+    ],
+    "content_items": [
+      "id",
+      "candidate_id",
+      "input_stream",
+      "title",
+      "source_url",
+      "source_name",
+      "source_owner",
+      "source_domain",
+      "source_type",
+      "content_type",
+      "summary",
+      "date_or_period",
+      "provenance_notes",
+      "rights_status",
+      "source_trust_status",
+      "relevance_status",
+      "review_status",
+      "publication_status",
+      "publication_target",
+      "privacy_flag",
+      "privacy_review_status",
+      "credit_line",
+      "media_asset_id",
+      "duplicate_of",
+      "review_priority",
+      "admin_notes",
+      "source_metadata",
+      "source_id",
+      "submission_queue_id",
+      "content_inventory_id",
+      "last_event_at",
+      "deleted_at",
+      "retention_reason",
+      "purge_eligible_at",
+      "created_at",
+      "updated_at"
+    ],
+    "content_revisions": [
+      "id",
+      "key",
+      "version",
+      "body_md",
+      "status",
+      "updated_at",
+      "updated_by"
+    ],
+    "d1_migrations": [
+      "id",
+      "name",
+      "applied_at"
+    ],
+    "discussions": [
+      "id",
+      "title",
+      "body",
+      "author_email",
+      "created_at",
+      "status"
+    ],
+    "events": [
+      "id",
+      "title",
+      "start_date",
+      "end_date",
+      "location",
+      "host",
+      "fees",
+      "description",
+      "external_url",
+      "status",
+      "created_at",
+      "updated_at"
+    ],
+    "faq_entries": [
+      "id",
+      "question",
+      "answer",
+      "status",
+      "created_at",
+      "updated_at",
+      "submitter_email",
+      "view_count",
+      "pinned"
+    ],
+    "footer_quotes": [
+      "id",
+      "quote",
+      "attribution",
+      "status",
+      "created_at",
+      "updated_at"
+    ],
+    "friends": [
+      "id",
+      "name",
+      "kind",
+      "blurb",
+      "url",
+      "photo_url",
+      "status",
+      "created_at",
+      "updated_at"
+    ],
+    "join_email_log": [
+      "id",
+      "request_id",
+      "message_type",
+      "recipient_email",
+      "result",
+      "provider",
+      "status_code",
+      "error",
+      "created_at"
+    ],
+    "join_requests": [
+      "id",
+      "name",
+      "email",
+      "message",
+      "created_at",
+      "first_name",
+      "last_name",
+      "screen_name",
+      "email_opt_in",
+      "profile_photo_id",
+      "presence_status",
+      "presence_updated_at"
+    ],
+    "library_entries": [
+      "id",
+      "name",
+      "email",
+      "title",
+      "content",
+      "created_at"
+    ],
+    "login_attempts": [
+      "id",
+      "ip",
+      "email",
+      "ok",
+      "created_at"
+    ],
+    "media_assets": [
+      "id",
+      "media_uid",
+      "b2_key",
+      "b2_file_id",
+      "size",
+      "etag",
+      "ingested_at"
+    ],
+    "member_sessions": [
+      "id",
+      "email",
+      "created_at",
+      "expires_at",
+      "last_seen_at",
+      "ip",
+      "ua"
+    ],
+    "member_submissions": [
+      "id",
+      "content_item_id",
+      "submitter_id",
+      "submission_type",
+      "ownership_statement",
+      "permission_statement",
+      "credit_preference",
+      "privacy_notes",
+      "uploaded_media_reference",
+      "related_candidate_id",
+      "consent_status",
+      "admin_followup_required",
+      "submission_queue_id",
+      "created_at",
+      "updated_at"
+    ],
+    "members": [
+      "id",
+      "email",
+      "role",
+      "created_at",
+      "updated_at",
+      "first_name",
+      "last_name",
+      "screen_name",
+      "email_opt_in"
+    ],
+    "membership_card_content": [
+      "id",
+      "title",
+      "body_md",
+      "status",
+      "updated_at"
+    ],
+    "milestones": [
+      "id",
+      "year",
+      "title",
+      "description",
+      "photo_id",
+      "status",
+      "created_at",
+      "updated_at"
+    ],
+    "moderation_events": [
+      "id",
+      "content_item_id",
+      "event_type",
+      "actor",
+      "from_state",
+      "to_state",
+      "notes",
+      "created_at"
+    ],
+    "page_content": [
+      "id",
+      "slug",
+      "section",
+      "status",
+      "content",
+      "asset_url",
+      "updated_at"
+    ],
+    "page_content_history": [
+      "id",
+      "slug",
+      "section",
+      "status",
+      "content",
+      "asset_url",
+      "changed_at",
+      "changed_by"
+    ],
+    "photos": [
+      "id",
+      "url",
+      "is_memorabilia",
+      "description",
+      "created_at",
+      "photo_id",
+      "title",
+      "year",
+      "era",
+      "type",
+      "game_context",
+      "location",
+      "people",
+      "teams",
+      "tags",
+      "source",
+      "rights_notes",
+      "is_featured",
+      "is_matchup_eligible"
+    ],
+    "publication_candidates": [
+      "id",
+      "content_item_id",
+      "publication_target",
+      "credit_line",
+      "staging_notes",
+      "approved_by",
+      "approved_at",
+      "content_inventory_id",
+      "status",
+      "created_at",
+      "updated_at"
+    ],
+    "reports": [
+      "id",
+      "kind",
+      "target_id",
+      "reporter_email",
+      "reason",
+      "status",
+      "admin_note",
+      "created_at",
+      "resolved_at"
+    ],
+    "sources": [
+      "id",
+      "source_domain",
+      "source_name",
+      "source_owner",
+      "source_type",
+      "source_trust_status",
+      "source_citation",
+      "date_accessed",
+      "blocked_at",
+      "admin_notes",
+      "created_at",
+      "updated_at"
+    ],
+    "submission_queue": [
+      "submission_id",
+      "submitted_by",
+      "payload",
+      "title",
+      "description",
+      "source_name",
+      "source_url",
+      "credit_line",
+      "proposed_tag",
+      "media_url",
+      "media_reference",
+      "status",
+      "triage_flags",
+      "duplicate_candidate",
+      "review_notes",
+      "decision_by",
+      "decision_at",
+      "rejected_at",
+      "purge_eligible_at",
+      "retention_reason",
+      "purge_flag",
+      "created_at",
+      "updated_at",
+      "reviewed_at",
+      "reviewer"
+    ],
+    "submitters": [
+      "id",
+      "member_submitter_id",
+      "submitter_name",
+      "submitter_contact",
+      "created_at",
+      "updated_at"
+    ],
+    "tags": [
+      "id",
+      "tag_name",
+      "tag_category",
+      "created_at"
+    ],
+    "weekly_matchups": [
+      "id",
+      "week_start",
+      "photo_a_id",
+      "photo_b_id",
+      "status",
+      "created_at"
+    ],
+    "weekly_votes": [
+      "id",
+      "week_start",
+      "choice",
+      "source_hash",
+      "created_at"
+    ],
+    "welcome_email_content": [
+      "id",
+      "title",
+      "body_md",
+      "status",
+      "updated_at"
+    ]
+  }
+}

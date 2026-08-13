@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: Current CI workflow classification by lifecycle domain and retirement status as a supporting specification
 Does Not Own: CI and Verification Domain Policy; workflow implementation details; branch protection settings
 Canonical Reference: /docs/governance/CI-AND-VERIFICATION.md
-Related Issues: #2689, #1058, #2175, #2208, #2469, #2524
-Last Reviewed: 2026-07-21
+Related Issues: #2689, #2683, #1058, #2175, #2208, #2469, #2524
+Last Reviewed: 2026-08-05
 ---
 
 # LGFC Workflow Classification Matrix
@@ -25,26 +25,26 @@ This reference covers required merge protection, advisory PR checks, manual-only
 
 ## Current known truth
 
-`gate-quality.yml` and `gitleaks.yml` are the required deterministic checks. PR hygiene, diff scope, and reviewer response are advisory. Post-merge closeout is single-owner, and the #1075 phase engine is retired.
+`gate-quality.yml` and `gitleaks.yml` are the required deterministic checks. Delivery-profile classification now fails closed inside `GATE — Quality Checks` (including Model B rollback↔delivery-model cross-check and required `Implementation agent`). PR hygiene remains non-required for branch protection, but hard-fails the hygiene job on `missing_allowlist`, `allowlist_violation`, `unchecked_acceptance_criterion`, and `forbidden_placeholder_token`. Reviewer response completion fails closed on undispositioned and outdated-without-disposition findings. Soft PR-hygiene findings and diff scope remain advisory.
 
 ## Intended final state
 
-Each workflow remains in the correct lifecycle domain, retired assets stay absent, and no advisory or manual-only workflow becomes required without explicit promotion evidence.
+Each workflow remains in the correct lifecycle domain, retired assets stay absent, and no advisory or manual-only workflow becomes a branch-protection required check without explicit promotion evidence. Fail-closed pre-merge detection for the dominant post-merge exception codes is authorized by #2683 without weakening post-merge validators.
 
 ## Required merge protection
 
 | Workflow | Classification | Current role |
 | --- | --- | --- |
-| `gate-quality.yml` | Keep | Deterministic class-aware quality blocker |
+| `gate-quality.yml` | Keep | Deterministic class-aware quality blocker; includes fail-closed delivery-profile classification |
 | `gitleaks.yml` | Keep | Secret exposure blocker |
 
 ## Active advisory PR checks
 
 | Workflow | Classification | Current role |
 | --- | --- | --- |
-| `gate-pr-hygiene.yml` | Keep advisory | Stable PR-body hygiene |
+| `gate-pr-hygiene.yml` | Keep advisory for soft findings; hard-fail selected codes | Stable PR-body hygiene; hard-fails allowlist / unchecked AC / forbidden placeholder |
 | `gate-diff-scope.yml` | Keep advisory | Allowed-path diff assessment |
-| `reviewer-response-completion.yml` | Keep advisory | GitHub-native reviewer and thread assessment |
+| `reviewer-response-completion.yml` | Enforce disposition completeness | GitHub-native reviewer/thread assessment; fails closed on undispositioned and outdated-without-disposition |
 
 ## Manual-only / paused
 

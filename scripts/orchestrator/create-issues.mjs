@@ -119,6 +119,21 @@ function parseTasks(content) {
   });
 }
 
+export function normalizeTitle(title) {
+  return title
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '');
+}
+
+export function isDuplicateOrSupersededIssueBody(body) {
+  return (
+    /\bDuplicate of (?:Issue )?#\d+\b/i.test(body || '') ||
+    /\bclosed as duplicate\b/i.test(body || '') ||
+    /\bsuperseded by (?:Issue )?#\d+\b/i.test(body || '')
+  );
+}
+
 function issueExists(marker) {
   const query = `repo:${repo} is:issue ${marker}`;
   const result = runGh([
@@ -136,6 +151,48 @@ function issueExists(marker) {
     '1'
   ]);
   return JSON.parse(result).length > 0;
+}
+
+export function findExistingIssueByTitle(repoArg, title) {
+  const normalized = normalizeTitle(title);
+  const result = runGh([
+    'issue',
+    'list',
+    '--repo',
+    repoArg,
+    '--state',
+    'all',
+    '--search',
+    title,
+    '--json',
+    'number,title,state,body,labels',
+    '--limit',
+    '10'
+  ]);
+  const issues = JSON.parse(result);
+  for (const issue of issues) {
+    if (normalizeTitle(issue.title) === normalized) {
+      return issue;
+    }
+  }
+  return null;
+}
+
+export function issuePreflightResult(existingIssue) {
+  if (!existingIssue) return { action: 'create' };
+  if (existingIssue.state === 'OPEN') {
+    return { action: 'reuse', number: existingIssue.number };
+  }
+  if (isDuplicateOrSupersededIssueBody(existingIssue.body)) {
+    return { action: 'blocked-duplicate', number: existingIssue.number };
+  }
+  const closedCompletedLabels = ['status:complete', 'status:completed'];
+  const labels = (existingIssue.labels || []).map((l) => l.name || l);
+  const isComplete = labels.some((l) => closedCompletedLabels.includes(l));
+  if (isComplete) {
+    return { action: 'blocked-complete', number: existingIssue.number };
+  }
+  return { action: 'create' };
 }
 
 function openOrchestratorIssueExists() {
@@ -218,7 +275,26 @@ export function main() {
 
       const marker = `lgfc-task-id:${slug}:${task.id}`;
       if (issueExists(marker)) {
-        console.log(`SKIP existing issue for ${marker}`);
+        console.log(`REUSED existing issue for ${marker}`);
+        continue;
+      }
+
+      const fullTitle = `[${task.id}] ${task.title}`;
+      const byTitle = findExistingIssueByTitle(repo, fullTitle);
+      const preflight = issuePreflightResult(byTitle);
+
+      if (preflight.action === 'reuse') {
+        console.log(`REUSED existing open issue #${preflight.number} for ${marker}`);
+        continue;
+      }
+
+      if (preflight.action === 'blocked-duplicate') {
+        console.log(`BLOCKED issue for ${marker}: existing issue #${preflight.number} is duplicate/superseded`);
+        continue;
+      }
+
+      if (preflight.action === 'blocked-complete') {
+        console.log(`BLOCKED issue for ${marker}: existing issue #${preflight.number} is closed-complete`);
         continue;
       }
 
@@ -238,7 +314,7 @@ export function main() {
 
       if (dryRun) {
         console.log(`DRY RUN create issue for ${marker}`);
-        console.log(`DRY RUN title: [${task.id}] ${task.title}`);
+        console.log(`DRY RUN title: ${fullTitle}`);
         console.log(`DRY RUN labels: ${labels.join(',')}`);
         createdIssueCount += 1;
         continue;
@@ -250,7 +326,7 @@ export function main() {
         '--repo',
         repo,
         '--title',
-        `[${task.id}] ${task.title}`,
+        fullTitle,
         '--body',
         body,
         '--label',

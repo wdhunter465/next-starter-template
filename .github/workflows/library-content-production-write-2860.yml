@@ -1,0 +1,124 @@
+name: OPS — Library Content Production Write (#2860)
+
+# Operator-triggered Production write path for #2860's library_entries -> content_inventory
+# migration batch (all-drafts-first, per #2913's batch plan and the Production Go evidence
+# package on #2860, PR #3266). Built per Bill's 2026-08-12 GO decision: "Build + validate +
+# PR + merge only. Do not dispatch, trigger, or execute a Production D1 write." This
+# workflow is merged in that spirit -- it stays dormant until a separate, later, explicit
+# dispatch decision authorizes running it.
+#
+# Two independent gates must both agree before any write is attempted -- checked by both
+# this workflow AND scripts/ci/library_content_production_write_2860.mjs itself (defense in
+# depth, since this is the one workflow in this repo capable of writing to Production D1):
+#   1. confirm_write must be exactly "confirm".
+#   2. mode must be exactly "apply" -- the default, "dry-run", performs the identical
+#      Production reads and plan classification but writes nothing, regardless of
+#      confirm_write.
+#
+# Every row read from Production is passed through scripts/migrations/library-content-backfill.mjs's
+# existing, already-tested (27 tests) field-mapping logic, which structurally never carries
+# `email` into any written field. Output is aggregate counts, exception codes, and legacy
+# numeric ids only -- never row content.
+#
+# This file (and scripts/ci/library_content_production_write_2860.mjs) matches this repo's
+# protected-path patterns in scripts/ci/delivery_profile.mjs; Model A PRs targeting main
+# require Approval profile: work-bill-production regardless of protected-path status.
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_write:
+        description: 'Type "confirm" to run this workflow at all (dry-run or apply)'
+        required: true
+        type: string
+      mode:
+        description: 'dry-run (default, no write) or apply (writes to Production D1)'
+        required: true
+        type: choice
+        default: dry-run
+        options:
+          - dry-run
+          - apply
+
+concurrency:
+  group: library-content-production-write-2860
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  write:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require explicit confirmation
+        run: |
+          if [ "${{ inputs.confirm_write }}" != "confirm" ]; then
+            echo "confirm_write must be exactly 'confirm' — refusing to run."
+            exit 1
+          fi
+          echo "Mode: ${{ inputs.mode }}"
+
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run #2860 library-content Production write path
+        id: write
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DATABASE_NAME: ${{ secrets.D1_DATABASE_NAME }}
+          D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
+          MODE: ${{ inputs.mode }}
+          CONFIRM_WRITE: ${{ inputs.confirm_write }}
+        run: node scripts/ci/library_content_production_write_2860.mjs
+
+      - name: Upload result evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: library-content-production-write-2860-result
+          path: |
+            library-content-production-write-2860-result.json
+            library-content-production-write-2860-result.md
+          if-no-files-found: warn
+
+      - name: Write step summary
+        if: always() && hashFiles('library-content-production-write-2860-result.md') != ''
+        run: cat library-content-production-write-2860-result.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Record result on #2860
+        if: always() && hashFiles('library-content-production-write-2860-result.md') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue comment 2860 --body-file library-content-production-write-2860-result.md
+
+      - name: Record failure on #2860
+        if: failure() && steps.checkout.outcome == 'success' && hashFiles('library-content-production-write-2860-result.md') == ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue comment 2860 --body "$(cat <<'EOF'
+          <!-- library-content-production-write-2860 -->
+          ## #2860 library-content Production write — FAILED (fail-closed)
+
+          The library-content Production write path (mode: `${{ inputs.mode }}`) did not
+          complete. See the workflow run logs and uploaded artifact (if any) for details.
+          If any write was in progress when this failure occurred, consult the pre/post
+          counts in the artifact (if produced) and the rollback command in
+          scripts/ci/library_content_production_write_2860.mjs before assuming no rows
+          were written.
+
+          Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          EOF
+          )"

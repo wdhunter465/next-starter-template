@@ -71,7 +71,7 @@
     "/accessibility": {
       "requiredHeadings": ["Accessibility"]
     },
-    "/faq": {
+    "/ask": {
       "requiredHeadings": ["FAQ"]
     },
     "/events": {
@@ -85,7 +85,6 @@
     "/ask",
     "/contact",
     "/events",
-    "/faq",
     "/join",
     "/login",
     "/search",

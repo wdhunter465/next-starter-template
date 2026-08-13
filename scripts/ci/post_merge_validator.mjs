@@ -533,9 +533,9 @@ export function evaluateClericalSourceIssueLinkage({
 	}
 	if (declaredIssue) byNumber.set(declared, declaredIssue);
 
-	for (const number of collectClericalSourceIssueCandidateNumbers({ pr, evidenceTexts, repository })) {
-		if (!byNumber.has(number)) byNumber.set(number, { number, title: '', body: '' });
-	}
+	// Do not invent placeholder candidates from review/comment evidence.
+	// Evidence-only citations (for example review prose like "use #1234") must not
+	// enter scoring or trigger clerical body auto-repair (#3092).
 
 	const scored = [];
 	for (const [number, issue] of byNumber.entries()) {
@@ -1352,16 +1352,21 @@ export async function runValidator({
 			sourceIssue = issue;
 			repoLabels = labels;
 
+			// Cap the GitHub issue-fetch set on PR title/branch/body only.
+			// Review/comment evidence often cites dozens of historical issues and must not
+			// amplify REST fan-out past MAX_CLERICAL_SOURCE_ISSUE_CANDIDATES (#3042).
+			// Full evidenceTexts remain available to evaluateClericalSourceIssueLinkage for
+			// authority-phrase scoring after the fetch set is bounded.
 			const candidateNumbers = collectClericalSourceIssueCandidateNumbers({
 				pr: normalizedPr,
-				evidenceTexts,
+				evidenceTexts: [],
 				repository,
 			}).filter((number) => number !== String(sourceResolution.issueNumber));
 
 			if (candidateNumbers.length > MAX_CLERICAL_SOURCE_ISSUE_CANDIDATES) {
 				linkageFailures = [{
 					code: 'too_many_source_issue_candidates',
-					message: `Clerical linkage check found ${candidateNumbers.length} candidate issue references (cap ${MAX_CLERICAL_SOURCE_ISSUE_CANDIDATES}); stopping for human review to avoid post-merge API amplification.`,
+					message: `Clerical linkage check found ${candidateNumbers.length} candidate issue references in PR title/branch/body (cap ${MAX_CLERICAL_SOURCE_ISSUE_CANDIDATES}); stopping for human review to avoid post-merge API amplification.`,
 				}];
 			} else {
 				const candidateIssues = (

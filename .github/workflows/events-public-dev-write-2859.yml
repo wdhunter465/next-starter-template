@@ -1,0 +1,103 @@
+name: OPS — Events-public Development D1 Write (#2859)
+
+# Operator-triggered Development-only write path for #2859 events -> content_inventory
+# proving batch (mapping: docs/ops/reports/events-public-content-inventory-mapping-2859.md).
+#
+# Targets lgfc-litedev only (wrangler env.preview). Production D1 is refused by identity guards.
+# Default mode is dry-run. Apply requires confirm_write=confirm AND mode=apply.
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_write:
+        description: 'Type "confirm" to run this workflow at all (dry-run or apply)'
+        required: true
+        type: string
+      mode:
+        description: 'dry-run (default, no write) or apply (writes to Development D1 only)'
+        required: true
+        type: choice
+        default: dry-run
+        options:
+          - dry-run
+          - apply
+
+concurrency:
+  group: events-public-dev-write-2859
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  write:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require explicit confirmation
+        run: |
+          if [ "${{ inputs.confirm_write }}" != "confirm" ]; then
+            echo "confirm_write must be exactly 'confirm' — refusing to run."
+            exit 1
+          fi
+          echo "Mode: ${{ inputs.mode }}"
+
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run #2859 events-public Development write path
+        id: write
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DEV_DATABASE_NAME: ${{ secrets.D1_DEV_DATABASE_NAME }}
+          D1_DEV_DATABASE_ID: ${{ secrets.D1_DEV_DATABASE_ID }}
+          MODE: ${{ inputs.mode }}
+          CONFIRM_WRITE: ${{ inputs.confirm_write }}
+        run: node scripts/ci/events_public_dev_write_2859.mjs
+
+      - name: Upload result evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: events-public-dev-write-2859-result
+          path: |
+            events-public-dev-write-2859-result.json
+            events-public-dev-write-2859-result.md
+          if-no-files-found: warn
+
+      - name: Write step summary
+        if: always() && hashFiles('events-public-dev-write-2859-result.md') != ''
+        run: cat events-public-dev-write-2859-result.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Record result on #2859
+        if: always() && hashFiles('events-public-dev-write-2859-result.md') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue comment 2859 --body-file events-public-dev-write-2859-result.md
+
+      - name: Record failure on #2859
+        if: failure() && steps.checkout.outcome == 'success' && hashFiles('events-public-dev-write-2859-result.md') == ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue comment 2859 --body "$(cat <<'EOF'
+          <!-- events-public-dev-write-2859 -->
+          ## #2859 events-public Development write — FAILED (fail-closed)
+
+          The Development-only write path (mode: `${{ inputs.mode }}`) did not complete.
+          Production D1 was never targeted. See the workflow run logs and uploaded artifact
+          (if any) for details.
+
+          Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          EOF
+          )"

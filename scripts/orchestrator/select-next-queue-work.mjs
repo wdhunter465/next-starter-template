@@ -79,7 +79,7 @@ export function selectFromIssues(issues) {
 }
 
 export function main(argv = process.argv.slice(2), deps = {}) {
-  const repo = deps.repo || process.env.GITHUB_REPOSITORY || 'wdhunter645/next-starter-template';
+  const repo = deps.repo || process.env.GITHUB_REPOSITORY || 'wdhunter465/next-starter-template';
   const fixturePath = argv.find((arg) => arg.startsWith('--fixture='))?.slice('--fixture='.length);
   const routing = deps.routing || loadJson('.github/orchestrator-routing.json');
 

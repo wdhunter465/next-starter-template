@@ -205,7 +205,14 @@ function SearchPageContent() {
 
 export default function SearchPage() {
   return (
-    <Suspense fallback={<main style={{ padding: 40 }}>Loading search…</main>}>
+    <Suspense
+      fallback={
+        <main style={{ padding: 40, maxWidth: 900, margin: '0 auto' }}>
+          <h1 style={{ marginTop: 0 }}>Search</h1>
+          <p className="sub">Search Fan Club public content. Enter at least two characters to begin.</p>
+        </main>
+      }
+    >
       <SearchPageContent />
     </Suspense>
   );

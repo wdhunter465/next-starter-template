@@ -7,7 +7,7 @@
 
 import { requireAdmin } from "../../../_lib/auth";
 import { requireD1, requireTables, jsonResponse } from "../../../_lib/d1";
-import { normalizeSourceIssue } from "../../../_lib/matchup-repair-audit";
+import { clientAuditHints, logMatchupRepairAudit, normalizeSourceIssue } from "../../../_lib/matchup-repair-audit";
 import { repairBrokenActiveMatchupPhoto } from "../../matchup/current";
 
 export const onRequestPost = async (context: any): Promise<Response> => {
@@ -28,6 +28,27 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     const sourceIssue = normalizeSourceIssue(body?.source_issue);
 
     if (!sourceIssue) {
+      // Rejected admin attempts must stay visible in the audit trail (#3030),
+      // matching the equivalent rejection logged in admin/matchup/update.ts.
+      logMatchupRepairAudit({
+        event: "matchup_repair_audit",
+        at: new Date().toISOString(),
+        trigger: "admin_authorized",
+        week_start: null,
+        broken_photo_id: Number.isFinite(brokenPhotoId) && brokenPhotoId > 0 ? brokenPhotoId : null,
+        slot: null,
+        probe_available: null,
+        probe_status: null,
+        before_photo_a_id: null,
+        before_photo_b_id: null,
+        after_photo_a_id: null,
+        after_photo_b_id: null,
+        mutated: false,
+        votes_cleared: false,
+        source_issue: null,
+        mutation_blocked_reason: "missing_source_issue",
+        ...clientAuditHints(request),
+      });
       return jsonResponse(
         {
           ok: false,

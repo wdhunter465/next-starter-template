@@ -27,8 +27,14 @@ function metadataBody(overrides = {}) {
     rollbackProfile: 'one-step',
     componentBranch: 'not-applicable',
     componentMaster: 'not-applicable',
+    implementationAgent: 'Cursor Local',
     ...overrides,
   };
+
+  const implementationLine = Object.prototype.hasOwnProperty.call(overrides, 'implementationAgent')
+    && !overrides.implementationAgent
+    ? ''
+    : `- Implementation agent: ${values.implementationAgent}\n`;
 
   return `# PR Summary
 
@@ -42,7 +48,7 @@ function metadataBody(overrides = {}) {
 - Approval profile: ${values.approvalProfile}
 - Gate profile: ${values.gateProfile}
 - Rollback profile: ${values.rollbackProfile}
-- Component branch: ${values.componentBranch}
+${implementationLine}- Component branch: ${values.componentBranch}
 - Component master: ${values.componentMaster}
 
 ## Change Summary
@@ -188,9 +194,59 @@ describe('classifyDeliveryProfile', () => {
       rollbackProfile: 'multi-step',
       componentBranch: 'component/delivery-system-v1',
       componentMaster: '#2477',
+      implementationAgent: 'Cursor Local',
       protectedChange: false,
       errors: [],
     });
+  });
+
+  it('fails Model B child when Rollback profile does not match Delivery model', () => {
+    const profile = classify(
+      {
+        deliveryModel: 'B-child',
+        targetEnvironment: 'component',
+        approvalProfile: 'component-auto-integration',
+        gateProfile: 'component-child',
+        rollbackProfile: 'one-step',
+        componentBranch: 'component/delivery-system-v1',
+        componentMaster: '#2477',
+      },
+      {
+        baseRef: 'component/delivery-system-v1',
+        headRef: 'cursor/2683-rollback-mismatch',
+        changedFiles: ['docs/reference/ci/delivery-profile-contract.md'],
+      },
+    );
+
+    expect(profile.errors).toContainEqual(expect.objectContaining({
+      code: 'invalid_rollbackProfile',
+      expected: 'multi-step',
+      value: 'one-step',
+    }));
+  });
+
+  it('fails Model B child when Implementation agent is missing', () => {
+    const profile = classify(
+      {
+        deliveryModel: 'B-child',
+        targetEnvironment: 'component',
+        approvalProfile: 'component-auto-integration',
+        gateProfile: 'component-child',
+        rollbackProfile: 'multi-step',
+        componentBranch: 'component/delivery-system-v1',
+        componentMaster: '#2477',
+        implementationAgent: '',
+      },
+      {
+        baseRef: 'component/delivery-system-v1',
+        headRef: 'cursor/2683-missing-impl-agent',
+        changedFiles: ['docs/reference/ci/delivery-profile-contract.md'],
+      },
+    );
+
+    expect(profile.errors).toContainEqual(expect.objectContaining({
+      code: 'missing_implementationAgent',
+    }));
   });
 
   it('classifies protected Model B child PRs for Chat review', () => {

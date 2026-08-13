@@ -1,12 +1,17 @@
 # Cursor Cloud Agent bootstrap
 
-> **Design shift (#3013, 2026-08-03):** Cursor Local Bridge handoff is now
-> **labels/status only** — `agent:cursor` + `handoff:ready` on an open Issue
-> not already handed off (`status:review`/`status:complete`/`status:post-merge-verify`).
-> There is no comment-marker protocol: `LOCAL CURSOR RESUME`, `CHATGPT RESPONSE`,
-> and similar markers are **not** read or required for Bridge eligibility.
-> Canonical: `docs/reference/ci/cursor-local-bridge-contract.md` and
-> `docs/governance/standards/CURSOR-RUNTIME-ROUTING.md`.
+> **Design shift (#3013, 2026-08-03):** Cursor Local handoff is **labels/status
+> only** — `agent:cursor` + `handoff:ready` on an open Issue not already handed
+> off (`status:review`/`status:complete`/`status:post-merge-verify`). There is
+> no comment-marker protocol.
+>
+> **Transport (#3212 Phase 4 / #3424):** Primary wake is GitHub Actions
+> `lgfc-cursor-dispatch` on runner label `lgfc-cursor` (identifiers-only
+> wrapper). Cursor Local Bridge is **decommissioned** as a primary
+> auto-start path; automatic packet delivery and the local poll-wake loop
+> remain **retired as execution dependencies**. Canonical:
+> `docs/governance/standards/CURSOR-RUNTIME-ROUTING.md` and
+> `docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md`.
 
 When a Cloud Agent session loads this file, the bootstrap is not complete until the agent has read the canonical chain below.
 
@@ -59,3 +64,10 @@ Task prompts do not override the chain in `Agent.md`.
 This file routes to canonical governance. It does not replace `Agent.md` or duplicate shared/core doctrine.
 
 See `docs/how-to/cursor/agent-session-bootstrap.md` for verification steps.
+
+
+## Continuous serial implementation (#3055)
+
+For a graduated project, the exact prepared child graph is standing authority. After WORK records predecessor `ACCEPT`, the next package-complete serial child may proceed without a repeat Administration/PMO dispatch. The implementation runtime must record starting SHA, branch, allowlist confirmation, and pre-implementation checkpoint before editing.
+
+Missing package fields produce `PACKAGE-INCOMPLETE`; a substantive dependency or protected boundary produces an evidence-specific `HOLD`. Merge alone is not acceptance. WORK owns acceptance, child/parent reconciliation, and successor release, and cannot independently verify or approve work WORK implemented.

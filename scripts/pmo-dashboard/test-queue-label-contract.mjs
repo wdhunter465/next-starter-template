@@ -2,6 +2,7 @@
 import {
   analyzeQueueLabels,
   isPeerEngineeringPreparation,
+  isStandaloneGovernanceIssue,
   isStandaloneOperationsIssue
 } from './queue-label-contract.mjs';
 
@@ -194,6 +195,41 @@ assert(
     body: 'Related Pipeline Project: #42\n'
   }),
   'engineering preparation with Operations state must remain visible for fail-closed classification'
+);
+assert(
+  isStandaloneGovernanceIssue({
+    labels: [{ name: 'team:governance' }, { name: 'gov:priority:2' }],
+    body: 'Standalone stewardship audit'
+  }),
+  'governance issue with native gov priority remains a clean standalone peer'
+);
+assert(
+  isStandaloneGovernanceIssue({
+    labels: [{ name: 'team:governance' }, { name: 'gov:review' }],
+    body: 'Standalone stewardship audit'
+  }),
+  'governance issue with native gov review state remains a clean standalone peer'
+);
+assert(
+  !isStandaloneGovernanceIssue({
+    labels: [{ name: 'team:governance' }, { name: 'ops:priority:1' }],
+    body: 'Standalone stewardship audit'
+  }),
+  'governance issue with Operations priority must remain visible for fail-closed classification'
+);
+assert(
+  !isStandaloneGovernanceIssue({
+    labels: [{ name: 'team:governance' }, { name: 'team:pmo' }],
+    body: 'Standalone stewardship audit'
+  }),
+  'governance issue with conflicting team ownership must remain visible for validation'
+);
+assert(
+  !isStandaloneOperationsIssue({
+    labels: [{ name: 'team:operations' }, { name: 'gov:priority:1' }],
+    body: 'Related project: #1'
+  }),
+  'operations issue with Governance priority must remain visible for fail-closed classification'
 );
 
 console.log('Queue label contract tests passed');

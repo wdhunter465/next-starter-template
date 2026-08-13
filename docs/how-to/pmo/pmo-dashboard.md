@@ -5,8 +5,8 @@ Authority Level: Operational Guidance
 Owns: PMO dashboard generation, refresh, validation procedure, operator remediation flow, and GitHub Pages limitations
 Does Not Own: PMO lifecycle definitions, queue and priority policy, PMO issue contract, dashboard JSON specification, GitHub Issues source records, or Cloudflare production deployment
 Canonical Reference: /docs/ops/pmo/PMO-JULY-2026-DASHBOARD-SPECIFICATION.md
-Related Issues: #2101, #2299, #2313, #2471, #2516, #2610, #2611, #2699, #2702
-Last Reviewed: 2026-07-21
+Related Issues: #2101, #2299, #2313, #2471, #2516, #2610, #2611, #2699, #2702, #3116, #3136
+Last Reviewed: 2026-08-07
 ---
 
 # PMO Dashboard
@@ -51,14 +51,16 @@ It does not authorize:
 Canonical HTML:
 
 ```text
-https://wdhunter645.github.io/next-starter-template/pmo-dashboard/
+https://wdhunter465.github.io/next-starter-template/pmo-dashboard/
 ```
 
 Canonical JSON:
 
 ```text
-https://wdhunter645.github.io/next-starter-template/pmo-dashboard/dashboard-data.json
+https://wdhunter465.github.io/next-starter-template/pmo-dashboard/dashboard-data.json
 ```
+
+The former owner URL (`https://wdhunter645.github.io/next-starter-template/pmo-dashboard/`) returns 404 after the repository rename to `wdhunter465/next-starter-template`. Use only the `wdhunter465.github.io` URLs above.
 
 At PMO meeting startup, fetch the JSON first, parse it, validate the expected reporting fields and views, and disclose `generatedAt` freshness. If fetch, parse, validation, or freshness is unacceptable, use GitHub Issues directly. GitHub Issues always override the generated snapshot.
 
@@ -170,19 +172,26 @@ Do not invent missing team, priority, stage, parent, or graduation decisions mer
 4. When Incomplete is flooded with `pmo:task` rows and parent `taskCount` values are zero, dry-run then apply `node scripts/pmo-dashboard/reconcile-task-child-labels.mjs` (add `--apply` only after reviewing the plan). The script strips prohibited child queue/stage labels and reconciles lifecycle labels; it does not invent parent references.
 5. Confirm Operations and Engineering preparation peer Issues are not included in parent task accounting.
 6. On a feature branch, confirm **Validate PMO dashboard branch changes** runs the deterministic fixture successfully.
-7. On `main`, scheduled, or manual operational runs, confirm **Build PMO dashboard** generates and validates `site/pmo-dashboard/dashboard-data.json` and uploads the artifact.
+7. On `main`, scheduled (every 30 minutes), or manual **Build PMO dashboard** runs, confirm generation/validation of `site/pmo-dashboard/dashboard-data.json` and artifact upload.
 8. Treat feature-branch fixture success as code-path evidence only. Use a live `main`, scheduled, or manual build for current-inventory evidence.
-9. Confirm **PMO dashboard CI deploy** reports GitHub Pages readiness before expecting publication.
+9. Confirm **PMO dashboard CI deploy** consumes the build artifact (preferred) or, for emergency manual/push paths, regenerates via `run-dashboard-build.mjs`, then reports GitHub Pages readiness.
 10. When Pages is unavailable or not configured for GitHub Actions, complete the one-time operator procedure below.
-11. Manually dispatch **PMO dashboard CI deploy** after Pages enablement.
+11. Prefer manually dispatching **PMO dashboard CI build** (deploy follows via `workflow_run`). Dispatch deploy directly only when an emergency publish is required without a preceding build.
 12. Verify the published HTML and JSON URLs and record evidence on the controlling Issue.
 13. Treat the dashboard as a reporting aid, never as authority to create or change priority.
 
 ## Refresh and validation
 
-The checked-in `site/pmo-dashboard/dashboard-data.json` is a generated snapshot and may be stale. Use `generatedAt` to judge freshness.
+### Freshness contract
 
-The build workflow performs live generation and validation on `main`, scheduled, and manual runs. Feature-branch pushes use deterministic fixtures so unrelated live PMO metadata or transient API conditions do not block a proposed code change.
+- GitHub Issues remain the live source of truth and always override the dashboard snapshot.
+- GitHub Pages is a reporting snapshot. Expect lag of at most about 30 minutes under the scheduled build (plus deploy time), unless an operator manually dispatches **Build PMO dashboard**.
+- Dashboard CI does **not** run on issue open/edit/label/assign events. That fan-out starved required PR gates and is intentionally removed (Phase 1 redesign under #3136 / #3116).
+- At meeting startup, fetch the published JSON, check `generatedAt`, and fall back to Issues if freshness is unacceptable.
+
+The checked-in `site/pmo-dashboard/dashboard-data.json` is a generated snapshot and may be stale. Use published Pages `generatedAt`, not the checked-in copy, for operator freshness.
+
+The build workflow performs live generation and validation on `main`, scheduled, and manual runs, then uploads an artifact. Deploy publishes that artifact to Pages (single build→deploy path). Feature-branch pushes use deterministic fixtures so unrelated live PMO metadata or transient API conditions do not block a proposed code change.
 
 Target validation must reject or quarantine:
 
@@ -207,7 +216,7 @@ One-time operator procedure:
 1. Open repository **Settings**.
 2. Open **Pages**.
 3. Under **Build and deployment**, set **Source** to **GitHub Actions**.
-4. Manually dispatch **PMO dashboard CI deploy**.
+4. Manually dispatch **PMO dashboard CI build** (preferred; deploy follows automatically) or **PMO dashboard CI deploy**.
 5. Confirm Configure Pages, Upload Pages artifact, and Deploy to GitHub Pages execute.
 6. Verify the HTML and JSON URLs.
 7. Record the workflow and URL evidence on the controlling operational Issue.

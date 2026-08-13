@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: Production behavior, routing rules, and navigation invariants as the primary supporting specification
 Does Not Own: Product and Design Domain Policy; implementation details inside components
 Canonical Reference: /docs/governance/PRODUCT-AND-DESIGN.md
-Related Issues: #2687
-Last Reviewed: 2026-07-21
+Related Issues: #2687, #3074, #3148
+Last Reviewed: 2026-08-08
 ---
 
 # LGFC Production Design and Standards
@@ -43,10 +43,10 @@ Store
 # Canonical Routes
 
 Public active routes:
-/, /about, /contact, /terms, /privacy, /search, /join, /logout, /faq, /ask, /health
+/, /about, /contact, /terms, /privacy, /search, /join, /logout, /ask, /health
 
 Public legacy compatibility routes:
-/login, /auth
+/login, /auth, /faq
 
 FanClub (auth required):
 /fanclub, /fanclub/myprofile, /fanclub/photo, /fanclub/library, /fanclub/memorabilia
@@ -66,6 +66,7 @@ external Bonfire link (no /store route)
 - If authentication/session validation fails, redirect to `/` (public home).
 - `/login` is a legacy compatibility route and must redirect to `/`.
 - `/auth` is a legacy compatibility route and must redirect to `/join`.
+- `/faq` is a legacy compatibility route and must redirect to `/ask/` (query string preserved). Ask and FAQ are consolidated; `/ask` is the canonical public FAQ browse + Ask workflow (see `docs/reference/design/faq-and-ask.md`).
 
 ---
 

@@ -69,7 +69,8 @@ const ctaSecondary: CSSProperties = {
 
 export default function FAQSection() {
   const [items, setItems] = useState<FAQItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Static export must not bake "Loading FAQ…" into HTML (#3305).
+  const [loading, setLoading] = useState(false);
   const [q, setQ] = useState("");
 
   const query = useMemo(() => q.trim(), [q]);
@@ -87,6 +88,7 @@ export default function FAQSection() {
 
     (async () => {
       try {
+        setLoading(true);
         const limit = query ? 10 : 5;
         const data = await apiGet<{ ok: boolean; items: FAQItem[] }>(
           `/api/faq/list?limit=${limit}${query ? `&q=${encodeURIComponent(query)}` : ""}`
@@ -149,8 +151,8 @@ export default function FAQSection() {
                     {answerPreview(item.answer)}
                   </p>
                   <div style={{ marginTop: "auto", paddingTop: "0.25rem" }}>
-                    <Link href="/faq" className="link" style={{ fontWeight: 600 }}>
-                      Read full answer in FAQ →
+                    <Link href="/ask/" className="link" style={{ fontWeight: 600 }}>
+                      Read full answer →
                     </Link>
                   </div>
                 </article>
@@ -161,17 +163,17 @@ export default function FAQSection() {
 
         {query && items.length > 0 ? (
           <p className="sub" style={{ marginTop: "1.25rem", marginBottom: 0, textAlign: "center" }}>
-            <Link className="link" href={`/faq?q=${encodeURIComponent(query)}`}>
-              View all results on the FAQ page
+            <Link className="link" href={`/ask/?q=${encodeURIComponent(query)}`}>
+              View all results on FAQ &amp; Ask
             </Link>
           </p>
         ) : null}
 
         <div style={ctaRowStyle}>
-          <Link href="/faq" style={ctaPrimary}>
+          <Link href="/ask/" style={ctaPrimary}>
             View All Questions
           </Link>
-          <Link href="/ask" style={ctaSecondary}>
+          <Link href="/ask/#ask-form" style={ctaSecondary}>
             Ask a Question
           </Link>
         </div>

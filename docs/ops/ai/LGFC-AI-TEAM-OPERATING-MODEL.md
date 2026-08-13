@@ -5,8 +5,8 @@ Authority Level: Superseded
 Owns: Historical LGFC AI team operating detail only — agent policy moved to governance
 Does Not Own: Team roles, approval authority, protected stops, or launch-control policy
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Related Issues: #1754, #2494
-Last Reviewed: 2026-07-13
+Related Issues: #1754, #2494, #3142
+Last Reviewed: 2026-08-08
 ---
 
 # LGFC AI Team Operating Model
@@ -22,8 +22,11 @@ Last Reviewed: 2026-07-13
 | Model A execution procedure | `docs/how-to/agents/run-model-a.md` |
 | Model B execution procedure | `docs/how-to/agents/run-model-b.md` |
 | Shared execution detail | `docs/ops/ai/CORE-RULES.md` |
+| Codex selective-use status | `docs/ops/ai/CODEX-RULES.md` and `docs/governance/AGENT-TEAM.md` (#3142) |
 
-The body below retains historical operating-model context until a later archive pass. Do not cite this file for team roles, Bill/Chat/Cursor approval routing, or protected stops.
+The body below retains historical operating-model context until a later archive pass. Do not cite this file for team roles, Bill/Chat/Cursor approval routing, protected stops, or Codex assignment policy.
+
+**Codex routing (current):** Codex is not a standing LGFC implementation executor. Product Authority may selectively authorize Codex on a bounded source Issue without global reactivation. See [`CODEX-RULES.md`](./CODEX-RULES.md). Historical “inactive/out / do not assign / requires governance reactivation” wording in the sections below is **not** current routing authority.
 
 ## Purpose
 
@@ -43,8 +46,8 @@ As of 2026-06-17 (issue #1754):
 
 - **Bill** is project owner and final authority.
 - **ChatGPT** (ChatGPT) is design and launch-control package authority.
-- **Cursor** is the **sole** LGFC implementation executor.
-- **Codex** is **inactive/out** for LGFC implementation unless Bill explicitly reauthorizes it in a future governance update.
+- **Cursor** is the **sole** LGFC implementation executor (historical; later superseded by co-equal Cursor Local + Claude Code standing executors in `AGENT-TEAM.md`).
+- **Codex** historical note: described as inactive/out unless Bill reauthorized it — **superseded for current routing by #3142 selective-use** (`CODEX-RULES.md`).
 
 Prior routing that listed Codex as a primary or secondary implementation agent is superseded for LGFC work by this document and the aligned agent rule files.
 
@@ -96,17 +99,26 @@ Cursor owns:
 
 Cursor does not own design authority, scope definition, merge approval, or gate authorization.
 
-### Codex — inactive / out
+### Codex — historical inactive wording (superseded for routing)
 
-Codex is **not** an active LGFC implementation path.
+Historical text in this superseded file described Codex as inactive/out and forbade assignment unless Bill reauthorized Codex through a future governance update.
 
-Rules:
+**Current policy (#3142):** Codex is not a standing executor; Product Authority may authorize a bounded source Issue without global reactivation. Follow [`CODEX-RULES.md`](./CODEX-RULES.md) and [`AGENT-TEAM.md`](../../governance/AGENT-TEAM.md). Do not use the historical “do not assign / invalid routing / global reactivation required” phrases below as current stop reasons.
+
+<details>
+<summary>Historical Codex rules retained for archive context</summary>
+
+Codex was described as **not** an active LGFC implementation path.
+
+Historical rules at that time:
 
 - Do not assign LGFC implementation work to Codex.
 - Do not route new product or repository implementation tasks to Codex.
 - Codex may be reactivated only through an explicit future governance update approved by Bill.
 
-Historical Codex documentation remains for reference only. On conflict, this operating model and [`CODEX-RULES.md`](./CODEX-RULES.md) control.
+Historical Codex documentation remains for reference only. On conflict, [`AGENT-TEAM.md`](../../governance/AGENT-TEAM.md) and [`CODEX-RULES.md`](./CODEX-RULES.md) control.
+
+</details>
 
 ---
 
@@ -193,7 +205,7 @@ Bill authorizes continue / hold / revise
 | Execution authorization | Bill / ChatGPT |
 | Verification stop / continue | Bill (with ChatGPT gate-review partnership) |
 | PR merge | Bill |
-| Codex implementation routing | **Forbidden** unless future Bill-approved governance reauthorization |
+| Codex implementation routing | **Historical row:** forbidden unless future Bill-approved governance reauthorization — **superseded by #3142 selective-use model** in `CODEX-RULES.md` / `AGENT-TEAM.md` |
 
 ---
 
@@ -241,7 +253,7 @@ After each stop point, Cursor reports evidence and waits for Bill/ChatGPT author
 | [`CORE-RULES.md`](./CORE-RULES.md) | Detailed execution rules |
 | [`CHATGPT-RULES.md`](./CHATGPT-RULES.md) | ChatGPT-specific control-plane behavior |
 | [`CURSOR-RULES.md`](./CURSOR-RULES.md) | Cursor implementation authority and review checkpoint |
-| [`CODEX-RULES.md`](./CODEX-RULES.md) | Codex inactive status |
+| [`CODEX-RULES.md`](./CODEX-RULES.md) | Codex selective-use status (#3142) |
 | [`docs/templates/agent-assignment-template.md`](../../templates/agent-assignment-template.md) | Mandatory assignment envelope |
 
 ---

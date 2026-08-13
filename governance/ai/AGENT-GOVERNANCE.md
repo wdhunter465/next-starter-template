@@ -49,7 +49,7 @@ Agents must:
 
 Agents must not:
 
-- Create PR-first work without one primary source issue except documented operations troubleshooting exceptions.
+- Create any branch, commit, or PR without a pre-existing open governing source Issue (issue-first hard gate; no operations, incident, CI, or emergency exceptions).
 - Treat umbrella trackers as task authority.
 - Invent requirements not present in the repository.
 - Modify unrelated files opportunistically.

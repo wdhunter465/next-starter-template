@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: LGFC merge-protection required check surface, consolidated deterministic blockers, and branch-protection naming alignment as a supporting specification
 Does Not Own: CI and Verification Domain Policy; GitHub branch protection settings UI; reviewer lifecycle policy; PR hygiene policy; OPS runtime workflows
 Canonical Reference: /docs/governance/CI-AND-VERIFICATION.md
-Related Issues: #2689, #2175, #2184, #2208, #2228
-Last Reviewed: 2026-07-21
+Related Issues: #2689, #2175, #2184, #2208, #2228, #2657
+Last Reviewed: 2026-08-07
 ---
 
 # LGFC Merge Protection Surface
@@ -22,15 +22,15 @@ Configure branch protection for `main` with these deterministic checks only:
 | Job id | Workflow | Notes |
 |---|---|---|
 | `quality` | `GATE — Quality Checks` | Class-aware structure, ZIP, backend-ref guard, typecheck, lint, targeted tests, conditional build |
-| `gitleaks` | `GATE — Secret Scan` | Secret exposure blocker |
+| `gitleaks` | `GATE — Secret Scan` | Secret exposure blocker; upstream `gitleaks/gitleaks-action@v2` owns its GitHub API calls — repository #2657 retry hardening does not silently weaken this required gate |
 
 ## Advisory checks (active, non-blocking)
 
 | Job id | Workflow | Notes |
 |---|---|---|
 | `pr-hygiene` | `GATE — PR Hygiene` | Stable PR-body validation; artifact + upsert comment |
-| `diff-scope` | `GATE — Diff Scope` | Allowed-path diff validation; artifact + upsert comment |
-| `reviewer-response-completion` | `GATE — Reviewer Response Completion` | GitHub-native reviewer lifecycle; artifact |
+| `diff-scope` | `GATE — Diff Scope` | Allowed-path diff validation; artifact + upsert comment; transient GitHub API retry via repository script (#2657) |
+| `reviewer-response-completion` | `GATE — Reviewer Response Completion` | GitHub-native reviewer lifecycle; artifact; transient GitHub API retry via repository script (#2657) |
 
 ## Manual-only / paused (not merge blockers)
 

@@ -1,11 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
-  repairBrokenActiveMatchupPhoto,
+  onRequestGet as matchupCurrentGet,
   MATCHUP_WEEK_START_SQL,
   MATCHUP_EXCLUDED_ELIGIBILITY,
 } from '../functions/api/matchup/current';
 import { onRequestPost as matchupRepairPost } from '../functions/api/matchup/repair';
+import { onRequestPost as adminMatchupRepairPost } from '../functions/api/admin/matchup/repair';
 
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -51,6 +52,13 @@ function makeRepairDb(options: {
       all: async () => runAll(sql, []),
       run: async () => runWrite(sql, []),
     })),
+    batch: async (statements: Array<{ run: () => Promise<unknown> }>) => {
+      const results = [];
+      for (const statement of statements) {
+        results.push(await statement.run());
+      }
+      return results;
+    },
   };
 
   function runFirst(sql: string, args: unknown[]) {
@@ -130,7 +138,7 @@ describe('matchup broken-image repair', () => {
     vi.restoreAllMocks();
   });
 
-  it('public repair audits but does not mutate the pair or clear votes (#3028)', async () => {
+  it('public repair (HTTP adapter) audits but does not mutate the pair or clear votes, and ignores a spoofed source_issue (#3028, #3030)', async () => {
     const weekStart = '2026-07-13';
     const { db, matchups, photos, votes } = makeRepairDb({
       weekStart,
@@ -147,6 +155,7 @@ describe('matchup broken-image repair', () => {
     });
 
     vi.spyOn(Math, 'random').mockReturnValue(0);
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
       const url = String(input);
       const method = String(init?.method || 'GET').toUpperCase();
@@ -164,12 +173,15 @@ describe('matchup broken-image repair', () => {
       return Promise.reject(new Error(`Unexpected fetch: ${url}`));
     });
 
-    const response = await repairBrokenActiveMatchupPhoto({
-      db,
-      request: new Request('https://www.lougehrigfanclub.com/api/matchup/repair'),
-      brokenPhotoId: 20,
-      allowMutation: false,
-      trigger: 'public_repair_post',
+    // A public caller attempts to spoof an authorized-looking source_issue;
+    // it must never reach the audit trail (#3030).
+    const response = await matchupRepairPost({
+      request: new Request('https://www.lougehrigfanclub.com/api/matchup/repair', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ broken_photo_id: 20, source_issue: '9999' }),
+      }),
+      env: { DB: db },
     });
 
     expect(response.status).toBe(200);
@@ -182,9 +194,48 @@ describe('matchup broken-image repair', () => {
     expect(photos.find((row) => row.id === 20)?.is_matchup_eligible).toBe(1);
     expect(matchups[0].photo_b_id).toBe(20);
     expect(votes).toHaveLength(2);
+
+    const auditLine = logSpy.mock.calls.map((call) => String(call[0])).find((line) => line.includes('matchup_repair_audit'));
+    expect(auditLine).toBeTruthy();
+    const audit = JSON.parse(auditLine!);
+    expect(audit.trigger).toBe('public_repair_post');
+    expect(audit.broken_photo_id).toBe(20);
+    expect(audit.slot).toBe('b');
+    expect(audit.mutated).toBe(false);
+    expect(audit.mutation_blocked_reason).toBe('public_midweek_mutation_locked_requires_issue_pr');
+    // Spoofed client source_issue must never land in the audit trail (#3030).
+    expect(audit.source_issue).toBeNull();
   });
 
-  it('authorized repair with source_issue replaces broken B and clears votes', async () => {
+  it('admin repair (HTTP adapter) rejects an invalid/missing ADMIN_TOKEN before mutating anything', async () => {
+    const weekStart = '2026-07-13';
+    const { db, matchups, votes } = makeRepairDb({
+      weekStart,
+      matchups: [
+        { id: 5, week_start: weekStart, photo_a_id: 10, photo_b_id: 20, status: 'active' },
+      ],
+      votes: [{ week_start: weekStart }, { week_start: weekStart }],
+      photos: [
+        { id: 10, url: 'https://example.test/10.jpg', is_memorabilia: 0, is_matchup_eligible: 1 },
+        { id: 20, url: 'https://example.test/20-missing.jpg', is_memorabilia: 0, is_matchup_eligible: 1 },
+      ],
+    });
+
+    const response = await adminMatchupRepairPost({
+      request: new Request('https://www.lougehrigfanclub.com/api/admin/matchup/repair', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-token': 'wrong-token' },
+        body: JSON.stringify({ broken_photo_id: 20, source_issue: 3028 }),
+      }),
+      env: { ADMIN_TOKEN: 'secret', DB: db },
+    });
+
+    expect(response.status).toBe(401);
+    expect(matchups[0].photo_b_id).toBe(20);
+    expect(votes).toHaveLength(2);
+  });
+
+  it('admin repair (HTTP adapter) with source_issue replaces broken B and clears votes atomically', async () => {
     const weekStart = '2026-07-13';
     const { db, matchups, photos, votes } = makeRepairDb({
       weekStart,
@@ -201,6 +252,7 @@ describe('matchup broken-image repair', () => {
     });
 
     vi.spyOn(Math, 'random').mockReturnValue(0);
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
     vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
       const url = String(input);
       const method = String(init?.method || 'GET').toUpperCase();
@@ -218,13 +270,13 @@ describe('matchup broken-image repair', () => {
       return Promise.reject(new Error(`Unexpected fetch: ${url}`));
     });
 
-    const response = await repairBrokenActiveMatchupPhoto({
-      db,
-      request: new Request('https://www.lougehrigfanclub.com/api/admin/matchup/repair'),
-      brokenPhotoId: 20,
-      allowMutation: true,
-      sourceIssue: 3028,
-      trigger: 'admin_authorized',
+    const response = await adminMatchupRepairPost({
+      request: new Request('https://www.lougehrigfanclub.com/api/admin/matchup/repair', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-token': 'secret' },
+        body: JSON.stringify({ broken_photo_id: 20, source_issue: 3028 }),
+      }),
+      env: { ADMIN_TOKEN: 'secret', DB: db },
     });
 
     expect(response.status).toBe(200);
@@ -238,6 +290,112 @@ describe('matchup broken-image repair', () => {
     expect(photos.find((row) => row.id === 20)?.is_matchup_eligible).toBe(MATCHUP_EXCLUDED_ELIGIBILITY);
     expect(matchups[0].photo_b_id).not.toBe(20);
     expect(votes).toHaveLength(0);
+
+    const auditLine = logSpy.mock.calls.map((call) => String(call[0])).find((line) => line.includes('matchup_repair_audit'));
+    const audit = JSON.parse(auditLine!);
+    expect(audit.trigger).toBe('admin_authorized');
+    expect(audit.mutated).toBe(true);
+    expect(audit.votes_cleared).toBe(true);
+    expect(audit.source_issue).toBe('#3028');
+  });
+
+  it('admin repair (HTTP adapter) audits a rejected attempt with a missing source_issue and does not mutate', async () => {
+    const weekStart = '2026-07-13';
+    const { db, matchups, votes } = makeRepairDb({
+      weekStart,
+      matchups: [
+        { id: 5, week_start: weekStart, photo_a_id: 10, photo_b_id: 20, status: 'active' },
+      ],
+      votes: [{ week_start: weekStart }, { week_start: weekStart }],
+      photos: [
+        { id: 10, url: 'https://example.test/10.jpg', is_memorabilia: 0, is_matchup_eligible: 1 },
+        { id: 20, url: 'https://example.test/20-missing.jpg', is_memorabilia: 0, is_matchup_eligible: 1 },
+      ],
+    });
+
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+
+    const response = await adminMatchupRepairPost({
+      request: new Request('https://www.lougehrigfanclub.com/api/admin/matchup/repair', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-admin-token': 'secret' },
+        body: JSON.stringify({ broken_photo_id: 20 }),
+      }),
+      env: { ADMIN_TOKEN: 'secret', DB: db },
+    });
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({ ok: false, error: 'source_issue_required' });
+    expect(matchups[0].photo_b_id).toBe(20);
+    expect(votes).toHaveLength(2);
+
+    // #3030: rejected admin attempts must stay visible in the audit trail.
+    const auditLine = logSpy.mock.calls.map((call) => String(call[0])).find((line) => line.includes('matchup_repair_audit'));
+    expect(auditLine).toBeTruthy();
+    const audit = JSON.parse(auditLine!);
+    expect(audit.mutation_blocked_reason).toBe('missing_source_issue');
+    expect(audit.broken_photo_id).toBe(20);
+  });
+
+  it('public GET /api/matchup/current self-heals and audits a pair replacement when an active photo is no longer eligible (#3030)', async () => {
+    const weekStart = '2026-07-13';
+    const { db, matchups, photos, votes } = makeRepairDb({
+      weekStart,
+      matchups: [
+        { id: 5, week_start: weekStart, photo_a_id: 10, photo_b_id: 20, status: 'active' },
+      ],
+      votes: [{ week_start: weekStart }, { week_start: weekStart }],
+      photos: [
+        { id: 10, url: 'https://example.test/10.jpg', is_memorabilia: 0, is_matchup_eligible: 1 },
+        // Photo 20 was retired (e.g. by the B2 deletion-reconcile job) after becoming the active pair.
+        { id: 20, url: 'https://example.test/20.jpg', is_memorabilia: 0, is_matchup_eligible: -1 },
+        { id: 30, url: 'https://example.test/30.jpg', is_memorabilia: 0, is_matchup_eligible: 1 },
+        { id: 40, url: 'https://example.test/40.jpg', is_memorabilia: 0, is_matchup_eligible: 1 },
+      ],
+    });
+
+    vi.spyOn(Math, 'random').mockReturnValue(0);
+    const logSpy = vi.spyOn(console, 'log').mockImplementation(() => {});
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      const url = String(input);
+      const getMatch = url.match(/\/api\/photos\/get\?id=(\d+)/);
+      if (getMatch) {
+        const id = Number(getMatch[1]);
+        const photo = photos.find((row) => row.id === id);
+        if (!photo) return jsonResponse({ ok: false }, 404);
+        return jsonResponse({ ok: true, item: { id: photo.id, url: photo.url } });
+      }
+      if (url.includes('example.test')) return jsonResponse({}, 200);
+      return Promise.reject(new Error(`Unexpected fetch: ${url}`));
+    });
+
+    const response = await matchupCurrentGet({
+      request: new Request('https://www.lougehrigfanclub.com/api/matchup/current'),
+      env: { DB: db },
+    });
+
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.items.map((item: { id: number }) => item.id)).not.toContain(20);
+
+    // This is existing, intentionally tested self-heal behavior (see
+    // tests/matchup-current-rotation.test.ts) — a permanently-ineligible
+    // photo gets replaced and votes reset. #3030 is that it previously had
+    // zero audit trail; now it must be logged.
+    expect(matchups[0].photo_b_id).not.toBe(20);
+    expect(votes).toHaveLength(0);
+
+    const auditLine = logSpy.mock.calls.map((call) => String(call[0])).find((line) => line.includes('matchup_repair_audit'));
+    expect(auditLine).toBeTruthy();
+    const audit = JSON.parse(auditLine!);
+    expect(audit.trigger).toBe('current_get_eligibility');
+    expect(audit.broken_photo_id).toBe(20);
+    expect(audit.slot).toBe('b');
+    expect(audit.before_photo_a_id).toBe(10);
+    expect(audit.before_photo_b_id).toBe(20);
+    expect(audit.mutated).toBe(true);
+    expect(audit.votes_cleared).toBe(true);
+    expect(audit.source_issue).toBeNull();
   });
 
   it('rejects invalid broken_photo_id through the HTTP adapter', async () => {

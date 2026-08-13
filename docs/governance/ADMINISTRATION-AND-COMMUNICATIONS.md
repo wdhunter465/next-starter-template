@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Cross-lane and cross-queue communication transport, evidence routing, repository-state reconciliation, acknowledgment, escalation, hold/resume administration, collaboration routing, reporting, closeout policy, and closeout delegation boundaries
 Does Not Own: Product outcomes, priority decisions, queue ownership decisions, design decisions, implementation methods, PR approval decisions, incident recovery strategy, runner host maintenance, or Production authorization
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2640, #2641, #2639, #2648, #2695, #2699, #2700, #2709
-Last Reviewed: 2026-07-21
+Related Issues: #2640, #2641, #2639, #2648, #2695, #2699, #2700, #2709, #3055, #3113
+Last Reviewed: 2026-08-06
 ---
 
 # Administration and Communications
@@ -31,6 +31,8 @@ Administration & Communications follows:
 - the peer PMO Active and Engineering Pipeline queues.
 
 Lanes define authority. Queues define work precedence. Administration & Communications supplies transport, reconciliation, authorized transaction execution, and evidence continuity across both structures.
+
+PMO sequencing is coordination, not a general execution gate (#3113). Administration & Communications must not apply queue-wide `HOLD` or `BLOCKED` for ordinary predecessor or advisory conditions. Record those as comments, package notes, or order metadata. Protected stops block only the affected unsafe action.
 
 ## Role-based operating principle
 
@@ -250,7 +252,19 @@ When a numbered Operations Issue is active, Administration & Communications must
 
 When numbered remediation has progressed as far as possible, the Issue must move to Monitoring or Hold rather than remain falsely actionable.
 
-An explicit incident or protected hold may continue to block covered work independently of the queue state.
+An explicit incident or protected hold may continue to block covered work independently of the queue state — scoped to the affected action only, not the entire queue.
+
+## PMO sequencing and continuous parent-level continuation
+
+After verified integration of a project child:
+
+1. Deterministic CI attempts mechanically provable source-Issue closeout first (single automatic closeout owner);
+2. WORK records `ACCEPT` or bounded correction (`REMEDIATE` / `VERIFY MORE`) when substantive assurance is required, without idle delay;
+3. WORK verifies the successor package is complete before implementer idle time;
+4. an eligible agent self-claims the next package-complete serial successor under standing Project Graduation authority (#3145);
+5. a wake event may transport existing authority; it does not recreate it or require repeat PMO dispatch.
+
+While a predecessor is in review, WORK prepares the successor package. Ordered-predecessor conditions are satisfied by deterministic predecessor completion (or WORK `ACCEPT` when a substantive gate is defined), not by queue-wide freeze or routine administrative release.
 
 ## Non-blocking rule
 
@@ -259,15 +273,16 @@ Pending prose, dashboard lag, routine reports, cosmetic labels, or bookkeeping d
 Administration & Communications may block only the affected scope when a substantive invariant is missing, contradictory, or failed, including:
 
 - source authority;
-- dependency;
+- real collision (not ordinary ordered predecessor);
 - acceptance criterion;
 - validation;
 - independent approval;
-- safety or Production boundary;
+- safety or Production boundary (protected stop — scoped to the unsafe action);
 - legal promotion transition;
-- collision safety;
 - closeout decision authority or transaction integrity;
 - a numbered Operations interrupt.
+
+Advisory prerequisites, ordered-predecessor metadata, dashboard lag, routine reports, cosmetic labels, and bookkeeping do not block authorized collision-safe work. When only part of a task is gated, bounded increments continue while the gated action waits.
 
 ## Runner and controller
 
@@ -339,4 +354,4 @@ A role holder that implemented child work may supply evidence, but must not be t
 
 ## Supersession
 
-This policy supersedes lower-level instructions that require a second Issue for collaboration, treat PR comments as the primary collaboration record, permit dual team ownership, require team priority on child tasks, keep PMO and Engineering blocked by Operations Monitoring or Hold without a separate explicit hold, assign closeout authority permanently to a named agent, or permit delegated task closeout without required independent evidence.
+This policy supersedes lower-level instructions that require a second Issue for collaboration, treat PR comments as the primary collaboration record, permit dual team ownership, require team priority on child tasks, keep PMO and Engineering blocked by Operations Monitoring or Hold without a separate explicit hold, assign closeout authority permanently to a named agent, permit delegated task closeout without required independent evidence, use queue-wide `HOLD` or `BLOCKED` for ordinary predecessor or advisory conditions, or delay successor release after verified integration when the successor package is complete.

@@ -5,28 +5,31 @@ Authority Level: Operational Authority
 Owns: Local Cursor GitHub poll-wake loop operation, watch rules, wake semantics, pickup evidence, and known reliability limits
 Does Not Own: Poller script implementation in `~/.cursor/github-poller/`, merge authority, GitHub webhook configuration, or cloud agent billing
 Canonical Reference: /docs/how-to/cursor/agent-session-bootstrap.md
-Related Issues: #2398, #2492, #2667
-Last Reviewed: 2026-07-20
+Related Issues: #2398, #2492, #2667, #3212, #3424
+Last Reviewed: 2026-08-13
 ---
 
 # Cursor local GitHub poll-wake loop
 
+## Status (#3212 Phase 4 / #3424)
+
+**Retired as an execution dependency.** Do not run `poll-wake-loop.sh` as part of normal LGFC Cursor wake. Cursor Local Bridge is **decommissioned** and is not a fallback that reactivates this loop. Primary transport is `lgfc-cursor-dispatch` (`docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md`). Restarting this loop requires an explicit Product Authority decision.
+
+Host marker: `~/.cursor/github-poller/RETIRED-3212-PHASE4.txt`.
+
 ## Purpose
 
-Document the **legacy backup** local Cursor GitHub poll-wake operation. Primary auto-start is Cursor Local Bridge (`docs/how-to/cursor/configure-cursor-local-bridge.md`).
+Archive the **legacy** local Cursor GitHub poll-wake operation formerly used as backup when Bridge auto-start was primary. That Bridge path is decommissioned (#3424).
 
 ## Scope
 
-Covers operator behavior for `~/.cursor/github-poller/` while working in `wdhunter645/next-starter-template`. The scripts are user-local tooling and are not part of the repository tree.
+Covers operator behavior for `~/.cursor/github-poller/` while working in `wdhunter465/next-starter-template`. The scripts are user-local tooling and are not part of the repository tree.
 
 ## Current known truth
 
-- **Primary path:** Actions wake delivery → host Bridge → authenticated `cursor agent` (or fallback unclaimed). The Bridge gates on Issue labels/status only — no comment marker (#3013).
-- The poller remains an optional backup that watches open issues with **`agent:cursor` + `handoff:ready`**, assigned issues, and assigned PRs. The poller's own marker convention below is independent of Bridge eligibility.
-- An item is fresh only when its `updatedAt` or equivalent is later than the saved `state.since` watermark.
-- `LOCAL CURSOR RESUME` is the human/agent resume pointer to the canonical Chat decision.
-- Poller wake output does **not** launch Cursor; it prints a sentinel for an already-open agent chat.
-- `@cursor` is a cloud invocation and is not a local wake mechanism.
+- **Primary path (#3212 Phase 4):** `lgfc-cursor-dispatch` → dedicated `lgfc-cursor` runner → identifiers-only wrapper → local Cursor CLI.
+- **Cursor Local Bridge is decommissioned (#3424).** Bridge packet wake and this poller remain retired as execution dependencies.
+- Historical poller behavior (below) is retained only for forensic/operator archive reference.
 
 ## Components
 

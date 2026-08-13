@@ -5,8 +5,8 @@ Authority Level: Supporting
 Owns: Runtime behavior for D1-backed weekly photo matchup auto-rotation
 Does Not Own: Component design, voting policy, photo curation UI
 Canonical Reference: /docs/as-built/weekly-matchup-auto-rotation.md
-Related issues: #2157, #2230, #2519, #3028, #3031
-Last Reviewed: 2026-08-03
+Related issues: #2157, #2230, #2519, #3028, #3030, #3031
+Last Reviewed: 2026-08-05
 ---
 
 # Weekly Photo Matchup auto-rotation
@@ -31,8 +31,10 @@ On each request, the API:
 1. Computes the current Monday `week_start` (`YYYY-MM-DD`) with a Monday-inclusive expression: `date('now','-6 days','weekday 1')`.
 2. For an existing **active** `weekly_matchups` row for that week:
    - both photos must resolve and remain eligible (`is_matchup_eligible >= 0`);
-   - both object URLs are probed (HEAD, then ranged GET) before return;
-   - if either probe fails, the API **does not** mutate the pair (#3028). It returns the existing pair, sets `mutation_blocked`, and emits a structured `matchup_repair_audit` log line.
+   - if either photo fails to resolve or is no longer eligible (e.g. retired by the daily B2 deletion-reconcile job below), the API **self-heals**: it falls through to the pair-replacement logic in step 3, which selects a fresh eligible pair and clears that week's votes. This is deliberate — a permanently-excluded photo should not keep blocking the public matchup forever. #3030: this mutation previously had **no audit trail**; it now emits a `matchup_repair_audit` log line with `trigger: "current_get_eligibility"` (before/after pair ids, which slot forced it, `mutated`/`votes_cleared`) before returning;
+   - otherwise both object URLs are probed (HEAD, then ranged GET) before return;
+   - if either probe fails, the API **does not** mutate the pair (#3028). It returns the existing pair, sets `mutation_blocked`, and emits a structured `matchup_repair_audit` log line with `trigger: "current_get_probe"`.
+   - **Distinction:** a probe failure (object temporarily unreachable) is locked and requires an authorized admin repair; an eligibility failure (photo permanently excluded) is self-healed automatically and only audited.
 3. Otherwise:
    - closes stale active rows from prior weeks;
    - selects two eligible photos from `photos`;
@@ -72,7 +74,7 @@ When a homepage matchup `<img>` fires `onError`:
 2. The server verifies the id is in the active current-week pair and probes the object URL.
 3. It emits a structured `matchup_repair_audit` console log (trigger, week, slot, probe, before/after ids, client UA + IP hash).
 4. It **does not** update `weekly_matchups` or delete votes.
-5. Response includes `mutation_blocked: true` and the unchanged pair.
+5. When the id is found in the active pair, the response includes `mutation_blocked: true` and the unchanged pair. The no-active-matchup, stale-id, and invalid-id responses do not set `mutation_blocked` — they are non-mutating by construction and carry no pair to hold, so there is nothing to block.
 
 ### Authorized mid-week replace / restore (Issue/PR required)
 
@@ -82,6 +84,8 @@ Mid-week changes to Photo A and/or B require:
 2. Admin auth (`ADMIN_TOKEN`) via:
    - `POST /api/admin/matchup/repair` `{ broken_photo_id, source_issue }` — replace broken slot; or
    - `POST /api/admin/matchup/update` `{ id, photo_a_id?, photo_b_id?, status?, source_issue }` — set exact pair (restore/replace).
+
+`source_issue` is parsed and recorded as an operator-supplied reference (`#3028`, `3028`, or `Issue 3028`, normalized to `#3028`) — it is **not** verified against the GitHub API, so any well-formed issue number authorizes the change. Treat it as an audit annotation, not a proof of a real, open Issue.
 
 **Votes:** pair change deletes `weekly_votes` for that `week_start`. Votes are **not archived**; **vote restore is impossible**. Authorized change resets the week to **0–0**. Prefer opening a tracked Issue/PR before using these endpoints.
 

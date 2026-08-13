@@ -3,7 +3,8 @@ name: PMO dashboard CI build
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 */6 * * *"
+    # Freshness floor: Pages lag at most ~30 minutes unless manually dispatched.
+    - cron: "*/30 * * * *"
   push:
     paths:
       - ".github/workflows/pmo-dashboard-ci-build.yml"
@@ -17,6 +18,10 @@ permissions:
 
 env:
   PMO_DASHBOARD_OUT_DIR: site/pmo-dashboard
+
+concurrency:
+  group: pmo-dashboard-build-${{ github.repository }}
+  cancel-in-progress: true
 
 jobs:
   branch-validation:
@@ -35,11 +40,14 @@ jobs:
       - name: Run deterministic dashboard fixture
         run: node scripts/pmo-dashboard/test-label-driven-fixture.mjs
 
+      - name: Verify current repository and owner contract
+        run: node scripts/pmo-dashboard/test-current-repository-contract.mjs
+
       - name: Write branch validation summary
         run: |
           echo "## PMO dashboard branch validation" >> "$GITHUB_STEP_SUMMARY"
-          echo "Deterministic fixture generation and validation passed." >> "$GITHUB_STEP_SUMMARY"
-          echo "Live issue inventory validation remains reserved for main, scheduled, and manual operational runs." >> "$GITHUB_STEP_SUMMARY"
+          echo "Deterministic fixture generation, current-repository identity, owner precedence, and validation passed." >> "$GITHUB_STEP_SUMMARY"
+          echo "Live issue inventory validation runs on main, scheduled, and manual operational events only (no issue-event triggers)." >> "$GITHUB_STEP_SUMMARY"
 
   build:
     name: Build PMO dashboard
@@ -57,7 +65,7 @@ jobs:
       - name: Generate dashboard
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: node scripts/pmo-dashboard/build-dashboard.mjs
+        run: node scripts/pmo-dashboard/run-dashboard-build.mjs
 
       - name: Validate dashboard
         run: node scripts/pmo-dashboard/validate-dashboard.mjs "$PMO_DASHBOARD_OUT_DIR"
@@ -74,3 +82,4 @@ jobs:
         run: |
           echo "## PMO dashboard CI build" >> "$GITHUB_STEP_SUMMARY"
           echo "Validated live GitHub issue inventory output at \`$PMO_DASHBOARD_OUT_DIR/\`." >> "$GITHUB_STEP_SUMMARY"
+          echo "Publish path: deploy workflow consumes this artifact via workflow_run (no issue-event fan-out)." >> "$GITHUB_STEP_SUMMARY"

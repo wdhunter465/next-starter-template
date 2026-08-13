@@ -40,7 +40,7 @@ tailwind-css-4
 
 ### Option 1: GitHub Web UI
 
-1. Go to the repository homepage: https://github.com/wdhunter645/next-starter-template
+1. Go to the repository homepage: https://github.com/wdhunter465/next-starter-template
 2. Click the gear icon (⚙️) next to "About" on the right sidebar
 3. In the dialog that appears:
    - **Description**: Paste the description from above
@@ -54,15 +54,15 @@ Run the following command from the repository root:
 
 ```bash
 # Set description
-gh repo edit wdhunter645/next-starter-template \
+gh repo edit wdhunter465/next-starter-template \
   --description "A modern Next.js 15 starter template with TypeScript, Tailwind CSS 4, React 19, and Cloudflare Pages deployment configuration"
 
 # Set website
-gh repo edit wdhunter645/next-starter-template \
+gh repo edit wdhunter465/next-starter-template \
   --homepage "https://next-starter-template.templates.workers.dev"
 
 # Add topics (must be done one at a time or use the API)
-gh api repos/wdhunter645/next-starter-template/topics \
+gh api repos/wdhunter465/next-starter-template/topics \
   -X PUT \
   -f names[]='nextjs' \
   -f names[]='typescript' \
@@ -103,6 +103,6 @@ Adding this metadata:
 
 After applying the settings, verify them by:
 
-1. Visiting https://github.com/wdhunter645/next-starter-template
+1. Visiting https://github.com/wdhunter465/next-starter-template
 2. Checking that the "About" section shows the description, website, and topics
 3. Searching for the repository using one of the topics (e.g., "nextjs-template")

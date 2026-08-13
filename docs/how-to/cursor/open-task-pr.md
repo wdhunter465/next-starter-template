@@ -13,6 +13,9 @@ Last Reviewed: 2026-06-11
 
 ## Preconditions
 
+- A live, open same-repository governing source Issue already exists and **predates** the
+  branch and any commits (issue-first hard gate; see #3117 and `docs/ops/ai/CORE-RULES.md`).
+  The only allowed action without a governing Issue is creating that Issue.
 - ChatGPT or Bill approved PR creation, or Bill/ChatGPT provided an explicit PR-opening
   instruction or approved PR template.
 - Local diff matches the reviewed packet (when a packet was required).

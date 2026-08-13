@@ -203,12 +203,81 @@ export function hasReviewerAttestation(body = '') {
 
 export const PR_HYGIENE_MARKER = '<!-- pr-hygiene-advisory -->';
 
+/** Post-merge exception codes shifted left; these fail the hygiene job even while soft checks stay advisory. */
+export const HARD_HYGIENE_CODES = new Set([
+  'missing_allowlist',
+  'allowlist_violation',
+  'unchecked_acceptance_criterion',
+  'forbidden_placeholder_token',
+]);
+
+const FORBIDDEN_PLACEHOLDER_PATTERN = /\b(TODO|TBD|placeholder)\b/i;
+
+function firstAcceptanceSection(body = '') {
+  for (const heading of [
+    'Acceptance Criteria',
+    'ACCEPTANCE CRITERIA',
+    'ACCEPTANCE CRITERIA STATUS (MANDATORY)',
+  ]) {
+    const section = extractMarkdownSection(body, heading);
+    if (section) return section;
+  }
+  return '';
+}
+
+/**
+ * Hard pre-merge hygiene failures matching the dominant post-merge exception codes
+ * (allowlist, unchecked AC checkboxes, forbidden placeholder tokens).
+ */
+export function hardHygieneFailures({ body = '', changedFiles = [] } = {}) {
+  const failures = [];
+  const allowedFiles = parseAllowedFiles(body);
+  const normalizedChanged = (changedFiles || [])
+    .map((file) => (typeof file === 'string' ? file : file?.filename || file?.path || ''))
+    .filter(Boolean);
+
+  if (!allowedFiles.length) {
+    failures.push({
+      code: 'missing_allowlist',
+      message: 'PR body does not declare a file-touch allowlist.',
+    });
+  } else {
+    for (const file of findUnlistedChangedFiles(normalizedChanged, allowedFiles)) {
+      failures.push({
+        code: 'allowlist_violation',
+        message: `Changed file is outside declared allowlist: ${file}`,
+      });
+    }
+  }
+
+  const acceptanceSection = firstAcceptanceSection(body);
+  for (const line of acceptanceSection.split(/\r?\n/)) {
+    if (/^\s*[-*]\s*\[\s\]\s+/.test(line)) {
+      failures.push({
+        code: 'unchecked_acceptance_criterion',
+        message: `Acceptance criterion left unchecked before merge: ${line.trim()}`,
+      });
+    }
+  }
+
+  if (FORBIDDEN_PLACEHOLDER_PATTERN.test(String(body || ''))) {
+    failures.push({
+      code: 'forbidden_placeholder_token',
+      message: 'PR body contains a forbidden placeholder token.',
+    });
+  }
+
+  return failures;
+}
+
 export function buildPrHygieneArtifact(report) {
+  const hardFailures = report.hardFailures || [];
   return {
     gate: 'pr-hygiene',
-    schemaVersion: 1,
-    advisory: true,
+    schemaVersion: 2,
+    advisory: hardFailures.length === 0,
     isClean: report.isClean,
+    hardFailures,
     checks: {
       hasRequiredIssueLine: report.hasRequiredIssueLine,
       hasRequiredIntentLabel: report.hasRequiredIntentLabel,
@@ -249,6 +318,7 @@ export function buildPrHygieneReport({ body = '', changedFiles = [] } = {}) {
   const allowedFiles = parseAllowedFiles(body);
   const missingSections = missingTemplateSections(body);
   const unlistedChangedFiles = findUnlistedChangedFiles(changedFiles, allowedFiles);
+  const hardFailures = hardHygieneFailures({ body, changedFiles });
   const issueReferences = [...new Set(findIssueReferences(body))];
   const canonicalIssueLine = findCanonicalIssueLine(body);
   const suggestedIssueLine = hasRequiredIssueLine(body) ? canonicalIssueLine : suggestCanonicalIssueLine(body);
@@ -276,18 +346,36 @@ export function buildPrHygieneReport({ body = '', changedFiles = [] } = {}) {
     allowedFiles,
     missingSections,
     unlistedChangedFiles,
+    hardFailures,
     isClean: Object.values(checks).every(Boolean)
       && missingSections.length === 0
-      && unlistedChangedFiles.length === 0,
+      && unlistedChangedFiles.length === 0
+      && hardFailures.length === 0,
   };
 }
 
 export function renderPrHygieneReport(report) {
-  const lines = ['## PR Hygiene Advisory', ''];
+  const hardFailures = report.hardFailures || [];
+  const lines = [
+    hardFailures.length > 0 ? '## PR Hygiene Gate' : '## PR Hygiene Advisory',
+    '',
+  ];
 
-  if (report.isClean) {
+  if (report.isClean && hardFailures.length === 0) {
     lines.push('No PR hygiene defects detected.');
     return lines.join('\n');
+  }
+
+  if (hardFailures.length > 0) {
+    lines.push('### Blocking pre-merge hygiene failures');
+    for (const failure of hardFailures) {
+      lines.push(`- ${failure.code}: ${failure.message}`);
+    }
+    lines.push('');
+  }
+
+  if (report.isClean) {
+    return lines.join('\n').trimEnd();
   }
 
   if (!report.hasRequiredIssueLine) {
@@ -362,6 +450,8 @@ export function runCli(env = process.env) {
   writePrHygieneArtifacts(report, env);
   console.log(renderPrHygieneReport(report));
 
+  // Hard codes always fail closed pre-merge (#2683 rec 1). Soft hygiene stays advisory unless enforced.
+  if ((report.hardFailures || []).length > 0) return 1;
   const enforceFailure = (env.PR_HYGIENE_ENFORCE_FAILURE || 'false') === 'true';
   if (report.isClean) return 0;
   return enforceFailure ? 1 : 0;

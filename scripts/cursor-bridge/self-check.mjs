@@ -95,7 +95,7 @@ const baseIssue = {
   // Cursor-only wake ingress: label-driven, order-independent, no comment marker.
   assert.equal(
     shouldDeliverCursorWake({
-      repository: 'wdhunter645/next-starter-template',
+      repository: 'wdhunter465/next-starter-template',
       eventName: 'issues',
       action: 'labeled',
       labelName: 'handoff:ready',
@@ -105,7 +105,7 @@ const baseIssue = {
   );
   assert.equal(
     shouldDeliverCursorWake({
-      repository: 'wdhunter645/next-starter-template',
+      repository: 'wdhunter465/next-starter-template',
       eventName: 'issues',
       action: 'labeled',
       labelName: 'handoff:ready',
@@ -115,7 +115,7 @@ const baseIssue = {
   );
   assert.equal(
     shouldDeliverCursorWake({
-      repository: 'wdhunter645/next-starter-template',
+      repository: 'wdhunter465/next-starter-template',
       eventName: 'issues',
       action: 'labeled',
       labelName: 'handoff:ready',
@@ -126,7 +126,7 @@ const baseIssue = {
   // Order-independent: agent:cursor applied last, handoff:ready already present.
   assert.equal(
     shouldDeliverCursorWake({
-      repository: 'wdhunter645/next-starter-template',
+      repository: 'wdhunter465/next-starter-template',
       eventName: 'issues',
       action: 'labeled',
       labelName: 'agent:cursor',

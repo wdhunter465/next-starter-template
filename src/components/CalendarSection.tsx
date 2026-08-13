@@ -95,7 +95,8 @@ function firstDayKeyInMonth(byDay: Map<string, EventRow[]>, y: number, m: number
 
 export default function CalendarSection() {
   const [items, setItems] = useState<EventRow[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Static export must not bake "Loading calendar…" into HTML (#3305).
+  const [loading, setLoading] = useState(false);
   const [notice, setNotice] = useState('');
   const [eventMonths, setEventMonths] = useState<Array<{ y: number; m: number }>>([]);
   const [monthIndex, setMonthIndex] = useState(0);
@@ -177,6 +178,7 @@ export default function CalendarSection() {
     };
 
     (async () => {
+      setLoading(true);
       try {
         const res = await fetch('/api/events/next?limit=10', { cache: 'no-store' });
         const data = await res.json().catch(() => null);

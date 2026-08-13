@@ -5,8 +5,8 @@ Authority Level: Superseded
 Owns: Historical pointer only — Cursor implementation policy moved to governance
 Does Not Own: Agent team policy, runtime routing standard, or shared execution law
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Related Issues: #2494, #2564
-Last Reviewed: 2026-07-18
+Related Issues: #2494, #2564, #3212, #3424
+Last Reviewed: 2026-08-13
 ---
 
 # CURSOR-RULES.md
@@ -22,7 +22,8 @@ Last Reviewed: 2026-07-18
 | Model A / Model B procedures | `docs/how-to/agents/run-model-a.md`, `docs/how-to/agents/run-model-b.md` |
 | Runtime routing | `docs/governance/standards/CURSOR-RUNTIME-ROUTING.md` |
 | Shared execution rules | `docs/ops/ai/CORE-RULES.md` |
-| Cursor handoff and wake loop | `docs/ops/ai/chatgpt-cursor-handoff-workflow.md`, `docs/how-to/cursor/github-poll-wake-loop.md` |
+| Cursor handoff and wake | `docs/ops/ai/chatgpt-cursor-handoff-workflow.md`, `docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md` (primary); Cursor Local Bridge is decommissioned (`docs/reference/ci/cursor-local-bridge-contract.md`); `docs/how-to/cursor/github-poll-wake-loop.md` (retired archive) |
+| Cursor Local operator runbook | `docs/how-to/cursor/local-environment-and-agent-runbook.md` |
 
 ## Read order
 
@@ -42,3 +43,10 @@ Detailed Cursor-specific sections (pre-implementation package review steps, thre
 Binding runtime policy: [`docs/governance/standards/CURSOR-RUNTIME-ROUTING.md`](../../governance/standards/CURSOR-RUNTIME-ROUTING.md).
 
 Cursor must not treat narrative prose as Git or PR authority. If section 2A fields are missing from an implementation assignment, stop and request a complete assignment envelope.
+
+
+## Continuous parent-level execution (#3055 / #3145)
+
+For a graduated Project or Program, the exact prepared child graph is standing authority. Cursor self-claims the next eligible `team:operations` or `team:pmo` child one task at a time without routine Administration/PMO redispatch. Separately, Cursor also self-claims eligible standalone `team:governance` stewardship Issues (not project-child graph work). Record starting SHA, branch, allowlist confirmation, and pre-implementation checkpoint before editing.
+
+Missing package fields produce `PACKAGE-INCOMPLETE`; a substantive dependency or protected boundary produces an evidence-specific `HOLD`. Merge alone is not substantive acceptance. WORK owns assurance and exception handling, not routine per-task dispatch. Cursor is not a normal Engineering executor. Governance stewardship is a normal Cursor queue and is not an Operations interrupt.

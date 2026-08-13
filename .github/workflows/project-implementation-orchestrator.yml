@@ -119,8 +119,47 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_OUTPUT"
 
+      - name: Issue preflight duplicate check
+        id: preflight
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ISSUE_TITLE: ${{ steps.route.outputs.issue_title }}
+        run: |
+          normalized="$(echo "$ISSUE_TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//' | sed 's/-$//')"
+          result="$(gh issue list \
+            --repo "${{ github.repository }}" \
+            --state all \
+            --search "$ISSUE_TITLE" \
+            --json number,title,state \
+            --limit 10)"
+          existing_number=""
+          existing_state=""
+          while IFS= read -r line; do
+            num="$(echo "$line" | sed 's/.*"number":\([0-9]*\).*/\1/')"
+            title="$(echo "$line" | sed 's/.*"title":"\([^"]*\)".*/\1/')"
+            state="$(echo "$line" | sed 's/.*"state":"\([^"]*\)".*/\1/')"
+            title_norm="$(echo "$title" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/-\+/-/g' | sed 's/^-\|-$//g')"
+            if [ "$title_norm" = "$normalized" ]; then
+              existing_number="$num"
+              existing_state="$state"
+              break
+            fi
+          done < <(echo "$result" | python3 -c "import json,sys; sys.stdout.writelines(json.dumps(item) + '\n' for item in json.load(sys.stdin))")
+          if [ -n "$existing_number" ]; then
+            echo "action=reuse" >> "$GITHUB_OUTPUT"
+            echo "existing_number=$existing_number" >> "$GITHUB_OUTPUT"
+            echo "existing_state=$existing_state" >> "$GITHUB_OUTPUT"
+            echo "PREFLIGHT: found existing issue #$existing_number (state=$existing_state) matching title. Skipping creation."
+          else
+            echo "action=create" >> "$GITHUB_OUTPUT"
+            echo "existing_number=" >> "$GITHUB_OUTPUT"
+            echo "existing_state=" >> "$GITHUB_OUTPUT"
+            echo "PREFLIGHT: no duplicate found. Proceeding with issue creation."
+          fi
+
       - name: Create implementation issue
         id: create_issue
+        if: steps.preflight.outputs.action == 'create'
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE_TITLE: ${{ steps.route.outputs.issue_title }}
@@ -139,8 +178,22 @@ jobs:
           issue_number="${issue_url##*/}"
           echo "issue_url=$issue_url" >> "$GITHUB_OUTPUT"
           echo "issue_number=$issue_number" >> "$GITHUB_OUTPUT"
+          echo "CREATED: new implementation issue $issue_url"
+
+      - name: Comment on reused issue
+        if: steps.preflight.outputs.action == 'reuse'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXISTING_NUMBER: ${{ steps.preflight.outputs.existing_number }}
+          SOURCE_PR: ${{ steps.route.outputs.source_pr }}
+        run: |
+          gh issue comment "$EXISTING_NUMBER" \
+            --repo "${{ github.repository }}" \
+            --body "Orchestrator preflight: a duplicate issue was detected matching this title. Issue creation skipped. Source PR: #${SOURCE_PR}. This existing issue is the canonical record."
+          echo "REUSED: commented on existing issue #$EXISTING_NUMBER instead of creating duplicate."
 
       - name: Route to agent
+        if: steps.preflight.outputs.action == 'create' && steps.create_issue.outputs.issue_number != ''
         env:
           GH_TOKEN: ${{ github.token }}
           AGENT: ${{ steps.route.outputs.agent }}
@@ -169,8 +222,17 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           ISSUE_URL: ${{ steps.create_issue.outputs.issue_url }}
+          EXISTING_NUMBER: ${{ steps.preflight.outputs.existing_number }}
+          PREFLIGHT_ACTION: ${{ steps.preflight.outputs.action }}
           AGENT: ${{ steps.route.outputs.agent }}
         run: |
-          gh pr comment "${{ github.event.pull_request.number }}" \
-            --repo "${{ github.repository }}" \
-            --body "Project implementation orchestration created next issue: $ISSUE_URL\n\nRouted agent: $AGENT"
+          if [ "$PREFLIGHT_ACTION" = "reuse" ]; then
+            gh pr comment "${{ github.event.pull_request.number }}" \
+              --repo "${{ github.repository }}" \
+              --body "Orchestrator preflight detected a duplicate issue. Reused existing issue #${EXISTING_NUMBER} instead of creating a new one. Routed agent: $AGENT"
+          else
+            gh pr comment "${{ github.event.pull_request.number }}" \
+              --repo "${{ github.repository }}" \
+              --body "Project implementation orchestration created next issue: $ISSUE_URL\n\nRouted agent: $AGENT"
+          fi
+

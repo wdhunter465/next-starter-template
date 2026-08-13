@@ -74,8 +74,8 @@ Current people, agents, and systems are mapped to these roles in `docs/governanc
 
 | Closeout class | Closeout decision authority | Transaction executor |
 | --- | --- | --- |
-| Assigned project child task | Assigned Implementation / Operations role holder after required independent review and integration evidence exists | Deterministic CI first; assigned Implementation / Operations role holder as fallback under bounded delegated Administration & Communications authority |
-| Assigned child remediation | Assigned Implementation / Operations role holder after required independent review and remediation verification exists | Deterministic CI first; assigned Implementation / Operations role holder as fallback under bounded delegated Administration & Communications authority |
+| Assigned project child task | WORK after required independent review, integration, validation, and post-integration evidence exists | Deterministic CI may attempt first; WORK verifies/reconciles the transaction and releases the successor |
+| Assigned child remediation | WORK after required independent review and remediation verification exists | Deterministic CI may attempt first; WORK verifies/reconciles the transaction |
 | Project/master | PMO / Engineering with independent PR Approver / Engineering verification | Designated Administration & Communications role holder who did not solely implement the underlying child work |
 | Program/umbrella | Product Authority and PMO / Engineering under explicitly recorded program-closeout authority | Administration & Communications role holder |
 | Promotion Candidate | PMO / Engineering, PR Approver / Engineering, and additional roles required by the applicable approval profile | Administration & Communications role holder records the disposition |
@@ -232,6 +232,7 @@ Formal PR review is separate. It requires reviewer authority and uses GitHub-nat
 A source Issue may carry at most one team assignment:
 
 - `team:operations`;
+- `team:governance`;
 - `team:pmo`;
 - `team:engineering`.
 
@@ -241,7 +242,7 @@ Administration & Communications must reject or route correction for:
 
 - multiple team labels;
 - cross-team priority combinations;
-- PMO or Engineering priority on a project child task;
+- PMO, Engineering, Operations, or Governance priority/state on a project child task;
 - an Engineering preparation assignment using `pmo:task` or `Parent Project:`;
 - Project Graduation that retains Engineering priority or automatically maps it to PMO priority;
 - collaboration metadata that is interpreted as second ownership;
@@ -250,6 +251,8 @@ Administration & Communications must reject or route correction for:
 Active PMO parent priority selects the project. Project-defined order and dependencies select the child task.
 
 Pipeline Engineering priority orders preparation and is independent of Pipeline stage.
+
+Governance priority orders stewardship work and does not interrupt PMO or Engineering.
 
 ## Operations state contract
 
@@ -271,6 +274,19 @@ Numbered priorities are actionable interrupts. Monitoring and Hold are non-block
 - condition for numbered reactivation or closeout.
 
 A numbered Issue that cannot progress must move to Monitoring or Hold rather than remain falsely actionable.
+
+## Governance state contract
+
+A standalone Governance Issue uses one of:
+
+- `gov:priority:1`;
+- `gov:priority:2`;
+- `gov:priority:3`;
+- `gov:priority:4`;
+- `gov:review`;
+- `gov:hold`.
+
+Numbered Governance priorities order stewardship work and are not Operations interrupts. Review and Hold are non-blocking and require owner, reason, interval/next-review, expected evidence, and return/close condition.
 
 ## Allowed mutations
 
@@ -384,3 +400,10 @@ An exception identifies the affected subject, invariant, evidence, blocking scop
 - Day-2 policy: `docs/governance/OPERATIONS-AND-RECOVERY.md`
 - Queue/dispatch procedure: `docs/ops/pmo/queue-watch-and-dispatch-protocol.md`
 - Closeout procedure: `docs/ops/pmo/github-issue-closeout-protocol.md`
+
+
+## WORK acceptance and continuous parent-level continuation
+
+WORK owns controlling `ACCEPT`, `HOLD`, `REMEDIATE`, or `VERIFY MORE` dispositions when substantive assurance or discrepancy handling is required, plus child/parent reconciliation. After deterministic predecessor completion, eligible agents self-claim the next package-complete serial successor under standing parent authority (#3145). Transport automation may apply an idempotent mutation but cannot invent acceptance.
+
+A generic `BLOCKED` state is prohibited for prepared project queues. Use `PACKAGE-INCOMPLETE` for missing execution fields or `HOLD` for a named substantive condition with owner, evidence, and release criteria. WORK must not independently verify or approve a PR that WORK implemented.

@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/wdhunter645/next-starter-template/config/cursor-bridge/bridge.schema.json",
+  "$id": "https://github.com/wdhunter465/next-starter-template/config/cursor-bridge/bridge.schema.json",
   "title": "LGFC Cursor Local Bridge configuration",
   "type": "object",
   "required": [

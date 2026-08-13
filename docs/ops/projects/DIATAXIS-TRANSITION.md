@@ -2,197 +2,107 @@
 Doc Type: Operations
 Audience: Human + AI
 Authority Level: Operational Authority
-Owns: DIÁTAXIS transition scope, target structure, worklist, pre/post PR operating model
-Does Not Own: Canonical design authority; implementation specs; folder intent rules
-Canonical Reference: /docs/ops/OPERATING_MANUAL.md
-Related Issues: #1342, #1132
-Last Reviewed: 2026-06-05
+Owns: DIATAXIS structure, folder intent, project documentation coverage, merged-state reconciliation, and transition controls
+Does Not Own: Product design decisions, implementation authority, or Production approval
+Canonical Reference: /docs/governance/PROJECT-DOCUMENTATION-AND-AS-BUILT.md
+Related Issues: #1132, #1342, #1719
+Last Reviewed: 2026-08-04
 ---
 
-# LGFC — DIÁTAXIS TRANSITION & GOVERNANCE MODEL
+# LGFC DIATAXIS Transition and Project Documentation Model
 
-## 1. Purpose
+## Purpose
 
-This project exists to stop documentation-driven implementation regressions by introducing a strict DIÁTAXIS overlay, enforcing folder purpose, and validating merged-state outcomes after DIÁTAXIS PRs land.
+DIATAXIS exists to prevent documentation-driven implementation regressions, agent drift, duplicated work, and prolonged outages by separating documentation according to user need and validating the final merged repository state.
 
-This is a transition project, not a cosmetic documentation cleanup.
+This is not cosmetic organization. DIATAXIS coverage is part of project implementation and closeout.
 
-## 2. Final Target Structure
+## Required structure
+
+- `docs/tutorials/**` — learning-oriented, guided paths from no knowledge to a working result.
+- `docs/how-to/**` — goal-oriented procedures for a specific task.
+- `docs/reference/**` — exact factual contracts, schemas, routes, commands, interfaces, configuration, and invariants.
+- `docs/explanation/**` — rationale, architecture, tradeoffs, and conceptual models.
+- `docs/governance/**` — binding rules, standards, authority, and enforcement.
+- `docs/ops/**` — plans, reports, AS-BUILT records, operational procedures, and execution evidence.
+- `docs/archive/**` — explicitly retired historical material only.
+
+Folder purpose is strict. A document must not mix incompatible purposes when doing so creates ambiguity about authority or user intent.
+
+## Per-project requirement
+
+Every project master Issue and implementation plan must include a documentation inventory covering:
+
+- requirements and decisions;
+- design;
+- tutorials;
+- how-to procedures;
+- reference contracts;
+- explanation/rationale;
+- governance and PMO surfaces;
+- operations, rollback, recovery, and monitoring;
+- AS-BUILT;
+- verification and closeout evidence.
+
+Each DIATAXIS quadrant requires named paths or an explicit, justified `Not applicable` disposition in both the source Issue and final AS-BUILT record. Silence is a missing deliverable.
+
+Templates:
+
+- `docs/templates/project-master-issue-template.md`
+- `docs/templates/as-built-template.md`
+
+## AS-BUILT relationship
+
+DIATAXIS documents explain how to learn, operate, reference, and understand the capability. The AS-BUILT document records the exact final implementation and links all applicable DIATAXIS surfaces.
+
+A project cannot close with only a plan, closeout report, or PR description. The final AS-BUILT must identify what exists, where it exists, how it operates, how it is validated, how it is recovered, and which documentation is current authority.
+
+## PR requirements
+
+A project PR must:
+
+- include documentation changes whenever implementation changes repository truth;
+- use an explicit documentation allowlist;
+- identify affected DIATAXIS quadrants;
+- update the project AS-BUILT incrementally or in the terminal delivery, as defined by the source Issue;
+- pass documentation validation and contradiction review;
+- avoid leaving current-authority documents describing a superseded state.
+
+Documentation must ship with the implementation that creates the need. It may not be deferred to a later cleanup project.
+
+## Merged-state validation
+
+Post-merge verification must validate:
+
+1. folder-intent compliance;
+2. document-type compliance;
+3. duplicate authority definitions;
+4. contradictions across merged-state documents;
+5. canonical links and supersession notices;
+6. AS-BUILT consistency with the merged implementation;
+7. PMO, queue, dashboard, dependency, role, and GitHub-state reconciliation;
+8. search-visible stale current-authority statements.
+
+This validates merged reality, not PR intent.
+
+## Defect routing
+
+A post-merge DIATAXIS, documentation, or AS-BUILT exception is assigned immediately to the implementer of the originating PR. ChatGPT / Atlas, as PMO / Engineering, defines the defect, routes it, coordinates independent review, verifies remediation, and controls closeout.
+
+The project remains open or is reopened as closeout-defective until remediation is merged and verified.
+
+## Closeout rule
+
+A project cannot be declared complete when any applicable tutorial, how-to, reference, explanation, governance, operational, AS-BUILT, verification, PMO, queue, dashboard, dependency, or GitHub authority surface is missing, stale, contradictory, deferred, or unmerged.
+
+The required status is:
 
 ```text
-docs/
-├── tutorials/
-│   ├── getting-started.md
-│   ├── build-homepage.md
-│   ├── implement-auth.md
-│   └── deploy-to-cloudflare.md
-├── how-to/
-│   ├── create-pr.md
-│   ├── update-navigation.md
-│   ├── add-new-page.md
-│   ├── fix-auth-issue.md
-│   └── update-database-schema.md
-├── reference/
-│   ├── auth-model.md
-│   ├── access-control.md
-│   ├── data-model.md
-│   ├── api-contracts.md
-│   ├── routes.md
-│   ├── search.md
-│   ├── faq-system.md
-│   ├── static-pages.md
-│   └── component-specs/
-│       ├── header.md
-│       ├── footer.md
-│       └── homepage-sections.md
-├── explanation/
-│   ├── architecture-overview.md
-│   ├── auth-decision.md
-│   ├── design-principles.md
-│   └── governance-model.md
-├── governance/
-├── ops/
-└── archive/
+CLOSEOUT BLOCKED — DOCUMENTATION INCOMPLETE
 ```
 
-## 3. Folder Definitions
+Completion percentage and merged code do not override this rule.
 
-- `tutorials/` = step-by-step learning from zero to working outcome.
-- `how-to/` = one task, one objective, one execution path.
-- `reference/` = facts only; single source of truth for system definitions.
-- `explanation/` = why decisions exist; rationale and tradeoffs only.
-- `governance/` = rules, standards, invariants, change-control, enforcement.
-- `ops/` = projects, trackers, execution plans, remediation tracking.
-- `archive/` = deprecated and legacy material only.
+## Historical transition status
 
-Folder purpose is strict. Drift is not allowed.
-
-## 4. Pre-PR Model
-
-DIÁTAXIS PRs must:
-
-- use a tightly scoped file allowlist
-- remain docs-only unless explicitly approved otherwise
-- carry the `DIATAXIS` label
-- pass normal pre-merge gates
-- reference the exact project/work item being implemented
-
-## 5. Post-Merge Validation Model
-
-A dedicated post-merge validation workflow will run only for PRs labeled `DIATAXIS`.
-
-The workflow will validate:
-
-1. folder-intent compliance
-2. doc-type compliance
-3. duplicate authority definitions
-4. contradiction detection across merged-state docs
-5. canonical linking where applicable
-
-This workflow validates merged reality, not just PR intent.
-
-## 6. Auto-Fix Loop
-
-The DIÁTAXIS post-merge model uses a bounded repair loop:
-
-- Attempt 1 = original merged PR fails post-merge validation
-- Attempt 2 = auto-fix PR #1
-- Attempt 3 = auto-fix PR #2
-- After 3 total failures = stop automation and escalate
-
-Labels:
-
-- `DIATAXIS`
-- `DIATAXIS-AUTOFIX`
-- `DIATAXIS-ESCALATE`
-
-## 7. Resource Allocation
-
-- Cursor = DIÁTAXIS transition document creation and structure overlay
-- Copilot = DIÁTAXIS validation and automation workflows
-- Codex = website implementation
-- Codex = fundraiser build and homepage publishing support after website work
-
-## 8. Worklist
-
-### Phase 1 — Foundation
-1. Add transition plan document
-2. Add folder authority document
-3. Create DIÁTAXIS labels
-
-### Phase 2 — Workflow Enablement
-4. Add post-merge validation workflow skeleton
-5. Add folder-authority validator skeleton
-6. Add bounded auto-fix / escalation skeleton
-7. Test workflows using small DIÁTAXIS PRs
-
-### Phase 3 — Structure Creation
-8. Create `tutorials/`, `how-to/`, and `explanation/`
-9. Add file templates under expected filenames
-
-### Phase 4 — Reference Baseline
-10. Author `reference/auth-model.md`
-11. Author `reference/access-control.md`
-12. Author `reference/routes.md`
-13. Author `reference/data-model.md`
-14. Author `reference/api-contracts.md`
-15. Author `reference/component-specs/header.md`
-16. Author `reference/component-specs/footer.md`
-17. Author `reference/component-specs/homepage-sections.md`
-
-### Phase 5 — Explanation Layer
-18. Author `explanation/architecture-overview.md`
-19. Author `explanation/auth-decision.md`
-20. Author `explanation/design-principles.md`
-21. Author `explanation/governance-model.md`
-
-### Phase 6 — How-To Layer
-22. Author `how-to/create-pr.md`
-23. Author `how-to/update-navigation.md`
-24. Author `how-to/add-new-page.md`
-25. Author `how-to/fix-auth-issue.md`
-26. Author `how-to/update-database-schema.md`
-
-### Phase 7 — Tutorials
-27. Author `tutorials/getting-started.md`
-28. Author `tutorials/build-homepage.md`
-29. Author `tutorials/implement-auth.md`
-30. Author `tutorials/deploy-to-cloudflare.md`
-
-## 9. Transition Rules
-
-- New DIÁTAXIS docs are created net-new.
-- Legacy docs remain available during transition.
-- Legacy docs are not automatically authoritative just because they are older.
-- Governance and ops stay in place during overlay.
-- The transition itself must be fully documented.
-
-## 10. Success Criteria
-
-The transition is successful when:
-
-- documentation-driven regressions materially decrease
-- DIÁTAXIS docs become the primary execution surface
-- merged-state validation catches contradictions quickly
-- folder purpose remains stable over time
-
-## 11. Program 1 Phase 1 Status (Task 004)
-
-Program 1 Task 004 (`#1342`) added a **status-only** transition report. It does
-**not** execute legacy moves or retirements.
-
-| Deliverable | Path |
-|---|---|
-| Transition status report | `docs/reports/program-1-diataxis-transition-status.md` |
-| Legacy root mapping table | `docs/reference/DIATAXIS-MAPPING.md` |
-| Legacy retirement policy | `docs/ops/pmo/diataxis-legacy-retirement-policy.md` |
-
-Known Phase 1 truth on `main`:
-
-- DIATAXIS skeleton enforced (~274 `.md` under `docs/`)
-- Legacy live roots remain: `ops/ai/`, `governance/ai/`, `PROMPTS/`
-- Split tracker authority routed to website as-built reconciliation and master worklist
-- Full migration execution deferred to Program 3 (`#1132`) unless promoted
-
-Agents must use DIATAXIS paths as current authority during transition. See the status
-report for recommended canonical targets when split agent paths conflict.
+The earlier DIATAXIS transition work under #1342 and #1132 remains historical evidence. Current project documentation and closeout authority is controlled by `docs/governance/PROJECT-DOCUMENTATION-AND-AS-BUILT.md` and the project source Issue.

@@ -26,7 +26,7 @@ For routing, labels, holds, communication, or closeout also read:
 
 ## Required inputs
 
-- one primary source Issue;
+- one primary source Issue that **predates** the branch, first commit, and PR (issue-first hard gate; no PR-first exceptions — #3117);
 - durable owner roles;
 - horizontal lane;
 - promotion profile;

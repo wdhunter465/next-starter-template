@@ -5,8 +5,8 @@ Authority Level: Procedure
 Owns: Operator procedure for managing Model B component child auto-integration, holds, and rollback disablement
 Does Not Own: Delivery policy, evaluator implementation, or branch protection configuration
 Canonical Reference: /docs/governance/DELIVERY-AND-RELEASE.md
-Related Issues: #2498, #2502
-Last Reviewed: 2026-07-15
+Related Issues: #2498, #2502, #3151
+Last Reviewed: 2026-08-09
 ---
 
 # Manage Component Integration
@@ -38,7 +38,7 @@ Component master: #<program-issue>
 Approval profile: component-auto-integration
 ```
 
-Protected-path changes require `protected-change-review` and block auto-integration until Chat review completes.
+Protected-path changes require `protected-change-review` and block auto-integration until an independent PR Approver / Engineering actor submits an APPROVED review linked to the current head (#3151). The implementation actor's own approval never satisfies this; an approval left on a prior head is stale and must be refreshed after any new commit.
 
 ### 2. Run technical verification
 
@@ -62,7 +62,7 @@ State is derived from branch commit status and the `Component Integration Eligib
 
 When the workflow reports `eligible: true`, GitHub squash auto-merge is enabled automatically. Cursor does not self-approve or manually merge eligible children.
 
-If the workflow reports `requiresChatReview: true`, route the PR to Chat for protected-change review before retrying integration.
+If the workflow reports `requiresChatReview: true`, route the PR to Chat for protected-change review. Submitting an APPROVED review on the current head automatically retriggers the workflow via the `pull_request_review` event — no manual retry or `workflow_dispatch` is needed. `blockedReasons` distinguishes `protected_change` (review still pending) from `protected_change_stale_approval` (a prior approval no longer covers the current head because it changed) so operators know whether a review is needed for the first time or needs to be refreshed.
 
 ### 5. Place or remove holds
 
@@ -107,16 +107,19 @@ Use this ordered restoration when a Model B promotion to `main` fails or must be
 Verification commands (operator):
 
 ```bash
-gh api repos/wdhunter645/next-starter-template/rulesets
-gh api repos/wdhunter645/next-starter-template --jq '{allow_auto_merge, allow_merge_commit, allow_rebase_merge, allow_squash_merge}'
-gh api repos/wdhunter645/next-starter-template/rulesets/15885337
+gh api repos/wdhunter465/next-starter-template/rulesets
+gh api repos/wdhunter465/next-starter-template --jq '{allow_auto_merge, allow_merge_commit, allow_rebase_merge, allow_squash_merge}'
+gh api repos/wdhunter465/next-starter-template/rulesets/15885337
 ```
 
 ## Verification checklist
 
 - [ ] Negative fixtures block failed, pending, protected, hold, red, mismatch, missing master, and stale-base cases
 - [ ] Eligible non-protected child fixture returns `eligible: true`
+- [ ] Protected-change fixtures cover all five #3151 states: review pending, independent approval satisfied, stale approval, current-head changes-requested, and self-approval
+- [ ] An independent current-head APPROVED review clears `protected_change`/`protected_change_stale_approval` without weakening any other blocker
 - [ ] Workflow publishes `Component Integration Eligibility` on child PRs targeting `component/**`
+- [ ] Workflow reevaluates automatically on `pull_request_review` events
 - [ ] Auto-merge enables only after eligibility success
 - [ ] Production and emergency PRs cannot use child auto-integration
 

@@ -97,7 +97,7 @@ export function buildPrompt({
     `Issue title: ${issue?.title || '(unknown)'}`,
     `Issue state: ${issue?.state || '(unknown)'}`,
     `Issue labels: ${labels || '(none)'}`,
-    `Issue URL: ${issue?.url || `(https://github.com/wdhunter645/next-starter-template/issues/${issueNumber})`}`,
+    `Issue URL: ${issue?.url || `(https://github.com/wdhunter465/next-starter-template/issues/${issueNumber})`}`,
     'Read Agent.md and the mandatory documentation chain before any repo work.',
     'Bridge role: secure transport + mechanical safety only (Issue open, `agent:cursor` + `handoff:ready` present, no stale handoff, no active claim). You own semantic task-readiness evaluation.',
     'You were assigned this Issue by its labels alone — there is no separate resume/response comment to look for. Read the Issue body and comments below for full context.',

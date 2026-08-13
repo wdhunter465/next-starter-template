@@ -1,0 +1,33 @@
+[
+  {
+    "number": 9100,
+    "title": "PROJECT: Current repository owner contract",
+    "state": "open",
+    "html_url": "https://github.com/wdhunter465/next-starter-template/issues/9100",
+    "body": "Owner / Agent: ChatGPT / Atlas\nProject Description: Owner labels are current execution authority.\n",
+    "labels": [
+      {"name":"pmo"},
+      {"name":"pmo:active"},
+      {"name":"team:pmo"},
+      {"name":"pmo:priority:1"},
+      {"name":"owner:cursor"}
+    ],
+    "assignees": [{"login":"fallback-assignee"}],
+    "updated_at": "2026-08-05T22:00:00Z",
+    "closed_at": null
+  },
+  {
+    "number": 9101,
+    "title": "TASK: Completed child for current repository contract",
+    "state": "closed",
+    "html_url": "https://github.com/wdhunter465/next-starter-template/issues/9101",
+    "body": "Parent project: #9100\nOwner / Agent: Cursor Local\n",
+    "labels": [
+      {"name":"pmo"},
+      {"name":"pmo:task"},
+      {"name":"pmo:closed"}
+    ],
+    "updated_at": "2026-08-05T21:00:00Z",
+    "closed_at": "2026-08-05T21:00:00Z"
+  }
+]

@@ -66,9 +66,11 @@ export const onRequestPost = async (context: any): Promise<Response> => {
       return jsonResponse({ ok: false, error: "photo_ids_must_differ" }, 400);
     }
 
-    const pairChanged =
-      nextPhotoA !== Number((existing as any).photo_a_id) ||
-      nextPhotoB !== Number((existing as any).photo_b_id);
+    const changedA = nextPhotoA !== Number((existing as any).photo_a_id);
+    const changedB = nextPhotoB !== Number((existing as any).photo_b_id);
+    const pairChanged = changedA || changedB;
+    // #3030: record which slot(s) actually changed instead of always "both".
+    const slot: "a" | "b" | "both" | null = changedA && changedB ? "both" : changedA ? "a" : changedB ? "b" : null;
 
     const sourceIssue = normalizeSourceIssue(body?.source_issue);
     if (pairChanged && !sourceIssue) {
@@ -78,7 +80,7 @@ export const onRequestPost = async (context: any): Promise<Response> => {
         trigger: "admin_update",
         week_start: weekStart || null,
         broken_photo_id: null,
-        slot: "both",
+        slot,
         probe_available: null,
         probe_status: null,
         before_photo_a_id: Number((existing as any).photo_a_id),
@@ -103,7 +105,9 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     }
 
     if (nextStatus === "active") {
-      const batchResults = await d1.db.batch([
+      // #3030: pair-replace and vote-clear must commit atomically — a failure
+      // between the two writes must never leave a changed pair with stale votes.
+      const activeStatements = [
         d1.db
           .prepare("UPDATE weekly_matchups SET status='closed' WHERE status='active' AND id != ?")
           .bind(id),
@@ -114,11 +118,11 @@ export const onRequestPost = async (context: any): Promise<Response> => {
              WHERE id=?`,
           )
           .bind(nextPhotoA, nextPhotoB, nextStatus, id),
-      ]);
-
+      ];
       if (pairChanged && weekStart) {
-        await d1.db.prepare("DELETE FROM weekly_votes WHERE week_start = ?;").bind(weekStart).run();
+        activeStatements.push(d1.db.prepare("DELETE FROM weekly_votes WHERE week_start = ?;").bind(weekStart));
       }
+      const batchResults = await d1.db.batch(activeStatements);
 
       const changed = batchResults?.[1]?.meta?.changes || 0;
       if (pairChanged) {
@@ -128,7 +132,7 @@ export const onRequestPost = async (context: any): Promise<Response> => {
           trigger: "admin_update",
           week_start: weekStart || null,
           broken_photo_id: null,
-          slot: "both",
+          slot,
           probe_available: null,
           probe_status: null,
           before_photo_a_id: Number((existing as any).photo_a_id),
@@ -152,18 +156,21 @@ export const onRequestPost = async (context: any): Promise<Response> => {
       }, 200);
     }
 
-    const out = await d1.db
-      .prepare(
-        `UPDATE weekly_matchups
-         SET photo_a_id=?, photo_b_id=?, status=?
-         WHERE id=?`,
-      )
-      .bind(nextPhotoA, nextPhotoB, nextStatus, id)
-      .run();
-
+    // #3030: pair-replace and vote-clear must commit atomically here too.
+    const updateStatements = [
+      d1.db
+        .prepare(
+          `UPDATE weekly_matchups
+           SET photo_a_id=?, photo_b_id=?, status=?
+           WHERE id=?`,
+        )
+        .bind(nextPhotoA, nextPhotoB, nextStatus, id),
+    ];
     if (pairChanged && weekStart) {
-      await d1.db.prepare("DELETE FROM weekly_votes WHERE week_start = ?;").bind(weekStart).run();
+      updateStatements.push(d1.db.prepare("DELETE FROM weekly_votes WHERE week_start = ?;").bind(weekStart));
     }
+    const results = await d1.db.batch(updateStatements);
+    const out = results?.[0];
 
     if (pairChanged) {
       logMatchupRepairAudit({
@@ -172,7 +179,7 @@ export const onRequestPost = async (context: any): Promise<Response> => {
         trigger: "admin_update",
         week_start: weekStart || null,
         broken_photo_id: null,
-        slot: "both",
+        slot,
         probe_available: null,
         probe_status: null,
         before_photo_a_id: Number((existing as any).photo_a_id),

@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: Cloudflare Pages and D1 resource inventory facts as a supporting specification
 Does Not Own: Platform and Environment Domain Policy; delivery approval; incident response playbooks
 Canonical Reference: /docs/governance/PLATFORM-AND-ENVIRONMENT.md
-Related Issues: #2688
-Last Reviewed: 2026-07-21
+Related Issues: #2688, #3355, #3357
+Last Reviewed: 2026-08-11
 ---
 
 # CLOUDFLARE — Resource Inventory (LGFC)
@@ -22,7 +22,7 @@ This file is **not** a Domain Policy co-owner. Conflicts with domain policy, Pro
 ## Cloudflare Pages
 
 **Project:** `next-starter-template`  
-**Connected repo:** `wdhunter645/next-starter-template`  
+**Connected repo:** `wdhunter465/next-starter-template`  
 **Production branch:** `main`  
 **Automatic deployments:** enabled  
 **Domains:**  
@@ -33,10 +33,15 @@ This file is **not** a Domain Policy co-owner. Conflicts with domain policy, Pro
 
 ## Cloudflare D1 (SQLite)
 
-**Database name:** `lgfc_lite`  
-**Database UUID:** `22d0dc3e-ad34-43af-8e6a-2063df1a1e04`  
+**Production database name:** `lgfc_lite`  
+**Production database UUID:** `22d0dc3e-ad34-43af-8e6a-2063df1a1e04`  
 
-**Database inventory (as shown in D1 Studio sidebar):**
+**Development/Preview database name:** `lgfc-litedev`  
+**Development/Preview database UUID:** `35232809-b4c1-4df9-9f39-2f178b13c378`  
+
+Binding name remains `DB` in both environments; physical database is selected by Pages environment / `wrangler.toml` (`docs/how-to/operations/bind-pages-preview-d1-dev.md`, #3357).
+
+**Production database inventory (as shown in D1 Studio sidebar):**
 - 
 admin_team_worklist- content_blocks- content_revisions- d1_migrations- discussions- events- faq_entries- footer_quotes- friends- join_email_log- join_requests- join_verifications- library_entries- login_attempts- media_assets- member_sessions- members- membership_card_content- milestones- page_content- page_content_history- photos- reports- sqlite_sequence- v_page_content_live- weekly_matchups- weekly_votes- welcome_email_content
 

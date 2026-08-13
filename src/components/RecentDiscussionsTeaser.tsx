@@ -48,7 +48,8 @@ const formatCreatedAt = (raw: string): string => {
 
 export default function RecentDiscussionsTeaser() {
   const [items, setItems] = useState<Discussion[]>([]);
-  const [loading, setLoading] = useState(true);
+  // Static HTML must not ship permanent "Loading…" (#3305); guest empty-state is valid prerender.
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isMember, setIsMember] = useState(false);
 

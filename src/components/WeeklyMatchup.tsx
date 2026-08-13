@@ -108,7 +108,8 @@ type RepairResp = CurrentResp & {
 export default function WeeklyMatchup() {
   const [items, setItems] = useState<Photo[]>([]);
   const [weekStart, setWeekStart] = useState<string | null>(null);
-  const [loading, setLoading] = useState(true);
+  // Static export must not bake "Loading matchup…" into HTML (#3305).
+  const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [repairing, setRepairing] = useState(false);
   const [err, setErr] = useState<string | null>(null);

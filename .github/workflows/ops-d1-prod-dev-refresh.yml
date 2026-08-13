@@ -1,0 +1,128 @@
+name: OPS — D1 Prod→Dev Refresh (#3359)
+
+# Manual-only Production → Development D1 refresh under the #3358 sanitization manifest.
+# Production is export/read-only. Destructive writes target lgfc-litedev only (--env preview).
+# Cursor must NOT trigger the first remote destructive run; Bill authorizes/triggers it.
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: 'Reason / Issue reference for this refresh (required)'
+        required: true
+        type: string
+      confirm:
+        description: 'Type "confirm" to acknowledge Prod export + Dev-targeted refresh'
+        required: true
+        type: string
+      dry_run:
+        description: 'When true (default), export+sanitize+validate only — no Dev writes'
+        required: true
+        type: boolean
+        default: true
+      confirm_dev_reset:
+        description: 'For dry_run=false, type RESET_LGFC_LITEDEV to authorize destructive Dev reload'
+        required: false
+        type: string
+        default: ''
+
+concurrency:
+  group: d1-prod-dev-refresh-3359
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  refresh:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require confirmation
+        run: |
+          if [ "${{ inputs.confirm }}" != "confirm" ]; then
+            echo "confirm must be exactly 'confirm' — refusing to run."
+            exit 1
+          fi
+          if [ "${{ inputs.dry_run }}" != "true" ] && [ "${{ inputs.confirm_dev_reset }}" != "RESET_LGFC_LITEDEV" ]; then
+            echo "Non-dry-run requires confirm_dev_reset=RESET_LGFC_LITEDEV"
+            exit 1
+          fi
+
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Identity fail-closed check
+        env:
+          D1_DATABASE_NAME: ${{ secrets.D1_DATABASE_NAME }}
+          D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
+          D1_DEV_DATABASE_NAME: ${{ secrets.D1_DEV_DATABASE_NAME }}
+          D1_DEV_DATABASE_ID: ${{ secrets.D1_DEV_DATABASE_ID }}
+        run: node scripts/ci/d1_prod_dev_identity_check.mjs
+
+      - name: Sanitization gate / schema coverage
+        run: node scripts/ci/d1_prod_dev_sanitize.mjs
+
+      - name: Run Prod→Dev refresh pipeline
+        id: refresh
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DATABASE_NAME: ${{ secrets.D1_DATABASE_NAME }}
+          D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
+          D1_DEV_DATABASE_NAME: ${{ secrets.D1_DEV_DATABASE_NAME }}
+          D1_DEV_DATABASE_ID: ${{ secrets.D1_DEV_DATABASE_ID }}
+          D1_REFRESH_CONFIRM: ${{ inputs.confirm }}
+          D1_REFRESH_CONFIRM_DEV_RESET: ${{ inputs.confirm_dev_reset }}
+          D1_REFRESH_REASON: ${{ inputs.reason }}
+          D1_REFRESH_DRY_RUN: ${{ inputs.dry_run }}
+          D1_REFRESH_ALLOW_REMOTE: ${{ inputs.dry_run == false && 'true' || 'false' }}
+          GITHUB_ACTOR: ${{ github.actor }}
+          GITHUB_SHA: ${{ github.sha }}
+        run: node scripts/ci/d1_prod_dev_refresh.mjs
+
+      - name: Upload privacy-safe evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: d1-prod-dev-refresh-3359-result
+          path: d1-prod-dev-refresh-3359-result.json
+          if-no-files-found: warn
+
+      - name: Write step summary
+        if: always() && hashFiles('d1-prod-dev-refresh-3359-result.json') != ''
+        run: |
+          echo '## D1 Prod→Dev refresh (#3359)' >> "$GITHUB_STEP_SUMMARY"
+          echo '' >> "$GITHUB_STEP_SUMMARY"
+          echo 'Privacy-safe evidence JSON (no source values):' >> "$GITHUB_STEP_SUMMARY"
+          echo '```json' >> "$GITHUB_STEP_SUMMARY"
+          cat d1-prod-dev-refresh-3359-result.json >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Record result on #3359
+        if: always() && hashFiles('d1-prod-dev-refresh-3359-result.json') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          {
+            echo "## D1 Prod→Dev refresh evidence"
+            echo
+            echo "- Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            echo "- Actor: \`${{ github.actor }}\`"
+            echo "- SHA: \`${{ github.sha }}\`"
+            echo "- dry_run input: \`${{ inputs.dry_run }}\`"
+            echo
+            echo '```json'
+            cat d1-prod-dev-refresh-3359-result.json
+            echo '```'
+          } > /tmp/3359-comment.md
+          gh issue comment 3359 --body-file /tmp/3359-comment.md

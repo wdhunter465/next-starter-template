@@ -22,10 +22,45 @@ Last Reviewed: 2026-06-02
 Defines facts.
 `;
 
+const operationsReportDoc = `---
+Doc Type: Operations Report
+Audience: Human + AI
+Authority Level: Evidence
+Owns: operational evidence
+Does Not Own: DIATAXIS knowledge content
+Canonical Reference: docs/ops/reports/example.md
+Last Reviewed: 2026-08-08
+---
+
+# Operations Report
+
+## Summary
+
+Records operational evidence.
+`;
+
+const implementationPlanDoc = `---
+Doc Type: Implementation Plan
+Audience: Human + AI
+Authority Level: Controlled
+Owns: implementation planning evidence
+Does Not Own: DIATAXIS knowledge content
+Canonical Reference: docs/ops/implementation-plans/example.md
+Last Reviewed: 2026-08-08
+---
+
+# Implementation Plan
+
+## Summary
+
+Records an approved operational plan.
+`;
+
 describe('DIATAXIS folder hygiene audit', () => {
   it('maps files to folder intent rules', () => {
     expect(ruleForFile('docs/reference/example.md')?.expectedDocType).toBe('Reference');
     expect(ruleForFile('docs/how-to/example.md')?.expectedDocType).toBe('How-To');
+    expect(ruleForFile('docs/ops/reports/example.md')?.folderClass).toBe('operational');
     expect(ruleForFile('README.md')).toBe(null);
   });
 
@@ -45,6 +80,29 @@ describe('DIATAXIS folder hygiene audit', () => {
     expect(findings.map((finding) => finding.code)).toContain('REQUIRED_STRUCTURE_MISSING');
   });
 
+  it('accepts operational reports under docs/ops paths', () => {
+    expect(auditDiataxisFile('docs/ops/reports/example.md', operationsReportDoc)).toEqual([]);
+  });
+
+  it('accepts non-Operations Doc Types under docs/ops (Implementation Plan, Task, etc.)', () => {
+    expect(auditDiataxisFile('docs/ops/implementation-plans/example.md', implementationPlanDoc)).toEqual([]);
+  });
+
+  it('keeps header validation for operational docs', () => {
+    const findings = auditDiataxisFile(
+      'docs/ops/reports/example.md',
+      operationsReportDoc.replace('Authority Level: Evidence\n', ''),
+    );
+
+    expect(findings.map((finding) => finding.code)).toContain('HEADER_FIELD_MISSING');
+  });
+
+  it('rejects DIATAXIS knowledge docs misplaced under docs/ops paths', () => {
+    const findings = auditDiataxisFile('docs/ops/reports/example.md', referenceDoc);
+
+    expect(findings.map((finding) => finding.code)).toContain('OUTSIDE_DIATAXIS_FOLDER');
+  });
+
   it('renders actionable advisory text', () => {
     const report = renderDiataxisReport([
       {
@@ -56,6 +114,7 @@ describe('DIATAXIS folder hygiene audit', () => {
     ]);
 
     expect(report).toContain('DIATAXIS Folder Hygiene Advisory');
+    expect(report).toContain('distinguishes DIATAXIS knowledge content from approved operational docs/ops evidence classes');
     expect(report).toContain('Set Doc Type to Reference.');
   });
 });

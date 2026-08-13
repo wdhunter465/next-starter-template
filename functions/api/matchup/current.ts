@@ -297,22 +297,6 @@ export async function probePhotoObjectAvailable(url: string): Promise<{ availabl
   return { available: false, status: null };
 }
 
-async function markPhotoExcludedMissingObject(db: any, photoId: number, detail: string): Promise<void> {
-  const note = `PURGE_ELIGIBLE: missing/unreachable B2 object after client image failure; OK to remove (#2519, ${detail})`;
-  await db
-    .prepare(
-      `UPDATE photos
-       SET is_matchup_eligible = ?,
-           rights_notes = CASE
-             WHEN rights_notes IS NULL OR TRIM(rights_notes) = '' THEN ?
-             ELSE rights_notes || ' | ' || ?
-           END
-       WHERE id = ?;`,
-    )
-    .bind(MATCHUP_EXCLUDED_ELIGIBILITY, note, note, photoId)
-    .run();
-}
-
 /**
  * Broken-image / probe repair path (#2519), lockdown (#3028).
  *
@@ -491,15 +475,6 @@ export async function repairBrokenActiveMatchupPhoto(options: {
     }, 400);
   }
 
-  // Permanent exclude only when the object is confirmed missing/unreachable.
-  if (!probe.available) {
-    await markPhotoExcludedMissingObject(
-      db,
-      brokenPhotoId,
-      `status=${probe.status ?? "unreachable"}; issue=${issueRef}`,
-    );
-  }
-
   const keepId = brokenIsA ? beforeB : beforeA;
   const eligiblePhotos = await fetchEligiblePhotos(db);
   const recentIds = await getRecentMatchupPhotoIds(db);
@@ -547,7 +522,39 @@ export async function repairBrokenActiveMatchupPhoto(options: {
     return jsonResponse({ ok: true, week_start: weekStart, matchup_id: null, items: [], repaired: false, mutated: false });
   }
 
-  const matchupId = await upsertCurrentWeekMatchup(db, weekStart, nextA, nextB);
+  // #3030: the photo-exclude write, pair-replace write, and vote-clear write
+  // must commit atomically. A partial failure must never leave the pair
+  // changed with the broken photo still eligible, or leave votes from before
+  // a pair change intact.
+  const pairWillChange = nextA !== beforeA || nextB !== beforeB;
+  const statements: any[] = [];
+  if (!probe.available) {
+    const note = `PURGE_ELIGIBLE: missing/unreachable B2 object after client image failure; OK to remove (#2519, status=${probe.status ?? "unreachable"}; issue=${issueRef})`;
+    statements.push(
+      db
+        .prepare(
+          `UPDATE photos
+           SET is_matchup_eligible = ?,
+               rights_notes = CASE
+                 WHEN rights_notes IS NULL OR TRIM(rights_notes) = '' THEN ?
+                 ELSE rights_notes || ' | ' || ?
+               END
+           WHERE id = ?;`,
+        )
+        .bind(MATCHUP_EXCLUDED_ELIGIBILITY, note, note, brokenPhotoId),
+    );
+  }
+  statements.push(
+    db
+      .prepare("UPDATE weekly_matchups SET photo_a_id = ?, photo_b_id = ?, status = 'active' WHERE id = ?;")
+      .bind(nextA, nextB, active.id),
+  );
+  if (pairWillChange) {
+    statements.push(db.prepare("DELETE FROM weekly_votes WHERE week_start = ?;").bind(weekStart));
+  }
+  await db.batch(statements);
+
+  const matchupId = active.id;
   const resolved = await findCurrentWeekMatchup(db, weekStart);
   if (!resolved) {
     return jsonResponse({ ok: true, week_start: weekStart, matchup_id: null, items: [], repaired: false, mutated: false });
@@ -618,6 +625,7 @@ export const onRequestGet = async (context: any): Promise<Response> => {
     }
 
     const activeCurrentWeek = await findActiveCurrentWeekMatchup(db, weekStart);
+    let eligibilityIssue: { brokenId: number | null; slot: 'a' | 'b' | 'both' | null } | null = null;
     if (activeCurrentWeek) {
       const photoAEligible = await isPhotoMatchupEligible(db, activeCurrentWeek.photo_a_id);
       const photoBEligible = await isPhotoMatchupEligible(db, activeCurrentWeek.photo_b_id);
@@ -677,6 +685,29 @@ export const onRequestGet = async (context: any): Promise<Response> => {
           mutation_blocked_reason: 'public_midweek_mutation_locked_requires_issue_pr',
         });
       }
+
+      // An active row whose photo(s) are unresolvable or permanently
+      // ineligible (e.g. retired by the daily B2 deletion-reconcile job)
+      // falls through and is self-healed by the pair-replacement below —
+      // that is existing, intentionally tested behavior. #3030: it was
+      // happening with **no audit trail at all**; record which slot forced
+      // the replacement so this mutation is no longer invisible.
+      eligibilityIssue = {
+        brokenId: !photoAEligible
+          ? Number(activeCurrentWeek.photo_a_id)
+          : !photoBEligible
+            ? Number(activeCurrentWeek.photo_b_id)
+            : null,
+        slot: !photoAEligible && !photoBEligible
+          ? 'both'
+          : !photoAEligible
+            ? 'a'
+            : !photoBEligible
+              ? 'b'
+              : items.length < 2
+                ? 'both'
+                : null,
+      };
     }
 
     await closeStaleActiveMatchups(db, weekStart);
@@ -686,6 +717,27 @@ export const onRequestGet = async (context: any): Promise<Response> => {
     const selected = selectTwoPhotoIds(eligiblePhotos, recentIds);
 
     if (!selected) {
+      if (eligibilityIssue) {
+        logMatchupRepairAudit({
+          event: 'matchup_repair_audit',
+          at: new Date().toISOString(),
+          trigger: 'current_get_eligibility',
+          week_start: weekStart,
+          broken_photo_id: eligibilityIssue.brokenId,
+          slot: eligibilityIssue.slot,
+          probe_available: null,
+          probe_status: null,
+          before_photo_a_id: Number(activeCurrentWeek!.photo_a_id),
+          before_photo_b_id: Number(activeCurrentWeek!.photo_b_id),
+          after_photo_a_id: Number(activeCurrentWeek!.photo_a_id),
+          after_photo_b_id: Number(activeCurrentWeek!.photo_b_id),
+          mutated: false,
+          votes_cleared: false,
+          source_issue: null,
+          mutation_blocked_reason: 'no_replacement_candidates',
+          ...clientAuditHints(request),
+        });
+      }
       return jsonResponse({ ok: true, week_start: weekStart, matchup_id: null, items: [] });
     }
 
@@ -695,6 +747,32 @@ export const onRequestGet = async (context: any): Promise<Response> => {
     const resolved = await findCurrentWeekMatchup(db, weekStart);
     if (!resolved) {
       return jsonResponse({ ok: true, week_start: weekStart, matchup_id: null, items: [] });
+    }
+
+    if (eligibilityIssue) {
+      const afterA = Number(resolved.photo_a_id);
+      const afterB = Number(resolved.photo_b_id);
+      const pairChanged =
+        afterA !== Number(activeCurrentWeek!.photo_a_id) || afterB !== Number(activeCurrentWeek!.photo_b_id);
+      logMatchupRepairAudit({
+        event: 'matchup_repair_audit',
+        at: new Date().toISOString(),
+        trigger: 'current_get_eligibility',
+        week_start: weekStart,
+        broken_photo_id: eligibilityIssue.brokenId,
+        slot: eligibilityIssue.slot,
+        probe_available: null,
+        probe_status: null,
+        before_photo_a_id: Number(activeCurrentWeek!.photo_a_id),
+        before_photo_b_id: Number(activeCurrentWeek!.photo_b_id),
+        after_photo_a_id: afterA,
+        after_photo_b_id: afterB,
+        mutated: pairChanged,
+        votes_cleared: pairChanged,
+        source_issue: null,
+        mutation_blocked_reason: null,
+        ...clientAuditHints(request),
+      });
     }
 
     return buildSuccessResponse(request, weekStart, matchupId || resolved.id, resolved.photo_a_id, resolved.photo_b_id);

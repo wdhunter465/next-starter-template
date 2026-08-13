@@ -48,7 +48,7 @@ describe('native lifecycle assessment', () => {
     expect(result.assessment.reason).toBe('unresolved-human-review-thread');
   });
 
-  it('ignores resolved and outdated threads', () => {
+  it('ignores resolved GraphQL threads while disposition audit still covers outdated comments', () => {
     const state = unresolvedReviewThreads([
       {
         id: 'resolved-thread',
@@ -67,6 +67,52 @@ describe('native lifecycle assessment', () => {
     expect(state.blocking).toEqual([]);
     expect(state.resolved).toHaveLength(1);
     expect(state.outdated).toHaveLength(1);
+  });
+
+  it('fails closed on outdated trusted review comments without PR-body disposition', () => {
+    const result = assessReviewerLifecycle({
+      enforceFailure: true,
+      files: ['scripts/ci/reviewer_lifecycle_gate.mjs'],
+      headSha: 'new-sha',
+      body: '## REVIEWER RESPONSE ACCOUNTING\n- reviewed only',
+      reviewComments: [{
+        id: 2002,
+        user: { login: 'cubic-dev-ai[bot]' },
+        commit_id: 'old-sha',
+        path: 'scripts/ci/reviewer_lifecycle_gate.mjs',
+        line: 12,
+        body: 'Outdated finding on prior commit.',
+        created_at: '2026-06-01T00:00:00Z',
+      }],
+    });
+
+    expect(result.shouldFail).toBe(true);
+    expect(result.assessment.reason).toBe('outdated-reviewer-thread-without-disposition');
+    expect(result.disposition.outdatedWithoutDispositionCount).toBe(1);
+  });
+
+  it('passes when outdated trusted review comments have explicit dispositions', () => {
+    const result = assessReviewerLifecycle({
+      enforceFailure: true,
+      files: ['scripts/ci/reviewer_lifecycle_gate.mjs'],
+      headSha: 'new-sha',
+      body: [
+        '## REVIEWER RESPONSE ACCOUNTING',
+        '- review-comment:2003 — acknowledged — Superseded by refactor — thread state: outdated',
+      ].join('\n'),
+      reviewComments: [{
+        id: 2003,
+        user: { login: 'cubic-dev-ai[bot]' },
+        commit_id: 'old-sha',
+        path: 'scripts/ci/reviewer_lifecycle_gate.mjs',
+        line: 14,
+        body: 'Please update this helper.',
+        created_at: '2026-06-01T00:00:00Z',
+      }],
+    });
+
+    expect(result.shouldFail).toBe(false);
+    expect(result.assessment.ok).toBe(true);
   });
 
   it('keeps trusted bot threads advisory by default', () => {

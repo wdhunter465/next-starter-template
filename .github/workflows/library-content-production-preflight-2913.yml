@@ -1,0 +1,115 @@
+name: OPS — Library Content Production D1 Preflight (#2913)
+
+# Operator-triggered, read-only Production D1 schema check for #2913.
+#
+# Runs exactly one hardcoded query — `PRAGMA table_info(library_entries);` — against the
+# real Production D1 database, to resolve whether `is_approved` exists there (per the
+# routed preflight requirement in #2913 / docs/ops/reports/library-content-backfill-2911.md).
+#
+# This workflow performs NO D1 writes. It does not run migrations, backfills, or batch
+# execution. Actual Production batch writes remain a separate, explicitly-authorized
+# increment (see docs/ops/reports/library-content-production-batch-plan-2913.md).
+#
+# This file (and scripts/ci/production_d1_preflight_2913.mjs) matches this repo's
+# protected-path patterns in scripts/ci/delivery_profile.mjs, so PRs touching it require
+# Approval profile: protected-change-review.
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_read_only_preflight:
+        description: 'Type "confirm" to run the read-only #2913 Production D1 schema preflight'
+        required: true
+        type: string
+
+concurrency:
+  group: library-content-production-preflight-2913
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require explicit confirmation
+        run: |
+          if [ "${{ inputs.confirm_read_only_preflight }}" != "confirm" ]; then
+            echo "confirm_read_only_preflight must be exactly 'confirm' — refusing to run."
+            exit 1
+          fi
+
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify Cloudflare D1 credentials
+        env:
+          # Token/account only — verify_cloudflare_d1_auth.mjs prints its resolved database
+          # name in its OK/error output, so D1_DATABASE_NAME/D1_DATABASE_ID are deliberately
+          # withheld here. It falls back to its own non-secret default ("lgfc_lite", matching
+          # wrangler.toml) for this SELECT 1 probe; the real identity check against the
+          # D1_DATABASE_NAME/D1_DATABASE_ID secrets happens in the preflight step below,
+          # which never prints either value.
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: node scripts/ci/verify_cloudflare_d1_auth.mjs
+
+      - name: Run #2913 read-only Production D1 schema preflight
+        id: preflight
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DATABASE_NAME: ${{ secrets.D1_DATABASE_NAME }}
+          D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
+        run: node scripts/ci/production_d1_preflight_2913.mjs
+
+      - name: Upload preflight evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: production-d1-preflight-2913-result
+          path: |
+            production-d1-preflight-2913-result.json
+            production-d1-preflight-2913-result.md
+          if-no-files-found: warn
+
+      - name: Write step summary
+        if: always() && hashFiles('production-d1-preflight-2913-result.md') != ''
+        run: cat production-d1-preflight-2913-result.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Record result on #2913
+        if: always() && hashFiles('production-d1-preflight-2913-result.md') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue comment 2913 --body-file production-d1-preflight-2913-result.md
+
+      - name: Record failure on #2913
+        # Scoped to steps that actually reached credentialed/Production work (checkout
+        # succeeded, i.e. past the confirmation-input gate) so a mistyped confirmation
+        # input doesn't post a misleading "preflight FAILED" comment on #2913.
+        if: failure() && steps.checkout.outcome == 'success' && hashFiles('production-d1-preflight-2913-result.md') == ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue comment 2913 --body "$(cat <<'EOF'
+          <!-- production-d1-preflight-2913 -->
+          ## #2913 Production D1 preflight — FAILED (fail-closed)
+
+          The read-only Production D1 schema preflight (`PRAGMA table_info(library_entries)`)
+          did not complete. No Production batch-planning guidance was emitted, and no D1 write
+          was attempted. See the workflow run logs and uploaded artifact (if any) for details.
+
+          Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          EOF
+          )"

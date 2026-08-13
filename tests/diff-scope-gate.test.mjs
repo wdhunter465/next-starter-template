@@ -1,8 +1,9 @@
 import fs from 'node:fs';
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import {
   buildDiffScopeReport,
   renderDiffScopeReport,
+  resolveDiffScopeContext,
   runCli,
   writeDiffScopeArtifacts,
 } from '../scripts/ci/diff_scope_gate.mjs';
@@ -117,5 +118,63 @@ describe('diff scope gate', () => {
         if (fs.existsSync(file)) fs.unlinkSync(file);
       }
     }
+  });
+});
+
+describe('diff scope context resolution', () => {
+  it('resolves PR body and changed files with transient 5xx retry', async () => {
+    const fetchFn = vi
+      .fn()
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 503,
+        text: async () => 'unavailable',
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => ({ body: '## Scope\n\nAllowed paths:\n- `scripts/ci/**`\n' }),
+      })
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: async () => [{ filename: 'scripts/ci/diff_scope_gate.mjs' }],
+      });
+
+    const context = await resolveDiffScopeContext({
+      token: 'test-token',
+      repository: 'owner/repo',
+      prNumber: 2657,
+      maxRetries: 3,
+      sleepFn: async () => {},
+      fetchFn,
+    });
+
+    expect(context.prNumber).toBe(2657);
+    expect(context.body).toContain('Allowed paths:');
+    expect(context.files).toEqual(['scripts/ci/diff_scope_gate.mjs']);
+    expect(fetchFn).toHaveBeenCalledTimes(3);
+  });
+
+  it('classifies exhausted transient retries as infrastructure failures', async () => {
+    const fetchFn = vi.fn(async () => ({
+      ok: false,
+      status: 503,
+      text: async () => 'unavailable',
+    }));
+
+    await expect(
+      resolveDiffScopeContext({
+        token: 'test-token',
+        repository: 'owner/repo',
+        prNumber: 1,
+        maxRetries: 1,
+        sleepFn: async () => {},
+        fetchFn,
+      }),
+    ).rejects.toMatchObject({
+      name: 'GitHubInfrastructureError',
+      classification: 'transient-infrastructure',
+    });
   });
 });

@@ -18,6 +18,11 @@
         "description": "Day-2 Operations queue owner for standalone operational source Issues"
       },
       {
+        "name": "team:governance",
+        "color": "6f42c1",
+        "description": "Governance stewardship queue owner for repository standards, authority, audits, and policy/documentation integrity"
+      },
+      {
         "name": "team:pmo",
         "color": "0052cc",
         "description": "PMO Active implementation queue owner for launched portfolio parents"
@@ -58,6 +63,38 @@
         "name": "ops:hold",
         "color": "6a737d",
         "description": "Non-blocking Operations hold awaiting a recorded release condition"
+      }
+    ],
+    "governance": [
+      {
+        "name": "gov:priority:1",
+        "color": "6f42c1",
+        "description": "Highest actionable Governance stewardship priority"
+      },
+      {
+        "name": "gov:priority:2",
+        "color": "8a63d2",
+        "description": "Second actionable Governance stewardship priority"
+      },
+      {
+        "name": "gov:priority:3",
+        "color": "c297ff",
+        "description": "Third actionable Governance stewardship priority"
+      },
+      {
+        "name": "gov:priority:4",
+        "color": "e6dcff",
+        "description": "Fourth actionable Governance stewardship priority"
+      },
+      {
+        "name": "gov:review",
+        "color": "0e8a16",
+        "description": "Non-blocking Governance review/assurance state"
+      },
+      {
+        "name": "gov:hold",
+        "color": "6a737d",
+        "description": "Non-blocking Governance hold awaiting a recorded release condition"
       }
     ],
     "pmoTrackingAndLifecycle": [
@@ -191,7 +228,29 @@
       ],
       "forbidsPrefixes": [
         "pmo:priority:",
-        "eng:priority:"
+        "eng:priority:",
+        "gov:",
+        "pmo:stage:"
+      ]
+    },
+    {
+      "id": "governance-state",
+      "when": [
+        "team:governance"
+      ],
+      "requiresExactlyOneOf": [
+        "gov:priority:1",
+        "gov:priority:2",
+        "gov:priority:3",
+        "gov:priority:4",
+        "gov:review",
+        "gov:hold"
+      ],
+      "forbidsPrefixes": [
+        "ops:",
+        "pmo:priority:",
+        "eng:priority:",
+        "pmo:stage:"
       ]
     },
     {
@@ -212,7 +271,8 @@
       ],
       "forbidsPrefixes": [
         "eng:priority:",
-        "ops:"
+        "ops:",
+        "gov:"
       ],
       "forbids": [
         "pmo:stage:intake",
@@ -243,7 +303,8 @@
       "requiresExactlyOnePrefix": "pmo:stage:",
       "forbidsPrefixes": [
         "pmo:priority:",
-        "ops:"
+        "ops:",
+        "gov:"
       ]
     },
     {
@@ -260,6 +321,7 @@
       "forbidsPrefixes": [
         "team:",
         "ops:",
+        "gov:",
         "pmo:priority:",
         "eng:priority:"
       ]
@@ -318,6 +380,7 @@
     "removeFromProjectChildren": [
       "team:*",
       "ops:*",
+      "gov:*",
       "pmo:priority:*",
       "eng:priority:*"
     ],

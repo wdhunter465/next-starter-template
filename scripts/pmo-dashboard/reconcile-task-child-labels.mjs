@@ -19,7 +19,7 @@ import { execFileSync } from 'node:child_process';
 import { readFile } from 'node:fs/promises';
 import { fileURLToPath } from 'node:url';
 
-const REPO = process.env.GITHUB_REPOSITORY || 'wdhunter645/next-starter-template';
+const REPO = process.env.GITHUB_REPOSITORY || 'wdhunter465/next-starter-template';
 const LIFECYCLE_LABELS = new Set(['pmo:pipeline', 'pmo:active', 'pmo:closed']);
 
 function normalizeLabels(input) {

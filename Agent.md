@@ -5,8 +5,8 @@ Authority Level: Navigation
 Owns: Read order, authority routing, lane/profile identification, execution entry point
 Does Not Own: Role policy, execution rules, design authority, communication policy, delivery policy, or governance decisions
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2640, #2641, #2686, #2690
-Last Reviewed: 2026-07-21
+Related Issues: #2640, #2641, #2686, #2690, #3052, #3138, #3142
+Last Reviewed: 2026-08-08
 ---
 
 # Agent.md
@@ -50,9 +50,10 @@ Before repository work—including exploration, design, Sandbox, implementation,
 4. `docs/ops/ai/SHARED-AGENT-RULES.md`
 5. `docs/ops/ai/CORE-RULES.md`
 6. Applicable tool-specific pointer:
-   - `docs/ops/ai/CHATGPT-RULES.md`
+   - `docs/ops/ai/WORK-RULES.md` (current name for the product formerly referenced as `docs/ops/ai/CHATGPT-RULES.md`, retained as a superseded pointer)
    - `docs/ops/ai/CURSOR-RULES.md`
    - `docs/ops/ai/CODEX-RULES.md`
+   - `docs/ops/ai/CLAUDE-CODE-RULES.md`
    - `docs/ops/ai/COPILOT-RULES.md`
    - `docs/ops/ai/DEVIN-RULES.md`
 7. Applicable domain policy and reference contracts
@@ -126,6 +127,7 @@ Read the files that match the current task:
 | Runner/controller behavior | `docs/reference/ci/repository-runner-contract.md`; applicable routing contract/procedure |
 | PR work | `.agents/skills/lgfc-pr-governance/SKILL.md`; `.github/pull_request_template.md`; `docs/how-to/cursor/open-task-pr.md`; `docs/governance/PR_PROCESS.md`; `docs/governance/PR_LIFECYCLE_STATE_MACHINE.md` |
 | Model A/B execution | `docs/how-to/agents/run-model-a.md` or `docs/how-to/agents/run-model-b.md` |
+| Approved assignment or Product Authority action (execution fidelity) | `docs/governance/standards/AGENT-EXECUTION-FIDELITY.md`; `docs/ops/ai/CORE-RULES.md` (Execution Contract Fidelity); `docs/templates/agent-assignment-template.md` |
 
 ## Communication routing
 
@@ -160,15 +162,25 @@ Administration & Communications spans all steps.
 
 ## Startup orientation
 
-When Product Authority says `run startup`, ChatGPT performs orientation only and stops.
+When Product Authority says `run startup`, the literal command resolves according to the active product — Product Authority does not need to say `run Work startup` or `run Codex startup`. Each recognized product identifies itself and performs its own product-specific orientation-only startup, then stops:
 
-Startup does not authorize:
+- Work: `docs/ops/ai/WORK-RULES.md`
+- Codex: `docs/ops/ai/CODEX-RULES.md` (orientation only; grants no implementation authority; after startup, a separately loaded source Issue may provide bounded Codex authority when Product Authority explicitly authorizes it — #3142)
+- Claude Code: `docs/ops/ai/CLAUDE-CODE-RULES.md`
+- Cursor: existing bootstrap, unchanged (`AGENTS.md` for Cloud, `.cursor/rules/*.mdc` for Local)
+- Ordinary Chat or Claude (conversational): no product-specific startup contract; state plainly that the product is outside the operational delivery chain
+
+Shared skeleton, session-boundary rules, and the full list of what startup must never authorize: `docs/ops/ai/CORE-RULES.md`, "PRODUCT STARTUP FRAMEWORK." Current product/role inventory: `docs/governance/AGENT-TEAM.md`.
+
+Startup does not authorize, for any product:
 
 - queue audit;
 - inferred next work;
 - implementation resume;
 - administrative reconciliation;
 - GitHub mutation.
+
+Startup and assignment loading are separate phases — startup completion is never itself interpreted as task authorization. A source Issue, its acceptance criteria, an exact file-touch allowlist, the applicable promotion profile, role authority, and an explicit implementation Go are loaded and confirmed separately, after startup.
 
 ## Repository skills
 
@@ -222,5 +234,13 @@ Routine bounded correction, deterministic administrative reconciliation, and non
 - Day-2 Operations: `docs/governance/OPERATIONS-AND-RECOVERY.md`
 - Lane/profile reference: `docs/reference/operations/operating-lanes-and-promotion-profiles.md`
 - Shared execution detail: `docs/ops/ai/CORE-RULES.md`
+- Execution fidelity (approved-action contracts): `docs/governance/standards/AGENT-EXECUTION-FIDELITY.md`
 
 Legacy person-specific or serialized instructions must not be cited when they conflict with these canonical sources.
+
+
+## Continuous serial implementation (#3055 / #3145)
+
+For a graduated project, the exact prepared child graph is standing authority. Eligible agents self-claim the next package-complete serial child without a repeat Administration/PMO dispatch. Standalone `team:governance` stewardship Issues are claimed separately from the project child graph. The implementation runtime must record starting SHA, branch, allowlist confirmation, and pre-implementation checkpoint before editing.
+
+Missing package fields produce `PACKAGE-INCOMPLETE`; a substantive dependency or protected boundary produces an evidence-specific `HOLD`. Merge alone is not substantive acceptance. WORK owns preparation, monitoring, assurance, and exception handling where judgment is required — not routine per-task successor release — and cannot independently verify or approve work WORK implemented.

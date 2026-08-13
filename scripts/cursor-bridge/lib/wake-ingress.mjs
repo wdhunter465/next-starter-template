@@ -96,7 +96,7 @@ export function hasReadyCursorHandoff({ labels = [] } = {}) {
  * @returns {{ deliver: boolean, reason: string }}
  */
 export function shouldDeliverCursorWake(event = {}) {
-  const expectedRepo = event.expectedRepo || 'wdhunter645/next-starter-template';
+  const expectedRepo = event.expectedRepo || 'wdhunter465/next-starter-template';
   if (event.repository !== expectedRepo) {
     return { deliver: false, reason: 'untrusted_repository' };
   }

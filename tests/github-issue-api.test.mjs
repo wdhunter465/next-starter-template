@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import {
+	GitHubInfrastructureError,
 	GitHubRateLimitError,
 	computeBackoffDelayMs,
 	githubRepoRequest,
@@ -158,5 +159,56 @@ describe('githubRepoRequest', () => {
 		).rejects.toBeInstanceOf(GitHubRateLimitError);
 
 		expect(fetchMock).toHaveBeenCalledTimes(3);
+	});
+
+	it('retries transient 5xx responses then succeeds', async () => {
+		const fetchMock = vi
+			.fn()
+			.mockResolvedValueOnce({
+				ok: false,
+				status: 502,
+				text: async () => 'bad gateway',
+			})
+			.mockResolvedValueOnce({
+				ok: true,
+				status: 200,
+				json: async () => ({ number: 42 }),
+			});
+
+		const result = await githubRepoRequest({
+			token: 'test-token',
+			repository: 'owner/repo',
+			path: '/pulls/42',
+			maxRetries: 3,
+			initialBackoffMs: 1,
+			sleepFn: async () => {},
+			fetchFn: fetchMock,
+		});
+
+		expect(result).toEqual({ number: 42 });
+		expect(fetchMock).toHaveBeenCalledTimes(2);
+	});
+
+	it('throws GitHubInfrastructureError when transient retries are exhausted', async () => {
+		const fetchMock = vi.fn(async () => ({
+			ok: false,
+			status: 503,
+			text: async () => 'unavailable',
+		}));
+
+		await expect(
+			githubRepoRequest({
+				token: 'test-token',
+				repository: 'owner/repo',
+				path: '/pulls/1',
+				maxRetries: 1,
+				initialBackoffMs: 1,
+				sleepFn: async () => {},
+				fetchFn: fetchMock,
+			}),
+		).rejects.toSatisfy(
+			(error) => error instanceof GitHubInfrastructureError
+				&& error.classification === 'transient-infrastructure',
+		);
 	});
 });

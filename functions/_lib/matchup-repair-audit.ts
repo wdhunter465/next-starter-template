@@ -6,7 +6,7 @@
 export type MatchupRepairAuditEvent = {
   event: 'matchup_repair_audit';
   at: string;
-  trigger: 'public_repair_post' | 'current_get_probe' | 'admin_authorized' | 'admin_update';
+  trigger: 'public_repair_post' | 'current_get_probe' | 'current_get_eligibility' | 'admin_authorized' | 'admin_update';
   week_start: string | null;
   broken_photo_id: number | null;
   slot: 'a' | 'b' | 'both' | 'unknown' | null;
@@ -24,11 +24,11 @@ export type MatchupRepairAuditEvent = {
   client_ip_hash: string | null;
 };
 
-/** Normalize `#3028` / `3028` / `Issue 3028` → `#3028`. */
+/** Normalize `#3028` / `3028` / `Issue 3028` → `#3028`. Rejects any other text (#3030). */
 export function normalizeSourceIssue(raw: unknown): string | null {
   if (raw === null || raw === undefined) return null;
   const text = String(raw).trim();
-  const match = text.match(/#?\s*(\d{1,7})\b/);
+  const match = text.match(/^(?:issue\s+)?#?\s*(\d{1,7})$/i);
   if (!match) return null;
   const n = Number(match[1]);
   if (!Number.isFinite(n) || n <= 0) return null;

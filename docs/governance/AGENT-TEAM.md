@@ -2,11 +2,11 @@
 Doc Type: Governance
 Audience: Human + AI
 Authority Level: Domain Policy
-Owns: Durable LGFC roles, current member mapping, approval authority, protected stops, operating modes, launch-control workflow boundaries, member work-precedence mapping, and delegated task-closeout role boundaries
+Owns: Durable LGFC roles, recognized agent product inventory, current member mapping, approval authority, protected stops, operating modes, launch-control workflow boundaries, member work-precedence mapping, and delegated task-closeout role boundaries
 Does Not Own: Queue and priority semantics, shared execution detail, tool-specific runtime behavior, PMO sizing, promotion-profile policy, communication mutation taxonomy, or production mechanics
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2494, #2640, #2641, #2648, #2699, #2700
-Last Reviewed: 2026-07-21
+Related Issues: #2494, #2640, #2641, #2648, #2699, #2700, #3052, #3145, #3142, #3152, #3240
+Last Reviewed: 2026-08-09
 ---
 
 # Agent Team
@@ -19,7 +19,7 @@ An agent or system may act only through the roles currently assigned to it. A na
 
 LGFC agents are operating team members. They communicate directly through the canonical GitHub communication workflow whenever it is available. Human relay through Product Authority is the least-desired fallback and does not replace durable agent-to-agent routing.
 
-Queue precedence, team priority namespaces, Project Graduation, and the universal collaboration method are defined in `docs/governance/WORK-QUEUES-AND-COLLABORATION.md`.
+Queue precedence, team priority namespaces, Project Graduation, team vs agent claim lifecycle, and the universal collaboration method are defined in `docs/governance/WORK-QUEUES-AND-COLLABORATION.md`.
 
 ## Durable roles
 
@@ -27,24 +27,58 @@ Queue precedence, team priority namespaces, Project Graduation, and the universa
 | --- | --- |
 | Product Authority | Product outcome, priority, cost, business decisions, final completed-product review |
 | PMO / Engineering | Requirements, design, architecture, acceptance criteria, planning, Sandbox authority, implementation Go, aggregate project verification |
-| Implementation / Operations | Development and Promotion Candidate execution, testing, remediation, integration, deployment execution, and eligible assigned task-level closeout after required independent evidence exists |
+| Implementation / Operations | Development and Promotion Candidate execution, testing, remediation, integration, deployment execution, implementation handoff, and closeout-packet evidence; no independent task acceptance |
 | PR Approver / Engineering | Independent validation that work meets design, acceptance, repository, and promotion requirements |
-| Administration & Communications | Evidence, routing, acknowledgments, escalation, repository-state reconciliation, hold/resume, reporting, closeout, and authorized transaction execution |
+| Administration & Communications | Evidence, routing, acknowledgments, escalation, repository-state reconciliation, hold/resume, reporting, WORK-controlled closeout, parent reconciliation, successor release, and authorized transaction execution |
 | Day-2 Operations | Production monitoring, incident classification, containment, recovery strategy, operational hold release |
 | Deterministic CI | Machine-provable checks, evidence, eligible non-main integration, and bounded authorized automation |
 
 No role may self-approve work when independent review is required. Implementation / Operations may perform eligible administrative task closeout only after the required independent review, integration, validation, and post-integration evidence already exist.
+
+## WORK task and project acceptance ownership
+
+WORK holds the PMO / Engineering and Administration & Communications responsibility for evidence-backed task and project acceptance, closeout, parent reconciliation, and exception handling.
+
+For every implementation child that requires judgment, WORK independently reviews the live source Issue, final diff, required tests and failure paths, checks, review dispositions, integration identity, post-integration evidence, documentation, rollback readiness, and unresolved exceptions. WORK records one controlling disposition when assurance is required:
+
+- `ACCEPT` — reconcile/close the child and reconcile the parent when a substantive acceptance gate applies;
+- `HOLD` — record the true dependency or protected stop, owner, evidence needed, and release condition;
+- `REMEDIATE` — return bounded defects to the originating implementer and keep the affected transition fail-closed;
+- `VERIFY MORE` — identify the missing proof and keep the affected transition fail-closed.
+
+After a Project or Program is Active with a prepared child graph, eligible agents self-claim the next package-complete child under standing parent authority (#3145). WORK does not act as a routine per-task dispatcher or mandatory “release” gate between already-authorized children. Deterministic CI may execute mechanically provable closeout mutations, but WORK owns substantive acceptance decisions and verifies resulting repository state when judgment is required. WORK must not independently approve or verify a PR that WORK implemented. In that case, another authorized independent reviewer supplies the review evidence and Bill retains every required protected Product or Production decision.
+
+`team:*` labels are durable Team ownership. `agent:*` labels are current execution claims or explicit Product Authority reservations only and must not be added merely to make an Issue visible. Full claim lifecycle (claim, release, reserved-assignment exception, stale-preassignment migration) is defined in `docs/governance/WORK-QUEUES-AND-COLLABORATION.md` under **Team ownership versus agent claim lifecycle** (#3240).
+
+## Recognized agent products
+
+This inventory represents each distinct LGFC agent product separately rather than collapsing them into a generic AI-agent label (#3052). Adding a product to this inventory does not, by itself, grant implementation, review, approval, closeout, or mutation authority — authority comes only from the role mapping below and an explicit source Issue.
+
+| Product | Status | Distinct from | Product-specific rules file | `run startup` applies |
+| --- | --- | --- | --- | --- |
+| Work (OpenAI) | Active — LGFC team member | Ordinary Chat (same model family, outside the delivery chain) | `docs/ops/ai/WORK-RULES.md` | Yes |
+| Codex (OpenAI) | Selective use — no standing implementation assignment; startup contract only | Work | `docs/ops/ai/CODEX-RULES.md` | Yes (orientation only; grants no implementation authority) |
+| Cursor Local / Cursor Cloud | Active — LGFC team member | — | `docs/ops/ai/CURSOR-RULES.md`, `.cursor/rules/*.mdc`, `AGENTS.md` (Cloud) | Yes (existing bootstrap, unchanged by #3052) |
+| Claude Code (Anthropic) | Active — LGFC team member | Claude (conversational) | `docs/ops/ai/CLAUDE-CODE-RULES.md` | Yes |
+| Claude (Anthropic, conversational) | Supporting/advisory only — no durable role | Claude Code | none | No — outside the operational delivery chain; state this plainly if asked to perform repository work |
+| Notion | Supporting tool — controlled-document workspace | — | none | No — not a session-based operating agent; a data/document surface used by role holders (primarily Administration & Communications / Work) |
+| GitHub Actions and repository automation | Active — Deterministic CI | — | n/a (workflow-defined) | n/a |
 
 ## Current team mapping
 
 | Current member or system | Assigned roles |
 | --- | --- |
 | Bill | Product Authority; Day-2 Operations; alternate protected approval when recorded |
-| ChatGPT | PMO / Engineering; PR Approver / Engineering; Administration & Communications; Day-2 Operations coordination and Tier 2 specialist support |
+| Work | PMO / Engineering; PR Approver / Engineering; Administration & Communications; Day-2 Operations coordination and Tier 2 specialist support |
 | Cursor Local | Implementation / Operations; Day-2 Operations remediation implementation |
+| Claude Code | Implementation / Operations; PR Approver / Engineering (only for work Claude Code did not itself implement) |
 | GitHub Actions and repository automation | Deterministic CI; Administration & Communications transport/evidence; authorized Day-2 monitoring and bounded remediation |
 | Repository runner and routing controller | Administration & Communications control-plane infrastructure; host/service maintained by Day-2 Operations |
-| Codex | Inactive for LGFC implementation unless Product Authority records future reauthorization and role assignment |
+| Codex | No standing durable role; may receive a bounded task-specific role by explicit Product Authority source-Issue authorization (#3142). Selective use does not place Codex on the standing implementation roster or default queues. |
+| Claude (conversational) | No durable repository role; bounded collaboration only under the Universal collaboration boundary below |
+| Notion | No durable repository role; controlled-document workspace supporting Administration & Communications / Work evidence and record-keeping; no GitHub mutation authority |
+
+`Work` is the current name for the product this table and repository history previously called `ChatGPT` (#3052). The role contract is unchanged; only the product name is reconciled to match the actual OpenAI product performing this work. Ordinary conversational Chat is not a row in this table because it holds no durable repository role.
 
 Future agents and systems may be assigned compatible roles through an approved mapping change or project manifest. Changing the mapping does not change the role contract.
 
@@ -80,23 +114,34 @@ Future agents and systems may be assigned compatible roles through an approved m
 
 Development and Promotion Candidate are technical profiles inside the conversational Implementation / Operations lane.
 
-Lanes define authority. The separate Operations, PMO, and Engineering work queues define sequencing under `WORK-QUEUES-AND-COLLABORATION.md`.
+Lanes define authority. The separate Operations, Governance, PMO, and Engineering work queues define sequencing under `WORK-QUEUES-AND-COLLABORATION.md`.
 
 ## Daily work precedence
 
 ### Cursor Local
 
-1. Numbered Operations Issues requiring remediation.
-2. Active PMO project tasks selected by parent PMO priority and project-defined task sequence.
-3. Bounded Engineering collaboration only when explicitly requested.
+1. Actionable `team:operations` Issues requiring remediation (normal Operations executor; self-claim by eligibility).
+2. Active `team:pmo` project/program children under standing parent authority (self-claim next eligible child).
+3. Actionable `team:governance` stewardship Issues (normal Governance executor for bounded repository/documentation changes; self-claim by eligibility).
+4. Bounded Engineering collaboration only when explicitly requested — Cursor is not a normal `team:engineering` executor.
 
-Operations Monitoring and Hold Issues receive required interval updates but do not block Active PMO work.
+Operations Monitoring and Hold Issues receive required interval updates but do not block Active PMO or Governance work. An actionable Operations Issue interrupts ordinary PMO and Governance implementation at the nearest safe checkpoint. Governance does not interrupt PMO or Engineering.
 
-### ChatGPT
+### Claude Code
+
+1. Active `team:pmo` project/program children under standing parent authority (self-claim when eligible) — operating in parallel with, not in place of, Cursor Local; each claimed task has exactly one executor.
+2. `team:engineering` Pipeline and Active Engineering work (normal Engineering executor; self-claim by eligibility).
+3. `team:governance` stewardship work when explicitly assigned (including independent governance/engineering review where separation of duty is preserved).
+4. Bounded `team:operations` support only when an Operations Issue is explicitly escalated beyond normal Cursor-only handling — Claude does not normally self-claim the Operations queue; escalation does not create a fifth Team or change Team ownership.
+
+Operations Monitoring and Hold Issues receive required interval updates but do not block Active PMO or Governance work.
+
+### Work
 
 1. Numbered Operations Issues when assigned for Tier 2 specialist support, Engineering judgment, independent review, or coordination.
-2. PMO work when assigned for design adjustment, review, promotion, Production decision preparation, verification, or closeout.
-3. Engineering Pipeline preparation selected by Engineering priority.
+2. Governance analysis, policy/design decisions, repository-governance review, and independent assurance when assigned.
+3. PMO preparation, graduation, monitoring, assurance, substantive acceptance, exception handling, and closeout — including project-closeout administrative tasks.
+4. Engineering Pipeline preparation selected by Engineering priority.
 
 This precedence orders each member's available capacity. It does not merge team queues or transfer source-Issue ownership.
 
@@ -271,13 +316,13 @@ Before Development begins, the source authority includes:
 
 ## Startup orientation
 
-When Product Authority says `run startup`, ChatGPT performs orientation only and stops. Startup does not authorize queue audit, implementation resume, GitHub mutation, or administrative reconciliation.
+When Product Authority says `run startup`, the active product identifies itself and performs its own product-specific orientation-only startup, then stops — Product Authority does not need to say `run Work startup` or `run Claude Code startup`; see `docs/ops/ai/CORE-RULES.md`'s "PRODUCT STARTUP FRAMEWORK" for the shared skeleton and `docs/ops/ai/WORK-RULES.md`, `docs/ops/ai/CODEX-RULES.md`, and `docs/ops/ai/CLAUDE-CODE-RULES.md` for each product's contract. Startup does not authorize queue audit, implementation resume, GitHub mutation, or administrative reconciliation, regardless of product.
 
 ## Canonical references
 
 | Topic | Owner |
 | --- | --- |
-| Work queues, priorities, graduation, collaboration | `docs/governance/WORK-QUEUES-AND-COLLABORATION.md` |
+| Work queues, priorities, graduation, collaboration, team vs agent claim lifecycle | `docs/governance/WORK-QUEUES-AND-COLLABORATION.md` |
 | Lane and profile contract | `docs/reference/operations/operating-lanes-and-promotion-profiles.md` |
 | Administration & Communications policy | `docs/governance/ADMINISTRATION-AND-COMMUNICATIONS.md` |
 | Administration mutation and closeout executor contract | `docs/reference/operations/administrative-control-lane-contract.md` |
@@ -285,8 +330,11 @@ When Product Authority says `run startup`, ChatGPT performs orientation only and
 | Delivery and promotion policy | `docs/governance/DELIVERY-AND-RELEASE.md` |
 | Operations and recovery policy | `docs/governance/OPERATIONS-AND-RECOVERY.md` |
 | Implementation authority evidence | `docs/reference/agents/implementation-authority-contract.md` |
-| Shared execution detail | `docs/ops/ai/CORE-RULES.md` |
+| Shared execution detail and product-startup framework | `docs/ops/ai/CORE-RULES.md` |
+| Work product-specific rules and startup contract | `docs/ops/ai/WORK-RULES.md` |
+| Codex product-specific rules and startup contract | `docs/ops/ai/CODEX-RULES.md` |
+| Claude Code product-specific rules and startup contract | `docs/ops/ai/CLAUDE-CODE-RULES.md` |
 
 ## Supersession
 
-Legacy person-specific or agent-specific policy is superseded where it conflicts with this durable role model. Current team mappings belong here or in project manifests; runtime compatibility documents may describe how a current member exercises an assigned role but must not redefine repository-wide authority. Queue, priority, graduation, and collaboration details belong in `WORK-QUEUES-AND-COLLABORATION.md` rather than being redefined per agent.
+Legacy person-specific or agent-specific policy is superseded where it conflicts with this durable role model. Current team mappings belong here or in project manifests; runtime compatibility documents may describe how a current member exercises an assigned role but must not redefine repository-wide authority. Queue, priority, graduation, collaboration, and claim-lifecycle details belong in `WORK-QUEUES-AND-COLLABORATION.md` rather than being redefined per agent.

@@ -3,12 +3,18 @@ import userEvent from '@testing-library/user-event';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 
 import AskPage from '@/app/ask/page';
-import { apiPost } from '@/lib/api';
+import { apiGet, apiPost } from '@/lib/api';
 
 vi.mock('@/lib/api', () => ({
+  apiGet: vi.fn(),
   apiPost: vi.fn(),
 }));
 
+vi.mock('next/navigation', () => ({
+  useSearchParams: () => new URLSearchParams(''),
+}));
+
+const mockedApiGet = vi.mocked(apiGet);
 const mockedApiPost = vi.mocked(apiPost);
 
 async function fillValidForm() {
@@ -21,9 +27,11 @@ async function fillValidForm() {
   );
 }
 
-describe('Ask page', () => {
+describe('Ask page (consolidated FAQ & Ask)', () => {
   beforeEach(() => {
+    mockedApiGet.mockReset();
     mockedApiPost.mockReset();
+    mockedApiGet.mockResolvedValue({ ok: true, items: [] } as never);
     mockedApiPost.mockResolvedValue({ ok: true } as never);
   });
 
@@ -80,13 +88,19 @@ describe('Ask page', () => {
     });
   });
 
-  it('links to FAQ and contact mailto per design', () => {
+  it('renders consolidated FAQ browse and contact mailto', async () => {
     render(<AskPage />);
 
-    expect(screen.getByRole('link', { name: /Back to FAQ/i })).toHaveAttribute('href', '/faq');
+    expect(screen.getByRole('heading', { name: /FAQ & Ask a Question/i })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Frequently Asked Questions/i })).toBeInTheDocument();
+    expect(document.getElementById('ask-form')).not.toBeNull();
     expect(screen.getByRole('link', { name: /Contact us directly/i })).toHaveAttribute(
       'href',
       'mailto:Contact@LouGehrigFanClub.com?subject=Contact%20Needed%20ASK',
     );
+
+    await waitFor(() => {
+      expect(mockedApiGet).toHaveBeenCalledWith('/api/faq/list?limit=50');
+    });
   });
 });

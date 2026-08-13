@@ -18,6 +18,7 @@ function metadataBody(overrides = {}, prClass = 'ci', allowedPaths = null) {
     rollbackProfile: 'one-step',
     componentBranch: 'not-applicable',
     componentMaster: 'not-applicable',
+    implementationAgent: 'Cursor Local',
     ...overrides,
   };
   const paths = allowedPaths || [
@@ -27,6 +28,10 @@ function metadataBody(overrides = {}, prClass = 'ci', allowedPaths = null) {
     '`.github/workflows/gate-quality.yml`',
     '`package.json`',
   ];
+  const implementationLine = Object.prototype.hasOwnProperty.call(overrides, 'implementationAgent')
+    && !overrides.implementationAgent
+    ? ''
+    : `- Implementation agent: ${values.implementationAgent}\n`;
 
   return `# PR Summary
 
@@ -40,7 +45,7 @@ function metadataBody(overrides = {}, prClass = 'ci', allowedPaths = null) {
 - Approval profile: ${values.approvalProfile}
 - Gate profile: ${values.gateProfile}
 - Rollback profile: ${values.rollbackProfile}
-- Component branch: ${values.componentBranch}
+${implementationLine}- Component branch: ${values.componentBranch}
 - Component master: ${values.componentMaster}
 
 ## Scope
@@ -319,7 +324,9 @@ describe('pr preflight evidence surfaces', () => {
   });
 
   it('fails when the implementation identity approves its own PR', () => {
-    const result = runPreflight({}, {
+    const result = runPreflight({
+      metadata: { implementationAgent: 'codex' },
+    }, {
       pr: { author: { login: 'codex' } },
       reviews: [{
         user: { login: 'codex' },

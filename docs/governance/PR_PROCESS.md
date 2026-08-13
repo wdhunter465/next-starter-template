@@ -12,8 +12,8 @@ Supporting References:
   - /docs/reference/operations/administrative-control-lane-contract.md
   - /docs/reference/operations/operating-lanes-and-promotion-profiles.md
   - /docs/reference/operations/work-queue-and-collaboration-contract.md
-Related Issues: #2175, #2208, #2640, #2641, #2699, #2709
-Last Reviewed: 2026-07-21
+Related Issues: #2175, #2208, #2640, #2641, #2699, #2709, #3117
+Last Reviewed: 2026-08-07
 ---
 
 # Pull Request Process
@@ -30,25 +30,26 @@ Queue ownership, universal collaboration, and Project Graduation are defined in 
 
 ## Core rules
 
-1. One primary source Issue per normal PR.
-2. The source Issue owns assignment, queue, execution owner, authority, collaboration state, and next action.
-3. The PR owns the diff, checks, review threads, and technical evidence.
-4. The PR body stores stable facts only.
-5. Dynamic lifecycle, checks, reviews, routing, collaboration, holds, and closeout remain on GitHub-native surfaces.
-6. Required gates are deterministic, necessary, and profile-appropriate.
-7. Implementation / Operations does not self-approve protected work or Production promotion.
-8. Deterministic CI may record automated eligibility for non-main integration; it does not impersonate PR Approver / Engineering.
-9. Promotion Candidate is mandatory before Production.
-10. Sandbox cannot move directly to Promotion Candidate or Production.
-11. Development cannot move directly to Production.
-12. Post-merge closeout is single-owner and idempotent.
-13. Administration & Communications may reconcile state but does not create technical, queue, priority, or approval authority.
+1. **Issue-first hard gate:** A live, open same-repository governing source Issue must exist and **predate** the branch, first commit, and Pull Request. No PR-first, operations, incident, CI, workflow, documentation-only, or emergency exception exists. The only allowed action without a governing Issue is creating that Issue. Motivating incident: PR #3115 / Issue #3116 (see #3117).
+2. One primary source Issue per normal PR; the Issue reference in the PR body must identify that pre-existing governing Issue.
+3. The source Issue owns assignment, queue, execution owner, authority, collaboration state, and next action.
+4. The PR owns the diff, checks, review threads, and technical evidence.
+5. The PR body stores stable facts only.
+6. Dynamic lifecycle, checks, reviews, routing, collaboration, holds, and closeout remain on GitHub-native surfaces.
+7. Required gates are deterministic, necessary, and profile-appropriate.
+8. Implementation / Operations does not self-approve protected work or Production promotion.
+9. Deterministic CI may record automated eligibility for non-main integration; it does not impersonate PR Approver / Engineering.
+10. Promotion Candidate is mandatory before Production.
+11. Sandbox cannot move directly to Promotion Candidate or Production.
+12. Development cannot move directly to Production.
+13. Post-merge closeout is single-owner and idempotent.
+14. Administration & Communications may reconcile state but does not create technical, queue, priority, or approval authority.
 
 ## Stable PR-body facts
 
 Every PR should include:
 
-- primary source Issue;
+- primary source Issue (must predate branch/commits/PR; issue-first hard gate);
 - intent label and PR class;
 - delivery model and promotion profile;
 - target branch or environment;
@@ -218,6 +219,14 @@ Reviewer state comes from GitHub-native reviews and threads.
 - Product Authority participates when product, priority, cost, business, or protected decisions require it.
 - Administration & Communications may route and report reviewer state but cannot supply independent review.
 - Collaboration may help a reviewer understand evidence but cannot manufacture reviewer authority.
+
+## Standing authority and successor transition
+
+For a graduated project with a complete ordered child graph, PR completion does not consume the project's implementation authority. After integration, deterministic closeout may reconcile mechanically provable child state. WORK evaluates the task against its executable package and records `ACCEPT`, `HOLD`, `REMEDIATE`, or `VERIFY MORE` when substantive assurance or discrepancy handling is required.
+
+Eligible agents self-claim the next package-complete serial successor under standing parent authority without a new Administration or PMO dispatch (#3145). A label, wake event, or routing comment may notify the implementation runtime, but it is transport rather than new authority. Routine WORK “release” is not a mandatory execution prerequisite when deterministic predecessor completion already satisfies the prepared graph.
+
+A green, approved, mergeable, integrated, or merged PR alone is never task acceptance. Acceptance also requires the source package, implementation evidence, required tests including applicable failure paths, review disposition, integration identity, post-integration verification, documentation, rollback disposition, and absence of unresolved protected stops — with WORK judgment applied when the project defines a substantive acceptance gate.
 
 ## Closeout
 

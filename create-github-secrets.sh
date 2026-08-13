@@ -92,7 +92,7 @@ while IFS= read -r line || [ -n "$line" ]; do
             SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
         else
             # Create the secret using gh CLI
-            if echo "$VAR_VALUE" | gh secret set "$VAR_NAME" --repo wdhunter645/next-starter-template; then
+            if echo "$VAR_VALUE" | gh secret set "$VAR_NAME" --repo wdhunter465/next-starter-template; then
                 echo -e "  ${GREEN}✓ Successfully created secret: ${VAR_NAME}${NC}"
                 SUCCESS_COUNT=$((SUCCESS_COUNT + 1))
             else

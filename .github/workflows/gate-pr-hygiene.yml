@@ -79,7 +79,7 @@ jobs:
             const report = fs.existsSync(process.env.REPORT_FILE)
               ? fs.readFileSync(process.env.REPORT_FILE, 'utf8').trim()
               : 'PR hygiene audit did not produce a report.';
-            const body = `${marker}\n${report}\n\nThis check is advisory and non-blocking during the #2175 / #2208 PR-process rebuild.`;
+            const body = `${marker}\n${report}\n\nHard hygiene codes (missing_allowlist, allowlist_violation, unchecked_acceptance_criterion, forbidden_placeholder_token) fail this job closed (#2683). Remaining soft hygiene findings stay advisory and are not branch-protection required.`;
             const issue_number = context.payload.pull_request.number;
 
             const { data: comments } = await github.rest.issues.listComments({
@@ -106,5 +106,6 @@ jobs:
               });
             }
 
-      - name: Advisory gate passed
-        run: echo "PR hygiene advisory check complete (non-blocking)."
+      - name: Hygiene gate result
+        if: success()
+        run: echo "PR hygiene complete (hard codes fail-closed; soft findings advisory)."

@@ -7,6 +7,7 @@ import {
   buildPrHygieneReport,
   extractMarkdownSection,
   findIssueReferences,
+  hardHygieneFailures,
   hasRequiredIssueLine,
   hasVerificationEvidence,
   parseAllowedFiles,
@@ -170,9 +171,10 @@ describe('PR hygiene audit foundation', () => {
     const artifact = buildPrHygieneArtifact(report);
 
     expect(artifact.gate).toBe('pr-hygiene');
-    expect(artifact.schemaVersion).toBe(1);
+    expect(artifact.schemaVersion).toBe(2);
     expect(artifact.advisory).toBe(true);
     expect(artifact.isClean).toBe(true);
+    expect(artifact.hardFailures).toEqual([]);
 
     const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pr-hygiene-'));
     const jsonPath = path.join(tempDir, 'result.json');
@@ -192,7 +194,17 @@ describe('PR hygiene audit foundation', () => {
     const bodyPath = path.join(tempDir, 'body.md');
     const changedPath = path.join(tempDir, 'changed.txt');
 
-    fs.writeFileSync(bodyPath, 'Closes #1131');
+    // Soft defects only: allowlist present so hard codes do not fire.
+    fs.writeFileSync(bodyPath, [
+      '- **Issue:** #1131',
+      '',
+      '## Scope',
+      'Allowed paths:',
+      '- scripts/ci/pr_hygiene_audit.mjs',
+      '',
+      '## Acceptance Criteria',
+      '- [x] done',
+    ].join('\n'));
     fs.writeFileSync(changedPath, 'scripts/ci/pr_hygiene_audit.mjs\n');
 
     expect(runCli({
@@ -206,5 +218,48 @@ describe('PR hygiene audit foundation', () => {
       PR_HYGIENE_CHANGED_FILES_FILE: changedPath,
       PR_HYGIENE_ENFORCE_FAILURE: 'true',
     })).toBe(1);
+  });
+
+  it('fail-closes hard hygiene codes even when soft enforcement is disabled', () => {
+    const tempDir = fs.mkdtempSync(path.join(os.tmpdir(), 'pr-hygiene-hard-'));
+    const bodyPath = path.join(tempDir, 'body.md');
+    const changedPath = path.join(tempDir, 'changed.txt');
+
+    fs.writeFileSync(bodyPath, [
+      '- **Issue:** #2683',
+      '',
+      '## Scope',
+      'Allowed paths:',
+      '- scripts/ci/pr_hygiene_audit.mjs',
+      '',
+      '## Acceptance Criteria',
+      '- [ ] unchecked item',
+      '',
+      'TODO: finish later',
+    ].join('\n'));
+    fs.writeFileSync(changedPath, 'scripts/ci/other.mjs\n');
+
+    const failures = hardHygieneFailures({
+      body: fs.readFileSync(bodyPath, 'utf8'),
+      changedFiles: ['scripts/ci/other.mjs'],
+    });
+    expect(failures.map((failure) => failure.code)).toEqual(expect.arrayContaining([
+      'allowlist_violation',
+      'unchecked_acceptance_criterion',
+      'forbidden_placeholder_token',
+    ]));
+
+    expect(runCli({
+      PR_HYGIENE_BODY_FILE: bodyPath,
+      PR_HYGIENE_CHANGED_FILES_FILE: changedPath,
+      PR_HYGIENE_ENFORCE_FAILURE: 'false',
+    })).toBe(1);
+  });
+
+  it('fail-closes missing allowlist before merge', () => {
+    expect(hardHygieneFailures({
+      body: '## Acceptance Criteria\n- [x] ok',
+      changedFiles: ['scripts/ci/pr_hygiene_audit.mjs'],
+    })).toContainEqual(expect.objectContaining({ code: 'missing_allowlist' }));
   });
 });

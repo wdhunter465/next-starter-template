@@ -5,12 +5,14 @@ on:
   workflow_run:
     workflows: ["PMO dashboard CI build"]
     types: [completed]
+    branches: [main]
   push:
     branches: [main]
     paths:
       - ".github/workflows/pmo-dashboard-ci-deploy.yml"
 
 permissions:
+  actions: read
   contents: read
   issues: read
   pages: write
@@ -18,7 +20,7 @@ permissions:
 
 concurrency:
   group: pmo-dashboard-pages
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 env:
   PMO_DASHBOARD_OUT_DIR: site/pmo-dashboard
@@ -26,14 +28,38 @@ env:
 jobs:
   deploy:
     name: Deploy PMO dashboard to GitHub Pages
-    if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') }}
+    if: ${{ (github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main') || github.event_name == 'push' || (github.event_name == 'workflow_run' && github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main') }}
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - name: Checkout workflow run head
+      - name: Verify workflow-run SHA matches current main tip
+        id: tip_guard
         if: ${{ github.event_name == 'workflow_run' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const runSha = context.payload.workflow_run.head_sha;
+            const { data } = await github.rest.repos.getBranch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              branch: 'main'
+            });
+            const tip = data.commit.sha;
+            core.info(`workflow_run head_sha=${runSha}`);
+            core.info(`main tip=${tip}`);
+            if (runSha !== tip) {
+              core.warning(
+                `Skipping deploy: workflow_run SHA ${runSha} is not current main tip ${tip} (stale or raced build).`
+              );
+              core.setOutput('deploy', 'false');
+              return;
+            }
+            core.setOutput('deploy', 'true');
+
+      - name: Checkout workflow run head
+        if: ${{ github.event_name == 'workflow_run' && steps.tip_guard.outputs.deploy == 'true' }}
         uses: actions/checkout@v4
         with:
           ref: ${{ github.event.workflow_run.head_sha }}
@@ -42,21 +68,34 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' }}
         uses: actions/checkout@v4
 
+      - name: Download validated dashboard artifact from build
+        if: ${{ github.event_name == 'workflow_run' && steps.tip_guard.outputs.deploy == 'true' }}
+        uses: actions/download-artifact@v4
+        with:
+          name: pmo-dashboard
+          path: ${{ env.PMO_DASHBOARD_OUT_DIR }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
+
       - name: Setup Node.js
+        if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' }}
         uses: actions/setup-node@v4
         with:
           node-version: 22
 
-      - name: Generate dashboard for deploy
+      - name: Generate dashboard (manual / deploy-workflow push fallback)
+        if: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'push' }}
         env:
-          GH_TOKEN: ${{ github.token }}
-        run: node scripts/pmo-dashboard/build-dashboard.mjs
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: node scripts/pmo-dashboard/run-dashboard-build.mjs
 
-      - name: Validate deploy artifact
+      - name: Validate dashboard artifact
+        if: ${{ github.event_name != 'workflow_run' || steps.tip_guard.outputs.deploy == 'true' }}
         run: node scripts/pmo-dashboard/validate-dashboard.mjs "$PMO_DASHBOARD_OUT_DIR"
 
       - name: Check GitHub Pages deployment readiness
         id: pages
+        if: ${{ github.event_name != 'workflow_run' || steps.tip_guard.outputs.deploy == 'true' }}
         uses: actions/github-script@v7
         with:
           script: |
@@ -119,13 +158,27 @@ jobs:
           echo "Published site root: ${{ steps.deployment.outputs.page_url }}" >> "$GITHUB_STEP_SUMMARY"
           echo "Published dashboard URL: ${{ steps.deployment.outputs.page_url }}pmo-dashboard/" >> "$GITHUB_STEP_SUMMARY"
           echo "Published dashboard JSON: ${{ steps.deployment.outputs.page_url }}pmo-dashboard/dashboard-data.json" >> "$GITHUB_STEP_SUMMARY"
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            echo "Publish mode: artifact-from-build (run ${{ github.event.workflow_run.id }})" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "Publish mode: manual-or-push regenerate via run-dashboard-build.mjs" >> "$GITHUB_STEP_SUMMARY"
+          fi
 
-      - name: Write Pages setup required summary
-        if: ${{ steps.pages.outputs.enabled != 'true' }}
+      - name: Write stale workflow-run skip summary
+        if: ${{ github.event_name == 'workflow_run' && steps.tip_guard.outputs.deploy == 'false' }}
         run: |
           echo "## PMO dashboard CI deploy" >> "$GITHUB_STEP_SUMMARY"
-          echo "Dashboard generation and validation passed." >> "$GITHUB_STEP_SUMMARY"
+          echo "Deployment skipped: workflow_run head SHA is not the current tip of \`main\`." >> "$GITHUB_STEP_SUMMARY"
+          echo "This prevents publishing a stale or raced build artifact to GitHub Pages." >> "$GITHUB_STEP_SUMMARY"
+          echo "workflow_run head_sha: ${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "workflow_run id: ${{ github.event.workflow_run.id }}" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Write Pages setup required summary
+        if: ${{ steps.pages.outputs.enabled != 'true' && (github.event_name != 'workflow_run' || steps.tip_guard.outputs.deploy == 'true') }}
+        run: |
+          echo "## PMO dashboard CI deploy" >> "$GITHUB_STEP_SUMMARY"
+          echo "Dashboard generation/validation passed." >> "$GITHUB_STEP_SUMMARY"
           echo "Deployment was not attempted because GitHub Pages is not ready for GitHub Actions deployment." >> "$GITHUB_STEP_SUMMARY"
           echo "Preflight reason: ${{ steps.pages.outputs.reason }}" >> "$GITHUB_STEP_SUMMARY"
-          echo "Operator action: Repository Settings > Pages > Source: GitHub Actions, then manually dispatch this workflow." >> "$GITHUB_STEP_SUMMARY"
-          echo "::warning title=GitHub Pages setup required::Enable GitHub Pages with GitHub Actions as the source, then rerun PMO dashboard CI deploy."
+          echo "Operator action: Repository Settings > Pages > Source: GitHub Actions, then manually dispatch PMO dashboard CI build (preferred) or deploy." >> "$GITHUB_STEP_SUMMARY"
+          echo "::warning title=GitHub Pages setup required::Enable GitHub Pages with GitHub Actions as the source, then rerun PMO dashboard CI build."

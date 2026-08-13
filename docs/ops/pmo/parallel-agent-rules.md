@@ -171,7 +171,7 @@ Do not create:
 - child issues from this Program 1 planning PR;
 - umbrella issues duplicating `#1411`;
 - Program 2 implementation issues from Program 1 planning work;
-- tracker issues to compensate for PR-first work.
+- tracker issues to compensate for missing pre-existing governing Issues (issue-first hard gate).
 
 New orchestrated work enters through production-ready implementation plans,
 ChatGPT/Bill walkthrough, and the approved issue factory path.

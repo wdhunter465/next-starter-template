@@ -1,19 +1,11 @@
 name: Cursor Bridge Watch
 
-# Periodic / path-triggered Bridge health + repository-to-host drift classification (#2814).
-# Delivery-only wake workflow remains separate and does not own rebuild logic.
+# RETIRED as a scheduled execution dependency under #3212 Phase 4 (2026-08-09).
+# Primary Cursor health/wake is lgfc-cursor-runner-health + lgfc-cursor-dispatch.
+# Approved diagnostic fallback: manual workflow_dispatch only (no cron / no push).
 
 on:
-  schedule:
-    - cron: '*/30 * * * *'
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths:
-      - 'config/cursor-bridge/**'
-      - 'scripts/cursor-bridge/**'
-      - '.github/workflows/cursor-bridge-watch.yml'
-      - '.github/workflows/cursor-bridge-build.yml'
 
 permissions:
   contents: read
@@ -26,7 +18,9 @@ concurrency:
 
 jobs:
   watch:
-    if: github.repository == 'wdhunter645/next-starter-template'
+    if: >-
+      github.repository == 'wdhunter465/next-starter-template' &&
+      github.event_name == 'workflow_dispatch'
     runs-on: [self-hosted, linux, x64, lgfc-repo-runner]
     timeout-minutes: 10
     steps:

@@ -2,274 +2,64 @@
 Doc Type: Operations
 Audience: Human + AI
 Authority Level: Operational Authority
-Owns: PMO program issue registry, current program issue assignments, launch-state control, child-project mapping, and authoritative execution chain for LGFC orchestrated work
-Does Not Own: PMO July 2026 top-level policy, implementation plan task definitions, workflow code, runtime behavior, product design, or unauthorized GitHub issue changes
-Canonical Reference: /docs/ops/pmo/PMO-JULY-2026-OPERATING-MODEL.md
-Related issues: #1411, #1379, #1255, #1259, #1500, #1678, #1685, #1696, #1700, #1713, #1719, #1720, #1721, #1722, #1723, #1724, #1725, #1726, #1727, #1963, #2039, #2040, #2041, #2042, #2043, #2044, #2045, #2046, #2047, #2048, #2049, #2050, #2051, #2052, #2053, #2054, #2055, #2056, #2100
-Last Reviewed: 2026-07-16
+Owns: Verified PMO program status, active implementation assignment, launch-state control, and terminal program disposition
+Does Not Own: Product priority decisions, task implementation detail, Production approval, or undocumented inferred status
+Canonical Reference: /docs/governance/PMO-PORTFOLIO.md
+Related Issues: #1255, #1719, #2615, #2678, #2779, #2784
+Last Reviewed: 2026-08-04
 ---
 
-# PMO Program Issue Registry
+# PMO Program Registry
 
-## Purpose
+## Governing rules
 
-This registry is the PMO program index. `/docs/ops/pmo/PMO-JULY-2026-OPERATING-MODEL.md` controls current PMO authority and this registry routes readers to PMO July 2026.
+GitHub Issues are the executable portfolio authority. This registry records only status verified against live Issues and merged repository evidence.
 
-If this registry conflicts with the active PMO operating model, the operating model controls.
+Documentation completeness and a final AS-BUILT record are mandatory project closeout gates under `docs/governance/PROJECT-DOCUMENTATION-AND-AS-BUILT.md`. A project may not be listed as complete merely because code merged, child counts reached 100%, or the parent Issue was closed.
 
-## Scope
+## Current implementation assignments
 
-This registry records current program issue assignments, launch-state control, child-project mapping, and the PMO execution chain. It does not own PMO July 2026 top-level policy, task-level implementation detail, workflow code, runtime behavior, product design, or unauthorized GitHub issue changes.
-
-## Current known truth
-
-- Program #1255 is the active execution program. Cursor owns completion of its remaining work.
-- Child project #1259 is open; Phase 4 Tasks 001–009 are complete on `main`; issue remains open pending Program #1255 terminal closeout authorization.
-- Program #1255 closeout readiness packet published at `docs/ops/reports/program-1255-closeout-readiness.md`; operator hygiene for `#1123` and `#1258` **complete** (2026-06-17).
-- Priority #1 Website Completion / Fan Club Product Buildout (#1685) is **closed complete**; child tasks #1686–#1694 are complete and structural baseline closeout evidence is on `main`.
-- Website Public Launch / Relaunch Readiness (#2039) is **closed complete** for repository work; child task issues #2041 through #2048 are complete, and public launch remains blocked only by operator promotion/smoke-test exceptions.
-- Website Automatic Content Publication Capability has program issue #2040 with child task issues #2049 through #2056. It is the publication authority for work excluded from #2039 and remains blocked until explicit Bill/ChatGPT authorization.
-- Priority #2 Fundraiser / Charity Campaign Operations Buildout has program issue #1700 with child task issues #1701 through #1708. Task 001 assignment guidance is posted on #1701. The program remains queued behind Program #1255/#1259 and parked Priority #1 unless Bill/ChatGPT explicitly reprioritize.
-- Priority #3 PMO Governance / Workflow Automation Completion has program issue #1719 with child task issues #1720 through #1727. **Construction complete on component branch** (Tasks #1720–#1727 dispositioned; #1725 previously complete), but the resulting Promotion Candidate went stale against current `main` before Production review. **Replacement candidate requalification in progress under #2775** (2026-08-03). Awaiting Bill/ChatGPT acceptance and Bill/ChatGPT-approved promotion to `main`.
-- issue #1500 (CI Post-Merge Closeout Reliability) is **closed complete** and remains reconciliation evidence for Priority #3. Task #1725 reconciliation report: `docs/ops/reports/program-1500-queue-wave-reconciliation.md`.
-- issue #1963 (CI Post-Merge Closeout Automation Hardening) is **closed complete**; implementation queue `docs/ops/trackers/PROGRAM-POST-MERGE-CLOSEOUT-AUTOMATION-IMPLEMENTATION-QUEUE.md`.
-- issue #1411 is completed — a planning/control artifact, not an open blocked program. Issues #1417–#1424 are stale historical evidence only (do not mutate).
-- GitHub issue titles use `Program: <name>`. Documentation references use `Program #<issue-number> — <name>`.
-
-## Intended final state
-
-- One authoritative row per active, staged, blocked, completed, or historical program issue with non-contradictory status language.
-- Child projects under each program are clearly subordinate to their umbrella program issue.
-- Priority #1, Website Public Launch / Relaunch Readiness, Website Automatic Content Publication Capability, Priority #2, and Priority #3 are ready for launch review only when Bill/ChatGPT explicitly authorize execution from their master program issue and first task issue.
-
-Program issue numbers identify programs going forward. Future programs should use `Program #<issue-number> — <name>` in documentation. GitHub issue titles use `Program: <name>` when possible. No future Program 3 / Program 4 / Program 5 labels should be introduced as PMO operating identifiers.
-
-## Required First Statement for Planning Programs
-
-Every program planning package must begin with a launch-state control statement.
-
-Required language:
-
-> This program is BLOCKED from execution until ChatGPT/Bill explicitly launch it. Planning, review, and documentation discussion may continue, but Cursor may not execute implementation work from this program until Bill/ChatGPT explicitly launch it.
-
-Required implications:
-
-- A planning issue does not launch a program.
-- A planning PR does not launch a program.
-- A ready-for-review planning PR does not launch a program.
-- A merged planning PR does not automatically launch a program.
-- Launch requires an explicit ChatGPT/Bill launch comment or source issue update.
-- Cursor must treat pre-launch program issues as planning/reference only.
-- Child implementation issues must not be created or activated until launch approval.
-
-## PMO Execution Chain
-
-The authoritative chain is defined in `/docs/ops/pmo/PMO-JULY-2026-OPERATING-MODEL.md` ([PMO hierarchy](PMO-JULY-2026-OPERATING-MODEL.md#pmo-hierarchy)):
-
-```text
-PMO meeting issue → PMO Backlog review/update → program of work → component project → master issue → child implementation issues → PR(s) → ChatGPT review / acceptance → production Ops monitoring → Ops exception issues if needed → closeout
-```
-
-
-## Current active program issues
-
-| Program issue | Name | Historical label | Status | Notes |
+| Project | Status | Implementer | Current task | PMO owner |
 | --- | --- | --- | --- | --- |
-| #1255 | Website Implementation and Content Operations | Program 2 | Active | Cursor owns completion of remaining work |
-| #1719 | PMO Governance / Workflow Automation Completion | none | Requalification in progress (#2775) | Component docs complete #1720–#1727; prior candidate stale; #2775 preparing replacement candidate; promotion to `main` pending Bill/ChatGPT + `PRODUCTION GO` |
+| #2615 | Active | Cursor | #2622 | ChatGPT / Atlas |
+| #2784 | Active | Claude | #2918 | ChatGPT / Atlas |
 
-### Program #1255 child projects
+Cursor and Claude are implementers. ChatGPT / Atlas is PMO / Engineering. Bill is Product and Production Authority.
 
-| Child project | Status | Notes |
+Post-merge exceptions return immediately to the implementer of the originating PR. PMO defines, routes, independently reviews, verifies, and closes the remediation.
+
+## Recently completed or closeout-remediation programs
+
+| Program / Project | Repository disposition | Documentation disposition |
 | --- | --- | --- |
-| #1256 Content Strategy / Editorial Inventory | **Closed complete** | Tasks 001–009 merged and verified |
-| #1258 Website Operations Admin | **Closed complete** | Phase 4 Tasks 001–013; terminal PR `#1652` |
-| #1259 Website QA / Production Validation | **Active — Phase 4 complete** | Tasks 001–009 complete; keep issue open for `#1255` closeout |
+| #1719 — PMO Governance / Workflow Automation Completion | Candidate `a68e1390934e7617b7975edc2627a03772fd8e95` promoted by PR #3040; merge `d6418d769190d56754f22d2d0d4cb46ef1ce8d49` | `CLOSEOUT BLOCKED — DOCUMENTATION INCOMPLETE` until the #1719 remediation package, AS-BUILT, PMO/GitHub reconciliation, and independent verification are merged and complete |
+| #2678 | Implementation reported complete | Closure remains subject to documentation and AS-BUILT verification; closed Issue state alone is insufficient |
+| #2779 | Implementation reported complete | Closure remains subject to documentation and AS-BUILT verification; closed Issue state alone is insufficient |
 
-## Proposed / future program issues
+## #1719 authoritative records
 
-Future programs are created as GitHub program issues when ChatGPT/Bill approve a new body of work. Each receives a program issue number as its durable identifier. There is no fixed program count or lane cap.
+- AS-BUILT: `docs/ops/as-built/pmo-governance-workflow-automation-1719.md`
+- final closeout remediation: `docs/ops/reports/pmo-governance-workflow-automation-final-closeout-1719.md`
+- Production candidate qualification: `docs/ops/reports/pmo-governance-workflow-automation-promotion-candidate-qualification-2775.md`
+- Production PR: #3040
+- Production merge: `d6418d769190d56754f22d2d0d4cb46ef1ce8d49`
 
-| Candidate | Backlog rank | Status | Launch rule | Planning package | Implementation plan |
-| --- | ---: | --- | --- | --- | --- |
-| Website Completion / Fan Club Product Buildout | 1 | Structural baseline complete | Ready for Bill/ChatGPT launch review; closeout evidence in `docs/ops/reports/website-completion-program-1685-launch-readiness.md` | `docs/ops/pmo/website-completion-fan-club-product-buildout-readiness.md` | `docs/ops/implementation-plans/website-completion-fan-club-product-buildout.md` |
-| Website Public Launch / Relaunch Readiness | 1 successor | Closed complete | Repo tasks complete; public launch remains operator-controlled by launch checklist, smoke-test, production promotion, and evidence requirements | `docs/ops/pmo/website-public-launch-relaunch-readiness.md` | `docs/ops/implementation-plans/website-public-launch-relaunch-readiness.md` |
-| Website Automatic Content Publication Capability | 1 publication | Planning-ready publication authority | Blocked until #1738 manual workflow evidence and ChatGPT/Bill explicitly authorize Cursor to begin #2049 | `docs/ops/pmo/website-automatic-content-publication-capability.md` | `docs/ops/implementation-plans/website-automatic-content-publication-capability.md` |
-| Fundraiser / Charity Campaign Operations Buildout | 2 | Launch-control ready; queued | Blocked until ChatGPT/Bill explicitly authorize Cursor to begin #1701 | `docs/ops/pmo/fundraiser-charity-campaign-operations-buildout-readiness.md` | `docs/ops/implementation-plans/fundraiser-charity-campaign-operations-buildout.md` |
-| PMO Governance / Workflow Automation Completion | 3 | Requalification in progress (#2775) | Component docs complete for #1720–#1727; prior candidate went stale before Production review; #2775 prepares replacement candidate; Bill/ChatGPT acceptance + promotion to `main` pending after `PRODUCTION GO` | `docs/ops/pmo/pmo-governance-workflow-automation-completion-readiness.md` | `docs/ops/implementation-plans/pmo-governance-workflow-automation-completion.md` |
+Prior language describing #2775 as active requalification or #1719 as awaiting Production promotion is superseded.
 
-### Priority #1 candidate child projects
+## Closeout requirements
 
-| Child project | PMO decision | Implementation-plan coverage | issue |
-| --- | --- | --- | --- |
-| Fan Club page design | Included in Priority #1 | Tasks 001, 003, 007, 009 | #1686, #1688, #1692, #1694 |
-| Website backend services | Included in Priority #1; reconcile before building | Tasks 001, 002, 005, 006 | #1686, #1687, #1690, #1691 |
-| Content management strategy | Included in Priority #1 | Tasks 004, 005, 008, 009 | #1689, #1690, #1693, #1694 |
-| Content collection strategy | Subordinated to content management as intake/source-credit workflow | Tasks 004, 005, 008 | #1689, #1690, #1693 |
-| Website design review / as-built versus LGFC vision | First guardrail task | Tasks 001 and 009 | #1686, #1694 |
+Before moving any project into the completed section, PMO must verify:
 
-### Website Public Launch / Relaunch Readiness child tasks
+- all implementation and promotion work is merged;
+- every child task has a terminal disposition;
+- the named AS-BUILT document matches the final implementation;
+- all DIATAXIS, governance, PMO, queue, dashboard, dependency, operations, role, and GitHub surfaces are current;
+- final post-merge verification and rollback disposition are recorded;
+- repository search exposes no stale current-authority statement;
+- final closeout evidence is merged.
 
-| Child task | PMO decision | Implementation-plan coverage | issue |
-| --- | --- | --- | --- |
-| Launch gap inventory and public page readiness review | Complete | Task 001 | #2041 |
-| Public content polish and launch copy reconciliation | Complete | Task 002 | #2042 |
-| Admin Club Staging page at `/admin/clubstaging` | Complete | Task 003 | #2043 |
-| Media/social reliability and fallback implementation | Complete | Task 004 | #2044 |
-| Donation/fundraiser route readiness and campaign boundary review | Complete | Task 005 | #2045 |
-| SEO analytics sitemap and social-card readiness | Complete | Task 006 | #2046 |
-| Production launch checklist smoke tests rollback and evidence model | Complete | Task 007 | #2047 |
-| Program validation and public-launch handoff report | Complete terminal closeout | Task 008 | #2048 |
+Failure of any requirement means `CLOSEOUT BLOCKED — DOCUMENTATION INCOMPLETE`.
 
-### Website Automatic Content Publication Capability child tasks
+## Historical authority
 
-| Child task | PMO decision | Implementation-plan coverage | issue |
-| --- | --- | --- | --- |
-| Manual workflow evidence review and publication candidate inventory | Required first task after #1738 handoff evidence | Task 001 | #2049 |
-| Publication state model and approval authority design | Included in #2040 | Task 002 | #2050 |
-| Admin staged-content review and rotation control surface design | Included in #2040 | Task 003 | #2051 |
-| Scheduled publication and controlled rotation implementation plan | Included in #2040 | Task 004 | #2052 |
-| Audit trail rollback unpublish and evidence retention design | Included in #2040 | Task 005 | #2053 |
-| Publication safety CI ops checks and fail-closed rules | Included in #2040 | Task 006 | #2054 |
-| Implementation of approved publication support slices | Included in #2040 | Task 007 | #2055 |
-| Program validation and operator handoff report | Terminal closeout | Task 008 | #2056 |
-
-### Priority #2 candidate child projects
-
-| Child project | PMO decision | Implementation-plan coverage | issue |
-| --- | --- | --- | --- |
-| Fundraiser operations playbook | Included in Priority #2 | Tasks 001, 007, 008 | #1701 |
-| Givebutter integration model | Included in Priority #2; external/vendor configuration remains out of scope | Tasks 002, 004, 006, 007 | #1702 |
-| Leaderboard / winner system | Included in Priority #2; deterministic and privacy-safe | Tasks 003, 006, 007 | #1703 |
-| Homepage spotlight / campaign surface | Included in Priority #2; must fail closed | Tasks 004, 006, 007 | #1704 |
-| Sponsor / donor recognition | Included in Priority #2; merges rank 15 duplicate/version scope for fundraiser context | Tasks 005, 006, 007 | #1705 |
-| Website-side campaign configuration and display implementation | Included in Priority #2 after Tasks 002–005 | Task 006 | #1706 |
-| Testing package | Required before launch | Tasks 007 and 008 | #1707 |
-| Program closeout and operator handoff | Terminal closeout | Task 008 | #1708 |
-
-### Priority #3 candidate child projects
-
-| Child project | PMO decision | Implementation-plan coverage | issue |
-| --- | --- | --- | --- |
-| PMO July 2026 authority and stale issue reconciliation | Included in Priority #3 | Task 001 | #1720 |
-| Workflow automation design migration and gap inventory | Included in Priority #3 | Task 002 | #1721 |
-| Cursor continuation and queue contract hardening | Included in Priority #3 | Task 003 | #1722 |
-| PR readiness and merge authority control | Included in Priority #3 | Task 004 | #1723 |
-| Issue mutation and closeout permission policy | Included in Priority #3 | Task 005 | #1724 |
-| Queue/wave model and Program #1500 closeout reconciliation | Included in Priority #3; reconciliation report published | Task 006 | #1725 |
-| Workflow/CI implementation candidate scoping | Included in Priority #3 | Task 007 | #1726 |
-| Program closeout and launch-control package | Terminal closeout | Task 008 | #1727 |
-
-## Staged / blocked program issues
-
-| Program issue | Name | Historical label | Status | Launch rule |
-| --- | --- | --- | --- | --- |
-| #1411 | PMO Automation and Agent Workflow Control | Program 1 | Completed planning artifact (issue closed, status:complete) | issue #1411 is not an open blocked program. New execution requires a current open source issue. PMO automation execution remains blocked until ChatGPT/Bill explicitly launch a new cycle. |
-| #1685 | Website Completion / Fan Club Product Buildout | none | Closed complete | Child issues #1686–#1694 closed; closeout evidence at `docs/ops/reports/website-completion-program-closeout.md`. |
-| #2039 | Website Public Launch / Relaunch Readiness | none | Closed complete | Child issues #2041–#2048 complete; public launch remains operator-controlled by checklist, smoke-test, production promotion, and evidence requirements. |
-| #2040 | Website Automatic Content Publication Capability | none | Planning-ready publication authority | Child issues #2049–#2056 exist; execution waits for manual workflow evidence and explicit queue authorization. |
-| #1700 | Fundraiser / Charity Campaign Operations Buildout | none | Launch-control ready / queued | Child issues #1701–#1708 exist; Task 001 assignment guidance is posted on #1701; execution waits for explicit queue authorization. |
-
-## Historical program evidence
-
-| Program issue | Name | Status | Notes |
-| --- | --- | --- | --- |
-| #1335 | Phase 1 Wrap-Up | Historical | Prior Program 1 cycle; closed historical evidence only. Not a parent issue for Program #1411. |
-| #1379 | Ideas / future-projects source | Historical | Superseded by PMO Backlog documentation (`/docs/ops/pmo/pmo-backlog.md`). No standing PMO Backlog issue is required. |
-| #1500 | CI Post-Merge Closeout Reliability | Closed complete | Completed implementation cycle. Future CI maintenance requires a new source issue. |
-| #1963 | CI Post-Merge Closeout Automation Hardening | Closed complete | Serial Tasks #1964–#1971; terminal PR #2067; queue tracker `docs/ops/trackers/PROGRAM-POST-MERGE-CLOSEOUT-AUTOMATION-IMPLEMENTATION-QUEUE.md`. |
-| #1696 | Fundraiser / Charity Campaign Operations Buildout documentation package | Closed complete | Planning documentation source issue completed by #1697. |
-| #1713 | PMO Governance / Workflow Automation Completion documentation package | Closed complete | Planning documentation source issue completed by #1714. |
-
-Completed program cycles remain audit evidence and may be cited for historical context. They do not automatically authorize new child issues, queue movement, or parent/child relationships for later cycles.
-
-## PMO Backlog
-
-| Field | Value |
-| --- | --- |
-| Path | `docs/ops/pmo/pmo-backlog.md` |
-| Role | Ideas, project drafts, implementation-ready projects, and launch-control-ready program groups |
-| Is a program issue | No |
-| Executable by itself | No |
-| Review cadence | Reviewed as a primary agenda item during PMO meetings |
-| Current top candidate | Website Completion / Fan Club Product Buildout (#1685) structural baseline complete; Website Public Launch / Relaunch Readiness (#2039) repo tasks complete; Website Automatic Content Publication Capability (#2040) remains blocked until explicit authorization |
-
-## Program #1411 — PMO Automation and Agent Workflow Control
-
-| Field | Value |
-| --- | --- |
-| Status | **Completed planning artifact** (issue closed, `status:complete`) — not executable until a current open source issue exists and ChatGPT/Bill explicitly launch the next cycle |
-| Source issue | `#1411` |
-| Implementation plan | `docs/ops/implementation-plans/program-1-pmo-automation-agent-workflow-control.md` |
-| PMO July 2026 authority | `docs/ops/pmo/PMO-JULY-2026-OPERATING-MODEL.md` |
-| Workflow Automation authority | `docs/ops/pmo/workflow-automation.md` |
-| Project slug | `program-1-pmo-automation-agent-workflow-control` |
-
-### Program #1411 project areas
-
-**Inventory authority:** These areas are no longer an active or automatically queued program. They live as governance/ops backlog inventory in `/docs/ops/pmo/pmo-backlog.md` and are now grouped under Priority #3 program #1719. `#1411` remains closed; execution requires explicit ChatGPT/Bill launch authorization through #1719 and its child task issues.
-
-| Area | Registry decision |
-| --- | --- |
-| PMO July 2026 authority | Included in Priority #3 #1720 |
-| Workflow Automation design migration | Included in Priority #3 #1721 |
-| Cursor continuation and queue contract | Included in Priority #3 #1722 |
-| PR readiness and batch review control | Included in Priority #3 #1723 |
-| Merge and issue change policy | Included in Priority #3 #1724 |
-| Queue/wave model and labels | Included in Priority #3 #1725 — reconciled; see `docs/ops/reports/program-1500-queue-wave-reconciliation.md` |
-| Post-merge closeout evidence stabilization | Included in Priority #3 #1725 — baseline satisfied by closed #1500 and #1963; gaps for #1726+ only |
-| PMO Backlog promotion and Program #1411 launch gate | Included in Priority #3 #1720 and #1727 |
-
-### Out of scope for Program #1411 planning
-
-- Program #1255 website/runtime implementation
-- Workflow YAML changes not authorized by a current Priority #3 task issue
-- D1 migrations
-- Production configuration or secrets
-- Unauthorized issue state changes
-- Creating additional implementation child issues before ChatGPT/Bill launch approval
-
-## Program #1255 — Website Implementation and Content Operations
-
-| Field | Value |
-| --- | --- |
-| Status | **Closeout inspection pending** — Phase 4 complete; awaits ChatGPT/Bill terminal authorization |
-| Historical label | Program 2 |
-| Source issue | `#1255` |
-| Primary plan | `docs/how-to/website/website-implementation-and-content-operations-plan.md` |
-| Ops admin plan | `docs/ops/implementation-plans/website-operations-admin.md` |
-| QA plan | `docs/ops/implementation-plans/website-qa-production-validation.md` |
-| Closeout readiness | `docs/ops/reports/program-1255-closeout-readiness.md` |
-| Priority | ChatGPT/Bill final inspection → terminal closeout authorization → close `#1259` then `#1255` |
-| Parallel program note | `#1500` closed complete — ran in parallel with `#1255`; not a `#1259` task dependency |
-
-Program #1255 remains controlled by its own active source issues and Cursor execution path. Priority #1, Priority #2, and Priority #3 planning documentation must not change Program #1255 issue state, labels, or active assignment without explicit authorization.
-
-## Related References
-
-- PMO July 2026 Operating Model: `/docs/ops/pmo/PMO-JULY-2026-OPERATING-MODEL.md`
-- PMO July 2026 Dashboard Specification: `/docs/ops/pmo/PMO-JULY-2026-DASHBOARD-SPECIFICATION.md`
-- PMO v3 operating model (historical): `/docs/ops/pmo/PMO-V3-OPERATING-MODEL.md`
-- PMO Backlog: `/docs/ops/pmo/pmo-backlog.md`
-- Priority #1 readiness: `/docs/ops/pmo/website-completion-fan-club-product-buildout-readiness.md`
-- Priority #1 implementation plan: `/docs/ops/implementation-plans/website-completion-fan-club-product-buildout.md`
-- Website Public Launch / Relaunch Readiness package: `/docs/ops/pmo/website-public-launch-relaunch-readiness.md`
-- Website Public Launch / Relaunch Readiness plan: `/docs/ops/implementation-plans/website-public-launch-relaunch-readiness.md`
-- Website Public Launch / Relaunch Readiness program: `#2039`
-- Website Public Launch / Relaunch Readiness task issues: `#2041` through `#2048`
-- Website Automatic Content Publication Capability package: `/docs/ops/pmo/website-automatic-content-publication-capability.md`
-- Website Automatic Content Publication Capability plan: `/docs/ops/implementation-plans/website-automatic-content-publication-capability.md`
-- Website Automatic Content Publication Capability program: `#2040`
-- Website Automatic Content Publication Capability task issues: `#2049` through `#2056`
-- Priority #2 readiness: `/docs/ops/pmo/fundraiser-charity-campaign-operations-buildout-readiness.md`
-- Priority #2 implementation plan: `/docs/ops/implementation-plans/fundraiser-charity-campaign-operations-buildout.md`
-- Priority #2 program: `#1700`
-- Priority #2 task issues: `#1701` through `#1708`
-- Priority #3 readiness: `/docs/ops/pmo/pmo-governance-workflow-automation-completion-readiness.md`
-- Priority #3 implementation plan: `/docs/ops/implementation-plans/pmo-governance-workflow-automation-completion.md`
-- Priority #3 program: `#1719`
-- Priority #3 task issues: `#1720` through `#1727`
-- Program #1963 closeout automation queue: `docs/ops/trackers/PROGRAM-POST-MERGE-CLOSEOUT-AUTOMATION-IMPLEMENTATION-QUEUE.md`
-- Cursor execution contract: `/docs/reference/pmo/lgfc-cursor-execution-contract.md`
-- PMO critical path: `/docs/ops/pmo/critical-path.md`
-- Workflow Automation authority: `/docs/ops/pmo/workflow-automation.md`
+Historical program detail remains available in Git history and project-specific reports. Historical documents must not be used as current status authority when this registry, the live Issue, or a newer AS-BUILT record supersedes them.

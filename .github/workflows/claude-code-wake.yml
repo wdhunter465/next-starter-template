@@ -29,7 +29,7 @@ concurrency:
 jobs:
   deliver:
     if: >-
-      github.repository == 'wdhunter645/next-starter-template' &&
+      github.repository == 'wdhunter465/next-starter-template' &&
       (
         (
           github.event_name == 'pull_request' &&
@@ -76,7 +76,7 @@ jobs:
           NUMBER: ${{ steps.meta.outputs.number }}
         run: |
           set -euo pipefail
-          EXISTING=$(gh api "repos/wdhunter645/next-starter-template/issues/${NUMBER}/comments" \
+          EXISTING=$(gh api "repos/wdhunter465/next-starter-template/issues/${NUMBER}/comments" \
             --paginate --jq '[.[] | select(.body | contains("CLAUDE CODE WAKE: delivered"))] | length')
           echo "already_alerted=$EXISTING" >> "$GITHUB_OUTPUT"
 
@@ -91,4 +91,4 @@ jobs:
           set -euo pipefail
           DELIVERY_ID="claude-wake-${RUN_ID}-${NUMBER}"
           BODY=$(printf '@claude\n\nCLAUDE CODE WAKE: delivered\nDelivery id: %s\nTrigger: %s\nRole: notification only — this comment does not grant authority, approval, merge, or execution scope. Read the source Issue/PR for the applicable role and decision before acting.\n' "$DELIVERY_ID" "$EVENT_NAME")
-          gh api "repos/wdhunter645/next-starter-template/issues/${NUMBER}/comments" -f body="$BODY"
+          gh api "repos/wdhunter465/next-starter-template/issues/${NUMBER}/comments" -f body="$BODY"

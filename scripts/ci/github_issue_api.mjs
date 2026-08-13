@@ -1,3 +1,16 @@
+import {
+	GitHubInfrastructureError,
+	githubApiFetch,
+	sleep,
+} from './github_api_retry.mjs';
+
+export {
+	GitHubInfrastructureError,
+	computeBackoffDelayMs,
+	isGitHubRateLimitResponse,
+	sleep,
+} from './github_api_retry.mjs';
+
 export class GitHubRateLimitError extends Error {
 	constructor(method, path, status, body = '') {
 		super(`${method} ${path} failed: ${status} ${body}`.trim());
@@ -6,26 +19,13 @@ export class GitHubRateLimitError extends Error {
 		this.path = path;
 		this.status = status;
 		this.body = body;
+		this.classification = 'rate-limit';
 	}
 }
 
-export function isGitHubRateLimitResponse(status, body = '') {
-	const text = String(body || '');
-	if (status === 429) return true;
-	if (status === 403 && /rate limit|secondary rate limit/i.test(text)) return true;
-	return false;
-}
-
 export function isGitHubRateLimitError(error) {
-	return error instanceof GitHubRateLimitError;
-}
-
-export function computeBackoffDelayMs(attempt, initialBackoffMs = 1000, maxBackoffMs = 30000) {
-	return Math.min(initialBackoffMs * 2 ** Math.max(attempt - 1, 0), maxBackoffMs);
-}
-
-export async function sleep(ms) {
-	return new Promise((resolve) => setTimeout(resolve, ms));
+	return error instanceof GitHubRateLimitError
+		|| (error instanceof GitHubInfrastructureError && error.classification === 'rate-limit');
 }
 
 export async function githubRepoRequest({
@@ -37,13 +37,13 @@ export async function githubRepoRequest({
 	userAgent = 'lgfc-ci-github-issue-api',
 	maxRetries = 3,
 	initialBackoffMs = 1000,
+	maxBackoffMs = 30000,
 	sleepFn = sleep,
 	fetchFn = fetch,
 } = {}) {
-	let attempt = 0;
-
-	while (true) {
-		const response = await fetchFn(`https://api.github.com/repos/${repository}${path}`, {
+	try {
+		const { response, bodyText } = await githubApiFetch({
+			url: `https://api.github.com/repos/${repository}${path}`,
 			method,
 			headers: {
 				Authorization: `Bearer ${token}`,
@@ -52,24 +52,24 @@ export async function githubRepoRequest({
 				'User-Agent': userAgent,
 				...(body ? { 'Content-Type': 'application/json' } : {}),
 			},
-			...(body ? { body: JSON.stringify(body) } : {}),
+			body: body ? JSON.stringify(body) : undefined,
+			maxRetries,
+			initialBackoffMs,
+			maxBackoffMs,
+			sleepFn,
+			fetchFn,
+			pathLabel: path,
 		});
 
 		if (response.ok) {
 			return response.status === 204 ? null : response.json();
 		}
 
-		const responseText = await response.text();
-		if (isGitHubRateLimitResponse(response.status, responseText) && attempt < maxRetries) {
-			attempt += 1;
-			await sleepFn(computeBackoffDelayMs(attempt, initialBackoffMs));
-			continue;
+		throw new Error(`${method} ${path} failed: ${response.status} ${bodyText || ''}`.trim());
+	} catch (error) {
+		if (error instanceof GitHubInfrastructureError && error.classification === 'rate-limit') {
+			throw new GitHubRateLimitError(method, path, error.status, error.body);
 		}
-
-		if (isGitHubRateLimitResponse(response.status, responseText)) {
-			throw new GitHubRateLimitError(method, path, response.status, responseText);
-		}
-
-		throw new Error(`${method} ${path} failed: ${response.status} ${responseText}`);
+		throw error;
 	}
 }

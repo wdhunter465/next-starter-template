@@ -9,8 +9,8 @@ import {
 } from './queue-label-contract.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const OWNER = process.env.GITHUB_REPOSITORY_OWNER || 'wdhunter645';
-const REPO = (process.env.GITHUB_REPOSITORY || 'wdhunter645/next-starter-template').split('/')[1];
+const OWNER = process.env.GITHUB_REPOSITORY_OWNER || 'wdhunter465';
+const REPO = (process.env.GITHUB_REPOSITORY || 'wdhunter465/next-starter-template').split('/')[1];
 const TOKEN = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
 const OUT_DIR = process.env.PMO_DASHBOARD_OUT_DIR || 'site/pmo-dashboard';
 const API = process.env.GITHUB_API_URL || 'https://api.github.com';

@@ -25,7 +25,7 @@ GitHub labels are repository configuration, not files. Workflows may fail or ski
 
 The current durable generic orchestration label contract is `/.github/orchestrator-labels.json`.
 
-Queue ownership, Operations/PMO/Engineering priority namespaces, and Pipeline stages are owned by `/.github/queue-label-registry.json` (Project #2702 / Issue #2724). Live creation of those labels is authorized only through the reviewed #2727 migration procedure. Generic orchestrator status/type/agent labels remain separate from queue ownership authority.
+Queue ownership, Operations/Governance/PMO/Engineering priority namespaces, and Pipeline stages are owned by `/.github/queue-label-registry.json` (Project #2702 / Issue #2724; Governance Team addition #3152). Live creation of those labels is authorized only through the reviewed migration procedure. Generic orchestrator status/type/agent labels remain separate from queue ownership authority.
 
 ## Intended final state
 

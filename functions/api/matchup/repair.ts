@@ -39,7 +39,9 @@ export const onRequestPost = async (context: any): Promise<Response> => {
       brokenPhotoId,
       allowMutation: false,
       trigger: "public_repair_post",
-      sourceIssue: body?.source_issue ?? null,
+      // Public callers cannot authorize anything; never let a client-supplied
+      // source_issue land in the audit trail as if it were an admin reference (#3030).
+      sourceIssue: null,
     });
   } catch (err: any) {
     return jsonResponse({ ok: false, error: String(err?.message ?? err) }, 500);

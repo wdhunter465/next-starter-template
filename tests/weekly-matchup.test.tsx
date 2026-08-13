@@ -203,7 +203,10 @@ describe('WeeklyMatchup last closed week winner thumbnail', () => {
     await waitFor(() => {
       expect(fetchMock).toHaveBeenCalledWith(
         '/api/matchup/repair',
-        expect.objectContaining({ method: 'POST' }),
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({ broken_photo_id: 11 }),
+        }),
       );
     });
     expect(screen.getByText('Broken B')).toBeInTheDocument();

@@ -23,39 +23,13 @@ jobs:
 
       - name: Resolve diff-scope context
         id: diff_context
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const prNumber = context.payload.pull_request?.number || Number('${{ inputs.pr_number }}');
-            if (!prNumber) {
-              core.setFailure('PR number is required.');
-              return;
-            }
-
-            const { data: pr } = await github.rest.pulls.get({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: prNumber,
-            });
-
-            const files = await github.paginate(github.rest.pulls.listFiles, {
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              pull_number: prNumber,
-              per_page: 100,
-            });
-
-            core.setOutput('pr_number', String(prNumber));
-            core.setOutput('body', pr.body || '');
-            core.setOutput('files', files.map((file) => file.filename).join('\n'));
-
-      - name: Write diff-scope inputs
         env:
-          PR_BODY: ${{ steps.diff_context.outputs.body }}
-          CHANGED_FILES: ${{ steps.diff_context.outputs.files }}
-        run: |
-          printf '%s\n' "$PR_BODY" > "$RUNNER_TEMP/pr_body.md"
-          printf '%s\n' "$CHANGED_FILES" > "$RUNNER_TEMP/pr_changed_files.txt"
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
+          DIFF_SCOPE_BODY_FILE: ${{ runner.temp }}/pr_body.md
+          DIFF_SCOPE_CHANGED_FILES_FILE: ${{ runner.temp }}/pr_changed_files.txt
+        run: node scripts/ci/diff_scope_gate.mjs --resolve-context
 
       - name: Diff scope advisory audit
         id: diff_scope_audit

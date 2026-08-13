@@ -3,6 +3,7 @@ import {
   COMPONENT_STATES,
   HOLD_LABELS,
   assessChecks,
+  assessProtectedChangeReview,
   assessReviews,
   deriveComponentStateFromCombinedStatus,
   evaluateComponentIntegration,
@@ -88,6 +89,28 @@ describe('component integration negative fixtures', () => {
 
     expect(result.eligible).toBe(false);
     expect(result.blockedReasons.map((reason) => reason.code)).toContain('non_component_base');
+    expect(result.notApplicable).toBe(true);
+  });
+
+  it('marks Model A / production delivery as not applicable for child auto-integration', () => {
+    const result = evaluate({
+      profile: {
+        deliveryModel: 'A',
+        gateProfile: 'production-candidate',
+        approvalProfile: 'work-bill-production',
+        componentBranch: '',
+        componentMaster: '',
+        baseRef: 'main',
+      },
+    }, {
+      changedFiles: ['tests/e2e/accessibility-scan.spec.ts'],
+    });
+
+    expect(result.eligible).toBe(false);
+    expect(result.notApplicable).toBe(true);
+    expect(result.blockedReasons.map((reason) => reason.code)).toEqual(
+      expect.arrayContaining(['invalid_delivery_model', 'non_component_base']),
+    );
   });
 
   it('blocks protected changes and requires Chat review', () => {
@@ -192,6 +215,7 @@ describe('component integration positive fixture', () => {
       eligible: true,
       blockedReasons: [],
       requiresChatReview: false,
+      notApplicable: false,
       componentState: 'green',
       deliveryModel: 'B-child',
       gateProfile: 'component-child',
@@ -342,5 +366,174 @@ describe('component integration check/review truthfulness (#2536)', () => {
       componentState: 'green',
     });
     expect(held.blockedReasons.map((reason) => reason.code)).toContain('component_hold');
+  });
+});
+
+describe('protected-change review completion (#3151)', () => {
+  const headSha = 'headsha';
+
+  function independentApproval(overrides = {}) {
+    return {
+      state: 'APPROVED',
+      commit_id: headSha,
+      submitted_at: '2026-08-07T12:00:00Z',
+      user: { login: 'engineering-approver' },
+      ...overrides,
+    };
+  }
+
+  describe('assessProtectedChangeReview() unit behavior', () => {
+    it('1. is pending with no reviews at all', () => {
+      const result = assessProtectedChangeReview({ implementationLogin: 'codex', reviews: [], headSha });
+      expect(result.satisfied).toBe(false);
+      expect(result.blockers.map((b) => b.code)).toEqual(['protected_change']);
+    });
+
+    it('2. is satisfied by an independent current-head APPROVED review', () => {
+      const result = assessProtectedChangeReview({
+        implementationLogin: 'codex',
+        reviews: [independentApproval()],
+        headSha,
+      });
+      expect(result.satisfied).toBe(true);
+      expect(result.blockers).toEqual([]);
+    });
+
+    it('3. is stale when the only independent approval is for a prior head', () => {
+      const result = assessProtectedChangeReview({
+        implementationLogin: 'codex',
+        reviews: [independentApproval({ commit_id: 'oldsha' })],
+        headSha,
+      });
+      expect(result.satisfied).toBe(false);
+      expect(result.blockers.map((b) => b.code)).toEqual(['protected_change_stale_approval']);
+    });
+
+    it('5. self-approval alone does not satisfy the requirement', () => {
+      const result = assessProtectedChangeReview({
+        implementationLogin: 'codex',
+        reviews: [independentApproval({ user: { login: 'codex' } })],
+        headSha,
+      });
+      expect(result.satisfied).toBe(false);
+      expect(result.blockers.map((b) => b.code)).toEqual(['protected_change']);
+    });
+
+    it('an independent approval for the current head satisfies even when a stale approval also exists', () => {
+      const result = assessProtectedChangeReview({
+        implementationLogin: 'codex',
+        reviews: [
+          independentApproval({ commit_id: 'oldsha', user: { login: 'reviewer-a' } }),
+          independentApproval({ commit_id: headSha, user: { login: 'reviewer-b' } }),
+        ],
+        headSha,
+      });
+      expect(result.satisfied).toBe(true);
+    });
+
+    it('honors a Reviewer actor attestation over the raw GitHub login for identity comparison', () => {
+      const result = assessProtectedChangeReview({
+        implementationLogin: 'codex',
+        reviews: [
+          independentApproval({
+            user: { login: 'some-bot' },
+            body: 'Reviewer actor: codex\nDecision: APPROVED',
+          }),
+        ],
+        headSha,
+      });
+      // the attested actor ("codex") matches the implementer, so this does not count as independent
+      expect(result.satisfied).toBe(false);
+    });
+  });
+
+  describe('evaluateComponentIntegration() integration behavior', () => {
+    it('1. pending: blocks with protected_change and requiresChatReview true (no regression)', () => {
+      const result = evaluate({
+        profile: { protectedChange: true, approvalProfile: 'protected-change-review' },
+      }, { changedFiles: ['.github/workflows/gate-quality.yml'] });
+
+      expect(result.eligible).toBe(false);
+      expect(result.requiresChatReview).toBe(true);
+      expect(result.blockedReasons.map((r) => r.code)).toContain('protected_change');
+    });
+
+    it('2. satisfied: clears protected_change and requiresChatReview when independent current-head approval exists', () => {
+      const result = evaluate({
+        profile: { protectedChange: true, approvalProfile: 'protected-change-review', headSha },
+      }, {
+        changedFiles: ['.github/workflows/gate-quality.yml'],
+        headSha,
+        implementationLogin: 'codex',
+        reviews: [independentApproval()],
+      });
+
+      expect(result.eligible).toBe(true);
+      expect(result.requiresChatReview).toBe(false);
+      expect(result.blockedReasons.map((r) => r.code)).not.toContain('protected_change');
+      expect(result.blockedReasons.map((r) => r.code)).not.toContain('protected_change_stale_approval');
+    });
+
+    it('3. stale: blocks with protected_change_stale_approval, not the generic pending code', () => {
+      const result = evaluate({
+        profile: { protectedChange: true, approvalProfile: 'protected-change-review', headSha },
+      }, {
+        changedFiles: ['.github/workflows/gate-quality.yml'],
+        headSha,
+        implementationLogin: 'codex',
+        reviews: [independentApproval({ commit_id: 'oldsha' })],
+      });
+
+      expect(result.eligible).toBe(false);
+      expect(result.requiresChatReview).toBe(true);
+      expect(result.blockedReasons.map((r) => r.code)).toContain('protected_change_stale_approval');
+      expect(result.blockedReasons.map((r) => r.code)).not.toContain('protected_change');
+    });
+
+    it('4. current-head CHANGES_REQUESTED remains blocking alongside the still-pending protected_change state', () => {
+      const result = evaluate({
+        profile: { protectedChange: true, approvalProfile: 'protected-change-review', headSha },
+      }, {
+        changedFiles: ['.github/workflows/gate-quality.yml'],
+        headSha,
+        implementationLogin: 'codex',
+        reviews: [{
+          state: 'CHANGES_REQUESTED',
+          commit_id: headSha,
+          submitted_at: '2026-08-07T12:00:00Z',
+          user: { login: 'engineering-approver' },
+        }],
+      });
+
+      expect(result.eligible).toBe(false);
+      expect(result.blockedReasons.map((r) => r.code)).toContain('changes_requested');
+      expect(result.blockedReasons.map((r) => r.code)).toContain('protected_change');
+    });
+
+    it('5. self-approval: implementer-self-approval and protected_change both remain, protected change is not satisfied', () => {
+      const result = evaluate({
+        profile: { protectedChange: true, approvalProfile: 'protected-change-review', headSha },
+      }, {
+        changedFiles: ['.github/workflows/gate-quality.yml'],
+        headSha,
+        implementationLogin: 'codex',
+        reviews: [independentApproval({ user: { login: 'codex' } })],
+      });
+
+      expect(result.eligible).toBe(false);
+      expect(result.requiresChatReview).toBe(true);
+      expect(result.blockedReasons.map((r) => r.code)).toContain('protected_change');
+      expect(result.blockedReasons.map((r) => r.code)).toContain('implementer-self-approval');
+    });
+
+    it('6. non-protected children are unaffected: no protected_change assessment runs at all', () => {
+      const result = evaluate({
+        profile: { protectedChange: false },
+      }, { headSha, reviews: [] });
+
+      expect(result.requiresChatReview).toBe(false);
+      expect(result.blockedReasons.map((r) => r.code)).not.toContain('protected_change');
+      expect(result.blockedReasons.map((r) => r.code)).not.toContain('protected_change_stale_approval');
+    });
   });
 });

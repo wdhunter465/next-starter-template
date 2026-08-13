@@ -20,6 +20,7 @@ Last Reviewed: 2026-07-13
 | Agent team roles and approval model | `docs/governance/AGENT-TEAM.md` |
 | Role contracts and protected-stop flags | `docs/reference/agents/implementation-authority-contract.md` |
 | Detailed shared execution rules | `docs/ops/ai/CORE-RULES.md` |
+| Agent execution fidelity (approved-action contracts) | `docs/governance/standards/AGENT-EXECUTION-FIDELITY.md` |
 | Model A / Model B execution procedures | `docs/how-to/agents/run-model-a.md`, `docs/how-to/agents/run-model-b.md` |
 
 ## Read order

@@ -58,6 +58,8 @@ Supporting post-merge and operational workflows must not independently claim the
 | `post-merge-remediation.yml` | Failure remediation support |
 | `ops-post-merge-self-healing.yml` | Scheduled/manual exception backlog hygiene |
 | `ops-pr-process-metrics.yml` | PR-process metrics |
+| `ops-workflow-transition-slo-report.yml` | #2679 workflow transition SLO daily scorecard (read-only) |
+| `ops-ai-review-enable.yml` | #2215 operator-authorized AI review Pages secret enablement |
 | `post-merge-intent-verification.yml` | Inert manual compatibility marker; no automatic trigger or mutation permissions |
 
 ## Removed legacy workflows

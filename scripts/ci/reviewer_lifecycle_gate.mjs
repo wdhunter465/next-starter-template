@@ -20,12 +20,35 @@ import {
   parseTrustedBotLogins,
   trustedBotSet,
 } from './reviewer_trusted_bots.mjs';
+import { evaluateReviewerCommentDisposition } from './reviewer_comment_disposition.mjs';
+import {
+  GitHubInfrastructureError,
+  formatAttemptEvidence,
+  githubApiFetch,
+} from './github_api_retry.mjs';
 
-export { DEFAULT_TRUSTED_BOT_LOGINS, parseTrustedBotLogins, trustedBotSet } from './reviewer_trusted_bots.mjs';
+export {
+  DEFAULT_TRUSTED_BOT_LOGINS,
+  isTrustedReviewer,
+  parseTrustedBotLogins,
+  trustedBotSet,
+} from './reviewer_trusted_bots.mjs';
+
+export { GitHubInfrastructureError } from './github_api_retry.mjs';
 
 export const DEFAULT_EXCEPTION_LABEL = 'reviewer-lifecycle-exception';
 export const BREAK_GLASS_MARKER = /<!--\s*reviewer-lifecycle-break-glass\s*-->/i;
 const LINKED_REVIEW_STATES = new Set(['APPROVED', 'COMMENTED']);
+
+const DISPOSITION_FAILURE_CODE_MAP = {
+  undispositioned_reviewer_comment: 'undispositioned-reviewer-comment',
+  outdated_reviewer_thread_without_disposition: 'outdated-reviewer-thread-without-disposition',
+  late_undispositioned_reviewer_comment: 'late-undispositioned-reviewer-comment',
+};
+
+function mapDispositionFailureCode(code = '') {
+  return DISPOSITION_FAILURE_CODE_MAP[code] || String(code || 'reviewer-disposition-failure').replaceAll('_', '-');
+}
 
 export function isProtectedPath(filePath = '') {
   return filePath.startsWith('.github/workflows/') || filePath.startsWith('scripts/ci/');
@@ -328,6 +351,11 @@ export function assessReviewerLifecycle({
   requireActorIndependentApproval = false,
   enforceFailure = isEnforcingReviewerLifecycleEvent(eventName),
   paginationFailures = [],
+  body = '',
+  reviewComments = [],
+  issueComments = [],
+  headSha = '',
+  readyForReviewAt = '',
 } = {}) {
   const trustedBots = trustedBotSet(trustedBotLogins);
   const scope = classifyProtectedScope(files);
@@ -337,6 +365,20 @@ export function assessReviewerLifecycle({
     labels,
     exceptionLabel,
   });
+  const disposition = evaluateReviewerCommentDisposition({
+    body,
+    issueComments: Array.isArray(issueComments) ? issueComments : [],
+    reviewComments: Array.isArray(reviewComments) ? reviewComments : [],
+    reviews: Array.isArray(reviews) ? reviews : [],
+    headSha,
+    readyForReviewAt,
+    auditPhase: 'pre_merge',
+  });
+  const dispositionBlockers = (disposition.failures || []).map((failure) => ({
+    code: mapDispositionFailureCode(failure.code),
+    message: failure.message,
+    commentId: failure.commentId,
+  }));
   const blockingReasons = [
     ...paginationFailures.filter(Boolean).map((message) => ({ code: 'pagination-incomplete', message })),
     ...assessActorIndependentApproval({
@@ -346,6 +388,7 @@ export function assessReviewerLifecycle({
     }),
     ...humanReviewBlockers.map((review) => ({ code: 'human-changes-requested', message: `${review.author} latest review is CHANGES_REQUESTED.` })),
     ...threadState.blocking.map((thread) => ({ code: 'unresolved-human-review-thread', message: `${thread.author || 'unknown'} unresolved thread${thread.path ? ` on ${thread.path}` : ''}: ${thread.excerpt}` })),
+    ...dispositionBlockers,
   ];
 
   const ok = blockingReasons.length === 0;
@@ -358,9 +401,11 @@ export function assessReviewerLifecycle({
     exceptionActive: hasExceptionLabel(labels, exceptionLabel),
     humanChangesRequested: humanReviewBlockers,
     reviewThreads: threadState,
+    disposition,
     blockingReasons,
     advisoryFindings: threadState.advisory.length,
     enforceFailure,
+    headSha,
     assessment: {
       ok,
       severity: ok ? (threadState.advisory.length > 0 ? 'advisory' : 'none') : 'blocking',
@@ -373,7 +418,7 @@ export function assessReviewerLifecycle({
 export function buildReviewerLifecycleArtifact(result) {
   return {
     gate: 'reviewer-lifecycle',
-    schemaVersion: 1,
+    schemaVersion: 2,
     advisory: !result.enforceFailure,
     ok: result.assessment.ok,
     severity: result.assessment.severity,
@@ -384,6 +429,8 @@ export function buildReviewerLifecycleArtifact(result) {
     advisoryThreads: result.reviewThreads.advisory.length,
     outdatedThreads: result.reviewThreads.outdated.length,
     resolvedThreads: result.reviewThreads.resolved.length,
+    dispositionFailures: result.disposition?.failures?.length || 0,
+    outdatedWithoutDisposition: result.disposition?.outdatedWithoutDispositionCount || 0,
     blockingReasons: result.blockingReasons,
     headSha: result.headSha || '',
   };
@@ -421,6 +468,8 @@ export function buildReviewerLifecycleReport(result) {
     `Trusted/advisory review threads: ${result.reviewThreads.advisory.length}`,
     `Outdated review threads: ${result.reviewThreads.outdated.length}`,
     `Resolved review threads: ${result.reviewThreads.resolved.length}`,
+    `Disposition failures: ${result.disposition?.failures?.length || 0}`,
+    `Outdated without disposition: ${result.disposition?.outdatedWithoutDispositionCount || 0}`,
     `Trusted-bot exception label: ${result.exceptionLabel}`,
     `Trusted-bot exception active: ${result.exceptionActive ? 'yes' : 'no'}`,
     `Assessment severity: ${result.assessment.severity}`,
@@ -446,8 +495,10 @@ export function buildReviewerLifecycleReport(result) {
 }
 
 async function request(path, token, options = {}) {
-  const response = await fetch(`https://api.github.com${path}`, {
-    ...options,
+  const method = options.method || 'GET';
+  const { response, bodyText, attemptLog } = await githubApiFetch({
+    url: `https://api.github.com${path}`,
+    method,
     headers: {
       Authorization: `Bearer ${token}`,
       Accept: 'application/vnd.github+json',
@@ -456,11 +507,21 @@ async function request(path, token, options = {}) {
       ...(options.body ? { 'Content-Type': 'application/json' } : {}),
       ...(options.headers || {}),
     },
+    body: options.body,
+    maxRetries: options.maxRetries,
+    initialBackoffMs: options.initialBackoffMs,
+    maxBackoffMs: options.maxBackoffMs,
+    sleepFn: options.sleepFn,
+    fetchFn: options.fetchFn,
+    pathLabel: path,
   });
 
   if (!response.ok) {
-    const text = await response.text();
-    throw new Error(`${options.method || 'GET'} ${path} failed: ${response.status} ${text}`);
+    throw new Error(`${method} ${path} failed: ${response.status} ${bodyText || ''}`);
+  }
+
+  if (attemptLog.length) {
+    console.warn(`GitHub API retry evidence for ${method} ${path}:\n${formatAttemptEvidence(attemptLog)}`);
   }
 
   if (response.status === 204) return null;
@@ -483,8 +544,9 @@ async function paginate(path, token) {
   return results;
 }
 
-async function graphql(query, variables, token) {
-  const response = await fetch('https://api.github.com/graphql', {
+async function graphql(query, variables, token, options = {}) {
+  const { response, bodyText, attemptLog } = await githubApiFetch({
+    url: 'https://api.github.com/graphql',
     method: 'POST',
     headers: {
       Authorization: `Bearer ${token}`,
@@ -492,11 +554,27 @@ async function graphql(query, variables, token) {
       'User-Agent': 'lgfc-reviewer-lifecycle-gate',
     },
     body: JSON.stringify({ query, variables }),
+    maxRetries: options.maxRetries,
+    initialBackoffMs: options.initialBackoffMs,
+    maxBackoffMs: options.maxBackoffMs,
+    sleepFn: options.sleepFn,
+    fetchFn: options.fetchFn,
+    pathLabel: '/graphql',
   });
 
-  const data = await response.json();
-  if (!response.ok || data.errors?.length) {
-    throw new Error(`GraphQL request failed: ${response.status} ${JSON.stringify(data.errors || data)}`);
+  if (attemptLog.length) {
+    console.warn(`GitHub API retry evidence for POST /graphql:\n${formatAttemptEvidence(attemptLog)}`);
+  }
+
+  let data;
+  try {
+    data = bodyText ? JSON.parse(bodyText) : await response.json();
+  } catch {
+    data = bodyText || null;
+  }
+
+  if (!response.ok || data?.errors?.length) {
+    throw new Error(`GraphQL request failed: ${response.status} ${JSON.stringify(data?.errors || data || bodyText)}`);
   }
   return data.data;
 }
@@ -551,9 +629,11 @@ export async function runReviewerLifecycleGate({
   exceptionLabel = DEFAULT_EXCEPTION_LABEL,
 }) {
   const pull = await request(`/repos/${owner}/${repo}/pulls/${prNumber}`, token);
-  const [files, nativeState] = await Promise.all([
+  const [files, nativeState, reviewComments, issueComments] = await Promise.all([
     paginate(`/repos/${owner}/${repo}/pulls/${prNumber}/files`, token),
     fetchNativeReviewState({ owner, repo, prNumber, token }),
+    paginate(`/repos/${owner}/${repo}/pulls/${prNumber}/comments`, token),
+    paginate(`/repos/${owner}/${repo}/issues/${prNumber}/comments`, token),
   ]);
 
   const result = assessReviewerLifecycle({
@@ -568,6 +648,11 @@ export async function runReviewerLifecycleGate({
     requireActorIndependentApproval: nativeState.reviews.some(isActorApprovalReview),
     enforceFailure,
     paginationFailures: nativeState.paginationFailures,
+    body: pull.body || '',
+    reviewComments,
+    issueComments,
+    headSha: pull.head?.sha || '',
+    readyForReviewAt: pull.updated_at || pull.created_at || '',
   });
 
   return {
@@ -652,7 +737,15 @@ async function main() {
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   main().catch((error) => {
-    console.error(error);
+    if (error instanceof GitHubInfrastructureError) {
+      console.error(`INFRASTRUCTURE_FAILURE classification=${error.classification}`);
+      console.error(error.message);
+      if (error.attemptLog?.length) {
+        console.error(formatAttemptEvidence(error.attemptLog));
+      }
+    } else {
+      console.error(error);
+    }
     process.exit(1);
   });
 }

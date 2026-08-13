@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: PMO intake, work sizing, delivery-model selection, Sandbox authorization, Pipeline preparation direction, Project Graduation, launch authorization, portfolio inventory, and authoritative priority decisions
 Does Not Own: Queue-label mechanics, Development execution, Promotion Candidate execution, CI implementation, Administration & Communications mutation procedure, Day-2 recovery strategy, or Production approval
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2477, #2487, #2640, #2641, #2695, #2699
-Last Reviewed: 2026-07-21
+Related Issues: #2477, #2487, #2640, #2641, #2695, #2699, #3055, #3113
+Last Reviewed: 2026-08-06
 ---
 
 # PMO Portfolio
@@ -18,6 +18,8 @@ This document defines how work enters the portfolio, how it is designed and size
 PMO / Engineering owns the decision package. Administration & Communications prepares, routes, records, and reconciles the package but does not make the decision.
 
 Queue classification, priority-label namespaces, queue precedence, preparation-assignment structure, and universal collaboration are defined in `docs/governance/WORK-QUEUES-AND-COLLABORATION.md`.
+
+PMO defines **sequencing and readiness coordination**, not a general execution gate. PMO prepares launch packages, orders projects, and records prerequisites; it does not deny otherwise authorized, collision-safe implementation after Project Graduation `GO`.
 
 ## PMO meeting authority
 
@@ -176,9 +178,30 @@ After Go:
 - independent tasks may proceed while prior tasks are review- or administration-pending;
 - PR review pauses the affected task, not the entire project;
 - PMO / Engineering remains available for lightweight problem adjustment;
-- material plan changes return to PMO / Engineering authority.
+- material plan changes return to PMO / Engineering authority;
+- when only part of a task is gated, split bounded increments and continue collision-safe work;
+- WORK prepares successor packages before implementer idle time; eligible agents self-claim the next package-complete child under standing parent authority after deterministic predecessor completion (#3145);
+- Product-authorized agent routing (Cursor Local, Claude Code) is preserved per Team eligibility and claim.
 
 Active parent priority selects which project receives focus. The selected project's own task sequence and dependencies select the next executable child task. Child tasks do not carry team-level priority.
+
+## Dependency and stop taxonomy
+
+PMO records conditions using the taxonomy in `docs/governance/WORK-QUEUES-AND-COLLABORATION.md`:
+
+- **Advisory prerequisite** — comment or package note; does not deny collision-safe work.
+- **Ordered predecessor** — serial sequence metadata; successor becomes claimable after deterministic predecessor completion (or WORK `ACCEPT` when a substantive gate is defined on that edge).
+- **Real collision** — hold scoped to the colliding action only.
+- **Protected stop** — legal, privacy, rights, security, credential, cost, destructive-data, Production-authority, unsafe-operation, or independent-review boundary; blocks only the affected unsafe action.
+
+Ordinary predecessor or advisory conditions are not queue-wide `HOLD` or `BLOCKED`. A gated final step must not freeze the queue when earlier increments remain executable. Routine administrative confirmation is not a valid parent blocker.
+
+### Examples
+
+- **Advisory-dependent work:** Pipeline preparation notes a dependency on external design review. Bounded repository documentation may proceed; only the step consuming unapproved design waits.
+- **Docs/evidence increment:** A child delivers governance docs now and defers Production promotion until protected review completes.
+- **Serial child chain:** Standing Project Graduation authority carries the prepared graph; eligible agents self-claim each package-complete successor after deterministic predecessor completion without routine PMO redispatch (#3055 / #3145).
+- **Production-only gate:** Development increments merge under standing authority; only the Production promotion action requires `PRODUCTION GO`.
 
 ## Active priority decisions
 
@@ -195,27 +218,27 @@ Website delivery may be maintained as the top LGFC priority through PMO decision
 
 ## Operations interrupt precedence
 
-Normal repository execution consists primarily of authorized project tasks and Engineering preparation. A qualifying standalone `OPS:` source Issue is a standing Product Authority interrupt and takes precedence while it carries a numbered Operations priority.
+Normal repository execution consists primarily of authorized project tasks, Engineering preparation, and Governance stewardship. A qualifying standalone Operations source Issue is a standing Product Authority interrupt and takes precedence while it carries a numbered Operations priority. Governance is a peer stewardship queue (#3152) and is **not** an Operations interrupt.
 
-Operations priority, Monitoring, Hold, and resume semantics are defined in `docs/governance/WORK-QUEUES-AND-COLLABORATION.md` and recovery authority is defined in `docs/governance/OPERATIONS-AND-RECOVERY.md`.
+Operations priority, Monitoring, Hold, and resume semantics — and Governance `gov:*` semantics — are defined in `docs/governance/WORK-QUEUES-AND-COLLABORATION.md`. Recovery authority is defined in `docs/governance/OPERATIONS-AND-RECOVERY.md`.
 
 A qualifying Operations interrupt is:
 
-- an open, same-repository, non-PR Issue whose title begins `OPS:`;
+- an open, same-repository, non-PR Issue owned by `team:operations` with a numbered `ops:priority:*` (title may begin `OPS:`);
 - a standalone source Issue rather than a child of a project lifecycle;
 - bounded by an objective, owner, scope, acceptance criteria, validation, rollback, and stop conditions appropriate to the work; and
 - not merely a generated tracker, duplicate, bookkeeping record, advisory alert, or evidence-only record unless Product Authority explicitly elevates it.
 
 When a qualifying numbered Operations Issue appears:
 
-1. no new PMO or Engineering work may be dispatched;
+1. no new PMO, Engineering, or Governance work may be dispatched;
 2. active work stops at the nearest safe checkpoint rather than being terminated in a way that corrupts a branch, claim, test, deployment, or evidence state;
 3. Administration & Communications preserves exact state and records the Operations interrupt hold;
 4. the Operations Issue receives the next available capacity it requires;
 5. no additional material-risk test or case-by-case reprioritization decision is required; and
-6. PMO and Engineering work resume when no numbered Operations Issue remains actionable, subject to recorded Monitoring or Hold interval obligations.
+6. PMO, Engineering, and Governance work resume when no numbered Operations Issue remains actionable, subject to recorded Monitoring or Hold interval obligations.
 
-Operations interrupt precedence changes sequencing only. It does not bypass source-Issue scope, promotion profiles, validation, independent review, Production authority, rollback, or protected-stop requirements.
+Operations interrupt precedence changes sequencing only. It does not bypass source-Issue scope, promotion profiles, validation, independent review, Production authority, rollback, or protected-stop requirements. Active PMO Project documentation children remain on the PMO graph and are not reclassified as Governance merely because they edit docs.
 
 ## Lightweight problem adjustment
 
@@ -286,4 +309,7 @@ This policy supersedes lower-level PMO instructions where they:
 - allow priority without accountable Pipeline preparation work;
 - treat Engineering Priority 1 as proof of launch readiness;
 - permit administrative reporting, generic predecessor state, or routine per-task PMO review to block independent Development after implementation Go;
-- require additional risk-based elevation before a qualifying numbered Operations Issue interrupts normal work.
+- require additional risk-based elevation before a qualifying numbered Operations Issue interrupts normal work;
+- use queue-wide `HOLD` or `BLOCKED` for ordinary predecessor or advisory conditions;
+- freeze an entire project because one final step requires a protected stop;
+- delay successor release after verified integration when the successor package is complete.

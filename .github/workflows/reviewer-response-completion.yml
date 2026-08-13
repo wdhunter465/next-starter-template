@@ -23,14 +23,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Reviewer lifecycle advisory audit
+      - name: Reviewer lifecycle disposition audit
         id: reviewer_lifecycle
         env:
           GITHUB_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
-          ENFORCE_FAILURE: 'false'
+          # #2683 rec 2: fail closed on undispositioned / outdated-without-disposition findings
+          ENFORCE_FAILURE: 'true'
           REVIEWER_LIFECYCLE_RESULT_JSON: ${{ runner.temp }}/reviewer_lifecycle_result.json
           REVIEWER_LIFECYCLE_RESULT_MD: ${{ runner.temp }}/reviewer_lifecycle_result.md
         run: node scripts/ci/reviewer_lifecycle_gate.mjs
@@ -45,5 +46,6 @@ jobs:
             ${{ runner.temp }}/reviewer_lifecycle_result.md
           if-no-files-found: ignore
 
-      - name: Advisory gate passed
-        run: echo "Reviewer lifecycle advisory check complete (non-blocking)."
+      - name: Reviewer disposition gate complete
+        if: success()
+        run: echo "Reviewer lifecycle disposition check passed (enforcing undispositioned and outdated-without-disposition)."
