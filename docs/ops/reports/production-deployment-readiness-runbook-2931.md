@@ -44,11 +44,11 @@ each is owned by its own task.
 ## Intended final state
 
 This document is evolving scaffolding pending #2930 acceptance and Product
-Authority's Production Go. As of this update, the six role/procedure fields
-("Policy-level field content," below) carry real, final content rather than a
-placeholder — only the four genuinely instance-bound fields ("Instance fields
-— still blocked") remain open. Once #2931 is actually executed, those four are
-filled with the real change window, named recovery owner, and cited
+Authority's Production Go. As of this update, seven of the twelve required
+fields ("Policy-level field content," below) carry real, final content rather
+than a placeholder — only the five genuinely instance-bound fields ("Instance
+fields — still blocked") remain open. Once #2931 is actually executed, those
+five are filled with the real change window, named recovery owner, and cited
 preflight/rollback evidence, and the `buildDeploymentReadiness()` verdict is
 run against the complete real record and #2930's accepted candidate manifest.
 The schema and invariants themselves are not expected to change — only
@@ -108,12 +108,16 @@ additions.
 
 ## Policy-level field content (stable; prepared now)
 
-Six of the eleven required fields describe a **role or procedure**, not a
-specific deployment instance. Those six do not need a real candidate SHA, a
-scheduled date, or a named individual to be defined, so this section prepares
-their real, final content now — not a placeholder, and not a synthetic
-example. The remaining five fields (below, "Instance fields — still blocked")
-are genuinely data-bound and are correctly left open.
+Seven of the twelve required fields (`executorRole`, `verifierRole`,
+`communicationPlan`, `credentialBoundaryStatement`, `smokeTestPlan`,
+`completeVerificationPlan`, `stopTriggers`) describe a **role or procedure**,
+not a specific deployment instance. Those seven do not need a real candidate
+SHA, a scheduled date, or a named individual to be defined, so this section
+prepares their real, final content now — not a placeholder, and not a
+synthetic example. The remaining five fields (`changeWindowStart`,
+`changeWindowEnd`, `preflightChecklistEvidence`, `rollbackCandidateSha`,
+`recoveryOwner` — below, "Instance fields — still blocked") are genuinely
+data-bound and are correctly left open.
 
 **`executorRole`:** The Team:PMO implementation agent (Cursor Local or Claude
 Code) holding an explicit, recorded Bill/Product Authority Production-dispatch
@@ -144,13 +148,27 @@ only, not an internal deployment channel). Concretely:
   requires one, that is a new decision outside #2931's scope — not something
   this plan assumes into existence.
 
-**`credentialBoundaryStatement`:** This deployment consumes exactly the four
-repository secrets already validated end-to-end by #2860's Production write
-path and #3268's backup path — `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`,
-`D1_DATABASE_ID`, `D1_DATABASE_NAME` — reused unchanged; no new credential
-provisioning is required. No secret value is ever printed to Issues, PRs,
-logs, or reports; only three-way identity confirmation (match/mismatch) is
-recorded, per the pattern already proven live in #2860/#2913.
+**`credentialBoundaryStatement`:** Deployment/candidate-identity actions and
+`smokeTestPlan`'s six categories (below) do not share one credential set —
+stating a single "exactly four secrets" boundary across both would itself be
+the inconsistency this field exists to prevent. Three existing, already-used
+secret groups are in scope, all reused unchanged with no new provisioning:
+
+- `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `D1_DATABASE_ID`,
+  `D1_DATABASE_NAME` — Production D1 identity/read/write, validated
+  end-to-end by #2860's Production write path and #3268's backup path.
+- `B2_ENDPOINT`, `B2_BUCKET`, `B2_KEY_ID`, `B2_APP_KEY` — B2 media reads for
+  the `content_data_media` smoke category (`functions/_lib/b2.ts`'s existing
+  contract; read-only for this deployment's purposes).
+- `MAILCHANNELS_ENABLED`, `MAILCHANNELS_API_KEY` — the `email_fundraiser_state`
+  smoke category's controlled test-address send, through the existing
+  provider adapter (`functions/_lib/email.ts`); sending is skipped, not
+  silently attempted, when `MAILCHANNELS_ENABLED` is unset.
+
+No secret value from any of these three groups is ever printed to Issues,
+PRs, logs, or reports; only identity confirmation (present/absent, or
+match/mismatch for D1) is recorded, per the pattern already proven live in
+#2860/#2913.
 
 **`smokeTestPlan`:** Per #2932's six required categories:
 - `public` — `tests/e2e/launch-readiness-public-routes.spec.ts` plus the route
@@ -203,7 +221,7 @@ own recorded list as of this preparation.
 - `recoveryOwner` — requires a named, accountable individual; Bill's call, not
   inferable from role definitions the way `executorRole`/`verifierRole` are.
 
-These four remain genuinely blocked on #2781's rehearsal disposition, #2930's
+These five remain genuinely blocked on #2781's rehearsal disposition, #2930's
 acceptance, and Product Authority's Production Go — consistent with #2933's
 own recorded closeout-path ordering (issue comment 5231615052). This section
 does not fabricate values for them.
