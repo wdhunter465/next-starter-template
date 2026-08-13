@@ -1,4 +1,9 @@
-import { listStoryMediaAssociations } from './content-inventory-media';
+import {
+  CLUB_HOME_MEDIA_RENDITION_SIZE,
+  getMediaRendition,
+  listStoryMediaAssociations,
+  readyRenditionUrl,
+} from './content-inventory-media';
 import {
   countPublishedInventoryForSection,
   mapPublicInventoryStory,
@@ -130,6 +135,8 @@ export type ClubHomeStoryPayload = {
 
 export type ClubHomeMediaFeaturePayload = {
   thumbnail_url: string | null;
+  /** Size label of the persisted rendition used for thumbnail_url, when any. */
+  media_rendition: string | null;
   title: string | null;
   description: string | null;
   credit_line: string | null;
@@ -241,44 +248,61 @@ function pickArchiveSpotlight(
   return ranked[0] ?? null;
 }
 
+async function resolveReadyClubHomeRenditionUrl(
+  db: any,
+  mediaId: number,
+  request: Request,
+  publicB2BaseUrl?: unknown,
+): Promise<{ url: string; size: string } | null> {
+  if (!mediaId) return null;
+  try {
+    const row = await getMediaRendition(db, mediaId, CLUB_HOME_MEDIA_RENDITION_SIZE);
+    const raw = readyRenditionUrl(row || undefined);
+    if (!raw) return null;
+    const url = normalizePhotoUrl({ rawUrl: raw, request, publicB2BaseUrl });
+    if (!url) return null;
+    return { url, size: CLUB_HOME_MEDIA_RENDITION_SIZE };
+  } catch {
+    // Table missing or query failure → fail closed (omit image).
+    return null;
+  }
+}
+
 async function resolveMediaFeature(
   db: any,
   leadStory: ClubHomeStoryPayload | null,
   request: Request,
   publicB2BaseUrl?: unknown,
 ): Promise<ClubHomeMediaFeaturePayload | null> {
+  // Fail-closed: never substitute original photos.url when the required rendition is absent.
   if (leadStory) {
     const associations = await listStoryMediaAssociations(db, [leadStory.id]);
     const mediaRows = associations.get(leadStory.id) || [];
     const primary =
       mediaRows.find((row) => String((row as any).media_role || '') === 'primary_image') || mediaRows[0];
     if (primary) {
-      const photoUrl = normalizePhotoUrl({
-        rawUrl: (primary as any).url,
-        request,
-        publicB2BaseUrl,
-      });
-      if (photoUrl) {
-        const isMemorabilia = Number((primary as any).is_memorabilia) === 1;
-        return {
-          thumbnail_url: photoUrl,
-          title:
-            (typeof (primary as any).caption === 'string' && (primary as any).caption.trim()) ||
-            (typeof (primary as any).photo_title === 'string' && (primary as any).photo_title) ||
-            leadStory.title,
-          description:
-            (typeof (primary as any).photo_description === 'string' && (primary as any).photo_description) ||
-            leadStory.summary,
-          credit_line:
-            (typeof (primary as any).credit_line === 'string' && (primary as any).credit_line.trim()) ||
-            leadStory.credit,
-          source_name:
-            (typeof (primary as any).source_name === 'string' && (primary as any).source_name.trim()) ||
-            leadStory.source_name,
-          href: isMemorabilia ? '/fanclub/memorabilia' : '/fanclub/photo',
-          is_memorabilia: isMemorabilia,
-        };
-      }
+      const mediaId = Number((primary as any).media_id || 0);
+      const rendition = await resolveReadyClubHomeRenditionUrl(db, mediaId, request, publicB2BaseUrl);
+      const isMemorabilia = Number((primary as any).is_memorabilia) === 1;
+      return {
+        thumbnail_url: rendition?.url ?? null,
+        media_rendition: rendition?.size ?? null,
+        title:
+          (typeof (primary as any).caption === 'string' && (primary as any).caption.trim()) ||
+          (typeof (primary as any).photo_title === 'string' && (primary as any).photo_title) ||
+          leadStory.title,
+        description:
+          (typeof (primary as any).photo_description === 'string' && (primary as any).photo_description) ||
+          leadStory.summary,
+        credit_line:
+          (typeof (primary as any).credit_line === 'string' && (primary as any).credit_line.trim()) ||
+          leadStory.credit,
+        source_name:
+          (typeof (primary as any).source_name === 'string' && (primary as any).source_name.trim()) ||
+          leadStory.source_name,
+        href: isMemorabilia ? '/fanclub/memorabilia' : '/fanclub/photo',
+        is_memorabilia: isMemorabilia,
+      };
     }
   }
 
@@ -294,16 +318,12 @@ async function resolveMediaFeature(
 
   if (!photoRow) return null;
 
-  const photoUrl = normalizePhotoUrl({
-    rawUrl: (photoRow as any).url,
-    request,
-    publicB2BaseUrl,
-  });
-  if (!photoUrl) return null;
-
+  const mediaId = Number((photoRow as any).id || 0);
+  const rendition = await resolveReadyClubHomeRenditionUrl(db, mediaId, request, publicB2BaseUrl);
   const isMemorabilia = Number((photoRow as any).is_memorabilia) === 1;
   return {
-    thumbnail_url: photoUrl,
+    thumbnail_url: rendition?.url ?? null,
+    media_rendition: rendition?.size ?? null,
     title: typeof (photoRow as any).title === 'string' ? (photoRow as any).title : null,
     description: typeof (photoRow as any).description === 'string' ? (photoRow as any).description : null,
     credit_line: typeof (photoRow as any).source === 'string' ? (photoRow as any).source : null,
@@ -615,6 +635,7 @@ async function fetchClubHomeContentLive(
       placements[mediaIdx] = {
         ...placements[mediaIdx],
         feature_size: mediaFeature.is_memorabilia ? 'memorabilia' : 'photo',
+        media_rendition: mediaFeature.media_rendition,
       };
     }
   }
@@ -858,6 +879,7 @@ export async function regenerateClubHomeEdition(
       position: number;
       selection_mode: string;
       feature_size: string | null;
+      media_rendition: string | null;
     }> = [];
 
     if (composed.leadRow) {
@@ -867,6 +889,7 @@ export async function regenerateClubHomeEdition(
         position: 0,
         selection_mode: composed.leadSelectionMode,
         feature_size: null,
+        media_rendition: null,
       });
     }
     for (const [index, row] of composed.railRows.entries()) {
@@ -876,6 +899,7 @@ export async function regenerateClubHomeEdition(
         position: index,
         selection_mode: composed.railPinnedStoryId === Number(row.id) ? 'pinned' : 'automatic',
         feature_size: null,
+        media_rendition: null,
       });
     }
     if (composed.spotlightRow) {
@@ -885,6 +909,7 @@ export async function regenerateClubHomeEdition(
         position: 0,
         selection_mode: composed.spotlightSelectionMode,
         feature_size: null,
+        media_rendition: null,
       });
     }
     if (composed.leadRow) {
@@ -898,6 +923,7 @@ export async function regenerateClubHomeEdition(
             ? 'memorabilia'
             : 'photo'
           : null,
+        media_rendition: mediaFeature?.media_rendition ?? null,
       });
     }
 
@@ -956,6 +982,7 @@ export async function regenerateClubHomeEdition(
         selection_mode: row.selection_mode,
         edition_id: editionId,
         feature_size: row.feature_size,
+        media_rendition: row.media_rendition,
         placed_at: completedAt,
       }));
     await recordPlacementHistory(db, historyPlacements);

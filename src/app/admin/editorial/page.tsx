@@ -28,6 +28,7 @@ type MediaAssociation = {
   media_id: number;
   media_role: string;
   display_order: number;
+  url?: string | null;
   caption?: string | null;
   alt_text?: string | null;
   source_name?: string | null;
@@ -836,6 +837,7 @@ function MediaAssociationsEditor(props: {
 }) {
   const initialJson = JSON.stringify(props.initialAssociations || [], null, 2);
   const [jsonValue, setJsonValue] = useState(initialJson);
+  const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
     setJsonValue(JSON.stringify(props.initialAssociations || [], null, 2));
@@ -872,6 +874,118 @@ function MediaAssociationsEditor(props: {
     props.onStatus(`Media associations saved for story ${props.storyId}.`);
   };
 
+  const generateRenditions = async () => {
+    if (!getStoredAdminToken()) {
+      props.onStatus('Error: Save an admin API token above before generating renditions.');
+      return;
+    }
+
+    let mediaAssociations: MediaAssociation[] = [];
+    try {
+      mediaAssociations = parseMediaAssociationsJson(jsonValue);
+    } catch {
+      props.onStatus('Error: Media association JSON must be valid.');
+      return;
+    }
+
+    const withUrl = mediaAssociations.filter((row) => Number(row.media_id) > 0 && String(row.url || '').trim());
+    if (!withUrl.length) {
+      props.onStatus('Error: Associations need media_id and url before generating renditions. Save associations first, then reload.');
+      return;
+    }
+
+    setGenerating(true);
+    props.onStatus(`Generating renditions for story ${props.storyId}…`);
+
+    try {
+      const sizes = ['thumbnail', 'small', 'medium', 'large'] as const;
+      const longEdge: Record<(typeof sizes)[number], number> = {
+        thumbnail: 320,
+        small: 640,
+        medium: 1280,
+        large: 1920,
+      };
+
+      const loadImage = (url: string) =>
+        new Promise<HTMLImageElement>((resolve, reject) => {
+          const img = new Image();
+          img.crossOrigin = 'anonymous';
+          img.onload = () => resolve(img);
+          img.onerror = () => reject(new Error(`Failed to load image (CORS or network): ${url}`));
+          img.src = url;
+        });
+
+      const renditions: Array<Record<string, unknown>> = [];
+
+      for (const association of withUrl) {
+        const mediaId = Number(association.media_id);
+        const sourceUrl = String(association.url || '').trim();
+        const img = await loadImage(sourceUrl);
+        const sourceWidth = img.naturalWidth || img.width;
+        const sourceHeight = img.naturalHeight || img.height;
+        if (!(sourceWidth > 0 && sourceHeight > 0)) {
+          throw new Error(`Invalid source dimensions for media_id ${mediaId}`);
+        }
+
+        for (const size of sizes) {
+          const contract = longEdge[size];
+          const sourceLong = Math.max(sourceWidth, sourceHeight);
+          const scale = sourceLong <= contract ? 1 : contract / sourceLong;
+          const width = Math.max(1, Math.round(sourceWidth * scale));
+          const height = Math.max(1, Math.round(sourceHeight * scale));
+
+          const canvas = document.createElement('canvas');
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) throw new Error('Canvas 2D context unavailable in this browser.');
+          ctx.drawImage(img, 0, 0, width, height);
+
+          const dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+          const bytesBase64 = dataUrl.replace(/^data:[^;]+;base64,/, '');
+          renditions.push({
+            media_id: mediaId,
+            size,
+            source_width: sourceWidth,
+            source_height: sourceHeight,
+            width_px: width,
+            height_px: height,
+            content_type: 'image/jpeg',
+            bytes_base64: bytesBase64,
+          });
+        }
+      }
+
+      const result = await adminJson<{ ok: true; renditions?: Array<{ status: string; size: string; media_id: number }> }>(
+        '/api/admin/editorial/media-associations',
+        {
+          method: 'POST',
+          body: JSON.stringify({
+            action: 'persist_renditions',
+            story_id: props.storyId,
+            generated_by: 'admin-ui',
+            renditions,
+          }),
+        },
+      );
+
+      if (!result.ok) {
+        props.onStatus(`Error: ${result.error}`);
+        return;
+      }
+
+      const failed = (result.data?.renditions || []).filter((row) => row.status === 'failed').length;
+      const ready = (result.data?.renditions || []).filter((row) => row.status === 'ready').length;
+      props.onStatus(
+        `Renditions persisted for story ${props.storyId}: ${ready} ready, ${failed} failed (fail-closed; no full-resolution fallback).`,
+      );
+    } catch (err) {
+      props.onStatus(`Error: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setGenerating(false);
+    }
+  };
+
   return (
     <div style={{ display: 'grid', gap: 8 }}>
       <label style={{ display: 'grid', gap: 6 }}>
@@ -888,14 +1002,28 @@ function MediaAssociationsEditor(props: {
         Example: [{'{'}&quot;media_id&quot;: 12, &quot;media_role&quot;: &quot;primary_image&quot;, &quot;display_order&quot;: 0,
         &quot;alt_text&quot;: &quot;Caption&quot;{'}'}]
       </p>
-      <button
-        type="button"
-        onClick={() => void saveAssociations()}
-        disabled={!props.actionsEnabled}
-        style={buttonStyle(!props.actionsEnabled)}
-      >
-        Save Media Associations
-      </button>
+      <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <button
+          type="button"
+          onClick={() => void saveAssociations()}
+          disabled={!props.actionsEnabled || generating}
+          style={buttonStyle(!props.actionsEnabled || generating)}
+        >
+          Save Media Associations
+        </button>
+        <button
+          type="button"
+          onClick={() => void generateRenditions()}
+          disabled={!props.actionsEnabled || generating}
+          style={buttonStyle(!props.actionsEnabled || generating)}
+        >
+          {generating ? 'Generating Renditions…' : 'Generate Renditions'}
+        </button>
+      </div>
+      <p style={{ opacity: 0.75, fontSize: 13, margin: 0 }}>
+        Generate uses the browser Canvas to create thumbnail/small/medium/large JPEGs (long-edge 320/640/1280/1920, no
+        upscale), then persists them to B2 + D1. Club Home uses medium only when ready; missing renditions omit the image.
+      </p>
     </div>
   );
 }

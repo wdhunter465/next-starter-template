@@ -2,9 +2,13 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import {
   buildAssociationsFromSubmission,
+  computeRenditionDimensions,
   normalizeMediaAssociation,
   normalizeMediaAssociations,
+  readyRenditionUrl,
+  renditionObjectKey,
   serializeLegacyMediaJson,
+  validatePersistedRenditionDimensions,
 } from '../functions/_lib/content-inventory-media';
 import { onRequestGet as mediaAssociationsGet } from '../functions/api/admin/editorial/media-associations';
 import { onRequestPost as mediaAssociationsPost } from '../functions/api/admin/editorial/media-associations';
@@ -39,6 +43,7 @@ function makeMediaDb(options?: {
     'submission_queue',
     'content_inventory',
     'content_inventory_media',
+    'content_inventory_media_renditions',
     'photos',
     'library_entries',
     'member_sessions',
@@ -125,6 +130,47 @@ describe('content inventory media helpers', () => {
     if (!result.ok) {
       expect(result.error).toContain('alt_text');
     }
+  });
+
+  it('computes aspect-preserving long-edge dimensions without upscaling', () => {
+    const downscale = computeRenditionDimensions(4000, 2000, 'thumbnail');
+    expect(downscale).toMatchObject({ width: 320, height: 160, upscaled: false });
+
+    const noUpscale = computeRenditionDimensions(200, 100, 'medium');
+    expect(noUpscale).toMatchObject({ width: 200, height: 100, upscaled: false });
+  });
+
+  it('validates declared rendition dimensions against the size contract', () => {
+    const ok = validatePersistedRenditionDimensions({
+      size: 'small',
+      source_width: 2000,
+      source_height: 1000,
+      width_px: 640,
+      height_px: 320,
+    });
+    expect(ok).toEqual({ ok: true });
+
+    const bad = validatePersistedRenditionDimensions({
+      size: 'small',
+      source_width: 2000,
+      source_height: 1000,
+      width_px: 2000,
+      height_px: 1000,
+    });
+    expect(bad.ok).toBe(false);
+  });
+
+  it('fail-closes readyRenditionUrl unless status is ready', () => {
+    expect(readyRenditionUrl({ status: 'ready', url: 'https://cdn.example.com/r.jpg' })).toBe(
+      'https://cdn.example.com/r.jpg',
+    );
+    expect(readyRenditionUrl({ status: 'failed', url: 'https://cdn.example.com/r.jpg' })).toBeNull();
+    expect(readyRenditionUrl({ status: 'pending', url: 'https://cdn.example.com/r.jpg' })).toBeNull();
+    expect(readyRenditionUrl(null)).toBeNull();
+  });
+
+  it('uses deterministic B2 object keys per media_id and size', () => {
+    expect(renditionObjectKey(12, 'medium')).toBe('club-newspaper/renditions/12/medium.jpg');
   });
 
   it('accepts complete media association payloads', () => {
