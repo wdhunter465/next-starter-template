@@ -59,7 +59,7 @@ function wrapSqliteAsD1(sqlite: DatabaseSync) {
 
 function insertPublishedContentRow(sqlite: DatabaseSync): number {
   sqlite.exec(`
-    INSERT INTO content_inventory (tag, title, text, source_name, credit_line, status, allowed_sections)
+    INSERT INTO content_inventory (tag, title, text, source_name, credit_line, status, allowed_sections, published_at)
     VALUES (
       'lou-gehrig-day-1939-p109',
       'Lou Gehrig Day',
@@ -67,7 +67,8 @@ function insertPublishedContentRow(sqlite: DatabaseSync): number {
       'LGFC Library',
       'LGFC Library',
       'published',
-      '["club_home","library"]'
+      '["club_home","library"]',
+      datetime('now')
     );
   `);
   const row = sqlite.prepare('SELECT last_insert_rowid() AS id').get() as { id: number };
@@ -105,11 +106,12 @@ describe('POST /api/admin/editorial/suppress (#3382 P1-09 / #2919 F5)', () => {
 
     const row = sqlite
       .prepare(
-        `SELECT status, suppression_reason, takedown_request_source, takedown_resolution_note, takedown_requested_at
+        `SELECT status, published_at, suppression_reason, takedown_request_source, takedown_resolution_note, takedown_requested_at
            FROM content_inventory WHERE id = ?`,
       )
       .get(id) as Record<string, unknown>;
     expect(row.status).toBe('archived');
+    expect(row.published_at).toBeNull();
     expect(row.suppression_reason).toContain('Rights holder requested removal');
     expect(row.takedown_request_source).toContain('Support@LouGehrigFanClub.com');
     expect(row.takedown_resolution_note).toContain('Archived pending');

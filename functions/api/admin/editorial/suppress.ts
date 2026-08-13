@@ -70,10 +70,13 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     // Suppression archives the record (removing it from published/draft
     // display) without deleting it — the row and its history remain, which
     // is the auditable evidence this control exists to produce.
+    // Match publish.ts: leaving published clears published_at so archived
+    // rows do not retain a misleading publication timestamp in admin tooling.
     await d1.db
       .prepare(
         `UPDATE content_inventory
             SET status = 'archived',
+                published_at = NULL,
                 suppression_reason = ?,
                 takedown_request_source = ?,
                 takedown_resolution_note = ?,
