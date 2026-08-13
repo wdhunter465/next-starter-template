@@ -2,13 +2,13 @@
   "recordId": "launch-rehearsal-entry-criteria-2926",
   "sourceIssue": 2926,
   "parentProject": 2781,
-  "reconciledAt": "2026-08-12T14:40:00Z",
+  "reconciledAt": "2026-08-13T12:18:00Z",
   "reconciledBy": "Cursor Local",
   "componentBranch": "component/launch-rehearsal",
   "candidateIdentity": "component/launch-rehearsal@9900f98d3841c806cf20eaa82f91e1849066927a",
-  "candidateIdentityNotes": "Planning candidate / component lineage tip after PR #3236. Formal Promotion Candidate identity for #2928 qualification remains deferred until an authorized isolated rehearsal deployment SHA is frozen.",
+  "candidateIdentityNotes": "Planning candidate identity retained (PR #3236 tip). Component lineage tip at reconciliation is 8c3debc3831b0ec17d52d0dc38378d354afdf3ef; that tip is not a frozen isolated rehearsal deployment SHA. Formal Promotion Candidate identity for #2928 qualification remains deferred until an authorized isolated rehearsal deployment SHA is frozen.",
   "environmentIdentity": "planned-isolated:cloudflare-pages-preview/component/launch-rehearsal",
-  "environmentIdentityNotes": "Not Production. Runtime isolation incomplete: scripts/ci/preview-isolation-manifest.json still classifies D1 lgfc_lite and related bindings as production-shared (auditIssue #2496; isolation task #2818). Formal rehearsal must not bind Production-writable resources.",
+  "environmentIdentityNotes": "Not Production. Runtime isolation incomplete: scripts/ci/preview-isolation-manifest.json still classifies D1 lgfc_lite and related bindings as production-shared (auditIssue #2496; isolation task #2818 OPEN). Formal rehearsal must not bind Production-writable resources. Schema harness ready:true does not authorize write-capable execution.",
   "testDataPlan": "Synthetic and/or redacted fixture datasets only for rehearsal journeys. No private Production member PII, Production D1 dumps, Production B2 private objects, or live credentials as disposable test data. Journey catalog (#2927) privacyControl fields must continue to declare synthetic/redacted handling per journey.",
   "executorRole": "Implementation / Operations executor (Cursor Local or Claude Code under recorded claim on #2781 children)",
   "verifierRole": "PR Approver / Engineering (independent review) + WORK assurance (asynchronous unless material exception)",
@@ -43,63 +43,62 @@
     },
     {
       "name": "Monitoring/incident readiness (#2780) accepted",
-      "status": "deferred",
-      "owner": "WORK / team:pmo (#2780)",
-      "releaseCondition": "#2780 reaches WORK ACCEPT / status:complete. Required before #2928 formal rehearsal qualification that depends on monitoring/incident ownership evidence."
+      "status": "satisfied",
+      "evidence": "#2780 CLOSED state=closed labels status:complete / pmo:closed (verified 2026-08-13). Monitoring, alerting, incident ownership, and post-launch response project accepted complete. Does not by itself authorize write-capable rehearsal while #2818 isolation and frozen candidate SHA remain deferred."
     },
     {
       "name": "Website 100% completion contract (#2776) defined and accepted",
       "status": "deferred",
       "owner": "Engineering Pipeline / team:engineering (#2776)",
-      "releaseCondition": "#2776 advances from pmo:stage:intake to accepted completion-contract evidence usable by #2781 entry gate."
+      "releaseCondition": "#2776 advances from pmo:stage:intake to accepted completion-contract evidence usable by #2781 entry gate. Live 2026-08-13: OPEN pmo:stage:intake."
     },
     {
       "name": "Website program dependency/sequence map (#2777) accepted",
       "status": "deferred",
       "owner": "Engineering Pipeline / team:engineering (#2777)",
-      "releaseCondition": "#2777 advances from pmo:stage:intake to accepted sequence map consumed by rehearsal scope."
+      "releaseCondition": "#2777 advances from pmo:stage:intake to accepted sequence map consumed by rehearsal scope. Live 2026-08-13: OPEN pmo:stage:intake."
     },
     {
       "name": "Launch acceptance for a11y/perf/security/privacy (#2783) accepted",
       "status": "deferred",
       "owner": "Engineering Pipeline / team:engineering (#2783)",
-      "releaseCondition": "#2783 advances from pmo:stage:intake to accepted launch-acceptance criteria with recorded evidence."
+      "releaseCondition": "#2783 advances from pmo:stage:intake to accepted launch-acceptance criteria with recorded evidence. Live 2026-08-13: OPEN pmo:stage:intake."
     },
     {
       "name": "Legal/content-rights/fundraiser compliance readiness (#2784) accepted",
       "status": "deferred",
-      "owner": "team:pmo / agent:grok (#2784)",
-      "releaseCondition": "#2784 reaches accepted compliance readiness evidence (currently status:active)."
+      "owner": "team:pmo / agent:cursor (#2784)",
+      "releaseCondition": "#2784 reaches accepted compliance readiness evidence. Live 2026-08-13: OPEN status:active."
     },
     {
       "name": "Operator training/access/support/succession (#2786) accepted",
       "status": "deferred",
       "owner": "Engineering Pipeline / team:engineering (#2786)",
-      "releaseCondition": "#2786 advances from pmo:stage:intake to accepted operator-readiness evidence."
+      "releaseCondition": "#2786 advances from pmo:stage:intake to accepted operator-readiness evidence. Live 2026-08-13: OPEN pmo:stage:intake."
     },
     {
       "name": "Vendor/account/domain/service continuity (#2787) accepted",
       "status": "deferred",
       "owner": "Engineering Pipeline / team:engineering (#2787)",
-      "releaseCondition": "#2787 advances from pmo:stage:intake to accepted continuity evidence."
+      "releaseCondition": "#2787 advances from pmo:stage:intake to accepted continuity evidence. Live 2026-08-13: OPEN pmo:stage:intake."
     },
     {
       "name": "Preview/component runtime isolation from Production (#2818)",
       "status": "deferred",
       "owner": "Engineering Pipeline / team:engineering (#2818)",
-      "releaseCondition": "#2818 completes isolation so rehearsal environmentIdentity is not production-shared for D1/B2/side-effect routes; required before any write-capable formal rehearsal against preview."
+      "releaseCondition": "#2818 completes isolation so rehearsal environmentIdentity is not production-shared for D1/B2/side-effect routes; required before any write-capable formal rehearsal against preview. Live 2026-08-13: OPEN status:active / pmo:stage:definition; preview-isolation-manifest still production-shared."
     },
     {
       "name": "Frozen isolated rehearsal deployment candidate SHA",
       "status": "deferred",
       "owner": "WORK + Implementation (#2781 / #2928)",
-      "releaseCondition": "After isolation and #2780 acceptance, freeze an exact preview/staging deployment SHA distinct from planning tip 9900f98d and record it as candidateIdentity for #2928."
+      "releaseCondition": "After #2818 isolation completes, freeze an exact preview/staging deployment SHA distinct from planning tip 9900f98d and record it as candidateIdentity for #2928. Do not treat component tip 8c3debc3 or schema ready:true as that freeze."
     },
     {
       "name": "Club Newspaper / website runtime programs required by rehearsal scope",
       "status": "deferred",
-      "owner": "WORK / Cursor Lane C (#3382)",
-      "releaseCondition": "Applicable website product projects required by the #2781 journey set reach accepted evidence; #3382 P1-06+ remain separately gated and must not be invented under this Issue."
+      "owner": "WORK / Cursor (#3382)",
+      "releaseCondition": "Applicable website product projects required by the #2781 journey set reach accepted evidence. Live 2026-08-13: #3382 OPEN status:active; accepted children P1-06/#3413 and P1-08/#3416 do not close the parent program or invent write-capable rehearsal scope. P1-07 (D5) and P1-09 (D3) remain gated."
     }
   ]
 }
