@@ -1,0 +1,107 @@
+name: OPS — Library Books Search Eligibility (#3455)
+
+# Operator-triggered Development-only update that adds `search` to
+# allowed_sections for the six authorized Lou Gehrig library-book records.
+# Source Issue #3455. Production D1 writes are refused; Production promotion
+# is a separate protected child (#3456).
+#
+# Two independent gates must both agree before any write:
+#   1. confirm_write must be exactly "confirm".
+#   2. mode must be exactly "apply" — dry-run never writes.
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_write:
+        description: 'Type "confirm" to run this workflow at all (dry-run or apply)'
+        required: true
+        type: string
+      mode:
+        description: 'dry-run (default, no write) or apply (writes to Development D1 only)'
+        required: true
+        type: choice
+        default: dry-run
+        options:
+          - dry-run
+          - apply
+
+concurrency:
+  group: library-books-search-eligibility-3455-dev
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require explicit confirmation
+        run: |
+          if [ "${{ inputs.confirm_write }}" != "confirm" ]; then
+            echo "confirm_write must be exactly 'confirm' — refusing to run."
+            exit 1
+          fi
+          echo "Target: dev (lgfc-litedev)"
+          echo "Mode: ${{ inputs.mode }}"
+
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run #3455 Dev search-eligibility update
+        id: update
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DEV_DATABASE_NAME: ${{ secrets.D1_DEV_DATABASE_NAME }}
+          D1_DEV_DATABASE_ID: ${{ secrets.D1_DEV_DATABASE_ID }}
+          TARGET: dev
+          MODE: ${{ inputs.mode }}
+          CONFIRM_WRITE: ${{ inputs.confirm_write }}
+        run: node scripts/ci/library_books_search_eligibility_3455.mjs
+
+      - name: Upload result evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: library-books-search-eligibility-3455-dev-${{ inputs.mode }}-result
+          path: |
+            library-books-search-eligibility-3455-result.json
+            library-books-search-eligibility-3455-result.md
+          if-no-files-found: warn
+
+      - name: Write step summary
+        if: always() && hashFiles('library-books-search-eligibility-3455-result.md') != ''
+        run: cat library-books-search-eligibility-3455-result.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Record result on #3455
+        if: always() && hashFiles('library-books-search-eligibility-3455-result.md') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue comment 3455 --body-file library-books-search-eligibility-3455-result.md
+
+      - name: Record failure on #3455
+        if: failure() && steps.checkout.outcome == 'success' && hashFiles('library-books-search-eligibility-3455-result.md') == ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue comment 3455 --body "$(cat <<'EOF'
+          <!-- library-books-search-eligibility-3455 -->
+          ## #3455 Dev search eligibility — FAILED (fail-closed)
+
+          The Development-only search-eligibility path (mode: `${{ inputs.mode }}`)
+          did not complete. See the workflow run logs and uploaded artifact (if any).
+          Rollback, if a write started, restores prior `allowed_sections` on the six
+          authorized tags only.
+          EOF
+          )"
