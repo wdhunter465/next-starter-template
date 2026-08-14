@@ -1,0 +1,21 @@
+{
+  "ready": false,
+  "blockers": [
+    "smoke_suite_incomplete"
+  ],
+  "detail": {
+    "suiteProblems": [
+      "record[0]:missing_or_empty:result",
+      "record[1]:missing_or_empty:result",
+      "record[2]:missing_or_empty:result",
+      "record[3]:missing_or_empty:result",
+      "record[4]:missing_or_empty:result",
+      "record[5]:missing_or_empty:result"
+    ],
+    "agreedDeployedCandidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d",
+    "deploymentCandidateSha": null,
+    "manifestProvided": false,
+    "unhandledFailureCategories": [],
+    "note": "Snapshot of the #2932 fail-closed suite (PR #3447). Not a live Production smoke result."
+  }
+}
