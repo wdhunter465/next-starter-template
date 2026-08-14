@@ -10,7 +10,7 @@
   "environmentIdentity": "planned-isolated:cloudflare-pages-preview/origin-main-lgfc-litedev",
   "environmentIdentityNotes": "Not Production. Isolation evidence is satisfied on origin/main (#2818 CLOSED; preview-isolation-manifest lastAudited 2026-08-11, d1-lgfc-litedev classified isolated). This component branch wrangler.toml still declares only Production lgfc_lite and must not be used as a write-capable rehearsal runtime. Schema harness ready:true does not authorize write-capable execution or freeze.",
   "testDataPlan": "Synthetic and/or redacted fixture datasets only for rehearsal journeys. No private Production member PII, Production D1 dumps, Production B2 private objects, or live credentials as disposable test data. Journey catalog (#2927) privacyControl fields must continue to declare synthetic/redacted handling per journey.",
-  "executorRole": "Implementation / Operations executor (Cursor Local under recorded claim on #2781 children)",
+  "executorRole": "Implementation / Operations executor (Claude Code or Cursor Local under recorded claim on #2781 children)",
   "verifierRole": "PR Approver / Engineering (independent review) + WORK assurance (asynchronous unless material exception)",
   "recoveryOwner": "Day-2 Operations coordination (WORK mapping) with Product Authority escalation for Production-adjacent stops",
   "cleanupPlan": "Remove rehearsal-created Issues/comments/labels created under rehearsal namespaces; tear down any temporary preview deployment artifacts; revoke temporary tokens; restore environment to pre-rehearsal state via documented rollback path before #2929 disposition. No Production cleanup authorized by this record.",

@@ -4,7 +4,7 @@ Audience: Bill, ChatGPT, Cursor, LGFC maintainers, and reviewers
 Authority Level: Task Evidence
 Owns: #2928 (#2781 Task 003) formal-rehearsal execution package — writable allowlist, freeze proposal, rehearsal scope split, and remaining deferred-entry dispositions
 Does Not Own: Live journey execution, Production mutation, freeze ACCEPT, Pipeline intake closeout for #2776/#2777/#2783/#2786/#2787, or #2929 GO/NO-GO
-Canonical Reference: /docs/ops/reports/launch-rehearsal-execution-runbook-2928.md
+Canonical Reference: /docs/ops/reports/launch-rehearsal-execution-package-2928.md
 Related Issues: #2928, #2781, #2926, #2927, #2929, #2818, #3382, #2784
 Last Reviewed: 2026-08-14
 ---
