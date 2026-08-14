@@ -50,7 +50,6 @@ export function mapIssueCommentToChatterboxEvent(comment, { roomKey, participant
 
 /** I/O: fetch issue comments created at or after `since` (ISO 8601), newest-last per GitHub's default order. */
 export async function fetchIssueCommentsSince({ token, repository, issueNumber, since, fetchFn = fetch }) {
-  const [owner, repo] = repository.split('/');
   const params = new URLSearchParams({ per_page: '100' });
   if (since) params.set('since', since);
   return request({

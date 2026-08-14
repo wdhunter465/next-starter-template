@@ -52,20 +52,20 @@ export async function resolvePagesDeploymentUrl({
   return deployment.url;
 }
 
-function readEnv(name) {
+function readEnv(name, { required = true } = {}) {
   const value = process.env[name];
-  if (!value) {
+  if (!value && required) {
     console.error(`FAIL-CLOSED: missing required env var ${name}`);
     process.exitCode = 1;
     return null;
   }
-  return value;
+  return value || '';
 }
 
 export async function main() {
   const apiToken = readEnv('CLOUDFLARE_API_TOKEN');
   const accountId = readEnv('CLOUDFLARE_ACCOUNT_ID');
-  const projectName = readEnv('CLOUDFLARE_PAGES_PROJECT') || 'next-starter-template-6yr';
+  const projectName = readEnv('CLOUDFLARE_PAGES_PROJECT', { required: false }) || 'next-starter-template-6yr';
   const branch = readEnv('CHATTERBOX_TARGET_BRANCH');
 
   if (!apiToken || !accountId || !branch) return null;
