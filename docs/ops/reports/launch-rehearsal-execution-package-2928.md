@@ -3,7 +3,7 @@ Doc Type: Operations Report
 Audience: Bill, ChatGPT, Cursor, LGFC maintainers, and reviewers
 Authority Level: Task Evidence
 Owns: #2928 (#2781 Task 003) formal-rehearsal execution package — freeze, observe-only vs write-capable split, and deferred-entry dispositions
-Does Not Own: Write-capable 22-journey execution, Production mutation, Pipeline intake closeout for #2776/#2777/#2783/#2786/#2787, or #2929 GO/NO-GO
+Does Not Own: Write-capable 10-journey remainder, Production mutation, Pipeline intake closeout for #2776/#2777/#2783/#2786/#2787, or #2929 GO/NO-GO
 Canonical Reference: /docs/ops/reports/launch-rehearsal-execution-package-2928.md
 Related Issues: #2928, #2781, #2926, #2927, #2929, #2818, #3382, #2784
 Last Reviewed: 2026-08-14
@@ -22,11 +22,11 @@ Production.
 | Field | Value |
 | --- | --- |
 | Parent | #2781 (Active P4; Cursor Local owns remaining chain #2928 → #2929) |
-| This increment | Freeze + observe-only GET subset |
+| This increment | Observe-only retest after isolated Preview D1 fixtures |
 | Frozen candidate | `origin/main@87414533984aa9b5579b679fc8f9746b93517c5d` |
 | Preview | `05568c3e-a56f-45d0-a3db-1298d9b7b80c` / `lgfc-litedev` |
 | Isolation evidence | Satisfied on `origin/main` (#2818 CLOSED) |
-| Observe-only executed | 2026-08-14T12:52:02Z (12 journeys; 10 pass / 2 fail deferred) |
+| Observe-only executed | First pass 2026-08-14T12:52:02Z; retest 2026-08-14T13:11:00Z (12 journeys clean) |
 | Write-capable executed | None |
 | Production mutation | None |
 
@@ -34,7 +34,6 @@ Schema `ready: true` on the entry harness remains schema/package readiness only.
 
 ## Exact writable allowlist (this increment)
 
-- `docs/ops/reports/launch-rehearsal-entry-criteria-record-2926.json`
 - `docs/ops/reports/launch-rehearsal-execution-package-2928.md`
 - `docs/ops/reports/launch-rehearsal-execution-runbook-2928.md`
 - `docs/ops/reports/launch-rehearsal-observe-only-evidence-2928.json`
@@ -70,8 +69,8 @@ GET / read / contract-assert journeys; no POST; no `GET /api/matchup/current`:
 - `fanclub-gallery-photo` — pass (unauthenticated)
 - `fanclub-library` — pass (unauthenticated)
 - `fanclub-memorabilia` — pass (unauthenticated)
-- `content-media-rights-attribution` — fail D-2928-001 (`deferred-with-owner`)
-- `fundraiser-enabled-state` — fail D-2928-002 (`deferred-with-owner`)
+- `content-media-rights-attribution` — fail then pass (D-2928-001 resolved)
+- `fundraiser-enabled-state` — fail then pass (D-2928-002 resolved)
 - `fundraiser-disabled-state` — pass
 - `ops-deployment-monitoring` — pass
 - `ops-evidence-closeout` — pass (subset)
@@ -112,15 +111,14 @@ PMO/Product 2026-08-14; carry forward into #2929 / #2782; do not waive or close)
 
 ## What this increment does not do
 
-- Execute write-capable / side-effect journeys.
-- Treat observe-only as fully clean for automatic write-capable start.
-- Copy Production D1/media into Preview.
+- Execute write-capable / side-effect journeys (next increment).
+- Mutate Production D1 `lgfc_lite` or Production hostnames.
 - Start #2929 GO/NO-GO or #2782.
 - Close #2928.
 
 ## Successor
 
-Next #2928 increment is the isolated write-capable 22-journey remainder (10
-journeys) plus any fixture work for D-2928-001/D-2928-002, with a new exact
-allowlist. Cleanup/rollback proof remains open. On clean #2928 completion,
-proceed to #2929.
+Observe-only set is clean after retest on the same frozen SHA. Next #2928
+increment is the remaining 10 write-capable isolated journeys under the existing
+runbook, with a new exact allowlist. Cleanup/rollback proof remains open. On
+clean #2928 completion, proceed to #2929.

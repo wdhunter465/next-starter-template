@@ -2,7 +2,7 @@
   "sourceIssue": 2928,
   "parentProject": 2781,
   "candidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d",
-  "recordedAt": "2026-08-14T12:54:00Z",
+  "recordedAt": "2026-08-14T13:11:00Z",
   "recordedBy": "Cursor Local",
   "defects": [
     {
@@ -10,20 +10,18 @@
       "journeyId": "content-media-rights-attribution",
       "severity": "major",
       "summary": "GET /api/photos?limit=20 against isolated Preview D1 (lgfc-litedev) returned 20 rows with empty title, description, and tags. Attribution/rights metadata required by the journey contract is not present on the sampled isolated catalog.",
-      "disposition": "deferred-with-owner",
-      "deferredOwner": "Implementation / Operations + content fixture owner — supply synthetic/redacted Preview D1 media attribution fixtures; do not copy Production media or PII. Product/PMO if accepted as isolated-data gap rather than candidate-code defect.",
+      "disposition": "resolved",
       "candidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d",
-      "evidenceRef": "docs/ops/reports/launch-rehearsal-observe-only-evidence-2928.json#content-media-rights-attribution"
+      "evidenceRef": "docs/ops/reports/launch-rehearsal-observe-only-evidence-2928.json retest pass 2026-08-14T13:11:00Z after synthetic Preview D1 attribution on photo ids 829-848"
     },
     {
       "id": "D-2928-002",
       "journeyId": "fundraiser-enabled-state",
       "severity": "minor",
       "summary": "GET /api/cms/get?key=home.campaign_spotlight on isolated Preview returned {ok:true, block:null}. The enabled-state fundraiser contract cannot be demonstrated on this frozen candidate without a synthetic CMS publish (write), which this observe-only increment does not perform.",
-      "disposition": "deferred-with-owner",
-      "deferredOwner": "Implementation / Operations — synthetic Preview CMS fixture or a later write-capable isolated publish under the runbook. Do not publish campaign content to Production.",
+      "disposition": "resolved",
       "candidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d",
-      "evidenceRef": "docs/ops/reports/launch-rehearsal-observe-only-evidence-2928.json#fundraiser-enabled-state"
+      "evidenceRef": "docs/ops/reports/launch-rehearsal-observe-only-evidence-2928.json retest pass 2026-08-14T13:11:00Z after synthetic published home.campaign_spotlight on lgfc-litedev"
     }
   ]
 }

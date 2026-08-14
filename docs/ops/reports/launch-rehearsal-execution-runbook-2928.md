@@ -35,8 +35,9 @@ final disposition — each is owned by its own task/report.
   `https://05568c3e.next-starter-template-6yr.pages.dev`. Evidence:
   `docs/ops/reports/launch-rehearsal-observe-only-evidence-2928.json`. Run
   narrative: `docs/ops/reports/launch-rehearsal-observe-only-run-2928.md`.
-- Two defects recorded (`D-2928-001`, `D-2928-002`), both
-  `deferred-with-owner`, in
+- Two defects (`D-2928-001`, `D-2928-002`) **resolved** after synthetic
+  Preview D1 fixtures on `lgfc-litedev` (same frozen SHA). Retest pass
+  2026-08-14T13:11:00Z. Ledger:
   `docs/ops/reports/launch-rehearsal-defect-ledger-2928.json`.
 - Write-capable / side-effect journeys **not** executed. Production was not
   mutated. `GET /api/matchup/current` was not invoked.
@@ -51,17 +52,16 @@ final disposition — each is owned by its own task/report.
 
 ## Intended final state
 
-Observe-only GET has run against the frozen isolated candidate. Remaining work
-for a complete #2928 pass: write-capable journeys, terminal or explicit deferred
-disposition of every defect, affected-journey retest against a requalified
-candidate when remediation changes the SHA, and cleanup/rollback proof. #2929
-cites the ledger and evidence verbatim; this runbook does not invent GO/HOLD.
+Observe-only GET has run and been retested clean against the frozen isolated
+candidate. Remaining work for a complete #2928 pass: write-capable 10-journey
+remainder, cleanup/rollback proof. #2929 cites the ledger and evidence
+verbatim; this runbook does not invent GO/HOLD.
 
 ## Non-blocking prerequisite rule
 
 Per #2928's non-blocking prerequisite rule, collision-safe package/evidence work
 continues through protected stops. A protected stop blocks only the affected
-action. Observe-only GET is complete for this increment; write-capable execution
+action. Observe-only GET is clean after retest; write-capable execution
 and cleanup/rollback remain open. Pipeline-intake #2776/#2777/#2783/#2786/#2787
 are not technical rehearsal-entry blockers (PMO/Product 2026-08-14) and stay
 deferred for #2929 / #2782.
