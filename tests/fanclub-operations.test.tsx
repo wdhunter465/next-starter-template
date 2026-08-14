@@ -259,6 +259,30 @@ describe('Fan Club operational pages', () => {
       'href',
       'https://books.google.com/books/about/Luckiest_Man.html?id=7SgyXXadMIYC',
     );
+    expect(screen.getByRole('searchbox', { name: 'Search' })).toBeInTheDocument();
+  });
+
+  it('does not render non-http bibliographic source URLs in the populated Library list', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      jsonResponse({
+        ok: true,
+        items: [
+          {
+            id: 4,
+            title: 'Lou Gehrig: Pride of the Yankees',
+            author: 'Paul Gallico',
+            source_name: 'Open Road Media',
+            source_url: 'javascript:alert(1)',
+            content: 'Early biography.',
+          },
+        ],
+      }) as never,
+    );
+
+    render(<LibraryPage />);
+
+    expect(await screen.findByRole('heading', { name: 'Lou Gehrig: Pride of the Yankees' })).toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Bibliographic source' })).not.toBeInTheDocument();
   });
 
   it('exposes the approved member submission path from Club Home CTA without changing header navigation', () => {

@@ -38,6 +38,16 @@ function buildLibraryApiUrl(page: number, q: string): string {
   return `/api/fanclub/library?${params.toString()}`;
 }
 
+function isSafeHttpUrl(value: string | null | undefined): value is string {
+  if (!value) return false;
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+  } catch {
+    return false;
+  }
+}
+
 export default function LibraryPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -110,6 +120,7 @@ export default function LibraryPage() {
               Search
               <input
                 style={styles.input}
+                type="search"
                 value={draftQuery}
                 onChange={(e) => setDraftQuery(e.target.value)}
                 placeholder="Search library…"
@@ -155,7 +166,7 @@ export default function LibraryPage() {
                     .join(' • ') || 'Published inventory story'}
                 </div>
                 <p style={{ ...styles.p, marginTop: 8, whiteSpace: 'pre-wrap' }}>{it.content || it.description || 'No description available yet.'}</p>
-                {it.source_url ? (
+                {isSafeHttpUrl(it.source_url) ? (
                   <p style={{ ...styles.p, marginTop: 0 }}>
                     <a href={it.source_url} rel="noopener noreferrer" target="_blank">
                       Bibliographic source
