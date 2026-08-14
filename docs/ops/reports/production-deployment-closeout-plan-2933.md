@@ -38,9 +38,10 @@ result as a pipeline input. It does not write Production D1, send email, run
 - Authoritative live-run closeout evidence is the three JSON files listed
   under Real closeout files. Sections below this heading that still describe
   pre-Go preparation are historical template, not a second result set.
-- Sibling program Issues #2776, #2777, #2783, #2786, and #2787 remain OPEN and
-  are not waived as program work. They are not recorded as #2782 launch
-  blockers for this closeout.
+- #2776, #2777, #2783, #2786, and #2787 remain OPEN and are not waived.
+  #2782 Go/No-Go text still lists complete #2776/#2777 evidence. Product
+  recorded Production Go and accepted smoke while those Issues were still
+  OPEN; this closeout does not claim they are fulfilled.
 - This increment does not write Production D1, send email, GET
   `/api/matchup/current`, or close #2782.
 
@@ -98,10 +99,12 @@ Expected this increment: `ready: true`.
 
 ## Unresolved protected decisions carried forward
 
-#2776, #2777, #2783, #2786, and #2787 remain OPEN as sibling program projects
-and are not waived. They are omitted from the closeout harness decisions file
-because they are not #2782 launch blockers for this accepted Go. Production Go
-and #2932 smoke are recorded.
+#2776, #2777, #2783, #2786, and #2787 remain OPEN and are not waived.
+#2782 Go/No-Go text still lists complete #2776/#2777 evidence. They are
+omitted from the harness decisions file because Product already recorded
+Production Go (2026-08-14T20:50Z) and accepted #2932 smoke (2026-08-14T21:15Z)
+while they were still OPEN; re-listing them would fail-close this child's
+harness contrary to that Product decision. This is not a program-level waiver.
 
 ## Closeout record — required fields
 
