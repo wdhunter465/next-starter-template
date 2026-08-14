@@ -8,6 +8,17 @@ export const EXCEPTION_LABEL = 'post-merge-failure';
 export const EXCEPTION_TITLE_PREFIX = 'Post-merge closeout exception for ';
 export const LEGACY_EXCEPTION_TITLE_PREFIX = 'Post-merge remediation required for ';
 
+export function toLineageIssue(issue = {}) {
+	return {
+		number: issue.number,
+		title: issue.title || '',
+		state: issue.state || '',
+		labels: issue.labels || [],
+		body: issue.body || '',
+		created_at: issue.created_at || issue.createdAt || '',
+	};
+}
+
 function labelNames(issue = {}) {
 	return (Array.isArray(issue.labels) ? issue.labels : [])
 		.map((label) => (typeof label === 'string' ? label : label?.name || ''))
@@ -98,9 +109,7 @@ export function planSuccessorPause({
 			if (isExceptionIssue(issue)) return false;
 			const labels = labelNames(issue);
 			if (!labels.includes(agentLabel)) return false;
-			return labels.includes('status:active')
-				|| labels.includes('status:implementation')
-				|| labels.includes('status:queued');
+			return labels.includes('status:queued');
 		})
 		.sort((left, right) => Date.parse(left.created_at || 0) - Date.parse(right.created_at || 0));
 	const next = candidates[0];

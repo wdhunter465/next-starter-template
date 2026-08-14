@@ -252,6 +252,7 @@ describe('post-merge closeout sync propagation', () => {
 		expect(isSuccessfulSourceIssueCloseout('complete')).toBe(true);
 		expect(isSuccessfulSourceIssueCloseout('active_relabeled')).toBe(true);
 		expect(isSuccessfulSourceIssueCloseout('remediation_issue')).toBe(true);
+		expect(isSuccessfulSourceIssueCloseout('unresolved_exception_chain')).toBe(true);
 		expect(isSuccessfulSourceIssueCloseout('failure_relabeled')).toBe(false);
 		expect(isSuccessfulSourceIssueCloseout('validator_not_pass')).toBe(false);
 	});

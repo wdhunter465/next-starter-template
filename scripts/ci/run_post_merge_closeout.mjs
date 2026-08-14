@@ -52,7 +52,8 @@ export function isSuccessfulSourceIssueCloseout(syncResult) {
 	return (
 		syncResult === 'complete' ||
 		syncResult === 'active_relabeled' ||
-		syncResult === 'remediation_issue'
+		syncResult === 'remediation_issue' ||
+		syncResult === 'unresolved_exception_chain'
 	);
 }
 

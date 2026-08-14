@@ -279,6 +279,24 @@ describe('post-merge metadata validation', () => {
 		expect(result).toMatchObject({ status: 'pass', remediation_required: false, sync_action: 'post_merge_success' });
 	});
 
+	it('records original source issue and open exceptions for closeout callers', () => {
+		const open = [{
+			number: 3462,
+			title: 'Post-merge closeout exception for PR #3461 / source #3069 / unresolved_exception_chain',
+			labels: ['post-merge-failure', 'agent:cursor'],
+			body: '- Original source issue: #3069\n',
+		}];
+		const result = buildResult({
+			pr: mergedPr({ body: baseBody.replace('#1122', '#3069') }),
+			resolution: { pr: '3461' },
+			originalSourceIssue: 3069,
+			openExceptionIssues: open,
+		});
+
+		expect(result.original_source_issue).toBe(3069);
+		expect(result.open_exception_issues).toEqual(open);
+	});
+
 	it('records #2117-style missing_required_section as historical hygiene without failing post-merge closeout', () => {
 		const bodyMissingChangeSummary = baseBody.replace('## CHANGE SUMMARY', '## SUMMARY ONLY');
 		const failures = metadataFailures(mergedPr({ body: bodyMissingChangeSummary }), () => true);
