@@ -84,15 +84,14 @@ named scoping choice for the prototype, not a silent security shortcut —
 real per-agent tokens are the explicit next step before any use beyond
 synthetic/sandbox testing.
 
-**Preview must carry its own `ADMIN_TOKEN`, never Production's.**
-`docs/ops/reports/delivery-system-preview-isolation-audit.md` §8 explicitly
-warns against mirroring Production's `ADMIN_TOKEN` into Preview. The
-Development integration check (work unit 6, below) therefore reads its
-token from `CHATTERBOX_PREVIEW_ADMIN_TOKEN` — a GitHub Actions secret scoped
-to this check alone — not any Production-named secret. Whether that secret
-and the matching Cloudflare Pages Preview environment variable exist yet is
-a named, open prerequisite (see chatterbox-authority-boundary.md), not
-something this documentation increment can create.
+The Development integration check (work unit 6, below) reads its token from
+the repository's existing `ADMIN_TOKEN` secret — confirmed already
+configured by Product Authority (2026-08-14), so no new secret needed
+provisioning. That confirmation is about the secret's *name*, not its
+*scope*: per the Preview-isolation audit cited above, the value behind that
+name must be the Development/Preview deployment's own `ADMIN_TOKEN`, never
+Production's — this check never targets Production and cannot itself
+verify which environment's value the secret actually holds.
 
 ## Why the Development integration proof runs against the real deployment, not a mock
 
