@@ -17,6 +17,26 @@ Record Task 001 (#2049) review of Program #1738 manual-workflow evidence and cla
 
 This inventory is **provisional and design-time only**. Real Gehrig trial rows were never populated. Runtime implementation (#2055) remains gated on #3157.
 
+## Scope
+
+This report covers Task 001 (#2049) classification only:
+
+- review of Program #1738 procedure, schema, and review-rule evidence;
+- candidate software-assist steps versus mandatory manual gates;
+- required metadata before any public-path transition;
+- the proceed/hold decision for Task 002 (#2050).
+
+It does not implement runtime publication, fill trial rows, start Task 002, or authorize public exposure.
+
+## Intended final state
+
+After Task 001 is accepted:
+
+- publication-support candidates and manual gates are recorded;
+- required public-path metadata, including recorded human approval, is listed;
+- Task 002 may begin state-model design;
+- runtime Task 007 (#2055) remains gated on #3157.
+
 ## Current known truth
 
 | Field | Value |
@@ -49,7 +69,7 @@ This inventory is **provisional and design-time only**. Real Gehrig trial rows w
 
 ## Manual workflow (as designed)
 
-From the intake how-to, the proven **procedure** (not yet proven with real rows) is:
+From the intake how-to, the **documented procedure** (not yet validated with real trial rows) is:
 
 1. Source discovered through an approved channel.
 2. Lead captured as metadata (`candidate_id`); no wholesale copy into the repo.
@@ -103,8 +123,9 @@ Minimum fields before any public-path transition (from the #1738 schema plus pub
 - `privacy_flag` and privacy-review status when flagged
 - `editorial_use_candidate`, `review_status`
 - `reviewer`, `reviewed_at` when leaving `candidate`
+- `approved_by` / `approved_at` before converting to published inventory or public exposure
 - `rejection_reason` when rejected
-- For public inventory: `content_inventory.status = published`, matching `allowed_sections`, and not blocked by rights/privacy flags
+- For public inventory: `content_inventory.status = published`, matching `allowed_sections`, recorded human approval, and not blocked by rights/privacy flags
 
 Missing any required public-path field **fails closed**.
 
