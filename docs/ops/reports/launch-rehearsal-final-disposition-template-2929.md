@@ -6,7 +6,7 @@ Owns: #2929 (#2781 Task 004) final rehearsal disposition report structure, evide
 Does Not Own: The actual GO/HOLD/ADJUSTMENT/NO-GO decision (Product Authority, made once a real rehearsal has run); candidate/environment identity (#2926); journey/evidence/defect data (#2927, #2928, owned by those reports)
 Canonical Reference: /docs/ops/reports/launch-rehearsal-final-disposition-template-2929.md
 Related Issues: #2929, #2781, #2926, #2927, #2928, #2782
-Last Reviewed: 2026-08-08
+Last Reviewed: 2026-08-14
 ---
 
 # Final rehearsal disposition template and #2782 handoff packaging — #2929
@@ -31,15 +31,18 @@ judgment made once real rehearsal evidence exists — and it does not redefine
 ## Current known truth
 
 - No formal rehearsal has run. `buildDispositionReadiness()` is implemented and
-  tested against synthetic fixtures (`tests/launch-rehearsal-disposition-readiness.test.mjs`),
-  proving the readiness logic is sound, but it has not been run against any real
-  #2927 evidence log or #2928 defect ledger because none exists yet.
-- This document is a **template**, not a filled-in disposition. Every bracketed
-  placeholder below is filled in only when #2929 is actually executed after
-  #2926/#2927/#2928 produce real data.
-- #2782 (the successor Production-deployment project) is not started; the
-  handoff checklist below describes what it will receive, not anything already
-  transferred.
+  tested against synthetic fixtures (`tests/launch-rehearsal-disposition-readiness.test.mjs`).
+- Collision-safe #2929 preparation (2026-08-14) adds:
+  `docs/ops/reports/launch-rehearsal-disposition-evidence-index-2929.md`,
+  `docs/ops/reports/launch-rehearsal-unresolved-protected-decisions-2929.json`,
+  and `docs/ops/reports/launch-rehearsal-final-disposition-draft-2929.md`.
+  The draft is **not** a Product Authority recommendation.
+- Live readiness snapshot: `ready: false` (`evidence_incomplete`,
+  `defect_ledger_invalid`, `retest_coverage_incomplete`,
+  `unresolved_protected_decisions_present`). Journey registry validates
+  (`ok: true`, 22 journeys).
+- #2928 execution package merged as PR #3437; formal journeys have not run.
+- #2782 is not started; the handoff checklist remains unchecked until GO.
 
 ## Intended final state
 
