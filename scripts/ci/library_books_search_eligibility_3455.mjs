@@ -98,8 +98,17 @@ export function searchEligibleCountQuery() {
 }
 
 export function planSearchEligibility(existingRows) {
-  const existingByTag = new Map((existingRows || []).map((row) => [row.tag, row]));
+  const rows = existingRows || [];
+  const tagCounts = new Map();
+  const existingByTag = new Map();
+  for (const row of rows) {
+    tagCounts.set(row.tag, (tagCounts.get(row.tag) || 0) + 1);
+    if (!existingByTag.has(row.tag)) existingByTag.set(row.tag, row);
+  }
   const plans = BOOK_RECORDS.map((book) => {
+    if ((tagCounts.get(book.tag) || 0) > 1) {
+      return { action: 'conflict', tag: book.tag, exceptionCode: 'DUPLICATE_CANONICAL_TAG' };
+    }
     const existing = existingByTag.get(book.tag);
     if (!existing) {
       return { action: 'conflict', tag: book.tag, exceptionCode: 'MISSING_RECORD' };
@@ -153,7 +162,7 @@ export function planSearchEligibility(existingRows) {
 export function buildUpdateAllowedSectionsStatement(item, columnNames) {
   const assignments = [`allowed_sections = ${sqlLiteral(item.next)}`];
   if (columnNames.has('updated_at')) assignments.push(`updated_at = ${UPDATED_AT_EXPR}`);
-  return `UPDATE content_inventory SET ${assignments.join(', ')} WHERE id = ${Number(item.id)} AND tag = ${sqlLiteral(item.tag)} AND title = ${sqlLiteral(item.title)} AND canonical = 1;`;
+  return `UPDATE content_inventory SET ${assignments.join(', ')} WHERE id = ${Number(item.id)} AND tag = ${sqlLiteral(item.tag)} AND title = ${sqlLiteral(item.title)} AND canonical = 1 AND status = 'published' AND allowed_sections = ${sqlLiteral(item.previous)};`;
 }
 
 export function buildStatementsForPlan(plan, columnNames) {
