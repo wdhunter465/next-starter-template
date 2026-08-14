@@ -30,27 +30,25 @@ each is owned by its own task.
 
 ## Current known truth
 
-- Predecessor project #2781 is COMPLETE after #2929 / merged PR #3445. The
-  recorded rehearsal disposition is **GO** for bounded #2782 non-Production
-  preparation on the unchanged frozen candidate
-  `origin/main@87414533984aa9b5579b679fc8f9746b93517c5d` (Pages Preview
-  `05568c3e-a56f-45d0-a3db-1298d9b7b80c`, D1 `lgfc-litedev` /
-  `35232809-b4c1-4df9-9f39-2f178b13c378`). That GO is **not** Product Authority
-  Production Go.
-- Nine of twelve preflight fields now have citation-backed content. The three
-  remaining empty fields in
-  `docs/ops/reports/production-deployment-preflight-record-2931.json` are
-  `changeWindowStart`, `changeWindowEnd`, and `rollbackCandidateSha`.
-- Running that real record through
-  `scripts/ci/production_deployment_preflight_readiness.mjs` is expected to
-  report `ready: false` / `preflight_incomplete` because those three fields are
-  empty. That is the correct fail-closed verdict: a scheduled Production window
-  and a distinct already-deployed Production rollback SHA are not recorded, and
-  inventing them would fabricate readiness.
-- #2776, #2777, #2783, #2786, and #2787 remain explicit unresolved protected
-  Pipeline intake decisions. They are not waived.
-- This document does not authorize deployment, Production mutation, or
-  credential use of any kind.
+- Product Authority recorded **Production Go** in the live Cursor Local session
+  on 2026-08-14T20:50Z (`Go`) for parent #2782 / child #2931.
+- Deployed identity for this run is the **already Active** Cloudflare Pages
+  Production deployment `952e90fc-a366-4335-9843-db77024003da`, source
+  `origin/main@7e238319360b7adff2d893ebce03a40e9833f497`. `promote-cloudflare-deployment.sh`
+  was **not** invoked. Promoting the older rehearsal freeze
+  `87414533984aa9b5579b679fc8f9746b93517c5d` would regress live Production.
+- Bounded change window: `2026-08-14T20:50:00Z` → `2026-08-15T00:50:00Z`.
+- Rollback candidate (distinct): `ccab0480eaf16bfac644e1e3ef33c3a9c4b16283`
+  (immediately prior Production Pages source, deployment `c5051e90`).
+- `scripts/ci/production_deployment_preflight_readiness.mjs` against the real
+  record is expected to report `ready: true` for structural preflight. The five
+  Pipeline intake Issues (#2776, #2777, #2783, #2786, #2787) remain unwaived
+  and are carried as unresolved protected decisions; they do not empty the
+  three instance fields.
+- Executor is Cursor Local; independent verifier remains Bill / Product
+  Authority (must not accept Cursor's own smoke as final).
+- This document still does not authorize Production D1 writes, secret
+  exposure, or self-merge.
 
 ## Intended final state
 
@@ -116,11 +114,12 @@ Seven of the twelve required fields (`executorRole`, `verifierRole`,
 `communicationPlan`, `credentialBoundaryStatement`, `smokeTestPlan`,
 `completeVerificationPlan`, `stopTriggers`) describe a **role or procedure**,
 not a specific deployment instance. Those seven were prepared in PR #3412.
-Two further instance-bound fields are now filled from recorded authority
+Two further instance-bound fields are filled from recorded authority
 (#2929 evidence and `docs/governance/AGENT-TEAM.md`). The remaining three
-(`changeWindowStart`, `changeWindowEnd`, `rollbackCandidateSha`) stay empty
-because they still require Production Go and a distinct last-accepted
-Production SHA.
+(`changeWindowStart`, `changeWindowEnd`, `rollbackCandidateSha`) are filled
+from the 2026-08-14T20:50Z Production Go: window
+`2026-08-14T20:50:00Z`–`2026-08-15T00:50:00Z`, rollback
+`ccab0480eaf16bfac644e1e3ef33c3a9c4b16283`.
 
 **`executorRole`:** The Team:PMO implementation agent (Cursor Local or Claude
 Code) holding an explicit, recorded Bill/Product Authority Production-dispatch
