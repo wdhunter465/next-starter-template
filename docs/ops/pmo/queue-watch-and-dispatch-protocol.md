@@ -5,8 +5,8 @@ Authority Level: Operational Authority
 Owns: Repository queue watch, Operations interrupt dispatch, peer PMO and Engineering dispatch, source-Issue collaboration routing, local Cursor wake routing, acknowledgment, stale-communication recovery, profile-aware continuation, and bounded administrative reconciliation
 Does Not Own: Product or priority decisions, queue ownership decisions, Engineering design decisions, PR approval, Production authorization, recovery strategy, workflow implementation, credentials, or project objectives
 Canonical Reference: /docs/governance/ADMINISTRATION-AND-COMMUNICATIONS.md
-Related Issues: #2396, #2492, #2640, #2641, #2639, #2695, #2699, #2709, #3055, #3113
-Last Reviewed: 2026-08-06
+Related Issues: #2396, #2492, #2640, #2641, #2639, #2695, #2699, #2709, #3055, #3113, #3069
+Last Reviewed: 2026-08-14
 ---
 
 # Queue Watch and Dispatch Protocol
@@ -494,7 +494,26 @@ The dispatcher must prevent:
 - duplicate assignment, collaboration, hold, resume, integration, closeout, or incident actions;
 - queue-wide freeze caused by one gated final step when collision-safe increments remain executable;
 - treating ordinary predecessor or advisory conditions as universal execution denial;
-- delaying eligible-agent self-claim after deterministic predecessor completion when the successor package is complete.
+- delaying eligible-agent self-claim after deterministic predecessor completion when the successor package is complete;
+- treating a post-merge closeout exception as new `handoff:ready` competition or as ChatGPT/Bill owner-assignment when originating ownership is determinable;
+- closing the original source Issue while an exception in its originating-delivery chain remains unresolved;
+- ending the originating-delivery cycle on remediation merge alone, without re-entering the same post-merge verification/closeout workflow.
+
+## Post-merge originating-delivery exception cycle
+
+When CI creates a post-merge closeout exception, the dispatcher treats it as recursive completion work in the original delivery, not as a new queue item.
+
+Required cycle (full closeout contract): `docs/ops/pmo/github-issue-closeout-protocol.md` section **Recursive originating-delivery closeout cycle (#3069)**.
+
+Dispatcher rules:
+
+1. Route the new exception Issue to the originating implementation agent (`agent:*` + `status:active`) immediately.
+2. Do not add `handoff:ready` for that exception. Do not wait for PMO/Bill reassignment when ownership is determinable.
+3. Pause only that agent's next assigned project successor at `status:queued`. Do not pause unrelated agent lanes.
+4. After each remediation merge, require the same post-merge verification/closeout workflow to run again.
+5. If verification fails again, expect another new exception Issue in the same lineage and the same owner; continue without an arbitrary retry limit.
+6. Do not treat the original source Issue as terminally complete until verification is clean and no exception in that lineage remains unresolved.
+7. After clean terminal closeout, resume the paused successor automatically; no new dispatch is required.
 
 ## Required references
 
@@ -508,6 +527,8 @@ The dispatcher must prevent:
 - Agent roles: `docs/governance/AGENT-TEAM.md`
 - PR process: `docs/governance/PR_PROCESS.md`
 - Day-2 policy: `docs/governance/OPERATIONS-AND-RECOVERY.md`
+- Issue closeout protocol: `docs/ops/pmo/github-issue-closeout-protocol.md`
+- Originating-delivery exception cycle: `docs/ops/as-built/post-merge-originating-agent-remediation-3069.md`
 
 ## Supersession
 
