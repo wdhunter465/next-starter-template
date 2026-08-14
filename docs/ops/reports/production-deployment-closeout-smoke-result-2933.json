@@ -1,21 +1,12 @@
 {
-  "ready": false,
-  "blockers": [
-    "smoke_suite_incomplete"
-  ],
+  "ready": true,
+  "blockers": [],
   "detail": {
-    "suiteProblems": [
-      "record[0]:missing_or_empty:result",
-      "record[1]:missing_or_empty:result",
-      "record[2]:missing_or_empty:result",
-      "record[3]:missing_or_empty:result",
-      "record[4]:missing_or_empty:result",
-      "record[5]:missing_or_empty:result"
-    ],
-    "agreedDeployedCandidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d",
+    "suiteProblems": [],
+    "agreedDeployedCandidateSha": "7e238319360b7adff2d893ebce03a40e9833f497",
     "deploymentCandidateSha": null,
     "manifestProvided": false,
     "unhandledFailureCategories": [],
-    "note": "Snapshot of the #2932 fail-closed suite (PR #3447). Not a live Production smoke result."
+    "note": "Snapshot of #2932 smoke harness against docs/ops/reports/production-deployment-smoke-records-2932.json after Product Authority accepted the smoke 2026-08-14T21:15Z. Reconfirm read-only prod-smoke.sh at 2026-08-14T21:17:25.877Z exited 0. Independent verifier is Bill."
   }
 }
