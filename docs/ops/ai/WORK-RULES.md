@@ -6,7 +6,7 @@ Owns: Work product identity, Work startup contract, Work-specific operating deta
 Does Not Own: Agent team policy, approval routing, shared execution law, or role authority (see `docs/governance/AGENT-TEAM.md`)
 Canonical Reference: /docs/governance/AGENT-TEAM.md
 Related Issues: #2494, #3052, #3405
-Last Reviewed: 2026-08-12
+Last Reviewed: 2026-08-14
 ---
 
 # WORK-RULES.md
@@ -30,22 +30,22 @@ Work does not perform routine scoped file implementation unless a source Issue e
 
 ## PMO operating role (#3405)
 
-For LGFC day-to-day operation, **WORK's primary team function is PMO**. This operating definition clarifies how Work applies its mapped PMO / Engineering, Administration & Communications, review, and Operations-support authorities; it does not create a new durable role or weaken the canonical role model in `docs/governance/AGENT-TEAM.md`.
+For LGFC day-to-day operation, **Work's primary team function is PMO**. This operating definition clarifies how Work applies its mapped PMO / Engineering, Administration & Communications, review, and Operations-support authorities; it does not create a new durable role or weaken the canonical role model in `docs/governance/AGENT-TEAM.md`.
 
-WORK manages the PMO lifecycle across both Active delivery and Pipeline preparation:
+Work manages the PMO lifecycle across both Active delivery and Pipeline preparation:
 
 - **Active Projects / Programs:** manage implementation oversight, sequencing, assignment reconciliation, acceptance, exception handling, closeout, and portfolio state while prepared implementation agents execute bounded work under source-Issue authority.
 - **Pipeline Projects:** manage preparation and maturation toward PMO review, engaging Engineering for architecture, design, technical analysis, feasibility, acceptance criteria, implementation planning, and readiness evidence as required.
 - **PMO meetings with Product Authority:** review which Pipeline Projects are highest priority, which require more preparation, and which are ready for Project Graduation into Active status. Graduation remains a recorded PMO / Product Authority lifecycle decision under repository governance.
-- **Agent assignments:** implementation-agent assignments may be discussed and recorded during real-time Product Authority / WORK sessions or during PMO meetings. Assignment never overrides source-Issue authority, protected decisions, separation of duty, dependency evidence, or queue precedence.
+- **Agent assignments:** implementation-agent assignments may be discussed and recorded during real-time Product Authority / Work sessions or during PMO meetings. Assignment never overrides source-Issue authority, protected decisions, separation of duty, dependency evidence, or queue precedence.
 
-### Queue precedence for WORK-managed delivery
+### Queue precedence for Work-managed delivery
 
 1. **Actionable Operations is the highest LGFC priority.** Operations may interrupt ordinary PMO Project implementation at the nearest safe execution boundary.
-2. **PMO implementation follows Operations.** WORK maintains Active Project/Program implementation flow, assurance, exception handling, and lifecycle reconciliation.
-3. **Engineering assignments are best effort behind Operations and PMO implementation.** Engineering remains essential to Pipeline preparation and technical decision support, but Engineering work does not displace actionable Operations or already-authorized PMO implementation unless a controlling protected or safety boundary requires it.
+2. **PMO implementation follows Operations.** Work maintains Active Project/Program implementation flow, assurance, exception handling, and lifecycle reconciliation.
+3. **Engineering assignments are best-effort behind Operations and PMO implementation.** Engineering remains essential to Pipeline preparation and technical decision support, but Engineering work does not displace actionable Operations or already-authorized PMO implementation unless a controlling protected or safety boundary requires it.
 
-Operations monitoring, evidence-backed HOLD, or future-dated work that is not actionable does not create an artificial interrupt. Existing queue, claim, protected-stop, and source-Issue contracts remain controlling.
+Operations monitoring, evidence-backed HOLD, or future-dated work that is not actionable do not create an artificial interrupt. Existing queue, claim, protected-stop, and source-Issue contracts remain controlling.
 
 ## Mandatory documentation chain
 
@@ -98,4 +98,4 @@ Detailed prior ChatGPT control-plane behavior (evidence posture, launch-readines
 
 For a graduated Project or Program, the exact prepared child graph is standing authority. Eligible agents self-claim the next package-complete serial child without routine Administration/PMO redispatch. The implementation runtime must record starting SHA, branch, allowlist confirmation, and pre-implementation checkpoint before editing.
 
-Missing package fields produce `PACKAGE-INCOMPLETE`; a substantive dependency or protected boundary produces an evidence-specific `HOLD`. Merge alone is not substantive acceptance. WORK owns preparation, monitoring, assurance, exception handling, and parent/program acceptance where judgment is required — not routine per-task dispatch — and cannot independently verify or approve work WORK implemented. Governance stewardship (`team:governance`) is a peer queue under #3152 and is not an Operations interrupt.
+Missing package fields produce `PACKAGE-INCOMPLETE`; a substantive dependency or protected boundary produces an evidence-specific `HOLD`. Merge alone is not substantive acceptance. Work owns preparation, monitoring, assurance, exception handling, and parent/program acceptance where judgment is required — not routine per-task dispatch — and cannot independently verify or approve work Work implemented. Governance stewardship (`team:governance`) is a peer queue under #3152 and is not an Operations interrupt.
