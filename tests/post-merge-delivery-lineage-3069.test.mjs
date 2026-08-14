@@ -8,6 +8,8 @@ import {
 	planSuccessorResume,
 	resolveDeliveryLineage,
 	shouldWithholdOriginalSourceCloseout,
+	toIssueNumber,
+	toLineageIssue,
 } from '../scripts/ci/post_merge_delivery_lineage.mjs';
 import { remediationBody, resolveOriginatingAgent } from '../scripts/ci/post_merge_remediation_issue.mjs';
 import { shouldCloseSourceIssue, terminalSourceIssueCloseoutModeFromSync } from '../scripts/ci/post_merge_source_issue_closeout.mjs';
@@ -45,6 +47,20 @@ describe('#3069 originating-delivery closeout cycle', () => {
 			original_source_issue: 3455,
 			cycle_iteration: 1,
 		});
+	});
+
+	it('normalizes GitHub label objects and issue numbers for closeout artifacts', () => {
+		const slim = toLineageIssue({
+			number: 3462,
+			title: 'Post-merge closeout exception for PR #3461 / source #3069 / unresolved_exception_chain',
+			state: 'open',
+			labels: [{ name: 'post-merge-failure' }, { name: 'agent:cursor' }],
+			body: '- Original source issue: #3069',
+			created_at: '2026-08-14T18:59:00Z',
+		});
+		expect(slim.labels).toEqual(['post-merge-failure', 'agent:cursor']);
+		expect(toIssueNumber('3069')).toBe(3069);
+		expect(toIssueNumber(0)).toBeNull();
 	});
 
 	it('keeps the same original source and originating owner across a second exception', () => {

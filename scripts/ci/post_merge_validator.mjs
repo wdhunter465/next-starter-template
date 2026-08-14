@@ -38,6 +38,7 @@ import { AUTO_REPAIR_END, AUTO_REPAIR_START } from './pr_body_auto_repair.mjs';
 import {
 	EXCEPTION_LABEL,
 	resolveDeliveryLineage,
+	toIssueNumber,
 	toLineageIssue,
 } from './post_merge_delivery_lineage.mjs';
 
@@ -1068,7 +1069,7 @@ export function buildResult({
 				reason: CLERICAL_LINKAGE_MISMATCH,
 			}
 			: undefined,
-		original_source_issue: originalSourceIssue || sourceIssue,
+		original_source_issue: toIssueNumber(originalSourceIssue || sourceIssue),
 		open_exception_issues: Array.isArray(openExceptionIssues) ? openExceptionIssues : [],
 	};
 }
@@ -1206,18 +1207,14 @@ async function paginate(args) {
 }
 
 async function listOpenExceptionIssues({ token, repository }) {
-	try {
-		const issues = await paginate({
-			token,
-			repository,
-			path: `/issues?state=open&labels=${encodeURIComponent(EXCEPTION_LABEL)}`,
-		});
-		return (Array.isArray(issues) ? issues : [])
-			.filter((issue) => !issue?.pull_request)
-			.map(toLineageIssue);
-	} catch {
-		return [];
-	}
+	const issues = await paginate({
+		token,
+		repository,
+		path: `/issues?state=open&labels=${encodeURIComponent(EXCEPTION_LABEL)}`,
+	});
+	return (Array.isArray(issues) ? issues : [])
+		.filter((issue) => !issue?.pull_request)
+		.map(toLineageIssue);
 }
 
 function uniqueRuns(...runGroups) {

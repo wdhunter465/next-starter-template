@@ -8,21 +8,26 @@ export const EXCEPTION_LABEL = 'post-merge-failure';
 export const EXCEPTION_TITLE_PREFIX = 'Post-merge closeout exception for ';
 export const LEGACY_EXCEPTION_TITLE_PREFIX = 'Post-merge remediation required for ';
 
+function labelNames(issue = {}) {
+	return (Array.isArray(issue.labels) ? issue.labels : [])
+		.map((label) => (typeof label === 'string' ? label : label?.name || ''))
+		.filter(Boolean);
+}
+
+export function toIssueNumber(value) {
+	const n = Number(value || 0);
+	return Number.isInteger(n) && n > 0 ? n : null;
+}
+
 export function toLineageIssue(issue = {}) {
 	return {
 		number: issue.number,
 		title: issue.title || '',
 		state: issue.state || '',
-		labels: issue.labels || [],
+		labels: labelNames(issue),
 		body: issue.body || '',
 		created_at: issue.created_at || issue.createdAt || '',
 	};
-}
-
-function labelNames(issue = {}) {
-	return (Array.isArray(issue.labels) ? issue.labels : [])
-		.map((label) => (typeof label === 'string' ? label : label?.name || ''))
-		.filter(Boolean);
 }
 
 export function isExceptionIssue(issue = {}) {
