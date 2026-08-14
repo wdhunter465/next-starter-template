@@ -4,9 +4,9 @@ Audience: Human + AI
 Authority Level: Operational Implementation Record
 Owns: Deterministic ownership, interruption, remediation, acceptance, and resumption rules for post-merge closeout exceptions
 Does Not Own: Product decisions, PR approval, Production authorization, or agent role definitions
-Canonical Reference: /docs/ops/pmo/queue-watch-and-dispatch-protocol.md
+Canonical Reference: /docs/ops/pmo/github-issue-closeout-protocol.md
 Related Issues: #3069, #3075, #3030, #3033, #3038, #3039, #3042
-Last Reviewed: 2026-08-06
+Last Reviewed: 2026-08-14
 ---
 
 # Post-merge originating-agent remediation
@@ -20,10 +20,14 @@ Post-merge closeout exceptions are completion defects in the originating deliver
 This as-built records the operating rule for:
 
 - identifying the originating implementation agent for a post-merge closeout exception;
-- assigning and activating that exception on the matching `agent:*` label;
+- creating a new exception Issue in the same original-delivery lineage;
+- assigning and activating that exception on the matching `agent:*` label without `handoff:ready` re-entry;
 - pausing only that agent's next queued successor;
-- requiring PR-record dispositions and bounded remediation PRs when repository content must change;
-- WORK independent acceptance and automatic resumption after closeout.
+- re-entering the same post-merge verification/closeout workflow after every remediation merge;
+- repeating exception → remediation → merge → same post-merge checks with no arbitrary retry limit until the original source Issue is cleanly closed;
+- WORK independent acceptance and automatic successor resumption after clean terminal closeout.
+
+PMO process authority for the cycle is `docs/ops/pmo/github-issue-closeout-protocol.md`. Dispatcher rules are `docs/ops/pmo/queue-watch-and-dispatch-protocol.md`.
 
 It does not change Product, PR-approval, Production, or role-definition authority. Product Authority may explicitly reassign an Ops exception when the originating agent cannot complete PR remediation; that override must be recorded on the exception Issue.
 
@@ -37,11 +41,22 @@ It does not change Product, PR-approval, Production, or role-definition authorit
 
 ## Intended final state
 
-- Every actionable post-merge exception is active on the correct originating agent (or an explicit Product Authority override).
+- Every actionable post-merge exception is a new Issue in the original delivery lineage, active on the correct originating agent (or an explicit Product Authority override).
 - Required reviewer dispositions and verification/allowlist evidence live on the originating PR body before closeout replay.
 - Repository policy changes land only through reviewed PRs.
-- After WORK acceptance and exception closeout, the paused successor resumes automatically without a new dispatch.
-- Exceptions do not accumulate as deferred cleanup backlog.
+- Remediation merge re-enters the same post-merge verification/closeout workflow. Another exception repeats the same cycle; there is no one-pass completion.
+- The original source Issue cannot reach valid terminal completion while any exception in its chain remains unresolved.
+- After clean terminal closeout, the paused successor resumes automatically without a new dispatch.
+- Exceptions do not accumulate as deferred cleanup backlog or `handoff:ready` competition.
+
+## Closed-loop cycle
+
+`source Issue claimed → implementation → pull request → merge → post-merge verification/closeout`
+
+- **Clean:** reconcile/close the original source Issue; resume the paused successor automatically.
+- **Exception:** create a new exception Issue; keep the same originating owner; remediate; merge the remediation PR; re-run the same post-merge verification/closeout workflow; if verification fails again, create another new exception Issue in the same lineage and repeat until clean.
+
+There is no PMO/Bill reassignment step inside this cycle when originating ownership is known. `handoff:ready` is a normal queue-entry/claim mechanism and is not reintroduced for exception work inside an already-owned cycle.
 
 ## Ownership rule
 
@@ -80,16 +95,17 @@ After the exception is accepted and closed:
 
 ## Failure handling
 
-Post-merge exceptions must not accumulate in a deferred cleanup queue. If an exception is actionable, it remains active until corrected or placed on an evidence-specific hold with an owner, release condition, and next review time.
+Post-merge exceptions must not accumulate in a deferred cleanup queue and must not become new general-queue work. If an exception is actionable, it remains active on the originating agent until corrected or placed on an evidence-specific hold with an owner, release condition, and next review time.
 
-A premature closeout is invalid. Reopen the source-Issue, restore active state, correct the repository through a reviewed PR, and repeat independent acceptance.
+A premature closeout of the original source Issue is invalid while any exception in its remediation chain remains unresolved. Restore active state on the original source Issue if it was closed early, correct the repository through a reviewed PR, re-enter the same post-merge verification/closeout workflow, and repeat independent acceptance until the original source Issue is completely and properly resolved.
 
 ## Current application
 
 - Claude Code exceptions: #3030 and #3042 (historical mapping from #3069).
 - Cursor Local exceptions: #3033, #3038, and #3039 (historical mapping from #3069).
-- WORK remediation source-Issue: #3069 (closed).
+- WORK remediation source-Issue: #3069 (reopened 2026-08-14 for recursive-cycle proof after PR #3460 routing-only closeout).
 - Active Ops exception remediated under Product Authority override: #3075 (PR #3073 evidence + this as-built correction).
+- Regression that proved routing-only closeout is insufficient: #3458 (PR #3457 / #3459).
 
 ## Validation
 
@@ -100,5 +116,8 @@ The implementation that operationalizes this rule must test at minimum:
 - WORK-created error ownership;
 - agent-specific successor pausing;
 - unrelated-lane continuity;
-- automatic successor resumption after acceptance;
-- refusal to treat issue-only mutations as implementation of code or documentation changes.
+- a two-or-more-exception sequence in the same original-delivery lineage with the same originating owner;
+- withholding original source-Issue terminal closeout while any exception in that chain remains open;
+- automatic successor resumption only after the original source Issue reaches clean terminal closeout;
+- refusal to treat issue-only mutations as implementation of code or documentation changes;
+- refusal to reintroduce `handoff:ready` or ChatGPT/Bill owner-assignment when originating ownership is determinable.

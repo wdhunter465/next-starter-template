@@ -6,6 +6,7 @@ import { pathToFileURL } from 'node:url';
 import { parseRemediationIssue } from './close_duplicate_remediation_issues.mjs';
 import { githubRepoRequest } from './github_issue_api.mjs';
 import { REMEDIATION_ISSUE_LABEL, REMEDIATION_TITLE_PREFIX } from './post_merge_source_issue_closeout.mjs';
+import { resolveDeliveryLineage } from './post_merge_delivery_lineage.mjs';
 
 /** Keep aligned with HISTORICAL_PR_BODY_HYGIENE_FAILURE_CODES in post_merge_validator.mjs. */
 const HISTORICAL_PR_BODY_HYGIENE_FAILURE_CODES = new Set([
@@ -484,8 +485,10 @@ function requiredActionSection(owner) {
 			`- This exception is an immediate originating-delivery obligation for ${owner.display}. It does not require a new PMO dispatch.`,
 			'- Reconcile every reported reviewer comment/thread and validation defect on the originating PR record.',
 			'- Open a bounded remediation PR only when repository content, code, workflow, or documentation must change.',
+			'- This exception is a new Issue in the original delivery lineage. Do not reintroduce `handoff:ready`. Merge of the remediation PR must re-enter the same post-merge verification/closeout workflow.',
+			'- If verification produces another exception, create another new exception Issue in the same lineage, keep the same originating owner, and repeat until the original source Issue reaches clean terminal closeout. There is no arbitrary retry limit.',
 			'- Pause only this agent\'s next assigned successor (`status:queued`); unrelated agent lanes remain executable.',
-			'- After independent WORK acceptance and exception closeout, the paused successor resumes automatically without a new dispatch.',
+			'- After clean terminal closeout of the original source Issue, the paused successor resumes automatically without a new dispatch.',
 		];
 	}
 	return [
@@ -499,6 +502,12 @@ function requiredActionSection(owner) {
 
 export function remediationBody(result) {
 	const owner = resolveOriginatingAgent(result);
+	const lineage = resolveDeliveryLineage({
+		result,
+		declaredSourceIssueMeta: result.source_issue_meta || null,
+		openExceptionIssues: result.open_exception_issues || [],
+	});
+	const originalSource = lineage.original_source_issue || result.source_issue || null;
 	const conditions = failureConditions(result);
 	const lines = [
 		'Post-merge closeout exception detected. CI refused deterministic source issue closeout.',
@@ -506,6 +515,9 @@ export function remediationBody(result) {
 		`- PR: ${result.pr ? `#${result.pr}` : 'none'}`,
 		`- Merge SHA: ${result.merge_sha || 'unknown'}`,
 		`- Source issue: ${result.source_issue ? `#${result.source_issue}` : 'none'}`,
+		`- Original source issue: ${originalSource ? `#${originalSource}` : 'none'}`,
+		`- Cycle iteration: ${lineage.cycle_iteration}`,
+		`- Delivery cycle: source Issue claimed → implementation → pull request → merge → post-merge verification/closeout. Exception creates a new Issue in this lineage and repeats until the original source Issue reaches clean terminal closeout.`,
 		`- Source issue candidates: ${result.source_issue_candidates?.length ? result.source_issue_candidates.join(', ') : 'none'}`,
 		`- Source issue closeout mode: ${result.source_issue_closeout_mode || 'not evaluated'}`,
 		`- Validator status: ${result.status}`,
