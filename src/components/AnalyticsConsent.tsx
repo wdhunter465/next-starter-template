@@ -86,7 +86,7 @@ export default function AnalyticsConsent() {
             <p style={{ margin: 0, flex: '1 1 280px', fontSize: 14, lineHeight: 1.5, color: '#333333' }}>
               This site uses Google Analytics to understand aggregate page usage. Analytics is off until you
               choose Accept.{' '}
-              <Link href="/privacy" style={{ color: '#0033cc' }}>
+              <Link href="/privacy" style={{ color: '#0033cc', textDecoration: 'underline' }}>
                 Privacy
               </Link>
             </p>

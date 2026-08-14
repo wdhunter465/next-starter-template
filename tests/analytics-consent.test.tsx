@@ -16,6 +16,14 @@ describe('AnalyticsConsent', () => {
     window.localStorage.removeItem(STORAGE_KEY);
   });
 
+  it('underlines the in-paragraph Privacy link so it is distinguishable without color', async () => {
+    render(<AnalyticsConsent />);
+
+    const privacy = await screen.findByRole('link', { name: 'Privacy' });
+    expect(privacy).toHaveAttribute('href', '/privacy');
+    expect(privacy).toHaveStyle({ textDecoration: 'underline' });
+  });
+
   it('shows banner by default and does not load GA until Accept', async () => {
     render(<AnalyticsConsent />);
 
