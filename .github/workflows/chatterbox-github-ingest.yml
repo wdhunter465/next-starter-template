@@ -1,0 +1,72 @@
+name: OPS — Chatterbox GitHub Ingestion (#3415)
+
+# Read-only mirror of a governing GitHub Issue's comments into a Chatterbox
+# room as SYSTEM events, per work unit 5. Never writes to GitHub. Writes
+# only to the target Chatterbox room's own Development D1 tables via the
+# already-registered 'system_clerk' participant, which is structurally
+# restricted (functions/_lib/chatterbox.ts, isSystemClerkEventAllowed) from
+# posting any substantive PMO/Product transition event type.
+#
+# Idempotent: safe to dispatch repeatedly or on a schedule — already-
+# ingested comments are deduped server-side via idempotency_key.
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue_number:
+        description: 'GitHub Issue number to ingest comments from'
+        required: true
+        type: string
+      room_key:
+        description: 'Target Chatterbox room_key'
+        required: true
+        type: string
+      since:
+        description: 'Optional ISO 8601 timestamp; only ingest comments created at/after this time'
+        required: false
+        type: string
+
+concurrency:
+  group: chatterbox-github-ingest-${{ inputs.room_key }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: read
+
+jobs:
+  ingest:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Resolve live Development deployment URL
+        id: resolve_url
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CHATTERBOX_TARGET_BRANCH: component/chatterbox-prototype
+        run: |
+          url=$(node scripts/ci/chatterbox_resolve_preview_url.mjs)
+          echo "base_url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Ingest issue comments
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          CHATTERBOX_REPOSITORY: ${{ github.repository }}
+          CHATTERBOX_ISSUE_NUMBER: ${{ inputs.issue_number }}
+          CHATTERBOX_BASE_URL: ${{ steps.resolve_url.outputs.base_url }}
+          ADMIN_TOKEN: ${{ secrets.CHATTERBOX_PREVIEW_ADMIN_TOKEN }}
+          CHATTERBOX_ROOM_KEY: ${{ inputs.room_key }}
+          CHATTERBOX_CLERK_PARTICIPANT_KEY: github-clerk
+          CHATTERBOX_SINCE: ${{ inputs.since }}
+        run: node scripts/ci/chatterbox_github_ingest.mjs

@@ -84,11 +84,50 @@ named scoping choice for the prototype, not a silent security shortcut —
 real per-agent tokens are the explicit next step before any use beyond
 synthetic/sandbox testing.
 
-## What this slice deliberately does not attempt
+**Preview must carry its own `ADMIN_TOKEN`, never Production's.**
+`docs/ops/reports/delivery-system-preview-isolation-audit.md` §8 explicitly
+warns against mirroring Production's `ADMIN_TOKEN` into Preview. The
+Development integration check (work unit 6, below) therefore reads its
+token from `CHATTERBOX_PREVIEW_ADMIN_TOKEN` — a GitHub Actions secret scoped
+to this check alone — not any Production-named secret. Whether that secret
+and the matching Cloudflare Pages Preview environment variable exist yet is
+a named, open prerequisite (see chatterbox-authority-boundary.md), not
+something this documentation increment can create.
 
-GitHub event ingestion beyond a citation field, ACK-stage tracking, the
-cause→effect reconciler, and any notification adapter are all out of scope
-for work units 1–3. Building coordination correctness first, before
-orchestration sophistication, is the explicit ordering #3415 itself asks
-for ("prove communication and coordination before sophisticated
-orchestration").
+## Why the Development integration proof runs against the real deployment, not a mock
+
+`scripts/ci/chatterbox_dev_integration_check.mjs` exercises the live,
+deployed API end-to-end — real HTTP calls, real D1 writes (Development
+only), real concurrency between two genuinely simultaneous requests. That is
+deliberate: this repository has zero D1 mocks across its existing 1,500+
+tests, and the actual atomicity guarantee this prototype depends on (the
+partial unique index on `chatterbox_claims`) is a property of real SQLite/D1
+semantics that a hand-rolled fake could not reliably reproduce. A local test
+of this script's own control flow does exist
+(`tests/chatterbox-dev-integration-check.test.mjs`), backed by an in-memory
+fake HTTP layer that reuses the same already-unit-tested pure business logic
+— but that fake exists to catch bugs in the *script itself* (and did, twice,
+during development) before spending a live dispatch cycle. It is explicitly
+not offered as proof of the database-level guarantee; only a real dispatch
+against Development D1 is.
+
+## Why the Cloudflare Pages URL is resolved via API, not hardcoded
+
+Cloudflare's branch-alias hostname sanitization (lowercasing, replacing
+non-alphanumeric characters, truncating to a fixed length) is undocumented
+enough in practice that hardcoding a guessed `pages.dev` hostname into a
+workflow risks a silent, permanent mismatch. `scripts/ci/chatterbox_resolve_preview_url.mjs`
+instead asks the Cloudflare API directly for the most recent successful
+deployment on the target branch and uses its real, returned URL — the same
+`CLOUDFLARE_API_TOKEN`/`CLOUDFLARE_ACCOUNT_ID` secrets already used by the
+existing D1 write tooling, no new credential.
+
+## What this prototype deliberately does not attempt
+
+ACK-stage tracking, the cause→effect reconciler, an MCP interface, and any
+notification adapter beyond what Claude Code Remote sessions already provide
+natively remain out of scope for this prototype, per the launch package's
+own MVP boundary — not omissions discovered late. Building coordination
+correctness first, before orchestration sophistication, is the explicit
+ordering #3415 itself asks for ("prove communication and coordination
+before sophisticated orchestration").

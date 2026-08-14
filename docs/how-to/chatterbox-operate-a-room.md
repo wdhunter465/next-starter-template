@@ -139,3 +139,43 @@ curl -X POST "$BASE/api/chatterbox/check-in" \
 
 Call this on every session start for a room. It is the baseline resilience
 path — it works correctly with zero push/notification adapters configured.
+
+### 7. Mirror a GitHub Issue's comments into the room (read-only)
+
+Dispatch `.github/workflows/chatterbox-github-ingest.yml` (work unit 5) to
+mirror an Issue's comments into the room as `SYSTEM` events, each carrying an
+exact `github_ref` citation (`issue`, `comment_id`, `repository`) rather than
+a bare URL. This never writes to GitHub — it only reads comments and posts
+into the room via the already-registered `system_clerk` participant, which
+is structurally restricted to `STATUS`/`SYSTEM`/`CHECK_IN`/`CHECK_OUT` event
+types (see chatterbox-authority-boundary.md).
+
+```bash
+gh workflow run chatterbox-github-ingest.yml \
+  -f issue_number=3415 \
+  -f room_key=lgfc-website
+```
+
+Safe to re-dispatch at any time, including on a schedule — already-ingested
+comments are deduped server-side via `idempotency_key`
+(`github-comment-{id}`), returned as `idempotent_replay: true` rather than
+posted again.
+
+### 8. Run the Development integration check
+
+Dispatch `.github/workflows/chatterbox-dev-integration-check.yml` (work unit
+6) for a real, end-to-end proof against the live Development deployment —
+not a mock. It creates a uniquely-namespaced room/participants/tasks, races
+two participants for the same claim, tests the dependency gate, proves event
+idempotency, exercises durable question/answer across a check-in boundary,
+proves missed-wake catch-up is exact, and confirms the `system_clerk`
+boundary rejects a substantive event type for real.
+
+```bash
+gh workflow run chatterbox-dev-integration-check.yml \
+  -f target_branch=component/chatterbox-prototype
+```
+
+Results post to #3415 automatically. This never targets Production — the
+workflow resolves the component branch's own Cloudflare Pages Development
+deployment via the Cloudflare API before running anything.

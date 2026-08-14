@@ -74,6 +74,25 @@ being violated by exactly that actor; this boundary does not depend on that.
   boundary is stated in advance of building one).
 - No self-approval/self-merge by any Chatterbox-authored automation.
 
+## Open prerequisite: Preview-scoped `ADMIN_TOKEN`
+
+The Development integration check (work unit 6) and GitHub ingestion (work
+unit 5) workflows both call the deployed API and need a Preview-scoped
+`ADMIN_TOKEN` — distinct from Production's, per
+`docs/ops/reports/delivery-system-preview-isolation-audit.md`'s explicit
+warning against mirroring Production's token into Preview. Two things must
+exist before either workflow can run for real, and neither is created by
+this documentation increment or any other Chatterbox code change:
+
+1. A Cloudflare Pages **Preview environment** variable named `ADMIN_TOKEN`,
+   set to a value that is not Production's `ADMIN_TOKEN`.
+2. A GitHub Actions repository secret named `CHATTERBOX_PREVIEW_ADMIN_TOKEN`,
+   set to that same Preview value.
+
+Provisioning either is a credential decision outside this component's
+authority — named here explicitly so it is a visible, trackable prerequisite
+for Graduation rather than a silent gap.
+
 ## Relationship to repository-wide agent governance
 
 This document narrows and applies existing repository rules to the
