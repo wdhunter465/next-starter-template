@@ -129,6 +129,23 @@ describe('#3453 populated six-book Library QA', () => {
     expect(sanitizePublicHttpUrl('https://www.simonandschuster.com/books/Lou-Gehrig/Alan-D-Gaff/9781982132392')).toBe(
       'https://www.simonandschuster.com/books/Lou-Gehrig/Alan-D-Gaff/9781982132392',
     );
+    expect(sanitizePublicHttpUrl('https://user:pass@example.com/secret')).toBeNull();
+    expect(sanitizePublicHttpUrl('https://trusted.com@evil.example/phishing')).toBeNull();
+  });
+
+  it('keeps Library credit strictly on credit_line now that source_name is its own field', () => {
+    const mapped = mapLibraryInventoryItem({
+      id: 9,
+      title: 'Untitled story',
+      text: 'Body',
+      source_name: 'Publisher record',
+      credit_line: '   ',
+      source_url: 'https://example.com/book',
+      event_year: 2005,
+    });
+    expect(mapped.author).toBeNull();
+    expect(mapped.source_name).toBe('Publisher record');
+    expect(mapped.source_url).toBe('https://example.com/book');
   });
 
   it('points search destinations at the Library query so results are not a generic empty landing', () => {

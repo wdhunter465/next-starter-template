@@ -42,7 +42,7 @@ function isSafeHttpUrl(value: string | null | undefined): value is string {
   if (!value) return false;
   try {
     const parsed = new URL(value);
-    return parsed.protocol === 'https:' || parsed.protocol === 'http:';
+    return (parsed.protocol === 'https:' || parsed.protocol === 'http:') && !parsed.username && !parsed.password;
   } catch {
     return false;
   }

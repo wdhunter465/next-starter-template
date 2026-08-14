@@ -83,6 +83,7 @@ export function sanitizePublicHttpUrl(raw: unknown): string | null {
   try {
     const parsed = new URL(trimmed);
     if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return null;
+    if (parsed.username || parsed.password) return null;
     return parsed.toString();
   } catch {
     return null;
@@ -100,10 +101,7 @@ export function mapLibraryInventoryItem(row: InventoryRow) {
   return {
     id: Number(row.id),
     year: parseInventoryYear(row.event_year, row.event_date),
-    author:
-      (typeof row.credit_line === 'string' && row.credit_line.trim()) ||
-      sourceName ||
-      null,
+    author: typeof row.credit_line === 'string' && row.credit_line.trim() ? row.credit_line.trim() : null,
     title: typeof row.title === 'string' ? row.title : null,
     description:
       (typeof row.summary === 'string' && row.summary.trim()) ||
