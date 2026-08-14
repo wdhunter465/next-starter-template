@@ -2,19 +2,19 @@
   "recordId": "launch-rehearsal-entry-criteria-2926",
   "sourceIssue": 2926,
   "parentProject": 2781,
-  "reconciledAt": "2026-08-14T12:30:00Z",
+  "reconciledAt": "2026-08-14T12:54:00Z",
   "reconciledBy": "Cursor Local",
   "componentBranch": "component/launch-rehearsal",
-  "candidateIdentity": "component/launch-rehearsal@9900f98d3841c806cf20eaa82f91e1849066927a",
-  "candidateIdentityNotes": "Planning candidate identity retained (PR #3236 tip). Component lineage tip at this reconciliation is 49851b89f1b07b1a3313434717f26ff4fee6820b; that tip is rehearsal-asset history, not a frozen isolated rehearsal deployment SHA. Proposed freeze (not applied): origin/main@87414533984aa9b5579b679fc8f9746b93517c5d as Cloudflare Pages Preview bound to lgfc-litedev. Formal candidateIdentity stays the planning tip until PMO/Product ACCEPT of that freeze.",
-  "environmentIdentity": "planned-isolated:cloudflare-pages-preview/origin-main-lgfc-litedev",
-  "environmentIdentityNotes": "Not Production. Isolation evidence is satisfied on origin/main (#2818 CLOSED; preview-isolation-manifest lastAudited 2026-08-11, d1-lgfc-litedev classified isolated). This component branch wrangler.toml still declares only Production lgfc_lite and must not be used as a write-capable rehearsal runtime. Schema harness ready:true does not authorize write-capable execution or freeze.",
+  "candidateIdentity": "origin/main@87414533984aa9b5579b679fc8f9746b93517c5d",
+  "candidateIdentityNotes": "FROZEN 2026-08-14 per PMO/Product decision on #2928. origin/main was still exactly this SHA at freeze (complete website candidate; no replacement SHA). Unique Cloudflare Pages Preview deployment 05568c3e-a56f-45d0-a3db-1298d9b7b80c. Do not treat component/launch-rehearsal tip or planning identity 9900f98d as the rehearsal runtime.",
+  "environmentIdentity": "isolated:cloudflare-pages-preview/lgfc-litedev#05568c3e",
+  "environmentIdentityNotes": "Not Production. Preview URL https://05568c3e.next-starter-template-6yr.pages.dev bound to D1 lgfc-litedev (#2818 CLOSED). Production hostnames were not used. This component branch wrangler.toml still declares only Production lgfc_lite and must not be used as a write-capable rehearsal runtime.",
   "testDataPlan": "Synthetic and/or redacted fixture datasets only for rehearsal journeys. No private Production member PII, Production D1 dumps, Production B2 private objects, or live credentials as disposable test data. Journey catalog (#2927) privacyControl fields must continue to declare synthetic/redacted handling per journey.",
   "executorRole": "Implementation / Operations executor (Claude Code or Cursor Local under recorded claim on #2781 children)",
   "verifierRole": "PR Approver / Engineering (independent review) + WORK assurance (asynchronous unless material exception)",
   "recoveryOwner": "Day-2 Operations coordination (WORK mapping) with Product Authority escalation for Production-adjacent stops",
   "cleanupPlan": "Remove rehearsal-created Issues/comments/labels created under rehearsal namespaces; tear down any temporary preview deployment artifacts; revoke temporary tokens; restore environment to pre-rehearsal state via documented rollback path before #2929 disposition. No Production cleanup authorized by this record.",
-  "productionDataExclusionEvidence": "Issue #2926 / parent #2781 launch package prohibit private Production data as disposable test data. origin/main scripts/ci/preview-isolation-manifest.json records isolated Preview D1 lgfc-litedev (#3357 / #2818 CLOSED). This record uses only public repo SHAs, issue IDs, and synthetic planning identities. Write-capable journeys remain blocked until freeze ACCEPT.",
+  "productionDataExclusionEvidence": "Issue #2926 / parent #2781 launch package prohibit private Production data as disposable test data. origin/main scripts/ci/preview-isolation-manifest.json records isolated Preview D1 lgfc-litedev (#3357 / #2818 CLOSED). Observe-only GET used Preview 05568c3e only. No Production dumps copied into Preview. Write-capable journeys remain a later #2928 increment.",
   "entryCriteria": [
     {
       "name": "Platform validation (#2778) accepted",
@@ -50,19 +50,19 @@
       "name": "Website 100% completion contract (#2776) defined and accepted",
       "status": "deferred",
       "owner": "Engineering Pipeline / team:engineering (#2776) — PMO waiver/acceptance for rehearsal scope",
-      "releaseCondition": "#2776 advances from pmo:stage:intake to accepted completion-contract evidence, or PMO/Product records an explicit rehearsal-scope waiver. Live 2026-08-14: OPEN pmo:pipeline pmo:stage:intake."
+      "releaseCondition": "PMO/Product 2026-08-14: not a technical #2928 rehearsal-entry blocker. Remains an unresolved downstream launch/Production acceptance input for #2929 / #2782. Do not waive or close #2776. Live 2026-08-14: OPEN pmo:pipeline pmo:stage:intake."
     },
     {
       "name": "Website program dependency/sequence map (#2777) accepted",
       "status": "deferred",
       "owner": "Engineering Pipeline / team:engineering (#2777) — PMO waiver/acceptance for rehearsal scope",
-      "releaseCondition": "#2777 advances from pmo:stage:intake to accepted sequence map, or PMO/Product records an explicit rehearsal-scope waiver. Live 2026-08-14: OPEN pmo:pipeline pmo:stage:intake."
+      "releaseCondition": "PMO/Product 2026-08-14: not a technical #2928 rehearsal-entry blocker. Remains an unresolved downstream launch/Production acceptance input for #2929 / #2782. Do not waive or close #2777. Live 2026-08-14: OPEN pmo:pipeline pmo:stage:intake."
     },
     {
       "name": "Launch acceptance for a11y/perf/security/privacy (#2783) accepted",
       "status": "deferred",
       "owner": "Engineering Pipeline / team:engineering (#2783) — PMO waiver/acceptance for rehearsal scope",
-      "releaseCondition": "#2783 advances from pmo:stage:intake to accepted launch-acceptance criteria, or PMO/Product records an explicit rehearsal-scope waiver. Live 2026-08-14: OPEN pmo:pipeline pmo:stage:intake."
+      "releaseCondition": "PMO/Product 2026-08-14: not a technical #2928 rehearsal-entry blocker. Remains an unresolved downstream launch/Production acceptance input for #2929 / #2782. Do not waive or close #2783. Live 2026-08-14: OPEN pmo:pipeline pmo:stage:intake."
     },
     {
       "name": "Legal/content-rights/fundraiser compliance readiness (#2784) accepted",
@@ -73,13 +73,13 @@
       "name": "Operator training/access/support/succession (#2786) accepted",
       "status": "deferred",
       "owner": "Engineering Pipeline / team:engineering (#2786) — PMO waiver/acceptance for rehearsal scope",
-      "releaseCondition": "#2786 advances from pmo:stage:intake to accepted operator-readiness evidence, or PMO/Product records an explicit rehearsal-scope waiver. Live 2026-08-14: OPEN pmo:pipeline pmo:stage:intake."
+      "releaseCondition": "PMO/Product 2026-08-14: not a technical #2928 rehearsal-entry blocker. Remains an unresolved downstream launch/Production acceptance input for #2929 / #2782. Do not waive or close #2786. Live 2026-08-14: OPEN pmo:pipeline pmo:stage:intake."
     },
     {
       "name": "Vendor/account/domain/service continuity (#2787) accepted",
       "status": "deferred",
       "owner": "Engineering Pipeline / team:engineering (#2787) — PMO waiver/acceptance for rehearsal scope",
-      "releaseCondition": "#2787 advances from pmo:stage:intake to accepted continuity evidence, or PMO/Product records an explicit rehearsal-scope waiver. Live 2026-08-14: OPEN pmo:pipeline pmo:stage:intake."
+      "releaseCondition": "PMO/Product 2026-08-14: not a technical #2928 rehearsal-entry blocker. Remains an unresolved downstream launch/Production acceptance input for #2929 / #2782. Do not waive or close #2787. Live 2026-08-14: OPEN pmo:pipeline pmo:stage:intake."
     },
     {
       "name": "Preview/component runtime isolation from Production (#2818)",
@@ -88,9 +88,8 @@
     },
     {
       "name": "Frozen isolated rehearsal deployment candidate SHA",
-      "status": "deferred",
-      "owner": "PMO / Product Authority (#2781 / #2928)",
-      "releaseCondition": "ACCEPT the proposed freeze origin/main@87414533984aa9b5579b679fc8f9746b93517c5d as the isolated Pages Preview / lgfc-litedev rehearsal candidate, or name a different isolated SHA. Do not treat planning tip 9900f98d, component tip 49851b89, or schema ready:true as that freeze."
+      "status": "satisfied",
+      "evidence": "PMO/Product ACCEPT 2026-08-14 on #2928. Frozen origin/main@87414533984aa9b5579b679fc8f9746b93517c5d. Live origin/main still that SHA at freeze. Pages Preview deployment 05568c3e-a56f-45d0-a3db-1298d9b7b80c (https://05568c3e.next-starter-template-6yr.pages.dev) / D1 lgfc-litedev. Observe-only GET subset executed 2026-08-14T12:52:02Z."
     },
     {
       "name": "Club Newspaper / website runtime programs required by rehearsal scope",
