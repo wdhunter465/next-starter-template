@@ -29,48 +29,42 @@ final disposition — each is owned by its own task/report.
 
 ## Current known truth
 
-- No formal rehearsal has been executed. This runbook and its companion
-  defect-ledger harness remain **procedure and automation scaffolding**, not a
-  record of any actual defect.
-- The 2026-08-14 execution package
-  (`docs/ops/reports/launch-rehearsal-execution-package-2928.md`) records the
-  observe-only vs write-capable split, the proposed isolated freeze
-  (`origin/main@87414533984aa9b5579b679fc8f9746b93517c5d`), and remaining
-  Pipeline intake deferrals. That package does **not** freeze a candidate or
-  authorize live journeys.
-- Isolation evidence is satisfied on `origin/main` (#2818 CLOSED). This
+- Isolated candidate **frozen**: `origin/main@87414533984aa9b5579b679fc8f9746b93517c5d`
+  as Cloudflare Pages Preview `05568c3e` / D1 `lgfc-litedev`.
+- Observe-only GET subset **executed** 2026-08-14T12:52:02Z against
+  `https://05568c3e.next-starter-template-6yr.pages.dev`. Evidence:
+  `docs/ops/reports/launch-rehearsal-observe-only-evidence-2928.json`. Run
+  narrative: `docs/ops/reports/launch-rehearsal-observe-only-run-2928.md`.
+- Two defects recorded (`D-2928-001`, `D-2928-002`), both
+  `deferred-with-owner`, in
+  `docs/ops/reports/launch-rehearsal-defect-ledger-2928.json`.
+- Write-capable / side-effect journeys **not** executed. Production was not
+  mutated. `GET /api/matchup/current` was not invoked.
+- Isolation evidence remains satisfied on `origin/main` (#2818 CLOSED). This
   component branch is still rehearsal assets only; do not treat its tip as the
   rehearsal runtime.
-- The defect-ledger schema and its harness
-  (`scripts/ci/launch_rehearsal_defect_ledger.mjs`) are implemented and pass their
-  own test suite (`tests/launch-rehearsal-defect-ledger.test.mjs`) against synthetic
-  fixtures, proving the schema and retest-coverage logic are sound before any real
-  rehearsal produces real data.
+- The defect-ledger harness
+  (`scripts/ci/launch_rehearsal_defect_ledger.mjs`) now validates the live
+  observe-only ledger in addition to its synthetic unit tests.
 - This runbook consumes #2927's journey registry and evidence-log shape unchanged;
   it does not redefine them.
 
 ## Intended final state
 
-This document is evolving scaffolding pending #2926 (candidate/environment
-acceptance) and #2927 (accepted journeys/harness for final execution). Its stable,
-post-execution state — once a real rehearsal has actually run — adds, without
-removing the procedure above: a completed defect ledger for that run, the
-`retest-coverage` result proving every `requires-retest` defect was genuinely
-retested against a requalified candidate, and a final count of defects by
-severity/disposition that #2929 cites verbatim in its disposition report. The
-runbook procedure itself is not expected to change once #2926/#2927 land — only
-the "Current known truth" section above is expected to update, from "no rehearsal
-has run" to a summary of the actual run(s).
+Observe-only GET has run against the frozen isolated candidate. Remaining work
+for a complete #2928 pass: write-capable journeys, terminal or explicit deferred
+disposition of every defect, affected-journey retest against a requalified
+candidate when remediation changes the SHA, and cleanup/rollback proof. #2929
+cites the ledger and evidence verbatim; this runbook does not invent GO/HOLD.
 
 ## Non-blocking prerequisite rule
 
-Per #2928's non-blocking prerequisite rule, this document and its companion
-defect-ledger harness are **runbook preparation, defect taxonomy, remediation-routing
-design, retest planning, and evidence-template work** — the collision-safe category
-of work #2928 explicitly authorizes before #2927's journeys/harness are accepted
-for final execution. No rehearsal journey has been executed and no defect has been
-found; this deliverable only builds the procedure #2928 will follow once it can run
-for real.
+Per #2928's non-blocking prerequisite rule, collision-safe package/evidence work
+continues through protected stops. A protected stop blocks only the affected
+action. Observe-only GET is complete for this increment; write-capable execution
+and cleanup/rollback remain open. Pipeline-intake #2776/#2777/#2783/#2786/#2787
+are not technical rehearsal-entry blockers (PMO/Product 2026-08-14) and stay
+deferred for #2929 / #2782.
 
 ## Execution runbook
 
