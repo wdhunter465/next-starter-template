@@ -86,14 +86,14 @@ export default function Footer() {
           </button>
         </div>
 
-        {/* Right: Privacy + Terms (row 1), Contact (row 2); admin/support copy on /contact only */}
+        {/* Right: Privacy + Terms + Accessibility; Contact on second row */}
         <nav
           aria-label="Footer links"
           style={{
             flex: '1 1 260px',
             minWidth: 220,
             display: 'grid',
-            gridTemplateColumns: 'auto auto',
+            gridTemplateColumns: 'auto auto auto',
             justifyContent: 'end',
             alignItems: 'center',
             columnGap: 14,
@@ -103,6 +103,7 @@ export default function Footer() {
         >
           <Link href="/privacy">Privacy</Link>
           <Link href="/terms">Terms</Link>
+          <Link href="/accessibility">Accessibility</Link>
           <Link href="/contact" style={{ gridColumn: '1 / -1', justifySelf: 'end' }}>
             Contact
           </Link>

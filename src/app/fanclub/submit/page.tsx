@@ -8,6 +8,9 @@ export default function FanclubSubmitPage() {
   const [name, setName] = useState('');
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
+  const [ownershipStatement, setOwnershipStatement] = useState('');
+  const [permissionStatement, setPermissionStatement] = useState('');
+  const [creditPreference, setCreditPreference] = useState('');
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string>('');
 
@@ -19,12 +22,22 @@ export default function FanclubSubmitPage() {
         method: 'POST',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ name: name.trim(), title: title.trim(), content: content.trim() }),
+        body: JSON.stringify({
+          name: name.trim(),
+          title: title.trim(),
+          content: content.trim(),
+          ownership_statement: ownershipStatement.trim(),
+          permission_statement: permissionStatement.trim(),
+          credit_preference: creditPreference,
+        }),
       });
       const json = await res.json();
       if (!json?.ok) throw new Error(json?.error || 'submit_failed');
       setTitle('');
       setContent('');
+      setOwnershipStatement('');
+      setPermissionStatement('');
+      setCreditPreference('');
       setMsg('Submitted. Thank you!');
     } catch (e: unknown) {
       const text = e instanceof Error ? e.message : String(e);
@@ -34,7 +47,15 @@ export default function FanclubSubmitPage() {
     }
   }
 
-  const can = !busy && name.trim().length >= 2 && email.trim().length >= 5 && title.trim().length >= 3 && content.trim().length >= 20;
+  const can =
+    !busy &&
+    name.trim().length >= 2 &&
+    email.trim().length >= 5 &&
+    title.trim().length >= 3 &&
+    content.trim().length >= 20 &&
+    ownershipStatement.trim().length >= 5 &&
+    permissionStatement.trim().length >= 5 &&
+    creditPreference.length > 0;
 
   if (isLoading || !isAuthenticated) {
     return null;
@@ -76,6 +97,42 @@ export default function FanclubSubmitPage() {
             rows={8}
             style={{ padding: 10, borderRadius: 10, border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(0,0,0,0.2)', resize: 'vertical' }}
           />
+
+          <div style={{ marginTop: 6, paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.14)' }}>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: 15 }}>Rights and permission</h3>
+            <p style={{ margin: '0 0 10px 0', fontSize: 13, opacity: 0.8 }}>
+              We need this before we can review your submission.
+            </p>
+          </div>
+          <textarea
+            value={ownershipStatement}
+            onChange={(e) => setOwnershipStatement(e.target.value)}
+            placeholder="Ownership: describe how this is yours or how you lawfully obtained it (e.g., &quot;I wrote this myself&quot; or &quot;from my personal collection&quot;)"
+            rows={2}
+            style={{ padding: 10, borderRadius: 10, border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(0,0,0,0.2)', resize: 'vertical' }}
+          />
+          <textarea
+            value={permissionStatement}
+            onChange={(e) => setPermissionStatement(e.target.value)}
+            placeholder="Permission: confirm the Lou Gehrig Fan Club may use this submission on the site"
+            rows={2}
+            style={{ padding: 10, borderRadius: 10, border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(0,0,0,0.2)', resize: 'vertical' }}
+          />
+          <label style={{ display: 'grid', gap: 6 }}>
+            How should we credit you?
+            <select
+              value={creditPreference}
+              onChange={(e) => setCreditPreference(e.target.value)}
+              style={{ padding: 10, borderRadius: 10, border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(0,0,0,0.2)' }}
+            >
+              <option value="">Select a credit preference…</option>
+              <option value="public_credit">Credit me by name</option>
+              <option value="anonymous">Credit as anonymous</option>
+              <option value="private">Do not display my name publicly</option>
+              <option value="custom">Other (note in your submission text)</option>
+            </select>
+          </label>
+
           <button
             onClick={submit}
             disabled={!can}
