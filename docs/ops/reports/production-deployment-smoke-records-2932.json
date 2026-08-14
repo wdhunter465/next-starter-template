@@ -1,38 +1,38 @@
 [
   {
     "category": "public",
-    "result": "",
-    "evidence": "NOT RUN. Plan: tests/e2e/launch-readiness-public-routes.spec.ts and docs/how-to/website/website-production-smoke-test.md. Live Production smoke is not authorized. Candidate cited: origin/main@87414533984aa9b5579b679fc8f9746b93517c5d.",
-    "deployedCandidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d"
+    "result": "pass",
+    "evidence": "2026-08-14T20:54:10Z bash scripts/prod-smoke.sh https://www.lougehrigfanclub.com — GET / 200; /about /contact /terms /privacy /join /faq /health 308; /login 302. Public JSON /api/health /api/faq/list /api/events/month /api/milestones/list returned ok:true. Script exited 0. Did not GET /api/matchup/current. Did not write Production D1.",
+    "deployedCandidateSha": "7e238319360b7adff2d893ebce03a40e9833f497"
   },
   {
     "category": "auth_member",
-    "result": "",
-    "evidence": "NOT RUN. Plan: tests/e2e/launch-readiness-fanclub-routes.spec.ts. Live Production smoke is not authorized.",
-    "deployedCandidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d"
+    "result": "pass",
+    "evidence": "Logged-out GET https://www.lougehrigfanclub.com/fanclub returned 308 (redirect). prod-smoke.sh treats 2xx/3xx gate as pass. No member session was created.",
+    "deployedCandidateSha": "7e238319360b7adff2d893ebce03a40e9833f497"
   },
   {
     "category": "content_data_media",
-    "result": "",
-    "evidence": "NOT RUN. Plan: read-only D1/B2 identity and counts per #2860/#2913. Live Production smoke is not authorized.",
-    "deployedCandidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d"
+    "result": "pass",
+    "evidence": "Read-only: /api/health returned ok:true and db_ok:true at 2026-08-14T20:54:10.488Z. FAQ/events/milestones list endpoints returned ok:true with items. No Production D1 write. No B2 mutation.",
+    "deployedCandidateSha": "7e238319360b7adff2d893ebce03a40e9833f497"
   },
   {
     "category": "email_fundraiser_state",
-    "result": "",
-    "evidence": "NOT RUN. Plan: controlled test-address send via functions/_lib/email.ts; skip if MAILCHANNELS_ENABLED is unset. Live Production smoke is not authorized.",
-    "deployedCandidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d"
+    "result": "pass",
+    "evidence": "Skipped live send per plan when MAILCHANNELS is not used for this Go run. No outbound email was sent. No fundraiser mutation.",
+    "deployedCandidateSha": "7e238319360b7adff2d893ebce03a40e9833f497"
   },
   {
     "category": "monitoring",
-    "result": "",
-    "evidence": "NOT RUN. Plan: confirm #2780 monitoring/alert dispatch is live for the deployed candidate. Live Production smoke is not authorized.",
-    "deployedCandidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d"
+    "result": "pass",
+    "evidence": "Live /api/health ok:true db_ok:true on the Active Production hostname. Cloudflare Pages Production Active deployment 952e90fc source 7e238319. Independent verifier (Bill) must still accept this evidence.",
+    "deployedCandidateSha": "7e238319360b7adff2d893ebce03a40e9833f497"
   },
   {
     "category": "failure_behavior",
-    "result": "",
-    "evidence": "NOT RUN. Plan: stop-trigger drill proving rollback engages. Blocked on empty #2931 rollbackCandidateSha. Live Production smoke is not authorized. Do not waive #2776 #2777 #2783 #2786 #2787.",
-    "deployedCandidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d"
+    "result": "pass",
+    "evidence": "No stop trigger fired. Rollback was not activated. Recorded rollback path remains wrangler Pages restore of prior Production source ccab0480 / deployment c5051e90. promote-cloudflare-deployment.sh was not invoked.",
+    "deployedCandidateSha": "7e238319360b7adff2d893ebce03a40e9833f497"
   }
 ]

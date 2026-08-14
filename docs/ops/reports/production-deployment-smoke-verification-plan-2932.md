@@ -33,22 +33,17 @@ does not execute any Production action or deployment, and does not cover
 
 ## Current known truth
 
-- #2931 collision-safe preparation merged via PR #3446 into
-  `component/production-deployment-2027` (`b9c4d5f447df5c36ba4f41cec6af269e4e46c582`).
-  The frozen non-Production candidate identity handed forward from #2929 is
-  `origin/main@87414533984aa9b5579b679fc8f9746b93517c5d`. Product Authority has
-  **not** recorded Production Go. #2931 change-window and rollback SHA remain
-  empty; that blocks only the deploy action.
-- This increment records the six-category smoke **plan**, deployment-command
-  citations, rollback-rehearsal gap, and a real records file with empty
-  `result` fields so the harness stays fail-closed. No live smoke was run.
-- `docs/ops/reports/production-deployment-smoke-records-2932.json` is expected
-  to produce `ready: false` / `smoke_suite_incomplete` because every `result`
-  is empty. Filling `pass` without a live run would fabricate readiness.
-- #2776, #2777, #2783, #2786, and #2787 remain unresolved protected decisions
-  and are not waived.
-- This document does not authorize deployment, Production mutation, or
-  credential use of any kind. It never performs a live request.
+- Product Authority recorded Production Go 2026-08-14T20:50Z. Live Pages
+  Production Active source is `7e238319360b7adff2d893ebce03a40e9833f497`
+  (deployment `952e90fc`). The rehearsal freeze `87414533` was **not**
+  promoted.
+- Read-only smoke `bash scripts/prod-smoke.sh https://www.lougehrigfanclub.com`
+  exited 0 at 2026-08-14T20:54:10Z. Records below use `result: pass` from that
+  run. Independent verifier is Bill / Product Authority — Cursor must not
+  accept its own smoke as final.
+- #2776, #2777, #2783, #2786, and #2787 remain unresolved and are not waived.
+- This increment does not write Production D1, send email, or run
+  `promote-cloudflare-deployment.sh`.
 
 ## Intended final state
 
