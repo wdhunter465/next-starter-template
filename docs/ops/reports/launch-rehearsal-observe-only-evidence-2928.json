@@ -35,7 +35,12 @@
     "previewUrl": "https://05568c3e.next-starter-template-6yr.pages.dev",
     "method": "GET",
     "captures": [
-      { "path": "/search/", "status": 200, "bytes": 10412, "leakHits": [] },
+      {
+        "path": "/search/",
+        "status": 200,
+        "bytes": 10412,
+        "leakHits": []
+      },
       {
         "path": "/api/search?q=gehrig&page=1",
         "status": 200,
@@ -83,13 +88,41 @@
     "previewUrl": "https://05568c3e.next-starter-template-6yr.pages.dev",
     "method": "GET",
     "captures": [
-      { "path": "/api/session/me", "status": 401, "jsonError": "Not authenticated" },
-      { "path": "/api/library/list", "status": 401, "jsonError": "Not authenticated" },
-      { "path": "/api/fanclub/photos", "status": 401, "jsonError": "Not authenticated" },
-      { "path": "/api/fanclub/memorabilia", "status": 401, "jsonError": "Not authenticated" },
-      { "path": "/api/admin/stats", "status": 503, "jsonError": "Admin access is not configured." },
-      { "path": "/fanclub/", "status": 200, "note": "static-export HTML shell; client session gate" },
-      { "path": "/admin/", "status": 200, "note": "static-export HTML shell; admin token not configured on Preview" }
+      {
+        "path": "/api/session/me",
+        "status": 401,
+        "jsonError": "Not authenticated"
+      },
+      {
+        "path": "/api/library/list",
+        "status": 401,
+        "jsonError": "Not authenticated"
+      },
+      {
+        "path": "/api/fanclub/photos",
+        "status": 401,
+        "jsonError": "Not authenticated"
+      },
+      {
+        "path": "/api/fanclub/memorabilia",
+        "status": 401,
+        "jsonError": "Not authenticated"
+      },
+      {
+        "path": "/api/admin/stats",
+        "status": 503,
+        "jsonError": "Admin access is not configured."
+      },
+      {
+        "path": "/fanclub/",
+        "status": 200,
+        "note": "static-export HTML shell; client session gate"
+      },
+      {
+        "path": "/admin/",
+        "status": 200,
+        "note": "static-export HTML shell; admin token not configured on Preview"
+      }
     ],
     "notes": "Member/admin APIs reject unauthenticated GET (401 or fail-closed 503). Static HTML shells return 200 because the site is a Cloudflare Pages static export; member APIs do not return partial member JSON."
   },
@@ -102,9 +135,23 @@
     "previewUrl": "https://05568c3e.next-starter-template-6yr.pages.dev",
     "method": "GET",
     "captures": [
-      { "path": "/fanclub/photo/", "status": 200, "bytes": 11906, "leakHits": [] },
-      { "path": "/api/fanclub/photos", "status": 401, "jsonError": "Not authenticated" },
-      { "path": "/api/photos?limit=5", "status": 200, "jsonOk": true, "itemCount": 5 }
+      {
+        "path": "/fanclub/photo/",
+        "status": 200,
+        "bytes": 11906,
+        "leakHits": []
+      },
+      {
+        "path": "/api/fanclub/photos",
+        "status": 401,
+        "jsonError": "Not authenticated"
+      },
+      {
+        "path": "/api/photos?limit=5",
+        "status": 200,
+        "jsonOk": true,
+        "itemCount": 5
+      }
     ],
     "notes": "Observe-only unauthenticated GET. Member gallery API correctly 401s. Public photo list is readable on Preview D1. Authenticated member gallery browse is not in this increment."
   },
@@ -117,8 +164,17 @@
     "previewUrl": "https://05568c3e.next-starter-template-6yr.pages.dev",
     "method": "GET",
     "captures": [
-      { "path": "/fanclub/library/", "status": 200, "bytes": 11602, "leakHits": [] },
-      { "path": "/api/library/list", "status": 401, "jsonError": "Not authenticated" }
+      {
+        "path": "/fanclub/library/",
+        "status": 200,
+        "bytes": 11602,
+        "leakHits": []
+      },
+      {
+        "path": "/api/library/list",
+        "status": 401,
+        "jsonError": "Not authenticated"
+      }
     ],
     "notes": "Observe-only unauthenticated GET of library HTML plus member API reject. Authenticated library detail browse is not in this increment."
   },
@@ -131,9 +187,23 @@
     "previewUrl": "https://05568c3e.next-starter-template-6yr.pages.dev",
     "method": "GET",
     "captures": [
-      { "path": "/fanclub/memorabilia/", "status": 200, "bytes": 11937, "leakHits": [] },
-      { "path": "/api/fanclub/memorabilia", "status": 401, "jsonError": "Not authenticated" },
-      { "path": "/api/photos?limit=20&memorabilia=1", "status": 200, "jsonOk": true, "itemCount": 0 }
+      {
+        "path": "/fanclub/memorabilia/",
+        "status": 200,
+        "bytes": 11937,
+        "leakHits": []
+      },
+      {
+        "path": "/api/fanclub/memorabilia",
+        "status": 401,
+        "jsonError": "Not authenticated"
+      },
+      {
+        "path": "/api/photos?limit=20&memorabilia=1",
+        "status": 200,
+        "jsonOk": true,
+        "itemCount": 0
+      }
     ],
     "notes": "Observe-only unauthenticated GET. Member memorabilia API 401s. Public memorabilia filter on Preview D1 returned zero rows (isolated fixture gap, not a Production dump)."
   },
@@ -193,7 +263,11 @@
         "jsonOk": true,
         "blockPresent": false
       },
-      { "path": "/", "status": 200, "note": "HTML GET; campaign slot hydrates client-side and remains empty when CMS block is null" }
+      {
+        "path": "/",
+        "status": 200,
+        "note": "HTML GET; campaign slot hydrates client-side and remains empty when CMS block is null"
+      }
     ],
     "notes": "Observed disabled/absent campaign spotlight on this frozen candidate. No broken payment UI and no donor data."
   },
@@ -206,7 +280,11 @@
     "previewUrl": "https://05568c3e.next-starter-template-6yr.pages.dev",
     "method": "GET",
     "captures": [
-      { "path": "/health/", "status": 200, "bytes": 10520 },
+      {
+        "path": "/health/",
+        "status": 200,
+        "bytes": 10520
+      },
       {
         "path": "/api/health",
         "status": 200,
@@ -231,5 +309,49 @@
       }
     ],
     "notes": "Subset closeout only. Full-registry evidence-audit ok:false until the write-capable 10 journeys execute. No orphaned evidence ids."
+  },
+  {
+    "journeyId": "content-media-rights-attribution",
+    "result": "pass",
+    "candidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d",
+    "executedAt": "2026-08-14T13:11:00Z",
+    "environment": "cloudflare-pages-preview/lgfc-litedev",
+    "previewUrl": "https://05568c3e.next-starter-template-6yr.pages.dev",
+    "method": "GET",
+    "retestOf": "D-2928-001",
+    "captures": [
+      {
+        "path": "/api/photos?limit=20",
+        "status": 200,
+        "jsonOk": true,
+        "itemCount": 20,
+        "withTitle": 20,
+        "withDescription": 20,
+        "withTags": 20
+      }
+    ],
+    "notes": "Retest after synthetic Preview D1 attribution fixtures on photo ids 829-848 (lgfc-litedev only). Same frozen SHA; no candidate-code change. No Production D1 write."
+  },
+  {
+    "journeyId": "fundraiser-enabled-state",
+    "result": "pass",
+    "candidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d",
+    "executedAt": "2026-08-14T13:11:00Z",
+    "environment": "cloudflare-pages-preview/lgfc-litedev",
+    "previewUrl": "https://05568c3e.next-starter-template-6yr.pages.dev",
+    "method": "GET",
+    "retestOf": "D-2928-002",
+    "captures": [
+      {
+        "path": "/api/cms/get?key=home.campaign_spotlight",
+        "status": 200,
+        "jsonOk": true,
+        "blockPresent": true,
+        "enabled": true,
+        "leaderboardLen": 3,
+        "primaryCtaHref": "https://givebutter.com/LouGehrigFanClub2026"
+      }
+    ],
+    "notes": "Retest after synthetic published home.campaign_spotlight on lgfc-litedev. Same frozen SHA. GET only; no live donation. No Production CMS publish."
   }
 ]

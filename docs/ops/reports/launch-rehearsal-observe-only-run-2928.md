@@ -3,7 +3,7 @@ Doc Type: Operations Report
 Audience: Bill, ChatGPT, Cursor, LGFC maintainers, and reviewers
 Authority Level: Task Evidence
 Owns: #2928 (#2781 Task 003) observe-only GET rehearsal run against the frozen isolated candidate
-Does Not Own: Write-capable 22-journey execution, Production mutation, Pipeline intake closeout, or #2929 GO/HOLD/ADJUSTMENT/NO-GO
+Does Not Own: Write-capable 10-journey remainder, Production mutation, Pipeline intake closeout, or #2929 GO/HOLD/ADJUSTMENT/NO-GO
 Canonical Reference: /docs/ops/reports/launch-rehearsal-observe-only-run-2928.md
 Related Issues: #2928, #2781, #2926, #2927, #2929
 Last Reviewed: 2026-08-14
@@ -25,10 +25,10 @@ Preview bound to `lgfc-litedev`.
 | Environment | Cloudflare Pages Preview / D1 `lgfc-litedev` |
 | Preview deployment | `05568c3e-a56f-45d0-a3db-1298d9b7b80c` |
 | Preview URL | `https://05568c3e.next-starter-template-6yr.pages.dev` |
-| Executed at | 2026-08-14T12:52:02Z |
+| Executed at | 2026-08-14T12:52:02Z first pass; 2026-08-14T13:11:00Z retest |
 | Executor | Cursor Local |
-| Methods | GET only |
-| Forbidden | POST/PUT/PATCH/DELETE; `GET /api/matchup/current`; Production hostnames |
+| Methods | GET for journeys; isolated Preview D1 fixture writes on `lgfc-litedev` only for D-2928-001/002 |
+| Forbidden | Production D1 `lgfc_lite`; Production hostnames; `GET /api/matchup/current` |
 
 `origin/main` was still exactly this SHA at freeze time. No replacement SHA.
 
@@ -47,27 +47,29 @@ later `cursor/2049-manual-evidence-review-2e48` branch alias were not used.
 | `fanclub-gallery-photo` | pass (unauthenticated GET / API 401) |
 | `fanclub-library` | pass (unauthenticated GET / API 401) |
 | `fanclub-memorabilia` | pass (unauthenticated GET / API 401) |
-| `content-media-rights-attribution` | fail — D-2928-001 |
-| `fundraiser-enabled-state` | fail — D-2928-002 |
+| `content-media-rights-attribution` | fail then **pass** on retest — D-2928-001 resolved |
+| `fundraiser-enabled-state` | fail then **pass** on retest — D-2928-002 resolved |
 | `fundraiser-disabled-state` | pass |
 | `ops-deployment-monitoring` | pass |
 | `ops-evidence-closeout` | pass (subset) |
 
 ## Defects
 
-See `docs/ops/reports/launch-rehearsal-defect-ledger-2928.json`. Both defects are
-`deferred-with-owner` isolated Preview D1 / CMS fixture gaps. They are not
-authorization to copy Production data or to mutate Production.
+See `docs/ops/reports/launch-rehearsal-defect-ledger-2928.json`. D-2928-001 and
+D-2928-002 are **resolved** after synthetic Preview D1 fixtures on `lgfc-litedev`
+(photo ids 829–848 attribution; published `home.campaign_spotlight`). Same frozen
+website SHA. Rollback: restore those 20 photo title/description/tags and delete
+the `home.campaign_spotlight` row on `lgfc-litedev` only.
 
 ## What this increment does not do
 
-- Execute the write-capable / side-effect 10-journey set.
-- Treat observe-only as fully clean for automatic write-capable start.
+- Execute the write-capable / side-effect 10-journey set (next increment).
+- Mutate Production D1 `lgfc_lite` or Production hostnames.
 - Close #2928 or start #2782.
 - Invent a #2929 GO/HOLD/ADJUSTMENT/NO-GO.
 
 ## Successor
 
-Write-capable isolated rehearsal remains the next #2928 increment, with a new
-exact allowlist, after PMO/Product records whether D-2928-001/D-2928-002 block
-that set or remain deferred fixture work. Cleanup/rollback proof remains open.
+Observe-only set is clean after retest. Next #2928 increment is the remaining
+10 write-capable isolated journeys under the existing runbook, with a new exact
+allowlist. Cleanup/rollback proof remains open.
