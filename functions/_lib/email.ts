@@ -145,6 +145,33 @@ ${siteUrl ? `<p>Visit: <a href="${siteUrl}">${siteUrl}</a></p>` : ''}
 	return sendMailChannels({ env: opts.env, to: [to], subject, text, html });
 }
 
+// #2919: strictly-transactional join confirmation for members who did not
+// opt in to promotional/periodic-update email. Confirms the account action
+// only — no "periodic updates" or other promotional copy.
+export async function sendTransactionalJoinConfirmation(opts: {
+	env: any;
+	toEmail: string;
+	toName?: string;
+}): Promise<MailSendResult> {
+	const to: MailChannelsAddress = { email: opts.toEmail, name: opts.toName || undefined };
+	const subject = 'Your Lou Gehrig Fan Club account is confirmed';
+
+	const text = `Hi${opts.toName ? ` ${opts.toName}` : ''},
+
+This confirms your Lou Gehrig Fan Club account was created successfully.
+
+You did not opt in to periodic email updates, so this is the only message you will receive unless you take further action on the site.
+
+— Lou Gehrig Fan Club`;
+
+	const html = `<p>Hi${opts.toName ? ` ${opts.toName}` : ''},</p>
+<p>This confirms your <strong>Lou Gehrig Fan Club</strong> account was created successfully.</p>
+<p>You did not opt in to periodic email updates, so this is the only message you will receive unless you take further action on the site.</p>
+<p>— Lou Gehrig Fan Club</p>`;
+
+	return sendMailChannels({ env: opts.env, to: [to], subject, text, html });
+}
+
 export async function sendAdminJoinNotification(opts: {
 	env: any;
 	name: string;

@@ -704,6 +704,61 @@ describe('sync-pr-state successful closeout', () => {
 		);
 	});
 
+	it('withholds original source closeout when post-merge result lists an open exception chain', async () => {
+		process.env.GITHUB_REPOSITORY = 'owner/repo';
+		const syncPrState = await import('../scripts/orchestrator/sync-pr-state.mjs');
+		const run = vi.fn();
+
+		const result = syncPrState.syncPrState({
+			prNumber: '3461',
+			action: 'post_merge_success',
+			pr: {
+				body: baseBody.replace('#1196', '#3069'),
+				mergedAt: '2026-08-14T18:54:37Z',
+				state: 'MERGED',
+				url: 'https://example.test/pr/3461',
+				mergeCommit: { oid: 'e591ac32' },
+			},
+			postMergeResult: {
+				status: 'pass',
+				remediation_required: false,
+				merge_sha: 'e591ac32',
+				pr: 3461,
+				source_issue: '3069',
+				original_source_issue: 3069,
+				open_exception_issues: [{
+					number: 3462,
+					title: 'Post-merge closeout exception for PR #3461 / source #3069 / unresolved_exception_chain',
+					labels: ['post-merge-failure', 'agent:cursor', 'status:active'],
+					body: [
+						'- PR: #3461',
+						'- Source issue: #3069',
+						'- Original source issue: #3069',
+						'- Cycle iteration: 1',
+					].join('\n'),
+				}],
+				terminal_label_result: {
+					ok: true,
+					removeLabels: ['status:active'],
+					addLabel: 'status:complete',
+					summary: 'remove status:active; add status:complete',
+				},
+			},
+			getIssueMeta: () => ({
+				title: 'WORK REMEDIATION: Enforce immediate originating-agent remediation',
+				labels: ['agent:cursor', 'status:post-merge-verify'],
+				state: 'OPEN',
+			}),
+			reconcileTerminalLabelsFn: () => {},
+			run,
+		});
+
+		expect(result).toBe('unresolved_exception_chain');
+		expect(run).not.toHaveBeenCalledWith(
+			expect.arrayContaining(['issue', 'close', '3069']),
+		);
+	});
+
 	it('normalizes labels on already-closed completed source issues without reopening', async () => {
 		process.env.GITHUB_REPOSITORY = 'owner/repo';
 		const syncPrState = await import('../scripts/orchestrator/sync-pr-state.mjs');

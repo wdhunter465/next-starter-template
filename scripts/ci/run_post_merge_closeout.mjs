@@ -11,6 +11,7 @@ import {
 	shouldUpsertRemediationIssue,
 	shouldSuppressRemediationForCircuitBreaker,
 	upsertRemediationIssue,
+	attachOriginatingAgentEvidence,
 } from './post_merge_remediation_issue.mjs';
 import { runValidator, WORKFLOW_RUN_SCOPE_MERGE_AND_HEAD } from './post_merge_validator.mjs';
 import { githubRepoRequest } from './github_issue_api.mjs';
@@ -51,7 +52,8 @@ export function isSuccessfulSourceIssueCloseout(syncResult) {
 	return (
 		syncResult === 'complete' ||
 		syncResult === 'active_relabeled' ||
-		syncResult === 'remediation_issue'
+		syncResult === 'remediation_issue' ||
+		syncResult === 'unresolved_exception_chain'
 	);
 }
 
@@ -491,6 +493,11 @@ export async function runPostMergeCloseout({
 		}
 	}
 
+	Object.assign(result, attachOriginatingAgentEvidence(result, pr));
+	if (syncPr) {
+		Object.assign(result, attachOriginatingAgentEvidence(result, syncPr));
+	}
+
 	await ensureCloseoutRemediationEvidence({
 		token,
 		repository,
@@ -539,12 +546,13 @@ export async function main() {
 	} catch (error) {
 		console.error(error);
 		let evidenceSha = process.env.GITHUB_SHA || '';
+		let errorPr = null;
 		try {
-			const pr = await fetchMergedPr({ token, repository, prNumber: context.prNumber });
+			errorPr = await fetchMergedPr({ token, repository, prNumber: context.prNumber });
 			evidenceSha = resolveErrorArtifactMergeSha({
 				eventName: context.eventName,
 				suppliedSha: process.env.GITHUB_SHA || '',
-				pr,
+				pr: errorPr,
 				prNumber: context.prNumber,
 			});
 		} catch {
@@ -555,6 +563,9 @@ export async function main() {
 			mergeSha: evidenceSha,
 			message: error instanceof Error ? error.message : String(error),
 		});
+		if (errorPr) {
+			Object.assign(result, attachOriginatingAgentEvidence(result, errorPr));
+		}
 		await writePostMergeResultArtifactsAsync(result);
 		await ensureCloseoutRemediationEvidence({
 			token,
@@ -587,13 +598,14 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
 		const prNumber = process.env.PR_NUMBER || process.env.EVENT_PR_NUMBER || '';
 		const eventName = process.env.GITHUB_EVENT_NAME || '';
 		let evidenceSha = process.env.GITHUB_SHA || '';
+		let errorPr = null;
 		if (token && repository && prNumber) {
 			try {
-				const pr = await fetchMergedPr({ token, repository, prNumber });
+				errorPr = await fetchMergedPr({ token, repository, prNumber });
 				evidenceSha = resolveErrorArtifactMergeSha({
 					eventName,
 					suppliedSha: process.env.GITHUB_SHA || '',
-					pr,
+					pr: errorPr,
 					prNumber,
 				});
 			} catch {
@@ -605,6 +617,9 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
 			mergeSha: evidenceSha,
 			message: error instanceof Error ? error.message : String(error),
 		});
+		if (errorPr) {
+			Object.assign(result, attachOriginatingAgentEvidence(result, errorPr));
+		}
 		try {
 			await writePostMergeResultArtifactsAsync(result);
 			if (token && repository) {

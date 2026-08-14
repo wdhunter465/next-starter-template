@@ -61,10 +61,16 @@ describe('public route contract (#1259 Task 002)', () => {
 
   it('aligns manifest footer links with locked footer contract', () => {
     const required = manifest.footerLinks?.required || [];
-    expect(required.map((entry) => entry.label)).toEqual(['Privacy', 'Terms', 'Contact']);
+    expect(required.map((entry) => entry.label)).toEqual([
+      'Privacy',
+      'Terms',
+      'Accessibility',
+      'Contact',
+    ]);
     expect(required.map((entry) => entry.target.replace(/\/$/, ''))).toEqual([
       '/privacy',
       '/terms',
+      '/accessibility',
       '/contact',
     ]);
   });

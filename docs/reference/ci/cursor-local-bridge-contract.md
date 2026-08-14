@@ -1,19 +1,19 @@
 ---
 Doc Type: Reference
 Audience: Human + AI
-Authority Level: Project Contract
-Owns: Cursor Local Bridge component inventory, eligibility auto-start gates, transactional launch acceptance, wake-packet authority boundary, health/watchdog/reconciliation contract, and fallback taxonomy
-Does Not Own: Product decisions, PR approval, Background Agents, or unrestricted workflow migration onto the Chromebook runner
-Canonical Reference: /docs/explanation/operations/cursor-local-auto-start-architecture.md
-Related Issues: #2294, #2667, #2669, #2681, #2694, #2739, #2814, #2997, #3013, #3212
-Last Reviewed: 2026-08-09
+Authority Level: Superseded
+Owns: Historical Cursor Local Bridge component inventory, eligibility auto-start gates, transactional launch acceptance, wake-packet authority boundary, health/watchdog/reconciliation contract, and fallback taxonomy
+Does Not Own: Current Cursor auto-start routing, Product decisions, PR approval, Background Agents, or unrestricted workflow migration onto the Chromebook runner
+Canonical Reference: /docs/governance/standards/CURSOR-RUNTIME-ROUTING.md
+Related Issues: #2294, #2667, #2669, #2681, #2694, #2739, #2814, #2997, #3013, #3212, #3424
+Last Reviewed: 2026-08-13
 ---
 
 # Cursor Local Bridge Contract
 
-## Status (#3212 Phase 4)
+## Status (#3212 Phase 4 / #3424)
 
-**Retired as the primary auto-start contract.** Automatic wake-packet delivery is disabled (`wakeDelivery.enabled: false`). Primary transport is `lgfc-cursor-dispatch` / `config/github-actions/cursor-dispatch-runner.json`. This document remains the historical Bridge package contract and documents the approved diagnostic fallback (`workflow_dispatch` + `CURSOR_WAKE_DIAGNOSTIC`). Shared module `scripts/cursor-bridge/lib/wake-ingress.mjs` remains live for dispatch routing.
+**Decommissioned / superseded.** Cursor Local Bridge is not the current primary auto-start contract. Automatic wake-packet delivery is disabled (`wakeDelivery.enabled: false`). Primary transport is `lgfc-cursor-dispatch` / `config/github-actions/cursor-dispatch-runner.json`. This document remains the historical Bridge package contract and documents the approved diagnostic fallback (`workflow_dispatch` + `CURSOR_WAKE_DIAGNOSTIC`). Shared module `scripts/cursor-bridge/lib/wake-ingress.mjs` remains live for dispatch routing.
 
 ## Purpose
 
@@ -33,7 +33,7 @@ Every component has a role. No infrastructure may be introduced without purpose,
 | Wake workflow (`.github/workflows/cursor-local-wake.yml`) | Near-real-time delivery | Trusted `issues` (`labeled`) / manual dispatch | Host wake packet JSON | `lgfc-repo-runner` |
 | Actions runner service | Host job receiver | Jobs with `lgfc-repo-runner` | Process that can write packets | systemd runner unit |
 | Wake packet queue (`~/lgfc-cursor-bridge/queue/`) | Decouple job vs agent lifetime | Packets from wake workflow or reconciliation recovery | Files for Bridge | Host user permissions |
-| Cursor Local Bridge (`scripts/cursor-bridge/bridge.mjs`) | Sole Cursor launcher and supervisor | Packets, live Issue via `gh`, claim store, CLI auth | Transactional launch, local evidence, actionable fallback, heartbeat | `gh`, `cursor agent`/`agent` |
+| Cursor Local Bridge (`scripts/cursor-bridge/bridge.mjs`) | Historical Cursor launcher and supervisor (decommissioned) | Packets, live Issue via `gh`, claim store, CLI auth | Transactional launch, local evidence, actionable fallback, heartbeat | `gh`, `cursor agent`/`agent` |
 | Launch transaction (`in-flight.json`) | Distinguish process spawn from agent acceptance | Claim, packet, Cursor stream events | `cli_spawned`, `running`, recovery disposition | Atomic local storage |
 | Local heartbeat | Prove useful Bridge health during idle and active launches | Watch-loop and launch state | `heartbeat.json` (atomic, mode `0600`) | Bridge process |
 | Local watchdog (`watchdog.mjs` + systemd timer) | Detect hung/stale Bridge and restart or alert | Heartbeat age, service, queue, workspace, `gh`/CLI auth, claim TTL, disk | Local restart/alert; optional debounced GitHub ops fault | systemd user timer |
@@ -46,12 +46,14 @@ Every component has a role. No infrastructure may be introduced without purpose,
 | Notify fallback | Operator-visible failure | Failure class | Desktop/log + Issue comment | `notify-send` optional |
 | Preflight engine (`lib/preflight.mjs`) | Fail-closed readiness before claim/launch | Injected or host probes | Taxonomy result + `lastPreflight` | Bridge home, watchdog timer |
 | Status command (`bridge.mjs status`) | Bidirectional readiness view | Local Bridge + auth surfaces | Secret-safe JSON status | Host only |
-| Poll-wake loop | Legacy backup detector | GitHub poll | Stdout sentinel only | Open IDE chat — **not primary** |
+| Poll-wake loop | Retired backup detector (not current wake) | GitHub poll | Stdout sentinel only | Open IDE chat |
 
-## Primary, recovery, and health paths
+## Historical primary, recovery, and health paths
+
+The following paths describe the **decommissioned** Bridge package. They are not the current Cursor wake bus.
 
 ```text
-Primary path:
+Historical Bridge path:
 GitHub event -> wake workflow -> repository runner -> local packet -> Bridge
   -> eligibility -> claim -> CLI spawn -> system/init acceptance -> running
 
@@ -65,9 +67,9 @@ Bridge Watch -> classify drift/health; quiet when healthy
 Bridge Build -> stage/validate/promote or restore prior package (idle lane only)
 ```
 
-Rules:
+Rules (historical Bridge package; do not treat as current routing):
 
-- Event-driven wake delivery remains primary.
+- Event-driven Bridge wake delivery is **not** the current primary path. Current primary transport is `lgfc-cursor-dispatch` (`docs/governance/standards/CURSOR-RUNTIME-ROUTING.md`).
 - Reconciliation is recovery only, rate-limited (`reconcileIntervalSeconds`, default `900`), and fail-closed on API/ambiguity.
 - Reconciliation must not launch Cursor, bypass the packet path, reinterpret authority, or claim beyond the serial lane.
 - Routine healthy checks stay local and quiet — no synthetic GitHub keepalive traffic.
@@ -77,7 +79,9 @@ Rules:
 
 ## Eligibility (label/status-driven — #2997, simplified #3013)
 
-The Bridge is the secure transport, host-readiness, deduplication, and serial-concurrency controller. It is **not** the final semantic task-authority decision-maker. Trusted Cursor-routed notifications must reach Cursor for evaluation unless a mechanical safety gate prevents launch.
+The following eligibility rules describe the **decommissioned** Bridge package. Current Cursor wake uses `lgfc-cursor-dispatch`; labels/status remain the routing signal (`docs/governance/standards/CURSOR-RUNTIME-ROUTING.md`).
+
+Historically, the Bridge was the secure transport, host-readiness, deduplication, and serial-concurrency controller. It was **not** the final semantic task-authority decision-maker. Trusted Cursor-routed notifications still reach Cursor for evaluation through the current dispatch path unless a mechanical safety gate prevents launch.
 
 There is **no comment-marker protocol**. The Bridge does not parse, search for, or require any specific text in an Issue comment (no `LOCAL CURSOR RESUME`, `CHATGPT RESPONSE`, `Action:`/`Response:` line forms, or resume/issue chronology matching). Comments are read by Cursor as ordinary context after launch, the same way Cursor reads the Issue body — they carry no routing or gating authority. Routing and gating are decided **only** from the Issue's current labels and status.
 

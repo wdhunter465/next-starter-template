@@ -4,6 +4,7 @@
   "requiredRoutes": [
     "/",
     "/about",
+    "/accessibility",
     "/ask",
     "/auth",
     "/contact",
@@ -56,6 +57,7 @@
     "required": [
       { "label": "Privacy", "target": "/privacy/" },
       { "label": "Terms", "target": "/terms/" },
+      { "label": "Accessibility", "target": "/accessibility/" },
       { "label": "Contact", "target": "/contact/" }
     ]
   },
@@ -65,6 +67,9 @@
     },
     "/about": {
       "requiredHeadings": ["About This Fan Club"]
+    },
+    "/accessibility": {
+      "requiredHeadings": ["Accessibility"]
     },
     "/ask": {
       "requiredHeadings": ["FAQ"]
@@ -76,6 +81,7 @@
   "publicPlaywrightRoutes": [
     "/",
     "/about",
+    "/accessibility",
     "/ask",
     "/contact",
     "/events",

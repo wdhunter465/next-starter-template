@@ -35,6 +35,12 @@ import { evaluateReviewerCommentDisposition, hasValidDisposition, parseReviewerD
 import { isTrustedReviewer } from './reviewer_trusted_bots.mjs';
 import { resolveExistingCloseoutBodyFile } from './post_merge_closeout_trigger.mjs';
 import { AUTO_REPAIR_END, AUTO_REPAIR_START } from './pr_body_auto_repair.mjs';
+import {
+	EXCEPTION_LABEL,
+	resolveDeliveryLineage,
+	toIssueNumber,
+	toLineageIssue,
+} from './post_merge_delivery_lineage.mjs';
 
 export { linkedIssueNumber, resolveSourceIssueFromPr, sourceIssueAccounting };
 
@@ -972,6 +978,8 @@ export function buildResult({
 	sourceIssueLinkageRepair = null,
 	selfHealingSafe = null,
 	syncActionOverride = null,
+	openExceptionIssues = [],
+	originalSourceIssue = null,
 } = {}) {
 	if (!resolution?.pr) {
 		return {
@@ -1061,6 +1069,8 @@ export function buildResult({
 				reason: CLERICAL_LINKAGE_MISMATCH,
 			}
 			: undefined,
+		original_source_issue: toIssueNumber(originalSourceIssue || sourceIssue),
+		open_exception_issues: Array.isArray(openExceptionIssues) ? openExceptionIssues : [],
 	};
 }
 
@@ -1196,6 +1206,17 @@ async function paginate(args) {
 	return out;
 }
 
+async function listOpenExceptionIssues({ token, repository }) {
+	const issues = await paginate({
+		token,
+		repository,
+		path: `/issues?state=open&labels=${encodeURIComponent(EXCEPTION_LABEL)}`,
+	});
+	return (Array.isArray(issues) ? issues : [])
+		.filter((issue) => !issue?.pull_request)
+		.map(toLineageIssue);
+}
+
 function uniqueRuns(...runGroups) {
 	const byId = new Map();
 	for (const group of runGroups) {
@@ -1305,7 +1326,7 @@ export async function runValidator({
 	const pr = await apiRequest({ token, repository, path: `/pulls/${resolution.pr}` });
 	const prHeadSha = pr.head?.sha || '';
 
-	const [issueComments, reviewComments, reviews, mergeRunsResponse, headRunsResponse] = await Promise.all([
+	const [issueComments, reviewComments, reviews, mergeRunsResponse, headRunsResponse, openExceptionIssues] = await Promise.all([
 		paginate({ token, repository, path: `/issues/${resolution.pr}/comments` }),
 		paginate({ token, repository, path: `/pulls/${resolution.pr}/comments` }),
 		paginate({ token, repository, path: `/pulls/${resolution.pr}/reviews` }),
@@ -1313,6 +1334,7 @@ export async function runValidator({
 		prHeadSha
 			? apiRequest({ token, repository, path: `/actions/runs?head_sha=${encodeURIComponent(prHeadSha)}&per_page=100` })
 			: { workflow_runs: [] },
+		listOpenExceptionIssues({ token, repository }),
 	]);
 
 	const normalizedPr = {
@@ -1494,6 +1516,15 @@ export async function runValidator({
 		evidenceMergeSha: sha,
 	});
 
+	const lineage = resolveDeliveryLineage({
+		result: {
+			pr: Number(resolution.pr),
+			source_issue: sourceResolution.issueNumber || null,
+		},
+		declaredSourceIssueMeta: sourceIssue,
+		openExceptionIssues,
+	});
+
 	const result = buildResult({
 		pr: normalizedPr,
 		resolution,
@@ -1511,6 +1542,8 @@ export async function runValidator({
 		sourceIssueOverride: sourceResolution.issueNumber || null,
 		sourceIssueLinkageRepair,
 		syncActionOverride,
+		openExceptionIssues,
+		originalSourceIssue: lineage.original_source_issue,
 	});
 
 	if (sourceIssueLinkageRepair?.applied && sourceResolution.issueNumber && token && repository) {
@@ -1522,6 +1555,8 @@ export async function runValidator({
 			postMergeResult: result,
 			terminalLabelResult,
 			prBody: normalizedPr.body || '',
+			openExceptionIssues,
+			originalSourceIssue: lineage.original_source_issue,
 		});
 
 		if (result.status === 'pass' && !result.remediation_required && closeDecision.close) {

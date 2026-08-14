@@ -436,12 +436,12 @@ describe('search API inventory integration', () => {
     expect(payload).toMatchObject({ ok: true, total: 2 });
     expect(payload.results).toEqual(
       expect.arrayContaining([
-        { type: 'Archive', title: 'Canonical farewell', excerpt: expect.any(String), url: '/fanclub/library', score: expect.any(Number) },
+        { type: 'Archive', title: 'Canonical farewell', excerpt: expect.any(String), url: '/fanclub/library?q=farewell', score: expect.any(Number) },
         {
           type: 'Archive',
           title: 'Alternate farewell (Alternate account)',
           excerpt: expect.any(String),
-          url: '/fanclub/library',
+          url: '/fanclub/library?q=farewell',
           score: expect.any(Number),
         },
       ]),

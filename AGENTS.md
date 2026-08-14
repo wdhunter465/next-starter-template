@@ -5,10 +5,11 @@
 > off (`status:review`/`status:complete`/`status:post-merge-verify`). There is
 > no comment-marker protocol.
 >
-> **Transport (#3212 Phase 4):** Primary wake is GitHub Actions
+> **Transport (#3212 Phase 4 / #3424):** Primary wake is GitHub Actions
 > `lgfc-cursor-dispatch` on runner label `lgfc-cursor` (identifiers-only
-> wrapper). Cursor Local Bridge automatic packet delivery and the local
-> poll-wake loop are **retired as execution dependencies**. Canonical:
+> wrapper). Cursor Local Bridge is **decommissioned** as a primary
+> auto-start path; automatic packet delivery and the local poll-wake loop
+> remain **retired as execution dependencies**. Canonical:
 > `docs/governance/standards/CURSOR-RUNTIME-ROUTING.md` and
 > `docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md`.
 
