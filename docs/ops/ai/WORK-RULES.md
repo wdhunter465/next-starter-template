@@ -6,7 +6,7 @@ Owns: Work product identity, Work startup contract, Work-specific operating deta
 Does Not Own: Agent team policy, approval routing, shared execution law, or role authority (see `docs/governance/AGENT-TEAM.md`)
 Canonical Reference: /docs/governance/AGENT-TEAM.md
 Related Issues: #2494, #3052, #3422
-Last Reviewed: 2026-08-13
+Last Reviewed: 2026-08-14
 ---
 
 # WORK-RULES.md
@@ -64,7 +64,7 @@ These require a separately loaded source Issue, assignment, or explicit Product 
 
 ## Mandatory continuity load for resumed PMO work (#3422)
 
-Orientation-only `run startup` remains unchanged. **After startup**, when Product Authority asks Work or a replacement PMO role holder to **resume**, **continue**, **pick up where we left off**, continue a prior LGFC project-session thread, or otherwise resume previously active PMO work, the role holder must read [`WORK-CONTINUITY-LEDGER.md`](./WORK-CONTINUITY-LEDGER.md) before selecting, changing, or proposing assignments.
+Orientation-only `run startup` remains unchanged. **After startup**, when Product Authority asks Work to **resume**, **continue**, **pick up where we left off**, continue a prior LGFC project-session thread, or otherwise resume previously active PMO work, Work must read [`WORK-CONTINUITY-LEDGER.md`](./WORK-CONTINUITY-LEDGER.md) before selecting, changing, or proposing assignments. The same ledger-first resume expectation applies to any agent currently holding the PMO role; this Work-specific rules document states the requirement for Work and points other role holders to the shared ledger procedure.
 
 The continuity ledger is a context/routing aid, not operational authority. After loading it, the role holder must verify material current-state claims against live GitHub Issues, PRs, checks, and repository files before acting.
 
@@ -96,4 +96,4 @@ Detailed prior ChatGPT control-plane behavior (evidence posture, launch-readines
 
 For a graduated Project or Program, the exact prepared child graph is standing authority. Eligible agents self-claim the next package-complete serial child without routine Administration/PMO redispatch. The implementation runtime must record starting SHA, branch, allowlist confirmation, and pre-implementation checkpoint before editing.
 
-Missing package fields produce `PACKAGE-INCOMPLETE`; a substantive dependency or protected boundary produces an evidence-specific `HOLD`. Merge alone is not substantive acceptance. WORK owns preparation, monitoring, assurance, exception handling, and parent/program acceptance where judgment is required — not routine per-task dispatch — and cannot independently verify or approve work WORK implemented. Governance stewardship (`team:governance`) is a peer queue under #3152 and is not an Operations interrupt.
+Missing package fields produce `PACKAGE-INCOMPLETE`; a substantive dependency or protected boundary produces an evidence-specific `HOLD`. Merge alone is not substantive acceptance. Work owns preparation, monitoring, assurance, exception handling, and parent/program acceptance where judgment is required — not routine per-task dispatch — and cannot independently verify or approve work Work implemented. Governance stewardship (`team:governance`) is a peer queue under #3152 and is not an Operations interrupt.

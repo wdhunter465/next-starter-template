@@ -6,10 +6,11 @@ Owns: Current PMO conversational/work state, role handoff context, active task r
 Does Not Own: Product decisions, repository implementation authority, issue/PR acceptance, queue priority, or canonical governance policy
 Canonical Reference: /docs/governance/AGENT-TEAM.md
 Related: /docs/ops/ai/WORK-RULES.md, /docs/governance/ADMINISTRATION-AND-COMMUNICATIONS.md, live GitHub Issues/PRs
-Last Updated: 2026-08-13
+Last Updated: 2026-08-14
+Last Reviewed: 2026-08-14
 ---
 
-# WORK / CHAT CONTINUITY LEDGER
+# WORK-CONTINUITY-LEDGER
 
 ## Purpose
 
@@ -19,7 +20,7 @@ It is a **continuity aid, not operational authority**. Live repository files, Gi
 
 The required invariant is:
 
-> Bill must be able to remove one PMO role holder and put another role holder in place without unanswered work, reconstructed context, or loss of the current execution/preparation thread.
+> Product Authority must be able to remove one PMO role holder and put another role holder in place without unanswered work, reconstructed context, or loss of the current execution/preparation thread.
 
 ## Mandatory resume behavior
 
@@ -48,7 +49,8 @@ A role holder must not rely only on chat/project-history context when a GitHub r
 
 ### Product Authority
 
-- Bill is final Product Authority for protected Product/architecture/Production decisions.
+- Final Product Authority for protected Product/architecture/Production decisions is the durable Product Authority role.
+- Current Product Authority role holder (session record only): Bill.
 
 ### PMO / Engineering role
 
