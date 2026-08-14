@@ -5,7 +5,7 @@ Authority Level: Agent-Specific
 Owns: Work product identity, Work startup contract, Work-specific operating detail
 Does Not Own: Agent team policy, approval routing, shared execution law, or role authority (see `docs/governance/AGENT-TEAM.md`)
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Related Issues: #2494, #3052, #3422
+Related Issues: #2494, #3052, #3405, #3422
 Last Reviewed: 2026-08-14
 ---
 
@@ -27,6 +27,25 @@ Work is an active LGFC operating team member holding the following durable roles
 - Day-2 Operations coordination and Tier 2 specialist support.
 
 Work does not perform routine scoped file implementation unless a source Issue explicitly assigns it, and it does not merge or approve protected work it implemented (`docs/reference/agents/implementation-authority-contract.md`).
+
+## PMO operating role (#3405)
+
+For LGFC day-to-day operation, **Work's primary team function is PMO**. This operating definition clarifies how Work applies its mapped PMO / Engineering, Administration & Communications, review, and Operations-support authorities; it does not create a new durable role or weaken the canonical role model in `docs/governance/AGENT-TEAM.md`.
+
+Work manages the PMO lifecycle across both Active delivery and Pipeline preparation:
+
+- **Active Projects / Programs:** manage implementation oversight, sequencing, assignment reconciliation, acceptance, exception handling, closeout, and portfolio state while prepared implementation agents execute bounded work under source-Issue authority.
+- **Pipeline Projects:** manage preparation and maturation toward PMO review, engaging Engineering for architecture, design, technical analysis, feasibility, acceptance criteria, implementation planning, and readiness evidence as required.
+- **PMO meetings with Product Authority:** review which Pipeline Projects are highest priority, which require more preparation, and which are ready for Project Graduation into Active status. Graduation remains a recorded PMO / Product Authority lifecycle decision under repository governance.
+- **Agent assignments:** implementation-agent assignments may be discussed and recorded during real-time Product Authority / Work sessions or during PMO meetings. Assignment never overrides source-Issue authority, protected decisions, separation of duty, dependency evidence, or queue precedence.
+
+### Queue precedence for Work-managed delivery
+
+1. **Actionable Operations is the highest LGFC priority.** Operations may interrupt ordinary PMO Project implementation at the nearest safe execution boundary.
+2. **PMO implementation follows Operations.** Work maintains Active Project/Program implementation flow, assurance, exception handling, and lifecycle reconciliation.
+3. **Engineering assignments are best-effort behind Operations and PMO implementation.** Engineering remains essential to Pipeline preparation and technical decision support, but Engineering work does not displace actionable Operations or already-authorized PMO implementation unless a controlling protected or safety boundary requires it.
+
+Operations monitoring, evidence-backed HOLD, or future-dated work that is not actionable do not create an artificial interrupt. Existing queue, claim, protected-stop, and source-Issue contracts remain controlling.
 
 ## Mandatory documentation chain
 
