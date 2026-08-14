@@ -6,6 +6,7 @@ import { pathToFileURL } from 'node:url';
 import { parseRemediationIssue } from './close_duplicate_remediation_issues.mjs';
 import { githubRepoRequest } from './github_issue_api.mjs';
 import { REMEDIATION_ISSUE_LABEL, REMEDIATION_TITLE_PREFIX } from './post_merge_source_issue_closeout.mjs';
+import { resolveDeliveryLineage } from './post_merge_delivery_lineage.mjs';
 
 /** Keep aligned with HISTORICAL_PR_BODY_HYGIENE_FAILURE_CODES in post_merge_validator.mjs. */
 const HISTORICAL_PR_BODY_HYGIENE_FAILURE_CODES = new Set([
@@ -310,13 +311,132 @@ export function requiresGovernanceException(result = {}) {
 	return blockingCloseoutFailures(result).some((failure) => governanceCodes.has(failure.code));
 }
 
+export const ORIGINATING_AGENT_CATALOG = {
+	cursor: { id: 'cursor', label: 'agent:cursor', display: 'Cursor Local' },
+	claude: { id: 'claude', label: 'agent:claude', display: 'Claude Code' },
+	work: { id: 'work', label: 'agent:Work', display: 'WORK' },
+	chatgpt: { id: 'chatgpt', label: 'agent:ChatGPT', display: 'ChatGPT' },
+	codex: { id: 'codex', label: 'agent:codex', display: 'Codex' },
+};
+
+function ambiguousOriginatingAgent(reason) {
+	return {
+		determined: false,
+		ambiguous: true,
+		id: null,
+		label: null,
+		display: null,
+		reason,
+	};
+}
+
+function agentIdFromBranch(ref = '') {
+	const name = String(ref || '').trim().toLowerCase();
+	if (!name) return null;
+	if (name.startsWith('cursor/') || name.startsWith('cursor-')) return 'cursor';
+	if (name.startsWith('claude/') || name.startsWith('claude-')) return 'claude';
+	if (name.startsWith('work/') || name.startsWith('work-')) return 'work';
+	if (name.startsWith('codex/') || name.startsWith('codex-')) return 'codex';
+	return null;
+}
+
+function agentIdFromImplementationLine(body = '') {
+	const match = String(body || '').match(/^\s*-\s*Implementation agent:\s*(.+)$/im);
+	if (!match) return null;
+	const value = String(match[1] || '').trim().toLowerCase();
+	if (!value || value === 'not-applicable' || value === 'n/a') return null;
+	if (/\bcursor\b/.test(value)) return 'cursor';
+	if (/\bclaude\b/.test(value)) return 'claude';
+	if (/\bcodex\b/.test(value)) return 'codex';
+	if (/\bwork\b/.test(value)) return 'work';
+	if (/\bchatgpt\b/.test(value)) return 'chatgpt';
+	return null;
+}
+
+function agentIdFromLabels(labels = []) {
+	const names = (Array.isArray(labels) ? labels : [])
+		.map((label) => (typeof label === 'string' ? label : label?.name || ''))
+		.filter(Boolean);
+	const hits = [];
+	for (const [id, agent] of Object.entries(ORIGINATING_AGENT_CATALOG)) {
+		if (names.includes(agent.label)) hits.push(id);
+	}
+	if (hits.length === 1) return hits[0];
+	if (hits.length > 1) return 'conflict';
+	return null;
+}
+
+function normalizeExplicitAgent(value) {
+	const raw = String(value || '').trim().toLowerCase();
+	if (!raw) return null;
+	if (ORIGINATING_AGENT_CATALOG[raw]) return raw;
+	if (raw.includes('cursor')) return 'cursor';
+	if (raw.includes('claude')) return 'claude';
+	if (raw.includes('codex')) return 'codex';
+	if (raw.includes('work')) return 'work';
+	if (raw.includes('chatgpt')) return 'chatgpt';
+	return null;
+}
+
+export function resolveOriginatingAgent(result = {}) {
+	const branchId = agentIdFromBranch(result.head_ref || result.headRefName || '');
+	const bodyId = agentIdFromImplementationLine(result.pr_body || result.body || '');
+	const labelId = agentIdFromLabels(result.source_issue_labels || []);
+	const explicitId = normalizeExplicitAgent(result.originating_agent);
+	const ids = [];
+
+	for (const id of [explicitId, bodyId, branchId, labelId]) {
+		if (!id) continue;
+		if (id === 'conflict') {
+			return ambiguousOriginatingAgent('conflicting_source_issue_agent_labels');
+		}
+		if (!ids.includes(id)) ids.push(id);
+	}
+
+	if (ids.length === 1) {
+		return {
+			determined: true,
+			ambiguous: false,
+			reason: 'originating_agent_determined',
+			...ORIGINATING_AGENT_CATALOG[ids[0]],
+		};
+	}
+	if (ids.length > 1) {
+		return ambiguousOriginatingAgent('conflicting_originating_agent_evidence');
+	}
+	return ambiguousOriginatingAgent('originating_agent_not_determinable');
+}
+
+export function attachOriginatingAgentEvidence(result = {}, pr = {}) {
+	const attached = { ...result };
+	const headRef = String(pr?.head?.ref || pr?.headRefName || '').trim();
+	if (!String(attached.head_ref || attached.headRefName || '').trim() && headRef) {
+		attached.head_ref = headRef;
+	}
+	if (attached.pr_body == null && attached.body == null && pr && Object.prototype.hasOwnProperty.call(pr, 'body')) {
+		attached.pr_body = String(pr.body || '');
+	}
+	return attached;
+}
+
 export function remediationIssueLabels(result = {}) {
 	const labels = [REMEDIATION_ISSUE_LABEL];
 	if (result?.self_healing_safe) {
 		labels.push('ops-pr-escalation');
 	}
-	// Do not auto-add agent:ChatGPT. Operators add governance-routing labels only when review is required.
+	const owner = resolveOriginatingAgent(result);
+	if (owner.determined && owner.label) {
+		labels.push(owner.label);
+		labels.push('status:active');
+	}
 	return labels;
+}
+
+export function mergeRemediationIssueLabels(existingLabels = [], result = {}) {
+	const existing = (Array.isArray(existingLabels) ? existingLabels : [])
+		.map((label) => (typeof label === 'string' ? label : label?.name || ''))
+		.filter(Boolean);
+	return [...new Set([...existing, ...remediationIssueLabels(result)])];
 }
 
 function failureConditions(result = {}) {
@@ -344,7 +464,50 @@ export function linkedRemediationIssue(result = {}) {
 	return result.linked_remediation_issue || result.remediation_issue || result.remediationIssue || 'none recorded';
 }
 
+function requestedOwnerActionLine(owner) {
+	if (owner.determined) {
+		return `- Requested owner/action: ${owner.display} (${owner.label}) — immediate originating-delivery remediation; no new PMO dispatch`;
+	}
+	return '- Requested owner/action: ChatGPT/Bill review, then assign a bounded remediation owner before queue advancement resumes';
+}
+
+function queueAdvancementLine(result, owner) {
+	if (owner.determined) {
+		return '- Queue advancement status: stopped for the originating agent\'s successor only; unrelated lanes remain executable; resume automatically after independent acceptance/closeout';
+	}
+	return `- Queue advancement status: ${result.queue_advancement_status || 'stopped; ChatGPT/Bill review required'}`;
+}
+
+function requiredActionSection(owner) {
+	if (owner.determined) {
+		return [
+			'## Required originating-agent action',
+			`- This exception is an immediate originating-delivery obligation for ${owner.display}. It does not require a new PMO dispatch.`,
+			'- Reconcile every reported reviewer comment/thread and validation defect on the originating PR record.',
+			'- Open a bounded remediation PR only when repository content, code, workflow, or documentation must change.',
+			'- This exception is a new Issue in the original delivery lineage. Do not reintroduce `handoff:ready`. Merge of the remediation PR must re-enter the same post-merge verification/closeout workflow.',
+			'- If verification produces another exception, create another new exception Issue in the same lineage, keep the same originating owner, and repeat until the original source Issue reaches clean terminal closeout. There is no arbitrary retry limit.',
+			'- Pause only this agent\'s next assigned successor (`status:queued`); unrelated agent lanes remain executable.',
+			'- After clean terminal closeout of the original source Issue, the paused successor resumes automatically without a new dispatch.',
+		];
+	}
+	return [
+		'## Required ChatGPT/Bill decision',
+		'- Originating ownership is ambiguous or protected; do not leave this exception without a deterministic owner and next action.',
+		'- Decide whether the source issue may be closed, corrected, or kept open.',
+		'- Authorize any corrective PR or issue mutation through a bounded follow-up issue/PR.',
+		'- Queue advancement remains stopped until the exception is resolved.',
+	];
+}
+
 export function remediationBody(result) {
+	const owner = resolveOriginatingAgent(result);
+	const lineage = resolveDeliveryLineage({
+		result,
+		declaredSourceIssueMeta: result.source_issue_meta || null,
+		openExceptionIssues: result.open_exception_issues || [],
+	});
+	const originalSource = lineage.original_source_issue || result.source_issue || null;
 	const conditions = failureConditions(result);
 	const lines = [
 		'Post-merge closeout exception detected. CI refused deterministic source issue closeout.',
@@ -352,16 +515,21 @@ export function remediationBody(result) {
 		`- PR: ${result.pr ? `#${result.pr}` : 'none'}`,
 		`- Merge SHA: ${result.merge_sha || 'unknown'}`,
 		`- Source issue: ${result.source_issue ? `#${result.source_issue}` : 'none'}`,
+		`- Original source issue: ${originalSource ? `#${originalSource}` : 'none'}`,
+		`- Cycle iteration: ${lineage.cycle_iteration}`,
+		`- Delivery cycle: source Issue claimed → implementation → pull request → merge → post-merge verification/closeout. Exception creates a new Issue in this lineage and repeats until the original source Issue reaches clean terminal closeout.`,
 		`- Source issue candidates: ${result.source_issue_candidates?.length ? result.source_issue_candidates.join(', ') : 'none'}`,
 		`- Source issue closeout mode: ${result.source_issue_closeout_mode || 'not evaluated'}`,
 		`- Validator status: ${result.status}`,
 		`- Remediation required: ${result.remediation_required ? 'yes' : 'no'}`,
 		`- Blocking future PRs: ${blockingFuturePrs(result)}`,
 		`- Linked remediation issue: ${linkedRemediationIssue(result)}`,
-		`- Requested owner/action: ChatGPT/Bill review, then assign a bounded remediation owner before queue advancement resumes`,
+		requestedOwnerActionLine(owner),
+		`- Originating-agent determination: ${owner.reason}`,
+		`- Canonical rule: docs/ops/as-built/post-merge-originating-agent-remediation-3069.md`,
 		`- Workflow run URL: ${result.workflow_run_url || 'not recorded'}`,
 		`- Terminal label result: ${result.terminal_label_result?.summary || 'not evaluated'}`,
-		`- Queue advancement status: ${result.queue_advancement_status || 'stopped; ChatGPT/Bill review required'}`,
+		queueAdvancementLine(result, owner),
 		'',
 		'## Detected failure condition',
 	];
@@ -380,10 +548,7 @@ export function remediationBody(result) {
 		'- CI did not close, relabel, or otherwise mutate the source issue.',
 		'- CI did not advance the queue, launch Program 1, mutate Program 2, or create child issues.',
 		'',
-		'## Required ChatGPT/Bill decision',
-		'- Decide whether the source issue may be closed, corrected, or kept open.',
-		'- Authorize any corrective PR or issue mutation through a bounded follow-up issue/PR.',
-		'- Queue advancement remains stopped until the exception is resolved.',
+		...requiredActionSection(owner),
 		'',
 		'## Evidence collected by CI',
 		'',
@@ -537,12 +702,26 @@ export async function upsertRemediationIssue({ token, repository, result }) {
 		};
 	}
 
-	const title = remediationTitle(result);
-	const body = remediationBody(result);
+	let enriched = result;
+	if (!String(result.head_ref || result.headRefName || '').trim() && result.pr) {
+		try {
+			const pr = await request({
+				token,
+				repository,
+				path: `/pulls/${result.pr}`,
+			});
+			enriched = attachOriginatingAgentEvidence(result, pr);
+		} catch {
+			enriched = result;
+		}
+	}
+
+	const title = remediationTitle(enriched);
+	const body = remediationBody(enriched);
 	const search = await paginateOpenIssues({ token, repository });
 	const existing = Array.isArray(search)
 		? search.find((issue) => issue.title === title && !issue.pull_request)
-			|| findCanonicalRemediationIssue(result, search)
+			|| findCanonicalRemediationIssue(enriched, search)
 		: undefined;
 
 	if (existing) {
@@ -551,7 +730,10 @@ export async function upsertRemediationIssue({ token, repository, result }) {
 			repository,
 			path: `/issues/${existing.number}`,
 			method: 'PATCH',
-			body: { body },
+			body: {
+				body,
+				labels: mergeRemediationIssueLabels(existing.labels, enriched),
+			},
 		});
 		return { action: 'updated', issue: existing.html_url || `#${existing.number}` };
 	}
@@ -561,7 +743,7 @@ export async function upsertRemediationIssue({ token, repository, result }) {
 		repository,
 		path: '/issues',
 		method: 'POST',
-		body: { title, body, labels: remediationIssueLabels(result) },
+		body: { title, body, labels: remediationIssueLabels(enriched) },
 	});
 
 	return { action: 'created', issue: created.html_url || `#${created.number}` };

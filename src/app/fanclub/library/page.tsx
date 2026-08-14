@@ -13,6 +13,8 @@ type LibraryItem = {
   author?: string | null;
   year?: number | null;
   created_at?: string | null;
+  source_name?: string | null;
+  source_url?: string | null;
 };
 
 const styles: Record<string, React.CSSProperties> = {
@@ -34,6 +36,16 @@ function buildLibraryApiUrl(page: number, q: string): string {
   const needle = q.trim();
   if (needle) params.set('q', needle);
   return `/api/fanclub/library?${params.toString()}`;
+}
+
+function isSafeHttpUrl(value: string | null | undefined): value is string {
+  if (!value) return false;
+  try {
+    const parsed = new URL(value);
+    return (parsed.protocol === 'https:' || parsed.protocol === 'http:') && !parsed.username && !parsed.password;
+  } catch {
+    return false;
+  }
 }
 
 export default function LibraryPage() {
@@ -108,6 +120,7 @@ export default function LibraryPage() {
               Search
               <input
                 style={styles.input}
+                type="search"
                 value={draftQuery}
                 onChange={(e) => setDraftQuery(e.target.value)}
                 placeholder="Search library…"
@@ -143,11 +156,23 @@ export default function LibraryPage() {
               <article key={it.id} style={{ marginBottom: 14 }}>
                 <h3 style={{ margin: '0 0 6px 0' }}>{it.title || 'Untitled story'}</h3>
                 <div style={styles.meta}>
-                  {[it.author ? `Credit: ${it.author}` : null, it.year ? String(it.year) : null, it.created_at ? it.created_at.slice(0, 10) : null]
+                  {[
+                    it.author ? `Credit: ${it.author}` : null,
+                    it.source_name ? `Source: ${it.source_name}` : null,
+                    it.year ? String(it.year) : null,
+                    it.created_at ? it.created_at.slice(0, 10) : null,
+                  ]
                     .filter(Boolean)
                     .join(' • ') || 'Published inventory story'}
                 </div>
                 <p style={{ ...styles.p, marginTop: 8, whiteSpace: 'pre-wrap' }}>{it.content || it.description || 'No description available yet.'}</p>
+                {isSafeHttpUrl(it.source_url) ? (
+                  <p style={{ ...styles.p, marginTop: 0 }}>
+                    <a href={it.source_url} rel="noopener noreferrer" target="_blank">
+                      Bibliographic source
+                    </a>
+                  </p>
+                ) : null}
                 <hr style={styles.hr} />
               </article>
             ))

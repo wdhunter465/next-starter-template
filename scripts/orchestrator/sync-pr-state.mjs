@@ -155,6 +155,8 @@ export function syncPrState({
       postMergeResult,
       terminalLabelResult,
       prBody: pr.body || '',
+      openExceptionIssues: postMergeResult?.open_exception_issues || [],
+      originalSourceIssue: postMergeResult?.original_source_issue || null,
     });
 
     if (!closeDecision.close) {

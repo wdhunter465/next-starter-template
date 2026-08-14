@@ -2,20 +2,20 @@
 Doc Type: How-To
 Audience: Bill, ChatGPT, Day-2 Operations
 Authority Level: Operational Procedure
-Owns: Chromebook install, auth preflight, systemd enablement, transactional launch verification, heartbeat/watchdog/reconciliation verification, and rollback for Cursor Local Bridge
-Does Not Own: Wake workflow gates, runner registration, or Background Agents
+Owns: Historical/diagnostic Chromebook install, auth preflight, systemd enablement, transactional launch verification, heartbeat/watchdog/reconciliation verification, and rollback for the decommissioned Cursor Local Bridge
+Does Not Own: Current Cursor auto-start routing, wake workflow gates, runner registration, or Background Agents
 Canonical Reference: /docs/reference/ci/cursor-local-bridge-contract.md
-Related Issues: #2294, #2667, #2669, #2681, #2694, #2739, #2746, #2814, #2997, #3013, #3212
-Last Reviewed: 2026-08-09
+Related Issues: #2294, #2667, #2669, #2681, #2694, #2739, #2746, #2814, #2997, #3013, #3212, #3424
+Last Reviewed: 2026-08-13
 ---
 
 # Configure Cursor Local Bridge
 
-## Status (#3212 Phase 4)
+## Status (#3212 Phase 4 / #3424)
 
-**Retired as the primary Cursor auto-start path.** Automatic wake-packet delivery is disabled; host Bridge systemd units should remain stopped/disabled unless Product Authority authorizes temporary diagnostics. Primary wake: `docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md`.
+**Decommissioned / superseded.** Cursor Local Bridge is not an operationally supported primary Cursor auto-start path. Automatic wake-packet delivery is disabled; host Bridge systemd units must remain stopped/disabled unless Product Authority authorizes temporary diagnostics. Primary wake: `docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md`.
 
-This how-to remains for rollback/diagnostic install of the Bridge package only.
+This how-to remains as historical/diagnostic install reference for the Bridge package only. Do not enable the Bridge as the default local transport.
 
 ## Purpose
 

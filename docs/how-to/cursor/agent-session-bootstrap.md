@@ -5,8 +5,8 @@ Authority Level: Operational Authority
 Owns: Cursor local and Cloud Agent session bootstrap verification
 Does Not Own: Canonical governance doctrine or merge authority
 Canonical Reference: /Agent.md
-Related Issues: #1609, #1614, #2398
-Last Reviewed: 2026-07-08
+Related Issues: #1609, #1614, #2398, #3212, #3424
+Last Reviewed: 2026-08-13
 ---
 
 # Agent session bootstrap
@@ -70,7 +70,8 @@ Both commands must pass before marking the PR ready for review.
 ## Related procedures
 
 - Cursor Local environment and agent runbook (restart without chat memory): [`local-environment-and-agent-runbook.md`](./local-environment-and-agent-runbook.md)
-- Local GitHub poll-wake loop (retired execution dependency; archive only): [`github-poll-wake-loop.md`](./github-poll-wake-loop.md)
+- Local GitHub poll-wake loop (retired execution dependency; archive only — Bridge is decommissioned and does not replace this loop): [`github-poll-wake-loop.md`](./github-poll-wake-loop.md)
+- Current Cursor runtime routing: [`CURSOR-RUNTIME-ROUTING.md`](../../governance/standards/CURSOR-RUNTIME-ROUTING.md)
 
 ## Execution
 

@@ -17,7 +17,7 @@ const DEFAULT_FRIENDS: Friend[] = [
   {
     id: -1,
     name: 'Live Like Lou Foundation',
-    kind: 'Partner',
+    kind: 'Friend',
     url: 'https://www.livelikelou.org',
     blurb: 'Supporting ALS awareness and impact through community action.',
     photo_url: null,
@@ -25,7 +25,7 @@ const DEFAULT_FRIENDS: Friend[] = [
   {
     id: -2,
     name: 'ALS Cure Project',
-    kind: 'Partner',
+    kind: 'Friend',
     url: 'https://www.ALSCure.org',
     blurb: 'Accelerating ALS research and funding the path to a cure.',
     photo_url: null,
@@ -33,7 +33,7 @@ const DEFAULT_FRIENDS: Friend[] = [
   {
     id: -3,
     name: 'They Played In Color',
-    kind: 'Partner',
+    kind: 'Friend',
     url: 'https://www.theyplayedincolor.com/',
     blurb: 'Preserving and sharing baseball history with depth and accuracy.',
     photo_url: null,
@@ -75,7 +75,7 @@ export default function FriendsOfFanClub() {
               {f.photo_url ? (
                 <img className={styles.logoImg} src={f.photo_url} alt={f.name} />
               ) : (
-                <span aria-hidden="true">Partner</span>
+                <span aria-hidden="true">Friend</span>
               )}
             </div>
 

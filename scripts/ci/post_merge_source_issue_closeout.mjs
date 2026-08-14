@@ -1,3 +1,5 @@
+import { shouldWithholdOriginalSourceCloseout } from './post_merge_delivery_lineage.mjs';
+
 export const INTERMEDIATE_SOURCE_ISSUE_LABELS = [
 	'status:changes-requested',
 	'status:in-progress',
@@ -70,7 +72,13 @@ export function canIdempotentlyNormalizeClosedCompletedSourceIssue({
 
 export function terminalSourceIssueCloseoutModeFromSync(syncResult = '') {
 	if (syncResult === 'complete') return 'terminal_close';
-	if (syncResult === 'active_relabeled' || syncResult === 'remediation_issue') return 'preserve_open';
+	if (
+		syncResult === 'active_relabeled'
+		|| syncResult === 'remediation_issue'
+		|| syncResult === 'unresolved_exception_chain'
+	) {
+		return 'preserve_open';
+	}
 	return 'not_evaluated';
 }
 
@@ -456,10 +464,20 @@ export function shouldCloseSourceIssue({
 	postMergeResult = null,
 	terminalLabelResult = null,
 	prBody = '',
+	openExceptionIssues = [],
+	originalSourceIssue = null,
 } = {}) {
 	if (!issueNumber) return { close: false, reason: 'missing_source_issue' };
 	if (!isMerged) return { close: false, reason: 'pr_not_merged' };
 	if (action !== 'post_merge_success') return { close: false, reason: `action_${action}` };
+	if (shouldWithholdOriginalSourceCloseout({
+		sourceIssueNumber: issueNumber,
+		originalSourceIssue: originalSourceIssue || postMergeResult?.original_source_issue || issueNumber,
+		openExceptionIssues,
+		issueMeta,
+	})) {
+		return { close: false, reason: 'unresolved_exception_chain' };
+	}
 	if (shouldKeepActiveSourceIssueOpen(prBody)) {
 		return { close: false, reason: 'active_source_issue_remains_open' };
 	}

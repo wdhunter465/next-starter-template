@@ -5,8 +5,8 @@ Authority Level: Operational Authority
 Owns: Issue closeout evidence, role-based closeout execution, profile-aware completion accounting, deterministic closeout, exception handling, parent/reporting reconciliation, and successor disposition
 Does Not Own: Merge authority, delivery or promotion decisions, project objectives, PR approval, Production authorization, recovery strategy, or workflow implementation
 Canonical Reference: /docs/governance/ADMINISTRATION-AND-COMMUNICATIONS.md
-Related Issues: #1411, #2359, #2640, #2641, #2639, #2700
-Last Reviewed: 2026-07-21
+Related Issues: #1411, #2359, #2640, #2641, #2639, #2700, #3069
+Last Reviewed: 2026-08-14
 ---
 
 # GitHub Issue Closeout Protocol
@@ -183,6 +183,40 @@ It must not:
 - duplicate an already successful closeout; or
 - block independent Development solely because prose, labels, or reporting remain pending.
 
+## Recursive originating-delivery closeout cycle (#3069)
+
+Post-merge closeout exceptions are completion defects in the originating delivery. They are not backlog, cleanup-project, or `handoff:ready` competition. Canonical operational record: `docs/ops/as-built/post-merge-originating-agent-remediation-3069.md`. Dispatcher behavior: `docs/ops/pmo/queue-watch-and-dispatch-protocol.md`.
+
+The controlling process is one continuous cycle:
+
+`source Issue claimed → implementation → pull request → merge → post-merge verification/closeout`
+
+### Exit A — clean
+
+When post-merge verification produces no exception:
+
+1. reconcile and close the original source Issue when task-closeout invariants are satisfied;
+2. restore any successor that was paused solely for this originating agent;
+3. resume that successor automatically without a new PMO or Product Authority dispatch.
+
+### Exit B — exception
+
+When post-merge verification cannot close the original source Issue:
+
+1. Identify the originating implementation agent from the merged PR branch, source-Issue handoff, and implementation evidence.
+2. Create a new exception Issue in the same delivery lineage (same original source Issue and originating PR).
+3. Assign that exception to the same originating agent with the matching `agent:*` label and `status:active` immediately.
+4. Pause only that agent's next assigned project task at `status:queued`. Keep unrelated agent lanes executable.
+5. Do not reintroduce `handoff:ready` for the exception. Ownership continuity is preserved from the original claim. There is no PMO/Bill reassignment step when originating ownership is determinable.
+6. The originating agent remediates: reconcile reviewer threads and validation defects; open a bounded remediation PR only when repository content must change; stop for independent review.
+7. Merge of the remediation PR does not end the cycle by itself. It must re-enter the same post-merge verification/closeout workflow.
+8. If that verification produces another exception, create another new exception Issue in the same lineage, keep the same originating owner, and repeat. There is no one-pass completion and no arbitrary retry limit.
+9. The original source Issue must not reach valid terminal completion while any exception in its remediation chain remains unresolved.
+
+The cycle ends only when post-merge verification is clean and the original source Issue is completely and properly resolved. After that clean terminal closeout, the paused successor resumes automatically.
+
+ChatGPT/Bill review, then assignment of a remediation owner, is reserved for genuinely ambiguous originating ownership or an explicit protected decision boundary recorded on the exception Issue.
+
 ## Project/master audit sequence
 
 1. PMO / Engineering identifies the complete planned task set and acceptance criteria.
@@ -305,3 +339,4 @@ After Day-2 Operations authorizes hold narrowing or release, Administration & Co
 - Delivery and promotion policy: `docs/governance/DELIVERY-AND-RELEASE.md`
 - Day-2 Operations policy: `docs/governance/OPERATIONS-AND-RECOVERY.md`
 - Queue/dispatch procedure: `docs/ops/pmo/queue-watch-and-dispatch-protocol.md`
+- Originating-delivery exception cycle: `docs/ops/as-built/post-merge-originating-agent-remediation-3069.md`

@@ -5,8 +5,8 @@ Authority Level: Superseded
 Owns: Historical pointer only — Cursor implementation policy moved to governance
 Does Not Own: Agent team policy, runtime routing standard, or shared execution law
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Related Issues: #2494, #2564
-Last Reviewed: 2026-07-18
+Related Issues: #2494, #2564, #3212, #3424
+Last Reviewed: 2026-08-13
 ---
 
 # CURSOR-RULES.md
@@ -22,7 +22,7 @@ Last Reviewed: 2026-07-18
 | Model A / Model B procedures | `docs/how-to/agents/run-model-a.md`, `docs/how-to/agents/run-model-b.md` |
 | Runtime routing | `docs/governance/standards/CURSOR-RUNTIME-ROUTING.md` |
 | Shared execution rules | `docs/ops/ai/CORE-RULES.md` |
-| Cursor handoff and wake | `docs/ops/ai/chatgpt-cursor-handoff-workflow.md`, `docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md` (primary); `docs/how-to/cursor/github-poll-wake-loop.md` (retired archive) |
+| Cursor handoff and wake | `docs/ops/ai/chatgpt-cursor-handoff-workflow.md`, `docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md` (primary); Cursor Local Bridge is decommissioned (`docs/reference/ci/cursor-local-bridge-contract.md`); `docs/how-to/cursor/github-poll-wake-loop.md` (retired archive) |
 | Cursor Local operator runbook | `docs/how-to/cursor/local-environment-and-agent-runbook.md` |
 
 ## Read order
