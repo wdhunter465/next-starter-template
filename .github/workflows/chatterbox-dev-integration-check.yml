@@ -1,0 +1,85 @@
+name: OPS — Chatterbox Development Integration Check (#3415)
+
+# Operator/agent-triggered end-to-end proof against the live Chatterbox
+# prototype API, running against Development D1 only — never Production.
+#
+# Resolves the component branch's own Cloudflare Pages Development
+# deployment URL via the Cloudflare API (read-only), then exercises the
+# full room/participant/task/claim/event/check-in flow for real: atomic
+# claim races, dependency gating, idempotent events, durable Q&A, missed-
+# wake recovery, and the system_clerk structural boundary.
+#
+# Requires a Preview-scoped ADMIN_TOKEN distinct from Production's, per
+# docs/ops/reports/delivery-system-preview-isolation-audit.md's explicit
+# warning against mirroring Production's ADMIN_TOKEN into Preview. This
+# workflow reads that value from CHATTERBOX_PREVIEW_ADMIN_TOKEN — a secret
+# scoped to this check only, not shared with any Production credential.
+
+on:
+  workflow_dispatch:
+    inputs:
+      target_branch:
+        description: 'Component branch whose Cloudflare Pages deployment to check'
+        required: true
+        type: string
+        default: component/chatterbox-prototype
+
+concurrency:
+  group: chatterbox-dev-integration-check
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Resolve live Development deployment URL
+        id: resolve_url
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CHATTERBOX_TARGET_BRANCH: ${{ inputs.target_branch }}
+        run: |
+          url=$(node scripts/ci/chatterbox_resolve_preview_url.mjs)
+          echo "base_url=$url" >> "$GITHUB_OUTPUT"
+
+      - name: Run Development integration check
+        id: run_check
+        env:
+          CHATTERBOX_BASE_URL: ${{ steps.resolve_url.outputs.base_url }}
+          ADMIN_TOKEN: ${{ secrets.CHATTERBOX_PREVIEW_ADMIN_TOKEN }}
+        run: node scripts/ci/chatterbox_dev_integration_check.mjs | tee chatterbox-dev-integration-check-result.json
+
+      - name: Upload result evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: chatterbox-dev-integration-check-result
+          path: chatterbox-dev-integration-check-result.json
+          if-no-files-found: warn
+
+      - name: Record result on #3415
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ -s chatterbox-dev-integration-check-result.json ]; then
+            body="## Chatterbox Development integration check\n\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\nTarget branch: \`${{ inputs.target_branch }}\`\nBase URL: \`${{ steps.resolve_url.outputs.base_url }}\`\n\n\`\`\`json\n$(cat chatterbox-dev-integration-check-result.json)\n\`\`\`"
+          else
+            body="## Chatterbox Development integration check — no result produced\n\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n\nThe check did not produce a result file — see workflow logs. No Production access was attempted regardless of this outcome."
+          fi
+          gh issue comment 3415 --body "$(printf '%b' "$body")"

@@ -154,11 +154,29 @@ lifetime-spanning room accumulates far more events than fit in one read);
 the 20/10 caps are defaults, not schema constraints, and can be tuned per
 call.
 
-## Not yet built (deferred past this slice)
+## Built in this slice, beyond the original work units 1–3
 
-- GitHub event ingestion beyond the `github_ref` citation field on
-  individually-posted events (no automatic mirroring of Issue/PR state yet).
+- **GitHub-linking ingestion (work unit 5):**
+  `scripts/ci/chatterbox_github_ingest.mjs` + `.github/workflows/chatterbox-github-ingest.yml`
+  — read-only, idempotent mirroring of an Issue's comments into the room as
+  `SYSTEM` events with an exact `github_ref` citation. See
+  chatterbox-operate-a-room.md §7.
+- **Cloudflare Pages URL resolution:** `scripts/ci/chatterbox_resolve_preview_url.mjs`
+  resolves a branch's live Development deployment URL via the Cloudflare API
+  (read-only) rather than guessing a `pages.dev` hostname.
+- **Development integration proof (work unit 6):**
+  `scripts/ci/chatterbox_dev_integration_check.mjs` + `.github/workflows/chatterbox-dev-integration-check.yml`
+  — a real, end-to-end proof against the live deployed API (not a mock):
+  atomic claim races, dependency gating, event idempotency, durable
+  question/answer, exact missed-wake catch-up counts, and the
+  `system_clerk` boundary. See chatterbox-operate-a-room.md §8.
+
+## Not yet built (deferred past this prototype)
+
 - ACK stage tracking (`DELIVERED`/`SEEN`/`ACKNOWLEDGED`/`ACTED`).
 - Cause→effect reconciliation.
-- MCP interface (this slice is Pages Functions/REST only).
-- Any push/notification adapter.
+- MCP interface (this prototype is Pages Functions/REST only — the
+  architecture rationale doc explains why REST-first was the deliberate
+  choice, not an oversight).
+- Any push/notification adapter beyond what Claude Code Remote sessions
+  already provide natively for agents running in that harness.
