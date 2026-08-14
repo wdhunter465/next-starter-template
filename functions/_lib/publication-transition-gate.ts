@@ -129,10 +129,14 @@ function isForbiddenApprover(name: string): boolean {
   return FORBIDDEN_APPROVER_NAMES.has(name.toLowerCase());
 }
 
-function wouldBecomePublished(action: PublicationAction, currentInventoryStatus: InventoryStatus): boolean {
-  if (action !== "publish" && action !== "rollback") return false;
-  if (action === "publish") return currentInventoryStatus !== "published";
-  return true;
+function parseGateTimestamp(value: unknown): number | null {
+  let dateStr = trim(value);
+  if (!dateStr) return null;
+  if (dateStr.length === 19 && !dateStr.includes("T")) {
+    dateStr = `${dateStr.replace(" ", "T")}Z`;
+  }
+  const parsed = Date.parse(dateStr);
+  return Number.isFinite(parsed) ? parsed : null;
 }
 
 export function evaluatePublicationTransition(
@@ -170,12 +174,6 @@ export function evaluatePublicationTransition(
     const snapshot = input.approvalSnapshot;
     const snapshotOk = hasNamedApproval(snapshot?.approvedBy, snapshot?.approvedAt);
     const newApprovalOk = hasNamedApproval(requestedApprover, requestedApprovedAt);
-    if (wouldBecomePublished(action, input.currentInventoryStatus) && !snapshotOk && !newApprovalOk) {
-      return fail(
-        "A7",
-        "A7: rollback must not publish without an approval snapshot or a new approved_by / approved_at.",
-      );
-    }
     if (!snapshotOk && !newApprovalOk) {
       return fail(
         "A7",
@@ -206,10 +204,9 @@ export function evaluatePublicationTransition(
     }
 
     if (operationalState === "scheduled") {
-      const scheduledAt = trim(input.scheduledAt);
-      const now = Date.parse(trim(input.nowIso) || new Date().toISOString());
-      const fireAt = Date.parse(scheduledAt);
-      if (!scheduledAt || Number.isNaN(fireAt) || Number.isNaN(now) || fireAt > now || input.paused === true) {
+      const fireAt = parseGateTimestamp(input.scheduledAt);
+      const now = parseGateTimestamp(input.nowIso) ?? Date.now();
+      if (fireAt === null || fireAt > now || input.paused === true) {
         return fail("A4", "A4: scheduler fire is refused before scheduled_at or while paused/held.");
       }
     }

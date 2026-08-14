@@ -86,6 +86,22 @@ describe('publication-transition-gate', () => {
     expect(paused).toMatchObject({ ok: false, checkId: 'A4' });
   });
 
+  it('A4 parses D1 datetime(now) space-form timestamps for scheduled fire', () => {
+    const result = evaluatePublicationTransition({
+      action: 'publish',
+      currentInventoryStatus: 'draft',
+      operationalState: 'scheduled',
+      approvedBy: 'Bill',
+      approvedAt: '2026-08-14 22:00:00',
+      scheduledAt: '2026-08-14 20:00:00',
+      nowIso: '2026-08-14 23:00:00',
+      paused: false,
+      sourceName: 'Archive',
+      creditLine: 'LGFC Archive',
+    });
+    expect(result).toEqual({ ok: true });
+  });
+
   it('A5 refuses automation-invented approvers', () => {
     const result = evaluatePublicationTransition({
       action: 'approve',
