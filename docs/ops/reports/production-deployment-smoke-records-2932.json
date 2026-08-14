@@ -20,7 +20,7 @@
   {
     "category": "email_fundraiser_state",
     "result": "pass",
-    "evidence": "Skipped live send per plan when MAILCHANNELS is not used for this Go run. No outbound email was sent. No fundraiser mutation.",
+    "evidence": "Skipped live send per plan when MAILCHANNELS_ENABLED is not used for this Go run. No outbound email was sent. No fundraiser mutation.",
     "deployedCandidateSha": "7e238319360b7adff2d893ebce03a40e9833f497"
   },
   {
