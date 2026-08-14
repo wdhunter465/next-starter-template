@@ -23,8 +23,10 @@ import {
 	blockingCloseoutFailures,
 	blockingFuturePrs,
 	findCanonicalRemediationIssue,
+	mergeRemediationIssueLabels,
 	remediationBody,
 	remediationIssueLabels,
+	resolveOriginatingAgent,
 	shouldUpsertRemediationIssue,
 	selfHealingCanResolve,
 } from '../scripts/ci/post_merge_remediation_issue.mjs';
@@ -448,10 +450,103 @@ describe('closeout fail-safe remediation evidence', () => {
 		expect(body).toContain('- Blocking future PRs: yes');
 		expect(body).toContain('- Linked remediation issue: none recorded');
 		expect(body).toContain('- Requested owner/action: ChatGPT/Bill review');
+		expect(body).toContain('- Originating-agent determination: originating_agent_not_determinable');
+		expect(body).toContain('## Required ChatGPT/Bill decision');
 		expect(body).toContain('ZIP History Audit (Full History)');
 		expect(body).toContain('run 28957717158');
 		expect(body).toContain('Job 12345: audit (failure); failed steps: Scan full git history for ZIPs (failure)');
 		expect(blockingFuturePrs({ workflow_failures: [{ required: true }] })).toContain('yes');
+	});
+
+	it('routes Cursor-originated PR exceptions to Cursor without a fresh PMO dispatch', () => {
+		const result = {
+			status: 'fail',
+			pr: 3457,
+			head_ref: 'cursor/dev-library-search-eligibility-2e48',
+			pr_body: '- **Issue:** #3455\n- Implementation agent: Cursor Local\n',
+			source_issue: 3455,
+			reviewer_disposition_failures: [{
+				code: 'outdated_reviewer_thread_without_disposition',
+				message: 'thread unresolved',
+			}],
+		};
+		const owner = resolveOriginatingAgent(result);
+		const body = remediationBody(result);
+
+		expect(owner).toMatchObject({ determined: true, id: 'cursor', label: 'agent:cursor' });
+		expect(remediationIssueLabels(result)).toEqual([
+			'post-merge-failure',
+			'agent:cursor',
+			'status:active',
+		]);
+		expect(body).toContain('Cursor Local (agent:cursor) — immediate originating-delivery remediation; no new PMO dispatch');
+		expect(body).toContain('## Required originating-agent action');
+		expect(body).toContain('does not require a new PMO dispatch');
+		expect(body).toContain('unrelated lanes remain executable');
+		expect(body).toContain('docs/ops/as-built/post-merge-originating-agent-remediation-3069.md');
+		expect(body).not.toContain('then assign a bounded remediation owner');
+		expect(body).not.toContain('## Required ChatGPT/Bill decision');
+	});
+
+	it('routes Claude-originated PR exceptions to Claude without a fresh PMO dispatch', () => {
+		const result = {
+			status: 'fail',
+			pr: 3001,
+			head_ref: 'claude/example-fix-2e48',
+			source_issue: 3000,
+			implementation_failures: [{ code: 'implementation_evidence_failure', message: 'missing evidence' }],
+		};
+		const body = remediationBody(result);
+
+		expect(resolveOriginatingAgent(result).id).toBe('claude');
+		expect(remediationIssueLabels(result)).toEqual([
+			'post-merge-failure',
+			'agent:claude',
+			'status:active',
+		]);
+		expect(body).toContain('Claude Code (agent:claude) — immediate originating-delivery remediation; no new PMO dispatch');
+		expect(body).not.toContain('then assign a bounded remediation owner');
+	});
+
+	it('keeps ChatGPT/Bill review for ambiguous or conflicting originating-agent evidence', () => {
+		const ambiguous = remediationBody({
+			status: 'fail',
+			pr: 1,
+			metadata_failures: [{ code: 'closeout_blocker_declared', message: 'blocked' }],
+		});
+		expect(ambiguous).toContain('ChatGPT/Bill review, then assign a bounded remediation owner');
+		expect(ambiguous).toContain('## Required ChatGPT/Bill decision');
+		expect(remediationIssueLabels({
+			reviewer_disposition_failures: [{ code: 'undispositioned_reviewer_comment' }],
+		})).toEqual(['post-merge-failure']);
+
+		const conflict = resolveOriginatingAgent({
+			head_ref: 'cursor/example-2e48',
+			pr_body: '- Implementation agent: Claude Code\n',
+		});
+		expect(conflict).toMatchObject({
+			determined: false,
+			ambiguous: true,
+			reason: 'conflicting_originating_agent_evidence',
+		});
+		expect(remediationBody({
+			status: 'fail',
+			head_ref: 'cursor/example-2e48',
+			pr_body: '- Implementation agent: Claude Code\n',
+			metadata_failures: [{ code: 'closeout_blocker_declared', message: 'blocked' }],
+		})).toContain('ChatGPT/Bill review, then assign a bounded remediation owner');
+	});
+
+	it('merges originating-agent labels onto an existing exception without dropping prior labels', () => {
+		expect(mergeRemediationIssueLabels(
+			['post-merge-failure', 'infra'],
+			{ head_ref: 'cursor/example-2e48' },
+		)).toEqual([
+			'post-merge-failure',
+			'infra',
+			'agent:cursor',
+			'status:active',
+		]);
 	});
 
 	it('skips remediation issue creation when self-healing proves a safe resolution', () => {
