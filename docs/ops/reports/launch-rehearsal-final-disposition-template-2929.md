@@ -3,7 +3,7 @@ Doc Type: Operations Report
 Audience: Human + AI
 Authority Level: Task Evidence
 Owns: #2929 (#2781 Task 004) final rehearsal disposition report structure, evidence indexing, and #2782 handoff packaging
-Does Not Own: The actual GO/HOLD/ADJUSTMENT/NO-GO decision (Product Authority, made once a real rehearsal has run); candidate/environment identity (#2926); journey/evidence/defect data (#2927, #2928, owned by those reports)
+Does Not Own: Product Authority Production Go; candidate/environment identity (#2926); journey/evidence/defect data (#2927, #2928, owned by those reports)
 Canonical Reference: /docs/ops/reports/launch-rehearsal-final-disposition-template-2929.md
 Related Issues: #2929, #2781, #2926, #2927, #2928, #2782
 Last Reviewed: 2026-08-14
@@ -30,39 +30,31 @@ judgment made once real rehearsal evidence exists — and it does not redefine
 
 ## Current known truth
 
-- No formal rehearsal has run. `buildDispositionReadiness()` is implemented and
-  tested against synthetic fixtures (`tests/launch-rehearsal-disposition-readiness.test.mjs`).
-- Collision-safe #2929 preparation (2026-08-14) adds:
-  `docs/ops/reports/launch-rehearsal-disposition-evidence-index-2929.md`,
-  `docs/ops/reports/launch-rehearsal-unresolved-protected-decisions-2929.json`,
-  and `docs/ops/reports/launch-rehearsal-final-disposition-draft-2929.md`.
-  The draft is **not** a Product Authority recommendation.
-- Live readiness snapshot: `ready: false` (`evidence_incomplete`,
-  `defect_ledger_invalid`, `retest_coverage_incomplete`,
-  `unresolved_protected_decisions_present`). Journey registry validates
-  (`ok: true`, 22 journeys).
-- #2928 execution package merged as PR #3437; formal journeys have not run.
-- #2782 is not started; the handoff checklist remains unchecked until GO.
+- Formal rehearsal evidence is accepted on frozen candidate
+  `origin/main@87414533984aa9b5579b679fc8f9746b93517c5d` (PMO COMPLETE #2928 /
+  PR #3444): 22/22 journeys evidenced; D-2928-001–004 resolved; cleanup/rollback
+  proven; no Production mutation.
+- Filled disposition:
+  `docs/ops/reports/launch-rehearsal-final-disposition-draft-2929.md` records
+  **GO** for bounded #2782 non-Production handoff. That GO is not Product
+  Authority Production Go.
+- Live readiness snapshot: `ready: false` solely
+  `unresolved_protected_decisions_present` (#2776, #2777, #2783, #2786, #2787).
+  Registry, evidence-audit, ledger, and retest-coverage are `ok: true`.
+- #2782 bounded handoff checklist is checked in the filled disposition; Production
+  mutation remains prohibited.
 
 ## Intended final state
 
-This document is evolving scaffolding pending #2926/#2927/#2928. Its stable,
-post-execution state — once #2929 actually runs — replaces every bracketed
-placeholder in the "Final rehearsal disposition report" structure below with the
-real candidate SHA, evidence/defect-ledger links, disposition-readiness result,
-and recorded GO/HOLD/ADJUSTMENT/NO-GO recommendation, and either completes the
-"#2782 handoff checklist" (on GO) or records why it was not completed. The
-disposition-readiness harness and report structure themselves are not expected to
-change once real data lands — only "Current known truth" above is expected to
-update, from "no rehearsal has run" to a summary of the actual disposition.
+The filled disposition in
+`docs/ops/reports/launch-rehearsal-final-disposition-draft-2929.md` is the
+#2929 report. This template remains the structure and harness contract. Only
+"Current known truth" tracks the live snapshot.
 
 ## Non-blocking prerequisite rule
 
-Per #2929's non-blocking prerequisite rule, this document and the disposition-
-readiness harness are **report structure, evidence indexing, unresolved-decision
-preparation, and handoff-packaging work** — the collision-safe category #2929
-explicitly authorizes before #2928's evidence is accepted for the actual final
-recommendation. No recommendation is made here.
+#2928 evidence is now accepted. Remaining Pipeline intake Issues are explicit
+carry-forwards into #2782 and are not waived here.
 
 ## Disposition readiness automation
 
