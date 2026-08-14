@@ -120,7 +120,6 @@ PMO/Product 2026-08-14; carry forward into #2929 / #2782; do not waive or close)
 
 ## Successor
 
-Next #2928 increment is the isolated write-capable 22-journey remainder (10
-journeys) plus any fixture work for D-2928-001/D-2928-002, with a new exact
+Next #2928 increment is the isolated write-capable 10-journey remainder plus any fixture work for D-2928-001/D-2928-002, with a new exact
 allowlist. Cleanup/rollback proof remains open. On clean #2928 completion,
 proceed to #2929.
