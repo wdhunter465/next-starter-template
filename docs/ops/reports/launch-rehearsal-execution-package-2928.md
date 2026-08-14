@@ -2,8 +2,8 @@
 Doc Type: Operations Report
 Audience: Bill, ChatGPT, Cursor, LGFC maintainers, and reviewers
 Authority Level: Task Evidence
-Owns: #2928 (#2781 Task 003) formal-rehearsal execution package — freeze, observe-only vs write-capable split, and deferred-entry dispositions
-Does Not Own: Write-capable 10-journey remainder, Production mutation, Pipeline intake closeout for #2776/#2777/#2783/#2786/#2787, or #2929 GO/NO-GO
+Owns: #2928 (#2781 Task 003) formal-rehearsal execution package — freeze, observe-only and write-capable evidence, and deferred-entry dispositions
+Does Not Own: Production mutation, Pipeline intake closeout for #2776/#2777/#2783/#2786/#2787, or #2929 GO/NO-GO
 Canonical Reference: /docs/ops/reports/launch-rehearsal-execution-package-2928.md
 Related Issues: #2928, #2781, #2926, #2927, #2929, #2818, #3382, #2784
 Last Reviewed: 2026-08-14
@@ -13,31 +13,31 @@ Last Reviewed: 2026-08-14
 
 ## Purpose
 
-Keep the #2928 execution envelope current after Product/PMO freeze and the first
-observe-only GET pass, without inventing write-capable authority or mutating
-Production.
+Keep the #2928 execution envelope current after Product/PMO freeze, the clean
+observe-only GET set, and the write-capable isolated 10-journey remainder,
+without mutating Production.
 
 ## Current known truth
 
 | Field | Value |
 | --- | --- |
 | Parent | #2781 (Active P4; Cursor Local owns remaining chain #2928 → #2929) |
-| This increment | Observe-only retest after isolated Preview D1 fixtures |
+| This increment | Write-capable 10-journey remainder + cleanup/rollback on isolated Preview |
 | Frozen candidate | `origin/main@87414533984aa9b5579b679fc8f9746b93517c5d` |
 | Preview | `05568c3e-a56f-45d0-a3db-1298d9b7b80c` / `lgfc-litedev` |
 | Isolation evidence | Satisfied on `origin/main` (#2818 CLOSED) |
 | Observe-only executed | First pass 2026-08-14T12:52:02Z; retest 2026-08-14T13:11:00Z (12 journeys clean) |
-| Write-capable executed | None |
+| Write-capable executed | 2026-08-14T13:27:06Z–13:28:20Z (10 journeys pass) |
 | Production mutation | None |
 
 Schema `ready: true` on the entry harness remains schema/package readiness only.
 
 ## Exact writable allowlist (this increment)
 
+- `docs/ops/reports/launch-rehearsal-write-capable-evidence-2928.json`
+- `docs/ops/reports/launch-rehearsal-write-capable-run-2928.md`
 - `docs/ops/reports/launch-rehearsal-execution-package-2928.md`
 - `docs/ops/reports/launch-rehearsal-execution-runbook-2928.md`
-- `docs/ops/reports/launch-rehearsal-observe-only-evidence-2928.json`
-- `docs/ops/reports/launch-rehearsal-observe-only-run-2928.md`
 - `docs/ops/reports/launch-rehearsal-defect-ledger-2928.json`
 
 Out of scope: wrangler, workflows, runtime, Production configuration.
@@ -58,7 +58,7 @@ assets/runbooks only and still lacks Preview D1 isolation in `wrangler.toml`.
 
 From `docs/ops/reports/launch-rehearsal-journey-registry-2927.json` (22 journeys).
 
-### Observe-only (executed this increment)
+### Observe-only (already clean; not re-executed this increment)
 
 GET / read / contract-assert journeys; no POST; no `GET /api/matchup/current`:
 
@@ -75,18 +75,18 @@ GET / read / contract-assert journeys; no POST; no `GET /api/matchup/current`:
 - `ops-deployment-monitoring` — pass
 - `ops-evidence-closeout` — pass (subset)
 
-### Write-capable / side-effect (not executed)
+### Write-capable / side-effect (executed this increment; all pass)
 
-- `member-join-login`
-- `member-logout-session-expiry`
-- `fanclub-profile-card`
-- `fanclub-discussion-submission`
-- `content-publication-takedown`
-- `email-notification-success`
-- `email-notification-failure-contingency`
-- `ops-incident-intake`
-- `ops-rollback-recovery`
-- `ops-operator-communication`
+- `member-join-login` — pass
+- `member-logout-session-expiry` — pass
+- `fanclub-profile-card` — pass
+- `fanclub-discussion-submission` — pass
+- `content-publication-takedown` — pass
+- `email-notification-success` — pass (provider `disabled`, structured result)
+- `email-notification-failure-contingency` — pass (disabled recorded, not silent)
+- `ops-incident-intake` — pass (rehearsal-scoped record; no live GitHub issue)
+- `ops-rollback-recovery` — pass (synthetic Preview rows deleted; counts 0)
+- `ops-operator-communication` — pass
 
 ## Live entry-criteria dispositions (2026-08-14)
 
@@ -111,14 +111,13 @@ PMO/Product 2026-08-14; carry forward into #2929 / #2782; do not waive or close)
 
 ## What this increment does not do
 
-- Execute write-capable / side-effect journeys (next increment).
 - Mutate Production D1 `lgfc_lite` or Production hostnames.
-- Start #2929 GO/NO-GO or #2782.
-- Close #2928.
+- Create a live GitHub Operations Issue for `ops-incident-intake`.
+- Start #2929 GO/NO-GO or #2782 from this PR.
+- Close #2928 until this increment is independently reviewed/integrated.
 
 ## Successor
 
-Observe-only set is clean after retest on the same frozen SHA. Next #2928
-increment is the remaining 10 write-capable isolated journeys under the existing
-runbook, with a new exact allowlist. Cleanup/rollback proof remains open. On
-clean #2928 completion, proceed to #2929.
+All 22 registry journeys are evidenced on the frozen SHA. Cleanup/rollback of
+this increment's synthetic Preview rows is proven. On clean #2928 completion,
+proceed to #2929.
