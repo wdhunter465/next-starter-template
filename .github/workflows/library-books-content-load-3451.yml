@@ -1,0 +1,124 @@
+name: OPS — Library Books Content Load (#3451)
+
+# Operator-triggered Dev-then-Production load of exactly six Lou Gehrig book
+# records into content_inventory. Product Authority (Bill, 2026-08-14) authorized
+# only these six published library rows on #3451.
+#
+# Sequence: dispatch TARGET=dev dry-run, then TARGET=dev apply, verify six
+# published library rows, then TARGET=prod dry-run, then TARGET=prod apply.
+# Production apply cites the accepted #3268 recovery path before mutation.
+#
+# Two independent gates must both agree before any write:
+#   1. confirm_write must be exactly "confirm".
+#   2. mode must be exactly "apply" — dry-run never writes.
+#
+# Identity guards refuse a Dev dispatch against Production D1 and a Production
+# dispatch against Preview/Dev D1.
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'dev (lgfc-litedev) or prod (lgfc_lite). Load Dev and verify before Production.'
+        required: true
+        type: choice
+        options:
+          - dev
+          - prod
+      confirm_write:
+        description: 'Type "confirm" to run this workflow at all (dry-run or apply)'
+        required: true
+        type: string
+      mode:
+        description: 'dry-run (default, no write) or apply (writes to the selected D1 only)'
+        required: true
+        type: choice
+        default: dry-run
+        options:
+          - dry-run
+          - apply
+
+concurrency:
+  group: library-books-content-load-3451-${{ inputs.target }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  load:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require explicit confirmation
+        run: |
+          if [ "${{ inputs.confirm_write }}" != "confirm" ]; then
+            echo "confirm_write must be exactly 'confirm' — refusing to run."
+            exit 1
+          fi
+          echo "Target: ${{ inputs.target }}"
+          echo "Mode: ${{ inputs.mode }}"
+
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run #3451 six-book content_inventory load
+        id: load
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DEV_DATABASE_NAME: ${{ secrets.D1_DEV_DATABASE_NAME }}
+          D1_DEV_DATABASE_ID: ${{ secrets.D1_DEV_DATABASE_ID }}
+          D1_DATABASE_NAME: ${{ secrets.D1_DATABASE_NAME }}
+          D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
+          TARGET: ${{ inputs.target }}
+          MODE: ${{ inputs.mode }}
+          CONFIRM_WRITE: ${{ inputs.confirm_write }}
+        run: node scripts/ci/library_books_content_load_3451.mjs
+
+      - name: Upload result evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: library-books-content-load-3451-${{ inputs.target }}-${{ inputs.mode }}-result
+          path: |
+            library-books-content-load-3451-result.json
+            library-books-content-load-3451-result.md
+          if-no-files-found: warn
+
+      - name: Write step summary
+        if: always() && hashFiles('library-books-content-load-3451-result.md') != ''
+        run: cat library-books-content-load-3451-result.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Record result on #3451
+        if: always() && hashFiles('library-books-content-load-3451-result.md') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue comment 3451 --body-file library-books-content-load-3451-result.md
+
+      - name: Record failure on #3451
+        if: failure() && steps.checkout.outcome == 'success' && hashFiles('library-books-content-load-3451-result.md') == ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue comment 3451 --body "$(cat <<'EOF'
+          <!-- library-books-content-load-3451 -->
+          ## #3451 six-book content_inventory load — FAILED (fail-closed)
+
+          The six-book load path (target: `${{ inputs.target }}`, mode: `${{ inputs.mode }}`)
+          did not complete. See the workflow run logs and uploaded artifact (if any).
+          Rollback, if a write started, is DELETE of the six authorized tags only
+          (scripts/ci/library_books_content_load_3451.mjs ROLLBACK_SQL).
+
+          Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          EOF
+          )"
