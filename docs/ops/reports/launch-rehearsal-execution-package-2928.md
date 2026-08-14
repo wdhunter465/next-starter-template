@@ -2,10 +2,10 @@
 Doc Type: Operations Report
 Audience: Bill, ChatGPT, Cursor, LGFC maintainers, and reviewers
 Authority Level: Task Evidence
-Owns: #2928 (#2781 Task 003) formal-rehearsal execution package — freeze, observe-only vs write-capable split, write-capable execution record, and deferred-entry dispositions
+Owns: #2928 (#2781 Task 003) formal-rehearsal execution package — freeze, observe-only vs write-capable split, write-capable execution record, defect ledger D-2928-003/004, and deferred-entry dispositions
 Does Not Own: Production mutation, Pipeline intake closeout for #2776/#2777/#2783/#2786/#2787, or #2929 GO/NO-GO
 Canonical Reference: /docs/ops/reports/launch-rehearsal-execution-package-2928.md
-Related Issues: #2928, #2781, #2926, #2927, #2929, #2818, #3382, #2784
+Related Issues: #2928, #2781, #2926, #2927, #2929, #2818, #3382, #2784, #3443
 Last Reviewed: 2026-08-14
 ---
 
@@ -14,20 +14,21 @@ Last Reviewed: 2026-08-14
 ## Purpose
 
 Keep the #2928 execution envelope current after Product/PMO freeze, the
-observe-only GET pass, and the write-capable isolated Preview pass, without
-mutating Production.
+observe-only GET pass, the write-capable isolated Preview pass (including
+#3443 already on `component/launch-rehearsal`), and the D-2928-003/004
+fail/retest ledger, without mutating Production.
 
 ## Current known truth
 
 | Field | Value |
 | --- | --- |
 | Parent | #2781 (Active P4; Cursor Local owns remaining chain #2928 → #2929) |
-| This increment | Write-capable 10-journey isolated Preview execution + cleanup/rollback proof |
+| This increment | Reconcile write-capable evidence after #3443 merge: keep fail/retest + D-2928-003/004 ledger |
 | Frozen candidate | `origin/main@87414533984aa9b5579b679fc8f9746b93517c5d` |
-| Preview | `05568c3e-a56f-45d0-a3db-1298d9b7b80c` / `lgfc-litedev` |
+| Preview | `05568c3e-a56f-45d0-a3db-1298d9b7b80c` / `lgfc-litedev` (`35232809-b4c1-4df9-9f39-2f178b13c378`) |
 | Isolation evidence | Satisfied on `origin/main` (#2818 CLOSED) |
 | Observe-only executed | First pass 2026-08-14T12:52:02Z; retest 2026-08-14T13:11:00Z (12 journeys clean) |
-| Write-capable executed | 2026-08-14T13:25:12Z–13:29:30Z (10 journeys clean after D-2928-003/004) |
+| Write-capable executed | 2026-08-14T13:25:12Z–13:29:30Z (10 journeys clean after D-2928-003/004); #3443 also recorded a 13:27–13:28 pass set |
 | Production mutation | None |
 
 Schema `ready: true` on the entry harness remains schema/package readiness only.
@@ -49,6 +50,7 @@ origin/main@87414533984aa9b5579b679fc8f9746b93517c5d
 environment: Cloudflare Pages Preview bound to D1 lgfc-litedev
 preview deployment: 05568c3e-a56f-45d0-a3db-1298d9b7b80c
 preview URL: https://05568c3e.next-starter-template-6yr.pages.dev
+preview D1 uuid: 35232809-b4c1-4df9-9f39-2f178b13c378
 ```
 
 Do not freeze the `component/launch-rehearsal` tip. That branch holds rehearsal
@@ -58,7 +60,7 @@ assets/runbooks only and still lacks Preview D1 isolation in `wrangler.toml`.
 
 From `docs/ops/reports/launch-rehearsal-journey-registry-2927.json` (22 journeys).
 
-### Observe-only (executed prior increment)
+### Observe-only (already clean; not re-executed this increment)
 
 GET / read / contract-assert journeys; no POST; no `GET /api/matchup/current`:
 
@@ -75,7 +77,7 @@ GET / read / contract-assert journeys; no POST; no `GET /api/matchup/current`:
 - `ops-deployment-monitoring` — pass
 - `ops-evidence-closeout` — pass (subset)
 
-### Write-capable / side-effect (executed this increment)
+### Write-capable / side-effect (executed; fail then pass where ledgered)
 
 - `member-join-login` — fail then pass (D-2928-003 resolved)
 - `member-logout-session-expiry` — pass
@@ -83,10 +85,10 @@ GET / read / contract-assert journeys; no POST; no `GET /api/matchup/current`:
 - `fanclub-discussion-submission` — fail then pass (D-2928-004 resolved)
 - `content-publication-takedown` — pass
 - `email-notification-success` — pass (Preview provider disabled; skip logged)
-- `email-notification-failure-contingency` — pass
-- `ops-incident-intake` — pass
+- `email-notification-failure-contingency` — pass (disabled recorded, not silent)
+- `ops-incident-intake` — pass (rehearsal-scoped #3442 created, dedup-updated, closed)
 - `ops-rollback-recovery` — pass
-- `ops-operator-communication` — pass
+- `ops-operator-communication` — pass (no secret patterns)
 
 ## Live entry-criteria dispositions (2026-08-14)
 
@@ -112,12 +114,12 @@ PMO/Product 2026-08-14; carry forward into #2929 / #2782; do not waive or close)
 ## What this increment does not do
 
 - Mutate Production D1 `lgfc_lite` or Production hostnames.
-- Start #2929 GO/NO-GO or #2782.
+- Start #2929 GO/NO-GO or #2782 from this PR.
 - Close #2928 before independent review/merge of this evidence PR.
 
 ## Successor
 
-All 22 registry journeys now have pass evidence on the frozen SHA (observe-only
-prior increment + write-capable this increment). Cleanup/rollback proof is
-recorded. After this evidence PR merges, #2928 may close and #2929 may start
-the final GO / HOLD / ADJUSTMENT / NO-GO disposition.
+All 22 registry journeys have pass evidence on the frozen SHA. D-2928-003 and
+D-2928-004 are ledgered as resolved with fail/retest evidence. Cleanup/rollback
+proof is recorded. After this evidence PR merges, #2928 may close and #2929 may
+start the final GO / HOLD / ADJUSTMENT / NO-GO disposition.
