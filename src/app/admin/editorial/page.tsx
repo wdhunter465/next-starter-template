@@ -96,12 +96,24 @@ type InventoryRecord = {
   rotation_group?: string | null;
   feature_weight?: number | null;
   status: 'draft' | 'published' | 'archived';
+  operational_state?: string | null;
+  approved_by?: string | null;
+  approved_at?: string | null;
+  publication_reason?: string | null;
   review_notes?: string | null;
   last_featured?: string | null;
   created_at?: string | null;
   updated_at?: string | null;
   published_at?: string | null;
   media_associations?: MediaAssociation[];
+};
+
+type PublicationPayload = {
+  id: number;
+  status?: InventoryRecord['status'];
+  action?: 'approve' | 'publish' | 'unpublish' | 'archive' | 'return_to_draft';
+  approved_by?: string;
+  reason?: string;
 };
 
 type EditorialListResponse = {
@@ -338,17 +350,17 @@ export default function AdminEditorialArchivePage() {
   );
 
   const updatePublication = useCallback(
-    async (id: number, nextStatus: InventoryRecord['status']) => {
+    async (payload: PublicationPayload) => {
       if (!getStoredAdminToken()) {
         setStatus('Error: Save an admin API token above before updating publication state.');
         return;
       }
 
-      setStatus(`Updating archive record ${id} to ${nextStatus}…`);
+      setStatus(`Updating archive record ${payload.id}…`);
 
       const result = await adminJson<{ ok: true }>('/api/admin/editorial/publish', {
         method: 'POST',
-        body: JSON.stringify({ id, status: nextStatus }),
+        body: JSON.stringify(payload),
       });
 
       if (!result.ok) {
@@ -356,7 +368,7 @@ export default function AdminEditorialArchivePage() {
         return;
       }
 
-      setStatus(`Archive record ${id} is now ${nextStatus}.`);
+      setStatus(`Archive record ${payload.id} publication action recorded.`);
       await load();
     },
     [load],
@@ -472,7 +484,8 @@ export default function AdminEditorialArchivePage() {
         <section style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: 14, padding: 14 }}>
           <h2 style={{ marginTop: 0 }}>Content Inventory Publication State</h2>
           <p style={{ opacity: 0.8 }}>
-            Only published records are eligible for member archive/library reads.
+            Only published records are eligible for member archive/library reads. Record a named human
+            approval before publish. Archive/unpublish requires a reason.
           </p>
 
           {inventory.length === 0 ? (
@@ -724,11 +737,13 @@ function MediaAssociationsEditor(props: {
 function InventoryRecordCard(props: {
   record: InventoryRecord;
   onSave: (payload: Record<string, unknown>, label: string) => Promise<boolean>;
-  onPublish: (id: number, status: InventoryRecord['status']) => Promise<void>;
+  onPublish: (payload: PublicationPayload) => Promise<void>;
   onStatus: (message: string) => void;
   actionsEnabled: boolean;
 }) {
   const { record } = props;
+  const [approvedBy, setApprovedBy] = useState(record.approved_by || '');
+  const [reason, setReason] = useState('');
 
   return (
     <article style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: 12, padding: 12, display: 'grid', gap: 12 }}>
@@ -736,14 +751,42 @@ function InventoryRecordCard(props: {
         <div>
           <h3 style={{ margin: 0 }}>{record.title}</h3>
           <div style={{ opacity: 0.75, fontSize: 13 }}>
-            tag: {record.tag} · status: {record.status} · canonical: {record.canonical ? 'yes' : 'no'} · credit:{' '}
-            {record.credit_line}
+            tag: {record.tag} · status: {record.status} · operational: {record.operational_state || '—'} · canonical:{' '}
+            {record.canonical ? 'yes' : 'no'} · credit: {record.credit_line}
           </div>
         </div>
-        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          <label style={{ display: 'grid', gap: 4, fontSize: 12 }}>
+            Approver
+            <input
+              value={approvedBy}
+              onChange={(event) => setApprovedBy(event.target.value)}
+              disabled={!props.actionsEnabled}
+              style={fieldStyle()}
+            />
+          </label>
+          <label style={{ display: 'grid', gap: 4, fontSize: 12 }}>
+            Reason
+            <input
+              value={reason}
+              onChange={(event) => setReason(event.target.value)}
+              disabled={!props.actionsEnabled}
+              style={fieldStyle()}
+            />
+          </label>
           <button
             type="button"
-            onClick={() => void props.onPublish(record.id, 'published')}
+            onClick={() =>
+              void props.onPublish({ id: record.id, action: 'approve', approved_by: approvedBy })
+            }
+            disabled={!props.actionsEnabled || record.status === 'published'}
+            style={buttonStyle(!props.actionsEnabled || record.status === 'published')}
+          >
+            Approve
+          </button>
+          <button
+            type="button"
+            onClick={() => void props.onPublish({ id: record.id, status: 'published' })}
             disabled={!props.actionsEnabled || record.status === 'published'}
             style={buttonStyle(!props.actionsEnabled || record.status === 'published')}
           >
@@ -751,7 +794,7 @@ function InventoryRecordCard(props: {
           </button>
           <button
             type="button"
-            onClick={() => void props.onPublish(record.id, 'draft')}
+            onClick={() => void props.onPublish({ id: record.id, status: 'draft' })}
             disabled={!props.actionsEnabled || record.status === 'draft'}
             style={buttonStyle(!props.actionsEnabled || record.status === 'draft')}
           >
@@ -759,7 +802,17 @@ function InventoryRecordCard(props: {
           </button>
           <button
             type="button"
-            onClick={() => void props.onPublish(record.id, 'archived')}
+            onClick={() =>
+              void props.onPublish({ id: record.id, action: 'unpublish', reason })
+            }
+            disabled={!props.actionsEnabled || record.status !== 'published'}
+            style={buttonStyle(!props.actionsEnabled || record.status !== 'published')}
+          >
+            Unpublish
+          </button>
+          <button
+            type="button"
+            onClick={() => void props.onPublish({ id: record.id, status: 'archived', reason })}
             disabled={!props.actionsEnabled || record.status === 'archived'}
             style={buttonStyle(!props.actionsEnabled || record.status === 'archived')}
           >
@@ -773,7 +826,8 @@ function InventoryRecordCard(props: {
         sections: {record.allowed_sections} · event: {record.event_date || '—'} / {record.event_year ?? '—'} · rotation:{' '}
         {record.rotation_group || '—'} · weight: {record.feature_weight ?? 1} · last featured:{' '}
         {record.last_featured || '—'} · created: {record.created_at || '—'} · updated: {record.updated_at || '—'} ·
-        published: {record.published_at || '—'}
+        published: {record.published_at || '—'} · approved by: {record.approved_by || '—'} · approved at:{' '}
+        {record.approved_at || '—'}
       </div>
 
       <form
