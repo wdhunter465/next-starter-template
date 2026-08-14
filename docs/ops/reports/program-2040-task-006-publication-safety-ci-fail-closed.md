@@ -49,7 +49,7 @@ After Task 006 is accepted:
 | Surfaces | `docs/ops/reports/program-2040-task-003-admin-review-rotation-surfaces.md` |
 | Schedule/pause | `docs/ops/reports/program-2040-task-004-scheduled-publication-and-rotation.md` |
 | Audit/unpublish | `docs/ops/reports/program-2040-task-005-audit-rollback-unpublish-retention.md` (PR #3474) |
-| Public helper | `functions/_lib/content-inventory-public.ts` — `publishedInventoryWhere` requires `status = published`, matching `allowed_sections`, non-empty `source_name` and `credit_line` |
+| Public helper | `functions/_lib/content-inventory-public.ts` — `publishedInventoryWhere` requires `status = 'published'`, matching `allowed_sections`, non-empty `source_name` and `credit_line` |
 | Human approval | Mandatory before public publication |
 
 If PR #3474 changes audit field names before merge, Task 007 must follow the merged Task 005 report; this check catalog stays aligned to those contracts.
@@ -79,7 +79,7 @@ Unit tests for Task 007 must cover A1–A7 with fixtures; CI must fail the PR if
 | S3 | `privacy_flag` is not unresolved `minors` / living-person/donor risk |
 | S4 | `source_name` and `credit_line` are non-empty on any row public helpers would return (matches `publishedInventoryWhere`) |
 | S5 | `allowed_sections` contains only registry keys and matches the recorded approval target |
-| S6 | Public/member routes and `publishedInventoryWhere` never select `staged`, `reviewed`, `approved` (not published), `scheduled`, `rejected`, or `unpublished` |
+| S6 | Public/member routes and `publishedInventoryWhere` require `status = 'published'` and never select `staged`, `reviewed`, `approved` (not published), `scheduled`, `rejected`, or `unpublished` |
 | S7 | Admin preview (`/admin/clubstaging` or adjacent) does not call public helpers with non-published rows |
 | S8 | `search` or `library` in `allowed_sections` does not create public hits before `published` |
 | S9 | Unpublish/suppress: public helpers must stop returning the row; audit `reason` present (Task 005) |
