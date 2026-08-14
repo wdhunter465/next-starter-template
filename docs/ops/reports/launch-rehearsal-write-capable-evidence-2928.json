@@ -1,47 +1,64 @@
 [
   {
     "journeyId": "member-join-login",
-    "result": "pass",
+    "result": "fail",
     "candidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d",
-    "executedAt": "2026-08-14T13:27:06Z",
+    "executedAt": "2026-08-14T13:25:12Z",
     "environment": "cloudflare-pages-preview/lgfc-litedev",
     "previewUrl": "https://05568c3e.next-starter-template-6yr.pages.dev",
     "method": "POST",
     "captures": [
       {
         "path": "/api/join",
+        "status": 500,
+        "ok": false,
+        "error": "Server error"
+      }
+    ],
+    "notes": "D-2928-003. Isolated Preview D1 join_requests lacked first_name/last_name/screen_name/email_opt_in required by frozen SHA join INSERT. No Production mutation."
+  },
+  {
+    "journeyId": "member-join-login",
+    "result": "pass",
+    "candidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d",
+    "executedAt": "2026-08-14T13:26:57Z",
+    "environment": "cloudflare-pages-preview/lgfc-litedev",
+    "previewUrl": "https://05568c3e.next-starter-template-6yr.pages.dev",
+    "method": "POST",
+    "retestOf": "D-2928-003",
+    "captures": [
+      {
+        "path": "/api/fanclub/profile",
+        "status": 401,
+        "phase": "pre-login"
+      },
+      {
+        "path": "/api/join",
         "status": 200,
         "ok": true,
-        "joinStatus": "joined",
-        "emailResult": {
-          "welcome": {
-            "sent": false,
-            "provider": "disabled"
-          },
-          "admin": {
-            "sent": false,
-            "provider": "disabled"
-          }
-        }
+        "statusField": "joined"
       },
       {
         "path": "/api/login",
         "status": 200,
-        "ok": true
+        "ok": true,
+        "cookiePresent": true
       },
       {
         "path": "/api/session/me",
         "status": 200,
-        "ok": true
+        "ok": true,
+        "role": "member",
+        "syntheticEmailMatch": true
       }
     ],
-    "notes": "Synthetic join (opt-in false) + login + session/me on Preview only."
+    "notes": "Retest after isolated Preview ALTER of join_requests profile columns on lgfc-litedev. Same frozen SHA. Synthetic identity only."
   },
   {
     "journeyId": "fanclub-profile-card",
     "result": "pass",
     "candidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d",
-    "executedAt": "2026-08-14T13:27:06Z",
+    "executedAt": "2026-08-14T13:26:57Z",
     "environment": "cloudflare-pages-preview/lgfc-litedev",
     "previewUrl": "https://05568c3e.next-starter-template-6yr.pages.dev",
     "method": "POST",
@@ -49,27 +66,31 @@
       {
         "path": "/api/fanclub/profile",
         "method": "GET",
-        "status": 200
+        "status": 200,
+        "ok": true,
+        "first_name": "Rehearsal"
       },
       {
         "path": "/api/fanclub/profile",
         "method": "POST",
         "status": 200,
-        "screen_name": "r2928wc-card"
+        "ok": true,
+        "screen_name": "rehearsal2928-card"
       },
       {
-        "path": "/api/membership-card",
+        "path": "/api/content/membercard",
         "status": 200,
+        "ok": true,
         "hasContent": true
       }
     ],
-    "notes": "Synthetic profile save; membership-card GET is public posted copy."
+    "notes": "Synthetic profile edit only. No other member data returned."
   },
   {
     "journeyId": "fanclub-discussion-submission",
-    "result": "pass",
+    "result": "fail",
     "candidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d",
-    "executedAt": "2026-08-14T13:27:06Z",
+    "executedAt": "2026-08-14T13:26:57Z",
     "environment": "cloudflare-pages-preview/lgfc-litedev",
     "previewUrl": "https://05568c3e.next-starter-template-6yr.pages.dev",
     "method": "POST",
@@ -77,167 +98,194 @@
       {
         "path": "/api/discussions/create",
         "status": 200,
-        "id": 9,
-        "ok": true
+        "ok": true,
+        "id": 8
+      },
+      {
+        "path": "/api/library/submit",
+        "status": 500,
+        "error": "D1_ERROR: table submission_queue has no column named ownership_statement"
       }
     ],
-    "notes": "Synthetic discussion marked as rehearsal data."
+    "notes": "D-2928-004. Discussion create passed; library submit failed on missing Preview D1 rights columns. No Production mutation."
+  },
+  {
+    "journeyId": "fanclub-discussion-submission",
+    "result": "pass",
+    "candidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d",
+    "executedAt": "2026-08-14T13:27:40Z",
+    "environment": "cloudflare-pages-preview/lgfc-litedev",
+    "previewUrl": "https://05568c3e.next-starter-template-6yr.pages.dev",
+    "method": "POST",
+    "retestOf": "D-2928-004",
+    "captures": [
+      {
+        "path": "/api/library/submit",
+        "status": 200,
+        "ok": true,
+        "id": 1,
+        "message": "Submission queued for editorial review"
+      },
+      {
+        "path": "/api/discussions/list",
+        "status": 200,
+        "hasId8": true
+      }
+    ],
+    "notes": "Retest after isolated Preview ALTER of submission_queue ownership/permission/credit/consent columns. Same frozen SHA. Synthetic content marked REHEARSAL-2928."
+  },
+  {
+    "journeyId": "content-publication-takedown",
+    "result": "pass",
+    "candidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d",
+    "executedAt": "2026-08-14T13:28:20Z",
+    "environment": "cloudflare-pages-preview/lgfc-litedev",
+    "previewUrl": "https://05568c3e.next-starter-template-6yr.pages.dev",
+    "method": "POST",
+    "captures": [
+      {
+        "phase": "published",
+        "discussionId": 8,
+        "listHasId8": true
+      },
+      {
+        "phase": "takedown",
+        "d1": "UPDATE discussions SET status='takedown' WHERE id=8 on lgfc-litedev",
+        "changes": 1
+      },
+      {
+        "phase": "after",
+        "path": "/api/discussions/list",
+        "status": 200,
+        "hasId8": false
+      }
+    ],
+    "notes": "Synthetic discussion removed from posted list immediately after isolated D1 takedown. No Production D1 write."
   },
   {
     "journeyId": "member-logout-session-expiry",
     "result": "pass",
     "candidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d",
-    "executedAt": "2026-08-14T13:27:06Z",
+    "executedAt": "2026-08-14T13:28:20Z",
     "environment": "cloudflare-pages-preview/lgfc-litedev",
     "previewUrl": "https://05568c3e.next-starter-template-6yr.pages.dev",
     "method": "POST",
     "captures": [
       {
         "path": "/api/logout",
-        "status": 200
+        "status": 200,
+        "ok": true
       },
       {
-        "path": "/api/session/me",
+        "path": "/api/fanclub/profile",
         "status": 401,
-        "bodyOk": false
+        "phase": "post-logout"
       }
     ],
-    "notes": "Post-logout member route must reject."
-  },
-  {
-    "journeyId": "content-publication-takedown",
-    "result": "pass",
-    "candidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d",
-    "executedAt": "2026-08-14T13:28:07Z",
-    "environment": "cloudflare-pages-preview/lgfc-litedev",
-    "previewUrl": "https://05568c3e.next-starter-template-6yr.pages.dev",
-    "method": "D1+GET",
-    "captures": [
-      {
-        "path": "wrangler d1 execute 35232809-b4c1-4df9-9f39-2f178b13c378 --remote INSERT published content_blocks",
-        "changes": 1
-      },
-      {
-        "path": "/api/cms/get?key=rehearsal.2928.write-capable",
-        "status": 200,
-        "visible": true,
-        "key": "rehearsal.2928.write-capable"
-      },
-      {
-        "path": "wrangler d1 execute --remote UPDATE status=draft published_body_md=NULL",
-        "changes": 1
-      },
-      {
-        "path": "/api/cms/get?key=rehearsal.2928.write-capable",
-        "status": 200,
-        "visible": false
-      }
-    ],
-    "notes": "Isolated Preview D1 uuid 35232809-b4c1-4df9-9f39-2f178b13c378 only. wrangler --env preview cannot resolve the DB name from this component wrangler.toml; --remote by Preview UUID was used. Production uuid 22d0dc3e was not targeted. Public GET after takedown returned block:null."
+    "notes": "Member-only profile rejected immediately after logout. No stale session."
   },
   {
     "journeyId": "email-notification-success",
     "result": "pass",
     "candidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d",
-    "executedAt": "2026-08-14T13:27:06Z",
+    "executedAt": "2026-08-14T13:26:57Z",
     "environment": "cloudflare-pages-preview/lgfc-litedev",
     "previewUrl": "https://05568c3e.next-starter-template-6yr.pages.dev",
     "method": "POST",
     "captures": [
       {
-        "path": "/api/join",
-        "status": 200,
-        "email": {
-          "welcome": {
-            "sent": false,
-            "provider": "disabled"
-          },
-          "admin": {
-            "sent": false,
-            "provider": "disabled"
-          }
-        }
+        "joinEmailWelcome": { "sent": false, "provider": "disabled" },
+        "joinEmailLog": { "message_type": "welcome", "result": "skipped", "provider": "disabled" }
       }
     ],
-    "notes": "Join response includes provider result (sent/skipped/failed) logged; synthetic recipient only."
+    "notes": "Isolated Preview MAILCHANNELS_ENABLED is 0. Join still completed. join_email_log recorded skipped/disabled for the synthetic recipient. No real member notified. No Production mail send."
   },
   {
     "journeyId": "email-notification-failure-contingency",
     "result": "pass",
     "candidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d",
-    "executedAt": "2026-08-14T13:27:06Z",
+    "executedAt": "2026-08-14T13:26:57Z",
     "environment": "cloudflare-pages-preview/lgfc-litedev",
     "previewUrl": "https://05568c3e.next-starter-template-6yr.pages.dev",
     "method": "POST",
     "captures": [
       {
-        "path": "/api/join email object",
-        "joinStatus": 200
+        "joinStatus": 200,
+        "joinOk": true,
+        "provider": "disabled",
+        "silentDrop": false,
+        "loggedResult": "skipped"
       }
     ],
-    "notes": "welcome={'sent': False, 'provider': 'disabled'} admin={'sent': False, 'provider': 'disabled'}"
+    "notes": "Provider unavailable/disabled on isolated Preview. Join completed and the skip was logged rather than silently dropped."
   },
   {
     "journeyId": "ops-incident-intake",
     "result": "pass",
     "candidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d",
-    "executedAt": "2026-08-14T13:27:06Z",
-    "environment": "cloudflare-pages-preview/lgfc-litedev",
+    "executedAt": "2026-08-14T13:27:50Z",
+    "environment": "github-ops-runtime-escalation/rehearsal-scoped",
     "previewUrl": "https://05568c3e.next-starter-template-6yr.pages.dev",
-    "method": "LOCAL",
+    "method": "POST",
     "captures": [
       {
-        "path": "rehearsal-scoped-record",
-        "routing": "held-local-evidence",
-        "markerPresent": true
+        "primitive": "scripts/ci/ops_runtime_escalation.mjs upsertOpsRuntimeIssue",
+        "action": "created",
+        "issue": "https://github.com/wdhunter465/next-starter-template/issues/3442"
+      },
+      {
+        "dedupRetest": { "action": "updated", "issue": "https://github.com/wdhunter465/next-starter-template/issues/3442" }
       }
     ],
-    "notes": "Did not create a GitHub Operations Issue. Recorded equivalent rehearsal-scoped routing outcome."
+    "notes": "Rehearsal-scoped title; unlabeled so it is not ops:priority:1. Dedup updated the same issue instead of creating a second. Closed during cleanup."
   },
   {
     "journeyId": "ops-operator-communication",
     "result": "pass",
     "candidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d",
-    "executedAt": "2026-08-14T13:27:06Z",
-    "environment": "cloudflare-pages-preview/lgfc-litedev",
+    "executedAt": "2026-08-14T13:27:50Z",
+    "environment": "github-ops-runtime-escalation/rehearsal-scoped",
     "previewUrl": "https://05568c3e.next-starter-template-6yr.pages.dev",
-    "method": "LOCAL",
+    "method": "POST",
     "captures": [
       {
-        "path": "operator-payload",
-        "secretPattern": false,
-        "chars": 96
+        "issue": 3442,
+        "markerPresent": true,
+        "secretPatternHit": false,
+        "bodyChars": 466
       }
     ],
-    "notes": "Synthetic operator payload only; no credentials. Live chat/email channel not used."
+    "notes": "Escalation payload used the ops-runtime-escalation marker and contained no API key, bearer token, ghp_, or private-key patterns."
   },
   {
     "journeyId": "ops-rollback-recovery",
     "result": "pass",
     "candidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d",
-    "executedAt": "2026-08-14T13:28:20Z",
+    "executedAt": "2026-08-14T13:29:30Z",
     "environment": "cloudflare-pages-preview/lgfc-litedev",
     "previewUrl": "https://05568c3e.next-starter-template-6yr.pages.dev",
-    "method": "D1",
+    "method": "POST",
     "captures": [
       {
-        "path": "wrangler d1 execute 35232809-b4c1-4df9-9f39-2f178b13c378 --remote DELETE synthetic rows",
-        "deleted": {
-          "content_blocks": 1,
-          "discussions_id_9": 1,
-          "members": 1,
-          "join_email_log": 1,
-          "join_requests_id_49": 1
-        }
+        "phase": "before",
+        "photosEmptyTitleAndDesc": 0,
+        "campaignBlockPresent": true,
+        "syntheticJoinPresent": true
       },
       {
-        "path": "verify counts",
-        "joins": 0,
-        "members": 0,
-        "discs": 0,
-        "cms": 0
+        "phase": "rollback",
+        "lgfc-litedev": "deleted synthetic join/member/session/discussion 8/submission 1; restored photos 829-848 empty title/description/tags; deleted home.campaign_spotlight; closed GitHub #3442"
+      },
+      {
+        "phase": "after",
+        "photosEmptyTitleAndDesc": 20,
+        "campaignBlockPresent": false,
+        "syntheticJoinCount": 0,
+        "discussion8Count": 0,
+        "loginAfterDelete": { "status": 404, "error": "Email not found." },
+        "issue3442": "CLOSED"
       }
     ],
-    "notes": "Rollback deleted synthetic join id 49, member, discussion id 9, CMS key rehearsal.2928.write-capable, and join_email_log on lgfc-litedev only. Production D1 lgfc_lite was not used. Prior --env preview execute failed closed on missing toml name; --remote Preview UUID succeeded."
+    "notes": "Isolated Preview rollback restored pre-change synthetic taint. Preview schema ALTERs for join_requests profile columns and submission_queue rights columns were retained so the frozen candidate can still execute join/library on lgfc-litedev. No Production D1 mutation. No GET /api/matchup/current."
   }
 ]

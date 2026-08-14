@@ -35,17 +35,18 @@ final disposition — each is owned by its own task/report.
   `https://05568c3e.next-starter-template-6yr.pages.dev`. Evidence:
   `docs/ops/reports/launch-rehearsal-observe-only-evidence-2928.json`. Run
   narrative: `docs/ops/reports/launch-rehearsal-observe-only-run-2928.md`.
-- Two defects (`D-2928-001`, `D-2928-002`) **resolved** after synthetic
-  Preview D1 fixtures on `lgfc-litedev` (same frozen SHA). Retest pass
-  2026-08-14T13:11:00Z. Ledger:
-  `docs/ops/reports/launch-rehearsal-defect-ledger-2928.json`.
-- Write-capable / side-effect journeys **executed** 2026-08-14T13:27:06Z–
-  13:28:20Z against the same frozen SHA / Preview `05568c3e` / D1
-  `lgfc-litedev`. Evidence:
+- Two observe-only defects (`D-2928-001`, `D-2928-002`) **resolved** after
+  synthetic Preview D1 fixtures on `lgfc-litedev` (same frozen SHA). Retest
+  pass 2026-08-14T13:11:00Z.
+- Write-capable 10-journey remainder **executed** 2026-08-14T13:25:12Z–
+  13:29:30Z against the same Preview. `D-2928-003` and `D-2928-004` resolved
+  after isolated Preview schema ALTERs (same frozen SHA). Evidence:
   `docs/ops/reports/launch-rehearsal-write-capable-evidence-2928.json`.
-  Run narrative: `docs/ops/reports/launch-rehearsal-write-capable-run-2928.md`.
-  All 10 passed. Synthetic Preview rows were deleted (rollback proof).
-  Production was not mutated. `GET /api/matchup/current` was not invoked.
+  Cleanup/rollback proof recorded. Ledger:
+  `docs/ops/reports/launch-rehearsal-defect-ledger-2928.json`.
+  #3443 also recorded a pass-only write-capable set at 13:27:06Z–13:28:20Z
+  without D-2928-003/004. Production was not mutated.
+  `GET /api/matchup/current` was not invoked.
 - Isolation evidence remains satisfied on `origin/main` (#2818 CLOSED). This
   component branch is still rehearsal assets only; do not treat its tip as the
   rehearsal runtime.
@@ -57,18 +58,19 @@ final disposition — each is owned by its own task/report.
 
 ## Intended final state
 
-Observe-only GET and the write-capable 10-journey remainder have both run
-clean against the frozen isolated candidate, with cleanup/rollback proof on
-`lgfc-litedev`. #2929 cites the ledger and evidence verbatim; this runbook
-does not invent GO/HOLD.
+Observe-only GET and write-capable journeys have run against the frozen
+isolated candidate, with cleanup/rollback proof on `lgfc-litedev` and
+D-2928-003/004 ledgered as resolved. #2929 cites the ledger and evidence
+verbatim; this runbook does not invent GO/HOLD.
 
 ## Non-blocking prerequisite rule
 
 Per #2928's non-blocking prerequisite rule, collision-safe package/evidence work
 continues through protected stops. A protected stop blocks only the affected
-action. Observe-only GET and write-capable execution are complete on the frozen SHA.
-Pipeline-intake #2776/#2777/#2783/#2786/#2787 are not technical rehearsal-entry
-blockers (PMO/Product 2026-08-14) and stay deferred for #2929 / #2782.
+action. Observe-only GET and write-capable journeys are clean after retest;
+cleanup/rollback proof is recorded. Pipeline-intake #2776/#2777/#2783/#2786/#2787
+are not technical rehearsal-entry blockers (PMO/Product 2026-08-14) and stay
+deferred for #2929 / #2782.
 
 ## Execution runbook
 

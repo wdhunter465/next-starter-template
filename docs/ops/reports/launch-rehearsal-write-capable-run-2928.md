@@ -1,11 +1,11 @@
 ---
 Doc Type: Operations Report
-Audience: Bill, ChatGPT, Cursor, LGFC maintainers, and reviewers
+Audience: Human + AI
 Authority Level: Task Evidence
-Owns: #2928 (#2781 Task 003) write-capable isolated rehearsal run against the frozen isolated candidate
-Does Not Own: Production mutation, Pipeline intake closeout, or #2929 GO/HOLD/ADJUSTMENT/NO-GO
+Owns: #2928 write-capable isolated rehearsal run narrative
+Does Not Own: #2929 GO/HOLD/ADJUSTMENT/NO-GO; Production mutation
 Canonical Reference: /docs/ops/reports/launch-rehearsal-write-capable-run-2928.md
-Related Issues: #2928, #2781, #2926, #2927, #2929
+Related Issues: #2928, #2781, #2927, #3442, #3443
 Last Reviewed: 2026-08-14
 ---
 
@@ -14,8 +14,16 @@ Last Reviewed: 2026-08-14
 ## Purpose
 
 Record the remaining 10 write-capable / side-effect journeys against Cloudflare
-Pages Preview bound to `lgfc-litedev`, plus cleanup/rollback proof, after the
-observe-only set was already clean on the same frozen SHA.
+Pages Preview bound to `lgfc-litedev`, including fail/retest evidence for
+D-2928-003 and D-2928-004, plus cleanup/rollback proof, after the observe-only
+set was already clean on the same frozen SHA.
+
+## Scope
+
+Covers isolated Preview POST/GET membership, profile, discussion, library,
+email-provider logging, rehearsal-scoped ops intake, and `lgfc-litedev`
+rollback. It does not cover Production mutation, Pipeline intake closeout, or
+#2929 GO/HOLD/ADJUSTMENT/NO-GO.
 
 ## Current known truth
 
@@ -25,45 +33,65 @@ observe-only set was already clean on the same frozen SHA.
 | Environment | Cloudflare Pages Preview / D1 `lgfc-litedev` uuid `35232809-b4c1-4df9-9f39-2f178b13c378` |
 | Preview deployment | `05568c3e-a56f-45d0-a3db-1298d9b7b80c` |
 | Preview URL | `https://05568c3e.next-starter-template-6yr.pages.dev` |
-| Executed at | 2026-08-14T13:27:06Z APIs; 2026-08-14T13:28:07Z CMS; 2026-08-14T13:28:20Z rollback |
+| Executed at | 2026-08-14T13:25:12Z–13:29:30Z |
 | Executor | Cursor Local |
-| Methods | Preview POST/GET for membership/profile/discussion; wrangler `d1 execute <preview-uuid> --remote` for CMS publish/takedown and cleanup |
-| Forbidden | Production D1 `lgfc_lite` / uuid `22d0dc3e-ad34-43af-8e6a-2063df1a1e04`; Production hostnames; `GET /api/matchup/current`; live GitHub Operations Issue create |
+| Authority | CHAT PMO POST-#3440 EXECUTION HANDOFF (2026-08-14T13:21:29Z); CHAT PMO ADMIN RECONCILIATION after #3443 merge |
+| Methods | Preview POST/GET; wrangler `d1 execute` against Preview uuid `35232809-b4c1-4df9-9f39-2f178b13c378 --remote` |
+| Forbidden | Production D1 `lgfc_lite` / uuid `22d0dc3e-ad34-43af-8e6a-2063df1a1e04`; Production hostnames; `GET /api/matchup/current` |
+
+`wrangler d1 execute lgfc-litedev --env preview` is not usable from this
+component branch's `wrangler.toml` (Production D1 only at top level). Isolated
+writes used the Preview database uuid with `--remote`.
+
+#3443 merged a parallel pass-only narrative (13:27:06Z–13:28:20Z) without
+D-2928-003/004. This file keeps the fail/retest record that the ledger cites.
+#2928 is not closed by #3443.
+
+## Intended final state
+
+All 10 write-capable journeys have pass evidence on the frozen SHA, with
+D-2928-003 and D-2928-004 resolved after isolated Preview schema ALTERs and
+retest. Cleanup/rollback of this increment's synthetic Preview rows is proven.
+#2929 is not started from this report.
 
 ## Results (10 write-capable journeys)
 
+10/10 write-capable journeys evidenced as pass after two isolated Preview D1
+schema remediations (same frozen SHA). Cleanup/rollback proof recorded.
+Production was not mutated. `GET /api/matchup/current` was not invoked.
+
 | Journey | Result |
 | --- | --- |
-| `member-join-login` | pass — POST `/api/join` 200 `joined`, POST `/api/login` 200, GET `/api/session/me` 200 |
-| `fanclub-profile-card` | pass — GET/POST `/api/fanclub/profile` 200; screen_name `r2928wc-card` |
-| `fanclub-discussion-submission` | pass — POST `/api/discussions/create` 200, discussion id 9 (later deleted) |
-| `member-logout-session-expiry` | pass — POST `/api/logout` 200; GET `/api/session/me` 401 |
-| `content-publication-takedown` | pass — Preview D1 published CMS key visible, then `block:null` after draft |
-| `email-notification-success` | pass — join returned structured provider result `disabled` / `sent: false` |
-| `email-notification-failure-contingency` | pass — disabled provider is recorded, not a silent drop |
-| `ops-incident-intake` | pass — rehearsal-scoped record only (no live GitHub issue) |
-| `ops-operator-communication` | pass — synthetic payload; no secret patterns |
-| `ops-rollback-recovery` | pass — verify counts joins/members/discs/cms = 0 on `lgfc-litedev` |
+| `member-join-login` | fail then pass (D-2928-003) |
+| `member-logout-session-expiry` | pass |
+| `fanclub-profile-card` | pass |
+| `fanclub-discussion-submission` | fail then pass (D-2928-004) |
+| `content-publication-takedown` | pass |
+| `email-notification-success` | pass (Preview mail provider disabled; skip logged) |
+| `email-notification-failure-contingency` | pass (disabled recorded, not silent) |
+| `ops-incident-intake` | pass (#3442 created then dedup-updated, then closed) |
+| `ops-operator-communication` | pass (no secret patterns) |
+| `ops-rollback-recovery` | pass |
 
-## Notes
+## Isolated Preview remediations (not candidate code)
 
-- Join used synthetic email `rehearsal.2928.writecapable@lgfc.invalid` and
-  `email_opt_in: false`. Preview mail provider is `disabled`.
-- `wrangler d1 execute lgfc-litedev --env preview` fails because this component
-  `wrangler.toml` does not expose that name at top level. Isolated writes used
-  Preview database uuid `35232809-b4c1-4df9-9f39-2f178b13c378` with `--remote`.
-- Observe-only 12-journey evidence remains in
-  `docs/ops/reports/launch-rehearsal-observe-only-evidence-2928.json`. Combined
-  22-journey audit concatenates that file with this increment's evidence file.
+1. `ALTER TABLE join_requests` add `first_name`, `last_name`, `screen_name`, `email_opt_in` on `lgfc-litedev` only.
+2. `ALTER TABLE submission_queue` add `ownership_statement`, `permission_statement`, `credit_preference`, `consent_status` on `lgfc-litedev` only.
+
+Those ALTERs were retained after rollback so the frozen SHA can still run
+join/library on isolated Preview. Synthetic rows and observe-only fixtures were
+removed.
+
+## Cleanup proof
+
+- Synthetic join/member/session/discussion `id=8` / library submission `id=1` deleted on `lgfc-litedev`.
+- Photos 829–848 title/description/tags restored empty; `home.campaign_spotlight` deleted.
+- GitHub #3442 closed.
+- Post-cleanup `POST /api/login` for the synthetic email returned 404 `Email not found.`
+- Post-cleanup `GET /api/photos?limit=20` had 20 empty title/description rows; CMS campaign block was null.
 
 ## What this increment does not do
 
-- Mutate Production D1 `lgfc_lite` or Production hostnames.
-- Invent a #2929 GO/HOLD/ADJUSTMENT/NO-GO.
-- Close Pipeline intake #2776/#2777/#2783/#2786/#2787.
-
-## Successor
-
-All 22 registry journeys now have evidence on the frozen SHA. #2928 may close
-only after independent review/integration of this increment. On clean #2928
-completion, proceed to #2929.
+- Mutate Production hostnames or Production D1 `lgfc_lite`
+- Invent a #2929 GO/HOLD/ADJUSTMENT/NO-GO
+- Close #2928 until this evidence PR is independently reviewed/merged

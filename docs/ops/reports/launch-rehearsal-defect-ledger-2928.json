@@ -2,7 +2,7 @@
   "sourceIssue": 2928,
   "parentProject": 2781,
   "candidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d",
-  "recordedAt": "2026-08-14T13:11:00Z",
+  "recordedAt": "2026-08-14T13:29:30Z",
   "recordedBy": "Cursor Local",
   "defects": [
     {
@@ -22,6 +22,24 @@
       "disposition": "resolved",
       "candidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d",
       "evidenceRef": "docs/ops/reports/launch-rehearsal-observe-only-evidence-2928.json retest pass 2026-08-14T13:11:00Z after synthetic published home.campaign_spotlight on lgfc-litedev"
+    },
+    {
+      "id": "D-2928-003",
+      "journeyId": "member-join-login",
+      "severity": "launch-blocker",
+      "summary": "POST /api/join against isolated Preview returned 500 Server error because lgfc-litedev join_requests lacked first_name/last_name/screen_name/email_opt_in columns required by frozen SHA origin/main@87414533.",
+      "disposition": "resolved",
+      "candidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d",
+      "evidenceRef": "docs/ops/reports/launch-rehearsal-write-capable-evidence-2928.json retest pass 2026-08-14T13:26:57Z after isolated Preview ALTER of join_requests profile columns"
+    },
+    {
+      "id": "D-2928-004",
+      "journeyId": "fanclub-discussion-submission",
+      "severity": "major",
+      "summary": "POST /api/library/submit against isolated Preview returned 500 because lgfc-litedev submission_queue lacked ownership_statement/permission_statement/credit_preference/consent_status columns required by frozen SHA origin/main@87414533.",
+      "disposition": "resolved",
+      "candidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d",
+      "evidenceRef": "docs/ops/reports/launch-rehearsal-write-capable-evidence-2928.json retest pass 2026-08-14T13:27:40Z after isolated Preview ALTER of submission_queue rights columns"
     }
   ]
 }
