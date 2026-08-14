@@ -3,7 +3,7 @@ Doc Type: Operations Report
 Audience: Bill, ChatGPT, Cursor, LGFC maintainers, and reviewers
 Authority Level: Task Evidence
 Owns: #2928 (#2781 Task 003) observe-only GET rehearsal run against the frozen isolated candidate
-Does Not Own: Write-capable 22-journey execution, Production mutation, Pipeline intake closeout, or #2929 GO/HOLD/ADJUSTMENT/NO-GO
+Does Not Own: Write-capable 10-journey remainder, Production mutation, Pipeline intake closeout, or #2929 GO/HOLD/ADJUSTMENT/NO-GO
 Canonical Reference: /docs/ops/reports/launch-rehearsal-observe-only-run-2928.md
 Related Issues: #2928, #2781, #2926, #2927, #2929
 Last Reviewed: 2026-08-14

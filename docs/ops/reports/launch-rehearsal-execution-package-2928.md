@@ -3,7 +3,7 @@ Doc Type: Operations Report
 Audience: Bill, ChatGPT, Cursor, LGFC maintainers, and reviewers
 Authority Level: Task Evidence
 Owns: #2928 (#2781 Task 003) formal-rehearsal execution package — freeze, observe-only vs write-capable split, and deferred-entry dispositions
-Does Not Own: Write-capable 22-journey execution, Production mutation, Pipeline intake closeout for #2776/#2777/#2783/#2786/#2787, or #2929 GO/NO-GO
+Does Not Own: Write-capable 10-journey remainder, Production mutation, Pipeline intake closeout for #2776/#2777/#2783/#2786/#2787, or #2929 GO/NO-GO
 Canonical Reference: /docs/ops/reports/launch-rehearsal-execution-package-2928.md
 Related Issues: #2928, #2781, #2926, #2927, #2929, #2818, #3382, #2784
 Last Reviewed: 2026-08-14

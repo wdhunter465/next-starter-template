@@ -14,7 +14,7 @@
   "verifierRole": "PR Approver / Engineering (independent review) + WORK assurance (asynchronous unless material exception)",
   "recoveryOwner": "Day-2 Operations coordination (WORK mapping) with Product Authority escalation for Production-adjacent stops",
   "cleanupPlan": "Remove rehearsal-created Issues/comments/labels created under rehearsal namespaces; tear down any temporary preview deployment artifacts; revoke temporary tokens; restore environment to pre-rehearsal state via documented rollback path before #2929 disposition. No Production cleanup authorized by this record.",
-  "productionDataExclusionEvidence": "Issue #2926 / parent #2781 launch package prohibit private Production data as disposable test data. origin/main scripts/ci/preview-isolation-manifest.json records isolated Preview D1 lgfc-litedev (#3357 / #2818 CLOSED). Observe-only GET used Preview 05568c3e only. No Production dumps copied into Preview. Write-capable journeys remain a later #2928 increment.",
+  "productionDataExclusionEvidence": "Issue #2926 / parent #2781 launch package prohibit private Production data as disposable test data. Isolation evidence is #2818 CLOSED plus origin/main@87414533984aa9b5579b679fc8f9746b93517c5d:scripts/ci/preview-isolation-manifest.json (lastAudited 2026-08-11; resource d1-lgfc-litedev classification=isolated; databaseId 35232809-b4c1-4df9-9f39-2f178b13c378). The component/launch-rehearsal copy of that manifest is older (lastAudited 2026-07-13) and does not list lgfc-litedev. Observe-only GET used Preview 05568c3e only. No Production dumps copied into Preview. Write-capable journeys remain a later #2928 increment.",
   "entryCriteria": [
     {
       "name": "Platform validation (#2778) accepted",
@@ -84,7 +84,7 @@
     {
       "name": "Preview/component runtime isolation from Production (#2818)",
       "status": "satisfied",
-      "evidence": "#2818 CLOSED (verified 2026-08-14). Isolation satisfied by accepted #3355/#3357 Dev/Prod isolation evidence on origin/main: scripts/ci/preview-isolation-manifest.json lastAudited 2026-08-11, resource d1-lgfc-litedev classification=isolated, databaseId 35232809-b4c1-4df9-9f39-2f178b13c378. component/launch-rehearsal wrangler.toml still lacks [[env.preview.d1_databases]] and is not the write-capable runtime."
+      "evidence": "#2818 CLOSED (verified 2026-08-14). Isolation satisfied by accepted #3355/#3357 evidence on origin/main@87414533984aa9b5579b679fc8f9746b93517c5d:scripts/ci/preview-isolation-manifest.json (lastAudited 2026-08-11; resource d1-lgfc-litedev classification=isolated; databaseId 35232809-b4c1-4df9-9f39-2f178b13c378). The component/launch-rehearsal copy of that manifest is older and does not list lgfc-litedev. component/launch-rehearsal wrangler.toml still lacks [[env.preview.d1_databases]] and is not the write-capable runtime."
     },
     {
       "name": "Frozen isolated rehearsal deployment candidate SHA",
