@@ -1,8 +1,10 @@
 // /api/chatterbox/release — #3415 Chatterbox prototype.
 // POST: release an active claim. Never silently reassigns a stale claim —
-// release is always an explicit action by the current claimant or an
-// authorized PMO participant, matching the design's caution that partial
-// work/branches may already exist under a claim.
+// in this slice, only the current claimant may release. A PMO override path
+// (releasing on another participant's behalf) is deliberately not
+// implemented yet; matching the design's caution that partial work/branches
+// may already exist under a claim, that requires its own reviewed decision
+// rather than a quiet default.
 // Protected by ADMIN_TOKEN.
 
 import { requireAdmin } from '../../_lib/auth';
@@ -55,7 +57,7 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     .first();
   if (!activeClaim) return json({ ok: false, error: 'no active claim on this task' }, 409);
   if (Number(activeClaim.participant_id) !== Number(participant.id)) {
-    return json({ ok: false, error: 'only the current claimant may release without PMO override' }, 403);
+    return json({ ok: false, error: 'only the current claimant may release; no PMO override exists in this slice' }, 403);
   }
 
   await d1.db

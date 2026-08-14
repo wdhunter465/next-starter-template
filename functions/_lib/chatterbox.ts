@@ -161,8 +161,12 @@ export function buildCatchUpDigest(options: BuildCatchUpDigestOptions): CatchUpD
   const pmoInstructionLimit = options.pmoInstructionLimit ?? 10;
   const unread = options.events.filter((event) => event.id > options.lastSeenEventId);
 
+  // Answered-ness is a property of the whole conversation, not just the
+  // unread window — an old question answered long ago must not resurface as
+  // open just because the answer itself already scrolled past. Computed
+  // once, O(n), and reused as the sole "is this answered" check below.
   const answeredQuestionIds = new Set(
-    unread
+    options.events
       .filter((event) => event.event_type === 'ANSWER' && event.in_reply_to_event_id !== null)
       .map((event) => event.in_reply_to_event_id as number),
   );
@@ -171,10 +175,7 @@ export function buildCatchUpDigest(options: BuildCatchUpDigestOptions): CatchUpD
     (event) =>
       event.event_type === 'QUESTION' &&
       (event.target_participant_id === null || event.target_participant_id === options.participantId) &&
-      !answeredQuestionIds.has(event.id) &&
-      !options.events.some(
-        (candidate) => candidate.event_type === 'ANSWER' && candidate.in_reply_to_event_id === event.id,
-      ),
+      !answeredQuestionIds.has(event.id),
   );
 
   const pmoInstructions = unread
@@ -211,10 +212,20 @@ export async function ensureRoom(
     .first();
   if (existing?.id) return { id: Number(existing.id) };
 
-  await db
-    .prepare('INSERT INTO chatterbox_rooms (room_key, source_issue_ref, title) VALUES (?, ?, ?)')
-    .bind(params.roomKey, params.sourceIssueRef, params.title)
-    .run();
+  // Check-then-insert is inherently racy: two concurrent callers can both
+  // miss `existing` above. "Ensure" means this must still succeed when that
+  // happens — a unique-constraint failure here means someone else just
+  // created the room, so fall through to re-reading it instead of throwing.
+  try {
+    await db
+      .prepare('INSERT INTO chatterbox_rooms (room_key, source_issue_ref, title) VALUES (?, ?, ?)')
+      .bind(params.roomKey, params.sourceIssueRef, params.title)
+      .run();
+  } catch (error: any) {
+    const message = String(error?.message ?? error);
+    if (!/unique|constraint/i.test(message)) throw error;
+  }
+
   const created = await db.prepare('SELECT id FROM chatterbox_rooms WHERE room_key = ?').bind(params.roomKey).first();
   return { id: Number(created.id) };
 }

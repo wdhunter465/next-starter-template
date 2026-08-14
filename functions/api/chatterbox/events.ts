@@ -63,7 +63,6 @@ export const onRequestPost = async (context: any): Promise<Response> => {
   const text = String(body?.body || '').trim();
   const taskRef = body?.task_ref != null ? String(body.task_ref) : null;
   const targetParticipantKey = body?.target_participant_key != null ? String(body.target_participant_key) : null;
-  const inReplyToEventId = body?.in_reply_to_event_id != null ? Number(body.in_reply_to_event_id) : null;
   const githubRef = body?.github_ref != null ? JSON.stringify(body.github_ref) : null;
   const idempotencyKey = body?.idempotency_key != null ? String(body.idempotency_key) : null;
 
@@ -72,6 +71,15 @@ export const onRequestPost = async (context: any): Promise<Response> => {
   }
   if (!isValidEventType(eventType)) {
     return json({ ok: false, error: `invalid event_type: ${eventType}` }, 400);
+  }
+
+  let inReplyToEventId: number | null = null;
+  if (body?.in_reply_to_event_id != null) {
+    const parsed = Number(body.in_reply_to_event_id);
+    if (!Number.isInteger(parsed) || parsed <= 0) {
+      return json({ ok: false, error: 'in_reply_to_event_id must be a positive integer' }, 400);
+    }
+    inReplyToEventId = parsed;
   }
 
   const room = await d1.db.prepare('SELECT id FROM chatterbox_rooms WHERE room_key = ?').bind(roomKey).first();

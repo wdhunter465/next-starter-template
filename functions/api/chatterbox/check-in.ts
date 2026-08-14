@@ -50,14 +50,13 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     .first();
   const lastSeenEventId = checkpoint ? Number(checkpoint.last_seen_event_id) : 0;
 
-  // Catch-up must be computed against events up to and including this
-  // check-in's own CHECK_IN event, but the digest is built from
-  // conversation *prior to* this call — read events first, then record.
-  const allEvents = await d1.db
+  // The digest reflects conversation prior to this call, so it's built from
+  // events read before this check-in's own CHECK_IN event is inserted.
+  const priorEvents = await d1.db
     .prepare('SELECT * FROM chatterbox_events WHERE room_id = ? ORDER BY id ASC')
     .bind(room.id)
     .all();
-  const events = (allEvents.results ?? []) as ChatterboxEventRow[];
+  const events = (priorEvents.results ?? []) as ChatterboxEventRow[];
 
   const digest = buildCatchUpDigest({
     events,
@@ -65,7 +64,18 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     lastSeenEventId,
   });
 
-  const newLastSeenEventId = events.length > 0 ? events[events.length - 1].id : lastSeenEventId;
+  // The checkpoint cursor, however, must advance past this call's own
+  // CHECK_IN event — otherwise the participant would see their own prior
+  // check-in as unread on the next one.
+  const checkInResult = await d1.db
+    .prepare(
+      `INSERT INTO chatterbox_events (room_id, participant_id, event_type, body)
+       VALUES (?, ?, 'CHECK_IN', ?)`,
+    )
+    .bind(room.id, participant.id, `CHECK-IN — ${participant.display_name}`)
+    .run();
+  const checkInEventId = Number(checkInResult?.meta?.last_row_id ?? checkInResult?.lastInsertRowid ?? 0);
+  const newLastSeenEventId = checkInEventId || (events.length > 0 ? events[events.length - 1].id : lastSeenEventId);
 
   if (checkpoint) {
     await d1.db
@@ -85,14 +95,6 @@ export const onRequestPost = async (context: any): Promise<Response> => {
       .bind(room.id, participant.id, newLastSeenEventId)
       .run();
   }
-
-  await d1.db
-    .prepare(
-      `INSERT INTO chatterbox_events (room_id, participant_id, event_type, body)
-       VALUES (?, ?, 'CHECK_IN', ?)`,
-    )
-    .bind(room.id, participant.id, `CHECK-IN — ${participant.display_name}`)
-    .run();
 
   const myClaims = await d1.db
     .prepare(
