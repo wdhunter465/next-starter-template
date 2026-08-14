@@ -5,8 +5,8 @@ Authority Level: Task Evidence
 Owns: #2932 (#2782 Task 003) smoke-test category schema, exact-deployed-identity proof, and smoke-verification readiness harness
 Does Not Own: The candidate manifest (#2930, owned by that report); the preflight/change-window/rollback runbook (#2931, owned by that report); the actual deployment execution and Production Go decision (separately protected); post-deployment closeout/handoff (#2933)
 Canonical Reference: /docs/ops/reports/production-deployment-smoke-verification-plan-2932.md
-Related Issues: #2932, #2782, #2930, #2931, #2933
-Last Reviewed: 2026-08-08
+Related Issues: #2932, #2782, #2930, #2931, #2933, #2929, #2776, #2777, #2783, #2786, #2787
+Last Reviewed: 2026-08-14
 ---
 
 # Production deployment smoke-verification plan — #2932
@@ -33,36 +33,96 @@ does not execute any Production action or deployment, and does not cover
 
 ## Current known truth
 
-- #2931's readiness evidence is not yet accepted and Product Authority has not
-  recorded a Production Go. No real smoke-test result record exists yet — this
-  document and its companion harness are **smoke-test preparation and
-  automation scaffolding**, per #2932's own non-blocking prerequisite rule.
-- `buildSmokeVerificationReadiness()` is implemented and tested against
-  synthetic fixtures (`tests/production-deployment-smoke-verification.test.mjs`),
-  including the exact-deployed-identity cross-check and the unhandled-failure
-  check, before any real smoke-test record exists.
+- #2931 collision-safe preparation merged via PR #3446 into
+  `component/production-deployment-2027` (`b9c4d5f447df5c36ba4f41cec6af269e4e46c582`).
+  The frozen non-Production candidate identity handed forward from #2929 is
+  `origin/main@87414533984aa9b5579b679fc8f9746b93517c5d`. Product Authority has
+  **not** recorded Production Go. #2931 change-window and rollback SHA remain
+  empty; that blocks only the deploy action.
+- This increment records the six-category smoke **plan**, deployment-command
+  citations, rollback-rehearsal gap, and a real records file with empty
+  `result` fields so the harness stays fail-closed. No live smoke was run.
+- `docs/ops/reports/production-deployment-smoke-records-2932.json` is expected
+  to produce `ready: false` / `smoke_suite_incomplete` because every `result`
+  is empty. Filling `pass` without a live run would fabricate readiness.
+- #2776, #2777, #2783, #2786, and #2787 remain unresolved protected decisions
+  and are not waived.
 - This document does not authorize deployment, Production mutation, or
   credential use of any kind. It never performs a live request.
 
 ## Intended final state
 
-This document is evolving scaffolding pending #2931 acceptance and Product
-Authority's Production Go. Its stable, post-decision state — once #2932 is
-actually executed — replaces the template sections below with the real
-smoke-test result records (one per required category) and the
-`buildSmokeVerificationReadiness()` verdict for those records against #2930's
-accepted candidate manifest. The schema and invariants themselves are not
-expected to change — only "Current known truth" above is expected to update.
+After Product Authority records Production Go and the candidate is actually
+deployed, each record's `result` and `evidence` are filled from the live run
+against `87414533984aa9b5579b679fc8f9746b93517c5d` (or the then-accepted SHA
+if Product Authority records a different freeze). The category map and
+harness invariants are not expected to change for that step.
 
 ## Non-blocking prerequisite rule
 
-Per #2932's non-blocking prerequisite rule: "Accepted #2931 readiness evidence
-and explicit Production Go govern the actual deploy action. They do not
-prevent smoke-test preparation, deployment command/runbook verification,
-evidence templates, rollback rehearsal, package completion, or other
-collision-safe non-Production work." This document and harness are exactly
-that preparation — no real deployment is executed, simulated as real, or
-implied by anything here.
+Per #2932's non-blocking prerequisite rule and the PMO ACTION UPDATE on #2932
+(https://github.com/wdhunter465/next-starter-template/issues/2932#issuecomment-5292909975):
+accepted #2931 readiness and explicit Production Go govern the **deploy
+action**. They do not prevent smoke-test preparation, deployment
+command/runbook verification, evidence templates, rollback rehearsal, or
+package completion. This increment is that preparation. No real deployment is
+executed, simulated as real, or implied.
+
+## Collision-safe package prepared now
+
+### Exact candidate identity (drift detection)
+
+All six records must use one SHA. The SHA prepared here is the #2929 frozen
+candidate `87414533984aa9b5579b679fc8f9746b93517c5d`. After a real deploy, the
+harness `--manifest` check proves that SHA still matches the accepted
+manifest. A different deployed SHA is a stop trigger (candidate drift).
+
+### Deployment command / runbook verification (not executed)
+
+Cited, not run:
+
+- `docs/how-to/website/website-production-smoke-test.md`
+- `docs/how-to/verification/PRODUCTION_SMOKE.md`
+- `scripts/prod-smoke.sh`
+- `scripts/promote-cloudflare-deployment.sh` — **must not be invoked** until
+  Production Go
+- #2931 `smokeTestPlan` in
+  `docs/ops/reports/production-deployment-readiness-runbook-2931.md`
+
+### Category map (plan only)
+
+| Category | Planned evidence surface (from #2931 `smokeTestPlan`) |
+| --- | --- |
+| `public` | `tests/e2e/launch-readiness-public-routes.spec.ts` and `docs/how-to/website/website-production-smoke-test.md` |
+| `auth_member` | `tests/e2e/launch-readiness-fanclub-routes.spec.ts` |
+| `content_data_media` | read-only D1/B2 identity and counts per #2860/#2913 pattern |
+| `email_fundraiser_state` | controlled test-address send via `functions/_lib/email.ts`; skip if `MAILCHANNELS_ENABLED` is unset |
+| `monitoring` | #2780 live for the deployed candidate |
+| `failure_behavior` | stop-trigger drill proving rollback engages |
+
+### Rollback rehearsal gap
+
+#2931 left `rollbackCandidateSha` empty because no distinct last-accepted
+Production SHA is recorded. A rollback drill cannot be executed or marked
+complete until that SHA exists. This is a bounded stop on the drill, not a
+stop on the rest of this package.
+
+### Real records file
+
+`docs/ops/reports/production-deployment-smoke-records-2932.json`
+
+```bash
+node scripts/ci/production_deployment_smoke_verification.mjs \
+  --records docs/ops/reports/production-deployment-smoke-records-2932.json
+```
+
+Expected this increment: `ready: false`, blocker `smoke_suite_incomplete`,
+every record `missing_or_empty:result`. That fail-closed verdict is the
+recorded truth.
+
+## Unresolved protected decisions carried forward
+
+Do not waive: #2776, #2777, #2783, #2786, #2787. Production Go is not recorded.
 
 ## Smoke-test result record — required fields
 
@@ -102,14 +162,13 @@ node scripts/ci/production_deployment_smoke_verification.mjs \
 
 ## What #2933 inherits from this task
 
-- The smoke-test record schema and readiness harness, ready to validate the
-  real smoke-test suite once #2931's readiness evidence and Product
-  Authority's Production Go are in place.
-- The exact-deployed-identity invariant, so #2933's post-deployment
-  closeout/handoff can cite a single, mechanically-proven candidate SHA
-  rather than reconciling per-category claims by hand.
+- The smoke-test record schema, readiness harness, and the real
+  `production-deployment-smoke-records-2932.json` instance with six categories
+  and one prepared candidate SHA.
+- Fail-closed empty `result` fields until live smoke runs after Production Go.
+- The exact-deployed-identity invariant.
 
 ## Validation
 
-- `npx vitest run tests/production-deployment-smoke-verification.test.mjs` — all tests passing.
-- `node scripts/ci/production_deployment_smoke_verification.mjs --records <sample> --manifest <sample>` — verified `ready: true` when every category is present, every record agrees on `deployedCandidateSha`, that SHA matches the manifest's `candidateSha`, and no category reports an unhandled `fail`; verified `ready: false` with the correct blocker for a missing category, a mismatched candidate identity, a manifest omitting `candidateSha`, and an unhandled `fail` result, including with a malformed suite.
+- `npx vitest run tests/production-deployment-smoke-verification.test.mjs`
+- `node scripts/ci/production_deployment_smoke_verification.mjs --records docs/ops/reports/production-deployment-smoke-records-2932.json` — expected `ready: false` / `smoke_suite_incomplete` because live `result` values are empty.
