@@ -62,10 +62,12 @@ expected to change for that step.
 
 ## Non-blocking prerequisite rule
 
-Per #2931's non-blocking prerequisite rule and the 2026-08-14 PMO release,
-collision-safe preparation continues after #2929 GO. Protected Production items
-that are not yet authorized are left empty rather than invented. No Production
-authorization is implied.
+Per #2931's non-blocking prerequisite rule and the CHAT PMO EXECUTION
+HANDOFF on #2931 (comment
+https://github.com/wdhunter465/next-starter-template/issues/2931#issuecomment-5294399944),
+collision-safe preparation continues after #2929 GO (merged PR #3445).
+Protected Production items that are not yet authorized are left empty rather
+than invented. No Production authorization is implied.
 
 ## Preflight record — required fields
 
@@ -211,12 +213,13 @@ own recorded list as of this preparation.
 ### Instance fields filled from #2929 / recorded authority
 
 **`preflightChecklistEvidence`:** Non-Production rehearsal preflight is the
-#2929 evidence package, not a live Production preflight run. Citation:
-`docs/ops/reports/launch-rehearsal-disposition-evidence-index-2929.md` and
-merged PR #3445, recording 22/22 journeys on
-`origin/main@87414533984aa9b5579b679fc8f9746b93517c5d` with defects
-D-2928-001–004 resolved. Production preflight against Production D1/hostname
-has **not** been run and is not authorized by this increment.
+#2929 evidence package, not a live Production preflight run. Those reports
+live on `component/launch-rehearsal` (merged PR #3445) and are not present on
+this Production-deployment component branch. Citation: #2929, merged PR
+#3445, candidate
+`origin/main@87414533984aa9b5579b679fc8f9746b93517c5d`, 22/22 journeys,
+defects D-2928-001–004 resolved. Production preflight against Production
+D1/hostname has **not** been run and is not authorized by this increment.
 
 **`recoveryOwner`:** Bill — Product Authority and Day-2 Operations per
 `docs/governance/AGENT-TEAM.md` current team mapping (Last Reviewed
