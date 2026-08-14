@@ -173,6 +173,10 @@ describe('#3455 Dev search eligibility helpers', () => {
     const draft = inventoryFromBooks('["library"]');
     draft[0].status = 'draft';
     expect(planSearchEligibility(draft).plans[0].exceptionCode).toBe('UNEXPECTED_STATUS');
+
+    const duplicates = inventoryFromBooks('["library"]');
+    duplicates.push({ ...duplicates[0], id: 99 });
+    expect(planSearchEligibility(duplicates).plans[0].exceptionCode).toBe('DUPLICATE_CANONICAL_TAG');
   });
 
   it('builds id/tag/title-scoped UPDATE statements and rollback that restore prior allowed_sections', () => {
@@ -181,6 +185,8 @@ describe('#3455 Dev search eligibility helpers', () => {
     expect(sql).toContain("allowed_sections = '[\"library\",\"search\"]'");
     expect(sql).toContain("tag = 'library-book-luckiest-man-eig'");
     expect(sql).toContain('canonical = 1');
+    expect(sql).toContain("status = 'published'");
+    expect(sql).toContain("AND allowed_sections = '[\"library\"]'");
     expect(buildStatementsForPlan(planned, new Set(['allowed_sections']))).toHaveLength(6);
 
     const rollback = buildRollbackSql(planned);
