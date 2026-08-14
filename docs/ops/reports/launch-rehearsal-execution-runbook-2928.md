@@ -39,8 +39,13 @@ final disposition — each is owned by its own task/report.
   Preview D1 fixtures on `lgfc-litedev` (same frozen SHA). Retest pass
   2026-08-14T13:11:00Z. Ledger:
   `docs/ops/reports/launch-rehearsal-defect-ledger-2928.json`.
-- Write-capable / side-effect journeys **not** executed. Production was not
-  mutated. `GET /api/matchup/current` was not invoked.
+- Write-capable / side-effect journeys **executed** 2026-08-14T13:27:06Z–
+  13:28:20Z against the same frozen SHA / Preview `05568c3e` / D1
+  `lgfc-litedev`. Evidence:
+  `docs/ops/reports/launch-rehearsal-write-capable-evidence-2928.json`.
+  Run narrative: `docs/ops/reports/launch-rehearsal-write-capable-run-2928.md`.
+  All 10 passed. Synthetic Preview rows were deleted (rollback proof).
+  Production was not mutated. `GET /api/matchup/current` was not invoked.
 - Isolation evidence remains satisfied on `origin/main` (#2818 CLOSED). This
   component branch is still rehearsal assets only; do not treat its tip as the
   rehearsal runtime.
@@ -52,19 +57,18 @@ final disposition — each is owned by its own task/report.
 
 ## Intended final state
 
-Observe-only GET has run and been retested clean against the frozen isolated
-candidate. Remaining work for a complete #2928 pass: write-capable 10-journey
-remainder, cleanup/rollback proof. #2929 cites the ledger and evidence
-verbatim; this runbook does not invent GO/HOLD.
+Observe-only GET and the write-capable 10-journey remainder have both run
+clean against the frozen isolated candidate, with cleanup/rollback proof on
+`lgfc-litedev`. #2929 cites the ledger and evidence verbatim; this runbook
+does not invent GO/HOLD.
 
 ## Non-blocking prerequisite rule
 
 Per #2928's non-blocking prerequisite rule, collision-safe package/evidence work
 continues through protected stops. A protected stop blocks only the affected
-action. Observe-only GET is clean after retest; write-capable execution
-and cleanup/rollback remain open. Pipeline-intake #2776/#2777/#2783/#2786/#2787
-are not technical rehearsal-entry blockers (PMO/Product 2026-08-14) and stay
-deferred for #2929 / #2782.
+action. Observe-only GET and write-capable execution are complete on the frozen SHA.
+Pipeline-intake #2776/#2777/#2783/#2786/#2787 are not technical rehearsal-entry
+blockers (PMO/Product 2026-08-14) and stay deferred for #2929 / #2782.
 
 ## Execution runbook
 

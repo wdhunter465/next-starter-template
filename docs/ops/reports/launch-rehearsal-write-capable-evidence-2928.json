@@ -1,0 +1,243 @@
+[
+  {
+    "journeyId": "member-join-login",
+    "result": "pass",
+    "candidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d",
+    "executedAt": "2026-08-14T13:27:06Z",
+    "environment": "cloudflare-pages-preview/lgfc-litedev",
+    "previewUrl": "https://05568c3e.next-starter-template-6yr.pages.dev",
+    "method": "POST",
+    "captures": [
+      {
+        "path": "/api/join",
+        "status": 200,
+        "ok": true,
+        "joinStatus": "joined",
+        "emailResult": {
+          "welcome": {
+            "sent": false,
+            "provider": "disabled"
+          },
+          "admin": {
+            "sent": false,
+            "provider": "disabled"
+          }
+        }
+      },
+      {
+        "path": "/api/login",
+        "status": 200,
+        "ok": true
+      },
+      {
+        "path": "/api/session/me",
+        "status": 200,
+        "ok": true
+      }
+    ],
+    "notes": "Synthetic join (opt-in false) + login + session/me on Preview only."
+  },
+  {
+    "journeyId": "fanclub-profile-card",
+    "result": "pass",
+    "candidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d",
+    "executedAt": "2026-08-14T13:27:06Z",
+    "environment": "cloudflare-pages-preview/lgfc-litedev",
+    "previewUrl": "https://05568c3e.next-starter-template-6yr.pages.dev",
+    "method": "POST",
+    "captures": [
+      {
+        "path": "/api/fanclub/profile",
+        "method": "GET",
+        "status": 200
+      },
+      {
+        "path": "/api/fanclub/profile",
+        "method": "POST",
+        "status": 200,
+        "screen_name": "r2928wc-card"
+      },
+      {
+        "path": "/api/membership-card",
+        "status": 200,
+        "hasContent": true
+      }
+    ],
+    "notes": "Synthetic profile save; membership-card GET is public posted copy."
+  },
+  {
+    "journeyId": "fanclub-discussion-submission",
+    "result": "pass",
+    "candidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d",
+    "executedAt": "2026-08-14T13:27:06Z",
+    "environment": "cloudflare-pages-preview/lgfc-litedev",
+    "previewUrl": "https://05568c3e.next-starter-template-6yr.pages.dev",
+    "method": "POST",
+    "captures": [
+      {
+        "path": "/api/discussions/create",
+        "status": 200,
+        "id": 9,
+        "ok": true
+      }
+    ],
+    "notes": "Synthetic discussion marked as rehearsal data."
+  },
+  {
+    "journeyId": "member-logout-session-expiry",
+    "result": "pass",
+    "candidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d",
+    "executedAt": "2026-08-14T13:27:06Z",
+    "environment": "cloudflare-pages-preview/lgfc-litedev",
+    "previewUrl": "https://05568c3e.next-starter-template-6yr.pages.dev",
+    "method": "POST",
+    "captures": [
+      {
+        "path": "/api/logout",
+        "status": 200
+      },
+      {
+        "path": "/api/session/me",
+        "status": 401,
+        "bodyOk": false
+      }
+    ],
+    "notes": "Post-logout member route must reject."
+  },
+  {
+    "journeyId": "content-publication-takedown",
+    "result": "pass",
+    "candidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d",
+    "executedAt": "2026-08-14T13:28:07Z",
+    "environment": "cloudflare-pages-preview/lgfc-litedev",
+    "previewUrl": "https://05568c3e.next-starter-template-6yr.pages.dev",
+    "method": "D1+GET",
+    "captures": [
+      {
+        "path": "wrangler d1 execute 35232809-b4c1-4df9-9f39-2f178b13c378 --remote INSERT published content_blocks",
+        "changes": 1
+      },
+      {
+        "path": "/api/cms/get?key=rehearsal.2928.write-capable",
+        "status": 200,
+        "visible": true,
+        "key": "rehearsal.2928.write-capable"
+      },
+      {
+        "path": "wrangler d1 execute --remote UPDATE status=draft published_body_md=NULL",
+        "changes": 1
+      },
+      {
+        "path": "/api/cms/get?key=rehearsal.2928.write-capable",
+        "status": 200,
+        "visible": false
+      }
+    ],
+    "notes": "Isolated Preview D1 uuid 35232809-b4c1-4df9-9f39-2f178b13c378 only. wrangler --env preview cannot resolve the DB name from this component wrangler.toml; --remote by Preview UUID was used. Production uuid 22d0dc3e was not targeted. Public GET after takedown returned block:null."
+  },
+  {
+    "journeyId": "email-notification-success",
+    "result": "pass",
+    "candidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d",
+    "executedAt": "2026-08-14T13:27:06Z",
+    "environment": "cloudflare-pages-preview/lgfc-litedev",
+    "previewUrl": "https://05568c3e.next-starter-template-6yr.pages.dev",
+    "method": "POST",
+    "captures": [
+      {
+        "path": "/api/join",
+        "status": 200,
+        "email": {
+          "welcome": {
+            "sent": false,
+            "provider": "disabled"
+          },
+          "admin": {
+            "sent": false,
+            "provider": "disabled"
+          }
+        }
+      }
+    ],
+    "notes": "Join response includes provider result (sent/skipped/failed) logged; synthetic recipient only."
+  },
+  {
+    "journeyId": "email-notification-failure-contingency",
+    "result": "pass",
+    "candidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d",
+    "executedAt": "2026-08-14T13:27:06Z",
+    "environment": "cloudflare-pages-preview/lgfc-litedev",
+    "previewUrl": "https://05568c3e.next-starter-template-6yr.pages.dev",
+    "method": "POST",
+    "captures": [
+      {
+        "path": "/api/join email object",
+        "joinStatus": 200
+      }
+    ],
+    "notes": "welcome={'sent': False, 'provider': 'disabled'} admin={'sent': False, 'provider': 'disabled'}"
+  },
+  {
+    "journeyId": "ops-incident-intake",
+    "result": "pass",
+    "candidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d",
+    "executedAt": "2026-08-14T13:27:06Z",
+    "environment": "cloudflare-pages-preview/lgfc-litedev",
+    "previewUrl": "https://05568c3e.next-starter-template-6yr.pages.dev",
+    "method": "LOCAL",
+    "captures": [
+      {
+        "path": "rehearsal-scoped-record",
+        "routing": "held-local-evidence",
+        "markerPresent": true
+      }
+    ],
+    "notes": "Did not create a GitHub Operations Issue. Recorded equivalent rehearsal-scoped routing outcome."
+  },
+  {
+    "journeyId": "ops-operator-communication",
+    "result": "pass",
+    "candidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d",
+    "executedAt": "2026-08-14T13:27:06Z",
+    "environment": "cloudflare-pages-preview/lgfc-litedev",
+    "previewUrl": "https://05568c3e.next-starter-template-6yr.pages.dev",
+    "method": "LOCAL",
+    "captures": [
+      {
+        "path": "operator-payload",
+        "secretPattern": false,
+        "chars": 96
+      }
+    ],
+    "notes": "Synthetic operator payload only; no credentials. Live chat/email channel not used."
+  },
+  {
+    "journeyId": "ops-rollback-recovery",
+    "result": "pass",
+    "candidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d",
+    "executedAt": "2026-08-14T13:28:20Z",
+    "environment": "cloudflare-pages-preview/lgfc-litedev",
+    "previewUrl": "https://05568c3e.next-starter-template-6yr.pages.dev",
+    "method": "D1",
+    "captures": [
+      {
+        "path": "wrangler d1 execute 35232809-b4c1-4df9-9f39-2f178b13c378 --remote DELETE synthetic rows",
+        "deleted": {
+          "content_blocks": 1,
+          "discussions_id_9": 1,
+          "members": 1,
+          "join_email_log": 1,
+          "join_requests_id_49": 1
+        }
+      },
+      {
+        "path": "verify counts",
+        "joins": 0,
+        "members": 0,
+        "discs": 0,
+        "cms": 0
+      }
+    ],
+    "notes": "Rollback deleted synthetic join id 49, member, discussion id 9, CMS key rehearsal.2928.write-capable, and join_email_log on lgfc-litedev only. Production D1 lgfc_lite was not used. Prior --env preview execute failed closed on missing toml name; --remote Preview UUID succeeded."
+  }
+]
