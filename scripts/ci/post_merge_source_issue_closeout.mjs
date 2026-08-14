@@ -72,7 +72,13 @@ export function canIdempotentlyNormalizeClosedCompletedSourceIssue({
 
 export function terminalSourceIssueCloseoutModeFromSync(syncResult = '') {
 	if (syncResult === 'complete') return 'terminal_close';
-	if (syncResult === 'active_relabeled' || syncResult === 'remediation_issue') return 'preserve_open';
+	if (
+		syncResult === 'active_relabeled'
+		|| syncResult === 'remediation_issue'
+		|| syncResult === 'unresolved_exception_chain'
+	) {
+		return 'preserve_open';
+	}
 	return 'not_evaluated';
 }
 

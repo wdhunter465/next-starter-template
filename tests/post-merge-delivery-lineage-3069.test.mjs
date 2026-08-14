@@ -8,9 +8,11 @@ import {
 	planSuccessorResume,
 	resolveDeliveryLineage,
 	shouldWithholdOriginalSourceCloseout,
+	toIssueNumber,
+	toLineageIssue,
 } from '../scripts/ci/post_merge_delivery_lineage.mjs';
 import { remediationBody, resolveOriginatingAgent } from '../scripts/ci/post_merge_remediation_issue.mjs';
-import { shouldCloseSourceIssue } from '../scripts/ci/post_merge_source_issue_closeout.mjs';
+import { shouldCloseSourceIssue, terminalSourceIssueCloseoutModeFromSync } from '../scripts/ci/post_merge_source_issue_closeout.mjs';
 
 function exceptionIssue({
 	number,
@@ -45,6 +47,20 @@ describe('#3069 originating-delivery closeout cycle', () => {
 			original_source_issue: 3455,
 			cycle_iteration: 1,
 		});
+	});
+
+	it('normalizes GitHub label objects and issue numbers for closeout artifacts', () => {
+		const slim = toLineageIssue({
+			number: 3462,
+			title: 'Post-merge closeout exception for PR #3461 / source #3069 / unresolved_exception_chain',
+			state: 'open',
+			labels: [{ name: 'post-merge-failure' }, { name: 'agent:cursor' }],
+			body: '- Original source issue: #3069',
+			created_at: '2026-08-14T18:59:00Z',
+		});
+		expect(slim.labels).toEqual(['post-merge-failure', 'agent:cursor']);
+		expect(toIssueNumber('3069')).toBe(3069);
+		expect(toIssueNumber(0)).toBeNull();
 	});
 
 	it('keeps the same original source and originating owner across a second exception', () => {
@@ -116,6 +132,7 @@ describe('#3069 originating-delivery closeout cycle', () => {
 			originalSourceIssue: 3455,
 		})).toBe(true);
 		expect(openExceptionsForOriginalSource([first, second], 3455)).toHaveLength(2);
+		expect(terminalSourceIssueCloseoutModeFromSync('unresolved_exception_chain')).toBe('preserve_open');
 	});
 
 	it('pauses only the originating agent successor and resumes it only after clean terminal closeout', () => {
@@ -143,7 +160,19 @@ describe('#3069 originating-delivery closeout cycle', () => {
 			openIssues: [cursorSuccessor, claudeLane],
 			exceptionIssueNumbers: [3458],
 		});
-		expect(otherLane.issue).toBe(3415);
+		expect(otherLane).toMatchObject({ pause: false, reason: 'no_successor' });
+
+		const activeCursorWork = planSuccessorPause({
+			agentLabel: 'agent:cursor',
+			openIssues: [{
+				number: 3410,
+				created_at: '2026-08-14T16:00:00Z',
+				labels: ['agent:cursor', 'status:active'],
+				title: 'In-flight Cursor task',
+			}],
+			exceptionIssueNumbers: [3458],
+		});
+		expect(activeCursorWork).toMatchObject({ pause: false, reason: 'no_successor' });
 
 		expect(planSuccessorResume({
 			pausedIssueNumber: 3456,

@@ -14,6 +14,22 @@ function labelNames(issue = {}) {
 		.filter(Boolean);
 }
 
+export function toIssueNumber(value) {
+	const n = Number(value || 0);
+	return Number.isInteger(n) && n > 0 ? n : null;
+}
+
+export function toLineageIssue(issue = {}) {
+	return {
+		number: issue.number,
+		title: issue.title || '',
+		state: issue.state || '',
+		labels: labelNames(issue),
+		body: issue.body || '',
+		created_at: issue.created_at || issue.createdAt || '',
+	};
+}
+
 export function isExceptionIssue(issue = {}) {
 	const title = String(issue.title || '');
 	return labelNames(issue).includes(EXCEPTION_LABEL)
@@ -98,9 +114,7 @@ export function planSuccessorPause({
 			if (isExceptionIssue(issue)) return false;
 			const labels = labelNames(issue);
 			if (!labels.includes(agentLabel)) return false;
-			return labels.includes('status:active')
-				|| labels.includes('status:implementation')
-				|| labels.includes('status:queued');
+			return labels.includes('status:queued');
 		})
 		.sort((left, right) => Date.parse(left.created_at || 0) - Date.parse(right.created_at || 0));
 	const next = candidates[0];
