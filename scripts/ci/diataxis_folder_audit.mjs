@@ -35,6 +35,10 @@ export const FOLDER_RULES = [
     prefix: 'docs/ops/',
     folderClass: 'operational',
   },
+  {
+    prefix: 'docs/governance/',
+    folderClass: 'operational',
+  },
 ];
 
 export const REQUIRED_HEADER_FIELDS = [

@@ -147,6 +147,13 @@
     { "method": "POST", "path": "/api/library/submit", "handler": "functions/api/library/submit.ts", "classification": "production-shared", "tables": ["library_entries"] },
     { "method": "POST", "path": "/api/library/content-pipeline/submit", "handler": "functions/api/library/content-pipeline/submit.ts", "classification": "production-shared", "tables": ["content_items", "member_submissions"] },
     { "method": "POST", "path": "/api/discussions/create", "handler": "functions/api/discussions/create.ts", "classification": "production-shared", "tables": ["discussions"] },
-    { "method": "POST", "path": "/api/admin/**", "handler": "functions/api/admin/**", "classification": "production-shared", "requiresAdminToken": true }
+    { "method": "POST", "path": "/api/admin/**", "handler": "functions/api/admin/**", "classification": "production-shared", "requiresAdminToken": true },
+    { "method": "POST", "path": "/api/chatterbox/room", "handler": "functions/api/chatterbox/room.ts", "classification": "production-shared", "tables": ["chatterbox_rooms"], "requiresAdminToken": true },
+    { "method": "POST", "path": "/api/chatterbox/participants", "handler": "functions/api/chatterbox/participants.ts", "classification": "production-shared", "tables": ["chatterbox_participants"], "requiresAdminToken": true },
+    { "method": "POST", "path": "/api/chatterbox/tasks", "handler": "functions/api/chatterbox/tasks.ts", "classification": "production-shared", "tables": ["chatterbox_tasks"], "requiresAdminToken": true },
+    { "method": "POST", "path": "/api/chatterbox/claim", "handler": "functions/api/chatterbox/claim.ts", "classification": "production-shared", "tables": ["chatterbox_claims", "chatterbox_tasks", "chatterbox_events"], "requiresAdminToken": true },
+    { "method": "POST", "path": "/api/chatterbox/release", "handler": "functions/api/chatterbox/release.ts", "classification": "production-shared", "tables": ["chatterbox_claims", "chatterbox_tasks", "chatterbox_events"], "requiresAdminToken": true },
+    { "method": "POST", "path": "/api/chatterbox/events", "handler": "functions/api/chatterbox/events.ts", "classification": "production-shared", "tables": ["chatterbox_events"], "requiresAdminToken": true },
+    { "method": "POST", "path": "/api/chatterbox/check-in", "handler": "functions/api/chatterbox/check-in.ts", "classification": "production-shared", "tables": ["chatterbox_checkpoints", "chatterbox_events"], "requiresAdminToken": true }
   ]
 }
