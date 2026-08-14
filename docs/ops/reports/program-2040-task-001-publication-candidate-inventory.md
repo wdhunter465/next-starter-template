@@ -22,8 +22,8 @@ This inventory is **provisional and design-time only**. Real Gehrig trial rows w
 | Field | Value |
 | --- | --- |
 | Source issue | #2049 (Task 001 of Program #2040) |
-| Implementation start | `5122028e` (`origin/main` 2026-08-14); branch `cursor/2049-manual-evidence-review-2e48`; allowlist is this report only |
-| Program Go | 2026-08-07 on #2040; Product Authority resumed remaining non-prod website work in session 2026-08-14 (human approval still mandatory before public publication) |
+| Implementation start | `5122028e` (`origin/main` 2026-08-14); branch `cursor/2049-task-001-inventory-2e48`; allowlist is this report only |
+| Program Go | 2026-08-07 on #2040; Product Authority resumed remaining non-prod website implementation on 2026-08-14 (human approval still mandatory before public publication) |
 | Predecessor | #1738 closed/completed 2026-08-07 |
 | Admin staging surface | `/admin/clubstaging` delivered by #2043 (closed) |
 | Content-pipeline runtime | #2273/#2286 artifacts on `main` (`functions/api/admin/content-pipeline/**`) |
