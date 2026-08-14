@@ -1,0 +1,12 @@
+{
+  "sourceIssue": "#2933",
+  "deploymentCandidateCited": "origin/main@87414533984aa9b5579b679fc8f9746b93517c5d",
+  "note": "Live closeout evidence is empty until authorized #2932 deploy/smoke and Product acceptance. Do not treat this file as a passing closeout.",
+  "publicBehaviorAcceptanceEvidence": "",
+  "noOpenLaunchBlockerEvidence": "",
+  "recoveryActiveEvidence": "",
+  "monitoringActiveEvidence": "",
+  "productAcceptanceEvidence": "",
+  "day2OwnershipEvidence": "",
+  "issuePrReleaseEvidenceConsistency": ""
+}
