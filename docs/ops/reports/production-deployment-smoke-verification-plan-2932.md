@@ -33,30 +33,29 @@ does not execute any Production action or deployment, and does not cover
 
 ## Current known truth
 
-- #2931 collision-safe preparation merged via PR #3446 into
-  `component/production-deployment-2027` (`b9c4d5f447df5c36ba4f41cec6af269e4e46c582`).
-  The frozen non-Production candidate identity handed forward from #2929 is
-  `origin/main@87414533984aa9b5579b679fc8f9746b93517c5d`. Product Authority has
-  **not** recorded Production Go. #2931 change-window and rollback SHA remain
-  empty; that blocks only the deploy action.
-- This increment records the six-category smoke **plan**, deployment-command
-  citations, rollback-rehearsal gap, and a real records file with empty
-  `result` fields so the harness stays fail-closed. No live smoke was run.
-- `docs/ops/reports/production-deployment-smoke-records-2932.json` is expected
-  to produce `ready: false` / `smoke_suite_incomplete` because every `result`
-  is empty. Filling `pass` without a live run would fabricate readiness.
-- #2776, #2777, #2783, #2786, and #2787 remain unresolved protected decisions
-  and are not waived.
-- This document does not authorize deployment, Production mutation, or
-  credential use of any kind. It never performs a live request.
+- Product Authority recorded Production Go 2026-08-14T20:50Z. Live Pages
+  Production Active source is `7e238319360b7adff2d893ebce03a40e9833f497`
+  (deployment `952e90fc`). The rehearsal freeze `87414533` was **not**
+  promoted.
+- Read-only smoke `bash scripts/prod-smoke.sh https://www.lougehrigfanclub.com`
+  exited 0 at 2026-08-14T20:54:10Z. Records below use `result: pass` from that
+  run. Independent verifier is Bill / Product Authority — Cursor must not
+  accept its own smoke as final.
+- #2776, #2777, #2783, #2786, and #2787 remain unresolved and are not waived.
+- This increment does not write Production D1, send email, or run
+  `promote-cloudflare-deployment.sh`.
+- Authoritative live-run evidence is
+  `docs/ops/reports/production-deployment-smoke-records-2932.json`. Sections
+  below this heading remain the original plan template and historical pre-Go
+  context; they are not a second source of run results.
 
 ## Intended final state
 
-After Product Authority records Production Go and the candidate is actually
-deployed, each record's `result` and `evidence` are filled from the live run
-against `87414533984aa9b5579b679fc8f9746b93517c5d` (or the then-accepted SHA
-if Product Authority records a different freeze). The category map and
-harness invariants are not expected to change for that step.
+Live-run records are filled against already-active
+`7e238319360b7adff2d893ebce03a40e9833f497`. The original freeze SHA
+`87414533984aa9b5579b679fc8f9746b93517c5d` was not promoted. The category map
+and harness invariants are unchanged. Independent Product acceptance of the
+smoke remains outstanding.
 
 ## Non-blocking prerequisite rule
 
@@ -65,17 +64,18 @@ Per #2932's non-blocking prerequisite rule and the PMO ACTION UPDATE on #2932
 accepted #2931 readiness and explicit Production Go govern the **deploy
 action**. They do not prevent smoke-test preparation, deployment
 command/runbook verification, evidence templates, rollback rehearsal, or
-package completion. This increment is that preparation. No real deployment is
-executed, simulated as real, or implied.
+package completion. That preparation completed before Go. This increment now
+records the live read-only smoke; no additional Production action is executed,
+simulated as real, or implied.
 
 ## Collision-safe package prepared now
 
 ### Exact candidate identity (drift detection)
 
-All six records must use one SHA. The SHA prepared here is the #2929 frozen
-candidate `87414533984aa9b5579b679fc8f9746b93517c5d`. After a real deploy, the
-harness `--manifest` check proves that SHA still matches the accepted
-manifest. A different deployed SHA is a stop trigger (candidate drift).
+All six records must use one SHA. The live-run SHA is already-active
+`7e238319360b7adff2d893ebce03a40e9833f497`. The original freeze
+`87414533984aa9b5579b679fc8f9746b93517c5d` remains historical plan context
+only. A different deployed SHA is a stop trigger (candidate drift).
 
 ### Deployment command / runbook verification (not executed)
 
@@ -116,13 +116,15 @@ node scripts/ci/production_deployment_smoke_verification.mjs \
   --records docs/ops/reports/production-deployment-smoke-records-2932.json
 ```
 
-Expected this increment: `ready: false`, blocker `smoke_suite_incomplete`,
-every record `missing_or_empty:result`. That fail-closed verdict is the
-recorded truth.
+Expected this increment: `ready: true` from the filled JSON records. The
+historical fail-closed empty-result verdict (`ready: false` /
+`smoke_suite_incomplete`) is plan-template context only.
 
 ## Unresolved protected decisions carried forward
 
-Do not waive: #2776, #2777, #2783, #2786, #2787. Production Go is not recorded.
+Do not waive: #2776, #2777, #2783, #2786, #2787. Production Go was recorded
+2026-08-14T20:50Z; this increment still does not waive those protected
+decisions.
 
 ## Smoke-test result record — required fields
 
@@ -165,10 +167,11 @@ node scripts/ci/production_deployment_smoke_verification.mjs \
 - The smoke-test record schema, readiness harness, and the real
   `production-deployment-smoke-records-2932.json` instance with six categories
   and one prepared candidate SHA.
-- Fail-closed empty `result` fields until live smoke runs after Production Go.
+- Filled live-run `result` fields against `7e238319`; Product acceptance of
+  smoke remains independent of this package.
 - The exact-deployed-identity invariant.
 
 ## Validation
 
 - `npx vitest run tests/production-deployment-smoke-verification.test.mjs`
-- `node scripts/ci/production_deployment_smoke_verification.mjs --records docs/ops/reports/production-deployment-smoke-records-2932.json` — expected `ready: false` / `smoke_suite_incomplete` because live `result` values are empty.
+- `node scripts/ci/production_deployment_smoke_verification.mjs --records docs/ops/reports/production-deployment-smoke-records-2932.json` — expected `ready: true` from the filled live-run records.
