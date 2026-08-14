@@ -62,7 +62,9 @@ jobs:
         env:
           CHATTERBOX_BASE_URL: ${{ steps.resolve_url.outputs.base_url }}
           ADMIN_TOKEN: ${{ secrets.CHATTERBOX_PREVIEW_ADMIN_TOKEN }}
-        run: node scripts/ci/chatterbox_dev_integration_check.mjs | tee chatterbox-dev-integration-check-result.json
+        run: |
+          set -o pipefail
+          node scripts/ci/chatterbox_dev_integration_check.mjs | tee chatterbox-dev-integration-check-result.json
 
       - name: Upload result evidence
         if: always()
