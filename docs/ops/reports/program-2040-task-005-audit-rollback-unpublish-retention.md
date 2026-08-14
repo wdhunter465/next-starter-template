@@ -59,7 +59,8 @@ Every event must record:
 
 | Field | Meaning |
 | --- | --- |
-| `event_id` | Durable identity |
+| `event_id` | Durable identity of **this** event (unique per row; not reused as a parent key) |
+| `rollback_group_id` | Shared correlation id for one rollback package; omitted on unrelated events |
 | `event_at` | UTC timestamp |
 | `actor` | Named human or `scheduler` executing a previously approved fire/pause |
 | `actor_role` | reviewing editor, Product Authority / Bill, or automation |
@@ -87,7 +88,7 @@ Unpublish withdraws a **currently public** row from public and member helpers. I
 | Authority | Product Authority / Bill only |
 | From | `published` |
 | To | `unpublished` |
-| Inventory | `content_inventory.status` is no longer `published` (prep `unpublished`) |
+| Inventory | `content_inventory.status` is no longer `published`; publication-prep `publication_status` maps to `unpublished` |
 | Public effect | Homepage, library, gallery, search, archive, and Fan Club helpers must stop returning the row |
 | Schedule | Any active `schedule_id` for that row is cancelled; pause is insufficient if the row is already public |
 | Audit | `action = unpublish` with `reason` |
@@ -111,10 +112,10 @@ Rollback restores the **previous public set** after a mistaken publish or `slot_
 | --- | --- |
 | Authority | Product Authority / Bill |
 | Trigger | Wrong row went public, wrong `incoming_set` fired, or fire ignored a pause that should have held |
-| Incoming published in error | Unpublish those rows (`published` → `unpublished`) with `action = rollback` |
+| Incoming published in error | Unpublish those rows (`published` → `unpublished`) with `action = unpublish` |
 | Outgoing displaced in error | If `outgoing_action` unpublished them, restore only via `unpublished` → `approved` → `published` with recorded re-approval, unless the rollback package already contains the prior approval snapshot and Product Authority explicitly re-affirms it in the rollback event |
 | Schedule | Cancel or pause remaining fires for the affected `schedule_id` |
-| Audit | One rollback event plus per-row unpublish/publish events; link them with `schedule_id` or a shared `event_id` parent |
+| Audit | One parent event with `action = rollback` plus per-row `unpublish`/`publish` events; all share `rollback_group_id` (and `schedule_id` when a clock was involved). Do not reuse `event_id` as a parent key. |
 | Public check | Preview on `/admin/clubstaging` (or adjacent admin path) of the restored set **before** calling the restore public; then confirm public helpers match the restored published inventory |
 
 Rollback must fail closed when the prior approval snapshot is missing, public-path metadata is incomplete, or the operator is not Product Authority / Bill. Software must not auto-rollback a legal approved fire.
@@ -132,7 +133,7 @@ Keep these records after unpublish, rollback, archive, reject, or suppress:
 
 Do not purge or overwrite snapshots to hide a public interval. Correction is a **new** event. Hard-delete of publication evidence is out of scope and prohibited here.
 
-Retention duration: keep for the life of the candidate/inventory row and after archive, unless a later Product Authority retention issue names a shorter legal hold. This task does not authorize a purge job.
+Retention duration: keep for the life of the candidate/inventory row and after archive, unless a later Product Authority retention issue names a shorter retention period. This task does not authorize a purge job.
 
 ## Operator closeout evidence
 
