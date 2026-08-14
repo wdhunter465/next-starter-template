@@ -56,12 +56,39 @@ Last Reviewed: 2026-08-08
 Records an approved operational plan.
 `;
 
+const governanceDoc = `---
+Doc Type: Governance
+Audience: Human + AI
+Authority Level: Controlled
+Owns: authority boundary
+Does Not Own: DIATAXIS knowledge content
+Canonical Reference: docs/governance/example.md
+Last Reviewed: 2026-08-14
+---
+
+# Governance Doc
+
+## Summary
+
+Records an authority boundary.
+`;
+
 describe('DIATAXIS folder hygiene audit', () => {
   it('maps files to folder intent rules', () => {
     expect(ruleForFile('docs/reference/example.md')?.expectedDocType).toBe('Reference');
     expect(ruleForFile('docs/how-to/example.md')?.expectedDocType).toBe('How-To');
     expect(ruleForFile('docs/ops/reports/example.md')?.folderClass).toBe('operational');
+    expect(ruleForFile('docs/governance/example.md')?.folderClass).toBe('operational');
     expect(ruleForFile('README.md')).toBe(null);
+  });
+
+  it('accepts operational governance docs under docs/governance paths', () => {
+    expect(auditDiataxisFile('docs/governance/example.md', governanceDoc)).toEqual([]);
+  });
+
+  it('rejects DIATAXIS knowledge docs misplaced under docs/governance paths', () => {
+    const findings = auditDiataxisFile('docs/governance/example.md', referenceDoc);
+    expect(findings.map((finding) => finding.code)).toContain('OUTSIDE_DIATAXIS_FOLDER');
   });
 
   it('accepts a reference document that matches folder intent', () => {

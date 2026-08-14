@@ -16,7 +16,9 @@ All calls require the `x-admin-token` header (or `Authorization: Bearer
 repository. This prototype has not built per-agent credentials yet — see
 chatterbox-authority-boundary.md.
 
-## 1. Create the room
+## Procedure
+
+### 1. Create the room
 
 One room per GitHub program/project.
 
@@ -29,7 +31,7 @@ curl -X POST "$BASE/api/chatterbox/room" \
 A room is never auto-created by any other route — an unknown `room_key`
 elsewhere in this API returns `404`.
 
-## 2. Register participants
+### 2. Register participants
 
 Every field is required except `capability_summary`. `assigned_by` and
 `source_authority` must cite a real authorization, not a placeholder.
@@ -46,7 +48,7 @@ curl -X POST "$BASE/api/chatterbox/participants" \
   }'
 ```
 
-## 3. Ingest the task graph
+### 3. Ingest the task graph
 
 One call per task; re-posting the same `task_key` updates it (title, state,
 `collision_domain`, `depends_on`) rather than duplicating it.
@@ -64,7 +66,7 @@ curl -X POST "$BASE/api/chatterbox/tasks" \
   }'
 ```
 
-## 4. Claim and release
+### 4. Claim and release
 
 ```bash
 curl -X POST "$BASE/api/chatterbox/claim" \
@@ -85,7 +87,7 @@ curl -X POST "$BASE/api/chatterbox/release" \
   -d '{"room_key":"lgfc-website","task_key":"3416","participant_key":"claude-code"}'
 ```
 
-## 5. Post events
+### 5. Post events
 
 Use `idempotency_key` on any call an agent might retry after a missed
 response (a `CLAIM` or `COMPLETE` should never be posted twice by accident).
@@ -123,7 +125,7 @@ Omit `target_participant_key` for a broadcast question anyone eligible may
 answer. Answer with `event_type: "ANSWER"` and `in_reply_to_event_id` set to
 the question's `id`.
 
-## 6. Check in
+### 6. Check in
 
 Returns the bounded catch-up digest (open questions, recent PMO
 instructions, capped tail) and the caller's own active claims — not a full
