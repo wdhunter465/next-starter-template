@@ -38,7 +38,7 @@ After merge and Dev application of migration `0046`:
 
 - `draft` → `published` is refused (A3);
 - named human `approved_by` / `approved_at` must be recorded before publish (A2/A5);
-- unpublished/archived inventory cannot jump back to `published` (A6);
+- unpublished/archived **operational** state cannot jump back to `published` (A6); a new `approve` then `publish` is legal even while inventory `status` is still `archived`;
 - unpublish/archive requires a reason (S9);
 - public helpers remain `publishedInventoryWhere` (`status = 'published'`, matching `allowed_sections`, non-empty `source_name` and `credit_line`);
 - already-published Library inventory rows stay readable; missing `operational_state` maps from inventory status and is not rewritten by this PR.
@@ -65,7 +65,7 @@ After merge and Dev application of migration `0046`:
 | A3 | Refuse illegal jumps, including `draft` → `published` |
 | A4 | Refuse `schedule` writes; refuse scheduled fire before `scheduled_at` or while paused |
 | A5 | Refuse approver names `scheduler`, `automation`, `system`, `bot`, `ci`, `cursor`, `chatgpt` |
-| A6 | Refuse republish from unpublished/archived until a new `approve` |
+| A6 | Refuse republish while operational state is still `unpublished` or `archived`; a new `approve` (inventory status may remain `archived`) then `publish` is the legal path |
 | A7 | Rollback writes stay unimplemented and fail closed; the gate also refuses rollback-to-publish without an approval snapshot |
 | S4 | Refuse publish without `source_name` and `credit_line` |
 | S9 | Refuse unpublish/archive without `reason` |

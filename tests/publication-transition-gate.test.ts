@@ -126,6 +126,19 @@ describe('publication-transition-gate', () => {
     expect(result).toMatchObject({ ok: false, checkId: 'A6' });
   });
 
+  it('A6 allows republish after a new approve while inventory status is still archived', () => {
+    const result = evaluatePublicationTransition({
+      action: 'publish',
+      currentInventoryStatus: 'archived',
+      operationalState: 'approved',
+      approvedBy: 'Bill',
+      approvedAt: '2026-08-14T23:00:00Z',
+      sourceName: 'Archive',
+      creditLine: 'LGFC Archive',
+    });
+    expect(result).toEqual({ ok: true });
+  });
+
   it('A7 refuses rollback that would publish without an approval snapshot', () => {
     const result = evaluatePublicationTransition({
       action: 'rollback',

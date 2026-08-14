@@ -188,7 +188,7 @@ export function evaluatePublicationTransition(
       return { ok: true };
     }
 
-    if (operationalState === "unpublished" || input.currentInventoryStatus === "archived") {
+    if (operationalState === "unpublished" || operationalState === "archived") {
       return fail("A6", "A6: republish from unpublished requires a new approved step.");
     }
 
