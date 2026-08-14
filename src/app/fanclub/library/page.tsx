@@ -13,6 +13,8 @@ type LibraryItem = {
   author?: string | null;
   year?: number | null;
   created_at?: string | null;
+  source_name?: string | null;
+  source_url?: string | null;
 };
 
 const styles: Record<string, React.CSSProperties> = {
@@ -143,11 +145,23 @@ export default function LibraryPage() {
               <article key={it.id} style={{ marginBottom: 14 }}>
                 <h3 style={{ margin: '0 0 6px 0' }}>{it.title || 'Untitled story'}</h3>
                 <div style={styles.meta}>
-                  {[it.author ? `Credit: ${it.author}` : null, it.year ? String(it.year) : null, it.created_at ? it.created_at.slice(0, 10) : null]
+                  {[
+                    it.author ? `Credit: ${it.author}` : null,
+                    it.source_name ? `Source: ${it.source_name}` : null,
+                    it.year ? String(it.year) : null,
+                    it.created_at ? it.created_at.slice(0, 10) : null,
+                  ]
                     .filter(Boolean)
                     .join(' • ') || 'Published inventory story'}
                 </div>
                 <p style={{ ...styles.p, marginTop: 8, whiteSpace: 'pre-wrap' }}>{it.content || it.description || 'No description available yet.'}</p>
+                {it.source_url ? (
+                  <p style={{ ...styles.p, marginTop: 0 }}>
+                    <a href={it.source_url} rel="noopener noreferrer" target="_blank">
+                      Bibliographic source
+                    </a>
+                  </p>
+                ) : null}
                 <hr style={styles.hr} />
               </article>
             ))

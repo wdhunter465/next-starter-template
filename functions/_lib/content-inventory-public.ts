@@ -76,13 +76,33 @@ export function mapPublicInventoryStory(row: InventoryRow): PublicInventoryStory
   };
 }
 
+export function sanitizePublicHttpUrl(raw: unknown): string | null {
+  if (typeof raw !== 'string') return null;
+  const trimmed = raw.trim();
+  if (!trimmed) return null;
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') return null;
+    return parsed.toString();
+  } catch {
+    return null;
+  }
+}
+
+export function librarySearchDestination(q?: string): string {
+  const needle = String(q || '').trim();
+  if (!needle) return '/fanclub/library';
+  return `/fanclub/library?q=${encodeURIComponent(needle)}`;
+}
+
 export function mapLibraryInventoryItem(row: InventoryRow) {
+  const sourceName = typeof row.source_name === 'string' && row.source_name.trim() ? row.source_name.trim() : null;
   return {
     id: Number(row.id),
     year: parseInventoryYear(row.event_year, row.event_date),
     author:
       (typeof row.credit_line === 'string' && row.credit_line.trim()) ||
-      (typeof row.source_name === 'string' && row.source_name.trim()) ||
+      sourceName ||
       null,
     title: typeof row.title === 'string' ? row.title : null,
     description:
@@ -91,6 +111,8 @@ export function mapLibraryInventoryItem(row: InventoryRow) {
     url: null,
     content: typeof row.text === 'string' ? row.text : null,
     created_at: typeof row.updated_at === 'string' ? row.updated_at : null,
+    source_name: sourceName,
+    source_url: sanitizePublicHttpUrl(row.source_url),
   };
 }
 
@@ -345,7 +367,7 @@ export function buildInventorySearchBody(row: InventoryRow, mediaText = ''): str
     .join(' ');
 }
 
-function mapSearchInventoryHit(row: InventoryRow, mediaText = ''): SearchInventoryHit {
+function mapSearchInventoryHit(row: InventoryRow, mediaText = '', q = ''): SearchInventoryHit {
   const summary = typeof row.summary === 'string' ? row.summary.trim() : '';
   const text = typeof row.text === 'string' ? row.text : '';
   const body = buildInventorySearchBody(row, mediaText);
@@ -354,7 +376,7 @@ function mapSearchInventoryHit(row: InventoryRow, mediaText = ''): SearchInvento
     title: formatSearchInventoryTitle(row),
     body,
     excerpt: summary || (text ? text.slice(0, 120) : body.slice(0, 120)),
-    url: '/fanclub/library',
+    url: librarySearchDestination(q),
     canonical: Number(row.canonical) === 1,
     perspective_label: typeof row.perspective_label === 'string' ? row.perspective_label : null,
     year: parseInventoryYear(row.event_year, row.event_date),
@@ -429,7 +451,11 @@ export async function fetchSearchInventoryResults(
     .all();
 
   return ((rows.results ?? []) as InventoryRow[]).map((row) =>
-    mapSearchInventoryHit(row, typeof row.media_search_text === 'string' ? row.media_search_text : ''),
+    mapSearchInventoryHit(
+      row,
+      typeof row.media_search_text === 'string' ? row.media_search_text : '',
+      q,
+    ),
   );
 }
 
@@ -486,7 +512,7 @@ export async function resolveMemberLibrarySearchResults(
       typeof row.content === 'string' && row.content
         ? row.content.slice(0, 120)
         : '',
-    url: '/fanclub/library',
+    url: librarySearchDestination(q),
     canonical: true,
     perspective_label: null,
     year: null,

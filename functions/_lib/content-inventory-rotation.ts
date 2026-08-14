@@ -195,16 +195,16 @@ export async function fetchRotationEligibleRows(
 
   if (q) {
     whereParts.push(
-      "(lower(COALESCE(title,'')) LIKE ? OR lower(COALESCE(text,'')) LIKE ? OR lower(COALESCE(summary,'')) LIKE ? OR lower(COALESCE(search_text,'')) LIKE ? OR lower(COALESCE(credit_line,'')) LIKE ? OR lower(COALESCE(source_name,'')) LIKE ? OR lower(COALESCE(perspective_label,'')) LIKE ?)",
+      "(lower(COALESCE(title,'')) LIKE ? OR lower(COALESCE(text,'')) LIKE ? OR lower(COALESCE(summary,'')) LIKE ? OR lower(COALESCE(search_text,'')) LIKE ? OR lower(COALESCE(credit_line,'')) LIKE ? OR lower(COALESCE(source_name,'')) LIKE ? OR lower(COALESCE(perspective_label,'')) LIKE ? OR lower(COALESCE(tag,'')) LIKE ?)",
     );
     const like = `%${q}%`;
-    args.push(like, like, like, like, like, like, like);
+    args.push(like, like, like, like, like, like, like, like);
   }
 
   const whereSql = `WHERE ${whereParts.join(' AND ')}`;
   const rows = await db
     .prepare(
-      `SELECT id, title, text, summary, credit_line, source_name, event_date, event_year,
+      `SELECT id, title, text, summary, credit_line, source_name, source_url, tag, event_date, event_year,
               rotation_group, last_featured, feature_weight, canonical, priority, allowed_sections,
               status, updated_at
        FROM content_inventory

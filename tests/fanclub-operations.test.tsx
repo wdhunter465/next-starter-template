@@ -236,6 +236,8 @@ describe('Fan Club operational pages', () => {
             author: 'Lou Gehrig',
             year: 1939,
             content: 'Today I consider myself the luckiest man on the face of the earth.',
+            source_name: 'Simon & Schuster / Google Books bibliographic record',
+            source_url: 'https://books.google.com/books/about/Luckiest_Man.html?id=7SgyXXadMIYC',
           },
         ],
       }) as never,
@@ -252,6 +254,11 @@ describe('Fan Club operational pages', () => {
     expect(screen.getByText(/published editorial inventory stories/i)).toBeInTheDocument();
     expect(screen.getByText(/source and credit attribution/i)).toBeInTheDocument();
     expect(screen.getByText(/Credit: Lou Gehrig/)).toBeInTheDocument();
+    expect(screen.getByText(/Source: Simon & Schuster/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Bibliographic source' })).toHaveAttribute(
+      'href',
+      'https://books.google.com/books/about/Luckiest_Man.html?id=7SgyXXadMIYC',
+    );
   });
 
   it('exposes the approved member submission path from Club Home CTA without changing header navigation', () => {
