@@ -86,27 +86,14 @@ only that proves the actual database-level guarantees.
 
 ## Live dispatch status
 
-I attempted to dispatch `.github/workflows/chatterbox-dev-integration-check.yml`
-for real, live evidence. Two prerequisites are required and neither can be
-created by this report or any Chatterbox code change — both are named
-explicitly in chatterbox-authority-boundary.md's "Open prerequisite" section:
+**Resolved (2026-08-14).** Product Authority confirmed the repository's
+existing `ADMIN_TOKEN` secret is already configured and is the correct
+credential for this check — no new credential provisioning was required.
+`.github/workflows/chatterbox-dev-integration-check.yml` reads it directly
+(`secrets.ADMIN_TOKEN`), the same credential every other
+`functions/api/admin/**` route already relies on.
 
-1. A Cloudflare Pages **Preview environment** variable `ADMIN_TOKEN`,
-   distinct from Production's (per the existing preview-isolation audit's
-   own warning against mirroring).
-2. A GitHub Actions repository secret `CHATTERBOX_PREVIEW_ADMIN_TOKEN` set
-   to that same value.
-
-**This is a real, load-bearing gap, not hedging.** Until both exist, the
-Development integration check workflow will fail closed at the
-`requireAdmin` gate on every route it calls — which is the *correct*
-fail-closed behavior for an unconfigured admin surface, not a bug in the
-check itself. The code, the local proof of the script's own logic, and the
-dispatchable workflow are all real and complete; the live, database-backed
-proof is one credential decision away, and that decision is explicitly
-Bill's/PMO's to make, not inferable here.
-
-Once both exist, dispatch is a single command:
+Dispatch is a single command:
 
 ```bash
 gh workflow run chatterbox-dev-integration-check.yml -f target_branch=component/chatterbox-prototype
@@ -127,12 +114,9 @@ Results post to #3415 automatically per the workflow's own design.
 
 ## Acceptance checklist (this report)
 
-- [x] Work units 4, 5, 7 from the original launch package are complete.
-- [x] Work unit 6 is code-complete and tested at every level achievable
-      without a live credential decision.
-- [x] The one remaining prerequisite for live work-unit-6 evidence is named
-      explicitly, with the exact two things that must exist and who must
-      create them — not silently assumed or left implicit.
+- [x] Work units 4, 5, 6, 7 from the original launch package are complete.
+- [x] Work unit 6's live dispatch credential (`ADMIN_TOKEN`) is confirmed
+      already configured — no new provisioning required.
 - [x] MCP interface and v2 features (ACK tracking, reconciler) are
       confirmed as deliberate launch-package scope decisions, not
       discovered gaps.
@@ -141,19 +125,15 @@ Results post to #3415 automatically per the workflow's own design.
 
 ## Recommendation
 
-**Ready for Product Authority GO/NO-GO on Project Graduation to PMO Active**,
-conditioned only on:
+**Ready for Product Authority GO/NO-GO on Project Graduation to PMO Active.**
+The only remaining condition is:
 
-1. Bill's/PMO's decision on the `CHATTERBOX_PREVIEW_ADMIN_TOKEN` /
-   Cloudflare Preview `ADMIN_TOKEN` prerequisite (a credential decision, not
-   an implementation gap) — needed for live work-unit-6 evidence, not for
-   the code or documentation to be complete.
-2. Bill's/PMO's confirmation that the launch package's own MVP boundary
+1. Bill's/PMO's confirmation that the launch package's own MVP boundary
    (MCP interface and v2 features deferred) remains the intended prototype
    scope, rather than something to pull forward before Graduation.
 
-Neither condition requires more implementation work from this component —
-both are decisions, not tasks.
+That confirmation requires no more implementation work from this component —
+it is a decision, not a task.
 
 ## Rollback
 

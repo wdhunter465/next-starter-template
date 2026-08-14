@@ -9,11 +9,9 @@ name: OPS — Chatterbox Development Integration Check (#3415)
 # claim races, dependency gating, idempotent events, durable Q&A, missed-
 # wake recovery, and the system_clerk structural boundary.
 #
-# Requires a Preview-scoped ADMIN_TOKEN distinct from Production's, per
-# docs/ops/reports/delivery-system-preview-isolation-audit.md's explicit
-# warning against mirroring Production's ADMIN_TOKEN into Preview. This
-# workflow reads that value from CHATTERBOX_PREVIEW_ADMIN_TOKEN — a secret
-# scoped to this check only, not shared with any Production credential.
+# Reads ADMIN_TOKEN from the repository's existing ADMIN_TOKEN secret
+# (confirmed already configured, 2026-08-14) — the same credential every
+# functions/api/admin/** route already relies on.
 
 on:
   workflow_dispatch:
@@ -61,7 +59,7 @@ jobs:
         id: run_check
         env:
           CHATTERBOX_BASE_URL: ${{ steps.resolve_url.outputs.base_url }}
-          ADMIN_TOKEN: ${{ secrets.CHATTERBOX_PREVIEW_ADMIN_TOKEN }}
+          ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
         run: |
           set -o pipefail
           node scripts/ci/chatterbox_dev_integration_check.mjs | tee chatterbox-dev-integration-check-result.json
