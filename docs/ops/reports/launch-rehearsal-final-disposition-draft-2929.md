@@ -46,7 +46,7 @@ frozen isolated candidate.
 
 ## Unresolved protected decisions
 
-Source: `docs/ops/reports/launch-rehearsal-unresolved-protected-decisions-2929.json`
+Source: `docs/ops/reports/launch-rehearsal-unresolved-protected-decisions-2929.md`
 
 1. Freeze ACCEPT for `origin/main@87414533` / Pages Preview `lgfc-litedev`, or a named alternative SHA.
 2. #2776 intake — accept or rehearsal-scope waiver.

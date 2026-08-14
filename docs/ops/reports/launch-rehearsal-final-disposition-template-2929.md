@@ -34,7 +34,7 @@ judgment made once real rehearsal evidence exists — and it does not redefine
   tested against synthetic fixtures (`tests/launch-rehearsal-disposition-readiness.test.mjs`).
 - Collision-safe #2929 preparation (2026-08-14) adds:
   `docs/ops/reports/launch-rehearsal-disposition-evidence-index-2929.md`,
-  `docs/ops/reports/launch-rehearsal-unresolved-protected-decisions-2929.json`,
+  `docs/ops/reports/launch-rehearsal-unresolved-protected-decisions-2929.md`,
   and `docs/ops/reports/launch-rehearsal-final-disposition-draft-2929.md`.
   The draft is **not** a Product Authority recommendation.
 - Live readiness snapshot: `ready: false` (`evidence_incomplete`,

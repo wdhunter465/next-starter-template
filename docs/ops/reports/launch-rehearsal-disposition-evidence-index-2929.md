@@ -31,7 +31,7 @@ GO/HOLD/ADJUSTMENT/NO-GO recommendation.
 | #2928 execution package | `docs/ops/reports/launch-rehearsal-execution-package-2928.md` | Merged via PR #3437 |
 | Formal evidence log | none | Blocker |
 | Formal defect ledger | none | Blocker |
-| Unresolved decisions | `docs/ops/reports/launch-rehearsal-unresolved-protected-decisions-2929.json` | 7 items |
+| Unresolved decisions | `docs/ops/reports/launch-rehearsal-unresolved-protected-decisions-2929.md` | 7 items |
 
 ## Disposition-readiness snapshot (2026-08-14)
 
@@ -44,7 +44,7 @@ node scripts/ci/launch_rehearsal_disposition_readiness.mjs \
   --evidence-result '{"ok":false}' \
   --ledger-result '{"ok":false}' \
   --retest-result '{"ok":false}' \
-  --unresolved-decisions docs/ops/reports/launch-rehearsal-unresolved-protected-decisions-2929.json
+  --unresolved-decisions <JSON extracted from docs/ops/reports/launch-rehearsal-unresolved-protected-decisions-2929.md>
 ```
 
 Result: `ready: false`.
