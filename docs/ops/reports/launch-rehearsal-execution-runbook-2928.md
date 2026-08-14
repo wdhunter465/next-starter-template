@@ -6,7 +6,7 @@ Owns: #2928 (#2781 Task 003) formal rehearsal execution runbook, defect taxonomy
 Does Not Own: Candidate/environment identity (#2926); journey catalog/automation/evidence model (#2927, owned by that report); final GO/HOLD/ADJUSTMENT/NO-GO disposition (#2929)
 Canonical Reference: /docs/ops/reports/launch-rehearsal-execution-runbook-2928.md
 Related Issues: #2928, #2781, #2926, #2927, #2929
-Last Reviewed: 2026-08-08
+Last Reviewed: 2026-08-14
 ---
 
 # Launch rehearsal execution runbook, defect taxonomy, and retest procedure — #2928
@@ -29,9 +29,18 @@ final disposition — each is owned by its own task/report.
 
 ## Current known truth
 
-- No formal rehearsal has been executed. #2926's candidate/environment identity is
-  not yet accepted, so this runbook and its companion defect-ledger harness are
-  **procedure and automation scaffolding**, not a record of any actual defect.
+- No formal rehearsal has been executed. This runbook and its companion
+  defect-ledger harness remain **procedure and automation scaffolding**, not a
+  record of any actual defect.
+- The 2026-08-14 execution package
+  (`docs/ops/reports/launch-rehearsal-execution-package-2928.md`) records the
+  observe-only vs write-capable split, the proposed isolated freeze
+  (`origin/main@87414533984aa9b5579b679fc8f9746b93517c5d`), and remaining
+  Pipeline intake deferrals. That package does **not** freeze a candidate or
+  authorize live journeys.
+- Isolation evidence is satisfied on `origin/main` (#2818 CLOSED). This
+  component branch is still rehearsal assets only; do not treat its tip as the
+  rehearsal runtime.
 - The defect-ledger schema and its harness
   (`scripts/ci/launch_rehearsal_defect_ledger.mjs`) are implemented and pass their
   own test suite (`tests/launch-rehearsal-defect-ledger.test.mjs`) against synthetic
