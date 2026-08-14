@@ -79,10 +79,19 @@ being violated by exactly that actor; this boundary does not depend on that.
 The Development integration check (work unit 6) and GitHub ingestion (work
 unit 5) workflows both call the deployed API using the repository's existing
 `ADMIN_TOKEN` secret — confirmed already configured by Product Authority
-(2026-08-14), the same credential every `functions/api/admin/**` route
-already relies on. No new credential was provisioned for Chatterbox; this
-component reuses what already exists, per the reuse rationale in
-chatterbox-architecture-rationale.md.
+(2026-08-14), so no new secret needed provisioning for Chatterbox to reuse
+the same `requireAdmin` contract every `functions/api/admin/**` route
+already relies on (rationale in chatterbox-architecture-rationale.md).
+
+**That confirmation covers the secret's name, not its scope.** Per
+`docs/ops/reports/delivery-system-preview-isolation-audit.md`'s explicit
+warning, Preview must carry its own `ADMIN_TOKEN` value, never Production's
+— mirroring Production's value into Preview would expose the full admin
+write surface against Preview D1 under a token that looks Preview-scoped.
+Neither Chatterbox workflow targets Production and neither can detect a
+misconfigured value; that the GitHub secret's *value* is actually the
+Development/Preview one, not Production's, remains an operational fact for
+Bill/PMO to confirm, not something inferable from the secret's name alone.
 
 ## Relationship to repository-wide agent governance
 

@@ -10,8 +10,14 @@ name: OPS — Chatterbox Development Integration Check (#3415)
 # wake recovery, and the system_clerk structural boundary.
 #
 # Reads ADMIN_TOKEN from the repository's existing ADMIN_TOKEN secret
-# (confirmed already configured, 2026-08-14) — the same credential every
-# functions/api/admin/** route already relies on.
+# (confirmed already configured, 2026-08-14) — reusing the same requireAdmin
+# contract every functions/api/admin/** route already relies on. The secret
+# NAME is shared; its VALUE must be the Cloudflare Pages Development/Preview
+# deployment's ADMIN_TOKEN specifically, never Production's — per
+# docs/ops/reports/delivery-system-preview-isolation-audit.md's explicit
+# warning against mirroring Production's token into Preview. This workflow
+# never targets Production, so a Production-scoped value here would be a
+# misconfiguration of the secret, not something this workflow can detect.
 
 on:
   workflow_dispatch:

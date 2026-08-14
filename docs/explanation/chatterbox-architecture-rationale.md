@@ -86,9 +86,12 @@ synthetic/sandbox testing.
 
 The Development integration check (work unit 6, below) reads its token from
 the repository's existing `ADMIN_TOKEN` secret — confirmed already
-configured by Product Authority (2026-08-14) — the same credential every
-other `functions/api/admin/**` route already relies on. No new credential
-was provisioned for Chatterbox.
+configured by Product Authority (2026-08-14), so no new secret needed
+provisioning. That confirmation is about the secret's *name*, not its
+*scope*: per the Preview-isolation audit cited above, the value behind that
+name must be the Development/Preview deployment's own `ADMIN_TOKEN`, never
+Production's — this check never targets Production and cannot itself
+verify which environment's value the secret actually holds.
 
 ## Why the Development integration proof runs against the real deployment, not a mock
 

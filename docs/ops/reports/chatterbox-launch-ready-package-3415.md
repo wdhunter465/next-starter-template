@@ -86,12 +86,21 @@ only that proves the actual database-level guarantees.
 
 ## Live dispatch status
 
-**Resolved (2026-08-14).** Product Authority confirmed the repository's
-existing `ADMIN_TOKEN` secret is already configured and is the correct
-credential for this check — no new credential provisioning was required.
+**Secret name confirmed (2026-08-14).** Product Authority confirmed the
+repository already has an `ADMIN_TOKEN` GitHub Actions secret configured —
+no new secret needed to be provisioned for this check to run.
 `.github/workflows/chatterbox-dev-integration-check.yml` reads it directly
-(`secrets.ADMIN_TOKEN`), the same credential every other
-`functions/api/admin/**` route already relies on.
+(`secrets.ADMIN_TOKEN`), reusing the same `requireAdmin` contract every
+other `functions/api/admin/**` route already relies on.
+
+This confirms the secret's *name* only. Its *value* must be the Cloudflare
+Pages Development/Preview deployment's `ADMIN_TOKEN` specifically — per
+`docs/ops/reports/delivery-system-preview-isolation-audit.md`'s explicit
+warning, it must not be Production's value, regardless of what the GitHub
+secret happens to be named. This workflow never targets Production, so it
+cannot itself detect a Production-scoped value configured by mistake; that
+remains an operational fact only Bill/PMO can confirm, not something this
+report verifies.
 
 Dispatch is a single command:
 
