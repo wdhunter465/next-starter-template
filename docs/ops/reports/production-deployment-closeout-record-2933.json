@@ -1,12 +1,12 @@
 {
   "sourceIssue": "#2933",
-  "deploymentCandidateCited": "origin/main@87414533984aa9b5579b679fc8f9746b93517c5d",
-  "note": "Live closeout evidence is empty until authorized #2932 deploy/smoke and Product acceptance. Do not treat this file as a passing closeout.",
-  "publicBehaviorAcceptanceEvidence": "",
-  "noOpenLaunchBlockerEvidence": "",
-  "recoveryActiveEvidence": "",
-  "monitoringActiveEvidence": "",
-  "productAcceptanceEvidence": "",
-  "day2OwnershipEvidence": "",
-  "issuePrReleaseEvidenceConsistency": ""
+  "deploymentCandidateCited": "origin/main@7e238319360b7adff2d893ebce03a40e9833f497",
+  "note": "Live closeout evidence after Product Authority accepted #2932 smoke. Authoritative JSON for this increment. #2776 #2777 #2783 #2786 #2787 remain OPEN and are not waived as program work. Product recorded Production Go and smoke acceptance while they were still OPEN; this file does not claim those Issues are complete.",
+  "publicBehaviorAcceptanceEvidence": "2026-08-14T20:54:10Z and reconfirm 2026-08-14T21:17:25.877Z bash scripts/prod-smoke.sh https://www.lougehrigfanclub.com exited 0. GET / 200; public routes 308; /login 302; /api/health ok:true db_ok:true. #2932 records all six categories pass against SHA 7e238319. Bill / Product Authority accepted this smoke 2026-08-14T21:15Z. Did not GET /api/matchup/current. Did not write Production D1.",
+  "noOpenLaunchBlockerEvidence": "No critical smoke fail. Rollback was not activated. #2782 Go/No-Go text still lists complete #2776/#2777 evidence; those Issues remain OPEN and are not waived. Product Authority recorded Production Go 2026-08-14T20:50Z and accepted #2932 smoke 2026-08-14T21:15Z while they were still OPEN. This field records that Product executed this Go anyway, not that #2776/#2777 are fulfilled.",
+  "recoveryActiveEvidence": "#2931 recorded rollback SHA ccab0480 / Pages deployment c5051e90. failure_behavior smoke category passed: no stop trigger, rollback not activated, promote-cloudflare-deployment.sh not invoked. Recovery owner remains Bill per AGENT-TEAM.md.",
+  "monitoringActiveEvidence": "#2780 is CLOSED. Live /api/health returned ok:true db_ok:true at 2026-08-14T21:17:25.877Z on Active Production hostname. Pages Production Active deployment 952e90fc sourced from 7e238319.",
+  "productAcceptanceEvidence": "Bill / Product Authority accepted the #2932 Production smoke at 2026-08-14T21:15Z (live session) and authorized #2933 closeout. Citation: https://github.com/wdhunter465/next-starter-template/issues/2932#issuecomment-5298262556. Cursor did not self-accept.",
+  "day2OwnershipEvidence": "Day-2 Operations owner remains Bill per docs/governance/AGENT-TEAM.md. No ownership transfer away from Product Authority is recorded. #2786 (operator training/access/support/succession) stays OPEN as a separate program project and is not this child's Day-2 owner vacancy.",
+  "issuePrReleaseEvidenceConsistency": "Pipeline on component/production-deployment-2027: #2930 via prior merges; #2931 PR #3478 @ 15e90a7b; #2932 PR #3480 @ 06f00660; live candidate 7e238319 / deployment 952e90fc. Smoke records and this closeout cite the same SHA. This increment does not close #2933 or #2782."
 }
