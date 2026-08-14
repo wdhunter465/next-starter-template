@@ -1,0 +1,38 @@
+[
+  {
+    "category": "public",
+    "result": "",
+    "evidence": "NOT RUN. Plan: tests/e2e/launch-readiness-public-routes.spec.ts and docs/how-to/website/website-production-smoke-test.md. Live Production smoke is not authorized. Candidate cited: origin/main@87414533984aa9b5579b679fc8f9746b93517c5d.",
+    "deployedCandidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d"
+  },
+  {
+    "category": "auth_member",
+    "result": "",
+    "evidence": "NOT RUN. Plan: tests/e2e/launch-readiness-fanclub-routes.spec.ts. Live Production smoke is not authorized.",
+    "deployedCandidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d"
+  },
+  {
+    "category": "content_data_media",
+    "result": "",
+    "evidence": "NOT RUN. Plan: read-only D1/B2 identity and counts per #2860/#2913. Live Production smoke is not authorized.",
+    "deployedCandidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d"
+  },
+  {
+    "category": "email_fundraiser_state",
+    "result": "",
+    "evidence": "NOT RUN. Plan: controlled test-address send via functions/_lib/email.ts; skip if MAILCHANNELS_ENABLED is unset. Live Production smoke is not authorized.",
+    "deployedCandidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d"
+  },
+  {
+    "category": "monitoring",
+    "result": "",
+    "evidence": "NOT RUN. Plan: confirm #2780 monitoring/alert dispatch is live for the deployed candidate. Live Production smoke is not authorized.",
+    "deployedCandidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d"
+  },
+  {
+    "category": "failure_behavior",
+    "result": "",
+    "evidence": "NOT RUN. Plan: stop-trigger drill proving rollback engages. Blocked on empty #2931 rollbackCandidateSha. Live Production smoke is not authorized. Do not waive #2776 #2777 #2783 #2786 #2787.",
+    "deployedCandidateSha": "87414533984aa9b5579b679fc8f9746b93517c5d"
+  }
+]
