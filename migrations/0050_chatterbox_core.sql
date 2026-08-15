@@ -1,4 +1,4 @@
--- 0046_chatterbox_core.sql
+-- 0050_chatterbox_core.sql
 -- #3415 (Chatterbox) prototype, work unit 1: persistent conference-call
 -- schema for participants, rooms, the append-only event log, tasks, atomic
 -- claims, and per-participant checkpoints. Additive-only; touches no
