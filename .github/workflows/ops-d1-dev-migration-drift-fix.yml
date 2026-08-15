@@ -26,9 +26,14 @@ name: OPS — D1 Development Migration Drift Fix
 # fail on the columns that already exist), then records all nine
 # fully-applied migrations in d1_migrations so Wrangler stops trying to
 # re-run them. Every statement is additive (ALTER TABLE ADD COLUMN, CREATE
-# INDEX IF NOT EXISTS) or a tracking-table insert -- no data is dropped,
-# modified, or read. Hardcoded to lgfc-litedev (Development) only; no
-# Production path exists in this file.
+# INDEX IF NOT EXISTS) or a tracking-table insert; no data is dropped or
+# modified. The only reads are the final, purely informational verification
+# query. Every ALTER TABLE ADD COLUMN call tolerates a "duplicate column
+# name" failure (treating it as already-applied and continuing) and the
+# d1_migrations insert uses INSERT OR IGNORE, so a re-run after a partial
+# failure is safe and does not need manual editing (Copilot review,
+# 2026-08-15). Hardcoded to lgfc-litedev (Development) only; no Production
+# path exists in this file.
 
 on:
   workflow_dispatch:
@@ -37,6 +42,10 @@ on:
         description: 'Type "confirm" to acknowledge this writes to lgfc-litedev (Development) only'
         required: true
         type: string
+
+concurrency:
+  group: d1-dev-migration-drift-fix
+  cancel-in-progress: false
 
 permissions:
   contents: read
@@ -68,12 +77,20 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          npx wrangler d1 execute lgfc-litedev --remote --env preview \
-            --command "ALTER TABLE join_requests ADD COLUMN profile_photo_id INTEGER;"
-          npx wrangler d1 execute lgfc-litedev --remote --env preview \
-            --command "ALTER TABLE join_requests ADD COLUMN presence_status TEXT NOT NULL DEFAULT 'Inactive' CHECK (presence_status IN ('Active','Inactive'));"
-          npx wrangler d1 execute lgfc-litedev --remote --env preview \
-            --command "ALTER TABLE join_requests ADD COLUMN presence_updated_at TEXT;"
+          add_column() {
+            local sql="$1" output
+            if output=$(npx wrangler d1 execute lgfc-litedev --remote --env preview --command "$sql" 2>&1); then
+              echo "$output"
+            elif echo "$output" | grep -q "duplicate column name"; then
+              echo "Already present, skipping: $sql"
+            else
+              echo "$output" >&2
+              exit 1
+            fi
+          }
+          add_column "ALTER TABLE join_requests ADD COLUMN profile_photo_id INTEGER;"
+          add_column "ALTER TABLE join_requests ADD COLUMN presence_status TEXT NOT NULL DEFAULT 'Inactive' CHECK (presence_status IN ('Active','Inactive'));"
+          add_column "ALTER TABLE join_requests ADD COLUMN presence_updated_at TEXT;"
           npx wrangler d1 execute lgfc-litedev --remote --env preview \
             --command "CREATE INDEX IF NOT EXISTS idx_join_requests_presence ON join_requests(presence_status, presence_updated_at);"
 
@@ -82,14 +99,21 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          npx wrangler d1 execute lgfc-litedev --remote --env preview \
-            --command "ALTER TABLE content_inventory ADD COLUMN suppression_reason TEXT;"
-          npx wrangler d1 execute lgfc-litedev --remote --env preview \
-            --command "ALTER TABLE content_inventory ADD COLUMN takedown_request_source TEXT;"
-          npx wrangler d1 execute lgfc-litedev --remote --env preview \
-            --command "ALTER TABLE content_inventory ADD COLUMN takedown_resolution_note TEXT;"
-          npx wrangler d1 execute lgfc-litedev --remote --env preview \
-            --command "ALTER TABLE content_inventory ADD COLUMN takedown_requested_at TEXT;"
+          add_column() {
+            local sql="$1" output
+            if output=$(npx wrangler d1 execute lgfc-litedev --remote --env preview --command "$sql" 2>&1); then
+              echo "$output"
+            elif echo "$output" | grep -q "duplicate column name"; then
+              echo "Already present, skipping: $sql"
+            else
+              echo "$output" >&2
+              exit 1
+            fi
+          }
+          add_column "ALTER TABLE content_inventory ADD COLUMN suppression_reason TEXT;"
+          add_column "ALTER TABLE content_inventory ADD COLUMN takedown_request_source TEXT;"
+          add_column "ALTER TABLE content_inventory ADD COLUMN takedown_resolution_note TEXT;"
+          add_column "ALTER TABLE content_inventory ADD COLUMN takedown_requested_at TEXT;"
           npx wrangler d1 execute lgfc-litedev --remote --env preview \
             --command "CREATE INDEX IF NOT EXISTS idx_content_inventory_suppression ON content_inventory(status, takedown_requested_at) WHERE suppression_reason IS NOT NULL;"
 
@@ -98,12 +122,20 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          npx wrangler d1 execute lgfc-litedev --remote --env preview \
-            --command "ALTER TABLE members ADD COLUMN deleted_at TEXT;"
-          npx wrangler d1 execute lgfc-litedev --remote --env preview \
-            --command "ALTER TABLE members ADD COLUMN deletion_reason TEXT;"
-          npx wrangler d1 execute lgfc-litedev --remote --env preview \
-            --command "ALTER TABLE members ADD COLUMN deleted_by TEXT;"
+          add_column() {
+            local sql="$1" output
+            if output=$(npx wrangler d1 execute lgfc-litedev --remote --env preview --command "$sql" 2>&1); then
+              echo "$output"
+            elif echo "$output" | grep -q "duplicate column name"; then
+              echo "Already present, skipping: $sql"
+            else
+              echo "$output" >&2
+              exit 1
+            fi
+          }
+          add_column "ALTER TABLE members ADD COLUMN deleted_at TEXT;"
+          add_column "ALTER TABLE members ADD COLUMN deletion_reason TEXT;"
+          add_column "ALTER TABLE members ADD COLUMN deleted_by TEXT;"
           npx wrangler d1 execute lgfc-litedev --remote --env preview \
             --command "CREATE INDEX IF NOT EXISTS idx_members_deleted_at ON members(deleted_at) WHERE deleted_at IS NOT NULL;"
 
@@ -112,8 +144,18 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
-          npx wrangler d1 execute lgfc-litedev --remote --env preview \
-            --command "ALTER TABLE join_requests ADD COLUMN deleted_at TEXT;"
+          add_column() {
+            local sql="$1" output
+            if output=$(npx wrangler d1 execute lgfc-litedev --remote --env preview --command "$sql" 2>&1); then
+              echo "$output"
+            elif echo "$output" | grep -q "duplicate column name"; then
+              echo "Already present, skipping: $sql"
+            else
+              echo "$output" >&2
+              exit 1
+            fi
+          }
+          add_column "ALTER TABLE join_requests ADD COLUMN deleted_at TEXT;"
           npx wrangler d1 execute lgfc-litedev --remote --env preview \
             --command "CREATE INDEX IF NOT EXISTS idx_join_requests_deleted_at ON join_requests(deleted_at) WHERE deleted_at IS NOT NULL;"
 
@@ -123,7 +165,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           npx wrangler d1 execute lgfc-litedev --remote --env preview \
-            --command "INSERT INTO d1_migrations (name) VALUES ('0007_photos_metadata.sql'), ('0020_join_requests_profile_fields.sql'), ('0027_faq_email_and_seed.sql'), ('0028_faq_view_count_and_pinned.sql'), ('0034_ask_inbox_moderation.sql'), ('0036_content_inventory_schema_delta.sql'), ('0037_submission_queue_workflow_delta.sql'), ('0039_members_profile_fields.sql'), ('0045_rights_privacy_evidence_controls.sql');"
+            --command "INSERT OR IGNORE INTO d1_migrations (name) VALUES ('0007_photos_metadata.sql'), ('0020_join_requests_profile_fields.sql'), ('0027_faq_email_and_seed.sql'), ('0028_faq_view_count_and_pinned.sql'), ('0034_ask_inbox_moderation.sql'), ('0036_content_inventory_schema_delta.sql'), ('0037_submission_queue_workflow_delta.sql'), ('0039_members_profile_fields.sql'), ('0045_rights_privacy_evidence_controls.sql');"
 
       - name: Verify recorded migrations on lgfc-litedev (Development)
         env:
