@@ -2,7 +2,12 @@
 -- #3415 (Chatterbox) prototype, work unit 1: persistent conference-call
 -- schema for participants, rooms, the append-only event log, tasks, atomic
 -- claims, and per-participant checkpoints. Additive-only; touches no
--- existing table. Prototype/Development scope only.
+-- existing table. Schema is applied to both Production (lgfc_lite) and
+-- Development (lgfc-litedev) per Bill's explicit authorization (2026-08-15);
+-- application usage of these tables remains Development-only during the
+-- #3415 prototype phase (see docs/governance/chatterbox-authority-boundary.md).
+
+PRAGMA foreign_keys = ON;
 
 CREATE TABLE IF NOT EXISTS chatterbox_rooms (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
