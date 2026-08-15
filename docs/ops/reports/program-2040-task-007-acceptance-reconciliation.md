@@ -22,6 +22,7 @@ This report does not add runtime behavior. It does not start #2056, close #2040,
 This report covers Task 007 acceptance reconciliation only:
 
 - mapping of the four PMO-ordered implementation slices to Tasks 001–006 design;
+- the merged #3497 staging-surface Copilot disposition, which is not a fifth PMO slice;
 - Issue #2055 acceptance-criteria disposition;
 - targeted test re-run on `origin/main` @ `29db091b`;
 - remaining program items that stay out of #2055.
@@ -33,7 +34,7 @@ This report covers Task 007 acceptance reconciliation only:
 | Source issue | #2055 (Task 007 of Program #2040) |
 | Starting SHA | `origin/main` @ `29db091b6ed0e3affae574b96d231d63f6dc1404` |
 | Branch | `cursor/2055-task-007-ac-reconciliation-2e48` |
-| Public helper | `functions/_lib/content-inventory-public.ts` — `publishedInventoryWhere` unchanged |
+| Public helper | `functions/_lib/content-inventory-public.ts` — `publishedInventoryWhere()` unchanged |
 | Production D1 writes | None in this PR or in the merged slices |
 | Public publication | None |
 | Cron / auto-fire | None |
@@ -47,7 +48,8 @@ This report covers Task 007 acceptance reconciliation only:
 | Scheduler `first_publish` | #3492 | `0b9f79a6` | Explicit UTC `scheduled_at`; pause/cancel; operator fire; no cron |
 | Audit storage | #3493 | `63970939` | Append-only `content_inventory_events` batched with inventory UPDATE |
 | Staging-surface workspace | #3495 | `7bf6a008` | `/admin/clubstaging` list/preview/`stage`/`review`/`reject`; no `published` from that page |
-| Staging Copilot disposition | #3497 | `29db091b` | Incomplete-metadata review refusal UI; waitFor on the refusal test |
+
+Post-merge disposition of the staging-surface slice (not a PMO-ordered slice): PR #3497, merge SHA `29db091b` — incomplete-metadata review refusal UI and `waitFor` on the refusal test.
 
 Migrations `0046`–`0049` are in-repo additive schema only. They were not applied to Production D1.
 
