@@ -91,9 +91,6 @@ export function preparePublicationEvent(
   db: { prepare: (sql: string) => { bind: (...args: unknown[]) => any } },
   event: PublicationAuditEvent,
 ) {
-  if (event.action === "rollback") {
-    throw new Error("rollback audit writes are not implemented in this Task 007 slice.");
-  }
   return db.prepare(INSERT_SQL).bind(...buildPublicationEventBinds(event));
 }
 

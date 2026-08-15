@@ -110,6 +110,10 @@ export const onRequestPost = async (context: any): Promise<Response> => {
       scheduledAt,
       paused,
       nowIso: now,
+      approvalSnapshot: {
+        approvedBy: asText((existing as any).approved_by),
+        approvedAt: asText((existing as any).approved_at),
+      },
       rightsStatus: (existing as any).rights_status,
       privacyFlag: (existing as any).privacy_flag,
       requestedReviewer,
@@ -140,13 +144,21 @@ export const onRequestPost = async (context: any): Promise<Response> => {
       });
 
     if (action === "rollback") {
+      const nextStatus: InventoryStatus = "published";
+      await d1.db.batch([
+        d1.db
+          .prepare(
+            `UPDATE content_inventory
+                SET status = ?, operational_state = ?, updated_at = ?, published_at = ?
+              WHERE id = ?`,
+          )
+          .bind(nextStatus, "published", now, now, id),
+        auditEvent("published"),
+      ]);
+
       return jsonResponse(
-        {
-          ok: false,
-          error: "rollback is not implemented in this Task 007 slice and stays fail-closed.",
-          check_id: "A7",
-        },
-        400,
+        { ok: true, id, status: nextStatus, operational_state: "published", published_at: now },
+        200,
       );
     }
 
