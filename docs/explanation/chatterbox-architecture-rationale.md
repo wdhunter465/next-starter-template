@@ -112,16 +112,32 @@ during development) before spending a live dispatch cycle. It is explicitly
 not offered as proof of the database-level guarantee; only a real dispatch
 against Development D1 is.
 
-## Why the Cloudflare Pages URL is resolved via API, not hardcoded
+## Why the Development integration check targets a known URL, not an API-resolved one
 
 Cloudflare's branch-alias hostname sanitization (lowercasing, replacing
 non-alphanumeric characters, truncating to a fixed length) is undocumented
-enough in practice that hardcoding a guessed `pages.dev` hostname into a
-workflow risks a silent, permanent mismatch. `scripts/ci/chatterbox_resolve_preview_url.mjs`
-instead asks the Cloudflare API directly for the most recent successful
-deployment on the target branch and uses its real, returned URL — the same
-`CLOUDFLARE_API_TOKEN`/`CLOUDFLARE_ACCOUNT_ID` secrets already used by the
-existing D1 write tooling, no new credential.
+enough in practice that guessing a `pages.dev` hostname without confirming
+it risks a silent, permanent mismatch — `scripts/ci/chatterbox_resolve_preview_url.mjs`
+was originally built to ask the Cloudflare API directly for the most recent
+successful deployment on the target branch instead of guessing, using the
+same `CLOUDFLARE_API_TOKEN`/`CLOUDFLARE_ACCOUNT_ID` secrets already used by
+the existing D1 write tooling.
+
+That script is still correct and still used by the GitHub-linking ingestion
+workflow (work unit 5, below), which stays `workflow_dispatch`-only and
+deferred to Graduation regardless. For the Development integration check
+(work unit 6), Bill gave a more specific instruction (2026-08-15): use only
+`CHATTERBOX_PREVIEW_ADMIN_TOKEN` for this testing, not `CLOUDFLARE_API_TOKEN`
+or any other secret. So instead of resolving the branch's Preview alias via
+the Cloudflare API at run time, the workflow now targets the alias directly
+— confirmed once against the live Cloudflare dashboard (2026-08-15) as
+`component-chatterbox-prototy.next-starter-template-6yr.pages.dev`, matching
+the same truncation pattern the resolver script exists to avoid guessing at.
+Cloudflare keeps this alias pointed at the branch's latest successful
+deployment automatically, so it does not need re-resolving on every run —
+only if Cloudflare's aliasing behavior for this branch ever changes, at
+which point the workflow's `preview_url` input (`workflow_dispatch` only)
+or the `DEFAULT_PREVIEW_URL` step env (both triggers) would need updating.
 
 ## What this prototype deliberately does not attempt
 

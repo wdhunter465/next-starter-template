@@ -96,6 +96,16 @@ environment (2026-08-15), rather than pointing at a shared secret whose
 environment-scope had to be inferred or separately confirmed. Neither
 Chatterbox workflow targets Production regardless.
 
+**Scope tightened further (2026-08-15).** Per Bill's explicit instruction,
+the Development integration check (work unit 6) now reads only
+`CHATTERBOX_PREVIEW_ADMIN_TOKEN` — nothing else. It no longer reads
+`CLOUDFLARE_API_TOKEN` or `CLOUDFLARE_ACCOUNT_ID` at all; those secrets
+exist in this repository for unrelated D1/Pages tooling and are not part of
+this check's credential surface, even though they were previously used to
+resolve the check's target URL via the Cloudflare API. The workflow targets
+the component branch's known Cloudflare Pages Preview alias directly
+instead (see chatterbox-architecture-rationale.md).
+
 ## Relationship to repository-wide agent governance
 
 This document narrows and applies existing repository rules to the
