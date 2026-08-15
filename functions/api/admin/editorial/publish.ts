@@ -4,6 +4,7 @@
 
 import { requireAdmin } from "../../../_lib/auth";
 import { jsonResponse, requireD1, requireTables } from "../../../_lib/d1";
+import { recordPublicationEvent } from "../../../_lib/publication-audit";
 import {
   evaluatePublicationTransition,
   inferPublicationAction,
@@ -11,6 +12,7 @@ import {
   isPublicationAction,
   resolveOperationalState,
   type InventoryStatus,
+  type OperationalState,
   type PublicationAction,
 } from "../../../_lib/publication-transition-gate";
 
@@ -43,7 +45,7 @@ export const onRequestPost = async (context: any): Promise<Response> => {
   const d1 = requireD1(env);
   if (!d1.ok) return jsonResponse(d1.body, d1.status);
 
-  const tables = await requireTables(d1.db, ["content_inventory"]);
+  const tables = await requireTables(d1.db, ["content_inventory", "content_inventory_events"]);
   if (!tables.ok) return jsonResponse(tables.body, tables.status);
 
   try {
@@ -87,13 +89,15 @@ export const onRequestPost = async (context: any): Promise<Response> => {
         : requestedScheduledAt || asText((existing as any).scheduled_at) || "";
     const paused = Number((existing as any).schedule_paused) === 1;
 
+    const fromOperational = resolveOperationalState(
+      currentInventoryStatus,
+      (existing as any).operational_state,
+    );
+
     const gate = evaluatePublicationTransition({
       action,
       currentInventoryStatus,
-      operationalState: resolveOperationalState(
-        currentInventoryStatus,
-        (existing as any).operational_state,
-      ),
+      operationalState: fromOperational,
       approvedBy: (existing as any).approved_by,
       approvedAt: (existing as any).approved_at,
       requestedApprovedBy,
@@ -109,6 +113,23 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     if (!gate.ok) {
       return jsonResponse({ ok: false, error: gate.error, check_id: gate.checkId }, 400);
     }
+
+    const writeAudit = async (toState: OperationalState) => {
+      await recordPublicationEvent(d1.db, {
+        inventoryId: id,
+        action,
+        actor: requestedApprovedBy || asText((existing as any).approved_by),
+        fromState: fromOperational,
+        toState,
+        reason,
+        eventAt: now,
+        approvedBy: requestedApprovedBy || asText((existing as any).approved_by),
+        approvedAt: requestedApprovedAt || asText((existing as any).approved_at),
+        sourceName: asText((existing as any).source_name),
+        creditLine: asText((existing as any).credit_line),
+        scheduleId: scheduledAt || null,
+      });
+    };
 
     if (action === "rollback") {
       return jsonResponse(
@@ -130,6 +151,8 @@ export const onRequestPost = async (context: any): Promise<Response> => {
         )
         .bind("scheduled", scheduledAt, 0, now, id)
         .run();
+
+      await writeAudit("scheduled");
 
       return jsonResponse(
         {
@@ -153,6 +176,8 @@ export const onRequestPost = async (context: any): Promise<Response> => {
         )
         .bind(1, reason, now, id)
         .run();
+
+      await writeAudit("scheduled");
 
       return jsonResponse(
         {
@@ -178,6 +203,8 @@ export const onRequestPost = async (context: any): Promise<Response> => {
         .bind("approved", 0, now, id)
         .run();
 
+      await writeAudit("approved");
+
       return jsonResponse(
         {
           ok: true,
@@ -200,6 +227,8 @@ export const onRequestPost = async (context: any): Promise<Response> => {
         )
         .bind("approved", requestedApprovedBy, requestedApprovedAt, now, id)
         .run();
+
+      await writeAudit("approved");
 
       return jsonResponse(
         {
@@ -238,6 +267,8 @@ export const onRequestPost = async (context: any): Promise<Response> => {
         .bind(nextStatus, "published", now, now, id)
         .run();
 
+      await writeAudit("published");
+
       return jsonResponse(
         { ok: true, id, status: nextStatus, operational_state: "published", published_at: now },
         200,
@@ -255,6 +286,8 @@ export const onRequestPost = async (context: any): Promise<Response> => {
         )
         .bind(nextStatus, nextOperational, reason, now, id)
         .run();
+
+      await writeAudit(nextOperational);
 
       return jsonResponse(
         {
@@ -276,6 +309,8 @@ export const onRequestPost = async (context: any): Promise<Response> => {
       )
       .bind("draft", "draft", now, id)
       .run();
+
+    await writeAudit("draft");
 
     return jsonResponse({ ok: true, id, status: "draft", operational_state: "draft", published_at: null }, 200);
   } catch (err: any) {
