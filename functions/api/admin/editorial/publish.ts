@@ -145,14 +145,17 @@ export const onRequestPost = async (context: any): Promise<Response> => {
 
     if (action === "rollback") {
       const nextStatus: InventoryStatus = "published";
+      const approvedBy = requestedApprovedBy || asText((existing as any).approved_by);
+      const approvedAt = requestedApprovedAt || asText((existing as any).approved_at);
       await d1.db.batch([
         d1.db
           .prepare(
             `UPDATE content_inventory
-                SET status = ?, operational_state = ?, updated_at = ?, published_at = ?
+                SET status = ?, operational_state = ?, approved_by = ?, approved_at = ?,
+                    publication_reason = NULL, updated_at = ?, published_at = ?
               WHERE id = ?`,
           )
-          .bind(nextStatus, "published", now, now, id),
+          .bind(nextStatus, "published", approvedBy, approvedAt, now, now, id),
         auditEvent("published"),
       ]);
 

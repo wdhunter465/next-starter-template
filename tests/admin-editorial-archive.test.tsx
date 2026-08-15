@@ -1156,6 +1156,43 @@ describe('editorial archive APIs', () => {
     expect(runs.some((run) => run.sql.includes('INSERT INTO content_inventory_events'))).toBe(true);
   });
 
+  it('persists requested approval when restoring without an existing snapshot', async () => {
+    const { db, runs } = makeEditorialDb({
+      inventory: [
+        {
+          id: 4,
+          status: 'archived',
+          operational_state: 'unpublished',
+          source_name: 'Archive',
+          credit_line: 'LGFC Archive',
+        },
+      ],
+    });
+
+    const response = await editorialPublishPost({
+      request: adminPostRequest('/api/admin/editorial/publish', {
+        id: 4,
+        action: 'rollback',
+        approved_by: 'Bill',
+        approved_at: '2026-08-15T18:00:00Z',
+      }),
+      env: { ADMIN_TOKEN: 'secret', DB: db },
+    });
+
+    expect(response.status).toBe(200);
+    const updateRun = runs.find((run) => run.sql.includes('UPDATE content_inventory'));
+    expect(updateRun?.args).toEqual([
+      'published',
+      'published',
+      'Bill',
+      '2026-08-15T18:00:00Z',
+      '2026-06-02T12:00:00Z',
+      '2026-06-02T12:00:00Z',
+      4,
+    ]);
+    expect(runs.some((run) => run.sql.includes('INSERT INTO content_inventory_events'))).toBe(true);
+  });
+
   it('rejects publishing content_inventory records without required attribution', async () => {
     const { db, runs } = makeEditorialDb({
       inventory: [

@@ -266,7 +266,7 @@ export function evaluatePublicationTransition(
     if (operationalState !== "unpublished" && operationalState !== "archived") {
       return fail("A3", "A3: rollback restore is only legal from unpublished or archived.");
     }
-    const rollbackApprover = snapshotOk ? snapshot?.approvedBy : requestedApprover;
+    const rollbackApprover = newApprovalOk ? requestedApprover : snapshot?.approvedBy;
     if (isForbiddenApprover(trim(rollbackApprover))) {
       return fail("A5", "A5: automation must not write approve or invent approved_by.");
     }
