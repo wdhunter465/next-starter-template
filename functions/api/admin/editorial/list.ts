@@ -16,7 +16,16 @@ const VALID_SUBMISSION_STATUSES = new Set([
   "all",
 ]);
 const VALID_INVENTORY_STATUSES = new Set(["draft", "published", "archived", "all"]);
-const VALID_OPERATIONAL_FILTERS = new Set(["all", "draft", "staged", "reviewed", "rejected", "preview"]);
+const VALID_OPERATIONAL_FILTERS = new Set([
+  "all",
+  "draft",
+  "staged",
+  "reviewed",
+  "rejected",
+  "preview",
+  "approved",
+  "scheduled",
+]);
 
 const INVENTORY_SELECT = `SELECT id, tag, title, text, summary, perspective_label, media, story_type,
                       allowed_sections, priority, canonical, source_name, source_url, credit_line,

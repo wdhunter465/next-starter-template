@@ -143,7 +143,8 @@ describe('admin club staging (#2043)', () => {
     await waitFor(() => {
       expect(screen.getByRole('status')).toHaveTextContent(/selected inventory row is shown/i);
     });
-    expect(screen.queryByRole('button', { name: 'Publish' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Publish' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Approve' })).toBeEnabled();
     expect(screen.getByRole('button', { name: 'Mark reviewed' })).toBeEnabled();
   });
 
@@ -183,5 +184,62 @@ describe('admin club staging (#2043)', () => {
         screen.getAllByRole('status').some((node) => /Mark reviewed is refused/i.test(node.textContent || '')),
       ).toBe(true);
     });
+  });
+
+  it('publishes an approved inventory row from club staging without treating the preview as public', async () => {
+    const user = userEvent.setup();
+    window.localStorage.setItem('lgfc_admin_token', 'secret');
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+      if (String(input).includes('/api/admin/editorial/publish') && init?.method === 'POST') {
+        return new Response(JSON.stringify({ ok: true, id: 12, status: 'published', operational_state: 'published' }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }) as never;
+      }
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          submissions: [],
+          inventory: [
+            {
+              id: 12,
+              title: 'Approved club spotlight',
+              summary: 'Ready to publish from club staging.',
+              status: 'draft',
+              operational_state: 'approved',
+              approved_by: 'Bill',
+              source_name: 'Archive',
+              credit_line: 'LGFC Archive',
+              rights_status: 'owned',
+              privacy_flag: 'none',
+              allowed_sections: '["club_home"]',
+              story_type: 'primary',
+              priority: 1,
+              canonical: 1,
+            },
+          ],
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      ) as never;
+    });
+
+    render(<AdminClubStagingPage />);
+
+    expect(await screen.findByRole('button', { name: 'Approved club spotlight' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Publish' })).toBeEnabled();
+
+    await user.click(screen.getByRole('button', { name: 'Publish' }));
+
+    await waitFor(() => {
+      const publishCall = fetchMock.mock.calls.find(
+        ([url, init]) => String(url).includes('/api/admin/editorial/publish') && (init as RequestInit)?.method === 'POST',
+      );
+      expect(publishCall).toBeTruthy();
+      expect(JSON.parse(String((publishCall?.[1] as RequestInit)?.body))).toMatchObject({
+        id: 12,
+        action: 'publish',
+      });
+    });
+    expect(screen.getByRole('region', { name: 'Club staging production-like preview' })).toBeInTheDocument();
   });
 });
