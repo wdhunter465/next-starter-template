@@ -7,6 +7,8 @@
 -- application usage of these tables remains Development-only during the
 -- #3415 prototype phase (see docs/governance/chatterbox-authority-boundary.md).
 
+PRAGMA foreign_keys = ON;
+
 CREATE TABLE IF NOT EXISTS chatterbox_rooms (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   room_key TEXT NOT NULL UNIQUE,
