@@ -10,14 +10,17 @@ type StagingFilter = 'preview' | 'draft' | 'rejected' | 'approved' | 'scheduled'
 
 type StagingInventoryRow = {
   id: number;
+  tag?: string | null;
   title: string;
   text?: string | null;
   summary?: string | null;
+  perspective_label?: string | null;
   story_type?: string | null;
   allowed_sections?: string | null;
   priority?: number | null;
   canonical?: number | null;
   source_name?: string | null;
+  source_url?: string | null;
   credit_line?: string | null;
   rights_status?: string | null;
   privacy_flag?: string | null;
@@ -29,6 +32,8 @@ type StagingInventoryRow = {
   scheduled_at?: string | null;
   status?: string | null;
 };
+
+const STORY_TYPES = ['primary', 'secondary', 'brief'] as const;
 
 type EditorialListResponse = {
   ok: true;
@@ -81,6 +86,10 @@ export default function ClubStagingReviewWorkspace({ onPreviewItemsChange }: Clu
   const [approvedBy, setApprovedBy] = useState('');
   const [scheduledAt, setScheduledAt] = useState('');
   const [reason, setReason] = useState('');
+  const [priority, setPriority] = useState('0');
+  const [storyType, setStoryType] = useState<(typeof STORY_TYPES)[number]>('brief');
+  const [canonical, setCanonical] = useState(true);
+  const [perspectiveLabel, setPerspectiveLabel] = useState('');
   const [status, setStatus] = useState('Save an admin API token to load staged inventory.');
   const [loading, setLoading] = useState(false);
 
@@ -136,6 +145,11 @@ export default function ClubStagingReviewWorkspace({ onPreviewItemsChange }: Clu
   useEffect(() => {
     setApprovedBy(trim(selected?.approved_by));
     setScheduledAt(trim(selected?.scheduled_at));
+    setPriority(String(selected?.priority ?? 0));
+    const nextType = trim(selected?.story_type);
+    setStoryType(STORY_TYPES.includes(nextType as (typeof STORY_TYPES)[number]) ? (nextType as (typeof STORY_TYPES)[number]) : 'brief');
+    setCanonical(Number(selected?.canonical) !== 0);
+    setPerspectiveLabel(trim(selected?.perspective_label));
   }, [selected]);
 
   const runAction = useCallback(
@@ -180,6 +194,49 @@ export default function ClubStagingReviewWorkspace({ onPreviewItemsChange }: Clu
     },
     [approvedBy, load, reason, reviewer, scheduledAt, selected],
   );
+
+  const saveRotationOrder = useCallback(async () => {
+    if (!selected) {
+      setStatus('Error: Select a staged inventory row first.');
+      return;
+    }
+    if (!getStoredAdminToken()) {
+      setStatus('Error: Save an admin API token before saving rotation order.');
+      return;
+    }
+    if (!canonical && !perspectiveLabel.trim()) {
+      setStatus('Error: Alternate-perspective records require perspective_label.');
+      return;
+    }
+
+    setStatus(`Saving rotation order for inventory ${selected.id}…`);
+    const result = await adminJson<{ ok: true; id: number; action: string }>('/api/admin/editorial/inventory', {
+      method: 'POST',
+      body: JSON.stringify({
+        id: selected.id,
+        tag: trim(selected.tag) || selected.title,
+        title: selected.title,
+        text: trim(selected.text) || trim(selected.summary) || selected.title,
+        summary: selected.summary,
+        perspective_label: perspectiveLabel.trim() || undefined,
+        story_type: storyType,
+        source_name: selected.source_name,
+        source_url: selected.source_url,
+        credit_line: selected.credit_line,
+        allowed_sections: selected.allowed_sections,
+        priority: Number(priority) || 0,
+        canonical,
+      }),
+    });
+
+    if (!result.ok) {
+      setStatus(`Error: ${result.error}`);
+      return;
+    }
+
+    setStatus(`Inventory ${selected.id} rotation order saved.`);
+    await load();
+  }, [canonical, load, perspectiveLabel, priority, selected, storyType]);
 
   const state = selected ? operationalState(selected) : '';
   const canStage = state === 'draft' || state === 'reviewed';
@@ -291,14 +348,46 @@ export default function ClubStagingReviewWorkspace({ onPreviewItemsChange }: Clu
             <dd style={{ margin: 0 }}>{trim(selected.reviewer) || 'unset'}</dd>
             <dt>Approved by</dt>
             <dd style={{ margin: 0 }}>{trim(selected.approved_by) || 'unset'}</dd>
-            <dt>Priority / type</dt>
-            <dd style={{ margin: 0 }}>
-              {selected.priority ?? 'unset'} / {trim(selected.story_type) || 'unset'} /{' '}
-              {Number(selected.canonical) === 1 ? 'canonical' : 'alternate'}
-            </dd>
             <dt>Rejection reason</dt>
             <dd style={{ margin: 0 }}>{trim(selected.rejection_reason) || 'none'}</dd>
           </dl>
+
+          <label style={{ display: 'block', marginTop: 12 }}>
+            Priority
+            <input
+              type="number"
+              value={priority}
+              onChange={(event) => setPriority(event.target.value)}
+              style={{ display: 'block', width: '100%', marginTop: 6, padding: '8px 10px' }}
+            />
+          </label>
+          <label style={{ display: 'block', marginTop: 12 }}>
+            Story type
+            <select
+              value={storyType}
+              onChange={(event) => setStoryType(event.target.value as (typeof STORY_TYPES)[number])}
+              style={{ display: 'block', width: '100%', marginTop: 6, padding: '8px 10px' }}
+            >
+              {STORY_TYPES.map((type) => (
+                <option key={type} value={type}>
+                  {type}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 12 }}>
+            <input type="checkbox" checked={canonical} onChange={(event) => setCanonical(event.target.checked)} />
+            Canonical
+          </label>
+          <label style={{ display: 'block', marginTop: 12 }}>
+            Perspective label
+            <input
+              value={perspectiveLabel}
+              onChange={(event) => setPerspectiveLabel(event.target.value)}
+              placeholder="Required when not canonical"
+              style={{ display: 'block', width: '100%', marginTop: 6, padding: '8px 10px' }}
+            />
+          </label>
 
           <label style={{ display: 'block', marginTop: 12 }}>
             Reviewer name
@@ -353,6 +442,9 @@ export default function ClubStagingReviewWorkspace({ onPreviewItemsChange }: Clu
             </button>
             <button type="button" disabled={!canPublish} onClick={() => void runAction('publish')}>
               Publish
+            </button>
+            <button type="button" onClick={() => void saveRotationOrder()}>
+              Save rotation order
             </button>
           </div>
           <p style={{ margin: '12px 0 0 0', fontSize: 13, color: 'rgba(0,0,0,0.65)' }}>
