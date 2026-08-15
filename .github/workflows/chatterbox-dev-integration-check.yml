@@ -3,6 +3,11 @@ name: OPS — Chatterbox Development Integration Check (#3415)
 # Operator/agent-triggered end-to-end proof against the live Chatterbox
 # prototype API, running against Development D1 only — never Production.
 #
+# Re-triggered 2026-08-15 after the Development D1 migration-tracking
+# drift fix (ops-d1-dev-migration-drift-fix.yml) let 0050_chatterbox_
+# core.sql finally apply to lgfc-litedev -- the first run against a
+# live Chatterbox schema on Development.
+#
 # Targets the component branch's known, stable Cloudflare Pages Preview
 # alias directly (component-chatterbox-prototy.next-starter-template-6yr.
 # pages.dev, confirmed against the live Cloudflare dashboard 2026-08-15) —
