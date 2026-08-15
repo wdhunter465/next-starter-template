@@ -146,4 +146,40 @@ describe('admin club staging (#2043)', () => {
     expect(screen.queryByRole('button', { name: 'Publish' })).not.toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Mark reviewed' })).toBeEnabled();
   });
+
+  it('disables Mark reviewed when source, credit, rights, or privacy is missing', async () => {
+    window.localStorage.setItem('lgfc_admin_token', 'secret');
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          submissions: [],
+          inventory: [
+            {
+              id: 13,
+              title: 'Incomplete staged row',
+              summary: 'Missing rights metadata.',
+              status: 'draft',
+              operational_state: 'staged',
+              source_name: 'Archive',
+              credit_line: 'LGFC Archive',
+              allowed_sections: '["club_home"]',
+              story_type: 'primary',
+              priority: 1,
+              canonical: 1,
+            },
+          ],
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      ) as never,
+    );
+
+    render(<AdminClubStagingPage />);
+
+    expect(await screen.findByRole('button', { name: 'Incomplete staged row' })).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Mark reviewed' })).toBeDisabled();
+    expect(
+      screen.getAllByRole('status').some((node) => /Mark reviewed is refused/i.test(node.textContent || '')),
+    ).toBe(true);
+  });
 });
