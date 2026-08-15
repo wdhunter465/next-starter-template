@@ -242,4 +242,65 @@ describe('admin club staging (#2043)', () => {
     });
     expect(screen.getByRole('region', { name: 'Club staging production-like preview' })).toBeInTheDocument();
   });
+
+  it('saves rotation order through the editorial inventory API', async () => {
+    const user = userEvent.setup();
+    window.localStorage.setItem('lgfc_admin_token', 'secret');
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
+      if (String(input).includes('/api/admin/editorial/inventory') && init?.method === 'POST') {
+        return new Response(JSON.stringify({ ok: true, id: 12, action: 'update' }), {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        }) as never;
+      }
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          submissions: [],
+          inventory: [
+            {
+              id: 12,
+              tag: 'club-spotlight',
+              title: 'Staged club spotlight',
+              text: 'Preview-only inventory row.',
+              summary: 'Preview-only inventory row.',
+              status: 'draft',
+              operational_state: 'staged',
+              source_name: 'Archive',
+              credit_line: 'LGFC Archive',
+              rights_status: 'owned',
+              privacy_flag: 'none',
+              allowed_sections: '["club_home"]',
+              story_type: 'primary',
+              priority: 1,
+              canonical: 1,
+            },
+          ],
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      ) as never;
+    });
+
+    render(<AdminClubStagingPage />);
+
+    expect(await screen.findByRole('button', { name: 'Save rotation order' })).toBeInTheDocument();
+    await user.clear(screen.getByLabelText('Priority'));
+    await user.type(screen.getByLabelText('Priority'), '9');
+    await user.selectOptions(screen.getByLabelText('Story type'), 'secondary');
+    await user.click(screen.getByRole('button', { name: 'Save rotation order' }));
+
+    await waitFor(() => {
+      const saveCall = fetchMock.mock.calls.find(
+        ([url, init]) =>
+          String(url).includes('/api/admin/editorial/inventory') && (init as RequestInit)?.method === 'POST',
+      );
+      expect(saveCall).toBeTruthy();
+      expect(JSON.parse(String((saveCall?.[1] as RequestInit)?.body))).toMatchObject({
+        id: 12,
+        priority: 9,
+        story_type: 'secondary',
+        canonical: true,
+      });
+    });
+  });
 });
