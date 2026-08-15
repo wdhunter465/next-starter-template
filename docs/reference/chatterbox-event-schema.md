@@ -18,8 +18,11 @@ in #3415.
 
 ## Tables
 
-Migration: `migrations/0046_chatterbox_core.sql`. Additive-only; touches no
-existing table.
+Migration: `migrations/0050_chatterbox_core.sql`. Additive-only; touches no
+existing table. (Renumbered from `0046` — `main` had already reached `0046`
+through `0049` via unrelated Content Inventory work by the time this
+migration was ready to promote off the component branch; `0050` is the
+first free slot on `main`.)
 
 ### `chatterbox_rooms`
 

@@ -37,7 +37,7 @@ only Bill/PMO can make.
 
 | Work unit | Status | Evidence |
 | --- | --- | --- |
-| 1. Schema + migration | **Complete** | PR #3464, `migrations/0046_chatterbox_core.sql` |
+| 1. Schema + migration | **Complete** | PR #3464 (originally `0046_chatterbox_core.sql`), renumbered to `migrations/0050_chatterbox_core.sql` before promotion to `main` |
 | 2. Core append/read API | **Complete** | PR #3464, `functions/api/chatterbox/**` |
 | 3. Task graph + atomic claims | **Complete** | PR #3464; DB-level partial unique index |
 | 4. Bounded catch-up digest | **Complete** | Built as part of PR #3464 (`buildCatchUpDigest`), not a separate slice |

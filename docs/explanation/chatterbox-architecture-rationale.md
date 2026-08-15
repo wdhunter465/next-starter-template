@@ -31,7 +31,7 @@ dependencies, with a specific reason. It is deliberately **not** the source
 of the atomicity guarantee. Two application processes both observing
 `AVAILABLE` and both deciding to write is a real race that a check-then-act
 pattern cannot close. The actual guarantee is the partial unique index on
-`chatterbox_claims(task_id) WHERE status = 'ACTIVE'` (migration 0046): the
+`chatterbox_claims(task_id) WHERE status = 'ACTIVE'` (migration 0050): the
 database itself rejects the second concurrent insert. This mirrors an
 already-proven pattern in this repository — `content_inventory`'s
 canonical-tag partial unique index enforces "one canonical row per tag" the

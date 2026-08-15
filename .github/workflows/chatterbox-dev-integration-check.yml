@@ -44,7 +44,7 @@ on:
       - '.github/workflows/chatterbox-dev-integration-check.yml'
       - 'functions/api/chatterbox/**'
       - 'functions/_lib/chatterbox.ts'
-      - 'migrations/0046_chatterbox_core.sql'
+      - 'migrations/0050_chatterbox_core.sql'
       - 'scripts/ci/chatterbox_dev_integration_check.mjs'
   workflow_dispatch:
     inputs:
