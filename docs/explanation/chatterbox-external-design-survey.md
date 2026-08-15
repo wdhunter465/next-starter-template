@@ -21,13 +21,26 @@ accept, defer, or reject each one deliberately, informed by the pseudo-project
 soak test rather than by this survey alone. Nothing here is authorized for
 implementation by this document; each item is a candidate, not a task.
 
-Snapshot reviewed: `hivementality-ai/hivemind@0798de22` (2026-08-08), read-only,
-no code copied or vendored.
+## Scope
 
-## Why this is a pattern survey, not a porting plan
+Covers: a read-only review of a pinned Hivemind snapshot
+(`hivementality-ai/hivemind@0798de22`, 2026-08-08, cloned anonymously, no code
+copied or vendored), evaluated only for whether its *design patterns* address
+gaps already named elsewhere in this session and in
+`chatterbox-architecture-rationale.md`.
+
+Does not cover: Hivemind's own security posture or code correctness (only
+four specific patterns were reviewed, for shape only); any change to
+Chatterbox's schema, API, or authority boundary; and does not authorize
+building anything listed below. It does not claim Hivemind's implementation
+is correct or secure by virtue of being open source.
+
+## Current known truth
 
 Hivemind and Chatterbox solve adjacent problems with fundamentally different
-architectures:
+architectures — most Hivemind mechanisms are not portable even in spirit,
+because they depend on a shared live process Chatterbox deliberately doesn't
+have:
 
 | | Hivemind | Chatterbox |
 | --- | --- | --- |
@@ -35,11 +48,14 @@ architectures:
 | Agents | Run *inside* Hivemind as sessions in the same app | Run in entirely separate vendor runtimes (Claude Code, Cursor, Grok, ...) with no shared process |
 | Coordination unit | A live session Hivemind itself owns | A GitHub Issue/PR Chatterbox never owns or replaces |
 
-Several Hivemind mechanisms (e.g. injecting a sub-agent's result directly into
-a parent's *live* session) only work because everything runs in one process.
-Those are not portable at all — not even in spirit — and are excluded below.
-What follows is only the subset of patterns that describe a *problem shape*
-Chatterbox also has, independent of Hivemind's specific implementation.
+For example, Hivemind's `spawn` tool injects a sub-agent's result directly
+into the parent's *live* session (`app/jobs/sub_agent_job.rb`) — this only
+works because both run in the same process, and has no Chatterbox analog.
+
+Of everything reviewed, four patterns describe a *problem shape* Chatterbox
+also has, independent of Hivemind's specific implementation (below), and one
+pattern was reviewed and is explicitly not recommended (also below). No
+adoption decision has been made for any of them as of this writing.
 
 ## Patterns worth evaluating
 
@@ -156,15 +172,17 @@ approach here is useful as **validation that Chatterbox's existing design
 choice is stronger**, not as something to adopt. Recorded here so this
 comparison doesn't need to be re-derived later.
 
-## How to use this document
+## Intended final state
 
 None of the four candidate patterns above are approved for implementation by
 this document. The recommended path is to let the pseudo-project soak test
 (Development/Preview only, per Bill's confirmed scope) surface which of these
 gaps are actually felt in practice — a real multi-day, multi-agent run may
 show that some of these are unnecessary for Chatterbox's actual scale, or that
-a simpler mechanism suffices. Fill in the table below once that evidence
-exists, rather than deciding from this survey alone.
+a simpler mechanism suffices. The table below is filled in once that evidence
+exists, rather than being decided from this survey alone — this document is
+expected to be revised in place as each row moves from "Open" to an actual
+disposition.
 
 | Pattern | Chatterbox gap | Disposition | Evidence / rationale |
 | --- | --- | --- | --- |
@@ -173,11 +191,3 @@ exists, rather than deciding from this survey alone.
 | First-class pending-decision record with expiry | Time-sensitive PMO asks missed on slow polling cadence | *Open — pending soak test* | |
 | Task/template/team hook precedence | Governance-change reactivity | *Open — speculative, revisit only alongside the reconciler* | |
 | Check-then-write task locking | (N/A — comparison only) | *Rejected — Chatterbox's DB-constraint approach is already stronger* | See "Pattern considered and explicitly not recommended" above |
-
-## What this document does not do
-
-It does not authorize building any of the above. It does not modify
-Chatterbox's schema, API, or authority boundary. It does not claim Hivemind's
-implementation is correct or secure by virtue of being open source — only
-the four items above were reviewed, and only for pattern shape, not for
-security or correctness of Hivemind's own code.
