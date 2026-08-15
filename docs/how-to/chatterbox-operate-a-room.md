@@ -6,7 +6,7 @@ Owns: Bounded operating procedure for the #3415 Chatterbox prototype — creatin
 Does Not Own: Schema/field definitions (see chatterbox-event-schema.md); role authority (see chatterbox-role-model.md and chatterbox-authority-boundary.md)
 Canonical Reference: /docs/how-to/chatterbox-operate-a-room.md
 Related Issues: #3415
-Last Reviewed: 2026-08-14
+Last Reviewed: 2026-08-15
 ---
 
 # Operate a Chatterbox room (prototype)
@@ -142,13 +142,22 @@ path — it works correctly with zero push/notification adapters configured.
 
 ### 7. Mirror a GitHub Issue's comments into the room (read-only)
 
-Dispatch `.github/workflows/chatterbox-github-ingest.yml` (work unit 5) to
-mirror an Issue's comments into the room as `SYSTEM` events, each carrying an
-exact `github_ref` citation (`issue`, `comment_id`, `repository`) rather than
-a bare URL. This never writes to GitHub — it only reads comments and posts
+`.github/workflows/chatterbox-github-ingest.yml` (work unit 5) mirrors an
+Issue's comments into the room as `SYSTEM` events, each carrying an exact
+`github_ref` citation (`issue`, `comment_id`, `repository`) rather than a
+bare URL. This never writes to GitHub — it only reads comments and posts
 into the room via the already-registered `system_clerk` participant, which
 is structurally restricted to `STATUS`/`SYSTEM`/`CHECK_IN`/`CHECK_OUT` event
 types (see chatterbox-authority-boundary.md).
+
+**Dispatch is currently blocked, same as step 8 below.** This workflow file
+exists only on `component/chatterbox-prototype`, never merged into `main`,
+and GitHub's Actions API resolves `workflow_dispatch` against workflows
+registered on the default branch — so dispatch 404s regardless of whether
+it's attempted via CLI, API, or the GitHub UI. The command below is the
+intended invocation once that's resolved; per Bill's decision (2026-08-15),
+resolving it is deferred to Project Graduation itself, not required before
+then:
 
 ```bash
 gh workflow run chatterbox-github-ingest.yml \
@@ -163,13 +172,22 @@ posted again.
 
 ### 8. Run the Development integration check
 
-Dispatch `.github/workflows/chatterbox-dev-integration-check.yml` (work unit
-6) for a real, end-to-end proof against the live Development deployment —
+`.github/workflows/chatterbox-dev-integration-check.yml` (work unit 6) is
+built for a real, end-to-end proof against the live Development deployment —
 not a mock. It creates a uniquely-namespaced room/participants/tasks, races
 two participants for the same claim, tests the dependency gate, proves event
 idempotency, exercises durable question/answer across a check-in boundary,
 proves missed-wake catch-up is exact, and confirms the `system_clerk`
 boundary rejects a substantive event type for real.
+
+**Live dispatch is deferred to Project Graduation itself (Bill's decision,
+2026-08-15), not a pre-Graduation step.** Same blocker as step 7: the
+workflow file only exists on `component/chatterbox-prototype`, so
+`workflow_dispatch` 404s until it's promoted to `main` — deliberately
+deferred rather than done now, since promoting workflow files to `main`
+would very likely trigger a Cloudflare Pages build against Production and
+that's explicitly out of scope before a GO/NO-GO decision. The command below
+is the intended invocation once Graduation resolves this:
 
 ```bash
 gh workflow run chatterbox-dev-integration-check.yml \
