@@ -176,8 +176,8 @@ export default function ClubStagingReviewWorkspace({ onPreviewItemsChange }: Clu
         Staged content review
       </h2>
       <p style={{ margin: '0 0 16px 0', lineHeight: 1.55, color: 'rgba(0,0,0,0.72)' }}>
-        List and review `content_inventory` rows without writing `published`. Editors may stage, mark reviewed, or
-        reject with a reason. Approve, schedule, and publish stay on the editorial archive.
+        List and review <code>content_inventory</code> rows without writing <code>published</code>. Editors may stage,
+        mark reviewed, or reject with a reason. Approve, schedule, and publish stay on the editorial archive.
       </p>
 
       <AdminTokenPanel onSaved={() => void load()} />
@@ -300,7 +300,7 @@ export default function ClubStagingReviewWorkspace({ onPreviewItemsChange }: Clu
             <button type="button" disabled={!canStage} onClick={() => void runAction('stage')}>
               Stage for preview
             </button>
-            <button type="button" disabled={!canReview} onClick={() => void runAction('review')}>
+            <button type="button" disabled={!canReview || blocking} onClick={() => void runAction('review')}>
               Mark reviewed
             </button>
             <button type="button" disabled={!canReject} onClick={() => void runAction('reject')}>

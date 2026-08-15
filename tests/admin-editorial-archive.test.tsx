@@ -123,6 +123,7 @@ function makeEditorialDb(options?: {
           }
           if (sql.includes("COALESCE(operational_state, 'draft') = ?") && typeof args[argIndex] === 'string') {
             const operational = args[argIndex];
+            argIndex += 1;
             filtered = filtered.filter((row) => String(row.operational_state || 'draft') === operational);
           }
           if (sql.includes("COALESCE(operational_state, 'draft') IN ('staged', 'reviewed')")) {
@@ -1725,6 +1726,27 @@ describe('member submissions and library archive reads', () => {
     const body = (await response.json()) as { ok: boolean; inventory: Array<{ id: number }> };
     expect(body.ok).toBe(true);
     expect(body.inventory.map((row) => row.id)).toEqual([3, 4]);
+  });
+
+  it('filters inventory records by inventory_status and operational_state together', async () => {
+    const response = await editorialListGet({
+      request: adminGetRequest('/api/admin/editorial/list?inventory_status=draft&operational_state=staged'),
+      env: {
+        ADMIN_TOKEN: 'secret',
+        DB: makeEditorialDb({
+          inventory: [
+            { id: 2, title: 'Draft story', status: 'draft', operational_state: 'draft' },
+            { id: 3, title: 'Staged draft', status: 'draft', operational_state: 'staged' },
+            { id: 4, title: 'Staged published', status: 'published', operational_state: 'staged' },
+          ],
+        }).db,
+      },
+    });
+
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as { ok: boolean; inventory: Array<{ id: number }> };
+    expect(body.ok).toBe(true);
+    expect(body.inventory.map((row) => row.id)).toEqual([3]);
   });
 
   it('stages draft inventory and refuses review when rights metadata is missing', async () => {
