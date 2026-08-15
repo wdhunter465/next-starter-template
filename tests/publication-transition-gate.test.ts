@@ -204,6 +204,105 @@ describe('publication-transition-gate', () => {
     expect(result).toEqual({ ok: true });
   });
 
+  it('A4 refuses schedule without an explicit UTC scheduled_at', () => {
+    const result = evaluatePublicationTransition({
+      action: 'schedule',
+      currentInventoryStatus: 'draft',
+      operationalState: 'approved',
+      approvedBy: 'Bill',
+      approvedAt: '2026-08-14T22:00:00Z',
+      scheduledAt: '',
+      sourceName: 'Archive',
+      creditLine: 'LGFC Archive',
+    });
+    expect(result).toMatchObject({ ok: false, checkId: 'A4' });
+  });
+
+  it('A4 refuses schedule when scheduled_at lacks an explicit UTC timezone', () => {
+    const timezoneLess = evaluatePublicationTransition({
+      action: 'schedule',
+      currentInventoryStatus: 'draft',
+      operationalState: 'approved',
+      approvedBy: 'Bill',
+      approvedAt: '2026-08-14T22:00:00Z',
+      scheduledAt: '2026-08-16T12:00:00',
+      sourceName: 'Archive',
+      creditLine: 'LGFC Archive',
+    });
+    expect(timezoneLess).toMatchObject({ ok: false, checkId: 'A4' });
+
+    const nonUtcOffset = evaluatePublicationTransition({
+      action: 'schedule',
+      currentInventoryStatus: 'draft',
+      operationalState: 'approved',
+      approvedBy: 'Bill',
+      approvedAt: '2026-08-14T22:00:00Z',
+      scheduledAt: '2026-08-16T12:00:00+05:00',
+      sourceName: 'Archive',
+      creditLine: 'LGFC Archive',
+    });
+    expect(nonUtcOffset).toMatchObject({ ok: false, checkId: 'A4' });
+  });
+
+  it('A3 refuses schedule from draft', () => {
+    const result = evaluatePublicationTransition({
+      action: 'schedule',
+      currentInventoryStatus: 'draft',
+      operationalState: 'draft',
+      approvedBy: 'Bill',
+      approvedAt: '2026-08-14T22:00:00Z',
+      scheduledAt: '2026-08-16T12:00:00Z',
+      sourceName: 'Archive',
+      creditLine: 'LGFC Archive',
+    });
+    expect(result).toMatchObject({ ok: false, checkId: 'A3' });
+  });
+
+  it('allows approved to scheduled when A2, A4, and S4 pass', () => {
+    const withZ = evaluatePublicationTransition({
+      action: 'schedule',
+      currentInventoryStatus: 'draft',
+      operationalState: 'approved',
+      approvedBy: 'Bill',
+      approvedAt: '2026-08-14T22:00:00Z',
+      scheduledAt: '2026-08-16T12:00:00Z',
+      sourceName: 'Archive',
+      creditLine: 'LGFC Archive',
+    });
+    expect(withZ).toEqual({ ok: true });
+
+    const withOffset = evaluatePublicationTransition({
+      action: 'schedule',
+      currentInventoryStatus: 'draft',
+      operationalState: 'approved',
+      approvedBy: 'Bill',
+      approvedAt: '2026-08-14T22:00:00Z',
+      scheduledAt: '2026-08-16T12:00:00+00:00',
+      sourceName: 'Archive',
+      creditLine: 'LGFC Archive',
+    });
+    expect(withOffset).toEqual({ ok: true });
+  });
+
+  it('S9 refuses pause without a reason', () => {
+    const result = evaluatePublicationTransition({
+      action: 'pause_schedule',
+      currentInventoryStatus: 'draft',
+      operationalState: 'scheduled',
+      reason: '',
+    });
+    expect(result).toMatchObject({ ok: false, checkId: 'S9' });
+  });
+
+  it('allows cancel_schedule from scheduled', () => {
+    const result = evaluatePublicationTransition({
+      action: 'cancel_schedule',
+      currentInventoryStatus: 'draft',
+      operationalState: 'scheduled',
+    });
+    expect(result).toEqual({ ok: true });
+  });
+
   it('allows scheduled fire after scheduled_at when not paused', () => {
     const result = evaluatePublicationTransition({
       action: 'publish',

@@ -31,6 +31,8 @@ export const PUBLICATION_ACTIONS = [
   "return_to_draft",
   "rollback",
   "schedule",
+  "pause_schedule",
+  "cancel_schedule",
 ] as const;
 
 export type PublicationAction = (typeof PUBLICATION_ACTIONS)[number];
@@ -139,6 +141,13 @@ function parseGateTimestamp(value: unknown): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function isExplicitUtcInstant(value: unknown): boolean {
+  const dateStr = trim(value);
+  if (!dateStr) return false;
+  if (!/(Z|[+-]00:00)$/.test(dateStr)) return false;
+  return parseGateTimestamp(dateStr) !== null;
+}
+
 export function evaluatePublicationTransition(
   input: PublicationTransitionInput,
 ): PublicationTransitionResult {
@@ -167,7 +176,39 @@ export function evaluatePublicationTransition(
   }
 
   if (action === "schedule") {
-    return fail("A4", "A4: scheduler writes are not implemented in this slice and stay fail-closed.");
+    if (operationalState !== "approved" && operationalState !== "scheduled") {
+      return fail("A3", "A3: schedule is only legal from approved (or reschedule while scheduled).");
+    }
+    if (!hasNamedApproval(input.approvedBy, input.approvedAt)) {
+      return fail("A2", "A2: approved_by and approved_at are required before schedule.");
+    }
+    if (isForbiddenApprover(trim(input.approvedBy))) {
+      return fail("A5", "A5: automation must not write approve or invent approved_by.");
+    }
+    if (!isExplicitUtcInstant(input.scheduledAt)) {
+      return fail("A4", "A4: scheduled_at must be an explicit UTC instant.");
+    }
+    if (!sourceName || !creditLine) {
+      return fail("S4", "Published content_inventory records require source_name and credit_line.");
+    }
+    return { ok: true };
+  }
+
+  if (action === "pause_schedule") {
+    if (operationalState !== "scheduled") {
+      return fail("A3", "A3: pause is only legal while operational state is scheduled.");
+    }
+    if (!reason) {
+      return fail("S9", "S9: pause requires a recorded reason.");
+    }
+    return { ok: true };
+  }
+
+  if (action === "cancel_schedule") {
+    if (operationalState !== "scheduled") {
+      return fail("A3", "A3: cancel schedule is only legal while operational state is scheduled.");
+    }
+    return { ok: true };
   }
 
   if (action === "rollback") {

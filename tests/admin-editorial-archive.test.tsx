@@ -1162,6 +1162,183 @@ describe('editorial archive APIs', () => {
     expect(runs.some((run) => run.sql.includes('UPDATE content_inventory'))).toBe(false);
   });
 
+  it('queues an approved record for scheduled first_publish without publishing', async () => {
+    const { db, runs } = makeEditorialDb({
+      inventory: [
+        {
+          id: 4,
+          status: 'draft',
+          operational_state: 'approved',
+          approved_by: 'Bill',
+          approved_at: '2026-08-14T22:00:00Z',
+          source_name: 'Archive',
+          credit_line: 'LGFC Archive',
+        },
+      ],
+    });
+
+    const response = await editorialPublishPost({
+      request: adminPostRequest('/api/admin/editorial/publish', {
+        id: 4,
+        action: 'schedule',
+        scheduled_at: '2026-08-16T12:00:00Z',
+      }),
+      env: { ADMIN_TOKEN: 'secret', DB: db },
+    });
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      ok: true,
+      id: 4,
+      status: 'draft',
+      operational_state: 'scheduled',
+      scheduled_at: '2026-08-16T12:00:00Z',
+      schedule_paused: 0,
+    });
+    expect(runs.some((run) => run.sql.includes('scheduled_at'))).toBe(true);
+  });
+
+  it('refuses schedule that omits scheduled_at even when the row already has one (A4)', async () => {
+    const { db, runs } = makeEditorialDb({
+      inventory: [
+        {
+          id: 4,
+          status: 'draft',
+          operational_state: 'approved',
+          approved_by: 'Bill',
+          approved_at: '2026-08-14T22:00:00Z',
+          scheduled_at: '2026-08-16T12:00:00Z',
+          source_name: 'Archive',
+          credit_line: 'LGFC Archive',
+        },
+      ],
+    });
+
+    const response = await editorialPublishPost({
+      request: adminPostRequest('/api/admin/editorial/publish', {
+        id: 4,
+        action: 'schedule',
+      }),
+      env: { ADMIN_TOKEN: 'secret', DB: db },
+    });
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({ ok: false, check_id: 'A4' });
+    expect(runs.some((run) => run.sql.includes('UPDATE content_inventory'))).toBe(false);
+  });
+
+  it('refuses scheduled fire before scheduled_at (A4)', async () => {
+    const { db, runs } = makeEditorialDb({
+      inventory: [
+        {
+          id: 4,
+          status: 'draft',
+          operational_state: 'scheduled',
+          approved_by: 'Bill',
+          approved_at: '2026-08-14T22:00:00Z',
+          scheduled_at: '2026-08-16T12:00:00Z',
+          schedule_paused: 0,
+          source_name: 'Archive',
+          credit_line: 'LGFC Archive',
+        },
+      ],
+    });
+
+    const response = await editorialPublishPost({
+      request: adminPostRequest('/api/admin/editorial/publish', { id: 4, status: 'published' }),
+      env: { ADMIN_TOKEN: 'secret', DB: db },
+    });
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({ ok: false, check_id: 'A4' });
+    expect(runs.some((run) => run.sql.includes('UPDATE content_inventory'))).toBe(false);
+  });
+
+  it('fires a due unpaused schedule into published', async () => {
+    const { db, runs } = makeEditorialDb({
+      inventory: [
+        {
+          id: 4,
+          status: 'draft',
+          operational_state: 'scheduled',
+          approved_by: 'Bill',
+          approved_at: '2026-08-14T22:00:00Z',
+          scheduled_at: '2026-06-01T00:00:00Z',
+          schedule_paused: 0,
+          source_name: 'Archive',
+          credit_line: 'LGFC Archive',
+        },
+      ],
+    });
+
+    const response = await editorialPublishPost({
+      request: adminPostRequest('/api/admin/editorial/publish', { id: 4, status: 'published' }),
+      env: { ADMIN_TOKEN: 'secret', DB: db },
+    });
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      ok: true,
+      id: 4,
+      status: 'published',
+      operational_state: 'published',
+    });
+    expect(runs.some((run) => run.sql.includes('UPDATE content_inventory'))).toBe(true);
+  });
+
+  it('pauses a schedule with a reason and refuses later fire', async () => {
+    const { db, runs } = makeEditorialDb({
+      inventory: [
+        {
+          id: 4,
+          status: 'draft',
+          operational_state: 'scheduled',
+          approved_by: 'Bill',
+          approved_at: '2026-08-14T22:00:00Z',
+          scheduled_at: '2026-06-01T00:00:00Z',
+          schedule_paused: 0,
+          source_name: 'Archive',
+          credit_line: 'LGFC Archive',
+        },
+      ],
+    });
+
+    const pause = await editorialPublishPost({
+      request: adminPostRequest('/api/admin/editorial/publish', {
+        id: 4,
+        action: 'pause_schedule',
+        reason: 'Hold for Product review',
+      }),
+      env: { ADMIN_TOKEN: 'secret', DB: db },
+    });
+    expect(pause.status).toBe(200);
+
+    const pausedDb = makeEditorialDb({
+      inventory: [
+        {
+          id: 4,
+          status: 'draft',
+          operational_state: 'scheduled',
+          approved_by: 'Bill',
+          approved_at: '2026-08-14T22:00:00Z',
+          scheduled_at: '2026-06-01T00:00:00Z',
+          schedule_paused: 1,
+          pause_reason: 'Hold for Product review',
+          source_name: 'Archive',
+          credit_line: 'LGFC Archive',
+        },
+      ],
+    });
+    const fire = await editorialPublishPost({
+      request: adminPostRequest('/api/admin/editorial/publish', { id: 4, status: 'published' }),
+      env: { ADMIN_TOKEN: 'secret', DB: pausedDb.db },
+    });
+    expect(fire.status).toBe(400);
+    await expect(fire.json()).resolves.toMatchObject({ ok: false, check_id: 'A4' });
+    expect(pausedDb.runs.some((run) => run.sql.includes('UPDATE content_inventory'))).toBe(false);
+    expect(runs.some((run) => run.sql.includes('pause_reason'))).toBe(true);
+  });
+
   it('creates a draft content_inventory record through the inventory endpoint', async () => {
     const { db, runs } = makeEditorialDb();
 

@@ -1,6 +1,6 @@
 // POST /api/admin/editorial/publish
 // Updates content_inventory publication state. Protected by ADMIN_TOKEN.
-// Fail-closed: A1–A7 plus S4/S9. Does not auto-publish. Does not write Production D1 by itself.
+// Fail-closed: A1–A7 plus S4/S9. Schedule writes are first_publish only. No Production D1 writes.
 
 import { requireAdmin } from "../../../_lib/auth";
 import { jsonResponse, requireD1, requireTables } from "../../../_lib/d1";
@@ -59,7 +59,7 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     const existing = await d1.db
       .prepare(
         `SELECT id, status, source_name, credit_line, operational_state, approved_by, approved_at,
-                publication_reason, published_at
+                publication_reason, published_at, scheduled_at, schedule_paused, pause_reason
            FROM content_inventory
           WHERE id = ?`,
       )
@@ -80,6 +80,12 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     const requestedApprovedBy = asText(body?.approved_by);
     const requestedApprovedAt = asText(body?.approved_at) || (action === "approve" ? now : "");
     const reason = asText(body?.reason);
+    const requestedScheduledAt = asText(body?.scheduled_at);
+    const scheduledAt =
+      action === "schedule"
+        ? requestedScheduledAt
+        : requestedScheduledAt || asText((existing as any).scheduled_at) || "";
+    const paused = Number((existing as any).schedule_paused) === 1;
 
     const gate = evaluatePublicationTransition({
       action,
@@ -95,6 +101,8 @@ export const onRequestPost = async (context: any): Promise<Response> => {
       sourceName: (existing as any).source_name,
       creditLine: (existing as any).credit_line,
       reason,
+      scheduledAt,
+      paused,
       nowIso: now,
     });
 
@@ -102,14 +110,84 @@ export const onRequestPost = async (context: any): Promise<Response> => {
       return jsonResponse({ ok: false, error: gate.error, check_id: gate.checkId }, 400);
     }
 
-    if (action === "rollback" || action === "schedule") {
+    if (action === "rollback") {
       return jsonResponse(
         {
           ok: false,
-          error: `${action} is not implemented in this Task 007 slice and stays fail-closed.`,
-          check_id: action === "rollback" ? "A7" : "A4",
+          error: "rollback is not implemented in this Task 007 slice and stays fail-closed.",
+          check_id: "A7",
         },
         400,
+      );
+    }
+
+    if (action === "schedule") {
+      await d1.db
+        .prepare(
+          `UPDATE content_inventory
+              SET operational_state = ?, scheduled_at = ?, schedule_paused = ?, pause_reason = NULL, updated_at = ?
+            WHERE id = ?`,
+        )
+        .bind("scheduled", scheduledAt, 0, now, id)
+        .run();
+
+      return jsonResponse(
+        {
+          ok: true,
+          id,
+          status: currentInventoryStatus,
+          operational_state: "scheduled",
+          scheduled_at: scheduledAt,
+          schedule_paused: 0,
+        },
+        200,
+      );
+    }
+
+    if (action === "pause_schedule") {
+      await d1.db
+        .prepare(
+          `UPDATE content_inventory
+              SET schedule_paused = ?, pause_reason = ?, updated_at = ?
+            WHERE id = ?`,
+        )
+        .bind(1, reason, now, id)
+        .run();
+
+      return jsonResponse(
+        {
+          ok: true,
+          id,
+          status: currentInventoryStatus,
+          operational_state: "scheduled",
+          scheduled_at: scheduledAt,
+          schedule_paused: 1,
+          pause_reason: reason,
+        },
+        200,
+      );
+    }
+
+    if (action === "cancel_schedule") {
+      await d1.db
+        .prepare(
+          `UPDATE content_inventory
+              SET operational_state = ?, schedule_paused = ?, pause_reason = NULL, updated_at = ?
+            WHERE id = ?`,
+        )
+        .bind("approved", 0, now, id)
+        .run();
+
+      return jsonResponse(
+        {
+          ok: true,
+          id,
+          status: currentInventoryStatus,
+          operational_state: "approved",
+          scheduled_at: asText((existing as any).scheduled_at),
+          schedule_paused: 0,
+        },
+        200,
       );
     }
 
