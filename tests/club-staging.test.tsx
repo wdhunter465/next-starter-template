@@ -1,4 +1,4 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -31,6 +31,7 @@ vi.mock('next/link', () => ({
 describe('admin club staging (#2043)', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
+    window.localStorage.clear();
     mockUsePathname.mockReturnValue('/admin/clubstaging');
     mockUseMemberSession.mockReturnValue({ isLoading: false, isAuthenticated: true, role: 'admin' });
   });
@@ -96,5 +97,53 @@ describe('admin club staging (#2043)', () => {
 
     const hrefs = screen.getAllByRole('link').map((link) => link.getAttribute('href'));
     expect(hrefs).not.toContain('/clubstaging');
+  });
+
+  it('exposes a review workspace without a publish control', () => {
+    render(<AdminClubStagingPage />);
+
+    expect(screen.getByRole('region', { name: 'Staged content review workspace' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Staged content review' })).toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Publish' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: 'Mark reviewed' })).not.toBeInTheDocument();
+  });
+
+  it('binds a staged inventory row into the existing preview frame without calling it published', async () => {
+    window.localStorage.setItem('lgfc_admin_token', 'secret');
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          ok: true,
+          submissions: [],
+          inventory: [
+            {
+              id: 12,
+              title: 'Staged club spotlight',
+              summary: 'Preview-only inventory row.',
+              status: 'draft',
+              operational_state: 'staged',
+              source_name: 'Archive',
+              credit_line: 'LGFC Archive',
+              rights_status: 'owned',
+              privacy_flag: 'none',
+              allowed_sections: '["club_home"]',
+              story_type: 'primary',
+              priority: 1,
+              canonical: 1,
+            },
+          ],
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      ) as never,
+    );
+
+    render(<AdminClubStagingPage />);
+
+    expect(await screen.findByRole('button', { name: 'Staged club spotlight' })).toBeInTheDocument();
+    await waitFor(() => {
+      expect(screen.getByRole('status')).toHaveTextContent(/selected inventory row is shown/i);
+    });
+    expect(screen.queryByRole('button', { name: 'Publish' })).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Mark reviewed' })).toBeEnabled();
   });
 });

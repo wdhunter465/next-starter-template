@@ -24,6 +24,9 @@ export const INVENTORY_STATUSES = ["draft", "published", "archived"] as const;
 export type InventoryStatus = (typeof INVENTORY_STATUSES)[number];
 
 export const PUBLICATION_ACTIONS = [
+  "stage",
+  "review",
+  "reject",
   "approve",
   "publish",
   "unpublish",
@@ -57,6 +60,9 @@ export type PublicationTransitionInput = {
   paused?: boolean;
   nowIso?: string;
   approvalSnapshot?: ApprovalSnapshot | null;
+  rightsStatus?: string | null;
+  privacyFlag?: string | null;
+  requestedReviewer?: string | null;
 };
 
 export type PublicationTransitionSuccess = { ok: true };
@@ -158,6 +164,42 @@ export function evaluatePublicationTransition(
   const reason = trim(input.reason);
   const sourceName = trim(input.sourceName);
   const creditLine = trim(input.creditLine);
+  const rightsStatus = trim(input.rightsStatus);
+  const privacyFlag = trim(input.privacyFlag);
+  const requestedReviewer = trim(input.requestedReviewer);
+
+  if (action === "stage") {
+    if (operationalState !== "draft" && operationalState !== "reviewed") {
+      return fail("A3", "A3: stage is only legal from draft or reviewed.");
+    }
+    return { ok: true };
+  }
+
+  if (action === "review") {
+    if (operationalState !== "staged") {
+      return fail("A3", "A3: review is only legal from staged.");
+    }
+    if (isForbiddenApprover(requestedReviewer)) {
+      return fail("A5", "A5: automation must not write review or invent reviewer.");
+    }
+    if (!sourceName || !creditLine || !rightsStatus || rightsStatus === "unknown" || !privacyFlag) {
+      return fail(
+        "S4",
+        "S4: reviewed requires source_name, credit_line, rights_status, and privacy_flag.",
+      );
+    }
+    return { ok: true };
+  }
+
+  if (action === "reject") {
+    if (operationalState !== "draft" && operationalState !== "staged" && operationalState !== "reviewed") {
+      return fail("A3", "A3: reject from this slice is only legal from draft, staged, or reviewed.");
+    }
+    if (!reason) {
+      return fail("S9", "S9: reject requires a recorded reason.");
+    }
+    return { ok: true };
+  }
 
   if (action === "approve") {
     if (operationalState === "published") {

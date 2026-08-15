@@ -1,18 +1,20 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import PageShell from '@/components/PageShell';
 import AdminNav from '@/components/admin/AdminNav';
 import ClubHomeMasthead from '@/components/fanclub/ClubHomeMasthead';
 import ClubHomeStoryRail from '@/components/fanclub/ClubHomeStoryRail';
 import { clubHomePageStack } from '@/components/fanclub/clubHomeStyles';
 import ClubStagingDiscussionSamples from './ClubStagingDiscussionSamples';
+import ClubStagingReviewWorkspace from './ClubStagingReviewWorkspace';
 import ClubStagingRotationPreview from './ClubStagingRotationPreview';
 import {
   CLUB_STAGING_BOUNDARY_COPY,
   CLUB_STAGING_DISCUSSION_SAMPLES,
   CLUB_STAGING_RAIL_STORIES,
   CLUB_STAGING_ROTATION_ITEMS,
+  type ClubStagingRotationItem,
 } from './clubStagingSamples';
 
 const stagingBannerStyle: React.CSSProperties = {
@@ -35,6 +37,10 @@ const previewFrameStyle: React.CSSProperties = {
 };
 
 export default function AdminClubStagingPage() {
+  const [previewItems, setPreviewItems] = useState<ClubStagingRotationItem[] | null>(null);
+  const rotationItems = previewItems && previewItems.length > 0 ? previewItems : CLUB_STAGING_ROTATION_ITEMS;
+  const usingFixtures = !(previewItems && previewItems.length > 0);
+
   return (
     <PageShell
       title="Admin – Club Staging"
@@ -42,13 +48,17 @@ export default function AdminClubStagingPage() {
     >
       <AdminNav />
 
+      <ClubStagingReviewWorkspace onPreviewItemsChange={setPreviewItems} />
+
       <p role="status" style={stagingBannerStyle}>
-        {CLUB_STAGING_BOUNDARY_COPY}
+        {usingFixtures
+          ? CLUB_STAGING_BOUNDARY_COPY
+          : 'Staging preview only. The selected inventory row is shown in the existing frame and is not published on public or member routes.'}
       </p>
 
       <div style={previewFrameStyle} role="region" aria-label="Club staging production-like preview">
         <ClubHomeMasthead email="staging.preview@lougehrigfanclub.com" />
-        <ClubStagingRotationPreview items={CLUB_STAGING_ROTATION_ITEMS} />
+        <ClubStagingRotationPreview items={rotationItems} />
         <ClubHomeStoryRail stories={CLUB_STAGING_RAIL_STORIES} />
         <ClubStagingDiscussionSamples items={CLUB_STAGING_DISCUSSION_SAMPLES} />
       </div>
