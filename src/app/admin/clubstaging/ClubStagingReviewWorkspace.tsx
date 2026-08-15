@@ -154,9 +154,14 @@ export default function ClubStagingReviewWorkspace({ onPreviewItemsChange }: Clu
         action,
         reviewer: reviewer.trim() || undefined,
         reason: reason.trim() || undefined,
-        approved_by: approvedBy.trim() || undefined,
-        scheduled_at: scheduledAt.trim() || undefined,
       };
+      if (action === 'approve' || action === 'publish') {
+        payload.approved_by = approvedBy.trim() || undefined;
+      }
+      if (action === 'schedule') {
+        payload.approved_by = approvedBy.trim() || undefined;
+        payload.scheduled_at = scheduledAt.trim() || undefined;
+      }
 
       setStatus(`Recording ${action} for inventory ${selected.id}…`);
       const result = await adminJson<{ ok: true }>(`/api/admin/editorial/publish`, {
