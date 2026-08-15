@@ -1007,9 +1007,62 @@ describe('editorial archive APIs', () => {
     expect(insertRun?.args[13]).toBe('Member Name');
   });
 
-  it('updates publication state for archive records', async () => {
+  it('refuses draft to published without a recorded approval (A3)', async () => {
     const { db, runs } = makeEditorialDb({
       inventory: [{ id: 4, status: 'draft', source_name: 'Archive', credit_line: 'LGFC Archive' }],
+    });
+
+    const response = await editorialPublishPost({
+      request: adminPostRequest('/api/admin/editorial/publish', { id: 4, status: 'published' }),
+      env: { ADMIN_TOKEN: 'secret', DB: db },
+    });
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({
+      ok: false,
+      check_id: 'A3',
+    });
+    expect(runs.some((run) => run.sql.includes('UPDATE content_inventory'))).toBe(false);
+  });
+
+  it('records named human approval without publishing', async () => {
+    const { db, runs } = makeEditorialDb({
+      inventory: [{ id: 4, status: 'draft', source_name: 'Archive', credit_line: 'LGFC Archive' }],
+    });
+
+    const response = await editorialPublishPost({
+      request: adminPostRequest('/api/admin/editorial/publish', {
+        id: 4,
+        action: 'approve',
+        approved_by: 'Bill',
+      }),
+      env: { ADMIN_TOKEN: 'secret', DB: db },
+    });
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      ok: true,
+      id: 4,
+      status: 'draft',
+      operational_state: 'approved',
+      approved_by: 'Bill',
+    });
+    expect(runs.some((run) => run.sql.includes('operational_state'))).toBe(true);
+  });
+
+  it('publishes only after operational state is approved and attribution is present', async () => {
+    const { db, runs } = makeEditorialDb({
+      inventory: [
+        {
+          id: 4,
+          status: 'draft',
+          operational_state: 'approved',
+          approved_by: 'Bill',
+          approved_at: '2026-08-14T22:00:00Z',
+          source_name: 'Archive',
+          credit_line: 'LGFC Archive',
+        },
+      ],
     });
 
     const response = await editorialPublishPost({
@@ -1022,13 +1075,24 @@ describe('editorial archive APIs', () => {
       ok: true,
       id: 4,
       status: 'published',
+      operational_state: 'published',
     });
     expect(runs.some((run) => run.sql.includes('UPDATE content_inventory'))).toBe(true);
   });
 
   it('rejects publishing content_inventory records without required attribution', async () => {
     const { db, runs } = makeEditorialDb({
-      inventory: [{ id: 4, status: 'draft', source_name: '', credit_line: 'LGFC Archive' }],
+      inventory: [
+        {
+          id: 4,
+          status: 'draft',
+          operational_state: 'approved',
+          approved_by: 'Bill',
+          approved_at: '2026-08-14T22:00:00Z',
+          source_name: '',
+          credit_line: 'LGFC Archive',
+        },
+      ],
     });
 
     const response = await editorialPublishPost({
@@ -1039,8 +1103,62 @@ describe('editorial archive APIs', () => {
     expect(response.status).toBe(400);
     await expect(response.json()).resolves.toMatchObject({
       ok: false,
+      check_id: 'S4',
       error: 'Published content_inventory records require source_name and credit_line.',
     });
+    expect(runs.some((run) => run.sql.includes('UPDATE content_inventory'))).toBe(false);
+  });
+
+  it('publishes after unpublish once a new named approval is recorded', async () => {
+    const { db, runs } = makeEditorialDb({
+      inventory: [
+        {
+          id: 4,
+          status: 'archived',
+          operational_state: 'approved',
+          approved_by: 'Bill',
+          approved_at: '2026-08-14T23:00:00Z',
+          source_name: 'Archive',
+          credit_line: 'LGFC Archive',
+        },
+      ],
+    });
+
+    const response = await editorialPublishPost({
+      request: adminPostRequest('/api/admin/editorial/publish', { id: 4, status: 'published' }),
+      env: { ADMIN_TOKEN: 'secret', DB: db },
+    });
+
+    expect(response.status).toBe(200);
+    await expect(response.json()).resolves.toMatchObject({
+      ok: true,
+      id: 4,
+      status: 'published',
+      operational_state: 'published',
+    });
+    expect(runs.some((run) => run.sql.includes('UPDATE content_inventory'))).toBe(true);
+  });
+
+  it('refuses archive without a recorded reason (S9)', async () => {
+    const { db, runs } = makeEditorialDb({
+      inventory: [
+        {
+          id: 4,
+          status: 'published',
+          operational_state: 'published',
+          source_name: 'Archive',
+          credit_line: 'LGFC Archive',
+        },
+      ],
+    });
+
+    const response = await editorialPublishPost({
+      request: adminPostRequest('/api/admin/editorial/publish', { id: 4, status: 'archived' }),
+      env: { ADMIN_TOKEN: 'secret', DB: db },
+    });
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({ ok: false, check_id: 'S9' });
     expect(runs.some((run) => run.sql.includes('UPDATE content_inventory'))).toBe(false);
   });
 
