@@ -65,7 +65,8 @@ export default function AdminClubStagingPage() {
 
       <p style={{ marginTop: 20, color: 'rgba(0,0,0,0.65)', lineHeight: 1.55, fontSize: 14 }}>
         `/admin/homestaging` remains reserved for a possible future homepage staging surface and is intentionally not
-        implemented in Task #2043. Program #2040 owns publication workflow; this page is preview-only.
+        implemented. Approve, schedule, and publish on this page call the editorial publication API. The production-like
+        frame below is still not a public or member route.
       </p>
     </PageShell>
   );

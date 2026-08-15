@@ -6,7 +6,7 @@ import AdminTokenPanel from '@/components/admin/AdminTokenPanel';
 import { adminJson, getStoredAdminToken } from '@/lib/adminClient';
 import type { ClubStagingRotationItem } from './clubStagingSamples';
 
-type StagingFilter = 'preview' | 'draft' | 'rejected';
+type StagingFilter = 'preview' | 'draft' | 'rejected' | 'approved' | 'scheduled';
 
 type StagingInventoryRow = {
   id: number;
@@ -26,6 +26,7 @@ type StagingInventoryRow = {
   rejection_reason?: string | null;
   operational_state?: string | null;
   approved_by?: string | null;
+  scheduled_at?: string | null;
   status?: string | null;
 };
 
@@ -38,6 +39,8 @@ const FILTERS: Array<{ value: StagingFilter; label: string }> = [
   { value: 'preview', label: 'Staged / reviewed' },
   { value: 'draft', label: 'Draft' },
   { value: 'rejected', label: 'Rejected' },
+  { value: 'approved', label: 'Approved' },
+  { value: 'scheduled', label: 'Scheduled' },
 ];
 
 function trim(value: unknown): string {
@@ -75,6 +78,8 @@ export default function ClubStagingReviewWorkspace({ onPreviewItemsChange }: Clu
   const [rows, setRows] = useState<StagingInventoryRow[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [reviewer, setReviewer] = useState('');
+  const [approvedBy, setApprovedBy] = useState('');
+  const [scheduledAt, setScheduledAt] = useState('');
   const [reason, setReason] = useState('');
   const [status, setStatus] = useState('Save an admin API token to load staged inventory.');
   const [loading, setLoading] = useState(false);
@@ -128,8 +133,13 @@ export default function ClubStagingReviewWorkspace({ onPreviewItemsChange }: Clu
     onPreviewItemsChange(selected ? [toRotationItem(selected)] : null);
   }, [onPreviewItemsChange, selected]);
 
+  useEffect(() => {
+    setApprovedBy(trim(selected?.approved_by));
+    setScheduledAt(trim(selected?.scheduled_at));
+  }, [selected]);
+
   const runAction = useCallback(
-    async (action: 'stage' | 'review' | 'reject') => {
+    async (action: 'stage' | 'review' | 'reject' | 'approve' | 'schedule' | 'publish') => {
       if (!selected) {
         setStatus('Error: Select a staged inventory row first.');
         return;
@@ -145,6 +155,13 @@ export default function ClubStagingReviewWorkspace({ onPreviewItemsChange }: Clu
         reviewer: reviewer.trim() || undefined,
         reason: reason.trim() || undefined,
       };
+      if (action === 'approve' || action === 'publish') {
+        payload.approved_by = approvedBy.trim() || undefined;
+      }
+      if (action === 'schedule') {
+        payload.approved_by = approvedBy.trim() || undefined;
+        payload.scheduled_at = scheduledAt.trim() || undefined;
+      }
 
       setStatus(`Recording ${action} for inventory ${selected.id}…`);
       const result = await adminJson<{ ok: true }>(`/api/admin/editorial/publish`, {
@@ -161,13 +178,17 @@ export default function ClubStagingReviewWorkspace({ onPreviewItemsChange }: Clu
       setReason('');
       await load();
     },
-    [load, reason, reviewer, selected],
+    [approvedBy, load, reason, reviewer, scheduledAt, selected],
   );
 
   const state = selected ? operationalState(selected) : '';
   const canStage = state === 'draft' || state === 'reviewed';
   const canReview = state === 'staged';
   const canReject = state === 'draft' || state === 'staged' || state === 'reviewed';
+  const canApprove = Boolean(selected) && state !== 'published' && state !== 'rejected';
+  const canSchedule = state === 'approved' || state === 'scheduled';
+  const canPublish =
+    (state === 'approved' || state === 'scheduled') && Boolean(selected && metadataComplete(selected));
   const blocking = selected ? !metadataComplete(selected) : false;
 
   return (
@@ -176,8 +197,9 @@ export default function ClubStagingReviewWorkspace({ onPreviewItemsChange }: Clu
         Staged content review
       </h2>
       <p style={{ margin: '0 0 16px 0', lineHeight: 1.55, color: 'rgba(0,0,0,0.72)' }}>
-        List and review <code>content_inventory</code> rows without writing <code>published</code>. Editors may stage,
-        mark reviewed, or reject with a reason. Approve, schedule, and publish stay on the editorial archive.
+        List and review <code>content_inventory</code> rows. Editors may stage, mark reviewed, reject, approve,
+        schedule, or publish. The preview frame below is not a public route; public helpers still read only published
+        inventory.
       </p>
 
       <AdminTokenPanel onSaved={() => void load()} />
@@ -287,6 +309,23 @@ export default function ClubStagingReviewWorkspace({ onPreviewItemsChange }: Clu
             />
           </label>
           <label style={{ display: 'block', marginTop: 12 }}>
+            Approver name
+            <input
+              value={approvedBy}
+              onChange={(event) => setApprovedBy(event.target.value)}
+              style={{ display: 'block', width: '100%', marginTop: 6, padding: '8px 10px' }}
+            />
+          </label>
+          <label style={{ display: 'block', marginTop: 12 }}>
+            Scheduled at (UTC)
+            <input
+              value={scheduledAt}
+              onChange={(event) => setScheduledAt(event.target.value)}
+              placeholder="2026-08-16T12:00:00Z"
+              style={{ display: 'block', width: '100%', marginTop: 6, padding: '8px 10px' }}
+            />
+          </label>
+          <label style={{ display: 'block', marginTop: 12 }}>
             Rejection reason
             <textarea
               value={reason}
@@ -306,9 +345,19 @@ export default function ClubStagingReviewWorkspace({ onPreviewItemsChange }: Clu
             <button type="button" disabled={!canReject} onClick={() => void runAction('reject')}>
               Reject
             </button>
+            <button type="button" disabled={!canApprove} onClick={() => void runAction('approve')}>
+              Approve
+            </button>
+            <button type="button" disabled={!canSchedule} onClick={() => void runAction('schedule')}>
+              Schedule
+            </button>
+            <button type="button" disabled={!canPublish} onClick={() => void runAction('publish')}>
+              Publish
+            </button>
           </div>
           <p style={{ margin: '12px 0 0 0', fontSize: 13, color: 'rgba(0,0,0,0.65)' }}>
-            This workspace does not offer Publish. Public helpers still read only published inventory.
+            Publish still requires named human approval and attribution. Public helpers still read only published
+            inventory. This preview frame is not a public route.
           </p>
         </div>
       ) : null}
