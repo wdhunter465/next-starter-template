@@ -30,7 +30,9 @@ const MAX_REPLY_CHARS = 6000;
 
 function truncate(text) {
   if (text.length <= MAX_REPLY_CHARS) return text;
-  return `${text.slice(0, MAX_REPLY_CHARS)}\n... (truncated, ${text.length} total chars)`;
+  const suffix = `\n... (truncated, ${text.length} total chars)`;
+  const sliceLen = Math.max(0, MAX_REPLY_CHARS - suffix.length);
+  return `${text.slice(0, sliceLen)}${suffix}`;
 }
 
 function parseCommand(body) {
@@ -48,7 +50,7 @@ function parseCommand(body) {
       bodyLines.push(line);
       continue;
     }
-    const match = line.match(/^(participant|task|target|in_reply_to|room|body):\s?(.*)$/);
+    const match = line.match(/^(participant|task|target|in_reply_to|body):\s?(.*)$/);
     if (!match) continue;
     const [, key, value] = match;
     if (key === 'body') {
@@ -74,9 +76,6 @@ function validate(command, fields, approvedParticipants) {
     errors.push(`participant "${fields.participant}" is not one of the approved participants: ${approvedParticipants.join(', ')}`);
   }
 
-  if (fields.room && !SAFE_KEY.test(fields.room)) {
-    errors.push('room: contains unexpected characters');
-  }
   if (fields.task && !SAFE_KEY.test(fields.task)) {
     errors.push('task: contains unexpected characters');
   }
@@ -239,7 +238,7 @@ async function main() {
     return;
   }
 
-  const roomKey = fields.room || DEFAULT_ROOM_KEY;
+  const roomKey = DEFAULT_ROOM_KEY;
   const call = makeChatterboxClient(CHATTERBOX_BASE_URL, ADMIN_TOKEN);
   const githubRef = { issue: Number(CONTROL_ISSUE_NUMBER), comment_id: Number(COMMENT_ID), repository: GITHUB_REPOSITORY };
   const idempotencyKey = COMMENT_ID ? `bridge-comment-${COMMENT_ID}` : undefined;
