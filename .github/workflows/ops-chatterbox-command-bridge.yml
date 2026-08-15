@@ -29,7 +29,8 @@ name: OPS — Chatterbox Command Bridge (#3415)
 #     Code GitHub access) authenticate to GitHub as the same account
 #     (wdhunter465), so a 1:1 actor->participant mapping isn't technically
 #     possible here. This still rejects any comment claiming a participant
-#     that isn't one of the five pre-registered in the lgfc-website room.
+#     that isn't one of the pre-registered participants in the
+#     lgfc-website room (see APPROVED_PARTICIPANTS below).
 #   - Registering a new participant or granting a role_class is not a
 #     supported bridge command -- that stays on
 #     ops-chatterbox-room-bootstrap.yml, which requires an explicit
@@ -72,7 +73,7 @@ jobs:
           COMMENT_AUTHOR: ${{ github.event.comment.user.login }}
           COMMENT_ID: ${{ github.event.comment.id }}
           TRUSTED_ACTORS: wdhunter465
-          APPROVED_PARTICIPANTS: claude-code,cursor-local,google-jules,grok,chat
+          APPROVED_PARTICIPANTS: claude-code,cursor-local,google-jules,grok,chat,wdhunter465
           CHATTERBOX_BASE_URL: https://component-chatterbox-prototy.next-starter-template-6yr.pages.dev
           ADMIN_TOKEN: ${{ secrets.CHATTERBOX_PREVIEW_ADMIN_TOKEN }}
           DEFAULT_ROOM_KEY: lgfc-website
