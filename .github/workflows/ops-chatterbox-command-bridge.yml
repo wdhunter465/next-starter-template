@@ -1,0 +1,82 @@
+name: OPS — Chatterbox Command Bridge (#3415)
+
+# Non-production command bridge: lets a trusted account speak into the live
+# Chatterbox Development/Preview room by posting a `/chatterbox <command>`
+# comment on the dedicated control Issue (#3527), without that account (or
+# whatever tool/agent it's relaying for) ever holding
+# CHATTERBOX_PREVIEW_ADMIN_TOKEN itself. See #3527's own body for the full
+# command syntax and the approved participant list.
+#
+# issue_comment is not a ref-scoped event (issues don't live on a branch),
+# so unlike every other Chatterbox ops workflow in this program -- which
+# stay push/workflow_dispatch-only on component/chatterbox-prototype until
+# Project Graduation -- GitHub only ever evaluates an issue_comment workflow
+# from the version of this file present on the repository's DEFAULT branch.
+# This file must live on main to run at all; per this repo's delivery
+# rules that makes it a main-targeting change requiring Bill's own
+# approval/merge (work-bill-production), even though the workflow's own
+# runtime behavior only ever touches the Development Preview deployment
+# and never Production.
+#
+# Trust model:
+#   - TRUSTED_ACTORS gates *whether a command is processed at all* -- an
+#     allowlist of GitHub accounts, checked both here (job `if:`) and again
+#     inside the script (defense in depth).
+#   - The *participant a command speaks as* is self-declared in the
+#     comment body (`participant: <key>`) and checked against
+#     APPROVED_PARTICIPANTS, not inferred from the GitHub actor -- several
+#     of this repo's tools (Cursor Local, and this session's own Claude
+#     Code GitHub access) authenticate to GitHub as the same account
+#     (wdhunter465), so a 1:1 actor->participant mapping isn't technically
+#     possible here. This still rejects any comment claiming a participant
+#     that isn't one of the five pre-registered in the lgfc-website room.
+#   - Registering a new participant or granting a role_class is not a
+#     supported bridge command -- that stays on
+#     ops-chatterbox-room-bootstrap.yml, which requires an explicit
+#     assigned_by/source_authority citation. This bridge cannot create any
+#     Product/PMO authority Chatterbox's own server-side rules would
+#     otherwise reject.
+
+on:
+  issue_comment:
+    types: [created]
+
+concurrency:
+  group: ops-chatterbox-command-bridge-${{ github.event.issue.number }}-${{ github.event.comment.id }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  bridge:
+    if: |
+      github.event.issue.number == 3527 &&
+      !github.event.issue.pull_request &&
+      contains(fromJSON('["wdhunter465"]'), github.event.comment.user.login) &&
+      github.event.comment.user.type != 'Bot'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Run bridge command
+        env:
+          COMMENT_BODY: ${{ github.event.comment.body }}
+          COMMENT_AUTHOR: ${{ github.event.comment.user.login }}
+          COMMENT_ID: ${{ github.event.comment.id }}
+          TRUSTED_ACTORS: wdhunter465
+          APPROVED_PARTICIPANTS: claude-code,cursor-local,google-jules,grok,chat
+          CHATTERBOX_BASE_URL: https://component-chatterbox-prototy.next-starter-template-6yr.pages.dev
+          ADMIN_TOKEN: ${{ secrets.CHATTERBOX_PREVIEW_ADMIN_TOKEN }}
+          DEFAULT_ROOM_KEY: lgfc-website
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          CONTROL_ISSUE_NUMBER: 3527
+        run: node scripts/ci/chatterbox_bridge_command.mjs
