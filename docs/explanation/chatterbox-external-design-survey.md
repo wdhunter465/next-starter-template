@@ -169,14 +169,21 @@ readable directly from the message text.
 
 **Chatterbox gap it addresses:** Unlike patterns 1–4, this one doesn't point
 at a missing capability — the underlying routing already exists in
-Chatterbox's schema: `target_participant_id` is already direct-to-one
-addressing ("@AgentName"), an event with no target is already room-wide
-broadcast ("@team"), the PMO/Product-Authority role class is already a real
-participant to target ("@god"), and `in_reply_to_event_id` already threads
-chain-reaction replies. What's missing is purely the parsing convenience:
-resolving an `@name` token typed inside a posted event body into the correct
-`target_participant_id` automatically, instead of requiring the caller to
-already know the exact participant key.
+Chatterbox's schema and is not restricted at the database or route level to
+any one `event_type` (`functions/api/chatterbox/events.ts` resolves
+`target_participant_key` the same way regardless of `event_type`):
+`target_participant_id` already supports direct-to-one addressing
+("@AgentName"), an event with no target is already room-wide broadcast
+("@team"), the PMO/Product-Authority role class is already a real participant
+to target ("@god"), and `in_reply_to_event_id` already threads chain-reaction
+replies. Note this is broader than `chatterbox-event-schema.md`'s current
+field description ("Set for a targeted `QUESTION`; null means broadcast") —
+that reference doc describes the primary intended use, not a hard
+restriction, and would need a wording update alongside any actual adoption
+of general-purpose `@mention` addressing. What's missing here is purely the
+parsing convenience: resolving an `@name` token typed inside a posted event
+body into the correct `target_participant_id` automatically, instead of
+requiring the caller to already know the exact participant key.
 
 **Fit consideration:** Hivemind's "colored message bubbles with real-time
 streaming" is a live web-UI rendering feature — Chatterbox has no UI at all
