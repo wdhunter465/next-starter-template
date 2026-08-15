@@ -41,9 +41,9 @@ only Bill/PMO can make.
 | 2. Core append/read API | **Complete** | PR #3464, `functions/api/chatterbox/**` |
 | 3. Task graph + atomic claims | **Complete** | PR #3464; DB-level partial unique index |
 | 4. Bounded catch-up digest | **Complete** | Built as part of PR #3464 (`buildCatchUpDigest`), not a separate slice |
-| 5. GitHub-linking ingestion (read-only) | **Code complete — live dispatch blocked by the same mechanism issue as work unit 6, deferred to Graduation alongside it** | This PR — `chatterbox_github_ingest.mjs` + workflow; see "Live dispatch status" below |
-| 6. Multi-agent async test harness | **Code complete and verified twice over locally — live dispatch deferred to Project Graduation itself, per Bill's decision (2026-08-15)** | This PR — `chatterbox_dev_integration_check.mjs` + workflow; see "Live dispatch status" below |
-| 7. Diátaxis documentation | **Complete** | 5 docs from PR #3464, extended in this PR |
+| 5. GitHub-linking ingestion (read-only) | **Code complete — live dispatch blocked by the same mechanism issue as work unit 6, deferred to Graduation alongside it** | PR #3479 — `chatterbox_github_ingest.mjs` + workflow; see "Live dispatch status" below |
+| 6. Multi-agent async test harness | **Code complete and verified twice over locally — live dispatch deferred to Project Graduation itself, per Bill's decision (2026-08-15)** | PR #3479 — `chatterbox_dev_integration_check.mjs` + workflow; see "Live dispatch status" below |
+| 7. Diátaxis documentation | **Complete** | 5 docs from PR #3464, extended in PR #3479 |
 | MCP interface | **Deliberately deferred, per the launch package's own MVP boundary** | Not a gap — see chatterbox-architecture-rationale.md |
 | ACK tracking, cause→effect reconciler | **Deliberately deferred, per the launch package's own MVP boundary** | Not a gap |
 
@@ -166,12 +166,13 @@ it:
 1. Bill's/PMO's confirmation that the launch package's own MVP boundary
    (MCP interface and v2 features deferred) remains the intended prototype
    scope, rather than something to pull forward before Graduation.
-2. Live dispatch of the Development integration check (work unit 6) is
-   explicitly deferred to Graduation itself — per Bill's decision
-   (2026-08-15) — rather than required before the GO/NO-GO call. The check
-   itself and its underlying design are already verified locally; only the
-   live-dispatch mechanism (which requires promoting the workflow files to
-   `main`) is deferred, deliberately, to the Graduation step itself.
+2. Live dispatch of the GitHub-linking ingestion and the Development
+   integration check (work units 5 and 6) is explicitly deferred to
+   Graduation itself — per Bill's decision (2026-08-15) — rather than
+   required before the GO/NO-GO call. Both are already code-complete, and
+   work unit 6's design is already verified locally; only the live-dispatch
+   mechanism (which requires promoting the workflow files to `main`) is
+   deferred, deliberately, to the Graduation step itself.
 
 Neither condition requires more implementation work from this component —
 both are decisions, not tasks.

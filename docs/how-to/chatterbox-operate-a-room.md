@@ -165,7 +165,8 @@ gh workflow run chatterbox-github-ingest.yml \
   -f room_key=lgfc-website
 ```
 
-Safe to re-dispatch at any time, including on a schedule — already-ingested
+Once dispatch is possible (post-Graduation, per the blocker above), it is
+safe to re-dispatch at any time, including on a schedule — already-ingested
 comments are deduped server-side via `idempotency_key`
 (`github-comment-{id}`), returned as `idempotent_replay: true` rather than
 posted again.
