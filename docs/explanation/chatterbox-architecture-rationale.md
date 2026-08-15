@@ -6,7 +6,7 @@ Owns: Architecture rationale and design tradeoffs for the #3415 Chatterbox proto
 Does Not Own: Field-by-field schema (see chatterbox-event-schema.md); operating steps (see chatterbox-operate-a-room.md); authority boundary (see chatterbox-authority-boundary.md)
 Canonical Reference: /docs/explanation/chatterbox-architecture-rationale.md
 Related Issues: #3415
-Last Reviewed: 2026-08-14
+Last Reviewed: 2026-08-15
 ---
 
 # Chatterbox architecture rationale
@@ -69,29 +69,31 @@ schema and claim semantics. This slice ships the REST-shaped Pages Functions
 routes first (work units 1–3 from the launch package); an MCP server wrapping
 the same routes is deferred to a later work unit, not abandoned.
 
-## Why authentication is the existing shared `ADMIN_TOKEN`, not per-agent tokens
+## Why authentication is a dedicated Preview `ADMIN_TOKEN`, not per-agent tokens
 
 Per-agent identity tokens are the right end state (flagged explicitly as an
 open Product decision in the #3415 launch package: "confirm claim-authority
-token issuance for non-Claude, non-Cursor participants"). Provisioning new
-credentials for this prototype would itself be a protected decision this
-slice is not authorized to make. Reusing the existing `ADMIN_TOKEN` gate
-(`requireAdmin`, already used by every `functions/api/admin/**` route) keeps
-the API access-controlled with zero new credential provisioning, while the
-`participant_key` field in every request body still identifies who is
-acting for logging/audit/claim-ownership purposes. This is a deliberate,
-named scoping choice for the prototype, not a silent security shortcut —
-real per-agent tokens are the explicit next step before any use beyond
-synthetic/sandbox testing.
+token issuance for non-Claude, non-Cursor participants"). This slice still
+does not provision per-agent credentials — the `participant_key` field in
+every request body identifies who is acting for logging/audit/claim-ownership
+purposes, while all requests share one admin-level gate. This is a
+deliberate, named scoping choice for the prototype, not a silent security
+shortcut — real per-agent tokens are the explicit next step before any use
+beyond synthetic/sandbox testing.
 
-The Development integration check (work unit 6, below) reads its token from
-the repository's existing `ADMIN_TOKEN` secret — confirmed already
-configured by Product Authority (2026-08-14), so no new secret needed
-provisioning. That confirmation is about the secret's *name*, not its
-*scope*: per the Preview-isolation audit cited above, the value behind that
-name must be the Development/Preview deployment's own `ADMIN_TOKEN`, never
-Production's — this check never targets Production and cannot itself
-verify which environment's value the secret actually holds.
+The Development integration check and the GitHub ingestion workflow (work
+units 5 and 6, below) read their token from the `CHATTERBOX_PREVIEW_ADMIN_TOKEN`
+repository secret — a credential Bill provisioned specifically for
+Chatterbox (2026-08-15), setting its value as the `ADMIN_TOKEN` in Cloudflare
+Pages' own Preview environment. This closes the earlier name-vs-scope gap:
+both workflows previously reused the repository's general-purpose shared
+`ADMIN_TOKEN` secret, where the secret's *name* was confirmed but its
+*environment scope* could not be — per the Preview-isolation audit cited
+above, a Production-scoped value under a Preview-sounding name would have
+been undetectable by either workflow. `CHATTERBOX_PREVIEW_ADMIN_TOKEN`'s
+name states its own scope directly, and its value was deliberately set
+against Cloudflare's Preview environment specifically, not inferred from a
+shared secret used by unrelated Production-facing routes.
 
 ## Why the Development integration proof runs against the real deployment, not a mock
 

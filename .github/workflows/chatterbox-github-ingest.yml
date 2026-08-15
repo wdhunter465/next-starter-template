@@ -9,6 +9,19 @@ name: OPS — Chatterbox GitHub Ingestion (#3415)
 #
 # Idempotent: safe to dispatch repeatedly or on a schedule — already-
 # ingested comments are deduped server-side via idempotency_key.
+#
+# Reads ADMIN_TOKEN from the CHATTERBOX_PREVIEW_ADMIN_TOKEN repository
+# secret — a dedicated credential Bill provisioned specifically for
+# Chatterbox (2026-08-15), set as the ADMIN_TOKEN value in Cloudflare
+# Pages' Preview environment. This secret's name declares its own scope,
+# closing the earlier name-vs-scope ambiguity on the shared ADMIN_TOKEN.
+#
+# This workflow remains workflow_dispatch-only, so it stays undispatchable
+# until Project Graduation promotes this file to main (see
+# chatterbox-launch-ready-package-3415.md's "Live dispatch status"
+# section) — it takes required inputs (issue_number, room_key) that don't
+# have a safe default for an automatic push trigger the way the dev
+# integration check does.
 
 on:
   workflow_dispatch:
@@ -65,7 +78,7 @@ jobs:
           CHATTERBOX_REPOSITORY: ${{ github.repository }}
           CHATTERBOX_ISSUE_NUMBER: ${{ inputs.issue_number }}
           CHATTERBOX_BASE_URL: ${{ steps.resolve_url.outputs.base_url }}
-          ADMIN_TOKEN: ${{ secrets.ADMIN_TOKEN }}
+          ADMIN_TOKEN: ${{ secrets.CHATTERBOX_PREVIEW_ADMIN_TOKEN }}
           CHATTERBOX_ROOM_KEY: ${{ inputs.room_key }}
           CHATTERBOX_CLERK_PARTICIPANT_KEY: github-clerk
           CHATTERBOX_SINCE: ${{ inputs.since }}

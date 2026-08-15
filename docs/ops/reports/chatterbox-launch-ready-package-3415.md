@@ -41,8 +41,8 @@ only Bill/PMO can make.
 | 2. Core append/read API | **Complete** | PR #3464, `functions/api/chatterbox/**` |
 | 3. Task graph + atomic claims | **Complete** | PR #3464; DB-level partial unique index |
 | 4. Bounded catch-up digest | **Complete** | Built as part of PR #3464 (`buildCatchUpDigest`), not a separate slice |
-| 5. GitHub-linking ingestion (read-only) | **Code complete — live dispatch blocked by the same mechanism issue as work unit 6, deferred to Graduation alongside it** | PR #3479 — `chatterbox_github_ingest.mjs` + workflow; see "Live dispatch status" below |
-| 6. Multi-agent async test harness | **Code complete and verified twice over locally — live dispatch deferred to Project Graduation itself, per Bill's decision (2026-08-15)** | PR #3479 — `chatterbox_dev_integration_check.mjs` + workflow; see "Live dispatch status" below |
+| 5. GitHub-linking ingestion (read-only) | **Code complete — live dispatch still requires `workflow_dispatch`, deferred to Graduation** | PR #3479 — `chatterbox_github_ingest.mjs` + workflow; see "Live dispatch status" below |
+| 6. Multi-agent async test harness | **Code complete, verified twice over locally, and now dispatchable pre-Graduation via a scoped `push` trigger** | PR #3479 — `chatterbox_dev_integration_check.mjs` + workflow; see "Live dispatch status" below |
 | 7. Diátaxis documentation | **Complete** | 5 docs from PR #3464, extended in PR #3479 |
 | MCP interface | **Deliberately deferred, per the launch package's own MVP boundary** | Not a gap — see chatterbox-architecture-rationale.md |
 | ACK tracking, cause→effect reconciler | **Deliberately deferred, per the launch package's own MVP boundary** | Not a gap |
@@ -86,48 +86,51 @@ only that proves the actual database-level guarantees.
 
 ## Live dispatch status (work units 5 and 6)
 
-This section covers both `chatterbox-github-ingest.yml` (work unit 5) and
-`chatterbox-dev-integration-check.yml` (work unit 6) — both hit the same
-dispatch-mechanism blocker and share the same deferral decision below.
+**Dedicated credential provisioned (2026-08-15).** Bill created
+`CHATTERBOX_PREVIEW_ADMIN_TOKEN` as a new repository secret and set its
+value as the `ADMIN_TOKEN` configured in Cloudflare Pages' own Preview
+environment. Both workflows now read this secret instead of the repository's
+general-purpose shared `ADMIN_TOKEN`, closing the earlier name-vs-scope gap
+described in chatterbox-authority-boundary.md: the secret's name now states
+its own scope, and its value was set directly against Preview, not inferred.
+The credential itself was never pasted into or handled by any chat session —
+it exists only as a GitHub Actions secret, injected server-side.
 
-**Secret name confirmed (2026-08-14).** Product Authority confirmed the
-repository already has an `ADMIN_TOKEN` GitHub Actions secret configured —
-no new secret needed to be provisioned for this check to run.
-`.github/workflows/chatterbox-dev-integration-check.yml` reads it directly
-(`secrets.ADMIN_TOKEN`), reusing the same `requireAdmin` contract every
-other `functions/api/admin/**` route already relies on. This confirms the
-secret's *name* only, not the environment-scope of its value — per
-`docs/ops/reports/delivery-system-preview-isolation-audit.md`'s explicit
-warning, that value must be the Development/Preview deployment's own
-`ADMIN_TOKEN`, never Production's, and this workflow cannot itself verify
-which one is actually configured.
+**Dispatch mechanism blocker (2026-08-14), still standing for work unit
+5.** GitHub's Actions API resolves `workflow_dispatch` by looking up the
+workflow file among workflows registered on the repository's **default
+branch**. Neither Chatterbox workflow file exists on `main` — both live
+only on `component/chatterbox-prototype` — so `workflow_dispatch` still
+404s for both, identically whether attempted via CLI, API, or the GitHub
+UI. `chatterbox-github-ingest.yml` (work unit 5) takes required inputs
+(`issue_number`, `room_key`) with no safe default for an automatic trigger,
+so it remains `workflow_dispatch`-only and deferred to Graduation, per
+Bill's 2026-08-15 decision not to promote workflow files to `main` ahead of
+a GO/NO-GO call.
 
-**Dispatch mechanism blocker discovered (2026-08-14).** Attempting the first
-live dispatch of `chatterbox-dev-integration-check.yml` surfaced a real,
-previously unknown blocker: GitHub's Actions API resolves `workflow_dispatch`
-by looking up the workflow file among workflows registered on the
-repository's **default branch**. Neither Chatterbox workflow file exists on
-`main` — both live only on `component/chatterbox-prototype`, never merged —
-so dispatch of either one returns `404 Not Found`, confirmed via both the
-API and by fetching each file at `refs/heads/main` (neither exists there).
-This is a dispatch-mechanics fact, not a code defect, and it applies
-identically whether dispatch is attempted via the CLI, the API, or the
-GitHub UI's "Run workflow" button, and identically to both workflows.
+**Work unit 6 resolved via a scoped `push` trigger, not `workflow_dispatch`
+(2026-08-15).** `chatterbox-dev-integration-check.yml` needs no required
+inputs beyond a target branch that already defaults sensibly, so it now
+also triggers on `push` to `component/chatterbox-prototype`, scoped by path
+to files that could affect the check's own correctness. Unlike
+`workflow_dispatch`, `push`-triggered workflows are evaluated from the
+workflow file present in the pushed commit itself — the same mechanism this
+repository's own CI (`pr-hygiene`, `quality`, etc.) has used against
+non-default branches all along — so this does not require promoting
+anything to `main` and carries none of the Production-adjacent risk that
+motivated deferring work unit 5. The first live dispatch fires automatically
+the moment this change merges into `component/chatterbox-prototype`; see
+the follow-up comment on #3415 for the actual result once it completes.
 
-**Decision (Bill, chat, 2026-08-15): defer live dispatch to Project
-Graduation itself.** Rather than promote the workflow files to `main` ahead
-of a GO/NO-GO decision — which would very likely trigger a Cloudflare Pages
-build against whatever `main` is wired to as its Production branch, directly
-against the standing "no work will occur in production, nor will any of the
-work impact production" instruction — live dispatch of work units 5 and 6 is
-explicitly **not** a pre-Graduation blocking item. It happens as part of, or
-immediately following, Project Graduation itself, at which point promoting
-these workflow files (or dispatching them by whatever mechanism Product
-Authority chooses at that time) is a decision made deliberately alongside
-the GO/NO-GO call, not forced early to satisfy this report.
-
-No credential was pasted into or handled by any chat session as part of
-reaching this decision.
+**Production credentials confirmed available, explicitly reserved for
+Graduation (2026-08-15).** Bill confirmed Cloudflare's Production
+environment has its own `ADMIN_TOKEN` configured, and the repository's
+existing `CLOUDFLARE_API_TOKEN` secret already has the access this would
+need. Per Bill's explicit decision, neither is used for any Chatterbox
+testing before Project Graduation — confirmed available for that step
+specifically, not drawn on early. Same posture as the `main`-branch
+promotion decision above: capability confirmed, deliberately not exercised
+yet.
 
 ## Verification (this PR)
 
@@ -148,9 +151,13 @@ reaching this decision.
       self-test); live dispatch of both is deliberately deferred to Project
       Graduation itself, per Bill's decision (2026-08-15), not an unresolved
       gap in this report.
-- [x] Work unit 6's live dispatch credential (`ADMIN_TOKEN`) is confirmed
-      already configured — no new provisioning required, whenever dispatch
-      happens.
+- [x] Work units 5 and 6's live dispatch credential
+      (`CHATTERBOX_PREVIEW_ADMIN_TOKEN`) is a dedicated, Preview-scoped
+      secret Bill provisioned specifically for Chatterbox (2026-08-15),
+      resolving the earlier name-vs-scope ambiguity on the shared secret.
+- [x] Work unit 6 is now live-dispatchable pre-Graduation via a scoped
+      `push` trigger on `component/chatterbox-prototype`, with no `main`
+      promotion and no Production-adjacent risk.
 - [x] MCP interface and v2 features (ACK tracking, reconciler) are
       confirmed as deliberate launch-package scope decisions, not
       discovered gaps.
@@ -166,16 +173,18 @@ it:
 1. Bill's/PMO's confirmation that the launch package's own MVP boundary
    (MCP interface and v2 features deferred) remains the intended prototype
    scope, rather than something to pull forward before Graduation.
-2. Live dispatch of the GitHub-linking ingestion and the Development
-   integration check (work units 5 and 6) is explicitly deferred to
-   Graduation itself — per Bill's decision (2026-08-15) — rather than
-   required before the GO/NO-GO call. Both are already code-complete, and
-   work unit 6's design is already verified locally; only the live-dispatch
-   mechanism (which requires promoting the workflow files to `main`) is
-   deferred, deliberately, to the Graduation step itself.
+2. Live dispatch of the GitHub-linking ingestion (work unit 5) still
+   requires `workflow_dispatch`, and stays explicitly deferred to Graduation
+   itself, per Bill's 2026-08-15 decision not to promote workflow files to
+   `main` ahead of a GO/NO-GO call. Work unit 6 no longer needs this
+   deferral — it dispatches via a scoped `push` trigger instead, with no
+   `main` promotion involved.
 
 Neither condition requires more implementation work from this component —
-both are decisions, not tasks.
+both are decisions, not tasks. Work unit 6's actual live result, once the
+push-triggered run completes, is recorded as a follow-up comment on #3415
+rather than re-stated here to avoid this report going stale relative to the
+live evidence.
 
 ## Rollback
 
