@@ -6,8 +6,20 @@ name: OPS — D1 Development Migration Diagnostic
 # "duplicate column name: photo_id", blocking every later migration
 # (including 0050_chatterbox_core.sql) from ever applying to lgfc-litedev.
 #
+# First run (v1) confirmed lgfc-litedev's d1_migrations tracking table
+# only records 0001-0006, while the live photos table already has every
+# column 0007_photos_metadata.sql would add -- meaning the drift is not
+# specific to 0007. migrations 0007-0049 include twelve files with
+# unguarded ALTER TABLE (or DROP+RENAME) statements touching photos,
+# join_requests, faq_entries, ask_inbox, content_inventory,
+# submission_queue, and members. This v2 run inspects the live schema of
+# all seven tables (plus submission_queue_next's existence, from 0037's
+# rename) to establish exactly which of those twelve migrations are
+# already reflected in the live schema before deciding what to backfill
+# into d1_migrations.
+#
 # Hardcoded to lgfc-litedev (Development) only -- no Production path exists
-# in this file at all. Runs two fixed, read-only queries; does not accept
+# in this file at all. Runs only fixed, read-only queries; does not accept
 # arbitrary SQL input, to keep this an auditable diagnostic tool rather
 # than a general D1 console.
 
@@ -40,6 +52,14 @@ jobs:
           npx wrangler d1 execute lgfc-litedev --remote --env preview \
             --command "SELECT name FROM d1_migrations ORDER BY id;"
 
+      - name: List all live tables on lgfc-litedev (Development)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx wrangler d1 execute lgfc-litedev --remote --env preview \
+            --command "SELECT name FROM sqlite_master WHERE type = 'table' ORDER BY name;"
+
       - name: Inspect live photos table schema on lgfc-litedev (Development)
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
@@ -47,3 +67,51 @@ jobs:
         run: |
           npx wrangler d1 execute lgfc-litedev --remote --env preview \
             --command "PRAGMA table_info(photos);"
+
+      - name: Inspect live join_requests table schema on lgfc-litedev (Development)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx wrangler d1 execute lgfc-litedev --remote --env preview \
+            --command "PRAGMA table_info(join_requests);"
+
+      - name: Inspect live faq_entries table schema on lgfc-litedev (Development)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx wrangler d1 execute lgfc-litedev --remote --env preview \
+            --command "PRAGMA table_info(faq_entries);"
+
+      - name: Inspect live ask_inbox table schema on lgfc-litedev (Development)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx wrangler d1 execute lgfc-litedev --remote --env preview \
+            --command "PRAGMA table_info(ask_inbox);"
+
+      - name: Inspect live content_inventory table schema on lgfc-litedev (Development)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx wrangler d1 execute lgfc-litedev --remote --env preview \
+            --command "PRAGMA table_info(content_inventory);"
+
+      - name: Inspect live submission_queue table schema on lgfc-litedev (Development)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx wrangler d1 execute lgfc-litedev --remote --env preview \
+            --command "PRAGMA table_info(submission_queue);"
+
+      - name: Inspect live members table schema on lgfc-litedev (Development)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx wrangler d1 execute lgfc-litedev --remote --env preview \
+            --command "PRAGMA table_info(members);"
