@@ -5,8 +5,8 @@ Authority Level: Program Evidence
 Owns: Program #2040 Task 002 (#2050) publication state model, approval authority, legal transitions, required public-path metadata, and fail-closed stop conditions
 Does Not Own: Runtime implementation, admin UI, scheduled-publication mechanics (#2052), audit/rollback procedures (#2053), safety CI (#2054), Task 007 slices (#2055), or public publication
 Canonical Reference: /docs/ops/implementation-plans/website-automatic-content-publication-capability.md
-Related Issues: #2040, #2050, #2049, #2051, #1738, #2039, #3157, #2273, #2286
-Last Reviewed: 2026-08-14
+Related Issues: #2040, #2050, #2049, #2051, #1738, #2039, #3157, #2273, #2286, #3471
+Last Reviewed: 2026-08-15
 ---
 
 # Program #2040 Task 002 — Publication state model and approval authority
@@ -46,7 +46,7 @@ After Task 002 is accepted:
 | Predecessor | #2049 Task 001 inventory on `main` via PR #3466 / #3469 |
 | Implementation start | `7876c24c` (`origin/main`); branch `cursor/2050-publication-state-model-2e48`; allowlist is this report only |
 | Existing prep model | `docs/reference/content/content-publication-prep-model.md` — approval ≠ published |
-| Existing candidate schema | `docs/reference/website/lou-gehrig-content-metadata-schema.md` |
+| Existing candidate schema | `docs/reference/content/lgfc-content-candidate-model.md` (runtime enums in `functions/_lib/content-pipeline-candidate-constants.ts`) |
 | Public helper rule | `content_inventory.status = published` plus source, credit, `allowed_sections`, and no rights/privacy block |
 | Human approval | Mandatory before public publication (`approved_by` / `approved_at`) |
 | Real trial rows | Still absent; #3157 remains the gate before Task 007 |
@@ -57,9 +57,9 @@ These nine states are the Program #2040 operational vocabulary. They map onto ex
 
 | State | Meaning | Maps toward |
 | --- | --- | --- |
-| `draft` | Lead or copy exists; not ready for operator preview | candidate `review_status = candidate` / prep `draft_candidate` |
+| `draft` | Lead or copy exists; not ready for operator preview | candidate `review_status = pending_review` / prep `draft_candidate` |
 | `staged` | Operator preview only; no public route | prep `staged`; admin `/admin/clubstaging` or pipeline preview |
-| `reviewed` | Human review of provenance, rights, credit, factual, and privacy completed | candidate `approved-for-reference` or `approved-for-public-copy` with `reviewer` / `reviewed_at` |
+| `reviewed` | Human review of provenance, rights, credit, factual, and privacy completed | candidate `approved_internal_reference` or `approved_public_candidate` with `reviewer` / `reviewed_at` |
 | `approved` | Named human authority signed off for a specific publication target | prep `approved_for_publish` with `approved_by` / `approved_at` |
 | `scheduled` | Approved and queued for a future public transition | no current runtime field; Task 004 owns the mechanism |
 | `published` | Live on an allowed public surface | `content_inventory.status = published` |
@@ -127,7 +127,7 @@ Public-path means `scheduled` → `published` or `approved` → `published`.
 - For live inventory: `content_inventory.status = published`, source name, credit line, matching `allowed_sections`, and not blocked by rights/privacy flags
 - `rejection_reason` when `rejected`
 
-Missing any required public-path field **fails closed**. `approved-for-public-copy` is not sufficient without `approved_by` / `approved_at`.
+Missing any required public-path field **fails closed**. Candidate `review_status = approved_public_candidate` is not sufficient without `approved_by` / `approved_at`.
 
 ## Fail-closed stop conditions
 
@@ -135,7 +135,7 @@ Stop the affected transition (not the whole program) when:
 
 - source, credit, rights, or review data is missing or `unknown` where public copy is requested;
 - privacy flag is `minors` (default-reject for public) or unresolved living-person/donor risk;
-- `rights_status` is `permission-needed`, `rejected`, or `link-only` for a public-copy target;
+- `rights_status` is `permission_needed`, `copyright_restricted`, or `blocked` for a public-copy target;
 - `approved_by` / `approved_at` is missing;
 - proposed inventory `status` is `published` while operational state is not `approved` or `scheduled`;
 - `allowed_sections` includes a public surface the approval target did not name;
