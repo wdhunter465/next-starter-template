@@ -3,11 +3,17 @@ name: OPS — Chatterbox Development Integration Check (#3415)
 # Operator/agent-triggered end-to-end proof against the live Chatterbox
 # prototype API, running against Development D1 only — never Production.
 #
-# Resolves the component branch's own Cloudflare Pages Development
-# deployment URL via the Cloudflare API (read-only), then exercises the
-# full room/participant/task/claim/event/check-in flow for real: atomic
-# claim races, dependency gating, idempotent events, durable Q&A, missed-
-# wake recovery, and the system_clerk structural boundary.
+# Targets the component branch's known, stable Cloudflare Pages Preview
+# alias directly (component-chatterbox-prototy.next-starter-template-6yr.
+# pages.dev, confirmed against the live Cloudflare dashboard 2026-08-15) —
+# it does not call the Cloudflare platform API to resolve it. Per Bill's
+# explicit instruction (2026-08-15), this check reads only the
+# CHATTERBOX_PREVIEW_ADMIN_TOKEN secret; it does not read CLOUDFLARE_API_TOKEN
+# or CLOUDFLARE_ACCOUNT_ID at all, even though those exist in this repo for
+# unrelated D1/Pages tooling — nothing else is needed for this testing.
+# It exercises the full room/participant/task/claim/event/check-in flow for
+# real: atomic claim races, dependency gating, idempotent events, durable
+# Q&A, missed-wake recovery, and the system_clerk structural boundary.
 #
 # Reads ADMIN_TOKEN from the CHATTERBOX_PREVIEW_ADMIN_TOKEN repository
 # secret — a dedicated credential Bill provisioned specifically for this
@@ -26,7 +32,9 @@ name: OPS — Chatterbox Development Integration Check (#3415)
 #     which this file deliberately is not yet (see chatterbox-launch-ready-
 #     package-3415.md's "Live dispatch status" section).
 #   - workflow_dispatch, for manual re-runs once this file is promoted to
-#     main at Graduation.
+#     main at Graduation. Its preview_url input defaults to the same known
+#     alias but can be overridden if Cloudflare's alias for this branch
+#     ever changes.
 
 on:
   push:
@@ -38,14 +46,18 @@ on:
       - 'functions/_lib/chatterbox.ts'
       - 'migrations/0046_chatterbox_core.sql'
       - 'scripts/ci/chatterbox_dev_integration_check.mjs'
-      - 'scripts/ci/chatterbox_resolve_preview_url.mjs'
   workflow_dispatch:
     inputs:
       target_branch:
-        description: 'Component branch whose Cloudflare Pages deployment to check'
+        description: 'Component branch to record in the result comment'
         required: true
         type: string
         default: component/chatterbox-prototype
+      preview_url:
+        description: 'Known Cloudflare Pages Preview URL to test against'
+        required: true
+        type: string
+        default: https://component-chatterbox-prototy.next-starter-template-6yr.pages.dev
 
 concurrency:
   group: chatterbox-dev-integration-check
@@ -70,29 +82,23 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Resolve target branch
+      - name: Resolve target branch and base URL
         id: target
+        env:
+          DEFAULT_PREVIEW_URL: https://component-chatterbox-prototy.next-starter-template-6yr.pages.dev
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
             echo "branch=${{ inputs.target_branch }}" >> "$GITHUB_OUTPUT"
+            echo "base_url=${{ inputs.preview_url }}" >> "$GITHUB_OUTPUT"
           else
             echo "branch=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
+            echo "base_url=$DEFAULT_PREVIEW_URL" >> "$GITHUB_OUTPUT"
           fi
-
-      - name: Resolve live Development deployment URL
-        id: resolve_url
-        env:
-          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          CHATTERBOX_TARGET_BRANCH: ${{ steps.target.outputs.branch }}
-        run: |
-          url=$(node scripts/ci/chatterbox_resolve_preview_url.mjs)
-          echo "base_url=$url" >> "$GITHUB_OUTPUT"
 
       - name: Run Development integration check
         id: run_check
         env:
-          CHATTERBOX_BASE_URL: ${{ steps.resolve_url.outputs.base_url }}
+          CHATTERBOX_BASE_URL: ${{ steps.target.outputs.base_url }}
           ADMIN_TOKEN: ${{ secrets.CHATTERBOX_PREVIEW_ADMIN_TOKEN }}
         run: |
           set -o pipefail
@@ -112,7 +118,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           if [ -s chatterbox-dev-integration-check-result.json ]; then
-            body="## Chatterbox Development integration check\n\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\nTrigger: ${{ github.event_name }}\nTarget branch: \`${{ steps.target.outputs.branch }}\`\nBase URL: \`${{ steps.resolve_url.outputs.base_url }}\`\n\n\`\`\`json\n$(cat chatterbox-dev-integration-check-result.json)\n\`\`\`"
+            body="## Chatterbox Development integration check\n\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\nTrigger: ${{ github.event_name }}\nTarget branch: \`${{ steps.target.outputs.branch }}\`\nBase URL: \`${{ steps.target.outputs.base_url }}\`\n\n\`\`\`json\n$(cat chatterbox-dev-integration-check-result.json)\n\`\`\`"
           else
             body="## Chatterbox Development integration check — no result produced\n\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n\nThe check did not produce a result file — see workflow logs. No Production access was attempted regardless of this outcome."
           fi

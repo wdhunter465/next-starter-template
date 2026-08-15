@@ -118,9 +118,23 @@ workflow file present in the pushed commit itself — the same mechanism this
 repository's own CI (`pr-hygiene`, `quality`, etc.) has used against
 non-default branches all along — so this does not require promoting
 anything to `main` and carries none of the Production-adjacent risk that
-motivated deferring work unit 5. The first live dispatch fires automatically
-the moment this change merges into `component/chatterbox-prototype`; see
-the follow-up comment on #3415 for the actual result once it completes.
+motivated deferring work unit 5. The first live dispatch fired automatically
+the moment PR #3494 merged into `component/chatterbox-prototype`; see the
+follow-up comment on #3415 for the actual result.
+
+**Work unit 6's credential surface narrowed to a single secret
+(2026-08-15).** The first live dispatch above failed before reaching
+Chatterbox's own API — a Cloudflare Pages Deployments API call returned
+`404 Project not found` while resolving the branch's Preview URL via
+`CLOUDFLARE_API_TOKEN`/`CLOUDFLARE_ACCOUNT_ID`. Per Bill's explicit
+instruction, the fix was not to debug that token's scope but to stop using
+it for this check entirely: only `CHATTERBOX_PREVIEW_ADMIN_TOKEN` is needed
+for this testing. `chatterbox-dev-integration-check.yml` now targets the
+component branch's known, stable Cloudflare Pages Preview alias directly
+(`component-chatterbox-prototy.next-starter-template-6yr.pages.dev`,
+confirmed against the live Cloudflare dashboard 2026-08-15) instead of
+resolving it via the Cloudflare API at run time. `CLOUDFLARE_API_TOKEN` and
+`CLOUDFLARE_ACCOUNT_ID` are no longer read by this workflow at all.
 
 **Production credentials confirmed available, explicitly reserved for
 Graduation (2026-08-15).** Bill confirmed Cloudflare's Production

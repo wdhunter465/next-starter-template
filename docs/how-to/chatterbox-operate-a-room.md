@@ -185,27 +185,33 @@ boundary rejects a substantive event type for real.
 
 **`workflow_dispatch` still 404s (same blocker as step 7), but this workflow
 also dispatches automatically via `push`.** Because this workflow takes no
-required inputs beyond a target branch that already defaults sensibly, it
-triggers on `push` to `component/chatterbox-prototype`, scoped by path to
-files that could affect the check's own correctness. `push`-triggered
-workflows are evaluated from the workflow file present in the pushed commit
-itself, not gated by default-branch registration the way `workflow_dispatch`
-is — the same mechanism this repository's own CI (`pr-hygiene`, `quality`,
-etc.) already relies on against non-default branches. So merging any change
-to a path this workflow watches (including this file's own future edits)
-re-runs it automatically; no manual dispatch needed pre-Graduation. Once
-this file is eventually promoted to `main` at Graduation, `workflow_dispatch`
-becomes usable too, for on-demand re-runs:
+required inputs beyond a target branch and Preview URL that already default
+sensibly, it triggers on `push` to `component/chatterbox-prototype`, scoped
+by path to files that could affect the check's own correctness. `push`-
+triggered workflows are evaluated from the workflow file present in the
+pushed commit itself, not gated by default-branch registration the way
+`workflow_dispatch` is — the same mechanism this repository's own CI
+(`pr-hygiene`, `quality`, etc.) already relies on against non-default
+branches. So merging any change to a path this workflow watches (including
+this file's own future edits) re-runs it automatically; no manual dispatch
+needed pre-Graduation. Once this file is eventually promoted to `main` at
+Graduation, `workflow_dispatch` becomes usable too, for on-demand re-runs:
 
 ```bash
 gh workflow run chatterbox-dev-integration-check.yml \
-  -f target_branch=component/chatterbox-prototype
+  -f target_branch=component/chatterbox-prototype \
+  -f preview_url=https://component-chatterbox-prototy.next-starter-template-6yr.pages.dev
 ```
 
 Results post to #3415 automatically either way. This never targets
-Production — the workflow resolves the component branch's own Cloudflare
-Pages Development deployment via the Cloudflare API before running
-anything, and authenticates with `CHATTERBOX_PREVIEW_ADMIN_TOKEN`, a
-dedicated secret Bill provisioned specifically for Chatterbox
-(2026-08-15), set as the `ADMIN_TOKEN` in Cloudflare Pages' own Preview
-environment — never Production's.
+Production — the workflow targets the component branch's known, stable
+Cloudflare Pages Preview alias directly
+(`component-chatterbox-prototy.next-starter-template-6yr.pages.dev`,
+confirmed against the live Cloudflare dashboard 2026-08-15), and
+authenticates with `CHATTERBOX_PREVIEW_ADMIN_TOKEN`, a dedicated secret
+Bill provisioned specifically for Chatterbox (2026-08-15), set as the
+`ADMIN_TOKEN` in Cloudflare Pages' own Preview environment — never
+Production's. Per Bill's explicit instruction (2026-08-15), this is the
+only secret this workflow reads; it does not use `CLOUDFLARE_API_TOKEN` or
+`CLOUDFLARE_ACCOUNT_ID`, even though those secrets exist elsewhere in this
+repository for unrelated D1/Pages tooling.
