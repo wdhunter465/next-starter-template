@@ -141,6 +141,13 @@ function parseGateTimestamp(value: unknown): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
+function isExplicitUtcInstant(value: unknown): boolean {
+  const dateStr = trim(value);
+  if (!dateStr) return false;
+  if (!/(Z|[+-]00:00)$/.test(dateStr)) return false;
+  return parseGateTimestamp(dateStr) !== null;
+}
+
 export function evaluatePublicationTransition(
   input: PublicationTransitionInput,
 ): PublicationTransitionResult {
@@ -178,7 +185,7 @@ export function evaluatePublicationTransition(
     if (isForbiddenApprover(trim(input.approvedBy))) {
       return fail("A5", "A5: automation must not write approve or invent approved_by.");
     }
-    if (parseGateTimestamp(input.scheduledAt) === null) {
+    if (!isExplicitUtcInstant(input.scheduledAt)) {
       return fail("A4", "A4: scheduled_at must be an explicit UTC instant.");
     }
     if (!sourceName || !creditLine) {

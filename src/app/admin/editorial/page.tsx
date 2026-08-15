@@ -758,6 +758,8 @@ function InventoryRecordCard(props: {
   const [reason, setReason] = useState('');
   const [scheduledAt, setScheduledAt] = useState(record.scheduled_at || '');
   const isScheduled = record.operational_state === 'scheduled';
+  const canSchedule =
+    record.operational_state === 'approved' || record.operational_state === 'scheduled';
 
   return (
     <article style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: 12, padding: 12, display: 'grid', gap: 12 }}>
@@ -825,8 +827,8 @@ function InventoryRecordCard(props: {
                 scheduled_at: scheduledAt,
               })
             }
-            disabled={!props.actionsEnabled || record.status === 'published'}
-            style={buttonStyle(!props.actionsEnabled || record.status === 'published')}
+            disabled={!props.actionsEnabled || record.status === 'published' || !canSchedule}
+            style={buttonStyle(!props.actionsEnabled || record.status === 'published' || !canSchedule)}
           >
             Schedule
           </button>

@@ -21,7 +21,7 @@ Human approval remains mandatory. This slice does not auto-publish, does not add
 
 This report covers the #2055 scheduler slice only:
 
-- legal `approved` → `scheduled` writes with an explicit UTC `scheduled_at`;
+- legal `approved` → `scheduled` writes with an explicit UTC `scheduled_at` on the request (`Z` or `+00:00`; stored history is not reused);
 - pause (reason required) and cancel (`scheduled` → `approved`);
 - operator fire of a due, unpaused schedule through the existing `publish` action;
 - additive `scheduled_at` / `schedule_paused` / `pause_reason` columns;
@@ -57,12 +57,12 @@ After merge and Dev application of migration `0047`:
 
 | Action | Runtime |
 | --- | --- |
-| `schedule` | Sets `operational_state = scheduled`, stores UTC `scheduled_at`, clears pause |
+| `schedule` | Sets `operational_state = scheduled`, stores request-body UTC `scheduled_at` (`Z` or `+00:00` only; no stored-row fallback), clears pause |
 | `pause_schedule` | Sets `schedule_paused = 1` and `pause_reason`; does not publish |
 | `cancel_schedule` | Returns `operational_state` to `approved`; keeps `scheduled_at` |
 | `publish` while `scheduled` | Same A1–A7/S4 gate as the first slice, now with `scheduled_at` and pause wired from D1 |
 
-Illegal: `draft` → `scheduled`; schedule without UTC `scheduled_at`; fire before `scheduled_at`; fire while paused; scheduler-named approvers.
+Illegal: `draft` → `scheduled`; schedule without request-body UTC `scheduled_at`; fire before `scheduled_at`; fire while paused; scheduler-named approvers.
 
 ## Explicit non-goals of this slice
 

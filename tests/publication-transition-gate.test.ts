@@ -218,6 +218,32 @@ describe('publication-transition-gate', () => {
     expect(result).toMatchObject({ ok: false, checkId: 'A4' });
   });
 
+  it('A4 refuses schedule when scheduled_at lacks an explicit UTC timezone', () => {
+    const timezoneLess = evaluatePublicationTransition({
+      action: 'schedule',
+      currentInventoryStatus: 'draft',
+      operationalState: 'approved',
+      approvedBy: 'Bill',
+      approvedAt: '2026-08-14T22:00:00Z',
+      scheduledAt: '2026-08-16T12:00:00',
+      sourceName: 'Archive',
+      creditLine: 'LGFC Archive',
+    });
+    expect(timezoneLess).toMatchObject({ ok: false, checkId: 'A4' });
+
+    const nonUtcOffset = evaluatePublicationTransition({
+      action: 'schedule',
+      currentInventoryStatus: 'draft',
+      operationalState: 'approved',
+      approvedBy: 'Bill',
+      approvedAt: '2026-08-14T22:00:00Z',
+      scheduledAt: '2026-08-16T12:00:00+05:00',
+      sourceName: 'Archive',
+      creditLine: 'LGFC Archive',
+    });
+    expect(nonUtcOffset).toMatchObject({ ok: false, checkId: 'A4' });
+  });
+
   it('A3 refuses schedule from draft', () => {
     const result = evaluatePublicationTransition({
       action: 'schedule',
@@ -233,7 +259,7 @@ describe('publication-transition-gate', () => {
   });
 
   it('allows approved to scheduled when A2, A4, and S4 pass', () => {
-    const result = evaluatePublicationTransition({
+    const withZ = evaluatePublicationTransition({
       action: 'schedule',
       currentInventoryStatus: 'draft',
       operationalState: 'approved',
@@ -243,7 +269,19 @@ describe('publication-transition-gate', () => {
       sourceName: 'Archive',
       creditLine: 'LGFC Archive',
     });
-    expect(result).toEqual({ ok: true });
+    expect(withZ).toEqual({ ok: true });
+
+    const withOffset = evaluatePublicationTransition({
+      action: 'schedule',
+      currentInventoryStatus: 'draft',
+      operationalState: 'approved',
+      approvedBy: 'Bill',
+      approvedAt: '2026-08-14T22:00:00Z',
+      scheduledAt: '2026-08-16T12:00:00+00:00',
+      sourceName: 'Archive',
+      creditLine: 'LGFC Archive',
+    });
+    expect(withOffset).toEqual({ ok: true });
   });
 
   it('S9 refuses pause without a reason', () => {

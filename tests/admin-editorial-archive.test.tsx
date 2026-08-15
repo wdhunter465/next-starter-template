@@ -1198,6 +1198,35 @@ describe('editorial archive APIs', () => {
     expect(runs.some((run) => run.sql.includes('scheduled_at'))).toBe(true);
   });
 
+  it('refuses schedule that omits scheduled_at even when the row already has one (A4)', async () => {
+    const { db, runs } = makeEditorialDb({
+      inventory: [
+        {
+          id: 4,
+          status: 'draft',
+          operational_state: 'approved',
+          approved_by: 'Bill',
+          approved_at: '2026-08-14T22:00:00Z',
+          scheduled_at: '2026-08-16T12:00:00Z',
+          source_name: 'Archive',
+          credit_line: 'LGFC Archive',
+        },
+      ],
+    });
+
+    const response = await editorialPublishPost({
+      request: adminPostRequest('/api/admin/editorial/publish', {
+        id: 4,
+        action: 'schedule',
+      }),
+      env: { ADMIN_TOKEN: 'secret', DB: db },
+    });
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({ ok: false, check_id: 'A4' });
+    expect(runs.some((run) => run.sql.includes('UPDATE content_inventory'))).toBe(false);
+  });
+
   it('refuses scheduled fire before scheduled_at (A4)', async () => {
     const { db, runs } = makeEditorialDb({
       inventory: [

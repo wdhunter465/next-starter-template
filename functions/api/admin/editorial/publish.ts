@@ -80,8 +80,11 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     const requestedApprovedBy = asText(body?.approved_by);
     const requestedApprovedAt = asText(body?.approved_at) || (action === "approve" ? now : "");
     const reason = asText(body?.reason);
+    const requestedScheduledAt = asText(body?.scheduled_at);
     const scheduledAt =
-      asText(body?.scheduled_at) || asText((existing as any).scheduled_at) || "";
+      action === "schedule"
+        ? requestedScheduledAt
+        : requestedScheduledAt || asText((existing as any).scheduled_at) || "";
     const paused = Number((existing as any).schedule_paused) === 1;
 
     const gate = evaluatePublicationTransition({
