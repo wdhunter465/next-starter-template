@@ -87,11 +87,21 @@ export function buildPublicationEventBinds(event: PublicationAuditEvent): unknow
   ];
 }
 
-export async function recordPublicationEvent(db: { prepare: (sql: string) => any }, event: PublicationAuditEvent): Promise<void> {
+export function preparePublicationEvent(
+  db: { prepare: (sql: string) => { bind: (...args: unknown[]) => any } },
+  event: PublicationAuditEvent,
+) {
   if (event.action === "rollback") {
     throw new Error("rollback audit writes are not implemented in this Task 007 slice.");
   }
-  await db.prepare(INSERT_SQL).bind(...buildPublicationEventBinds(event)).run();
+  return db.prepare(INSERT_SQL).bind(...buildPublicationEventBinds(event));
+}
+
+export async function recordPublicationEvent(
+  db: { prepare: (sql: string) => { bind: (...args: unknown[]) => { run: () => Promise<unknown> } } },
+  event: PublicationAuditEvent,
+): Promise<void> {
+  await preparePublicationEvent(db, event).run();
 }
 
 export { INSERT_SQL as PUBLICATION_EVENT_INSERT_SQL };

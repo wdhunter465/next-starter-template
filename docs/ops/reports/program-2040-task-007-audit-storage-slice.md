@@ -33,7 +33,7 @@ It does not implement rollback writes, `/admin/clubstaging` preview, or pipeline
 
 After merge and Dev application of migration `0048`:
 
-- a successful editorial write also inserts one `content_inventory_events` row;
+- a successful editorial write batches the inventory UPDATE with one `content_inventory_events` INSERT;
 - refused gates and rollback do not insert;
 - prior events are not updated in place;
 - public helpers remain `publishedInventoryWhere`.

@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   buildPublicationEventBinds,
+  preparePublicationEvent,
   toAuditAction,
 } from '../functions/_lib/publication-audit';
 
@@ -47,5 +48,18 @@ describe('publication-audit', () => {
     expect(binds[8]).toBe('unpublish');
     expect(binds[9]).toBe('Withdrawn by Product Authority');
     expect(binds[14]).toBe(0);
+  });
+
+  it('refuses to prepare a rollback audit statement', () => {
+    expect(() =>
+      preparePublicationEvent(
+        { prepare: () => ({ bind: () => ({ run: async () => ({}) }) }) },
+        {
+          inventoryId: 4,
+          action: 'rollback',
+          eventAt: '2026-08-15T12:00:00Z',
+        },
+      ),
+    ).toThrow(/rollback audit writes are not implemented/);
   });
 });
