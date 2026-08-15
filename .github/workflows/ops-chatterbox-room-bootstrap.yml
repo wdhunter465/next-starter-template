@@ -69,7 +69,8 @@ on:
             {"participant_key":"claude-code","display_name":"Claude Code","role_class":"implementation_agent","assigned_by":"Bill","source_authority":"issue:3415"},
             {"participant_key":"cursor-local","display_name":"Cursor Local","role_class":"implementation_agent","assigned_by":"Bill","source_authority":"issue:3415"},
             {"participant_key":"google-jules","display_name":"Google Jules","role_class":"implementation_agent","assigned_by":"Bill","source_authority":"issue:3415"},
-            {"participant_key":"grok","display_name":"Grok","role_class":"implementation_agent","assigned_by":"Bill","source_authority":"issue:3415"}
+            {"participant_key":"grok","display_name":"Grok","role_class":"implementation_agent","assigned_by":"Bill","source_authority":"issue:3415"},
+            {"participant_key":"chat","display_name":"OpenAI ChatGPT","role_class":"pmo","assigned_by":"Bill","source_authority":"issue:3415#5279810214"}
           ]
 
 concurrency:
@@ -106,7 +107,8 @@ jobs:
             {"participant_key":"claude-code","display_name":"Claude Code","role_class":"implementation_agent","assigned_by":"Bill","source_authority":"issue:3415"},
             {"participant_key":"cursor-local","display_name":"Cursor Local","role_class":"implementation_agent","assigned_by":"Bill","source_authority":"issue:3415"},
             {"participant_key":"google-jules","display_name":"Google Jules","role_class":"implementation_agent","assigned_by":"Bill","source_authority":"issue:3415"},
-            {"participant_key":"grok","display_name":"Grok","role_class":"implementation_agent","assigned_by":"Bill","source_authority":"issue:3415"}
+            {"participant_key":"grok","display_name":"Grok","role_class":"implementation_agent","assigned_by":"Bill","source_authority":"issue:3415"},
+            {"participant_key":"chat","display_name":"OpenAI ChatGPT","role_class":"pmo","assigned_by":"Bill","source_authority":"issue:3415#5279810214"}
           ]'
 
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
