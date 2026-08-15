@@ -1,0 +1,33 @@
+name: Agent Polling & Queue Routing Dry-Run
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: read
+
+jobs:
+  poll-and-verify-routing:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.node-version'
+
+      - name: Verify Orchestrator Queue Routing Matrix
+        run: |
+          node --input-type=module -e '
+          import { evaluateQueueRouting } from "./scripts/orchestrator/queue-routing.mjs";
+          console.log("Evaluating Agent Polling Queue Routing...");
+          const res = evaluateQueueRouting({
+            labels: [{ name: "team:engineering" }, { name: "eng:priority:1" }]
+          });
+          console.log("Routing result:", res);
+          '
