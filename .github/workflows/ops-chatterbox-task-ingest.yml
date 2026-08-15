@@ -119,16 +119,22 @@ jobs:
             echo "FAIL-CLOSED: room_key contains unexpected characters: $room_key" >&2
             exit 1
           fi
+          # collision_domain/depends_on must be explicitly present (not
+          # defaulted via `// []`): the server-side upsert unconditionally
+          # SETs both columns from the POST body, so a re-run that omitted
+          # them would silently wipe an existing task's domains/dependencies
+          # rather than leaving them alone (Copilot finding, PR #3526).
+          # title is rejected on either LF or CR, not just LF.
           if ! echo "$tasks_json" | jq -e '
                 type == "array" and length > 0 and all(.[];
                   (.task_key|type=="string") and (.task_key|test("^[A-Za-z0-9._-]+$")) and
-                  (.title|type=="string") and (.title|test("\n") | not) and
+                  (.title|type=="string") and (.title|test("[\r\n]") | not) and
                   (.state|type=="string") and
                   (.state as $s | ["PLANNED","BLOCKED","AVAILABLE","CLAIMED","IN_PROGRESS","QUESTION","READY_FOR_REVIEW","ACCEPTED","REWORK","COMPLETE","CANCELLED"] | index($s) != null) and
-                  ((.collision_domain // []) | type=="array") and
-                  ((.depends_on // []) | type=="array")
+                  has("collision_domain") and (.collision_domain | type=="array") and
+                  has("depends_on") and (.depends_on | type=="array")
                 )' >/dev/null 2>&1; then
-            echo "FAIL-CLOSED: tasks_json must be a non-empty JSON array of objects with task_key (safe charset), title (no newlines), a valid state, and array-typed collision_domain/depends_on" >&2
+            echo "FAIL-CLOSED: tasks_json must be a non-empty JSON array of objects with task_key (safe charset), title (no CR/LF), a valid state, and explicit array-typed collision_domain/depends_on (required keys, not optional)" >&2
             exit 1
           fi
 
