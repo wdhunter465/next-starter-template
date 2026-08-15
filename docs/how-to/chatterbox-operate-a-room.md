@@ -150,14 +150,16 @@ into the room via the already-registered `system_clerk` participant, which
 is structurally restricted to `STATUS`/`SYSTEM`/`CHECK_IN`/`CHECK_OUT` event
 types (see chatterbox-authority-boundary.md).
 
-**Dispatch is currently blocked, same as step 8 below.** This workflow file
-exists only on `component/chatterbox-prototype`, never merged into `main`,
-and GitHub's Actions API resolves `workflow_dispatch` against workflows
-registered on the default branch — so dispatch 404s regardless of whether
-it's attempted via CLI, API, or the GitHub UI. The command below is the
-intended invocation once that's resolved; per Bill's decision (2026-08-15),
-resolving it is deferred to Project Graduation itself, not required before
-then:
+**Dispatch is currently blocked.** This workflow file exists only on
+`component/chatterbox-prototype`, never merged into `main`, and GitHub's
+Actions API resolves `workflow_dispatch` against workflows registered on
+the default branch — so dispatch 404s regardless of whether it's attempted
+via CLI, API, or the GitHub UI. Unlike step 8 below, this workflow takes
+required inputs (`issue_number`, `room_key`) with no safe default for an
+automatic trigger, so it stays `workflow_dispatch`-only. The command below
+is the intended invocation once that's resolved; per Bill's decision
+(2026-08-15), resolving it is deferred to Project Graduation itself, not
+required before then:
 
 ```bash
 gh workflow run chatterbox-github-ingest.yml \
@@ -181,20 +183,29 @@ idempotency, exercises durable question/answer across a check-in boundary,
 proves missed-wake catch-up is exact, and confirms the `system_clerk`
 boundary rejects a substantive event type for real.
 
-**Live dispatch is deferred to Project Graduation itself (Bill's decision,
-2026-08-15), not a pre-Graduation step.** Same blocker as step 7: the
-workflow file only exists on `component/chatterbox-prototype`, so
-`workflow_dispatch` 404s until it's promoted to `main` — deliberately
-deferred rather than done now, since promoting workflow files to `main`
-would very likely trigger a Cloudflare Pages build against Production and
-that's explicitly out of scope before a GO/NO-GO decision. The command below
-is the intended invocation once Graduation resolves this:
+**`workflow_dispatch` still 404s (same blocker as step 7), but this workflow
+also dispatches automatically via `push`.** Because this workflow takes no
+required inputs beyond a target branch that already defaults sensibly, it
+triggers on `push` to `component/chatterbox-prototype`, scoped by path to
+files that could affect the check's own correctness. `push`-triggered
+workflows are evaluated from the workflow file present in the pushed commit
+itself, not gated by default-branch registration the way `workflow_dispatch`
+is — the same mechanism this repository's own CI (`pr-hygiene`, `quality`,
+etc.) already relies on against non-default branches. So merging any change
+to a path this workflow watches (including this file's own future edits)
+re-runs it automatically; no manual dispatch needed pre-Graduation. Once
+this file is eventually promoted to `main` at Graduation, `workflow_dispatch`
+becomes usable too, for on-demand re-runs:
 
 ```bash
 gh workflow run chatterbox-dev-integration-check.yml \
   -f target_branch=component/chatterbox-prototype
 ```
 
-Results post to #3415 automatically. This never targets Production — the
-workflow resolves the component branch's own Cloudflare Pages Development
-deployment via the Cloudflare API before running anything.
+Results post to #3415 automatically either way. This never targets
+Production — the workflow resolves the component branch's own Cloudflare
+Pages Development deployment via the Cloudflare API before running
+anything, and authenticates with `CHATTERBOX_PREVIEW_ADMIN_TOKEN`, a
+dedicated secret Bill provisioned specifically for Chatterbox
+(2026-08-15), set as the `ADMIN_TOKEN` in Cloudflare Pages' own Preview
+environment — never Production's.

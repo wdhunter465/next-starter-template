@@ -6,7 +6,7 @@ Owns: What the #3415 Chatterbox prototype does and does not provide, the system_
 Does Not Own: Repository-wide agent/PMO governance (see docs/governance/AGENT-TEAM.md and related repository authority docs, which this component does not supersede or duplicate)
 Canonical Reference: /docs/governance/chatterbox-authority-boundary.md
 Related Issues: #3415
-Last Reviewed: 2026-08-14
+Last Reviewed: 2026-08-15
 ---
 
 # Chatterbox authority boundary
@@ -74,24 +74,27 @@ being violated by exactly that actor; this boundary does not depend on that.
   boundary is stated in advance of building one).
 - No self-approval/self-merge by any Chatterbox-authored automation.
 
-## Credential confirmation: `ADMIN_TOKEN`
+## Credential confirmation: `CHATTERBOX_PREVIEW_ADMIN_TOKEN`
 
 The Development integration check (work unit 6) and GitHub ingestion (work
-unit 5) workflows both call the deployed API using the repository's existing
-`ADMIN_TOKEN` secret — confirmed already configured by Product Authority
-(2026-08-14), so no new secret needed provisioning for Chatterbox to reuse
-the same `requireAdmin` contract every `functions/api/admin/**` route
-already relies on (rationale in chatterbox-architecture-rationale.md).
+unit 5) workflows both call the deployed API using the
+`CHATTERBOX_PREVIEW_ADMIN_TOKEN` repository secret — a credential Bill
+provisioned specifically for Chatterbox (2026-08-15), reusing the same
+`requireAdmin` contract every `functions/api/admin/**` route already relies
+on, but under a name that declares its own scope rather than the earlier
+shared, general-purpose `ADMIN_TOKEN` secret (rationale in
+chatterbox-architecture-rationale.md).
 
-**That confirmation covers the secret's name, not its scope.** Per
-`docs/ops/reports/delivery-system-preview-isolation-audit.md`'s explicit
-warning, Preview must carry its own `ADMIN_TOKEN` value, never Production's
-— mirroring Production's value into Preview would expose the full admin
-write surface against Preview D1 under a token that looks Preview-scoped.
-Neither Chatterbox workflow targets Production and neither can detect a
-misconfigured value; that the GitHub secret's *value* is actually the
-Development/Preview one, not Production's, remains an operational fact for
-Bill/PMO to confirm, not something inferable from the secret's name alone.
+**This closes the name-vs-scope gap the earlier shared-secret arrangement
+had.** Per `docs/ops/reports/delivery-system-preview-isolation-audit.md`'s
+explicit warning, Preview must carry its own `ADMIN_TOKEN` value, never
+Production's — mirroring Production's value into Preview would expose the
+full admin write surface against Preview D1 under a token that looks
+Preview-scoped. Bill set `CHATTERBOX_PREVIEW_ADMIN_TOKEN`'s value directly
+as the `ADMIN_TOKEN` configured in Cloudflare Pages' own Preview
+environment (2026-08-15), rather than pointing at a shared secret whose
+environment-scope had to be inferred or separately confirmed. Neither
+Chatterbox workflow targets Production regardless.
 
 ## Relationship to repository-wide agent governance
 
