@@ -87,6 +87,7 @@ export const onRequestGet = async (context: any): Promise<Response> => {
                       allowed_sections, priority, canonical, source_name, source_url, credit_line,
                       event_date, event_year, rotation_group, last_featured, feature_weight, status,
                       operational_state, approved_by, approved_at, publication_reason,
+                      scheduled_at, schedule_paused, pause_reason,
                       review_notes, submitted_by, created_at, updated_at, published_at,
                       suppression_reason, takedown_request_source, takedown_resolution_note,
                       takedown_requested_at
@@ -102,6 +103,7 @@ export const onRequestGet = async (context: any): Promise<Response> => {
                       allowed_sections, priority, canonical, source_name, source_url, credit_line,
                       event_date, event_year, rotation_group, last_featured, feature_weight, status,
                       operational_state, approved_by, approved_at, publication_reason,
+                      scheduled_at, schedule_paused, pause_reason,
                       review_notes, submitted_by, created_at, updated_at, published_at,
                       suppression_reason, takedown_request_source, takedown_resolution_note,
                       takedown_requested_at

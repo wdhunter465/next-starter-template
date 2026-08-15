@@ -100,6 +100,9 @@ type InventoryRecord = {
   approved_by?: string | null;
   approved_at?: string | null;
   publication_reason?: string | null;
+  scheduled_at?: string | null;
+  schedule_paused?: number | null;
+  pause_reason?: string | null;
   review_notes?: string | null;
   last_featured?: string | null;
   created_at?: string | null;
@@ -111,9 +114,18 @@ type InventoryRecord = {
 type PublicationPayload = {
   id: number;
   status?: InventoryRecord['status'];
-  action?: 'approve' | 'publish' | 'unpublish' | 'archive' | 'return_to_draft';
+  action?:
+    | 'approve'
+    | 'publish'
+    | 'unpublish'
+    | 'archive'
+    | 'return_to_draft'
+    | 'schedule'
+    | 'pause_schedule'
+    | 'cancel_schedule';
   approved_by?: string;
   reason?: string;
+  scheduled_at?: string;
 };
 
 type EditorialListResponse = {
@@ -744,6 +756,8 @@ function InventoryRecordCard(props: {
   const { record } = props;
   const [approvedBy, setApprovedBy] = useState(record.approved_by || '');
   const [reason, setReason] = useState('');
+  const [scheduledAt, setScheduledAt] = useState(record.scheduled_at || '');
+  const isScheduled = record.operational_state === 'scheduled';
 
   return (
     <article style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: 12, padding: 12, display: 'grid', gap: 12 }}>
@@ -774,6 +788,16 @@ function InventoryRecordCard(props: {
               style={fieldStyle()}
             />
           </label>
+          <label style={{ display: 'grid', gap: 4, fontSize: 12 }}>
+            Scheduled at (UTC)
+            <input
+              value={scheduledAt}
+              onChange={(event) => setScheduledAt(event.target.value)}
+              placeholder="2026-08-16T12:00:00Z"
+              disabled={!props.actionsEnabled}
+              style={fieldStyle()}
+            />
+          </label>
           <button
             type="button"
             onClick={() =>
@@ -791,6 +815,38 @@ function InventoryRecordCard(props: {
             style={buttonStyle(!props.actionsEnabled || record.status === 'published')}
           >
             Publish
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              void props.onPublish({
+                id: record.id,
+                action: 'schedule',
+                scheduled_at: scheduledAt,
+              })
+            }
+            disabled={!props.actionsEnabled || record.status === 'published'}
+            style={buttonStyle(!props.actionsEnabled || record.status === 'published')}
+          >
+            Schedule
+          </button>
+          <button
+            type="button"
+            onClick={() =>
+              void props.onPublish({ id: record.id, action: 'pause_schedule', reason })
+            }
+            disabled={!props.actionsEnabled || !isScheduled}
+            style={buttonStyle(!props.actionsEnabled || !isScheduled)}
+          >
+            Pause schedule
+          </button>
+          <button
+            type="button"
+            onClick={() => void props.onPublish({ id: record.id, action: 'cancel_schedule' })}
+            disabled={!props.actionsEnabled || !isScheduled}
+            style={buttonStyle(!props.actionsEnabled || !isScheduled)}
+          >
+            Cancel schedule
           </button>
           <button
             type="button"
@@ -827,7 +883,9 @@ function InventoryRecordCard(props: {
         {record.rotation_group || '—'} · weight: {record.feature_weight ?? 1} · last featured:{' '}
         {record.last_featured || '—'} · created: {record.created_at || '—'} · updated: {record.updated_at || '—'} ·
         published: {record.published_at || '—'} · approved by: {record.approved_by || '—'} · approved at:{' '}
-        {record.approved_at || '—'}
+        {record.approved_at || '—'} · scheduled at: {record.scheduled_at || '—'}
+        {Number(record.schedule_paused) === 1 ? ' · paused' : ''}
+        {record.pause_reason ? ` (${record.pause_reason})` : ''}
       </div>
 
       <form
