@@ -4,6 +4,7 @@
 
 import { requireAdmin } from "../../../_lib/auth";
 import { jsonResponse, requireD1, requireTables } from "../../../_lib/d1";
+import { preparePublicationEvent } from "../../../_lib/publication-audit";
 import {
   evaluatePublicationTransition,
   inferPublicationAction,
@@ -11,6 +12,7 @@ import {
   isPublicationAction,
   resolveOperationalState,
   type InventoryStatus,
+  type OperationalState,
   type PublicationAction,
 } from "../../../_lib/publication-transition-gate";
 
@@ -43,7 +45,7 @@ export const onRequestPost = async (context: any): Promise<Response> => {
   const d1 = requireD1(env);
   if (!d1.ok) return jsonResponse(d1.body, d1.status);
 
-  const tables = await requireTables(d1.db, ["content_inventory"]);
+  const tables = await requireTables(d1.db, ["content_inventory", "content_inventory_events"]);
   if (!tables.ok) return jsonResponse(tables.body, tables.status);
 
   try {
@@ -87,13 +89,15 @@ export const onRequestPost = async (context: any): Promise<Response> => {
         : requestedScheduledAt || asText((existing as any).scheduled_at) || "";
     const paused = Number((existing as any).schedule_paused) === 1;
 
+    const fromOperational = resolveOperationalState(
+      currentInventoryStatus,
+      (existing as any).operational_state,
+    );
+
     const gate = evaluatePublicationTransition({
       action,
       currentInventoryStatus,
-      operationalState: resolveOperationalState(
-        currentInventoryStatus,
-        (existing as any).operational_state,
-      ),
+      operationalState: fromOperational,
       approvedBy: (existing as any).approved_by,
       approvedAt: (existing as any).approved_at,
       requestedApprovedBy,
@@ -110,6 +114,22 @@ export const onRequestPost = async (context: any): Promise<Response> => {
       return jsonResponse({ ok: false, error: gate.error, check_id: gate.checkId }, 400);
     }
 
+    const auditEvent = (toState: OperationalState) =>
+      preparePublicationEvent(d1.db, {
+        inventoryId: id,
+        action,
+        actor: requestedApprovedBy || asText((existing as any).approved_by),
+        fromState: fromOperational,
+        toState,
+        reason,
+        eventAt: now,
+        approvedBy: requestedApprovedBy || asText((existing as any).approved_by),
+        approvedAt: requestedApprovedAt || asText((existing as any).approved_at),
+        sourceName: asText((existing as any).source_name),
+        creditLine: asText((existing as any).credit_line),
+        scheduleId: scheduledAt || null,
+      });
+
     if (action === "rollback") {
       return jsonResponse(
         {
@@ -122,14 +142,16 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     }
 
     if (action === "schedule") {
-      await d1.db
-        .prepare(
-          `UPDATE content_inventory
-              SET operational_state = ?, scheduled_at = ?, schedule_paused = ?, pause_reason = NULL, updated_at = ?
-            WHERE id = ?`,
-        )
-        .bind("scheduled", scheduledAt, 0, now, id)
-        .run();
+      await d1.db.batch([
+        d1.db
+          .prepare(
+            `UPDATE content_inventory
+                SET operational_state = ?, scheduled_at = ?, schedule_paused = ?, pause_reason = NULL, updated_at = ?
+              WHERE id = ?`,
+          )
+          .bind("scheduled", scheduledAt, 0, now, id),
+        auditEvent("scheduled"),
+      ]);
 
       return jsonResponse(
         {
@@ -145,14 +167,16 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     }
 
     if (action === "pause_schedule") {
-      await d1.db
-        .prepare(
-          `UPDATE content_inventory
-              SET schedule_paused = ?, pause_reason = ?, updated_at = ?
-            WHERE id = ?`,
-        )
-        .bind(1, reason, now, id)
-        .run();
+      await d1.db.batch([
+        d1.db
+          .prepare(
+            `UPDATE content_inventory
+                SET schedule_paused = ?, pause_reason = ?, updated_at = ?
+              WHERE id = ?`,
+          )
+          .bind(1, reason, now, id),
+        auditEvent("scheduled"),
+      ]);
 
       return jsonResponse(
         {
@@ -169,14 +193,16 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     }
 
     if (action === "cancel_schedule") {
-      await d1.db
-        .prepare(
-          `UPDATE content_inventory
-              SET operational_state = ?, schedule_paused = ?, pause_reason = NULL, updated_at = ?
-            WHERE id = ?`,
-        )
-        .bind("approved", 0, now, id)
-        .run();
+      await d1.db.batch([
+        d1.db
+          .prepare(
+            `UPDATE content_inventory
+                SET operational_state = ?, schedule_paused = ?, pause_reason = NULL, updated_at = ?
+              WHERE id = ?`,
+          )
+          .bind("approved", 0, now, id),
+        auditEvent("approved"),
+      ]);
 
       return jsonResponse(
         {
@@ -192,14 +218,16 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     }
 
     if (action === "approve") {
-      await d1.db
-        .prepare(
-          `UPDATE content_inventory
-              SET operational_state = ?, approved_by = ?, approved_at = ?, updated_at = ?
-            WHERE id = ?`,
-        )
-        .bind("approved", requestedApprovedBy, requestedApprovedAt, now, id)
-        .run();
+      await d1.db.batch([
+        d1.db
+          .prepare(
+            `UPDATE content_inventory
+                SET operational_state = ?, approved_by = ?, approved_at = ?, updated_at = ?
+              WHERE id = ?`,
+          )
+          .bind("approved", requestedApprovedBy, requestedApprovedAt, now, id),
+        auditEvent("approved"),
+      ]);
 
       return jsonResponse(
         {
@@ -229,14 +257,16 @@ export const onRequestPost = async (context: any): Promise<Response> => {
       }
 
       const nextStatus: InventoryStatus = "published";
-      await d1.db
-        .prepare(
-          `UPDATE content_inventory
-              SET status = ?, operational_state = ?, updated_at = ?, published_at = ?
-            WHERE id = ?`,
-        )
-        .bind(nextStatus, "published", now, now, id)
-        .run();
+      await d1.db.batch([
+        d1.db
+          .prepare(
+            `UPDATE content_inventory
+                SET status = ?, operational_state = ?, updated_at = ?, published_at = ?
+              WHERE id = ?`,
+          )
+          .bind(nextStatus, "published", now, now, id),
+        auditEvent("published"),
+      ]);
 
       return jsonResponse(
         { ok: true, id, status: nextStatus, operational_state: "published", published_at: now },
@@ -247,14 +277,16 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     if (action === "unpublish" || action === "archive") {
       const nextStatus: InventoryStatus = "archived";
       const nextOperational = action === "unpublish" ? "unpublished" : "archived";
-      await d1.db
-        .prepare(
-          `UPDATE content_inventory
-              SET status = ?, operational_state = ?, publication_reason = ?, updated_at = ?, published_at = NULL
-            WHERE id = ?`,
-        )
-        .bind(nextStatus, nextOperational, reason, now, id)
-        .run();
+      await d1.db.batch([
+        d1.db
+          .prepare(
+            `UPDATE content_inventory
+                SET status = ?, operational_state = ?, publication_reason = ?, updated_at = ?, published_at = NULL
+              WHERE id = ?`,
+          )
+          .bind(nextStatus, nextOperational, reason, now, id),
+        auditEvent(nextOperational),
+      ]);
 
       return jsonResponse(
         {
@@ -268,14 +300,16 @@ export const onRequestPost = async (context: any): Promise<Response> => {
       );
     }
 
-    await d1.db
-      .prepare(
-        `UPDATE content_inventory
-            SET status = ?, operational_state = ?, updated_at = ?, published_at = NULL
-          WHERE id = ?`,
-      )
-      .bind("draft", "draft", now, id)
-      .run();
+    await d1.db.batch([
+      d1.db
+        .prepare(
+          `UPDATE content_inventory
+              SET status = ?, operational_state = ?, updated_at = ?, published_at = NULL
+            WHERE id = ?`,
+        )
+        .bind("draft", "draft", now, id),
+      auditEvent("draft"),
+    ]);
 
     return jsonResponse({ ok: true, id, status: "draft", operational_state: "draft", published_at: null }, 200);
   } catch (err: any) {

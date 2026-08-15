@@ -68,7 +68,7 @@ function makeEditorialDb(options?: {
   const library = options?.library ?? [];
   const sessionEmail = options?.sessionEmail ?? 'member@example.com';
   const runs: Array<{ sql: string; args: unknown[] }> = [];
-  const tableNames = ['submission_queue', 'content_inventory', 'library_entries', 'member_sessions', 'members'];
+  const tableNames = ['submission_queue', 'content_inventory', 'content_inventory_events', 'library_entries', 'member_sessions', 'members'];
 
   function filterRows(sql: string, rows: Array<Record<string, unknown>>, args: unknown[]) {
     let filtered = rows;
@@ -166,6 +166,13 @@ function makeEditorialDb(options?: {
         }),
       };
     }),
+    batch: async (statements: Array<{ run: () => Promise<unknown> }>) => {
+      const results = [];
+      for (const statement of statements) {
+        results.push(await statement.run());
+      }
+      return results;
+    },
   };
 
   return { db, runs };
@@ -1048,6 +1055,7 @@ describe('editorial archive APIs', () => {
       approved_by: 'Bill',
     });
     expect(runs.some((run) => run.sql.includes('operational_state'))).toBe(true);
+    expect(runs.some((run) => run.sql.includes('INSERT INTO content_inventory_events'))).toBe(true);
   });
 
   it('publishes only after operational state is approved and attribution is present', async () => {
@@ -1078,6 +1086,30 @@ describe('editorial archive APIs', () => {
       operational_state: 'published',
     });
     expect(runs.some((run) => run.sql.includes('UPDATE content_inventory'))).toBe(true);
+    expect(runs.some((run) => run.sql.includes('INSERT INTO content_inventory_events'))).toBe(true);
+  });
+
+  it('refuses rollback without writing an audit event', async () => {
+    const { db, runs } = makeEditorialDb({
+      inventory: [
+        {
+          id: 4,
+          status: 'archived',
+          operational_state: 'unpublished',
+          source_name: 'Archive',
+          credit_line: 'LGFC Archive',
+        },
+      ],
+    });
+
+    const response = await editorialPublishPost({
+      request: adminPostRequest('/api/admin/editorial/publish', { id: 4, action: 'rollback' }),
+      env: { ADMIN_TOKEN: 'secret', DB: db },
+    });
+
+    expect(response.status).toBe(400);
+    await expect(response.json()).resolves.toMatchObject({ ok: false, check_id: 'A7' });
+    expect(runs.some((run) => run.sql.includes('INSERT INTO content_inventory_events'))).toBe(false);
   });
 
   it('rejects publishing content_inventory records without required attribution', async () => {
@@ -1196,6 +1228,7 @@ describe('editorial archive APIs', () => {
       schedule_paused: 0,
     });
     expect(runs.some((run) => run.sql.includes('scheduled_at'))).toBe(true);
+    expect(runs.some((run) => run.sql.includes('INSERT INTO content_inventory_events'))).toBe(true);
   });
 
   it('refuses schedule that omits scheduled_at even when the row already has one (A4)', async () => {
