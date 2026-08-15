@@ -6,7 +6,7 @@ Owns: An independent survey of external prior art evaluated against Chatterbox's
 Does Not Own: Chatterbox's actual architecture (see chatterbox-architecture-rationale.md); the authority boundary (see chatterbox-authority-boundary.md); any commitment to build anything listed here
 Canonical Reference: /docs/explanation/chatterbox-external-design-survey.md
 Related Issues: #3415
-Last Reviewed: 2026-08-14
+Last Reviewed: 2026-08-15
 ---
 
 # Chatterbox external design survey — Hivemind
@@ -52,7 +52,7 @@ For example, Hivemind's `spawn` tool injects a sub-agent's result directly
 into the parent's *live* session (`app/jobs/sub_agent_job.rb`) — this only
 works because both run in the same process, and has no Chatterbox analog.
 
-Of everything reviewed, four patterns describe a *problem shape* Chatterbox
+Of everything reviewed, five patterns describe a *problem shape* Chatterbox
 also has, independent of Hivemind's specific implementation (below), and one
 pattern was reviewed and is explicitly not recommended (also below). No
 adoption decision has been made for any of them as of this writing.
@@ -155,6 +155,38 @@ gets built, without requiring the reconciler itself right now.
 **Fit consideration:** Speculative — useful mainly as a shape to reuse later,
 not something to build ahead of the reconciler it would serve.
 
+### 5. `@mention` text-parsing convenience over already-structured routing
+
+**What Hivemind does:** "Team Chat" lets a participant address a message with
+free-text tokens — `@AgentName` to a specific agent, `@team` to broadcast,
+`@god` to the human — parsed and resolved into routing, with agents able to
+chain-react by mentioning each other in their own responses (`README.md`
+"Team Chat" section).
+
+**The spirit:** A lightweight, human-readable addressing convention layered
+on top of routing that already exists structurally, so "who this is for" is
+readable directly from the message text.
+
+**Chatterbox gap it addresses:** Unlike patterns 1–4, this one doesn't point
+at a missing capability — the underlying routing already exists in
+Chatterbox's schema: `target_participant_id` is already direct-to-one
+addressing ("@AgentName"), an event with no target is already room-wide
+broadcast ("@team"), the PMO/Product-Authority role class is already a real
+participant to target ("@god"), and `in_reply_to_event_id` already threads
+chain-reaction replies. What's missing is purely the parsing convenience:
+resolving an `@name` token typed inside a posted event body into the correct
+`target_participant_id` automatically, instead of requiring the caller to
+already know the exact participant key.
+
+**Fit consideration:** Hivemind's "colored message bubbles with real-time
+streaming" is a live web-UI rendering feature — Chatterbox has no UI at all
+(a REST API mirrored into GitHub Issue comments), so that part doesn't
+transfer. "Chain-reacting" itself is a prompting/behavioral convention (how
+an agent chooses to use targeting and replies), not new infrastructure —
+Chatterbox already supports it structurally. This is the smallest-scoped item
+in this survey: an ergonomics layer over an already-correct design, not a
+gap.
+
 ## Pattern considered and explicitly not recommended
 
 ### Check-then-write task locking
@@ -174,7 +206,7 @@ comparison doesn't need to be re-derived later.
 
 ## Intended final state
 
-None of the four candidate patterns above are approved for implementation by
+None of the five candidate patterns above are approved for implementation by
 this document. The recommended path is to let the pseudo-project soak test
 (Development/Preview only, per Bill's confirmed scope) surface which of these
 gaps are actually felt in practice — a real multi-day, multi-agent run may
@@ -190,4 +222,5 @@ disposition.
 | Categorized completion/decision notifications | PMO push/pull asymmetry | *Open — pending soak test* | |
 | First-class pending-decision record with expiry | Time-sensitive PMO asks missed on slow polling cadence | *Open — pending soak test* | |
 | Task/template/team hook precedence | Governance-change reactivity | *Open — speculative, revisit only alongside the reconciler* | |
+| `@mention` parsing over existing targeted/broadcast routing | Ergonomics only — validates existing routing design, no missing capability | *Open — pending soak test* | |
 | Check-then-write task locking | (N/A — comparison only) | *Rejected — Chatterbox's DB-constraint approach is already stronger* | See "Pattern considered and explicitly not recommended" above |
