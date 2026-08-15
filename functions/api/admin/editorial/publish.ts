@@ -61,7 +61,8 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     const existing = await d1.db
       .prepare(
         `SELECT id, status, source_name, credit_line, operational_state, approved_by, approved_at,
-                publication_reason, published_at, scheduled_at, schedule_paused, pause_reason
+                publication_reason, published_at, scheduled_at, schedule_paused, pause_reason,
+                rights_status, privacy_flag, reviewer, reviewed_at, rejection_reason
            FROM content_inventory
           WHERE id = ?`,
       )
@@ -81,6 +82,7 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     const now = String((nowRow as any)?.now || new Date().toISOString());
     const requestedApprovedBy = asText(body?.approved_by);
     const requestedApprovedAt = asText(body?.approved_at) || (action === "approve" ? now : "");
+    const requestedReviewer = asText(body?.reviewer);
     const reason = asText(body?.reason);
     const requestedScheduledAt = asText(body?.scheduled_at);
     const scheduledAt =
@@ -108,6 +110,9 @@ export const onRequestPost = async (context: any): Promise<Response> => {
       scheduledAt,
       paused,
       nowIso: now,
+      rightsStatus: (existing as any).rights_status,
+      privacyFlag: (existing as any).privacy_flag,
+      requestedReviewer,
     });
 
     if (!gate.ok) {
@@ -118,7 +123,11 @@ export const onRequestPost = async (context: any): Promise<Response> => {
       preparePublicationEvent(d1.db, {
         inventoryId: id,
         action,
-        actor: requestedApprovedBy || asText((existing as any).approved_by),
+        actor:
+          requestedReviewer ||
+          requestedApprovedBy ||
+          asText((existing as any).reviewer) ||
+          asText((existing as any).approved_by),
         fromState: fromOperational,
         toState,
         reason,
@@ -138,6 +147,80 @@ export const onRequestPost = async (context: any): Promise<Response> => {
           check_id: "A7",
         },
         400,
+      );
+    }
+
+    if (action === "stage") {
+      await d1.db.batch([
+        d1.db
+          .prepare(
+            `UPDATE content_inventory
+                SET operational_state = ?, rejection_reason = NULL, updated_at = ?
+              WHERE id = ?`,
+          )
+          .bind("staged", now, id),
+        auditEvent("staged"),
+      ]);
+
+      return jsonResponse(
+        {
+          ok: true,
+          id,
+          status: currentInventoryStatus,
+          operational_state: "staged",
+        },
+        200,
+      );
+    }
+
+    if (action === "review") {
+      const reviewer = requestedReviewer || asText((existing as any).reviewer);
+      await d1.db.batch([
+        d1.db
+          .prepare(
+            `UPDATE content_inventory
+                SET operational_state = ?, reviewer = ?, reviewed_at = ?, updated_at = ?
+              WHERE id = ?`,
+          )
+          .bind("reviewed", reviewer || null, now, now, id),
+        auditEvent("reviewed"),
+      ]);
+
+      return jsonResponse(
+        {
+          ok: true,
+          id,
+          status: currentInventoryStatus,
+          operational_state: "reviewed",
+          reviewer: reviewer || null,
+          reviewed_at: now,
+        },
+        200,
+      );
+    }
+
+    if (action === "reject") {
+      const reviewer = requestedReviewer || asText((existing as any).reviewer);
+      await d1.db.batch([
+        d1.db
+          .prepare(
+            `UPDATE content_inventory
+                SET operational_state = ?, rejection_reason = ?, reviewer = ?, updated_at = ?
+              WHERE id = ?`,
+          )
+          .bind("rejected", reason, reviewer || null, now, id),
+        auditEvent("rejected"),
+      ]);
+
+      return jsonResponse(
+        {
+          ok: true,
+          id,
+          status: currentInventoryStatus,
+          operational_state: "rejected",
+          rejection_reason: reason,
+        },
+        200,
       );
     }
 

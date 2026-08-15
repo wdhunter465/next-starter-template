@@ -318,4 +318,67 @@ describe('publication-transition-gate', () => {
     });
     expect(result).toEqual({ ok: true });
   });
+
+  it('allows stage from draft and reviewed', () => {
+    expect(
+      evaluatePublicationTransition({
+        action: 'stage',
+        currentInventoryStatus: 'draft',
+        operationalState: 'draft',
+      }),
+    ).toEqual({ ok: true });
+    expect(
+      evaluatePublicationTransition({
+        action: 'stage',
+        currentInventoryStatus: 'draft',
+        operationalState: 'reviewed',
+      }),
+    ).toEqual({ ok: true });
+  });
+
+  it('A3 refuses stage from published', () => {
+    const result = evaluatePublicationTransition({
+      action: 'stage',
+      currentInventoryStatus: 'published',
+      operationalState: 'published',
+    });
+    expect(result).toMatchObject({ ok: false, checkId: 'A3' });
+  });
+
+  it('S4 refuses review when rights or privacy is missing', () => {
+    const result = evaluatePublicationTransition({
+      action: 'review',
+      currentInventoryStatus: 'draft',
+      operationalState: 'staged',
+      sourceName: 'Archive',
+      creditLine: 'LGFC Archive',
+      rightsStatus: 'unknown',
+      privacyFlag: 'none',
+    });
+    expect(result).toMatchObject({ ok: false, checkId: 'S4' });
+  });
+
+  it('allows review when source, credit, rights, and privacy are present', () => {
+    const result = evaluatePublicationTransition({
+      action: 'review',
+      currentInventoryStatus: 'draft',
+      operationalState: 'staged',
+      sourceName: 'Archive',
+      creditLine: 'LGFC Archive',
+      rightsStatus: 'owned',
+      privacyFlag: 'none',
+      requestedReviewer: 'Editor',
+    });
+    expect(result).toEqual({ ok: true });
+  });
+
+  it('S9 refuses reject without a reason', () => {
+    const result = evaluatePublicationTransition({
+      action: 'reject',
+      currentInventoryStatus: 'draft',
+      operationalState: 'staged',
+      reason: '',
+    });
+    expect(result).toMatchObject({ ok: false, checkId: 'S9' });
+  });
 });

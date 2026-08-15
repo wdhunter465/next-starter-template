@@ -16,6 +16,18 @@ const VALID_SUBMISSION_STATUSES = new Set([
   "all",
 ]);
 const VALID_INVENTORY_STATUSES = new Set(["draft", "published", "archived", "all"]);
+const VALID_OPERATIONAL_FILTERS = new Set(["all", "draft", "staged", "reviewed", "rejected", "preview"]);
+
+const INVENTORY_SELECT = `SELECT id, tag, title, text, summary, perspective_label, media, story_type,
+                      allowed_sections, priority, canonical, source_name, source_url, credit_line,
+                      event_date, event_year, rotation_group, last_featured, feature_weight, status,
+                      operational_state, approved_by, approved_at, publication_reason,
+                      scheduled_at, schedule_paused, pause_reason,
+                      rights_status, privacy_flag, reviewer, reviewed_at, rejection_reason,
+                      review_notes, submitted_by, created_at, updated_at, published_at,
+                      suppression_reason, takedown_request_source, takedown_resolution_note,
+                      takedown_requested_at
+                 FROM content_inventory`;
 
 function parseLimit(raw: string | null): number {
   const n = Number(raw || "50");
@@ -38,6 +50,7 @@ export const onRequestGet = async (context: any): Promise<Response> => {
     const url = new URL(request.url);
     const submissionStatus = url.searchParams.get("submission_status") || "pending";
     const inventoryStatus = url.searchParams.get("inventory_status") || "all";
+    const operationalState = url.searchParams.get("operational_state") || "all";
     const limit = parseLimit(url.searchParams.get("limit"));
 
     if (!VALID_SUBMISSION_STATUSES.has(submissionStatus)) {
@@ -46,6 +59,10 @@ export const onRequestGet = async (context: any): Promise<Response> => {
 
     if (!VALID_INVENTORY_STATUSES.has(inventoryStatus)) {
       return jsonResponse({ ok: false, error: "Invalid inventory_status" }, 400);
+    }
+
+    if (!VALID_OPERATIONAL_FILTERS.has(operationalState)) {
+      return jsonResponse({ ok: false, error: "Invalid operational_state" }, 400);
     }
 
     const submissionWhere = submissionStatus === "all" ? "" : "WHERE status = ?";
@@ -79,41 +96,28 @@ export const onRequestGet = async (context: any): Promise<Response> => {
             .bind(submissionStatus, limit)
             .all();
 
-    const inventoryRows =
-      inventoryStatus === "all"
-        ? await d1.db
-            .prepare(
-              `SELECT id, tag, title, text, summary, perspective_label, media, story_type,
-                      allowed_sections, priority, canonical, source_name, source_url, credit_line,
-                      event_date, event_year, rotation_group, last_featured, feature_weight, status,
-                      operational_state, approved_by, approved_at, publication_reason,
-                      scheduled_at, schedule_paused, pause_reason,
-                      review_notes, submitted_by, created_at, updated_at, published_at,
-                      suppression_reason, takedown_request_source, takedown_resolution_note,
-                      takedown_requested_at
-                 FROM content_inventory
+    const inventoryClauses: string[] = [];
+    const inventoryBinds: unknown[] = [];
+    if (inventoryStatus !== "all") {
+      inventoryClauses.push("status = ?");
+      inventoryBinds.push(inventoryStatus);
+    }
+    if (operationalState === "preview") {
+      inventoryClauses.push("COALESCE(operational_state, 'draft') IN ('staged', 'reviewed')");
+    } else if (operationalState !== "all") {
+      inventoryClauses.push("COALESCE(operational_state, 'draft') = ?");
+      inventoryBinds.push(operationalState);
+    }
+    const inventoryWhere = inventoryClauses.length ? `WHERE ${inventoryClauses.join(" AND ")}` : "";
+    const inventoryRows = await d1.db
+      .prepare(
+        `${INVENTORY_SELECT}
+                 ${inventoryWhere}
                  ORDER BY updated_at DESC, id DESC
                  LIMIT ?`,
-            )
-            .bind(limit)
-            .all()
-        : await d1.db
-            .prepare(
-              `SELECT id, tag, title, text, summary, perspective_label, media, story_type,
-                      allowed_sections, priority, canonical, source_name, source_url, credit_line,
-                      event_date, event_year, rotation_group, last_featured, feature_weight, status,
-                      operational_state, approved_by, approved_at, publication_reason,
-                      scheduled_at, schedule_paused, pause_reason,
-                      review_notes, submitted_by, created_at, updated_at, published_at,
-                      suppression_reason, takedown_request_source, takedown_resolution_note,
-                      takedown_requested_at
-                 FROM content_inventory
-                 WHERE status = ?
-                 ORDER BY updated_at DESC, id DESC
-                 LIMIT ?`,
-            )
-            .bind(inventoryStatus, limit)
-            .all();
+      )
+      .bind(...inventoryBinds, limit)
+      .all();
 
     const inventory = inventoryRows?.results || [];
     const storyIds = inventory

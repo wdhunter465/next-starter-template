@@ -115,8 +115,20 @@ function makeEditorialDb(options?: {
         if (sql.includes('FROM submission_queue')) return { results: filterSubmissions(sql, submissions, args) };
         if (sql.includes('FROM content_inventory')) {
           let filtered = inventory;
-          if (sql.includes('WHERE status = ?') && typeof args[0] === 'string') {
-            filtered = filtered.filter((row) => row.status === args[0]);
+          let argIndex = 0;
+          if (sql.includes('status = ?') && typeof args[argIndex] === 'string') {
+            const status = args[argIndex];
+            argIndex += 1;
+            filtered = filtered.filter((row) => row.status === status);
+          }
+          if (sql.includes("COALESCE(operational_state, 'draft') = ?") && typeof args[argIndex] === 'string') {
+            const operational = args[argIndex];
+            filtered = filtered.filter((row) => String(row.operational_state || 'draft') === operational);
+          }
+          if (sql.includes("COALESCE(operational_state, 'draft') IN ('staged', 'reviewed')")) {
+            filtered = filtered.filter((row) =>
+              ['staged', 'reviewed'].includes(String(row.operational_state || 'draft')),
+            );
           }
           return { results: filterRows(sql, filtered, args) };
         }
@@ -1691,5 +1703,127 @@ describe('member submissions and library archive reads', () => {
       results: [],
     });
     expect(db.prepare).not.toHaveBeenCalledWith(expect.stringContaining('submission_queue'));
+  });
+
+  it('filters inventory records by operational_state preview', async () => {
+    const response = await editorialListGet({
+      request: adminGetRequest('/api/admin/editorial/list?operational_state=preview'),
+      env: {
+        ADMIN_TOKEN: 'secret',
+        DB: makeEditorialDb({
+          inventory: [
+            { id: 2, title: 'Draft story', status: 'draft', operational_state: 'draft' },
+            { id: 3, title: 'Staged story', status: 'draft', operational_state: 'staged' },
+            { id: 4, title: 'Reviewed story', status: 'draft', operational_state: 'reviewed' },
+            { id: 5, title: 'Rejected story', status: 'draft', operational_state: 'rejected' },
+          ],
+        }).db,
+      },
+    });
+
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as { ok: boolean; inventory: Array<{ id: number }> };
+    expect(body.ok).toBe(true);
+    expect(body.inventory.map((row) => row.id)).toEqual([3, 4]);
+  });
+
+  it('stages draft inventory and refuses review when rights metadata is missing', async () => {
+    const staged = makeEditorialDb({
+      inventory: [
+        {
+          id: 8,
+          status: 'draft',
+          operational_state: 'draft',
+          source_name: 'Archive',
+          credit_line: 'LGFC Archive',
+        },
+      ],
+    });
+    const stage = await editorialPublishPost({
+      request: adminPostRequest('/api/admin/editorial/publish', { id: 8, action: 'stage' }),
+      env: { ADMIN_TOKEN: 'secret', DB: staged.db },
+    });
+    expect(stage.status).toBe(200);
+    expect(staged.runs.some((run) => run.sql.includes('operational_state') && run.args.includes('staged'))).toBe(
+      true,
+    );
+    expect(staged.runs.some((run) => run.sql.includes('INSERT INTO content_inventory_events'))).toBe(true);
+
+    const incomplete = makeEditorialDb({
+      inventory: [
+        {
+          id: 8,
+          status: 'draft',
+          operational_state: 'staged',
+          source_name: 'Archive',
+          credit_line: 'LGFC Archive',
+        },
+      ],
+    });
+    const review = await editorialPublishPost({
+      request: adminPostRequest('/api/admin/editorial/publish', {
+        id: 8,
+        action: 'review',
+        reviewer: 'Editor',
+      }),
+      env: { ADMIN_TOKEN: 'secret', DB: incomplete.db },
+    });
+    expect(review.status).toBe(400);
+    await expect(review.json()).resolves.toMatchObject({ check_id: 'S4' });
+    expect(incomplete.runs.some((run) => run.sql.includes('INSERT INTO content_inventory_events'))).toBe(false);
+  });
+
+  it('records reviewed and rejected staging outcomes', async () => {
+    const reviewed = makeEditorialDb({
+      inventory: [
+        {
+          id: 8,
+          status: 'draft',
+          operational_state: 'staged',
+          source_name: 'Archive',
+          credit_line: 'LGFC Archive',
+          rights_status: 'owned',
+          privacy_flag: 'none',
+        },
+      ],
+    });
+    const review = await editorialPublishPost({
+      request: adminPostRequest('/api/admin/editorial/publish', {
+        id: 8,
+        action: 'review',
+        reviewer: 'Editor',
+      }),
+      env: { ADMIN_TOKEN: 'secret', DB: reviewed.db },
+    });
+    expect(review.status).toBe(200);
+    await expect(review.json()).resolves.toMatchObject({ operational_state: 'reviewed' });
+
+    const rejected = makeEditorialDb({
+      inventory: [
+        {
+          id: 8,
+          status: 'draft',
+          operational_state: 'reviewed',
+          source_name: 'Archive',
+          credit_line: 'LGFC Archive',
+          rights_status: 'owned',
+          privacy_flag: 'none',
+        },
+      ],
+    });
+    const reject = await editorialPublishPost({
+      request: adminPostRequest('/api/admin/editorial/publish', {
+        id: 8,
+        action: 'reject',
+        reviewer: 'Editor',
+        reason: 'Rights still unresolved for public copy',
+      }),
+      env: { ADMIN_TOKEN: 'secret', DB: rejected.db },
+    });
+    expect(reject.status).toBe(200);
+    await expect(reject.json()).resolves.toMatchObject({
+      operational_state: 'rejected',
+      rejection_reason: 'Rights still unresolved for public copy',
+    });
   });
 });
