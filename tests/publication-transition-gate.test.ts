@@ -200,8 +200,60 @@ describe('publication-transition-gate', () => {
       currentInventoryStatus: 'archived',
       operationalState: 'unpublished',
       approvalSnapshot: { approvedBy: 'Bill', approvedAt: '2026-08-14T22:00:00Z' },
+      sourceName: 'Archive',
+      creditLine: 'LGFC Archive',
     });
     expect(result).toEqual({ ok: true });
+  });
+
+  it('S4 refuses rollback restore without source_name and credit_line', () => {
+    const result = evaluatePublicationTransition({
+      action: 'rollback',
+      currentInventoryStatus: 'archived',
+      operationalState: 'unpublished',
+      approvalSnapshot: { approvedBy: 'Bill', approvedAt: '2026-08-14T22:00:00Z' },
+      sourceName: '',
+      creditLine: 'LGFC Archive',
+    });
+    expect(result).toMatchObject({ ok: false, checkId: 'S4' });
+  });
+
+  it('A3 refuses rollback restore from published', () => {
+    const result = evaluatePublicationTransition({
+      action: 'rollback',
+      currentInventoryStatus: 'published',
+      operationalState: 'published',
+      approvalSnapshot: { approvedBy: 'Bill', approvedAt: '2026-08-14T22:00:00Z' },
+      sourceName: 'Archive',
+      creditLine: 'LGFC Archive',
+    });
+    expect(result).toMatchObject({ ok: false, checkId: 'A3' });
+  });
+
+  it('prefers a new named human approver over a forbidden snapshot on rollback', () => {
+    const result = evaluatePublicationTransition({
+      action: 'rollback',
+      currentInventoryStatus: 'archived',
+      operationalState: 'unpublished',
+      approvalSnapshot: { approvedBy: 'automation', approvedAt: '2026-08-14T22:00:00Z' },
+      requestedApprovedBy: 'Bill',
+      requestedApprovedAt: '2026-08-15T18:00:00Z',
+      sourceName: 'Archive',
+      creditLine: 'LGFC Archive',
+    });
+    expect(result).toEqual({ ok: true });
+  });
+
+  it('A5 refuses rollback when the only approver is forbidden automation', () => {
+    const result = evaluatePublicationTransition({
+      action: 'rollback',
+      currentInventoryStatus: 'archived',
+      operationalState: 'unpublished',
+      approvalSnapshot: { approvedBy: 'automation', approvedAt: '2026-08-14T22:00:00Z' },
+      sourceName: 'Archive',
+      creditLine: 'LGFC Archive',
+    });
+    expect(result).toMatchObject({ ok: false, checkId: 'A5' });
   });
 
   it('A4 refuses schedule without an explicit UTC scheduled_at', () => {

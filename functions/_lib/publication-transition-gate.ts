@@ -263,6 +263,16 @@ export function evaluatePublicationTransition(
         "A7: rollback must not publish without an approval snapshot or a new approved_by / approved_at.",
       );
     }
+    if (operationalState !== "unpublished" && operationalState !== "archived") {
+      return fail("A3", "A3: rollback restore is only legal from unpublished or archived.");
+    }
+    const rollbackApprover = newApprovalOk ? requestedApprover : snapshot?.approvedBy;
+    if (isForbiddenApprover(trim(rollbackApprover))) {
+      return fail("A5", "A5: automation must not write approve or invent approved_by.");
+    }
+    if (!sourceName || !creditLine) {
+      return fail("S4", "Published content_inventory records require source_name and credit_line.");
+    }
     return { ok: true };
   }
 

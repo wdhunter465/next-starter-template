@@ -50,16 +50,36 @@ describe('publication-audit', () => {
     expect(binds[14]).toBe(0);
   });
 
-  it('refuses to prepare a rollback audit statement', () => {
-    expect(() =>
-      preparePublicationEvent(
-        { prepare: () => ({ bind: () => ({ run: async () => ({}) }) }) },
-        {
-          inventoryId: 4,
-          action: 'rollback',
-          eventAt: '2026-08-15T12:00:00Z',
-        },
-      ),
-    ).toThrow(/rollback audit writes are not implemented/);
+  it('prepares a rollback restore audit statement with public_check when restoring published', () => {
+    const binds = buildPublicationEventBinds({
+      inventoryId: 4,
+      action: 'rollback',
+      actor: 'Bill',
+      fromState: 'unpublished',
+      toState: 'published',
+      reason: '',
+      eventAt: '2026-08-15T12:00:00Z',
+      approvedBy: 'Bill',
+      approvedAt: '2026-08-14T22:00:00Z',
+      sourceName: 'Archive',
+      creditLine: 'LGFC Archive',
+    });
+
+    expect(binds[8]).toBe('rollback');
+    expect(binds[12]).toBe(JSON.stringify({ approved_by: 'Bill', approved_at: '2026-08-14T22:00:00Z' }));
+    expect(binds[14]).toBe(1);
+
+    const statement = preparePublicationEvent(
+      { prepare: () => ({ bind: () => ({ run: async () => ({}) }) }) },
+      {
+        inventoryId: 4,
+        action: 'rollback',
+        eventAt: '2026-08-15T12:00:00Z',
+        toState: 'published',
+        approvedBy: 'Bill',
+        approvedAt: '2026-08-14T22:00:00Z',
+      },
+    );
+    expect(statement).toBeDefined();
   });
 });
