@@ -177,9 +177,11 @@ describe('admin club staging (#2043)', () => {
     render(<AdminClubStagingPage />);
 
     expect(await screen.findByRole('button', { name: 'Incomplete staged row' })).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: 'Mark reviewed' })).toBeDisabled();
-    expect(
-      screen.getAllByRole('status').some((node) => /Mark reviewed is refused/i.test(node.textContent || '')),
-    ).toBe(true);
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: 'Mark reviewed' })).toBeDisabled();
+      expect(
+        screen.getAllByRole('status').some((node) => /Mark reviewed is refused/i.test(node.textContent || '')),
+      ).toBe(true);
+    });
   });
 });
