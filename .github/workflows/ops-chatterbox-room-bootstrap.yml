@@ -1,0 +1,229 @@
+name: OPS — Chatterbox Room Bootstrap (#3415)
+
+# One-time (and re-runnable) setup of the live Chatterbox room and its
+# participants against the Development Preview deployment, so that the
+# already-connected repo agents (Cursor Local, Claude Code, Google Jules,
+# Grok) can actually call check-in against a real room instead of only the
+# dev-integration-check's throwaway namespaced test rooms.
+#
+# This does not make any agent "talk" by itself — registering a participant
+# only makes room/check-in/events calls valid for that participant_key.
+# Each agent still has to call POST /api/chatterbox/check-in (and post its
+# own events) on its own schedule; this workflow only removes the "room and
+# participant rows don't exist yet" blocker.
+#
+# Idempotent: POST /api/chatterbox/room upserts by room_key (ensureRoom in
+# functions/_lib/chatterbox.ts re-reads on a unique-constraint race instead
+# of failing). POST /api/chatterbox/participants 409s on an
+# already-registered participant_key — this workflow treats that as
+# "already registered", not a failure, so re-running it (e.g. after editing
+# the default participant list to add another agent) is always safe.
+#
+# Targets the component branch's known, stable Cloudflare Pages Preview
+# alias directly, the same as chatterbox-dev-integration-check.yml, and
+# reads only the CHATTERBOX_PREVIEW_ADMIN_TOKEN secret — never
+# CLOUDFLARE_API_TOKEN/CLOUDFLARE_ACCOUNT_ID. Never targets Production.
+#
+# Triggered two ways, same rationale as chatterbox-dev-integration-check.yml:
+#   - push to component/chatterbox-prototype, scoped to this workflow's own
+#     path — so committing or editing this file (e.g. to add a participant)
+#     re-runs it immediately, without needing workflow_dispatch's
+#     default-branch registration.
+#   - workflow_dispatch, for on-demand re-runs once this file is promoted
+#     to main at Project Graduation.
+
+on:
+  push:
+    branches:
+      - component/chatterbox-prototype
+    paths:
+      - '.github/workflows/ops-chatterbox-room-bootstrap.yml'
+  workflow_dispatch:
+    inputs:
+      room_key:
+        description: 'Chatterbox room_key to create/ensure'
+        required: true
+        type: string
+        default: lgfc-website
+      source_issue_ref:
+        description: 'source_issue_ref for the room'
+        required: true
+        type: string
+        default: wdhunter465/next-starter-template#3415
+      title:
+        description: 'Room title'
+        required: true
+        type: string
+        default: LGFC website program
+      preview_url:
+        description: 'Known Cloudflare Pages Preview URL to bootstrap against'
+        required: true
+        type: string
+        default: https://component-chatterbox-prototy.next-starter-template-6yr.pages.dev
+      participants_json:
+        description: 'JSON array of participants to register: participant_key, display_name, role_class, assigned_by, source_authority (capability_summary optional)'
+        required: true
+        type: string
+        default: |
+          [
+            {"participant_key":"claude-code","display_name":"Claude Code","role_class":"implementation_agent","assigned_by":"Bill","source_authority":"issue:3415"},
+            {"participant_key":"cursor-local","display_name":"Cursor Local","role_class":"implementation_agent","assigned_by":"Bill","source_authority":"issue:3415"},
+            {"participant_key":"google-jules","display_name":"Google Jules","role_class":"implementation_agent","assigned_by":"Bill","source_authority":"issue:3415"},
+            {"participant_key":"grok","display_name":"Grok","role_class":"implementation_agent","assigned_by":"Bill","source_authority":"issue:3415"}
+          ]
+
+concurrency:
+  group: ops-chatterbox-room-bootstrap
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve room, participants, and base URL
+        id: target
+        env:
+          DEFAULT_PREVIEW_URL: https://component-chatterbox-prototy.next-starter-template-6yr.pages.dev
+          DEFAULT_ROOM_KEY: lgfc-website
+          DEFAULT_SOURCE_ISSUE_REF: wdhunter465/next-starter-template#3415
+          DEFAULT_TITLE: LGFC website program
+          ROOM_KEY_INPUT: ${{ inputs.room_key }}
+          SOURCE_ISSUE_REF_INPUT: ${{ inputs.source_issue_ref }}
+          TITLE_INPUT: ${{ inputs.title }}
+          PREVIEW_URL_INPUT: ${{ inputs.preview_url }}
+          PARTICIPANTS_JSON_INPUT: ${{ inputs.participants_json }}
+        run: |
+          set -euo pipefail
+
+          default_participants='[
+            {"participant_key":"claude-code","display_name":"Claude Code","role_class":"implementation_agent","assigned_by":"Bill","source_authority":"issue:3415"},
+            {"participant_key":"cursor-local","display_name":"Cursor Local","role_class":"implementation_agent","assigned_by":"Bill","source_authority":"issue:3415"},
+            {"participant_key":"google-jules","display_name":"Google Jules","role_class":"implementation_agent","assigned_by":"Bill","source_authority":"issue:3415"},
+            {"participant_key":"grok","display_name":"Grok","role_class":"implementation_agent","assigned_by":"Bill","source_authority":"issue:3415"}
+          ]'
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            room_key="$ROOM_KEY_INPUT"
+            source_issue_ref="$SOURCE_ISSUE_REF_INPUT"
+            title="$TITLE_INPUT"
+            base_url="$PREVIEW_URL_INPUT"
+            participants_json="$PARTICIPANTS_JSON_INPUT"
+          else
+            room_key="$DEFAULT_ROOM_KEY"
+            source_issue_ref="$DEFAULT_SOURCE_ISSUE_REF"
+            title="$DEFAULT_TITLE"
+            base_url="$DEFAULT_PREVIEW_URL"
+            participants_json="$default_participants"
+          fi
+
+          # Fail closed on anything that isn't a plain key/the exact
+          # Cloudflare Pages hostname this check is allowed to send
+          # ADMIN_TOKEN to, or that could inject extra GITHUB_OUTPUT lines
+          # via a crafted dispatch input (same class of issue fixed on
+          # chatterbox-dev-integration-check.yml, PR #3504).
+          if [[ ! "$base_url" =~ ^https://[a-z0-9-]+\.next-starter-template-6yr\.pages\.dev$ ]]; then
+            echo "FAIL-CLOSED: preview_url must be an https://*.next-starter-template-6yr.pages.dev host, got: $base_url" >&2
+            exit 1
+          fi
+          if [[ ! "$room_key" =~ ^[A-Za-z0-9._-]+$ ]]; then
+            echo "FAIL-CLOSED: room_key contains unexpected characters: $room_key" >&2
+            exit 1
+          fi
+          if [[ "$title" == *$'\n'* || "$source_issue_ref" == *$'\n'* ]]; then
+            echo "FAIL-CLOSED: title/source_issue_ref must not contain newlines" >&2
+            exit 1
+          fi
+          if ! echo "$participants_json" | jq -e '
+                type == "array" and length > 0 and all(.[];
+                  (.participant_key|type=="string") and
+                  (.display_name|type=="string") and
+                  (.role_class|type=="string") and
+                  (.assigned_by|type=="string") and
+                  (.source_authority|type=="string")
+                )' >/dev/null 2>&1; then
+            echo "FAIL-CLOSED: participants_json must be a non-empty JSON array of objects with participant_key, display_name, role_class, assigned_by, source_authority" >&2
+            exit 1
+          fi
+
+          {
+            echo "room_key=$room_key"
+            echo "source_issue_ref=$source_issue_ref"
+            echo "title=$title"
+            echo "base_url=$base_url"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "$participants_json" > "$RUNNER_TEMP/participants.json"
+
+      - name: Bootstrap room and participants
+        id: bootstrap
+        env:
+          BASE_URL: ${{ steps.target.outputs.base_url }}
+          ROOM_KEY: ${{ steps.target.outputs.room_key }}
+          SOURCE_ISSUE_REF: ${{ steps.target.outputs.source_issue_ref }}
+          TITLE: ${{ steps.target.outputs.title }}
+          ADMIN_TOKEN: ${{ secrets.CHATTERBOX_PREVIEW_ADMIN_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          room_payload=$(jq -n \
+            --arg room_key "$ROOM_KEY" \
+            --arg source_issue_ref "$SOURCE_ISSUE_REF" \
+            --arg title "$TITLE" \
+            '{room_key:$room_key, source_issue_ref:$source_issue_ref, title:$title}')
+
+          room_status=$(curl -sS -o "$RUNNER_TEMP/room_resp.json" -w '%{http_code}' \
+            -X POST "$BASE_URL/api/chatterbox/room" \
+            -H "x-admin-token: $ADMIN_TOKEN" -H "Content-Type: application/json" \
+            -d "$room_payload")
+          echo "Room response (HTTP $room_status):"
+          cat "$RUNNER_TEMP/room_resp.json"
+          echo
+          if [[ "$room_status" != "200" && "$room_status" != "201" ]]; then
+            echo "FAILED to create/ensure room (HTTP $room_status)" >&2
+            exit 1
+          fi
+
+          rows="| participant_key | role_class | result |\n|---|---|---|\n"
+          while IFS= read -r p; do
+            pkey=$(jq -r '.participant_key' <<<"$p")
+            role=$(jq -r '.role_class' <<<"$p")
+            status=$(curl -sS -o "$RUNNER_TEMP/participant_resp.json" -w '%{http_code}' \
+              -X POST "$BASE_URL/api/chatterbox/participants" \
+              -H "x-admin-token: $ADMIN_TOKEN" -H "Content-Type: application/json" \
+              -d "$p")
+            body=$(cat "$RUNNER_TEMP/participant_resp.json")
+            echo "$pkey -> HTTP $status: $body"
+            if [[ "$status" == "201" ]]; then
+              result="registered"
+            elif [[ "$status" == "409" ]]; then
+              result="already registered"
+            else
+              echo "FAILED to register participant $pkey (HTTP $status)" >&2
+              exit 1
+            fi
+            rows="${rows}| \`$pkey\` | $role | $result |\n"
+          done < <(jq -c '.[]' "$RUNNER_TEMP/participants.json")
+
+          printf '%b' "$rows" > "$RUNNER_TEMP/participant_rows.md"
+
+      - name: Record result on #3415
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ROOM_KEY: ${{ steps.target.outputs.room_key }}
+          BASE_URL: ${{ steps.target.outputs.base_url }}
+        run: |
+          if [ -f "$RUNNER_TEMP/participant_rows.md" ]; then
+            rows=$(cat "$RUNNER_TEMP/participant_rows.md")
+            body="## Chatterbox room bootstrap\n\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\nTrigger: ${{ github.event_name }}\nRoom: \`$ROOM_KEY\`\nBase URL: \`$BASE_URL\`\n\n$rows\n\nRegistration alone does not subscribe anyone to anything — each participant still needs to call \`POST /api/chatterbox/check-in\` itself (with its own participant_key) to actually read/join the room."
+          else
+            body="## Chatterbox room bootstrap — failed\n\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n\nSee workflow logs for the failing step. No Production access was attempted regardless of this outcome."
+          fi
+          gh issue comment 3415 --body "$(printf '%b' "$body")"
