@@ -1,0 +1,134 @@
+name: OPS — D1 Development Migration Drift Fix
+
+# Fixes the Development D1 migration-tracking drift discovered 2026-08-15
+# via ops-d1-dev-migration-diagnostic.yml (runs #1 and #2). lgfc-litedev's
+# d1_migrations tracking table only recorded 0001-0006; the live schema was
+# confirmed far more current than that. Cross-checked every migration file
+# from 0007 onward against the live schema of all seven affected tables
+# (photos, join_requests, faq_entries, ask_inbox, content_inventory,
+# submission_queue, members):
+#
+#   - Fully applied, only untracked: 0007, 0027, 0028, 0034, 0036, 0037, 0039
+#   - Partially applied (some columns present, some missing from the same
+#     file): 0020 (missing join_requests.profile_photo_id/presence_status/
+#     presence_updated_at), 0045 (missing content_inventory's
+#     suppression_reason/takedown_request_source/takedown_resolution_note/
+#     takedown_requested_at, members' deleted_at/deletion_reason/deleted_by,
+#     and join_requests.deleted_at -- its submission_queue columns were
+#     already present)
+#   - Not applied at all: 0046, 0047, 0049, 0050 (Chatterbox) -- left for
+#     d1-migrations.yml's normal apply-migrations-development job to pick
+#     up after this fix runs, since those are clean (no pre-existing
+#     columns to collide with).
+#
+# This workflow adds only the specific missing columns/indexes for the two
+# partial migrations (not the full original files, which would immediately
+# fail on the columns that already exist), then records all nine
+# fully-applied migrations in d1_migrations so Wrangler stops trying to
+# re-run them. Every statement is additive (ALTER TABLE ADD COLUMN, CREATE
+# INDEX IF NOT EXISTS) or a tracking-table insert -- no data is dropped,
+# modified, or read. Hardcoded to lgfc-litedev (Development) only; no
+# Production path exists in this file.
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type "confirm" to acknowledge this writes to lgfc-litedev (Development) only'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require confirmation
+        run: |
+          if [ "${{ inputs.confirm }}" != "confirm" ]; then
+            echo "confirm must be exactly 'confirm' — refusing to run."
+            exit 1
+          fi
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Add missing 0020 columns to join_requests
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx wrangler d1 execute lgfc-litedev --remote --env preview \
+            --command "ALTER TABLE join_requests ADD COLUMN profile_photo_id INTEGER;"
+          npx wrangler d1 execute lgfc-litedev --remote --env preview \
+            --command "ALTER TABLE join_requests ADD COLUMN presence_status TEXT NOT NULL DEFAULT 'Inactive' CHECK (presence_status IN ('Active','Inactive'));"
+          npx wrangler d1 execute lgfc-litedev --remote --env preview \
+            --command "ALTER TABLE join_requests ADD COLUMN presence_updated_at TEXT;"
+          npx wrangler d1 execute lgfc-litedev --remote --env preview \
+            --command "CREATE INDEX IF NOT EXISTS idx_join_requests_presence ON join_requests(presence_status, presence_updated_at);"
+
+      - name: Add missing 0045 columns to content_inventory
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx wrangler d1 execute lgfc-litedev --remote --env preview \
+            --command "ALTER TABLE content_inventory ADD COLUMN suppression_reason TEXT;"
+          npx wrangler d1 execute lgfc-litedev --remote --env preview \
+            --command "ALTER TABLE content_inventory ADD COLUMN takedown_request_source TEXT;"
+          npx wrangler d1 execute lgfc-litedev --remote --env preview \
+            --command "ALTER TABLE content_inventory ADD COLUMN takedown_resolution_note TEXT;"
+          npx wrangler d1 execute lgfc-litedev --remote --env preview \
+            --command "ALTER TABLE content_inventory ADD COLUMN takedown_requested_at TEXT;"
+          npx wrangler d1 execute lgfc-litedev --remote --env preview \
+            --command "CREATE INDEX IF NOT EXISTS idx_content_inventory_suppression ON content_inventory(status, takedown_requested_at) WHERE suppression_reason IS NOT NULL;"
+
+      - name: Add missing 0045 columns to members
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx wrangler d1 execute lgfc-litedev --remote --env preview \
+            --command "ALTER TABLE members ADD COLUMN deleted_at TEXT;"
+          npx wrangler d1 execute lgfc-litedev --remote --env preview \
+            --command "ALTER TABLE members ADD COLUMN deletion_reason TEXT;"
+          npx wrangler d1 execute lgfc-litedev --remote --env preview \
+            --command "ALTER TABLE members ADD COLUMN deleted_by TEXT;"
+          npx wrangler d1 execute lgfc-litedev --remote --env preview \
+            --command "CREATE INDEX IF NOT EXISTS idx_members_deleted_at ON members(deleted_at) WHERE deleted_at IS NOT NULL;"
+
+      - name: Add missing 0045 column to join_requests
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx wrangler d1 execute lgfc-litedev --remote --env preview \
+            --command "ALTER TABLE join_requests ADD COLUMN deleted_at TEXT;"
+          npx wrangler d1 execute lgfc-litedev --remote --env preview \
+            --command "CREATE INDEX IF NOT EXISTS idx_join_requests_deleted_at ON join_requests(deleted_at) WHERE deleted_at IS NOT NULL;"
+
+      - name: Record the nine now-fully-applied migrations in d1_migrations
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx wrangler d1 execute lgfc-litedev --remote --env preview \
+            --command "INSERT INTO d1_migrations (name) VALUES ('0007_photos_metadata.sql'), ('0020_join_requests_profile_fields.sql'), ('0027_faq_email_and_seed.sql'), ('0028_faq_view_count_and_pinned.sql'), ('0034_ask_inbox_moderation.sql'), ('0036_content_inventory_schema_delta.sql'), ('0037_submission_queue_workflow_delta.sql'), ('0039_members_profile_fields.sql'), ('0045_rights_privacy_evidence_controls.sql');"
+
+      - name: Verify recorded migrations on lgfc-litedev (Development)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx wrangler d1 execute lgfc-litedev --remote --env preview \
+            --command "SELECT name FROM d1_migrations ORDER BY id;"
