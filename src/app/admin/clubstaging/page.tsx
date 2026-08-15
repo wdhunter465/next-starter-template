@@ -7,6 +7,7 @@ import ClubHomeMasthead from '@/components/fanclub/ClubHomeMasthead';
 import ClubHomeStoryRail from '@/components/fanclub/ClubHomeStoryRail';
 import { clubHomePageStack } from '@/components/fanclub/clubHomeStyles';
 import ClubStagingDiscussionSamples from './ClubStagingDiscussionSamples';
+import ClubStagingFutureRotationPreview from './ClubStagingFutureRotationPreview';
 import ClubStagingReviewWorkspace from './ClubStagingReviewWorkspace';
 import ClubStagingRotationPreview from './ClubStagingRotationPreview';
 import {
@@ -49,6 +50,7 @@ export default function AdminClubStagingPage() {
       <AdminNav />
 
       <ClubStagingReviewWorkspace onPreviewItemsChange={setPreviewItems} />
+      <ClubStagingFutureRotationPreview />
 
       <p role="status" style={stagingBannerStyle}>
         {usingFixtures

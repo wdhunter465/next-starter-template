@@ -303,4 +303,41 @@ describe('admin club staging (#2043)', () => {
       });
     });
   });
+
+  it('previews a future published rotation set without treating it as a public route', async () => {
+    const user = userEvent.setup();
+    window.localStorage.setItem('lgfc_admin_token', 'secret');
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
+      const url = String(input);
+      if (url.includes('/api/admin/editorial/rotation-preview')) {
+        return new Response(
+          JSON.stringify({
+            ok: true,
+            section: 'club_home',
+            as_of: '2026-09-01T00:00:00.000Z',
+            total: 1,
+            items: [{ id: 21, title: 'September anniversary lead', score: 180, event_date: '1939-09-01' }],
+            note: 'Admin preview of the published rotation ranking. Does not write last_featured or publish.',
+          }),
+          { status: 200, headers: { 'Content-Type': 'application/json' } },
+        ) as never;
+      }
+      return new Response(JSON.stringify({ ok: true, submissions: [], inventory: [] }), {
+        status: 200,
+        headers: { 'Content-Type': 'application/json' },
+      }) as never;
+    });
+
+    render(<AdminClubStagingPage />);
+
+    expect(screen.getByRole('heading', { name: 'Future rotation set' })).toBeInTheDocument();
+    await user.click(screen.getByRole('button', { name: 'Preview future rotation set' }));
+
+    expect(await screen.findByRole('list', { name: 'Ranked future rotation set' })).toBeInTheDocument();
+    expect(screen.getByText(/September anniversary lead/)).toBeInTheDocument();
+    const previewCall = fetchMock.mock.calls.find(([url]) => String(url).includes('/api/admin/editorial/rotation-preview'));
+    expect(previewCall).toBeTruthy();
+    expect(String(previewCall?.[0])).toContain('section=club_home');
+    expect(screen.getByRole('region', { name: 'Club staging production-like preview' })).toBeInTheDocument();
+  });
 });
