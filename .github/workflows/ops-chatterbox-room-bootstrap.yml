@@ -140,15 +140,25 @@ jobs:
             echo "FAIL-CLOSED: title/source_issue_ref must not contain newlines" >&2
             exit 1
           fi
+          # participant_key and role_class get interpolated directly into
+          # the markdown result table posted to #3415 and into log lines
+          # (not passed through jq --arg escaping the way the POST body
+          # is), so they're validated against a safe charset / the exact
+          # role_class allowlist enforced by the chatterbox_participants
+          # CHECK constraint — not just "is a string" — closing a
+          # markdown-table/comment-content injection path via a crafted
+          # workflow_dispatch input (Copilot finding, PR #3524).
           if ! echo "$participants_json" | jq -e '
                 type == "array" and length > 0 and all(.[];
                   (.participant_key|type=="string") and
+                  (.participant_key|test("^[A-Za-z0-9._-]+$")) and
                   (.display_name|type=="string") and
                   (.role_class|type=="string") and
+                  (.role_class as $r | ["product_authority","pmo","implementation_agent","engineering_validation","independent_verifier","preparation_research","system_clerk"] | index($r) != null) and
                   (.assigned_by|type=="string") and
                   (.source_authority|type=="string")
                 )' >/dev/null 2>&1; then
-            echo "FAIL-CLOSED: participants_json must be a non-empty JSON array of objects with participant_key, display_name, role_class, assigned_by, source_authority" >&2
+            echo "FAIL-CLOSED: participants_json must be a non-empty JSON array of objects with participant_key (safe charset: A-Za-z0-9._-), display_name, role_class (one of the chatterbox_participants allowlist values), assigned_by, source_authority" >&2
             exit 1
           fi
 
