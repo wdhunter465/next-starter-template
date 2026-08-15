@@ -86,14 +86,32 @@ jobs:
         id: target
         env:
           DEFAULT_PREVIEW_URL: https://component-chatterbox-prototy.next-starter-template-6yr.pages.dev
+          TARGET_BRANCH_INPUT: ${{ inputs.target_branch }}
+          PREVIEW_URL_INPUT: ${{ inputs.preview_url }}
         run: |
           if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "branch=${{ inputs.target_branch }}" >> "$GITHUB_OUTPUT"
-            echo "base_url=${{ inputs.preview_url }}" >> "$GITHUB_OUTPUT"
+            branch="$TARGET_BRANCH_INPUT"
+            base_url="$PREVIEW_URL_INPUT"
           else
-            echo "branch=${{ github.ref_name }}" >> "$GITHUB_OUTPUT"
-            echo "base_url=$DEFAULT_PREVIEW_URL" >> "$GITHUB_OUTPUT"
+            branch="${{ github.ref_name }}"
+            base_url="$DEFAULT_PREVIEW_URL"
           fi
+
+          # Fail closed on anything that isn't a plain branch ref or the
+          # exact Cloudflare Pages hostname this check is allowed to send
+          # ADMIN_TOKEN to — closes both an SSRF/secret-exfiltration path
+          # and a GITHUB_OUTPUT injection path via a crafted dispatch input.
+          if [[ ! "$branch" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+            echo "FAIL-CLOSED: target_branch contains unexpected characters: $branch" >&2
+            exit 1
+          fi
+          if [[ ! "$base_url" =~ ^https://[a-z0-9-]+\.next-starter-template-6yr\.pages\.dev$ ]]; then
+            echo "FAIL-CLOSED: preview_url must be an https://*.next-starter-template-6yr.pages.dev host, got: $base_url" >&2
+            exit 1
+          fi
+
+          printf 'branch=%s\n' "$branch" >> "$GITHUB_OUTPUT"
+          printf 'base_url=%s\n' "$base_url" >> "$GITHUB_OUTPUT"
 
       - name: Run Development integration check
         id: run_check
