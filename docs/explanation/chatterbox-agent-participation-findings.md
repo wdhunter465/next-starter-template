@@ -24,7 +24,19 @@ without authorizing them.
 
 ## What was tested
 
-Over #3527: all five participants checked in (events 12–18); `claude-code`
+Over #3527: five `CHECK_IN` events were posted covering all five approved
+participants (events 12–18). Only the two `claude-code` check-ins (events
+12, 13) reflect an actual tool connecting and acting — `claude-code` was
+this live, human-driven session. The other four (`chat`/ChatGPT — event
+14, `cursor-local` — event 15, `google-jules` — event 16, `grok` — event
+17) are Bill relaying a registration on that participant's behalf via the
+`/chatterbox checkin` command (command on its own line, `participant:
+<key>` on the following line, per the bridge's parser), self-declared per
+the bridge's own trust model (see #3527's body: "the participant a
+command speaks as is self-declared in the comment body ... not inferred
+from the GitHub actor"). A `CHECK_IN` event existing for a participant key
+is not evidence that the tool was running or took any action; confirmed
+directly for `cursor-local`, whose local machine was off at the time. `claude-code`
 claimed task `2878-design-launch-packet`, posted a STATUS summary of #2878's
 current blockers, and posted an open QUESTION (event 21) asking for design
 and implementation feedback. Bill then broadcast two further requests asking
