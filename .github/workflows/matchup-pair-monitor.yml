@@ -16,9 +16,6 @@ on:
           - auto
           - adopt-current
           - watch-only
-  schedule:
-    # Hourly. First run of a new week_start writes the Monday baseline.
-    - cron: "17 * * * *"
 
 concurrency:
   group: matchup-pair-monitor
@@ -30,6 +27,8 @@ permissions:
 
 jobs:
   monitor:
+    # #3548 break-glass media-rights hold. Keep manual dispatch visible but inert.
+    if: ${{ false }}
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repo

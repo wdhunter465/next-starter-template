@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { apiGet, apiPost } from '@/lib/api';
+import { WEEKLY_MATCHUP_HOLD } from '@/lib/matchup-hold';
 
 type Photo = {
   id: number;
@@ -118,6 +119,7 @@ export default function WeeklyMatchup() {
   const [totals, setTotals] = useState<{ a: number; b: number } | null>(null);
   const [lastWeek, setLastWeek] = useState<ResultsResp['last_week']>(null);
   const repairAttemptsRef = useRef(0);
+  const matchupPaused = WEEKLY_MATCHUP_HOLD.active;
 
   async function applyCurrentMatchup(data: CurrentResp) {
     const gotWeek = data.week_start ?? null;
@@ -158,6 +160,7 @@ export default function WeeklyMatchup() {
   }
 
   useEffect(() => {
+    if (matchupPaused) return;
     async function load() {
       try {
         setErr(null);
@@ -188,7 +191,7 @@ export default function WeeklyMatchup() {
     return () => {
       clearTimeout(timer);
     };
-  }, []);
+  }, [matchupPaused]);
 
   async function repairBrokenPhoto(brokenPhotoId: number) {
     if (repairing || repairAttemptsRef.current >= 2) return;
@@ -234,14 +237,16 @@ export default function WeeklyMatchup() {
 
   return (
     <div className="card">
-      <h2 className="title-lgfc" style={{ marginTop: 24 }}>Weekly Photo Matchup. Vote for your favorite!</h2>
+      <h2 className="title-lgfc" style={{ marginTop: 24 }}>Weekly Photo Matchup</h2>
 
-      {loading && <div style={{ paddingTop: 12 }}>Loading matchup…</div>}
-      {repairing && <div style={{ paddingTop: 12 }}>Refreshing photos…</div>}
-      {!loading && err && <div style={{ paddingTop: 12 }}>{err}</div>}
-      {!loading && !err && items.length < 2 && <div style={{ paddingTop: 12 }}>No matchup available this week.</div>}
+      {matchupPaused && <div style={{ paddingTop: 12 }}>{WEEKLY_MATCHUP_HOLD.message}</div>}
 
-      {hasMatchup &&
+      {!matchupPaused && loading && <div style={{ paddingTop: 12 }}>Loading matchup…</div>}
+      {!matchupPaused && repairing && <div style={{ paddingTop: 12 }}>Refreshing photos…</div>}
+      {!matchupPaused && !loading && err && <div style={{ paddingTop: 12 }}>{err}</div>}
+      {!matchupPaused && !loading && !err && items.length < 2 && <div style={{ paddingTop: 12 }}>No matchup available this week.</div>}
+
+      {!matchupPaused && hasMatchup &&
         renderMatchupBody(items, hasVoted, submitting || repairing, totals, lastWeek, submit, repairBrokenPhoto)}
     </div>
   );

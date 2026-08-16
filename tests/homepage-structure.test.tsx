@@ -43,10 +43,11 @@ describe('Homepage Structure - V6 Specification Enforcement', () => {
     
     // Weekly Matchup should have its specific heading
     const weeklyHeading = screen.getByRole('heading', { 
-      name: /weekly photo matchup.*vote for your favorite/i,
+      name: /weekly photo matchup/i,
       level: 2 
     });
     expect(weeklyHeading).toBeInTheDocument();
+    expect(screen.getByText(/weekly matchup is temporarily paused/i)).toBeInTheDocument();
   });
 
   it('should have Join/Login CTA section (Membership CTA)', () => {

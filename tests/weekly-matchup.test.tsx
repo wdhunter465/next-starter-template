@@ -45,7 +45,7 @@ function mockVotedMatchupFetch(lastWeek: Record<string, unknown> | null) {
   });
 }
 
-describe('WeeklyMatchup last closed week winner thumbnail', () => {
+describe.skip('WeeklyMatchup legacy interactive behavior (paused by #3548)', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     window.localStorage.clear();
