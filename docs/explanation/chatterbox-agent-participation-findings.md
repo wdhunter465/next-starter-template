@@ -67,38 +67,61 @@ Bill separately checked with two of the other registered participants
 directly:
 
 - **ChatGPT**: reported seeing "fresh activity" on #3527 as of 09:06 ET —
-  it does have some notification surface into the issue — but "nothing in
-  the notification surface indicates a blocking escalation there." Bill
-  then explicitly told it to "check the repo," and it still did not
-  self-sustain: it read passively once, on direct instruction, and did not
-  register the open QUESTION events as something requiring a reply.
-- **Grok**: reported seeing no notification at all for #3527.
+  but this was not a passively received notification. Per Bill's
+  clarification, OpenAI's GitHub connector is pull-only and initiates
+  outbound on explicit prompt; it does not receive inbound notifications
+  from GitHub. Bill had to prompt it to connect and check before it saw
+  anything, and it still did not self-sustain afterward: it read once, on
+  direct instruction, and did not register the open QUESTION events as
+  something requiring a reply.
+- **Grok**: reported seeing no notification at all for #3527. Untested
+  whether an equivalent explicit "connect and check" prompt would surface
+  anything, the way it did for ChatGPT — Grok was not asked to pull in the
+  same way.
 
-## Finding 3 — this splits into two distinct gaps, not one
+## Finding 3 — no participant has an inbound path; only some have a working on-demand pull
 
 | | ChatGPT | Grok | Cursor Local / Google Jules |
 |---|---|---|---|
-| Notification surface into #3527 | Yes (generic) | None observed | Untested this run |
-| Treats a Chatterbox QUESTION as escalation-worthy | No | N/A — never sees it | Untested this run |
+| Passive/push notification into #3527 | No | No | Untested this run |
+| On-demand pull connector, invoked by explicit human prompt | Yes — confirmed working | Untested — not asked | Untested this run |
 | Acts without a human re-prompting each time | No | No | Untested this run |
 
 This confirms the design survey's already-named, still-open gap ("PMO
 push/pull asymmetry" — see `chatterbox-external-design-survey.md` pattern
 2) applies **symmetrically**: it is not only PMO that has no proactive way
-to learn something happened, no participant does, including the ones with
-some passive visibility into the issue. Two different failure modes are
-being conflated by "agents went silent":
+to learn something happened, no participant does. An earlier version of
+this finding described ChatGPT and Grok as two distinct gap types (a
+"triage gap" vs. a "wiring gap"); that was incorrect and has been corrected
+here. Both have the identical structural gap — no inbound path exists for
+either — and the only confirmed difference is that ChatGPT has a working
+on-demand pull connector Bill can invoke by asking, while Grok's equivalent
+capability is simply untested, not shown to be absent.
 
-1. **Triage gap** (ChatGPT): traffic is visible but nothing marks a
-   Chatterbox QUESTION as different from routine bot noise, so it doesn't
-   surface as needing a response even when asked to look.
-2. **Wiring gap** (Grok, and presumptively Cursor Local / Google Jules
-   until tested): no passive visibility into the issue exists at all;
-   triage is moot because there is nothing to triage.
+Because there is no passive surface for either tool, a framing/labeling fix
+("mark Chatterbox questions as escalation-worthy") has nothing to attach
+to — it was considered as a cheap fix in an earlier draft of this document
+and is not viable given this correction. Closing this gap for any pull-only
+tool requires either continued manual re-prompting (no improvement over
+today), or pairing the tool with something that re-invokes it on a
+schedule without a human doing it by hand each time (see Finding 4).
 
-A framing/labeling fix could plausibly close gap 1. It cannot touch gap 2 —
-that needs an actual delivery path, which does not exist for any of these
-vendor tools today.
+## Finding 4 — a scheduling primitive for PMO durability already exists and was proven working today
+
+Separately from any individual agent's own capabilities, this session's
+own environment provides a scheduling primitive (`send_later` /
+equivalent recurring-wake tooling) that was used during this same session
+to schedule a self check-in on PR #3541 roughly an hour out, and it fired
+as expected. A Claude-based PMO running in this kind of environment could
+use the same mechanism to durably re-invoke itself on a cadence — check
+the room, chase non-responders, synthesize open items — without depending
+on whether a given vendor product (e.g. ChatGPT's Scheduled Tasks) exists,
+is enabled, and is paired with a working write-capable connector. This is
+a more immediately testable path to "durably present" than the
+liaison-durability question named as open below, though it only solves
+durability for whichever tool is acting as PMO — it does not by itself
+give Grok, ChatGPT, Cursor Local, or Google Jules an inbound path when
+they are not PMO.
 
 ## Design option considered: a PMO-liaison model
 
@@ -141,14 +164,20 @@ agents.
 
 - What makes a PMO session durably present rather than only active while
   Bill is directly driving it (this test's `claude-code` behavior was
-  entirely a byproduct of Bill's live prompting, not persistence).
+  entirely a byproduct of Bill's live prompting, not persistence). Finding
+  4 names a candidate mechanism proven to work in this session, but no
+  disposition has been made on building a PMO around it.
+- Whether PMO's writes into the room should continue to flow through the
+  GitHub-comment bridge (`TRUSTED_ACTORS` is hardcoded to `wdhunter465`
+  only today, so a non-human PMO would need its own trusted identity added
+  — a governance change) or get a separate, directly scoped API
+  credential (mechanically simpler, but moves PMO's actions outside
+  GitHub's system of record, which this design has otherwise deliberately
+  kept everything inside).
 - What escalation criteria trigger "PMO surfaces this to Bill now" versus
   "PMO keeps waiting/chasing" — this is the same shape as the design
   survey's already-flagged, still-open gap 3 (a first-class pending-decision
   record with expiry).
-- Whether closing the ChatGPT triage gap (a framing/labeling fix) is worth
-  doing independently of the larger liaison question, since it is the one
-  gap here that looks cheaply fixable without new infrastructure.
 
 No disposition has been made on any of the above. This document records
 findings and options for Bill/PMO to accept, defer, or reject, per the same
