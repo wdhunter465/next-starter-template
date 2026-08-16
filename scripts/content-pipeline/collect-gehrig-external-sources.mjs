@@ -2,8 +2,12 @@
 /**
  * Collect Lou Gehrig content candidates from the #3551-approved discovery
  * sources (Openverse, Library of Congress, Wikimedia Commons) and write a
- * CandidateRegistry JSON file matching functions/_lib/content-pipeline-candidate-import.ts,
- * ready for the existing scripts/content-pipeline/import-seed-candidates.mjs pipeline.
+ * CandidateRegistry JSON file matching functions/_lib/content-pipeline-candidate-import.ts
+ * AND data/research/lou-gehrig-content-candidates.schema.json (the two must
+ * agree; the schema file is stricter in places -- e.g. source_metadata is
+ * additionalProperties:false with exactly {source_record_id, date_accessed,
+ * source_citation}, optional string fields must be omitted rather than
+ * null, and tag arrays require uniqueItems).
  *
  * NOT RUN AGAINST LIVE APIS in the session that wrote this file — this
  * environment's network egress policy blocks api.openverse.org, www.loc.gov,
@@ -38,6 +42,25 @@ const DEFAULT_SOURCES = ['openverse', 'loc', 'wikimedia'];
 const DEFAULT_LIMIT = 20;
 const DEFAULT_OUT = 'data/research/lou-gehrig-content-candidates-external-discovery.json';
 const SEED_FILE = 'data/research/lou-gehrig-content-candidates.json';
+const KNOWN_SOURCES = ['openverse', 'loc', 'wikimedia'];
+
+function printUsage() {
+  console.log(
+    'Usage: node --experimental-strip-types scripts/content-pipeline/collect-gehrig-external-sources.mjs [--query "Lou Gehrig"] [--sources openverse,loc,wikimedia] [--limit 20] [--out <file>]',
+  );
+}
+
+function readFlagValue(argv, index, flagName) {
+  const value = argv[index + 1];
+  if (value === undefined || value.startsWith('--')) {
+    throw new Error(`Missing value for ${flagName}`);
+  }
+  return value;
+}
+
+function errorMessage(error) {
+  return error instanceof Error ? error.message : String(error);
+}
 
 function parseArgs(argv) {
   const options = {
@@ -49,22 +72,36 @@ function parseArgs(argv) {
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     if (arg === '--query') {
-      options.query = argv[i + 1];
+      options.query = readFlagValue(argv, i, '--query');
       i += 1;
     } else if (arg === '--sources') {
-      options.sources = argv[i + 1].split(',').map((s) => s.trim()).filter(Boolean);
+      const raw = readFlagValue(argv, i, '--sources');
       i += 1;
+      const sources = [...new Set(raw.split(',').map((s) => s.trim()).filter(Boolean))];
+      const unknown = sources.filter((s) => !KNOWN_SOURCES.includes(s));
+      if (sources.length === 0) {
+        throw new Error('--sources must list at least one source');
+      }
+      if (unknown.length > 0) {
+        throw new Error(`Unknown source(s): ${unknown.join(', ')} (expected one or more of ${KNOWN_SOURCES.join(', ')})`);
+      }
+      options.sources = sources;
     } else if (arg === '--limit') {
-      options.limit = Number(argv[i + 1]);
+      const raw = readFlagValue(argv, i, '--limit');
       i += 1;
+      const parsed = Number(raw);
+      if (!Number.isInteger(parsed) || parsed < 1) {
+        throw new Error(`--limit must be a positive integer, got: ${raw}`);
+      }
+      options.limit = parsed;
     } else if (arg === '--out') {
-      options.out = argv[i + 1];
+      options.out = readFlagValue(argv, i, '--out');
       i += 1;
     } else if (arg === '--help' || arg === '-h') {
-      console.log(
-        'Usage: node --experimental-strip-types scripts/content-pipeline/collect-gehrig-external-sources.mjs [--query "Lou Gehrig"] [--sources openverse,loc,wikimedia] [--limit 20] [--out <file>]',
-      );
+      printUsage();
       process.exit(0);
+    } else {
+      throw new Error(`Unknown argument: ${arg}`);
     }
   }
   return options;
@@ -114,23 +151,45 @@ async function fetchJson(url, headers = {}) {
   return response.json();
 }
 
-function baseCandidate({ id, title, sourceType, sourceName, sourceOwner, sourceDomain, sourceUrl, summary, dateOrPeriod, sourceMetadata, topicTags = [] }) {
-  return {
+function todayDateOnly() {
+  return new Date().toISOString().slice(0, 10); // schema requires format:"date" (YYYY-MM-DD), not date-time
+}
+
+/**
+ * Builds a schema-valid candidate. Optional string fields (source_url,
+ * source_owner, source_domain, date_or_period) are omitted entirely when
+ * absent -- the schema types them as plain "string" with no null option, so
+ * writing null fails validation. source_metadata is constrained to exactly
+ * {source_record_id, date_accessed, source_citation}; anything richer
+ * (license text, uploader, rights advisory, etc.) goes into provenance_notes
+ * instead, which is unrestricted free text.
+ */
+function baseCandidate({
+  id,
+  title,
+  sourceType,
+  sourceName,
+  sourceOwner,
+  sourceDomain,
+  sourceUrl,
+  summary,
+  dateOrPeriod,
+  provenanceNotes,
+  sourceRecordId,
+  sourceCitation,
+  topicTags = [],
+}) {
+  const candidate = {
     candidate_id: id,
     input_stream: 'scheduled_discovery',
     title,
-    source_url: sourceUrl,
     source_name: sourceName,
-    source_owner: sourceOwner,
-    source_domain: sourceDomain,
     source_type: sourceType,
     content_type: 'photo',
     summary,
-    date_or_period: dateOrPeriod ?? null,
     people_tags: ['Lou Gehrig'],
-    topic_tags: ['baseball', ...topicTags],
+    topic_tags: [...new Set(['baseball', ...topicTags])],
     location_tags: [],
-    provenance_notes: 'Produced by scripts/content-pipeline/collect-gehrig-external-sources.mjs (#3552/#3554). Not reviewed. Do not publish without full rights-evidence review.',
     rights_status: 'unknown',
     source_trust_status: 'trusted', // pre-vetted per #3551's approved allowlist; does NOT imply this item's rights are cleared
     relevance_status: 'pending',
@@ -140,67 +199,92 @@ function baseCandidate({ id, title, sourceType, sourceName, sourceOwner, sourceD
     privacy_review_status: 'not_applicable',
     review_priority: 'normal',
     admin_notes: 'Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.',
-    source_metadata: sourceMetadata,
+    provenance_notes: provenanceNotes,
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
   };
+
+  if (sourceUrl) candidate.source_url = sourceUrl;
+  if (sourceOwner) candidate.source_owner = sourceOwner;
+  if (sourceDomain) candidate.source_domain = sourceDomain;
+  if (dateOrPeriod) candidate.date_or_period = dateOrPeriod;
+
+  const sourceMetadata = {};
+  if (sourceRecordId) sourceMetadata.source_record_id = String(sourceRecordId);
+  sourceMetadata.date_accessed = todayDateOnly();
+  if (sourceCitation) sourceMetadata.source_citation = sourceCitation;
+  candidate.source_metadata = sourceMetadata;
+
+  return candidate;
 }
 
 async function collectOpenverse(query, limit, nextId) {
   const url = `https://api.openverse.org/v1/images/?q=${encodeURIComponent(query)}&page_size=${limit}`;
   const data = await fetchJson(url);
   const results = data.results ?? [];
-  return results.map((item) =>
-    baseCandidate({
+  return results.map((item) => {
+    const provenanceNotes = [
+      `Openverse discovery for query "${query}".`,
+      `Provider: ${item.provider ?? 'unknown'}.`,
+      `Creator: ${item.creator ?? 'unknown'}.`,
+      `License: ${item.license ?? 'unknown'}${item.license_version ? ` ${item.license_version}` : ''}.`,
+      `License URL: ${item.license_url ?? 'none'}.`,
+      `Original item URL: ${item.url ?? 'none'}.`,
+      `Foreign landing URL: ${item.foreign_landing_url ?? 'none'}.`,
+      'Openverse’s own terms disclaim verification of individual-work licensing -- treat as a lead only, verify against the originating collection before any rights conclusion.',
+    ].join(' ');
+
+    return baseCandidate({
       id: nextId(),
       title: item.title || `Openverse image ${item.id}`,
       sourceType: 'other',
       sourceName: 'Openverse',
-      sourceOwner: item.source ?? item.provider ?? null,
+      sourceOwner: item.source || item.provider || undefined,
       sourceDomain: 'openverse.org',
-      sourceUrl: item.foreign_landing_url ?? item.url ?? null,
-      summary: `Discovered via Openverse search for "${query}". Provider: ${item.provider ?? 'unknown'}. Treat license metadata as a lead — verify against the originating collection before any rights conclusion (Openverse's own terms disclaim verification of individual-work licensing).`,
-      sourceMetadata: {
-        openverse_id: item.id ?? null,
-        provider: item.provider ?? null,
-        original_item_url: item.url ?? null,
-        foreign_landing_url: item.foreign_landing_url ?? null,
-        creator: item.creator ?? null,
-        license: item.license ?? null,
-        license_version: item.license_version ?? null,
-        license_url: item.license_url ?? null,
-        retrieved_at: new Date().toISOString(),
-      },
-    }),
-  );
+      sourceUrl: item.foreign_landing_url || item.url || undefined,
+      summary: `Discovered via Openverse search for "${query}". Provider: ${item.provider ?? 'unknown'}. Treat license metadata as a lead — verify against the originating collection before any rights conclusion.`,
+      provenanceNotes,
+      sourceRecordId: item.id,
+      sourceCitation: `Openverse (provider: ${item.provider ?? 'unknown'}), item ${item.id ?? 'unknown'}`,
+    });
+  });
 }
 
 async function collectLibraryOfCongress(query, limit, nextId) {
   const url = `https://www.loc.gov/search/?q=${encodeURIComponent(query)}&fo=json&c=${limit}`;
   const data = await fetchJson(url);
   const results = data.results ?? [];
-  return results.map((item) =>
-    baseCandidate({
+  return results.map((item) => {
+    const controlNumber = item.number_lccn ?? item.id ?? null;
+    const rightsAdvisory = item.rights_advisory ?? item.rights ?? null;
+    const downloadUrl = item.resources?.[0]?.url ?? null;
+
+    const provenanceNotes = [
+      `Library of Congress discovery for query "${query}".`,
+      `Control number/ID: ${controlNumber ?? 'unknown'}.`,
+      `Collection: ${item.partof ?? 'unknown'}.`,
+      `Creator/contributor: ${item.contributor ?? 'unknown'}.`,
+      `Rights advisory: ${rightsAdvisory ?? 'none provided'}.`,
+      `Source page: ${item.url ?? 'none'}.`,
+      `Download URL: ${downloadUrl ?? 'none'}.`,
+      'A rights/advisory statement here is LOC’s own research note, not a legal clearance -- LOC generally does not own copyright in donated/acquired collection material.',
+    ].join(' ');
+
+    return baseCandidate({
       id: nextId(),
       title: item.title || 'Untitled Library of Congress item',
       sourceType: 'library',
       sourceName: 'Library of Congress',
       sourceOwner: 'Library of Congress',
       sourceDomain: 'loc.gov',
-      sourceUrl: item.url ?? item.id ?? null,
-      summary: `Discovered via loc.gov search for "${query}". A rights/advisory statement here (if present) is LOC's own research note, not a legal clearance -- LOC generally does not own copyright in donated/acquired collection material.`,
-      dateOrPeriod: Array.isArray(item.date) ? item.date[0] : item.date ?? null,
-      sourceMetadata: {
-        loc_control_number: item.number_lccn ?? item.id ?? null,
-        collection: item.partof ?? null,
-        creator: item.contributor ?? null,
-        rights_advisory: item.rights_advisory ?? item.rights ?? null,
-        source_page: item.url ?? null,
-        download_url: item.resources?.[0]?.url ?? null,
-        retrieved_at: new Date().toISOString(),
-      },
-    }),
-  );
+      sourceUrl: item.url || undefined,
+      summary: `Discovered via loc.gov search for "${query}". A rights/advisory statement here (if present) is LOC's own research note, not a legal clearance.`,
+      dateOrPeriod: Array.isArray(item.date) ? item.date[0] : item.date || undefined,
+      provenanceNotes,
+      sourceRecordId: controlNumber,
+      sourceCitation: `Library of Congress, control/ID ${controlNumber ?? 'unknown'}`,
+    });
+  });
 }
 
 async function collectWikimediaCommons(query, limit, nextId) {
@@ -217,26 +301,31 @@ async function collectWikimediaCommons(query, limit, nextId) {
   return infoPages.map((page) => {
     const info = page.imageinfo?.[0] ?? {};
     const meta = info.extmetadata ?? {};
+    const licenseTemplate = meta.LicenseShortName?.value ?? null;
+
+    const provenanceNotes = [
+      `Wikimedia Commons discovery for query "${query}".`,
+      `File page: ${info.descriptionurl ?? 'none'}.`,
+      `Uploader: ${info.user ?? 'unknown'}.`,
+      `Asserted creator: ${meta.Artist?.value ?? 'unknown'}.`,
+      `License template: ${licenseTemplate ?? 'none'}.`,
+      `License URL: ${meta.LicenseUrl?.value ?? 'none'}.`,
+      `Attribution text: ${meta.Attribution?.value ?? 'none'}.`,
+      `File URL: ${info.url ?? 'none'}.`,
+      'License template is an uploader assertion, not a verified fact -- mislabeled licenses are a known, recurring problem on Commons. Verify before any rights conclusion.',
+    ].join(' ');
+
     return baseCandidate({
       id: nextId(),
       title: page.title || 'Untitled Commons file',
       sourceType: 'archive',
       sourceName: 'Wikimedia Commons',
-      sourceOwner: null,
       sourceDomain: 'commons.wikimedia.org',
-      sourceUrl: info.descriptionurl ?? null,
-      summary: `Discovered via Wikimedia Commons search for "${query}". License template is an uploader assertion, not a verified fact -- mislabeled licenses are a known, recurring problem on Commons. Verify before any rights conclusion.`,
-      sourceMetadata: {
-        file_page_url: info.descriptionurl ?? null,
-        original_source: meta.Credit?.value ?? null,
-        uploader: info.user ?? null,
-        asserted_creator: meta.Artist?.value ?? null,
-        license_template: meta.LicenseShortName?.value ?? null,
-        license_url: meta.LicenseUrl?.value ?? null,
-        attribution_text: meta.Attribution?.value ?? null,
-        revision_permalink: info.url ?? null,
-        retrieved_at: new Date().toISOString(),
-      },
+      sourceUrl: info.descriptionurl || undefined,
+      summary: `Discovered via Wikimedia Commons search for "${query}". License template is an uploader assertion, not a verified fact.`,
+      provenanceNotes,
+      sourceRecordId: page.pageid ?? page.title,
+      sourceCitation: `Wikimedia Commons, ${page.title ?? 'unknown file'}`,
     });
   });
 }
@@ -248,24 +337,30 @@ const COLLECTORS = {
 };
 
 async function main() {
-  const options = parseArgs(process.argv.slice(2));
+  let options;
+  try {
+    options = parseArgs(process.argv.slice(2));
+  } catch (error) {
+    console.error(errorMessage(error));
+    printUsage();
+    process.exitCode = 1;
+    return;
+  }
+
   const nextId = makeCandidateIdFactory();
   const allCandidates = [];
   const errors = [];
 
   for (const source of options.sources) {
     const collector = COLLECTORS[source];
-    if (!collector) {
-      errors.push(`Unknown source: ${source} (expected one of ${Object.keys(COLLECTORS).join(', ')})`);
-      continue;
-    }
     try {
       const candidates = await collector(options.query, options.limit, nextId);
       console.log(`${source}: collected ${candidates.length} candidate(s)`);
       allCandidates.push(...candidates);
     } catch (error) {
-      errors.push(`${source}: ${error.message}`);
-      console.error(`${source} failed: ${error.message}`);
+      const message = errorMessage(error);
+      errors.push(`${source}: ${message}`);
+      console.error(`${source} failed: ${message}`);
     }
   }
 
@@ -273,8 +368,8 @@ async function main() {
     schema_version: '1',
     registry_class: 'operator_export',
     description: `Automated discovery export from Openverse/LOC/Wikimedia Commons for query "${options.query}". Every candidate is unreviewed (rights_status=unknown, review_status=pending_review, publication_status=not_ready). Not approved for publication.`,
-    registry_purpose: 'external_discovery_pending_review',
-    content_evidence_level: 'unverified_discovery_lead',
+    registry_purpose: 'operator_export',
+    content_evidence_level: 'mixed', // real (non-synthetic) discovery leads, not yet operator-verified -- schema's enum has no exact "pending review" value
     updated_at: new Date().toISOString(),
     candidates: allCandidates,
   };
