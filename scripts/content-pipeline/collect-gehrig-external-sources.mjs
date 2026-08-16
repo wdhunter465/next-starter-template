@@ -58,6 +58,10 @@ function readFlagValue(argv, index, flagName) {
   return value;
 }
 
+function errorMessage(error) {
+  return error instanceof Error ? error.message : String(error);
+}
+
 function parseArgs(argv) {
   const options = {
     query: DEFAULT_QUERY,
@@ -73,7 +77,7 @@ function parseArgs(argv) {
     } else if (arg === '--sources') {
       const raw = readFlagValue(argv, i, '--sources');
       i += 1;
-      const sources = raw.split(',').map((s) => s.trim()).filter(Boolean);
+      const sources = [...new Set(raw.split(',').map((s) => s.trim()).filter(Boolean))];
       const unknown = sources.filter((s) => !KNOWN_SOURCES.includes(s));
       if (sources.length === 0) {
         throw new Error('--sources must list at least one source');
@@ -337,7 +341,7 @@ async function main() {
   try {
     options = parseArgs(process.argv.slice(2));
   } catch (error) {
-    console.error(error.message);
+    console.error(errorMessage(error));
     printUsage();
     process.exitCode = 1;
     return;
@@ -354,8 +358,9 @@ async function main() {
       console.log(`${source}: collected ${candidates.length} candidate(s)`);
       allCandidates.push(...candidates);
     } catch (error) {
-      errors.push(`${source}: ${error.message}`);
-      console.error(`${source} failed: ${error.message}`);
+      const message = errorMessage(error);
+      errors.push(`${source}: ${message}`);
+      console.error(`${source} failed: ${message}`);
     }
   }
 
