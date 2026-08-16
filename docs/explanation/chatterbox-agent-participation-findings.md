@@ -56,7 +56,7 @@ relayed into an event or a clear rejection reply. That loop is reliable.
 
 ## Finding 2 — no agent besides the live human-driven session responded
 
-As of this writing, three QUESTION events (21, 22, 23, plus follow-up 25)
+As of this writing, four QUESTION events (21, 22, 23, and follow-up 25)
 broadcasting the same ask sit open and unanswered. Zero ANSWER events exist
 from any participant other than `claude-code`, and `claude-code` only
 produced STATUS/QUESTION content because Bill was driving that session
