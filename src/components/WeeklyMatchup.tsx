@@ -239,7 +239,7 @@ export default function WeeklyMatchup() {
     <div className="card">
       <h2 className="title-lgfc" style={{ marginTop: 24 }}>Weekly Photo Matchup</h2>
 
-      {matchupPaused && <div style={{ paddingTop: 12 }}>Weekly Matchup is temporarily paused.</div>}
+      {matchupPaused && <div style={{ paddingTop: 12 }}>{WEEKLY_MATCHUP_HOLD.message}</div>}
 
       {!matchupPaused && loading && <div style={{ paddingTop: 12 }}>Loading matchup…</div>}
       {!matchupPaused && repairing && <div style={{ paddingTop: 12 }}>Refreshing photos…</div>}
