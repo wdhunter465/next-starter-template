@@ -5,8 +5,8 @@ Authority Level: Operational Authority
 Owns: #3407 migration steps 1–2 identity attribution inventory and Bill account-creation checklist
 Does Not Own: Account creation, credential custody, permission grants, branch-protection changes, or as-built identity wiring
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Related Issues: #3407
-Last Reviewed: 2026-08-15
+Related Issues: #3407, #3501
+Last Reviewed: 2026-08-16
 ---
 
 # Issue #3407 — Agent GitHub identity inventory and Bill onboarding checklist
@@ -17,13 +17,28 @@ Record migration steps 1–2 for [issue #3407](https://github.com/wdhunter465/ne
 
 This report does **not** create accounts, store secrets, grant repository access, or change runtime identity wiring.
 
+## Scope
+
+In scope:
+
+- Current attribution surfaces (Issues, PRs, commits, Actions, Apps, labels).
+- Logical agent versus GitHub-user gap analysis for Grok, Claude, Cursor, Chat, Work (OpenAI), and Codex.
+- Draft minimum permission model and integration matrix template.
+- Bill’s human-only account-creation and access checklist (usernames only).
+
+Out of scope:
+
+- Account creation, CAPTCHA/MFA, credential custody, or PAT issuance.
+- Runtime identity wiring, workflow token rotation, or permission grants.
+- Graduation of Pipeline work or application/runtime code changes.
+
 ## Non-goals
 
 - No passwords, MFA secrets, recovery codes, PATs, or private keys in this file or any Issue/PR/comment.
 - No paid GitHub plan purchase, ownership transfer, branch-protection weakening, or agent admin grants.
 - No removal of Bill’s emergency access.
 
-## Current attribution reality
+## Current known truth
 
 Observed on `wdhunter465/next-starter-template` as of 2026-08-15:
 
@@ -38,7 +53,16 @@ Observed on `wdhunter465/next-starter-template` as of 2026-08-15:
 | `CODEOWNERS` | `/docs/` paths → `@wdhunter645` | Related human identity, not per-agent |
 | Logical agent identity | `agent:*` labels + governance docs only | Label / docs, not GitHub user |
 
-**Core defect:** Logical LGFC agents (Grok, Claude, Cursor, Chat, WORK, Codex) do not map to distinct GitHub users. Almost all agent-performed API and git activity is attributable to Bill.
+**Core defect:** Logical LGFC agents (Grok, Claude, Cursor, Chat, Work (OpenAI), Codex) do not map to distinct GitHub users. Almost all agent-performed API and git activity is attributable to Bill.
+
+## Intended final state
+
+- Each in-scope agent has a distinct GitHub user identity.
+- Agent-performed Issues, comments, PRs, and commits are attributable to that agent’s GitHub user where technically controllable.
+- Bill’s identity is reserved for Bill’s own actions and explicit Product Authority decisions.
+- Implementer/reviewer separation remains enforceable (no self-approval via the same agent account).
+- Unavoidable bot/App attribution (Actions, Copilot) is documented with logical ownership.
+- This inventory report remains the step 1–2 record; later migration steps update as-built docs after Bill returns usernames and wiring is complete.
 
 ## Logical agent inventory versus GitHub identity
 
@@ -48,9 +72,11 @@ Observed on `wdhunter465/next-starter-template` as of 2026-08-15:
 | Claude | Claude Code active; conversational Claude supporting only | *(none; Claude Code via workflows)* | No |
 | Cursor | Implementation / Operations | `agent:cursor` | No |
 | Chat | Ordinary Chat holds no durable role; “Chat” in #3407 may mean the Chat product surface | `agent:ChatGPT` (legacy name) | No |
-| WORK | PMO / Admin / PR Approver per `AGENT-TEAM.md` | *(not in orchestrator labels)* | No |
+| Work (OpenAI) | Durable product/role holder in `AGENT-TEAM.md` as “Work (OpenAI)”; #3407 labels the same role “WORK” | *(not in orchestrator labels)* | No |
 | Codex | Selective use; quarantined in routing | `agent:codex` (quarantined) | No |
 | Copilot *(out of #3407 agent list)* | Advisory review | `agent:copilot` (quarantined) | App identity only |
+
+**Naming note:** Canonical durable name is **Work (OpenAI)** per `docs/governance/AGENT-TEAM.md`. Issue #3407 uses **WORK** as the program label for the same role; both refer to one logical agent.
 
 **Label registry gap:** `.github/orchestrator-labels.json` lists `agent:codex`, `agent:cursor`, `agent:copilot`, `agent:ChatGPT` only — no `agent:grok`, `agent:work`, or `agent:claude`.
 
@@ -104,18 +130,20 @@ Observed on `wdhunter465/next-starter-template` as of 2026-08-15:
 
 Do **not** grant repository admin by default. Confirm per agent after pilot.
 
-| Capability | Grok | Claude Code | Cursor | Chat | WORK | Codex |
+| Capability | Grok | Claude Code | Cursor | Chat | Work (OpenAI) | Codex |
 | --- | --- | --- | --- | --- | --- | --- |
 | Issues: comment / label | Yes | Yes | Yes | Yes* | Yes | Yes* |
-| Issues: assign / close (bounded) | Policy-bound | Policy-bound | Policy-bound | Limited | Yes (Admin role) | Limited |
+| Issues: assign / close (bounded) | Policy-bound | Policy-bound | Policy-bound | Limited | Yes (Admin & Communications *function*, not GitHub admin) | Limited |
 | Branches: create / push | If implementing | Yes | Yes | Rare | Rare | If implementing |
 | PRs: open / update | If implementing | Yes | Yes | Rare | Rare | If implementing |
 | PRs: review (not own work) | If PR Approver | Yes (not own) | No self-approve | — | Yes (not own) | — |
 | PRs: merge | No default | No default | No default | No | No default | No |
 | Actions: write / dispatch | Minimal | Minimal | As needed for runner | No | No | No |
-| Admin / settings | No | No | No | No | No | No |
+| Admin / settings (GitHub repository admin) | No | No | No | No | No | No |
 
 \*Chat / Codex only under explicit source-Issue authority per `docs/governance/AGENT-TEAM.md`.
+
+**Clarification:** “Admin & Communications function” means the durable governance/communications role described in `AGENT-TEAM.md`. It does **not** mean GitHub repository **Admin** privileges. No agent receives repository admin by default.
 
 **Starting access level:** Collaborator **Write** for implementers (Cursor, Claude Code); refine via rulesets and branch protection so required reviews cannot be satisfied by the implementer alone. Bill retains owner/admin emergency access.
 
@@ -129,7 +157,7 @@ For each integration at implementation time, record: current auth → target ide
 | Cursor Cloud | TBD | Cursor user or documented App | Partial |
 | Claude Code | TBD / Bill | Claude GitHub user | Yes if CLI uses that account |
 | Grok tooling | Bill connection | Grok GitHub user | Yes if OAuth/PAT is Grok’s |
-| WORK / Chat connectors | Bill connection | WORK or Chat user | Yes if connectors support non-Bill OAuth |
+| Work / Chat connectors | Bill connection | Work or Chat user | Yes if connectors support non-Bill OAuth |
 | Codex | Quarantined | Codex user when authorized | Yes when used |
 | GitHub Actions closeout/gates | `github-actions[bot]` | Keep bot; logical owner = Deterministic CI | No (bot by design) |
 | Copilot review | Copilot app | Keep app; not a durable implementer | No |
@@ -145,7 +173,7 @@ Complete offline. Return **usernames only** on the source Issue or secure channe
 - [ ] Create GitHub user for **Claude** (Claude Code operator identity)
 - [ ] Create GitHub user for **Cursor**
 - [ ] Create GitHub user for **Chat**
-- [ ] Create GitHub user for **WORK**
+- [ ] Create GitHub user for **Work (OpenAI)** / program label WORK
 - [ ] Create GitHub user for **Codex**
 - [ ] Complete email verification, CAPTCHA, Terms of Service, and MFA for each
 - [ ] Record recovery/custody model offline (Bill-only vault) — not in the repository
@@ -156,7 +184,7 @@ Complete offline. Return **usernames only** on the source Issue or secure channe
 - [ ] Final username: Claude = `________________`
 - [ ] Final username: Cursor = `________________`
 - [ ] Final username: Chat = `________________`
-- [ ] Final username: WORK = `________________`
+- [ ] Final username: Work (OpenAI) = `________________`
 - [ ] Final username: Codex = `________________`
 
 ### Repository access (after permission model sign-off)
@@ -204,8 +232,8 @@ Complete offline. Return **usernames only** on the source Issue or secure channe
 
 ## Open Product Authority decisions
 
-1. **Chat versus WORK:** One GitHub user each, or is “Chat” only the non-durable conversational surface (no account)?
-2. **Grok / WORK labels:** Add `agent:grok` and `agent:work` to the orchestrator registry?
+1. **Chat versus Work (OpenAI):** One GitHub user each, or is “Chat” only the non-durable conversational surface (no account)?
+2. **Grok / Work labels:** Add `agent:grok` and `agent:work` to the orchestrator registry?
 3. **Pilot agent:** Confirm Cursor first.
 4. **Org versus user accounts:** Personal GitHub users versus a future LGFC organization (organization may trigger paid-plan stop).
 5. **CODEOWNERS:** Replace `@wdhunter645` with team/agent users after accounts exist?
@@ -217,7 +245,9 @@ Stop and request Bill’s decision before purchasing any GitHub plan or paid ser
 ## References
 
 - Source issue: [#3407](https://github.com/wdhunter465/next-starter-template/issues/3407)
+- Post-merge exception: [#3501](https://github.com/wdhunter465/next-starter-template/issues/3501)
 - Durable roles and product inventory: `docs/governance/AGENT-TEAM.md`
+- Document status/naming: `docs/governance/standards/document-status-and-naming_MASTER.md`
 - Orchestrator labels: `.github/orchestrator-labels.json`
 - Orchestrator routing: `.github/orchestrator-routing.json`
 - Queue label registry: `.github/queue-label-registry.json`
