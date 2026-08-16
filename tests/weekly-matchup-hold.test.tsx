@@ -2,6 +2,7 @@ import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import WeeklyMatchup from '@/components/WeeklyMatchup';
+import { WEEKLY_MATCHUP_HOLD } from '@/lib/matchup-hold';
 import { onRequest as publicMatchupMiddleware } from '../functions/api/matchup/_middleware';
 import { onRequest as adminMatchupMiddleware } from '../functions/api/admin/matchup/_middleware';
 
@@ -15,7 +16,7 @@ describe('Weekly Matchup break-glass hold (#3548)', () => {
 
     render(<WeeklyMatchup />);
 
-    expect(screen.getByText('Weekly Matchup is temporarily paused.')).toBeInTheDocument();
+    expect(screen.getByText(WEEKLY_MATCHUP_HOLD.message)).toBeInTheDocument();
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
     expect(screen.queryByRole('button')).not.toBeInTheDocument();
     await Promise.resolve();
