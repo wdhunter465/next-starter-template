@@ -13,11 +13,15 @@ Last Reviewed: 2026-08-16
 
 ## Purpose
 
-`chatterbox-external-design-survey.md` reviewed `hivementality-ai/hivemind` against Chatterbox's known gaps and filed five candidate patterns as *"Open — pending soak test."* The 2026-08-15/16 soak test (control Issue #3527; findings in `chatterbox-agent-participation-findings.md`, merged via #3541/#3543) validated two of them directly. This document proposes concrete mechanisms for those two, scoped to Chatterbox's actual schema and API — an additive design proposal, not a redesign, and not an authorization to build anything (per #3544 and #3415's own rule).
+`chatterbox-external-design-survey.md` reviewed `hivementality-ai/hivemind` against Chatterbox's known gaps and filed five candidate patterns as *"Open — pending soak test."* The 2026-08-15/16 soak test (control Issue #3527; findings in `chatterbox-agent-participation-findings.md`, merged via #3541/#3543) validated two of them directly. This document proposes concrete mechanisms for those two — an additive design proposal, not a redesign, and not an authorization to build anything (per #3544 and #3415's own rule).
 
-Scope note: per Bill's direction (2026-08-16), near-term Chatterbox development targets `claude-code` and `cursor-local` collaborating in one room. Both proposals below are evaluated against that narrower scope, not the full five-participant roster.
+## Scope
 
-## What the soak test actually proved
+Covers: a design proposal for (1) an event-level notification category and (2) a first-class pending-decision record with expiry, evaluated against the schema and API shape already established by migration `0050_chatterbox_core.sql` and the `functions/api/chatterbox/**` / `functions/_lib/chatterbox.ts` implementation, which currently live only on the `component/chatterbox-prototype` branch — neither exists on `main`, where this document and #3544 live.
+
+Does not cover: implementation, migration authorship, or any commitment to build either proposal (see Intended final state); the other three Hivemind survey patterns (per-agent tokens, `@mention` parsing, hook precedence), which remain out of scope per #3544. Per Bill's direction (2026-08-16), near-term Chatterbox development targets `claude-code` and `cursor-local` collaborating in one room; both proposals below are evaluated against that narrower scope, not the full five-participant roster.
+
+## Current known truth
 
 From `chatterbox-agent-participation-findings.md`:
 
@@ -26,11 +30,13 @@ From `chatterbox-agent-participation-findings.md`:
 - No participant, including one with some on-demand pull capability, had any way to distinguish an item needing a response from routine traffic (Finding 3) — this is the gap notification categorization addresses.
 - The open question "what escalation criteria trigger PMO surfaces this to Bill now vs. keeps waiting" was named and left undecided (Design option section) — this is the gap a pending-decision record addresses.
 
+Both proposals below reference implementation symbols (`buildCatchUpDigest`, `functions/api/chatterbox/events.ts`) that exist only on `component/chatterbox-prototype` as of this writing, cited from direct reading of that branch's source, not from `main` — flagged explicitly per file, below, so this doc stays accurate for a reader working only from `main`.
+
 ## Proposal 1 — event-level notification category
 
 ### Problem
 
-`chatterbox_events.event_type` (`CLAIM, RELEASE, STATUS, QUESTION, ANSWER, COMPLETE, PMO_INSTRUCTION, PMO_ACCEPT, DECISION_RECORDED, CHECK_IN, CHECK_OUT, SYSTEM`) already provides a coarse category axis, but nothing distinguishes an urgent `QUESTION` from an FYI one, or flags `STATUS` updates that actually need a reply. `buildCatchUpDigest` (`functions/_lib/chatterbox.ts`) returns `openQuestions`, `pmoInstructions`, and a bounded `tail` — everything not already an unanswered `QUESTION` or a recent `PMO_INSTRUCTION` lands in the undifferentiated tail, indistinguishable from routine noise. This is what let three of today's broadcast questions sit unanswered even for a participant that did look.
+`chatterbox_events.event_type` (`CLAIM, RELEASE, STATUS, QUESTION, ANSWER, COMPLETE, PMO_INSTRUCTION, PMO_ACCEPT, DECISION_RECORDED, CHECK_IN, CHECK_OUT, SYSTEM`) already provides a coarse category axis, but nothing distinguishes an urgent `QUESTION` from an FYI one, or flags `STATUS` updates that actually need a reply. On `component/chatterbox-prototype`, `buildCatchUpDigest` (`functions/_lib/chatterbox.ts`) returns `openQuestions`, `pmoInstructions`, and a bounded `tail` — everything not already an unanswered `QUESTION` or a recent `PMO_INSTRUCTION` lands in the undifferentiated tail, indistinguishable from routine noise. This is what let three of today's broadcast questions sit unanswered even for a participant that did look.
 
 ### Proposed mechanism
 
@@ -41,8 +47,8 @@ ALTER TABLE chatterbox_events ADD COLUMN notify_category TEXT
   CHECK (notify_category IN ('NEEDS_RESPONSE', 'FYI', 'BLOCKING') OR notify_category IS NULL);
 ```
 
-- Set by the poster at `POST /api/chatterbox/events` time (`functions/api/chatterbox/events.ts`), optional and defaulting to `NULL`/`FYI` so existing callers (including the bridge script) are unaffected.
-- `buildCatchUpDigest` gains a new bucket, `needsResponse`, populated from events where `notify_category IN ('NEEDS_RESPONSE', 'BLOCKING')` and not yet answered (mirrors the existing `openQuestions` logic but generalizes it past `QUESTION`-typed events — a `STATUS` update can also need a response).
+- Set by the poster at event-creation time (`onRequestPost` in `component/chatterbox-prototype`'s `functions/api/chatterbox/events.ts`), optional. The column defaults to `NULL` at the database level; digest/triage logic treats `NULL` identically to `'FYI'`, so existing callers (including the bridge script, which never sets this field) are unaffected.
+- `buildCatchUpDigest` gains a new bucket, `needsResponse`, populated from events where `notify_category IN ('NEEDS_RESPONSE', 'BLOCKING')` and no later event in the same room has `in_reply_to_event_id` pointing at it — "answered" is defined by the schema's existing reply-linkage field, not by `event_type`, so a `STATUS` update marked `NEEDS_RESPONSE` is treated the same as an unanswered `QUESTION` once something replies to it.
 - The bridge's `question`/`status` commands gain an optional `urgency:` field mapping to `notify_category`; omitted, behavior is unchanged.
 
 ### Explicitly deferred
@@ -76,7 +82,7 @@ CREATE TABLE IF NOT EXISTS chatterbox_decisions (
 );
 ```
 
-- New routes: `POST /api/chatterbox/decisions` (create, called from a new bridge `decide`-request command), `POST /api/chatterbox/decisions/:id/resolve` (approve/reject, PMO/product_authority role_class only — same role check pattern already used for `system_clerk` in `events.ts`), `GET /api/chatterbox/decisions?room=&status=`.
+- New routes on `component/chatterbox-prototype`: `POST /api/chatterbox/decisions` (create, called from a new bridge `decide`-request command), `POST /api/chatterbox/decisions/:id/resolve` (approve/reject, PMO/product_authority role_class only — same role check pattern already used for `system_clerk` in that branch's `events.ts`), `GET /api/chatterbox/decisions?room=&status=`.
 - Catch-up digest gains a `pendingDecisions` bucket, sorted by `expires_at` ascending, so the soonest-expiring item surfaces first.
 - Expiry itself is passive (a computed `status = 'PENDING' AND expires_at < now` read at query time, not a background job) — consistent with Chatterbox's existing stateless-edge-function architecture; no cron/worker needed for v1.
 
@@ -94,6 +100,6 @@ Build **Proposal 2 (pending-decision record) first.** Rationale:
 
 This is a recommendation, not a decision — sequencing is PMO's/Bill's call per #3544's acceptance criteria.
 
-## Disposition
+## Intended final state
 
-Neither proposal is authorized for implementation by this document. Both are candidates for Bill/PMO to accept, defer, or reject against #3544, per the same pattern `chatterbox-external-design-survey.md` established.
+Neither proposal is authorized for implementation by this document. Both are candidates for Bill/PMO to accept, defer, or reject against #3544, per the same pattern `chatterbox-external-design-survey.md` established. If accepted, Proposal 2 is expected to land first per the sequencing recommendation above, as its own bounded PMO-authorized package (branch, allowlist, acceptance criteria) on `component/chatterbox-prototype`, not on `main`.
