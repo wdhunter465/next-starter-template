@@ -337,18 +337,30 @@ describe('media assets admin API', () => {
 
 describe('public photos read contract', () => {
   function makePhotosDb(rows: Array<Record<string, unknown>> = []) {
+    function visible(sql: string, source: Array<Record<string, unknown>>) {
+      let next = source.slice();
+      if (sql.includes('publication_eligible = 1')) {
+        next = next.filter((row) => Number(row.publication_eligible) === 1);
+      }
+      if (sql.includes('rights_hold = 0')) {
+        next = next.filter((row) => Number(row.rights_hold ?? 0) === 0);
+      }
+      return next;
+    }
     return {
       prepare: vi.fn((sql: string) => ({
         bind: (...args: unknown[]) => ({
           all: async () => {
+            const filtered = visible(sql, rows);
             if (sql.includes('LIMIT ? OFFSET ?')) {
               const limit = Number(args[0]);
               const offset = Number(args[1]);
-              return { results: rows.slice(offset, offset + limit) };
+              return { results: filtered.slice(offset, offset + limit) };
             }
-            return { results: rows };
+            return { results: filtered };
           },
-          first: async () => rows.find((row) => Number(row.id) === Number(args[0])) ?? null,
+          first: async () =>
+            visible(sql, rows).find((row) => Number(row.id) === Number(args[0])) ?? null,
         }),
       })),
     };
@@ -365,6 +377,8 @@ describe('public photos read contract', () => {
             is_memorabilia: 0,
             description: 'Lou',
             created_at: '2026-06-01T00:00:00Z',
+            rights_hold: 0,
+            publication_eligible: 1,
           },
         ]),
         PUBLIC_B2_BASE_URL: 'https://cdn.example.com/lgfc',
@@ -403,6 +417,8 @@ describe('public photos read contract', () => {
             is_memorabilia: 1,
             description: 'Eleanor',
             created_at: '2026-06-01T00:00:00Z',
+            rights_hold: 0,
+            publication_eligible: 1,
           },
         ]),
         PUBLIC_B2_BASE_URL: 'https://cdn.example.com/lgfc',

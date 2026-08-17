@@ -71,7 +71,13 @@ function makeRepairDb(options: {
     }
     if (sql.includes('FROM photos WHERE id = ?') && sql.includes('is_matchup_eligible')) {
       const photo = photos.find((row) => Number(row.id) === Number(args[0]));
-      return photo ? { is_matchup_eligible: photo.is_matchup_eligible } : null;
+      return photo
+        ? {
+            is_matchup_eligible: photo.is_matchup_eligible,
+            rights_hold: Number((photo as { rights_hold?: number }).rights_hold ?? 0),
+            publication_eligible: Number((photo as { publication_eligible?: number }).publication_eligible ?? 1),
+          }
+        : null;
     }
     if (sql.includes('FROM weekly_matchups WHERE week_start = ?') && sql.includes('LIMIT 1')) {
       return matchups.find((row) => row.week_start === String(args[0])) ?? null;
@@ -93,7 +99,14 @@ function makeRepairDb(options: {
       };
     }
     if (sql.includes('FROM photos WHERE url IS NOT NULL')) {
-      return { results: photos.filter((row) => row.is_matchup_eligible >= 0) };
+      return {
+        results: photos.filter(
+          (row) =>
+            row.is_matchup_eligible >= 0 &&
+            Number((row as { publication_eligible?: number }).publication_eligible ?? 1) === 1 &&
+            Number((row as { rights_hold?: number }).rights_hold ?? 0) === 0,
+        ),
+      };
     }
     return { results: [] };
   }

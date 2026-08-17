@@ -227,13 +227,13 @@ export function remediateBothSlotsViaD1(
   }
   const exclude = [live.photo_a_id, live.photo_b_id];
   const candidates = d1(
-    `SELECT id FROM photos WHERE url IS NOT NULL AND TRIM(url) != '' AND is_matchup_eligible >= 0 AND COALESCE(is_memorabilia, 0) = 0 ORDER BY RANDOM() LIMIT 40;`,
+    `SELECT id FROM photos WHERE url IS NOT NULL AND TRIM(url) != '' AND is_matchup_eligible >= 0 AND COALESCE(is_memorabilia, 0) = 0 AND rights_hold = 0 AND publication_eligible = 1 ORDER BY RANDOM() LIMIT 40;`,
     { dbName, dryRun },
   );
   let ids = (candidates.rows || []).map((r) => Number(r.id));
   if (ids.length < 2) {
     const fallback = d1(
-      `SELECT id FROM photos WHERE url IS NOT NULL AND TRIM(url) != '' AND is_matchup_eligible >= 0 ORDER BY RANDOM() LIMIT 40;`,
+      `SELECT id FROM photos WHERE url IS NOT NULL AND TRIM(url) != '' AND is_matchup_eligible >= 0 AND rights_hold = 0 AND publication_eligible = 1 ORDER BY RANDOM() LIMIT 40;`,
       { dbName, dryRun },
     );
     ids = (fallback.rows || []).map((r) => Number(r.id));
@@ -257,7 +257,7 @@ export function remediateBothSlotsViaD1(
   });
 
   const refreshed = d1(
-    `SELECT m.id AS matchup_id, m.week_start AS week_start, m.photo_a_id AS photo_a_id, m.photo_b_id AS photo_b_id, a.url AS photo_a_url, b.url AS photo_b_url FROM weekly_matchups m JOIN photos a ON a.id = m.photo_a_id JOIN photos b ON b.id = m.photo_b_id WHERE m.id = ${Number(live.matchup_id)} LIMIT 1;`,
+    `SELECT m.id AS matchup_id, m.week_start AS week_start, m.photo_a_id AS photo_a_id, m.photo_b_id AS photo_b_id, a.url AS photo_a_url, b.url AS photo_b_url FROM weekly_matchups m JOIN photos a ON a.id = m.photo_a_id AND a.rights_hold = 0 AND a.publication_eligible = 1 JOIN photos b ON b.id = m.photo_b_id AND b.rights_hold = 0 AND b.publication_eligible = 1 WHERE m.id = ${Number(live.matchup_id)} LIMIT 1;`,
     { dbName, dryRun },
   );
   const row = dryRun

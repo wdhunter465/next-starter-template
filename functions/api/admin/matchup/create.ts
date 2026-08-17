@@ -5,6 +5,7 @@
 
 import { requireAdmin } from "../../../_lib/auth";
 import { requireD1, requireTables, jsonResponse } from "../../../_lib/d1";
+import { rightsClearedClause } from "../../../_lib/rights-hold";
 import { isValidWeekStart } from "./list";
 
 const STATUS_VALUES = new Set(["active", "closed"]);
@@ -55,12 +56,18 @@ export const onRequestPost = async (context: any): Promise<Response> => {
       return jsonResponse({ ok: false, error: "photo_ids_must_differ" }, 400);
     }
 
-    const photoA = await d1.db.prepare("SELECT id FROM photos WHERE id = ?").bind(photo_a_id).first();
+    const photoA = await d1.db
+      .prepare(`SELECT id FROM photos WHERE id = ? AND ${rightsClearedClause()}`)
+      .bind(photo_a_id)
+      .first();
     if (!photoA) {
       return jsonResponse({ ok: false, error: "photo_a_not_found" }, 400);
     }
 
-    const photoB = await d1.db.prepare("SELECT id FROM photos WHERE id = ?").bind(photo_b_id).first();
+    const photoB = await d1.db
+      .prepare(`SELECT id FROM photos WHERE id = ? AND ${rightsClearedClause()}`)
+      .bind(photo_b_id)
+      .first();
     if (!photoB) {
       return jsonResponse({ ok: false, error: "photo_b_not_found" }, 400);
     }
