@@ -85,8 +85,10 @@ jobs:
 
       - name: Require explicit confirmation for production D1 write
         if: github.event.inputs.import_to_d1 == 'true'
+        env:
+          CONFIRM_WRITE: ${{ github.event.inputs.confirm_write }}
         run: |
-          if [ "${{ github.event.inputs.confirm_write }}" != "confirm" ]; then
+          if [ "$CONFIRM_WRITE" != "confirm" ]; then
             echo "import_to_d1 is true but confirm_write != 'confirm' -- refusing to write to production D1."
             exit 1
           fi
