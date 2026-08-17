@@ -343,7 +343,7 @@ describe('public photos read contract', () => {
         next = next.filter((row) => Number(row.publication_eligible) === 1);
       }
       if (sql.includes('rights_hold = 0')) {
-        next = next.filter((row) => Number(row.rights_hold ?? 0) === 0);
+        next = next.filter((row) => Number(row.rights_hold ?? 1) === 0);
       }
       return next;
     }
