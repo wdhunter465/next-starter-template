@@ -34,8 +34,17 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+import { determineSearchRunTerminalStatus } from '../../functions/_lib/content-search-run-outcome.ts';
+
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, '../..');
+
+// Matches the #3551 six-source allowlist rows seeded by migration 0055.
+const SOURCE_DOMAINS = {
+  openverse: 'openverse.org',
+  loc: 'loc.gov',
+  wikimedia: 'commons.wikimedia.org',
+};
 
 const DEFAULT_QUERY = 'Lou Gehrig';
 const DEFAULT_SOURCES = ['openverse', 'loc', 'wikimedia'];
@@ -350,18 +359,43 @@ async function main() {
   const nextId = makeCandidateIdFactory();
   const allCandidates = [];
   const errors = [];
+  const searchRuns = [];
+  const runTimestamp = new Date().toISOString().replace(/[:.]/g, '-');
 
   for (const source of options.sources) {
     const collector = COLLECTORS[source];
+    const runUid = `run-${source}-${runTimestamp}`;
+    let resultCount = 0;
+    let collectionError = null;
     try {
       const candidates = await collector(options.query, options.limit, nextId);
+      resultCount = candidates.length;
       console.log(`${source}: collected ${candidates.length} candidate(s)`);
       allCandidates.push(...candidates);
     } catch (error) {
+      collectionError = error;
       const message = errorMessage(error);
       errors.push(`${source}: ${message}`);
       console.error(`${source} failed: ${message}`);
     }
+
+    const status = determineSearchRunTerminalStatus({
+      resultCount,
+      requestedLimit: options.limit,
+      error: collectionError,
+    });
+
+    searchRuns.push({
+      run_uid: runUid,
+      source_domain: SOURCE_DOMAINS[source],
+      query: options.query,
+      result_limit: options.limit,
+      status,
+      discovered_count: resultCount,
+      new_count: resultCount,
+      error_count: collectionError ? 1 : 0,
+      error_summary: collectionError ? errorMessage(collectionError) : null,
+    });
   }
 
   const registry = {
@@ -378,15 +412,24 @@ async function main() {
   fs.mkdirSync(path.dirname(outPath), { recursive: true });
   fs.writeFileSync(outPath, JSON.stringify(registry, null, 2) + '\n', 'utf8');
 
+  const runsOutPath = outPath.replace(/\.json$/, '') + '.search-runs.json';
+  fs.writeFileSync(runsOutPath, JSON.stringify({ search_runs: searchRuns }, null, 2) + '\n', 'utf8');
+
   console.log(`\nWrote ${allCandidates.length} candidate(s) to ${path.relative(repoRoot, outPath)}`);
+  console.log(`Wrote ${searchRuns.length} search-run record(s) to ${path.relative(repoRoot, runsOutPath)}`);
   if (errors.length > 0) {
     console.error(`\n${errors.length} error(s) occurred:`);
     for (const error of errors) console.error(`  - ${error}`);
     process.exitCode = 1;
   }
-  console.log('\nNext step: validate and import via');
-  console.log(`  node --experimental-strip-types scripts/content-pipeline/import-seed-candidates.mjs --file ${options.out} --database lgfc-litedev --local --dry-run`);
-  console.log('(review the dry-run output, then drop --dry-run once satisfied — Development only, per #3552/#3554)');
+  console.log('\nNext steps:');
+  console.log('1. Record each search run (POST start, then POST complete with the same run_uid) against');
+  console.log('   /api/admin/content-pipeline/search-runs and /api/admin/content-pipeline/search-runs/complete');
+  console.log(`   using the entries in ${path.relative(repoRoot, runsOutPath)} -- this is #3551's audit trail for the`);
+  console.log('   attempt regardless of whether any candidates end up imported.');
+  console.log('2. Validate and import discovered candidates via');
+  console.log(`   node --experimental-strip-types scripts/content-pipeline/import-seed-candidates.mjs --file ${options.out} --database lgfc-litedev --local --dry-run`);
+  console.log('   (review the dry-run output, then drop --dry-run once satisfied — Development only, per #3552/#3554)');
 }
 
 main();
