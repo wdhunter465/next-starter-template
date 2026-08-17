@@ -18,7 +18,7 @@ import {
   SOURCE_TRUST_STATUSES,
   SOURCE_TYPES,
   SUBMISSION_TYPES,
-} from './content-pipeline-candidate-constants.ts';
+} from './content-pipeline-candidate-constants';
 
 export const CONTENT_PIPELINE_CORE_TABLES = [
   'sources',
