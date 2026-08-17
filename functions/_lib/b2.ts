@@ -96,6 +96,61 @@ export async function mediaUidFromB2(fileId: string, key: string): Promise<strin
   return `b2_${hex.substring(0, 40)}`;
 }
 
+function b2AwsClient(cfg: B2Bindings): AwsClient {
+  return new AwsClient({
+    accessKeyId: cfg.B2_KEY_ID,
+    secretAccessKey: cfg.B2_APP_KEY,
+    sessionToken: undefined,
+    service: "s3",
+    region: undefined,
+    cache: undefined,
+    retries: 2,
+    initRetryMs: undefined,
+  });
+}
+
+function b2ObjectUrl(cfg: B2Bindings, key: string): string {
+  const pathBucket = cfg.B2_BUCKET.split("/").map(encodeURIComponent).join("/");
+  const pathKey = key.split("/").map(encodeURIComponent).join("/");
+  return `${cfg.B2_ENDPOINT}/${pathBucket}/${pathKey}`;
+}
+
+export type PutB2ObjectInput = {
+  key: string;
+  body: ArrayBuffer | Uint8Array;
+  contentType: string;
+  checksumSha256Hex: string;
+};
+
+export type PutB2ObjectResult = {
+  etag: string;
+};
+
+/**
+ * Writes a single object to B2 via S3 PutObject (path-style). Used only by
+ * the #3552 content-ingestion Worker to write an already-approved,
+ * already-validated original -- callers are responsible for content-type,
+ * size, and checksum validation before calling this.
+ */
+export async function putB2Object(cfg: B2Bindings, input: PutB2ObjectInput): Promise<PutB2ObjectResult> {
+  const aws = b2AwsClient(cfg);
+  const url = b2ObjectUrl(cfg, input.key);
+  const res = await aws.fetch(url, {
+    method: "PUT",
+    body: input.body,
+    headers: {
+      "Content-Type": input.contentType,
+      "x-amz-checksum-sha256": input.checksumSha256Hex,
+    },
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(`B2 PutObject failed: HTTP ${res.status} ${text.slice(0, 400)}`);
+  }
+  const etag = (res.headers.get("etag") || "").replace(/^"\s*|\s*"$/g, "");
+  return { etag };
+}
+
 /**
  * List bucket objects via S3 ListObjectsV2 (path-style URLs used by B2).
  * Stops after `maxObjects` have been collected (pagination-aware).
