@@ -130,7 +130,7 @@ describe('rights-hold quarantine (#3552)', () => {
 
     const grouped = await listStoryMediaAssociations(db, [1]);
     const rows = grouped.get(1) ?? [];
-    expect(rows.map((r: { media_id: number }) => r.media_id)).toEqual([1]);
+    expect(rows.map((r) => Number(r.media_id))).toEqual([1]);
   });
 
   it('club-home media fallback never surfaces a held photo', async () => {
