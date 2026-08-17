@@ -106,6 +106,9 @@ function loadRegistry(filePath) {
 
 function executeSqlFile(database, target, sqlFile) {
   const args = ['wrangler', 'd1', 'execute', database];
+  if (database === 'lgfc-litedev') {
+    args.push('--env', 'preview');
+  }
   if (target === 'local') {
     args.push('--local');
   } else {
@@ -135,7 +138,12 @@ function main() {
   }
 
   const plan = buildCandidateImportPlan(registry);
-  const sqlBatch = buildImportSqlBatch(plan);
+  let sqlBatch = buildImportSqlBatch(plan);
+  if (options.target === 'remote') {
+    // Cloudflare D1 remote execute rejects SQL BEGIN/COMMIT; wrangler already
+    // applies the uploaded file atomically and rolls back on failure.
+    sqlBatch = sqlBatch.replace(/^\s*BEGIN;\s*/i, '').replace(/\s*COMMIT;\s*$/i, '');
+  }
   console.log(
     `Validated ${plan.candidateCount} candidate(s); prepared ${plan.statements.length} SQL statement(s) in one transaction batch.`,
   );
