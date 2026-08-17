@@ -30,6 +30,10 @@ on:
         description: "Import discovered candidates into production D1 as pending_review content_items (metadata only, no rights conclusion, no publication)"
         required: false
         default: "false"
+      confirm_write:
+        description: 'Required when import_to_d1 is true: type "confirm" to allow the production D1 write'
+        required: false
+        default: ""
 
 concurrency:
   group: gehrig-content-discovery
@@ -55,11 +59,15 @@ jobs:
 
       - name: Run discovery against approved sources
         id: discovery
+        env:
+          DISCOVERY_QUERY: ${{ github.event.inputs.query }}
+          DISCOVERY_SOURCES: ${{ github.event.inputs.sources }}
+          DISCOVERY_LIMIT: ${{ github.event.inputs.limit }}
         run: |
           node --experimental-strip-types scripts/content-pipeline/collect-gehrig-external-sources.mjs \
-            --query "${{ github.event.inputs.query }}" \
-            --sources "${{ github.event.inputs.sources }}" \
-            --limit "${{ github.event.inputs.limit }}" \
+            --query "$DISCOVERY_QUERY" \
+            --sources "$DISCOVERY_SOURCES" \
+            --limit "$DISCOVERY_LIMIT" \
             --out data/research/lou-gehrig-content-candidates-external-discovery.json
 
       - name: Write discovery step summary
@@ -75,13 +83,20 @@ jobs:
             data/research/lou-gehrig-content-candidates-external-discovery.search-runs.json
           if-no-files-found: warn
 
+      - name: Require explicit confirmation for production D1 write
+        if: github.event.inputs.import_to_d1 == 'true'
+        run: |
+          if [ "${{ github.event.inputs.confirm_write }}" != "confirm" ]; then
+            echo "import_to_d1 is true but confirm_write != 'confirm' -- refusing to write to production D1."
+            exit 1
+          fi
+
       - name: Verify Cloudflare D1 credentials
         if: github.event.inputs.import_to_d1 == 'true'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          D1_DATABASE_NAME: ${{ secrets.D1_DATABASE_NAME }}
-          D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
+          D1_DATABASE_NAME: lgfc_lite
         run: node scripts/ci/verify_cloudflare_d1_auth.mjs
 
       - name: Import discovered candidates into production D1 (metadata only)
