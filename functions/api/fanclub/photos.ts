@@ -32,8 +32,8 @@ export const onRequestGet = async (context: any): Promise<Response> => {
     const page = parsePage(url.searchParams.get('page'));
     const offset = (page - 1) * PAGE_SIZE;
 
-    // NOTE: current schema does not have an explicit approval column for photos.
-    // We treat current rows as already-approved catalog content.
+    // rightsClearedClause() is the approval gate (#3552): only rows a rights
+    // reviewer has explicitly cleared (rights_hold = 0) are visible here.
     const where: string[] = ['(is_memorabilia IS NULL OR is_memorabilia = 0)', rightsClearedClause()];
     const args: any[] = [];
 

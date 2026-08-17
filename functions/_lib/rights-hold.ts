@@ -5,8 +5,6 @@
 // media -- callers that read photos for public or member-facing display must
 // include it.
 
-export const RIGHTS_HOLD_LEGACY_REASON = "legacy_content_pending_rights_review_2026_08_17";
-
 export function rightsClearedClause(alias?: string): string {
   const prefix = alias ? `${alias}.` : "";
   return `${prefix}rights_hold = 0`;
