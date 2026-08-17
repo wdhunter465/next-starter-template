@@ -1,6 +1,7 @@
 // Shared read helpers for published content_inventory public/member surfaces.
 
 import { fetchRotationRankedInventory } from './content-inventory-rotation';
+import { rightsClearedClause } from './rights-hold';
 
 export const LIBRARY_SECTION = 'library';
 export const CLUB_HOME_SECTION = 'club_home';
@@ -417,7 +418,7 @@ export async function fetchSearchInventoryResults(
   const fromSql = hasMediaTables
     ? `FROM content_inventory ci
        LEFT JOIN content_inventory_media cim ON cim.story_id = ci.id
-       LEFT JOIN photos p ON p.id = cim.media_id`
+       LEFT JOIN photos p ON p.id = cim.media_id AND ${rightsClearedClause('p')}`
     : 'FROM content_inventory ci';
 
   const selectSql = hasMediaTables

@@ -1,4 +1,5 @@
 import { normalizePhotoUrl } from "../../_lib/photo-url";
+import { rightsClearedClause } from "../../_lib/rights-hold";
 
 export const onRequestGet = async (context: any): Promise<Response> => {
   const { env, request } = context;
@@ -11,12 +12,13 @@ export const onRequestGet = async (context: any): Promise<Response> => {
 
     let sql = "SELECT id, url, is_memorabilia, description, created_at FROM photos";
     const args: any[] = [];
+    const where: string[] = [rightsClearedClause()];
 
     if (memorabilia === "1") {
-      sql += " WHERE is_memorabilia = 1";
+      where.push("is_memorabilia = 1");
     }
 
-    sql += " ORDER BY id DESC LIMIT ? OFFSET ?;";
+    sql += ` WHERE ${where.join(" AND ")} ORDER BY id DESC LIMIT ? OFFSET ?;`;
     args.push(limit, offset);
 
     const rows = await env.DB.prepare(sql).bind(...args).all();

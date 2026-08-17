@@ -1,5 +1,6 @@
 import { requireD1, requireTables, jsonResponse } from "../../_lib/d1";
 import { normalizePhotoUrl } from "../../_lib/photo-url";
+import { rightsClearedClause } from "../../_lib/rights-hold";
 
 export const onRequestGet = async (context: any): Promise<Response> => {
   const { env, request } = context;
@@ -38,7 +39,7 @@ export const onRequestGet = async (context: any): Promise<Response> => {
                         m.photo_id,
                         p.url as photo_url
                  FROM milestones m
-                 LEFT JOIN photos p ON p.id = m.photo_id
+                 LEFT JOIN photos p ON p.id = m.photo_id AND ${rightsClearedClause("p")}
                  WHERE m.status='posted'
                  ORDER BY ${orderBySql}
                  LIMIT ?;`;

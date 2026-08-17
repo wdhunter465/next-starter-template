@@ -10,6 +10,7 @@ import {
   sortRotationRows,
 } from './content-inventory-rotation';
 import { normalizePhotoUrl } from './photo-url';
+import { rightsClearedClause } from './rights-hold';
 
 export const CLUB_HOME_SECTION = 'club_home';
 
@@ -162,6 +163,7 @@ async function resolveMediaFeature(
       `SELECT id, url, title, description, source, is_memorabilia
          FROM photos
         WHERE COALESCE(TRIM(url), '') != ''
+          AND ${rightsClearedClause()}
         ORDER BY id DESC
         LIMIT 1`,
     )

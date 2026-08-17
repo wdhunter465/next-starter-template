@@ -1,5 +1,6 @@
 import { requireMember } from '../../_lib/session';
 import { normalizePhotoUrl } from '../../_lib/photo-url';
+import { rightsClearedClause } from '../../_lib/rights-hold';
 
 const PAGE_SIZE = 24;
 
@@ -33,7 +34,7 @@ export const onRequestGet = async (context: any): Promise<Response> => {
 
     // NOTE: current schema does not have an explicit approval column for photos.
     // We treat current rows as already-approved catalog content.
-    const where: string[] = ['(is_memorabilia IS NULL OR is_memorabilia = 0)'];
+    const where: string[] = ['(is_memorabilia IS NULL OR is_memorabilia = 0)', rightsClearedClause()];
     const args: any[] = [];
 
     if (q) {
