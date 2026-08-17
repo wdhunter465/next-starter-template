@@ -22,12 +22,21 @@ function readJsonIfExists(filePath) {
   }
 }
 
+function escapeMarkdownTableCell(value) {
+  return String(value ?? '')
+    .replace(/\|/g, '\\|')
+    .replace(/\r\n|\r|\n/g, ' ');
+}
+
 function formatCandidatesTable(candidates) {
   if (!candidates || candidates.length === 0) {
     return '_No candidates discovered._\n';
   }
   const rows = candidates
-    .map((c) => `| ${c.candidate_id} | ${c.source_name} | ${(c.title || '').replace(/\|/g, '\\|')} | ${c.source_url || '(none)'} |`)
+    .map(
+      (c) =>
+        `| ${escapeMarkdownTableCell(c.candidate_id)} | ${escapeMarkdownTableCell(c.source_name)} | ${escapeMarkdownTableCell(c.title)} | ${escapeMarkdownTableCell(c.source_url || '(none)')} |`,
+    )
     .join('\n');
   return `| Candidate ID | Source | Title | Source URL |\n| --- | --- | --- | --- |\n${rows}\n`;
 }
@@ -39,7 +48,7 @@ function formatSearchRunsTable(searchRuns) {
   const rows = searchRuns
     .map(
       (r) =>
-        `| ${r.run_uid} | ${r.source_domain} | ${r.status} | ${r.discovered_count} | ${r.error_summary || ''} |`,
+        `| ${escapeMarkdownTableCell(r.run_uid)} | ${escapeMarkdownTableCell(r.source_domain)} | ${escapeMarkdownTableCell(r.status)} | ${escapeMarkdownTableCell(r.discovered_count)} | ${escapeMarkdownTableCell(r.error_summary || '')} |`,
     )
     .join('\n');
   return `| Run UID | Source | Status | Discovered | Error |\n| --- | --- | --- | --- | --- |\n${rows}\n`;
