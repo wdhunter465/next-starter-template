@@ -11,6 +11,7 @@ import path from 'node:path';
 
 const CANDIDATES_FILE = 'data/research/lou-gehrig-content-candidates-external-discovery.json';
 const SEARCH_RUNS_FILE = 'data/research/lou-gehrig-content-candidates-external-discovery.search-runs.json';
+const LICENSE_NOTES_FILE = 'data/research/lou-gehrig-content-candidates-external-discovery.license-notes.json';
 
 function readJsonIfExists(filePath) {
   if (!fs.existsSync(filePath)) return null;
@@ -22,12 +23,21 @@ function readJsonIfExists(filePath) {
   }
 }
 
+function escapeMarkdownTableCell(value) {
+  return String(value ?? '')
+    .replace(/\|/g, '\\|')
+    .replace(/\r\n|\r|\n/g, ' ');
+}
+
 function formatCandidatesTable(candidates) {
   if (!candidates || candidates.length === 0) {
     return '_No candidates discovered._\n';
   }
   const rows = candidates
-    .map((c) => `| ${c.candidate_id} | ${c.source_name} | ${(c.title || '').replace(/\|/g, '\\|')} | ${c.source_url || '(none)'} |`)
+    .map(
+      (c) =>
+        `| ${escapeMarkdownTableCell(c.candidate_id)} | ${escapeMarkdownTableCell(c.source_name)} | ${escapeMarkdownTableCell(c.title)} | ${escapeMarkdownTableCell(c.source_url || '(none)')} |`,
+    )
     .join('\n');
   return `| Candidate ID | Source | Title | Source URL |\n| --- | --- | --- | --- |\n${rows}\n`;
 }
@@ -39,19 +49,34 @@ function formatSearchRunsTable(searchRuns) {
   const rows = searchRuns
     .map(
       (r) =>
-        `| ${r.run_uid} | ${r.source_domain} | ${r.status} | ${r.discovered_count} | ${r.error_summary || ''} |`,
+        `| ${escapeMarkdownTableCell(r.run_uid)} | ${escapeMarkdownTableCell(r.source_domain)} | ${escapeMarkdownTableCell(r.status)} | ${escapeMarkdownTableCell(r.discovered_count)} | ${escapeMarkdownTableCell(r.error_summary || '')} |`,
     )
     .join('\n');
   return `| Run UID | Source | Status | Discovered | Error |\n| --- | --- | --- | --- | --- |\n${rows}\n`;
+}
+
+function formatLicenseNotesTable(licenseNotes) {
+  if (!licenseNotes || licenseNotes.length === 0) {
+    return '_No Wikimedia Commons license notes for this run._\n';
+  }
+  const rows = licenseNotes
+    .map(
+      (n) =>
+        `| ${escapeMarkdownTableCell(n.candidate_id)} | ${escapeMarkdownTableCell(n.title)} | ${escapeMarkdownTableCell(n.license_short_name || '(none)')} | ${escapeMarkdownTableCell(n.license_url || '')} | ${escapeMarkdownTableCell(n.artist || '')} | ${escapeMarkdownTableCell(n.attribution || '')} |`,
+    )
+    .join('\n');
+  return `| Candidate ID | Title | License | License URL | Artist | Attribution |\n| --- | --- | --- | --- | --- | --- |\n${rows}\n`;
 }
 
 function main() {
   const repoRoot = process.cwd();
   const candidatesData = readJsonIfExists(path.join(repoRoot, CANDIDATES_FILE));
   const searchRunsData = readJsonIfExists(path.join(repoRoot, SEARCH_RUNS_FILE));
+  const licenseNotesData = readJsonIfExists(path.join(repoRoot, LICENSE_NOTES_FILE));
 
   const candidates = candidatesData?.candidates ?? [];
   const searchRuns = searchRunsData?.search_runs ?? [];
+  const licenseNotes = licenseNotesData?.license_notes ?? [];
 
   const markdown = [
     '## Gehrig Content Discovery (#3551 / #3552)',
@@ -62,6 +87,10 @@ function main() {
     formatSearchRunsTable(searchRuns),
     '### Candidates',
     formatCandidatesTable(candidates),
+    '### Wikimedia Commons license notes',
+    '_Uploader-asserted at time of discovery -- not a verified fact. Mislabeled licenses are a known, recurring problem on Commons. Confirm on the file page itself before recording any rights_evidence conclusion._',
+    '',
+    formatLicenseNotesTable(licenseNotes),
     '### Next step',
     'Review the candidates above. To record rights evidence and ingest one, use:',
     '- `POST /api/admin/content-pipeline/rights-evidence` (requires reviewer + conclusion_rationale)',

@@ -321,7 +321,13 @@ async function collectLibraryOfCongress(query, limit, nextId) {
   });
 }
 
-async function collectWikimediaCommons(query, limit, nextId) {
+function stripHtml(value) {
+  if (!value) return null;
+  const text = String(value).replace(/<[^>]+>/g, '').trim();
+  return text || null;
+}
+
+async function collectWikimediaCommons(query, limit, nextId, licenseNotesOut = []) {
   const searchUrl = `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srnamespace=6&srlimit=${limit}&format=json&origin=*`;
   const searchData = await fetchJson(searchUrl);
   const pages = searchData.query?.search ?? [];
@@ -349,8 +355,23 @@ async function collectWikimediaCommons(query, limit, nextId) {
       'License template is an uploader assertion, not a verified fact -- mislabeled licenses are a known, recurring problem on Commons. Verify before any rights conclusion.',
     ].join(' ');
 
+    const id = nextId();
+
+    licenseNotesOut.push({
+      candidate_id: id,
+      title: page.title || 'Untitled Commons file',
+      source_url: info.descriptionurl ?? null,
+      license_short_name: licenseTemplate,
+      license_url: meta.LicenseUrl?.value ?? null,
+      usage_terms: stripHtml(meta.UsageTerms?.value ?? null),
+      attribution: stripHtml(meta.Attribution?.value ?? null),
+      artist: stripHtml(meta.Artist?.value ?? null),
+      credit: stripHtml(meta.Credit?.value ?? null),
+      restrictions: meta.Restrictions?.value ?? null,
+    });
+
     return baseCandidate({
-      id: nextId(),
+      id,
       title: page.title || 'Untitled Commons file',
       sourceType: 'archive',
       sourceName: 'Wikimedia Commons',
@@ -385,6 +406,7 @@ async function main() {
   const allCandidates = [];
   const errors = [];
   const searchRuns = [];
+  const licenseNotes = [];
   const runTimestamp = new Date().toISOString().replace(/[:.]/g, '-');
 
   for (const source of options.sources) {
@@ -393,7 +415,7 @@ async function main() {
     let resultCount = 0;
     let collectionError = null;
     try {
-      const candidates = await collector(options.query, options.limit, nextId);
+      const candidates = await collector(options.query, options.limit, nextId, licenseNotes);
       resultCount = candidates.length;
       console.log(`${source}: collected ${candidates.length} candidate(s)`);
       allCandidates.push(...candidates);
@@ -442,6 +464,12 @@ async function main() {
 
   console.log(`\nWrote ${allCandidates.length} candidate(s) to ${path.relative(repoRoot, outPath)}`);
   console.log(`Wrote ${searchRuns.length} search-run record(s) to ${path.relative(repoRoot, runsOutPath)}`);
+
+  if (licenseNotes.length > 0) {
+    const licenseNotesOutPath = outPath.replace(/\.json$/, '') + '.license-notes.json';
+    fs.writeFileSync(licenseNotesOutPath, JSON.stringify({ license_notes: licenseNotes }, null, 2) + '\n', 'utf8');
+    console.log(`Wrote ${licenseNotes.length} Wikimedia Commons license note(s) to ${path.relative(repoRoot, licenseNotesOutPath)}`);
+  }
   if (errors.length > 0) {
     console.error(`\n${errors.length} error(s) occurred:`);
     for (const error of errors) console.error(`  - ${error}`);
