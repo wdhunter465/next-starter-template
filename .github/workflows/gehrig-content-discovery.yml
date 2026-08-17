@@ -1,0 +1,96 @@
+name: Gehrig Content Discovery (#3551 / #3552)
+
+# Manual, human-triggered discovery run against the #3551-approved sources
+# (Library of Congress, Wikimedia Commons, Openverse). This automates only
+# search/metadata capture, matching #3551's core safety rule -- it never
+# records a rights conclusion and never writes to B2. Discovered candidates
+# land in production D1 (content_items) as metadata-only, unreviewed rows
+# (rights_status=unknown, review_status=pending_review,
+# publication_status=not_ready); content_items has no public read path, so
+# this has zero publication/visibility effect. A human must separately
+# record rights_evidence and run the #3567 ingestion endpoint before
+# anything discovered here can become usable media.
+
+on:
+  workflow_dispatch:
+    inputs:
+      query:
+        description: "Search query"
+        required: false
+        default: "Lou Gehrig"
+      sources:
+        description: "Comma-separated sources: openverse,loc,wikimedia"
+        required: false
+        default: "loc,wikimedia"
+      limit:
+        description: "Max results per source"
+        required: false
+        default: "10"
+      import_to_d1:
+        description: "Import discovered candidates into production D1 as pending_review content_items (metadata only, no rights conclusion, no publication)"
+        required: false
+        default: "false"
+
+concurrency:
+  group: gehrig-content-discovery
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run discovery against approved sources
+        id: discovery
+        run: |
+          node --experimental-strip-types scripts/content-pipeline/collect-gehrig-external-sources.mjs \
+            --query "${{ github.event.inputs.query }}" \
+            --sources "${{ github.event.inputs.sources }}" \
+            --limit "${{ github.event.inputs.limit }}" \
+            --out data/research/lou-gehrig-content-candidates-external-discovery.json
+
+      - name: Write discovery step summary
+        if: always()
+        run: node scripts/ci/gehrig_discovery_summary.mjs
+
+      - name: Upload discovery results
+        uses: actions/upload-artifact@v4
+        with:
+          name: gehrig-discovery-results
+          path: |
+            data/research/lou-gehrig-content-candidates-external-discovery.json
+            data/research/lou-gehrig-content-candidates-external-discovery.search-runs.json
+          if-no-files-found: warn
+
+      - name: Verify Cloudflare D1 credentials
+        if: github.event.inputs.import_to_d1 == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DATABASE_NAME: ${{ secrets.D1_DATABASE_NAME }}
+          D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
+        run: node scripts/ci/verify_cloudflare_d1_auth.mjs
+
+      - name: Import discovered candidates into production D1 (metadata only)
+        if: github.event.inputs.import_to_d1 == 'true'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          echo "Target database_name=lgfc_lite (Production)"
+          node --experimental-strip-types scripts/content-pipeline/import-seed-candidates.mjs \
+            --file data/research/lou-gehrig-content-candidates-external-discovery.json \
+            --database lgfc_lite --remote
