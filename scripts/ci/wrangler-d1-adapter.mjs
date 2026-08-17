@@ -52,6 +52,11 @@ export function makeWranglerD1({ database, target, cwd }) {
   function bindStatement(sql, boundArgs) {
     let index = 0;
     const inlined = sql.replace(/\?/g, () => inlineValue(boundArgs[index++]));
+    if (index !== boundArgs.length) {
+      throw new Error(
+        `bindStatement: statement has ${index} placeholder(s) but ${boundArgs.length} argument(s) were bound -- refusing to silently inline NULL for a missing argument or drop an extra one.\nSQL: ${sql}`,
+      );
+    }
 
     return {
       async run() {

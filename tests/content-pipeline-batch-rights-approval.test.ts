@@ -43,7 +43,7 @@ describe('the checked-in approved-batch fixture (#3552)', () => {
     const registry = loadFixtureRegistry();
     expect(registry.candidates).toHaveLength(10);
     for (const candidate of registry.candidates) {
-      expect(candidate.candidate_id).toMatch(/^lgfc-gehrig-2026-51[1-9]|520$/);
+      expect(candidate.candidate_id).toMatch(/^lgfc-gehrig-2026-5(1[1-9]|20)$/);
       expect(candidate.source_name).toBe('Wikimedia Commons');
       expect(candidate.source_domain).toBe('commons.wikimedia.org');
     }
