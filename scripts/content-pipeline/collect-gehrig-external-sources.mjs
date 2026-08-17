@@ -299,7 +299,7 @@ async function collectLibraryOfCongress(query, limit, nextId) {
       `Collection: ${item.partof ?? 'unknown'}.`,
       `Creator/contributor: ${item.contributor ?? 'unknown'}.`,
       `Rights advisory: ${rightsAdvisory ?? 'none provided'}.`,
-      `Source page: ${item.url ?? 'none'}.`,
+      `Source page: ${absoluteHttpUrl(item.url) ?? 'none'}.`,
       `Download URL: ${downloadUrl ?? 'none'}.`,
       'A rights/advisory statement here is LOC’s own research note, not a legal clearance -- LOC generally does not own copyright in donated/acquired collection material.',
     ].join(' ');
