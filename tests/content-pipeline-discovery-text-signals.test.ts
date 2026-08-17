@@ -54,6 +54,15 @@ describe('extractDateOrPeriod (#3552)', () => {
     expect(extractDateOrPeriod('File:GehrigCU.jpg')).toBeUndefined();
   });
 
+  it('ignores a modern upload/processing year and returns the historical year instead', () => {
+    expect(extractDateOrPeriod('Lou Gehrig, 1927 (retouched and uploaded in 2019)')).toBe('1927');
+    expect(extractDateOrPeriod('Reviewed on 5 July 2010 -- Lou Gehrig, 1931')).toBe('1931');
+  });
+
+  it('returns undefined for a modern-only year with no historical date present', () => {
+    expect(extractDateOrPeriod('This file was reviewed on 12 March 2024')).toBeUndefined();
+  });
+
   it('handles null/undefined/empty text without throwing', () => {
     expect(extractDateOrPeriod(null)).toBeUndefined();
     expect(extractDateOrPeriod(undefined)).toBeUndefined();

@@ -23,9 +23,12 @@ export function extractPeopleTags(text: string | null | undefined): string[] {
   return ["Lou Gehrig", ...found];
 }
 
-const MONTH_DATE_RE =
-  /(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{1,2},?\s+(?:1[89]\d{2}|20\d{2})/i;
-const YEAR_RE = /1[89]\d{2}|20\d{2}/;
+// Restricted to 18xx/19xx (Gehrig's lifetime and playing career are entirely
+// pre-1950) so an unrelated modern year in Commons boilerplate -- an upload
+// timestamp, a "reviewed on" note, a category year -- can't be mistaken for
+// the historical photo date. Word-bounded so e.g. "21928" doesn't match.
+const MONTH_DATE_RE = /(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\.?\s+\d{1,2},?\s+\b1[89]\d{2}\b/i;
+const YEAR_RE = /\b1[89]\d{2}\b/;
 
 /** Extracts a human-readable date/period from free text (e.g. a Commons filename). Returns undefined if nothing date-like is found. */
 export function extractDateOrPeriod(text: string | null | undefined): string | undefined {
