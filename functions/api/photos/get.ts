@@ -1,4 +1,5 @@
 import { normalizePhotoUrl } from "../../_lib/photo-url";
+import { rightsClearedClause } from "../../_lib/rights-hold";
 
 export const onRequestGet = async (context: any): Promise<Response> => {
   const { env, params, request } = context;
@@ -16,7 +17,7 @@ export const onRequestGet = async (context: any): Promise<Response> => {
     }
 
     const row = await env.DB.prepare(
-      "SELECT id, url, is_memorabilia, description, created_at FROM photos WHERE id = ? LIMIT 1;"
+      `SELECT id, url, is_memorabilia, description, created_at FROM photos WHERE id = ? AND ${rightsClearedClause()} LIMIT 1;`
     )
       .bind(id)
       .first();

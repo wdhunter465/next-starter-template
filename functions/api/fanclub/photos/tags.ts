@@ -1,4 +1,5 @@
 import { requireMember } from '../../../_lib/session';
+import { rightsClearedClause } from '../../../_lib/rights-hold';
 
 function parseTagsField(raw: unknown): string[] {
   const text = String(raw || '').trim();
@@ -24,6 +25,7 @@ export const onRequestGet = async (context: any): Promise<Response> => {
         `SELECT tags
            FROM photos
           WHERE (is_memorabilia IS NULL OR is_memorabilia = 0)
+            AND ${rightsClearedClause()}
             AND COALESCE(TRIM(tags), '') != ''`,
       )
       .all();

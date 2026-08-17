@@ -1,6 +1,7 @@
 import { requireMember } from '../../_lib/session';
 import { normalizePhotoUrl } from '../../_lib/photo-url';
 import { resolveRelatedStories, toLegacyRelatedLibraryEntries } from '../../_lib/content-inventory-public';
+import { rightsClearedClause } from '../../_lib/rights-hold';
 
 const PAGE_SIZE = 24;
 
@@ -33,7 +34,7 @@ export const onRequestGet = async (context: any): Promise<Response> => {
     const offset = (page - 1) * PAGE_SIZE;
 
     // Canonical rule: memorabilia is a tagged/filtered view of photos.
-    const where: string[] = ['is_memorabilia = 1'];
+    const where: string[] = ['is_memorabilia = 1', rightsClearedClause()];
     const args: any[] = [];
 
     if (q) {

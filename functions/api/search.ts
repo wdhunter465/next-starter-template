@@ -6,6 +6,7 @@ import {
   SEARCH_SECTION,
   tableExists,
 } from '../_lib/content-inventory-public';
+import { rightsClearedClause } from '../_lib/rights-hold';
 
 type SearchResult = {
   type: string;
@@ -214,6 +215,7 @@ export const onRequestGet = async (context: any): Promise<Response> => {
         `SELECT id, title, description
          FROM photos
          WHERE (is_memorabilia IS NULL OR is_memorabilia = 0)
+           AND ${rightsClearedClause()}
            AND (lower(COALESCE(title,'')) LIKE ?1 OR lower(COALESCE(description,'')) LIKE ?1 OR lower(COALESCE(tags,'')) LIKE ?1)
          ORDER BY id DESC
          LIMIT 20`,
@@ -236,6 +238,7 @@ export const onRequestGet = async (context: any): Promise<Response> => {
         `SELECT id, title, description
          FROM photos
          WHERE is_memorabilia = 1
+           AND ${rightsClearedClause()}
            AND (lower(COALESCE(title,'')) LIKE ?1 OR lower(COALESCE(description,'')) LIKE ?1 OR lower(COALESCE(tags,'')) LIKE ?1)
          ORDER BY id DESC
          LIMIT 20`,

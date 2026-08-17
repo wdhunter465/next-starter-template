@@ -1,3 +1,5 @@
+import { rightsClearedClause } from "./rights-hold";
+
 export const MEDIA_ROLES = new Set([
   "primary_image",
   "gallery_image",
@@ -150,20 +152,20 @@ export async function resolvePhotoByReference(
   const numericId = Number(trimmed);
   if (Number.isFinite(numericId) && numericId > 0) {
     const byId = await db
-      .prepare("SELECT id, photo_id, url, title, description, source FROM photos WHERE id = ?")
+      .prepare(`SELECT id, photo_id, url, title, description, source FROM photos WHERE id = ? AND ${rightsClearedClause()}`)
       .bind(Math.trunc(numericId))
       .first();
     if (byId) return byId;
   }
 
   const byPhotoId = await db
-    .prepare("SELECT id, photo_id, url, title, description, source FROM photos WHERE lower(trim(photo_id)) = lower(trim(?))")
+    .prepare(`SELECT id, photo_id, url, title, description, source FROM photos WHERE lower(trim(photo_id)) = lower(trim(?)) AND ${rightsClearedClause()}`)
     .bind(trimmed)
     .first();
   if (byPhotoId) return byPhotoId;
 
   return db
-    .prepare("SELECT id, photo_id, url, title, description, source FROM photos WHERE lower(trim(url)) = lower(trim(?))")
+    .prepare(`SELECT id, photo_id, url, title, description, source FROM photos WHERE lower(trim(url)) = lower(trim(?)) AND ${rightsClearedClause()}`)
     .bind(trimmed)
     .first();
 }
@@ -236,7 +238,7 @@ export async function listStoryMediaAssociations(
               p.photo_id, p.url, p.title AS photo_title, p.description AS photo_description,
               p.source AS photo_source, p.is_memorabilia
          FROM content_inventory_media cim
-         JOIN photos p ON p.id = cim.media_id
+         JOIN photos p ON p.id = cim.media_id AND ${rightsClearedClause("p")}
         WHERE cim.story_id IN (${placeholders})
         ORDER BY cim.story_id ASC, cim.display_order ASC, cim.id ASC`,
     )

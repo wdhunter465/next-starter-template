@@ -1,4 +1,5 @@
 import { normalizePhotoUrl } from '../_lib/photo-url';
+import { rightsClearedClause } from '../_lib/rights-hold';
 
 function parseLimit(raw: string | null): number {
   const n = Number(raw || '20');
@@ -22,7 +23,7 @@ export const onRequestGet = async (context: any): Promise<Response> => {
     const memorabilia = url.searchParams.get('memorabilia');
 
     let sql = 'SELECT id, photo_id, url, is_memorabilia, title, description, tags, created_at FROM photos';
-    const where: string[] = [];
+    const where: string[] = [rightsClearedClause()];
     const args: any[] = [];
 
     if (memorabilia === '1') {
