@@ -7,5 +7,8 @@
 
 export function rightsClearedClause(alias?: string): string {
   const prefix = alias ? `${alias}.` : "";
-  return `${prefix}rights_hold = 0`;
+  // #3553: publication_eligible is the Issue-specified public-display gate.
+  // Keep rights_hold in the same predicate so a row cannot leak if the two
+  // flags ever drift.
+  return `${prefix}rights_hold = 0 AND ${prefix}publication_eligible = 1`;
 }

@@ -1,4 +1,5 @@
 import { requireD1, requireTables } from "../../_lib/d1";
+import { rightsClearedClause } from "../../_lib/rights-hold";
 import {
   clientAuditHints,
   logMatchupRepairAudit,
@@ -96,7 +97,7 @@ async function fetchEligiblePhotos(db: any): Promise<EligiblePhoto[]> {
   // Target: MATCHUP_ELIGIBILITY.APPROVED only — see docs/reference/platform/Backblaze_B2.md
   const rows = await db
     .prepare(
-      "SELECT id, url, is_memorabilia, is_matchup_eligible, description, title FROM photos WHERE url IS NOT NULL AND TRIM(url) != '' AND is_matchup_eligible >= 0;",
+      `SELECT id, url, is_memorabilia, is_matchup_eligible, description, title FROM photos WHERE url IS NOT NULL AND TRIM(url) != '' AND is_matchup_eligible >= 0 AND ${rightsClearedClause()};`,
     )
     .all();
 
@@ -111,9 +112,18 @@ async function fetchEligiblePhotos(db: any): Promise<EligiblePhoto[]> {
 }
 
 async function isPhotoMatchupEligible(db: any, photoId: number): Promise<boolean> {
-  const row = await db.prepare("SELECT is_matchup_eligible FROM photos WHERE id = ? LIMIT 1;").bind(photoId).first();
+  const row = await db
+    .prepare(
+      `SELECT is_matchup_eligible, rights_hold, publication_eligible FROM photos WHERE id = ? LIMIT 1;`,
+    )
+    .bind(photoId)
+    .first();
   if (!row) return false;
-  return Number(row.is_matchup_eligible) >= 0;
+  return (
+    Number(row.is_matchup_eligible) >= 0 &&
+    Number(row.rights_hold) === 0 &&
+    Number(row.publication_eligible) === 1
+  );
 }
 
 function shuffleInPlace<T>(items: T[]): T[] {

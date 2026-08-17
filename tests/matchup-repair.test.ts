@@ -29,6 +29,8 @@ type PhotoRow = {
   is_memorabilia: number;
   is_matchup_eligible: number;
   rights_notes?: string | null;
+  rights_hold?: number;
+  publication_eligible?: number;
 };
 
 function makeRepairDb(options: {
@@ -71,7 +73,13 @@ function makeRepairDb(options: {
     }
     if (sql.includes('FROM photos WHERE id = ?') && sql.includes('is_matchup_eligible')) {
       const photo = photos.find((row) => Number(row.id) === Number(args[0]));
-      return photo ? { is_matchup_eligible: photo.is_matchup_eligible } : null;
+      return photo
+        ? {
+            is_matchup_eligible: photo.is_matchup_eligible,
+            rights_hold: Number((photo as { rights_hold?: number }).rights_hold ?? 1),
+            publication_eligible: Number((photo as { publication_eligible?: number }).publication_eligible ?? 0),
+          }
+        : null;
     }
     if (sql.includes('FROM weekly_matchups WHERE week_start = ?') && sql.includes('LIMIT 1')) {
       return matchups.find((row) => row.week_start === String(args[0])) ?? null;
@@ -93,7 +101,14 @@ function makeRepairDb(options: {
       };
     }
     if (sql.includes('FROM photos WHERE url IS NOT NULL')) {
-      return { results: photos.filter((row) => row.is_matchup_eligible >= 0) };
+      return {
+        results: photos.filter(
+          (row) =>
+            row.is_matchup_eligible >= 0 &&
+            Number((row as { publication_eligible?: number }).publication_eligible ?? 0) === 1 &&
+            Number((row as { rights_hold?: number }).rights_hold ?? 1) === 0,
+        ),
+      };
     }
     return { results: [] };
   }
@@ -147,10 +162,10 @@ describe('matchup broken-image repair', () => {
       ],
       votes: [{ week_start: weekStart }, { week_start: weekStart }],
       photos: [
-        { id: 10, url: 'https://example.test/10.jpg', is_memorabilia: 0, is_matchup_eligible: 1 },
-        { id: 20, url: 'https://example.test/20-missing.jpg', is_memorabilia: 0, is_matchup_eligible: 1 },
-        { id: 30, url: 'https://example.test/30.jpg', is_memorabilia: 0, is_matchup_eligible: 1 },
-        { id: 40, url: 'https://example.test/40.jpg', is_memorabilia: 0, is_matchup_eligible: 1 },
+        { id: 10, url: 'https://example.test/10.jpg', is_memorabilia: 0, is_matchup_eligible: 1, rights_hold: 0, publication_eligible: 1 },
+        { id: 20, url: 'https://example.test/20-missing.jpg', is_memorabilia: 0, is_matchup_eligible: 1, rights_hold: 0, publication_eligible: 1 },
+        { id: 30, url: 'https://example.test/30.jpg', is_memorabilia: 0, is_matchup_eligible: 1, rights_hold: 0, publication_eligible: 1 },
+        { id: 40, url: 'https://example.test/40.jpg', is_memorabilia: 0, is_matchup_eligible: 1, rights_hold: 0, publication_eligible: 1 },
       ],
     });
 
@@ -216,8 +231,8 @@ describe('matchup broken-image repair', () => {
       ],
       votes: [{ week_start: weekStart }, { week_start: weekStart }],
       photos: [
-        { id: 10, url: 'https://example.test/10.jpg', is_memorabilia: 0, is_matchup_eligible: 1 },
-        { id: 20, url: 'https://example.test/20-missing.jpg', is_memorabilia: 0, is_matchup_eligible: 1 },
+        { id: 10, url: 'https://example.test/10.jpg', is_memorabilia: 0, is_matchup_eligible: 1, rights_hold: 0, publication_eligible: 1 },
+        { id: 20, url: 'https://example.test/20-missing.jpg', is_memorabilia: 0, is_matchup_eligible: 1, rights_hold: 0, publication_eligible: 1 },
       ],
     });
 
@@ -244,10 +259,10 @@ describe('matchup broken-image repair', () => {
       ],
       votes: [{ week_start: weekStart }, { week_start: weekStart }],
       photos: [
-        { id: 10, url: 'https://example.test/10.jpg', is_memorabilia: 0, is_matchup_eligible: 1 },
-        { id: 20, url: 'https://example.test/20-missing.jpg', is_memorabilia: 0, is_matchup_eligible: 1 },
-        { id: 30, url: 'https://example.test/30.jpg', is_memorabilia: 0, is_matchup_eligible: 1 },
-        { id: 40, url: 'https://example.test/40.jpg', is_memorabilia: 0, is_matchup_eligible: 1 },
+        { id: 10, url: 'https://example.test/10.jpg', is_memorabilia: 0, is_matchup_eligible: 1, rights_hold: 0, publication_eligible: 1 },
+        { id: 20, url: 'https://example.test/20-missing.jpg', is_memorabilia: 0, is_matchup_eligible: 1, rights_hold: 0, publication_eligible: 1 },
+        { id: 30, url: 'https://example.test/30.jpg', is_memorabilia: 0, is_matchup_eligible: 1, rights_hold: 0, publication_eligible: 1 },
+        { id: 40, url: 'https://example.test/40.jpg', is_memorabilia: 0, is_matchup_eligible: 1, rights_hold: 0, publication_eligible: 1 },
       ],
     });
 
@@ -308,8 +323,8 @@ describe('matchup broken-image repair', () => {
       ],
       votes: [{ week_start: weekStart }, { week_start: weekStart }],
       photos: [
-        { id: 10, url: 'https://example.test/10.jpg', is_memorabilia: 0, is_matchup_eligible: 1 },
-        { id: 20, url: 'https://example.test/20-missing.jpg', is_memorabilia: 0, is_matchup_eligible: 1 },
+        { id: 10, url: 'https://example.test/10.jpg', is_memorabilia: 0, is_matchup_eligible: 1, rights_hold: 0, publication_eligible: 1 },
+        { id: 20, url: 'https://example.test/20-missing.jpg', is_memorabilia: 0, is_matchup_eligible: 1, rights_hold: 0, publication_eligible: 1 },
       ],
     });
 
@@ -346,11 +361,11 @@ describe('matchup broken-image repair', () => {
       ],
       votes: [{ week_start: weekStart }, { week_start: weekStart }],
       photos: [
-        { id: 10, url: 'https://example.test/10.jpg', is_memorabilia: 0, is_matchup_eligible: 1 },
+        { id: 10, url: 'https://example.test/10.jpg', is_memorabilia: 0, is_matchup_eligible: 1, rights_hold: 0, publication_eligible: 1 },
         // Photo 20 was retired (e.g. by the B2 deletion-reconcile job) after becoming the active pair.
-        { id: 20, url: 'https://example.test/20.jpg', is_memorabilia: 0, is_matchup_eligible: -1 },
-        { id: 30, url: 'https://example.test/30.jpg', is_memorabilia: 0, is_matchup_eligible: 1 },
-        { id: 40, url: 'https://example.test/40.jpg', is_memorabilia: 0, is_matchup_eligible: 1 },
+        { id: 20, url: 'https://example.test/20.jpg', is_memorabilia: 0, is_matchup_eligible: -1, rights_hold: 0, publication_eligible: 1 },
+        { id: 30, url: 'https://example.test/30.jpg', is_memorabilia: 0, is_matchup_eligible: 1, rights_hold: 0, publication_eligible: 1 },
+        { id: 40, url: 'https://example.test/40.jpg', is_memorabilia: 0, is_matchup_eligible: 1, rights_hold: 0, publication_eligible: 1 },
       ],
     });
 

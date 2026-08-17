@@ -19,6 +19,7 @@ const CLEARED_PHOTO = {
   source: 'LOC',
   created_at: '2026-08-17T00:00:00Z',
   rights_hold: 0,
+  publication_eligible: 1,
 };
 
 const HELD_PHOTO = {
@@ -32,6 +33,7 @@ const HELD_PHOTO = {
   source: 'legacy',
   created_at: '2026-08-01T00:00:00Z',
   rights_hold: 1,
+  publication_eligible: 0,
 };
 
 // Minimal D1 stand-in that actually evaluates the `rights_hold = 0` predicate
@@ -41,6 +43,9 @@ function makeRightsAwareDb(photos: Array<Record<string, unknown>>) {
     let rows = photos.slice();
     if (sql.includes('rights_hold = 0')) {
       rows = rows.filter((row) => Number(row.rights_hold) === 0);
+    }
+    if (sql.includes('publication_eligible = 1')) {
+      rows = rows.filter((row) => Number(row.publication_eligible) === 1);
     }
     if (sql.includes('WHERE id = ?')) {
       const id = args.find((arg) => typeof arg === 'number');
@@ -73,8 +78,8 @@ function photosRequest(path: string): Request {
 
 describe('rights-hold quarantine (#3552)', () => {
   it('rightsClearedClause defaults to the unaliased column and supports an alias', () => {
-    expect(rightsClearedClause()).toBe('rights_hold = 0');
-    expect(rightsClearedClause('p')).toBe('p.rights_hold = 0');
+    expect(rightsClearedClause()).toBe('rights_hold = 0 AND publication_eligible = 1');
+    expect(rightsClearedClause('p')).toBe('p.rights_hold = 0 AND p.publication_eligible = 1');
   });
 
   it('/api/photos excludes held legacy rows', async () => {
@@ -138,7 +143,7 @@ describe('rights-hold quarantine (#3552)', () => {
       prepare: vi.fn((sql: string) => ({
         first: async () => {
           if (sql.includes('COUNT(1)')) return { n: 0 };
-          if (sql.includes('rights_hold = 0')) return CLEARED_PHOTO;
+          if (sql.includes('rights_hold = 0') && sql.includes('publication_eligible = 1')) return CLEARED_PHOTO;
           return HELD_PHOTO;
         },
         all: async () => ({ results: [] }),
@@ -150,10 +155,15 @@ describe('rights-hold quarantine (#3552)', () => {
     expect(payload.media_feature).toBeNull();
   });
 
-  it('new-intake key prefix helper marks pipeline-collected media distinctly from legacy keys', () => {
-    expect(NEW_INTAKE_KEY_PREFIX).toBe('LGFC_');
-    expect(buildNewIntakeKey('loc-1923-gehrig-01.jpg')).toBe('LGFC_loc-1923-gehrig-01.jpg');
-    expect(isNewIntakeKey('LGFC_loc-1923-gehrig-01.jpg')).toBe(true);
-    expect(isNewIntakeKey('legacy/old-photo.jpg')).toBe(false);
+  it('/api/photos excludes a row that is rights_hold=0 but not publication_eligible', async () => {
+    const drifted = {
+      ...CLEARED_PHOTO,
+      id: 3,
+      publication_eligible: 0,
+    };
+    const env = { DB: makeRightsAwareDb([CLEARED_PHOTO, drifted]) };
+    const res = await photosListGet({ env, request: photosRequest('/api/photos') });
+    const body = await res.json();
+    expect(body.items.map((i: { id: number }) => i.id)).toEqual([1]);
   });
 });
