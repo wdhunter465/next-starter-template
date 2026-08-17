@@ -13,6 +13,16 @@ export const ALLOWED_INGEST_CONTENT_TYPES = new Set([
   "image/tiff",
 ]);
 
+// Shared with the ingestion endpoint so the CLI batch-ingestion path (which
+// must derive the same B2 key layout) can't drift from it independently.
+export const INGEST_CONTENT_TYPE_EXTENSIONS: Record<string, string> = {
+  "image/jpeg": "jpg",
+  "image/png": "png",
+  "image/gif": "gif",
+  "image/webp": "webp",
+  "image/tiff": "tif",
+};
+
 export type MagicByteCheck = {
   contentType: string;
   matches: (bytes: Uint8Array) => boolean;
