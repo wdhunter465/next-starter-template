@@ -11,6 +11,7 @@
 
 import { requireB2, putB2Object } from '../../../_lib/b2';
 import {
+  INGEST_CONTENT_TYPE_EXTENSIONS,
   sha256Hex,
   validateIngestContentType,
   validateIngestMagicBytes,
@@ -26,14 +27,6 @@ import { commitIngestedMedia } from '../../../_lib/media-ingest-repository';
 import { getCurrentConclusionForCandidate, requireRightsEvidenceTables } from '../../../_lib/rights-evidence-repository';
 import { requireAdmin } from '../../../_lib/auth';
 import { jsonResponse, requireD1, requireTables } from '../../../_lib/d1';
-
-const CONTENT_TYPE_EXTENSIONS: Record<string, string> = {
-  'image/jpeg': 'jpg',
-  'image/png': 'png',
-  'image/gif': 'gif',
-  'image/webp': 'webp',
-  'image/tiff': 'tif',
-};
 
 function asTrimmedString(value: unknown): string {
   return typeof value === 'string' ? value.trim() : '';
@@ -147,7 +140,7 @@ export const onRequestPost = async (context: any): Promise<Response> => {
 
     const checksum = await sha256Hex(bytes);
     const mediaUid = `sha256_${checksum.slice(0, 40)}`;
-    const extension = CONTENT_TYPE_EXTENSIONS[normalizedContentType] ?? 'bin';
+    const extension = INGEST_CONTENT_TYPE_EXTENSIONS[normalizedContentType] ?? 'bin';
     // Keyed by content checksum only (not candidate_id): two candidates that
     // happen to resolve to identical bytes must land on the same B2 object,
     // matching media_assets.media_uid's global uniqueness. Keying by

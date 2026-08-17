@@ -1065,12 +1065,14 @@ export const MEMBER_SUBMISSION_MEDIA_REFERENCE_MISSING_CODE = 'member_submission
 
 export class MemberSubmissionMediaReferenceMissingError extends Error {
   readonly code = MEMBER_SUBMISSION_MEDIA_REFERENCE_MISSING_CODE;
+  readonly candidateId: string;
 
-  constructor(public readonly candidateId: string) {
+  constructor(candidateId: string) {
     super(
       `uploaded_media_reference update requested for candidate ${candidateId} without a member_submissions row.`,
     );
     this.name = 'MemberSubmissionMediaReferenceMissingError';
+    this.candidateId = candidateId;
   }
 }
 
