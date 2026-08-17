@@ -164,6 +164,22 @@ function todayDateOnly() {
   return new Date().toISOString().slice(0, 10); // schema requires format:"date" (YYYY-MM-DD), not date-time
 }
 
+function firstScalar(value) {
+  if (Array.isArray(value)) {
+    const hit = value.find((item) => item != null && String(item).trim() !== '');
+    return hit == null ? '' : String(hit);
+  }
+  if (value == null) return '';
+  return String(value);
+}
+
+function absoluteHttpUrl(url) {
+  const raw = firstScalar(url).trim();
+  if (!raw) return undefined;
+  if (raw.startsWith('//')) return `https:${raw}`;
+  return raw;
+}
+
 /**
  * Builds a schema-valid candidate. Optional string fields (source_url,
  * source_owner, source_domain, date_or_period) are omitted entirely when
@@ -264,9 +280,18 @@ async function collectLibraryOfCongress(query, limit, nextId) {
   const data = await fetchJson(url);
   const results = data.results ?? [];
   return results.map((item) => {
-    const controlNumber = item.number_lccn ?? item.id ?? null;
-    const rightsAdvisory = item.rights_advisory ?? item.rights ?? null;
-    const downloadUrl = item.resources?.[0]?.url ?? null;
+    const nestedItem = item.item && typeof item.item === 'object' ? item.item : {};
+    const controlNumber = firstScalar(item.number_lccn) || firstScalar(item.id) || null;
+    const rightsAdvisory =
+      firstScalar(item.rights_advisory) ||
+      firstScalar(item.rights) ||
+      firstScalar(nestedItem.rights_advisory) ||
+      firstScalar(nestedItem.rights) ||
+      null;
+    const downloadUrl =
+      absoluteHttpUrl(item.resources?.[0]?.url) ||
+      absoluteHttpUrl(Array.isArray(item.image_url) ? item.image_url[0] : item.image_url) ||
+      null;
 
     const provenanceNotes = [
       `Library of Congress discovery for query "${query}".`,
@@ -274,7 +299,7 @@ async function collectLibraryOfCongress(query, limit, nextId) {
       `Collection: ${item.partof ?? 'unknown'}.`,
       `Creator/contributor: ${item.contributor ?? 'unknown'}.`,
       `Rights advisory: ${rightsAdvisory ?? 'none provided'}.`,
-      `Source page: ${item.url ?? 'none'}.`,
+      `Source page: ${absoluteHttpUrl(item.url) ?? 'none'}.`,
       `Download URL: ${downloadUrl ?? 'none'}.`,
       'A rights/advisory statement here is LOC’s own research note, not a legal clearance -- LOC generally does not own copyright in donated/acquired collection material.',
     ].join(' ');
@@ -286,7 +311,7 @@ async function collectLibraryOfCongress(query, limit, nextId) {
       sourceName: 'Library of Congress',
       sourceOwner: 'Library of Congress',
       sourceDomain: 'loc.gov',
-      sourceUrl: item.url || undefined,
+      sourceUrl: absoluteHttpUrl(item.url),
       summary: `Discovered via loc.gov search for "${query}". A rights/advisory statement here (if present) is LOC's own research note, not a legal clearance.`,
       dateOrPeriod: Array.isArray(item.date) ? item.date[0] : item.date || undefined,
       provenanceNotes,

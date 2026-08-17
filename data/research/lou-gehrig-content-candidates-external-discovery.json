@@ -1,0 +1,2170 @@
+{
+  "schema_version": "1",
+  "registry_class": "operator_export",
+  "description": "Automated discovery export from Openverse/LOC/Wikimedia Commons for query \"Lou Gehrig\". Every candidate is unreviewed (rights_status=unknown, review_status=pending_review, publication_status=not_ready). Not approved for publication.",
+  "registry_purpose": "operator_export",
+  "content_evidence_level": "mixed",
+  "updated_at": "2026-08-17T19:56:45.562Z",
+  "candidates": [
+    {
+      "candidate_id": "lgfc-gehrig-2026-501",
+      "input_stream": "scheduled_discovery",
+      "title": "Yankee Stadium: Monument Park - Retired Numbers - Lou Gehrig #4",
+      "source_name": "Openverse",
+      "source_type": "other",
+      "content_type": "photo",
+      "summary": "Discovered via Openverse search for \"Lou Gehrig\". Provider: flickr. Treat license metadata as a lead — verify against the originating collection before any rights conclusion.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Openverse discovery for query \"Lou Gehrig\". Provider: flickr. Creator: wallyg. License: by-nc-nd 2.0. License URL: https://creativecommons.org/licenses/by-nc-nd/2.0/. Original item URL: https://live.staticflickr.com/64/191265990_c3f400ef76_b.jpg. Foreign landing URL: https://www.flickr.com/photos/70323761@N00/191265990. Openverse’s own terms disclaim verification of individual-work licensing -- treat as a lead only, verify against the originating collection before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:44.629Z",
+      "updated_at": "2026-08-17T19:56:44.629Z",
+      "source_url": "https://www.flickr.com/photos/70323761@N00/191265990",
+      "source_owner": "flickr",
+      "source_domain": "openverse.org",
+      "source_metadata": {
+        "source_record_id": "82858ed2-591b-46c0-b5d0-4520fb5dde63",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Openverse (provider: flickr), item 82858ed2-591b-46c0-b5d0-4520fb5dde63"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-502",
+      "input_stream": "scheduled_discovery",
+      "title": "Yankee Stadium: Monument Park - Lou Gehrig Monument",
+      "source_name": "Openverse",
+      "source_type": "other",
+      "content_type": "photo",
+      "summary": "Discovered via Openverse search for \"Lou Gehrig\". Provider: flickr. Treat license metadata as a lead — verify against the originating collection before any rights conclusion.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Openverse discovery for query \"Lou Gehrig\". Provider: flickr. Creator: wallyg. License: by-nc-nd 2.0. License URL: https://creativecommons.org/licenses/by-nc-nd/2.0/. Original item URL: https://live.staticflickr.com/72/192185330_abb0febc8c_b.jpg. Foreign landing URL: https://www.flickr.com/photos/70323761@N00/192185330. Openverse’s own terms disclaim verification of individual-work licensing -- treat as a lead only, verify against the originating collection before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:44.630Z",
+      "updated_at": "2026-08-17T19:56:44.630Z",
+      "source_url": "https://www.flickr.com/photos/70323761@N00/192185330",
+      "source_owner": "flickr",
+      "source_domain": "openverse.org",
+      "source_metadata": {
+        "source_record_id": "a4ce0aa8-8a86-406c-9cbc-3ec0f43a0f39",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Openverse (provider: flickr), item a4ce0aa8-8a86-406c-9cbc-3ec0f43a0f39"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-503",
+      "input_stream": "scheduled_discovery",
+      "title": "Lou Gehrig Plaza",
+      "source_name": "Openverse",
+      "source_type": "other",
+      "content_type": "photo",
+      "summary": "Discovered via Openverse search for \"Lou Gehrig\". Provider: flickr. Treat license metadata as a lead — verify against the originating collection before any rights conclusion.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Openverse discovery for query \"Lou Gehrig\". Provider: flickr. Creator: Edgar.Omar. License: by-nc-nd 2.0. License URL: https://creativecommons.org/licenses/by-nc-nd/2.0/. Original item URL: https://live.staticflickr.com/65535/51700348477_d5afed18be_b.jpg. Foreign landing URL: https://www.flickr.com/photos/142429528@N05/51700348477. Openverse’s own terms disclaim verification of individual-work licensing -- treat as a lead only, verify against the originating collection before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:44.630Z",
+      "updated_at": "2026-08-17T19:56:44.630Z",
+      "source_url": "https://www.flickr.com/photos/142429528@N05/51700348477",
+      "source_owner": "flickr",
+      "source_domain": "openverse.org",
+      "source_metadata": {
+        "source_record_id": "fd68b830-02f7-4f81-85a3-9ee283ab835c",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Openverse (provider: flickr), item fd68b830-02f7-4f81-85a3-9ee283ab835c"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-504",
+      "input_stream": "scheduled_discovery",
+      "title": "Babe Ruth & Lou Gehrig",
+      "source_name": "Openverse",
+      "source_type": "other",
+      "content_type": "photo",
+      "summary": "Discovered via Openverse search for \"Lou Gehrig\". Provider: flickr. Treat license metadata as a lead — verify against the originating collection before any rights conclusion.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Openverse discovery for query \"Lou Gehrig\". Provider: flickr. Creator: ewen and donabel. License: by 2.0. License URL: https://creativecommons.org/licenses/by/2.0/. Original item URL: https://live.staticflickr.com/1002/1046239950_c0098d4ef0_b.jpg. Foreign landing URL: https://www.flickr.com/photos/85979850@N00/1046239950. Openverse’s own terms disclaim verification of individual-work licensing -- treat as a lead only, verify against the originating collection before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:44.630Z",
+      "updated_at": "2026-08-17T19:56:44.630Z",
+      "source_url": "https://www.flickr.com/photos/85979850@N00/1046239950",
+      "source_owner": "flickr",
+      "source_domain": "openverse.org",
+      "source_metadata": {
+        "source_record_id": "cad0c5af-b7a2-459d-b38f-ad13e5c18ac9",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Openverse (provider: flickr), item cad0c5af-b7a2-459d-b38f-ad13e5c18ac9"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-505",
+      "input_stream": "scheduled_discovery",
+      "title": "Babe Ruth and Lou Gehrig's Monuments in Yankee Stadium",
+      "source_name": "Openverse",
+      "source_type": "other",
+      "content_type": "photo",
+      "summary": "Discovered via Openverse search for \"Lou Gehrig\". Provider: flickr. Treat license metadata as a lead — verify against the originating collection before any rights conclusion.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Openverse discovery for query \"Lou Gehrig\". Provider: flickr. Creator: Espino Family. License: by-sa 2.0. License URL: https://creativecommons.org/licenses/by-sa/2.0/. Original item URL: https://live.staticflickr.com/6010/5931156024_49e8925aaf_b.jpg. Foreign landing URL: https://www.flickr.com/photos/8852778@N08/5931156024. Openverse’s own terms disclaim verification of individual-work licensing -- treat as a lead only, verify against the originating collection before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:44.630Z",
+      "updated_at": "2026-08-17T19:56:44.630Z",
+      "source_url": "https://www.flickr.com/photos/8852778@N08/5931156024",
+      "source_owner": "flickr",
+      "source_domain": "openverse.org",
+      "source_metadata": {
+        "source_record_id": "3cd233c6-89db-4fb8-8c9f-418bec2b2275",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Openverse (provider: flickr), item 3cd233c6-89db-4fb8-8c9f-418bec2b2275"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-506",
+      "input_stream": "scheduled_discovery",
+      "title": "Jimmie Foxx, Babe Ruth, Lou Gehrig, Al Simmons",
+      "source_name": "Openverse",
+      "source_type": "other",
+      "content_type": "photo",
+      "summary": "Discovered via Openverse search for \"Lou Gehrig\". Provider: wikimedia. Treat license metadata as a lead — verify against the originating collection before any rights conclusion.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Openverse discovery for query \"Lou Gehrig\". Provider: wikimedia. Creator: unattributed. License: by 1.0. License URL: https://creativecommons.org/licenses/by/1.0/. Original item URL: https://upload.wikimedia.org/wikipedia/commons/f/f8/Jimmie_Foxx%2C_Babe_Ruth%2C_Lou_Gehrig%2C_Al_Simmons.jpg. Foreign landing URL: https://commons.wikimedia.org/w/index.php?curid=12128467. Openverse’s own terms disclaim verification of individual-work licensing -- treat as a lead only, verify against the originating collection before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:44.630Z",
+      "updated_at": "2026-08-17T19:56:44.630Z",
+      "source_url": "https://commons.wikimedia.org/w/index.php?curid=12128467",
+      "source_owner": "wikimedia",
+      "source_domain": "openverse.org",
+      "source_metadata": {
+        "source_record_id": "3a020115-6c7b-46f0-9309-a805ad8549e8",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Openverse (provider: wikimedia), item 3a020115-6c7b-46f0-9309-a805ad8549e8"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-507",
+      "input_stream": "scheduled_discovery",
+      "title": "National Baseball Hall of Fame - Lou Gehrig's Hat",
+      "source_name": "Openverse",
+      "source_type": "other",
+      "content_type": "photo",
+      "summary": "Discovered via Openverse search for \"Lou Gehrig\". Provider: flickr. Treat license metadata as a lead — verify against the originating collection before any rights conclusion.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Openverse discovery for query \"Lou Gehrig\". Provider: flickr. Creator: dangaken. License: by 2.0. License URL: https://creativecommons.org/licenses/by/2.0/. Original item URL: https://live.staticflickr.com/5491/14572632054_a267eec059_b.jpg. Foreign landing URL: https://www.flickr.com/photos/37580254@N03/14572632054. Openverse’s own terms disclaim verification of individual-work licensing -- treat as a lead only, verify against the originating collection before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:44.630Z",
+      "updated_at": "2026-08-17T19:56:44.630Z",
+      "source_url": "https://www.flickr.com/photos/37580254@N03/14572632054",
+      "source_owner": "flickr",
+      "source_domain": "openverse.org",
+      "source_metadata": {
+        "source_record_id": "35c9c489-8baf-41e0-a870-d9c978a42f2d",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Openverse (provider: flickr), item 35c9c489-8baf-41e0-a870-d9c978a42f2d"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-508",
+      "input_stream": "scheduled_discovery",
+      "title": "zack with lou gehrig coming out of his nose",
+      "source_name": "Openverse",
+      "source_type": "other",
+      "content_type": "photo",
+      "summary": "Discovered via Openverse search for \"Lou Gehrig\". Provider: flickr. Treat license metadata as a lead — verify against the originating collection before any rights conclusion.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Openverse discovery for query \"Lou Gehrig\". Provider: flickr. Creator: zen. License: by-nc-sa 2.0. License URL: https://creativecommons.org/licenses/by-nc-sa/2.0/. Original item URL: https://live.staticflickr.com/26/39148749_086c4a4f3a.jpg. Foreign landing URL: https://www.flickr.com/photos/54289096@N00/39148749. Openverse’s own terms disclaim verification of individual-work licensing -- treat as a lead only, verify against the originating collection before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:44.630Z",
+      "updated_at": "2026-08-17T19:56:44.630Z",
+      "source_url": "https://www.flickr.com/photos/54289096@N00/39148749",
+      "source_owner": "flickr",
+      "source_domain": "openverse.org",
+      "source_metadata": {
+        "source_record_id": "4615829b-07f2-44ea-9db4-6de50f85d1d7",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Openverse (provider: flickr), item 4615829b-07f2-44ea-9db4-6de50f85d1d7"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-509",
+      "input_stream": "scheduled_discovery",
+      "title": "Lou Gehrig's Jersey from July 4, 1939",
+      "source_name": "Openverse",
+      "source_type": "other",
+      "content_type": "photo",
+      "summary": "Discovered via Openverse search for \"Lou Gehrig\". Provider: flickr. Treat license metadata as a lead — verify against the originating collection before any rights conclusion.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Openverse discovery for query \"Lou Gehrig\". Provider: flickr. Creator: dangaken. License: by 2.0. License URL: https://creativecommons.org/licenses/by/2.0/. Original item URL: https://live.staticflickr.com/2934/14385042750_aac324c457_b.jpg. Foreign landing URL: https://www.flickr.com/photos/37580254@N03/14385042750. Openverse’s own terms disclaim verification of individual-work licensing -- treat as a lead only, verify against the originating collection before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:44.630Z",
+      "updated_at": "2026-08-17T19:56:44.630Z",
+      "source_url": "https://www.flickr.com/photos/37580254@N03/14385042750",
+      "source_owner": "flickr",
+      "source_domain": "openverse.org",
+      "source_metadata": {
+        "source_record_id": "c1903931-ce52-4dc0-8ca3-589ff7121275",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Openverse (provider: flickr), item c1903931-ce52-4dc0-8ca3-589ff7121275"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-510",
+      "input_stream": "scheduled_discovery",
+      "title": "Lou Gehrig's New York license plate",
+      "source_name": "Openverse",
+      "source_type": "other",
+      "content_type": "photo",
+      "summary": "Discovered via Openverse search for \"Lou Gehrig\". Provider: flickr. Treat license metadata as a lead — verify against the originating collection before any rights conclusion.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Openverse discovery for query \"Lou Gehrig\". Provider: flickr. Creator: ewen and donabel. License: by 2.0. License URL: https://creativecommons.org/licenses/by/2.0/. Original item URL: https://live.staticflickr.com/1035/1046209716_f744c80313_b.jpg. Foreign landing URL: https://www.flickr.com/photos/85979850@N00/1046209716. Openverse’s own terms disclaim verification of individual-work licensing -- treat as a lead only, verify against the originating collection before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:44.630Z",
+      "updated_at": "2026-08-17T19:56:44.630Z",
+      "source_url": "https://www.flickr.com/photos/85979850@N00/1046209716",
+      "source_owner": "flickr",
+      "source_domain": "openverse.org",
+      "source_metadata": {
+        "source_record_id": "eee269d7-9e49-47c5-80ec-d65a0434979b",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Openverse (provider: flickr), item eee269d7-9e49-47c5-80ec-d65a0434979b"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-511",
+      "input_stream": "scheduled_discovery",
+      "title": "Lou Gehrig's Locker",
+      "source_name": "Openverse",
+      "source_type": "other",
+      "content_type": "photo",
+      "summary": "Discovered via Openverse search for \"Lou Gehrig\". Provider: flickr. Treat license metadata as a lead — verify against the originating collection before any rights conclusion.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Openverse discovery for query \"Lou Gehrig\". Provider: flickr. Creator: ewen and donabel. License: by 2.0. License URL: https://creativecommons.org/licenses/by/2.0/. Original item URL: https://live.staticflickr.com/1113/1045352915_a170c22ad0_b.jpg. Foreign landing URL: https://www.flickr.com/photos/85979850@N00/1045352915. Openverse’s own terms disclaim verification of individual-work licensing -- treat as a lead only, verify against the originating collection before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:44.630Z",
+      "updated_at": "2026-08-17T19:56:44.630Z",
+      "source_url": "https://www.flickr.com/photos/85979850@N00/1045352915",
+      "source_owner": "flickr",
+      "source_domain": "openverse.org",
+      "source_metadata": {
+        "source_record_id": "38c1b88e-22bd-4ebf-9301-026efbc1c903",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Openverse (provider: flickr), item 38c1b88e-22bd-4ebf-9301-026efbc1c903"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-512",
+      "input_stream": "scheduled_discovery",
+      "title": "Lou Gehrig",
+      "source_name": "Openverse",
+      "source_type": "other",
+      "content_type": "photo",
+      "summary": "Discovered via Openverse search for \"Lou Gehrig\". Provider: flickr. Treat license metadata as a lead — verify against the originating collection before any rights conclusion.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Openverse discovery for query \"Lou Gehrig\". Provider: flickr. Creator: 2Eklectik. License: by-nd 2.0. License URL: https://creativecommons.org/licenses/by-nd/2.0/. Original item URL: https://live.staticflickr.com/3612/3460550211_d79de21c8e_b.jpg. Foreign landing URL: https://www.flickr.com/photos/34011464@N03/3460550211. Openverse’s own terms disclaim verification of individual-work licensing -- treat as a lead only, verify against the originating collection before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:44.630Z",
+      "updated_at": "2026-08-17T19:56:44.630Z",
+      "source_url": "https://www.flickr.com/photos/34011464@N03/3460550211",
+      "source_owner": "flickr",
+      "source_domain": "openverse.org",
+      "source_metadata": {
+        "source_record_id": "fa106622-2da7-454c-b4be-e76a74cd71a6",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Openverse (provider: flickr), item fa106622-2da7-454c-b4be-e76a74cd71a6"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-513",
+      "input_stream": "scheduled_discovery",
+      "title": "Lou Gehrig and Babe Ruth Retired Numbers, Monument Park, Yankee Stadium",
+      "source_name": "Openverse",
+      "source_type": "other",
+      "content_type": "photo",
+      "summary": "Discovered via Openverse search for \"Lou Gehrig\". Provider: flickr. Treat license metadata as a lead — verify against the originating collection before any rights conclusion.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Openverse discovery for query \"Lou Gehrig\". Provider: flickr. Creator: JeffreyPutman. License: by-nc-sa 2.0. License URL: https://creativecommons.org/licenses/by-nc-sa/2.0/. Original item URL: https://live.staticflickr.com/28/51779721_dc30b69f9f_b.jpg. Foreign landing URL: https://www.flickr.com/photos/67093783@N00/51779721. Openverse’s own terms disclaim verification of individual-work licensing -- treat as a lead only, verify against the originating collection before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:44.630Z",
+      "updated_at": "2026-08-17T19:56:44.630Z",
+      "source_url": "https://www.flickr.com/photos/67093783@N00/51779721",
+      "source_owner": "flickr",
+      "source_domain": "openverse.org",
+      "source_metadata": {
+        "source_record_id": "4ed1ef67-858d-46f6-9006-ac726154b5ee",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Openverse (provider: flickr), item 4ed1ef67-858d-46f6-9006-ac726154b5ee"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-514",
+      "input_stream": "scheduled_discovery",
+      "title": "Lou Gehrig best 800",
+      "source_name": "Openverse",
+      "source_type": "other",
+      "content_type": "photo",
+      "summary": "Discovered via Openverse search for \"Lou Gehrig\". Provider: wikimedia. Treat license metadata as a lead — verify against the originating collection before any rights conclusion.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Openverse discovery for query \"Lou Gehrig\". Provider: wikimedia. Creator: Anthony22 at English Wikipedia. License: by-sa 3.0. License URL: https://creativecommons.org/licenses/by-sa/3.0/. Original item URL: https://upload.wikimedia.org/wikipedia/commons/8/82/Lou_Gehrig_best_800.jpg. Foreign landing URL: https://commons.wikimedia.org/w/index.php?curid=11955743. Openverse’s own terms disclaim verification of individual-work licensing -- treat as a lead only, verify against the originating collection before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:44.630Z",
+      "updated_at": "2026-08-17T19:56:44.630Z",
+      "source_url": "https://commons.wikimedia.org/w/index.php?curid=11955743",
+      "source_owner": "wikimedia",
+      "source_domain": "openverse.org",
+      "source_metadata": {
+        "source_record_id": "8b6d67ab-80f5-47c6-9bd4-69d5d1a9759b",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Openverse (provider: wikimedia), item 8b6d67ab-80f5-47c6-9bd4-69d5d1a9759b"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-515",
+      "input_stream": "scheduled_discovery",
+      "title": "Lou Gehrig house in New Rochelle",
+      "source_name": "Openverse",
+      "source_type": "other",
+      "content_type": "photo",
+      "summary": "Discovered via Openverse search for \"Lou Gehrig\". Provider: flickr. Treat license metadata as a lead — verify against the originating collection before any rights conclusion.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Openverse discovery for query \"Lou Gehrig\". Provider: flickr. Creator: terryballard. License: by 2.0. License URL: https://creativecommons.org/licenses/by/2.0/. Original item URL: https://live.staticflickr.com/8397/8698551993_c37459042d_b.jpg. Foreign landing URL: https://www.flickr.com/photos/50631360@N00/8698551993. Openverse’s own terms disclaim verification of individual-work licensing -- treat as a lead only, verify against the originating collection before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:44.630Z",
+      "updated_at": "2026-08-17T19:56:44.630Z",
+      "source_url": "https://www.flickr.com/photos/50631360@N00/8698551993",
+      "source_owner": "flickr",
+      "source_domain": "openverse.org",
+      "source_metadata": {
+        "source_record_id": "a926cbba-a75d-4597-8281-806a50c7459c",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Openverse (provider: flickr), item a926cbba-a75d-4597-8281-806a50c7459c"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-516",
+      "input_stream": "scheduled_discovery",
+      "title": "REMEMBERING LOU GEHRIG: BEAT 4 ALS",
+      "source_name": "Openverse",
+      "source_type": "other",
+      "content_type": "photo",
+      "summary": "Discovered via Openverse search for \"Lou Gehrig\". Provider: flickr. Treat license metadata as a lead — verify against the originating collection before any rights conclusion.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Openverse discovery for query \"Lou Gehrig\". Provider: flickr. Creator: jasoneppink. License: by 2.0. License URL: https://creativecommons.org/licenses/by/2.0/. Original item URL: https://live.staticflickr.com/65/194231038_06b29b0887_b.jpg. Foreign landing URL: https://www.flickr.com/photos/38102495@N00/194231038. Openverse’s own terms disclaim verification of individual-work licensing -- treat as a lead only, verify against the originating collection before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:44.630Z",
+      "updated_at": "2026-08-17T19:56:44.630Z",
+      "source_url": "https://www.flickr.com/photos/38102495@N00/194231038",
+      "source_owner": "flickr",
+      "source_domain": "openverse.org",
+      "source_metadata": {
+        "source_record_id": "bcb4e034-3f89-46c9-81c9-35eaf468e6a3",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Openverse (provider: flickr), item bcb4e034-3f89-46c9-81c9-35eaf468e6a3"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-517",
+      "input_stream": "scheduled_discovery",
+      "title": "Lou Gehrig",
+      "source_name": "Openverse",
+      "source_type": "other",
+      "content_type": "photo",
+      "summary": "Discovered via Openverse search for \"Lou Gehrig\". Provider: flickr. Treat license metadata as a lead — verify against the originating collection before any rights conclusion.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Openverse discovery for query \"Lou Gehrig\". Provider: flickr. Creator: majorvols. License: by-sa 2.0. License URL: https://creativecommons.org/licenses/by-sa/2.0/. Original item URL: https://live.staticflickr.com/2107/2496161714_34b8a1a34b_b.jpg. Foreign landing URL: https://www.flickr.com/photos/34826247@N00/2496161714. Openverse’s own terms disclaim verification of individual-work licensing -- treat as a lead only, verify against the originating collection before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:44.630Z",
+      "updated_at": "2026-08-17T19:56:44.630Z",
+      "source_url": "https://www.flickr.com/photos/34826247@N00/2496161714",
+      "source_owner": "flickr",
+      "source_domain": "openverse.org",
+      "source_metadata": {
+        "source_record_id": "12e5477e-685a-4de7-a861-cea012ef29d5",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Openverse (provider: flickr), item 12e5477e-685a-4de7-a861-cea012ef29d5"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-518",
+      "input_stream": "scheduled_discovery",
+      "title": "Lou Gehrig",
+      "source_name": "Openverse",
+      "source_type": "other",
+      "content_type": "photo",
+      "summary": "Discovered via Openverse search for \"Lou Gehrig\". Provider: flickr. Treat license metadata as a lead — verify against the originating collection before any rights conclusion.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Openverse discovery for query \"Lou Gehrig\". Provider: flickr. Creator: rgusick. License: by-nc-sa 2.0. License URL: https://creativecommons.org/licenses/by-nc-sa/2.0/. Original item URL: https://live.staticflickr.com/12/16637537_748ffd7045.jpg. Foreign landing URL: https://www.flickr.com/photos/92831087@N00/16637537. Openverse’s own terms disclaim verification of individual-work licensing -- treat as a lead only, verify against the originating collection before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:44.630Z",
+      "updated_at": "2026-08-17T19:56:44.630Z",
+      "source_url": "https://www.flickr.com/photos/92831087@N00/16637537",
+      "source_owner": "flickr",
+      "source_domain": "openverse.org",
+      "source_metadata": {
+        "source_record_id": "da75a2ae-8f9d-4c07-b008-17ea9c610570",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Openverse (provider: flickr), item da75a2ae-8f9d-4c07-b008-17ea9c610570"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-519",
+      "input_stream": "scheduled_discovery",
+      "title": "Lou Gehrig and Babe Ruth's Monuments",
+      "source_name": "Openverse",
+      "source_type": "other",
+      "content_type": "photo",
+      "summary": "Discovered via Openverse search for \"Lou Gehrig\". Provider: flickr. Treat license metadata as a lead — verify against the originating collection before any rights conclusion.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Openverse discovery for query \"Lou Gehrig\". Provider: flickr. Creator: Espino Family. License: by-sa 2.0. License URL: https://creativecommons.org/licenses/by-sa/2.0/. Original item URL: https://live.staticflickr.com/6145/5930600189_4905039867_b.jpg. Foreign landing URL: https://www.flickr.com/photos/8852778@N08/5930600189. Openverse’s own terms disclaim verification of individual-work licensing -- treat as a lead only, verify against the originating collection before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:44.630Z",
+      "updated_at": "2026-08-17T19:56:44.630Z",
+      "source_url": "https://www.flickr.com/photos/8852778@N08/5930600189",
+      "source_owner": "flickr",
+      "source_domain": "openverse.org",
+      "source_metadata": {
+        "source_record_id": "0a0c7c17-c47a-46c7-a405-21a92d407fa3",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Openverse (provider: flickr), item 0a0c7c17-c47a-46c7-a405-21a92d407fa3"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-520",
+      "input_stream": "scheduled_discovery",
+      "title": "Baseball Signed by Several 1931 New York Yankees, Notably Babe Ruth and Lou Gehrig",
+      "source_name": "Openverse",
+      "source_type": "other",
+      "content_type": "photo",
+      "summary": "Discovered via Openverse search for \"Lou Gehrig\". Provider: flickr. Treat license metadata as a lead — verify against the originating collection before any rights conclusion.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Openverse discovery for query \"Lou Gehrig\". Provider: flickr. Creator: Jim, the Photographer. License: by 2.0. License URL: https://creativecommons.org/licenses/by/2.0/. Original item URL: https://live.staticflickr.com/8129/8704952871_ea93ba3ccd_b.jpg. Foreign landing URL: https://www.flickr.com/photos/72744295@N00/8704952871. Openverse’s own terms disclaim verification of individual-work licensing -- treat as a lead only, verify against the originating collection before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:44.630Z",
+      "updated_at": "2026-08-17T19:56:44.630Z",
+      "source_url": "https://www.flickr.com/photos/72744295@N00/8704952871",
+      "source_owner": "flickr",
+      "source_domain": "openverse.org",
+      "source_metadata": {
+        "source_record_id": "080a5dc6-aef2-4b99-94b4-4781a36e8784",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Openverse (provider: flickr), item 080a5dc6-aef2-4b99-94b4-4781a36e8784"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-521",
+      "input_stream": "scheduled_discovery",
+      "title": "The lost memoir",
+      "source_name": "Library of Congress",
+      "source_type": "library",
+      "content_type": "photo",
+      "summary": "Discovered via loc.gov search for \"Lou Gehrig\". A rights/advisory statement here (if present) is LOC's own research note, not a legal clearance.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Library of Congress discovery for query \"Lou Gehrig\". Control number/ID: 2024615726. Collection: catalog. Creator/contributor: di loreto, angelo,gaff, alan d.,tait, kyle,gehrig, lou. Rights advisory: none provided. Source page: //lccn.loc.gov/2024615726. Download URL: none. A rights/advisory statement here is LOC’s own research note, not a legal clearance -- LOC generally does not own copyright in donated/acquired collection material.",
+      "created_at": "2026-08-17T19:56:44.744Z",
+      "updated_at": "2026-08-17T19:56:44.744Z",
+      "source_url": "https://lccn.loc.gov/2024615726",
+      "source_owner": "Library of Congress",
+      "source_domain": "loc.gov",
+      "date_or_period": "2020",
+      "source_metadata": {
+        "source_record_id": "2024615726",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Library of Congress, control/ID 2024615726"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-522",
+      "input_stream": "scheduled_discovery",
+      "title": "Lou Gehrig, famous Yankee first baseman",
+      "source_name": "Library of Congress",
+      "source_type": "library",
+      "content_type": "photo",
+      "summary": "Discovered via loc.gov search for \"Lou Gehrig\". A rights/advisory statement here (if present) is LOC's own research note, not a legal clearance.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Library of Congress discovery for query \"Lou Gehrig\". Control number/ID: 89716183. Collection: catalog,prints and photographs division,stereograph cards,prints & photographs online catalog (library of congress),miscellaneous items in high demand. Creator/contributor: keystone view company. Rights advisory: No known restrictions on publication. No renewal in the U.S. Copyright Office (checked 9/2016).. Source page: https://www.loc.gov/item/89716183/. Download URL: https://www.loc.gov/resource/ppmsca.18599/. A rights/advisory statement here is LOC’s own research note, not a legal clearance -- LOC generally does not own copyright in donated/acquired collection material.",
+      "created_at": "2026-08-17T19:56:44.744Z",
+      "updated_at": "2026-08-17T19:56:44.744Z",
+      "source_url": "https://www.loc.gov/item/89716183/",
+      "source_owner": "Library of Congress",
+      "source_domain": "loc.gov",
+      "date_or_period": "1930",
+      "source_metadata": {
+        "source_record_id": "89716183",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Library of Congress, control/ID 89716183"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-523",
+      "input_stream": "scheduled_discovery",
+      "title": "ALS Association : Fighting Lou Gehrig's Disease",
+      "source_name": "Library of Congress",
+      "source_type": "library",
+      "content_type": "photo",
+      "summary": "Discovered via loc.gov search for \"Lou Gehrig\". A rights/advisory statement here (if present) is LOC's own research note, not a legal clearance.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Library of Congress discovery for query \"Lou Gehrig\". Control number/ID: http://www.loc.gov/item/lcwaN0002954/. Collection: researcher engagement and general collections division,public policy topics web archive. Creator/contributor: als association. Rights advisory: none provided. Source page: https://www.loc.gov/item/lcwaN0002954/. Download URL: https://webarchive.loc.gov/all/*/http://www.alsa.org/. A rights/advisory statement here is LOC’s own research note, not a legal clearance -- LOC generally does not own copyright in donated/acquired collection material.",
+      "created_at": "2026-08-17T19:56:44.744Z",
+      "updated_at": "2026-08-17T19:56:44.744Z",
+      "source_url": "https://www.loc.gov/item/lcwaN0002954/",
+      "source_owner": "Library of Congress",
+      "source_domain": "loc.gov",
+      "date_or_period": "2002",
+      "source_metadata": {
+        "source_record_id": "http://www.loc.gov/item/lcwaN0002954/",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Library of Congress, control/ID http://www.loc.gov/item/lcwaN0002954/"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-524",
+      "input_stream": "scheduled_discovery",
+      "title": "[Lou Boudreau surrounded by heavy hitters]",
+      "source_name": "Library of Congress",
+      "source_type": "library",
+      "content_type": "photo",
+      "summary": "Discovered via loc.gov search for \"Lou Gehrig\". A rights/advisory statement here (if present) is LOC's own research note, not a legal clearance.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Library of Congress discovery for query \"Lou Gehrig\". Control number/ID: 2008675448. Collection: prints and photographs division,catalog. Creator/contributor: darvas, lou. Rights advisory: Rights status not evaluated. For general information see \"Copyright and Other Restrictions...,\" https://www.loc.gov/rr/print/195_copr.html. Source page: https://www.loc.gov/item/2008675448/. Download URL: https://www.loc.gov/resource/ppmsca.18829/. A rights/advisory statement here is LOC’s own research note, not a legal clearance -- LOC generally does not own copyright in donated/acquired collection material.",
+      "created_at": "2026-08-17T19:56:44.744Z",
+      "updated_at": "2026-08-17T19:56:44.744Z",
+      "source_url": "https://www.loc.gov/item/2008675448/",
+      "source_owner": "Library of Congress",
+      "source_domain": "loc.gov",
+      "date_or_period": "1948",
+      "source_metadata": {
+        "source_record_id": "2008675448",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Library of Congress, control/ID 2008675448"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-525",
+      "input_stream": "scheduled_discovery",
+      "title": "[Pitcher Jackie Mitchell shaking hands with Babe Ruth, while Lou Gehrig (left) and Joe Engel stand by]",
+      "source_name": "Library of Congress",
+      "source_type": "library",
+      "content_type": "photo",
+      "summary": "Discovered via loc.gov search for \"Lou Gehrig\". A rights/advisory statement here (if present) is LOC's own research note, not a legal clearance.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Library of Congress discovery for query \"Lou Gehrig\". Control number/ID: 99401495. Collection: prints and photographs division,miscellaneous items in high demand,catalog,prints & photographs online catalog (library of congress). Creator/contributor: unknown. Rights advisory: Publication may be restricted. For information see \"New York World-Telegram & ...,\" https://www.loc.gov/rr/print/res/076_nyw.html. Source page: https://www.loc.gov/item/99401495/. Download URL: https://www.loc.gov/resource/cph.3c22449/. A rights/advisory statement here is LOC’s own research note, not a legal clearance -- LOC generally does not own copyright in donated/acquired collection material.",
+      "created_at": "2026-08-17T19:56:44.744Z",
+      "updated_at": "2026-08-17T19:56:44.744Z",
+      "source_url": "https://www.loc.gov/item/99401495/",
+      "source_owner": "Library of Congress",
+      "source_domain": "loc.gov",
+      "date_or_period": "1952-01-01",
+      "source_metadata": {
+        "source_record_id": "99401495",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Library of Congress, control/ID 99401495"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-526",
+      "input_stream": "scheduled_discovery",
+      "title": "H.Res.278 - 108th Congress (2003-2004): Recognizing the contributions Lou Gehrig and his legacy have made in the fight against Amyotrophic Lateral Sclerosis.",
+      "source_name": "Library of Congress",
+      "source_type": "library",
+      "content_type": "photo",
+      "summary": "Discovered via loc.gov search for \"Lou Gehrig\". A rights/advisory statement here (if present) is LOC's own research note, not a legal clearance.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Library of Congress discovery for query \"Lou Gehrig\". Control number/ID: https://www.congress.gov/bill/108th-congress/house-resolution/278. Collection: congress.gov,house resolutions,108th congress,resolutions. Creator/contributor: house of representatives,rep. engel, eliot l. [d-ny-17],108th congress. Rights advisory: none provided. Source page: https://www.congress.gov/bill/108th-congress/house-resolution/278. Download URL: https://www.congress.gov/img/opengraph1200by630.jpg. A rights/advisory statement here is LOC’s own research note, not a legal clearance -- LOC generally does not own copyright in donated/acquired collection material.",
+      "created_at": "2026-08-17T19:56:44.744Z",
+      "updated_at": "2026-08-17T19:56:44.744Z",
+      "source_url": "https://www.congress.gov/bill/108th-congress/house-resolution/278",
+      "source_owner": "Library of Congress",
+      "source_domain": "loc.gov",
+      "date_or_period": "2003-06-19",
+      "source_metadata": {
+        "source_record_id": "https://www.congress.gov/bill/108th-congress/house-resolution/278",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Library of Congress, control/ID https://www.congress.gov/bill/108th-congress/house-resolution/278"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-527",
+      "input_stream": "scheduled_discovery",
+      "title": "Kids, they don't hardly make 'em like that anymore",
+      "source_name": "Library of Congress",
+      "source_type": "library",
+      "content_type": "photo",
+      "summary": "Discovered via loc.gov search for \"Lou Gehrig\". A rights/advisory statement here (if present) is LOC's own research note, not a legal clearance.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Library of Congress discovery for query \"Lou Gehrig\". Control number/ID: 2026160070. Collection: prints and photographs division,catalog. Creator/contributor: gallo, bill. Rights advisory: No known restrictions on publication. For information see \"Bill Gallo\" https://hdl.loc.gov/loc.pnp/res.813.gall. Source page: https://www.loc.gov/item/2026160070/. Download URL: https://www.loc.gov/resource/ppmscd.03856/. A rights/advisory statement here is LOC’s own research note, not a legal clearance -- LOC generally does not own copyright in donated/acquired collection material.",
+      "created_at": "2026-08-17T19:56:44.744Z",
+      "updated_at": "2026-08-17T19:56:44.744Z",
+      "source_url": "https://www.loc.gov/item/2026160070/",
+      "source_owner": "Library of Congress",
+      "source_domain": "loc.gov",
+      "date_or_period": "1994",
+      "source_metadata": {
+        "source_record_id": "2026160070",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Library of Congress, control/ID 2026160070"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-528",
+      "input_stream": "scheduled_discovery",
+      "title": "Letters About Literature National Honor Winners - Mitchell Deck",
+      "source_name": "Library of Congress",
+      "source_type": "library",
+      "content_type": "photo",
+      "summary": "Discovered via loc.gov search for \"Lou Gehrig\". A rights/advisory statement here (if present) is LOC's own research note, not a legal clearance.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Library of Congress discovery for query \"Lou Gehrig\". Control number/ID: https://www.read.gov/letters/contests/winners/2005/letters/levelone-mitchell.html. Collection: read.gov. Creator/contributor: deck, mitchell. Rights advisory: none provided. Source page: https://www.read.gov/letters/contests/winners/2005/letters/levelone-mitchell.html. Download URL: none. A rights/advisory statement here is LOC’s own research note, not a legal clearance -- LOC generally does not own copyright in donated/acquired collection material.",
+      "created_at": "2026-08-17T19:56:44.744Z",
+      "updated_at": "2026-08-17T19:56:44.744Z",
+      "source_url": "https://www.read.gov/letters/contests/winners/2005/letters/levelone-mitchell.html",
+      "source_owner": "Library of Congress",
+      "source_domain": "loc.gov",
+      "date_or_period": "2005",
+      "source_metadata": {
+        "source_record_id": "https://www.read.gov/letters/contests/winners/2005/letters/levelone-mitchell.html",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Library of Congress, control/ID https://www.read.gov/letters/contests/winners/2005/letters/levelone-mitchell.html"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-529",
+      "input_stream": "scheduled_discovery",
+      "title": "[Umpire Nallan ready to make the call as Washington catcher Hank Severeid awaits ball while New York Yankee Lou Gehrig slides into home plate during baseball game]",
+      "source_name": "Library of Congress",
+      "source_type": "library",
+      "content_type": "photo",
+      "summary": "Discovered via loc.gov search for \"Lou Gehrig\". A rights/advisory statement here (if present) is LOC's own research note, not a legal clearance.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Library of Congress discovery for query \"Lou Gehrig\". Control number/ID: 2005676982. Collection: national photo company collection,catalog,prints and photographs division,prints & photographs online catalog (library of congress),lot 12344. Creator/contributor: unknown. Rights advisory: No known restrictions on publication.. Source page: https://www.loc.gov/item/2005676982/. Download URL: https://www.loc.gov/resource/cph.3c35395/. A rights/advisory statement here is LOC’s own research note, not a legal clearance -- LOC generally does not own copyright in donated/acquired collection material.",
+      "created_at": "2026-08-17T19:56:44.744Z",
+      "updated_at": "2026-08-17T19:56:44.744Z",
+      "source_url": "https://www.loc.gov/item/2005676982/",
+      "source_owner": "Library of Congress",
+      "source_domain": "loc.gov",
+      "date_or_period": "1925-01-01",
+      "source_metadata": {
+        "source_record_id": "2005676982",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Library of Congress, control/ID 2005676982"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-530",
+      "input_stream": "scheduled_discovery",
+      "title": "Yankees Lou Gehrig scores head first in 4th inning as Joe Harris' throw gets away from catcher Hank Severeid of Senators. Umpier  [Umpire] is Nallin. Yanks beat Senators 3-2 (baseball)",
+      "source_name": "Library of Congress",
+      "source_type": "library",
+      "content_type": "photo",
+      "summary": "Discovered via loc.gov search for \"Lou Gehrig\". A rights/advisory statement here (if present) is LOC's own research note, not a legal clearance.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Library of Congress discovery for query \"Lou Gehrig\". Control number/ID: 2016826942. Collection: national photo company collection,prints and photographs division,catalog. Creator/contributor: unknown. Rights advisory: No known restrictions on publication. For more information, see National Photo Company Collection - Rights and Restrictions Information https://www.loc.gov/rr/print/res/275_npco.html. Source page: https://www.loc.gov/item/2016826942/. Download URL: https://www.loc.gov/resource/npcc.14242/. A rights/advisory statement here is LOC’s own research note, not a legal clearance -- LOC generally does not own copyright in donated/acquired collection material.",
+      "created_at": "2026-08-17T19:56:44.744Z",
+      "updated_at": "2026-08-17T19:56:44.744Z",
+      "source_url": "https://www.loc.gov/item/2016826942/",
+      "source_owner": "Library of Congress",
+      "source_domain": "loc.gov",
+      "date_or_period": "1925",
+      "source_metadata": {
+        "source_record_id": "2016826942",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Library of Congress, control/ID 2016826942"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-531",
+      "input_stream": "scheduled_discovery",
+      "title": "Approaching crisis",
+      "source_name": "Library of Congress",
+      "source_type": "library",
+      "content_type": "photo",
+      "summary": "Discovered via loc.gov search for \"Lou Gehrig\". A rights/advisory statement here (if present) is LOC's own research note, not a legal clearance.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Library of Congress discovery for query \"Lou Gehrig\". Control number/ID: 2010635649. Collection: prints and photographs division,catalog,cartoon drawings: herblock collection. Creator/contributor: block, herbert. Rights advisory: Publication may be restricted. For information see \"Herbert Block (\"Herblock\") Rights and Restrictions,\" https://www.loc.gov/rr/print/res/271_herb.html. Source page: https://www.loc.gov/item/2010635649/. Download URL: https://www.loc.gov/resource/hlb.00160/. A rights/advisory statement here is LOC’s own research note, not a legal clearance -- LOC generally does not own copyright in donated/acquired collection material.",
+      "created_at": "2026-08-17T19:56:44.744Z",
+      "updated_at": "2026-08-17T19:56:44.744Z",
+      "source_url": "https://www.loc.gov/item/2010635649/",
+      "source_owner": "Library of Congress",
+      "source_domain": "loc.gov",
+      "date_or_period": "1938",
+      "source_metadata": {
+        "source_record_id": "2010635649",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Library of Congress, control/ID 2010635649"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-532",
+      "input_stream": "scheduled_discovery",
+      "title": "Group at sports luncheon given by Grover A. Whalen, president of the New York World's Fair 1939 ...",
+      "source_name": "Library of Congress",
+      "source_type": "library",
+      "content_type": "photo",
+      "summary": "Discovered via loc.gov search for \"Lou Gehrig\". A rights/advisory statement here (if present) is LOC's own research note, not a legal clearance.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Library of Congress discovery for query \"Lou Gehrig\". Control number/ID: 2005680568. Collection: prints and photographs division,miscellaneous items in high demand,catalog,prints & photographs online catalog (library of congress). Creator/contributor: unknown. Rights advisory: Publication may be restricted. For information see \"New York World-Telegram & ...,\" https://www.loc.gov/rr/print/res/076_nyw.html. Source page: https://www.loc.gov/item/2005680568/. Download URL: https://www.loc.gov/resource/ppmsca.08404/. A rights/advisory statement here is LOC’s own research note, not a legal clearance -- LOC generally does not own copyright in donated/acquired collection material.",
+      "created_at": "2026-08-17T19:56:44.744Z",
+      "updated_at": "2026-08-17T19:56:44.744Z",
+      "source_url": "https://www.loc.gov/item/2005680568/",
+      "source_owner": "Library of Congress",
+      "source_domain": "loc.gov",
+      "date_or_period": "1937-01-01",
+      "source_metadata": {
+        "source_record_id": "2005680568",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Library of Congress, control/ID 2005680568"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-533",
+      "input_stream": "scheduled_discovery",
+      "title": "[Yankees Babe Ruth out in fifth inning trying to go from first to third on Lou Gehrig's single. Senators third baseman is Ossie Bluege. Yankees won 3-2, at Griffith Stadium, Washington, D.C.]",
+      "source_name": "Library of Congress",
+      "source_type": "library",
+      "content_type": "photo",
+      "summary": "Discovered via loc.gov search for \"Lou Gehrig\". A rights/advisory statement here (if present) is LOC's own research note, not a legal clearance.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Library of Congress discovery for query \"Lou Gehrig\". Control number/ID: 2016840495. Collection: national photo company collection,prints and photographs division,catalog. Creator/contributor: unknown. Rights advisory: No known restrictions on publication. For more information, see National Photo Company Collection - Rights and Restrictions Information https://www.loc.gov/rr/print/res/275_npco.html. Source page: https://www.loc.gov/item/2016840495/. Download URL: https://www.loc.gov/resource/npcc.14230/. A rights/advisory statement here is LOC’s own research note, not a legal clearance -- LOC generally does not own copyright in donated/acquired collection material.",
+      "created_at": "2026-08-17T19:56:44.744Z",
+      "updated_at": "2026-08-17T19:56:44.744Z",
+      "source_url": "https://www.loc.gov/item/2016840495/",
+      "source_owner": "Library of Congress",
+      "source_domain": "loc.gov",
+      "date_or_period": "1925",
+      "source_metadata": {
+        "source_record_id": "2016840495",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Library of Congress, control/ID 2016840495"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-534",
+      "input_stream": "scheduled_discovery",
+      "title": "Penny Wicklander interview conducted by Michael Robert Bussel and Donald Eugene Stacy, 2015-05-05",
+      "source_name": "Library of Congress",
+      "source_type": "library",
+      "content_type": "photo",
+      "summary": "Discovered via loc.gov search for \"Lou Gehrig\". A rights/advisory statement here (if present) is LOC's own research note, not a legal clearance.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Library of Congress discovery for query \"Lou Gehrig\". Control number/ID: 2017655498. Collection: american folklife center,catalog,taking care--documenting the occupational culture of home care workers,occupational folklife project. Creator/contributor: stacy, donald eugene,bussel, robert,occupational folklife project,wicklander, penny. Rights advisory: Duplication of collection materials may be governed by copyright and other restrictions.. Source page: https://www.loc.gov/item/2017655498/. Download URL: https://www.loc.gov/resource/afc2014021.afc2014021_02080_mv01/. A rights/advisory statement here is LOC’s own research note, not a legal clearance -- LOC generally does not own copyright in donated/acquired collection material.",
+      "created_at": "2026-08-17T19:56:44.744Z",
+      "updated_at": "2026-08-17T19:56:44.744Z",
+      "source_url": "https://www.loc.gov/item/2017655498/",
+      "source_owner": "Library of Congress",
+      "source_domain": "loc.gov",
+      "date_or_period": "2015",
+      "source_metadata": {
+        "source_record_id": "2017655498",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Library of Congress, control/ID 2017655498"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-535",
+      "input_stream": "scheduled_discovery",
+      "title": "[King of Baseball, Babe Ruth with Mr. Tenpei]",
+      "source_name": "Library of Congress",
+      "source_type": "library",
+      "content_type": "photo",
+      "summary": "Discovered via loc.gov search for \"Lou Gehrig\". A rights/advisory statement here (if present) is LOC's own research note, not a legal clearance.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Library of Congress discovery for query \"Lou Gehrig\". Control number/ID: 2008680548. Collection: catalog,lot 13954,prints and photographs division,prints & photographs online catalog (library of congress),miscellaneous items in high demand. Creator/contributor: unknown. Rights advisory: Rights status not evaluated. For general information see \"Copyright and Other Restrictions ...,\" https://www.loc.gov/rr/print/195_copr.html. Source page: https://www.loc.gov/item/2008680548/. Download URL: https://www.loc.gov/resource/ppmsca.19045/. A rights/advisory statement here is LOC’s own research note, not a legal clearance -- LOC generally does not own copyright in donated/acquired collection material.",
+      "created_at": "2026-08-17T19:56:44.744Z",
+      "updated_at": "2026-08-17T19:56:44.744Z",
+      "source_url": "https://www.loc.gov/item/2008680548/",
+      "source_owner": "Library of Congress",
+      "source_domain": "loc.gov",
+      "date_or_period": "1934-01-01",
+      "source_metadata": {
+        "source_record_id": "2008680548",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Library of Congress, control/ID 2008680548"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-536",
+      "input_stream": "scheduled_discovery",
+      "title": "I can hear it now, vol. I 1933-1945",
+      "source_name": "Library of Congress",
+      "source_type": "library",
+      "content_type": "photo",
+      "summary": "Discovered via loc.gov search for \"Lou Gehrig\". A rights/advisory statement here (if present) is LOC's own research note, not a legal clearance.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Library of Congress discovery for query \"Lou Gehrig\". Control number/ID: 2013628529. Collection: catalog. Creator/contributor: murrow, edward r.,friendly, fred w.. Rights advisory: none provided. Source page: https://www.loc.gov/item/2013628529/. Download URL: none. A rights/advisory statement here is LOC’s own research note, not a legal clearance -- LOC generally does not own copyright in donated/acquired collection material.",
+      "created_at": "2026-08-17T19:56:44.744Z",
+      "updated_at": "2026-08-17T19:56:44.744Z",
+      "source_url": "https://www.loc.gov/item/2013628529/",
+      "source_owner": "Library of Congress",
+      "source_domain": "loc.gov",
+      "date_or_period": "1949",
+      "source_metadata": {
+        "source_record_id": "2013628529",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Library of Congress, control/ID 2013628529"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-537",
+      "input_stream": "scheduled_discovery",
+      "title": "The boy who knew too much : an astounding true story of a young boy's past-life memories",
+      "source_name": "Library of Congress",
+      "source_type": "library",
+      "content_type": "photo",
+      "summary": "Discovered via loc.gov search for \"Lou Gehrig\". A rights/advisory statement here (if present) is LOC's own research note, not a legal clearance.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Library of Congress discovery for query \"Lou Gehrig\". Control number/ID: 2016044720. Collection: catalog. Creator/contributor: byrd, cathy. Rights advisory: none provided. Source page: //lccn.loc.gov/2016044720. Download URL: none. A rights/advisory statement here is LOC’s own research note, not a legal clearance -- LOC generally does not own copyright in donated/acquired collection material.",
+      "created_at": "2026-08-17T19:56:44.744Z",
+      "updated_at": "2026-08-17T19:56:44.744Z",
+      "source_url": "https://lccn.loc.gov/2016044720",
+      "source_owner": "Library of Congress",
+      "source_domain": "loc.gov",
+      "date_or_period": "2017",
+      "source_metadata": {
+        "source_record_id": "2016044720",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Library of Congress, control/ID 2016044720"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-538",
+      "input_stream": "scheduled_discovery",
+      "title": "Illinois - Yellow Pages - Chicago - December 1951 A through LOU",
+      "source_name": "Library of Congress",
+      "source_type": "library",
+      "content_type": "photo",
+      "summary": "Discovered via loc.gov search for \"Lou Gehrig\". A rights/advisory statement here (if present) is LOC's own research note, not a legal clearance.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Library of Congress discovery for query \"Lou Gehrig\". Control number/ID: http://www.loc.gov/item/usteledirec04820x/. Collection: u.s. telephone directory collection,general collections. Creator/contributor: unknown. Rights advisory: No known restrictions on use or reproduction.. Source page: https://www.loc.gov/item/usteledirec04820x/. Download URL: https://www.loc.gov/resource/gdcmassbookdig.usteledirec04820x/. A rights/advisory statement here is LOC’s own research note, not a legal clearance -- LOC generally does not own copyright in donated/acquired collection material.",
+      "created_at": "2026-08-17T19:56:44.744Z",
+      "updated_at": "2026-08-17T19:56:44.744Z",
+      "source_url": "https://www.loc.gov/item/usteledirec04820x/",
+      "source_owner": "Library of Congress",
+      "source_domain": "loc.gov",
+      "date_or_period": "1951",
+      "source_metadata": {
+        "source_record_id": "http://www.loc.gov/item/usteledirec04820x/",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Library of Congress, control/ID http://www.loc.gov/item/usteledirec04820x/"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-539",
+      "input_stream": "scheduled_discovery",
+      "title": "Plenty of basehits in these bats. Washington D.C., July 7. A million dollar base-ball flesh is represented in these sluggers of the two All- Star Teams which met in the 1937 game at Griffith Stadium today. Left to right: Lou Gehrig, Joe Cronin, Bill Dickey, Joe DiMaggio, Charley Gehringer, Jimmie Foxx, and Hank Greenberg, 7/7/37",
+      "source_name": "Library of Congress",
+      "source_type": "library",
+      "content_type": "photo",
+      "summary": "Discovered via loc.gov search for \"Lou Gehrig\". A rights/advisory statement here (if present) is LOC's own research note, not a legal clearance.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Library of Congress discovery for query \"Lou Gehrig\". Control number/ID: 2016871965. Collection: harris & ewing collection,prints and photographs division,catalog,prints & photographs online catalog (library of congress). Creator/contributor: harris & ewing. Rights advisory: No known restrictions on publication. For more information, see Harris & Ewing Photographs - Rights and Restrictions Information https://www.loc.gov/rr/print/res/140_harr.html. Source page: https://www.loc.gov/item/2016871965/. Download URL: https://www.loc.gov/resource/hec.22989/. A rights/advisory statement here is LOC’s own research note, not a legal clearance -- LOC generally does not own copyright in donated/acquired collection material.",
+      "created_at": "2026-08-17T19:56:44.744Z",
+      "updated_at": "2026-08-17T19:56:44.744Z",
+      "source_url": "https://www.loc.gov/item/2016871965/",
+      "source_owner": "Library of Congress",
+      "source_domain": "loc.gov",
+      "date_or_period": "1937-01-01",
+      "source_metadata": {
+        "source_record_id": "2016871965",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Library of Congress, control/ID 2016871965"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-540",
+      "input_stream": "scheduled_discovery",
+      "title": "[New York Yankees and additional teams baseball cards]",
+      "source_name": "Library of Congress",
+      "source_type": "library",
+      "content_type": "photo",
+      "summary": "Discovered via loc.gov search for \"Lou Gehrig\". A rights/advisory statement here (if present) is LOC's own research note, not a legal clearance.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Library of Congress discovery for query \"Lou Gehrig\". Control number/ID: 2022648734. Collection: catalog,groups of images (lots),prints and photographs division,lot 15523. Creator/contributor: fleer corporation,donruss,visual panographics, inc,pacific trading cards, inc,score (trading cards),topps company. Rights advisory: Rights status not evaluated. For general information see \"Copyright and Other Restrictions...,\" https://hdl.loc.gov/loc.pnp/res.195.copr. Source page: https://www.loc.gov/item/2022648734/. Download URL: https://www.loc.gov/static/images/original-format/group-of-images.svg. A rights/advisory statement here is LOC’s own research note, not a legal clearance -- LOC generally does not own copyright in donated/acquired collection material.",
+      "created_at": "2026-08-17T19:56:44.744Z",
+      "updated_at": "2026-08-17T19:56:44.744Z",
+      "source_url": "https://www.loc.gov/item/2022648734/",
+      "source_owner": "Library of Congress",
+      "source_domain": "loc.gov",
+      "date_or_period": "1972",
+      "source_metadata": {
+        "source_record_id": "2022648734",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Library of Congress, control/ID 2022648734"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-541",
+      "input_stream": "scheduled_discovery",
+      "title": "File:GehrigCU.jpg",
+      "source_name": "Wikimedia Commons",
+      "source_type": "archive",
+      "content_type": "photo",
+      "summary": "Discovered via Wikimedia Commons search for \"Lou Gehrig\". License template is an uploader assertion, not a verified fact.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Wikimedia Commons discovery for query \"Lou Gehrig\". File page: https://commons.wikimedia.org/wiki/File:GehrigCU.jpg. Uploader: Rolf obermaier. Asserted creator: University Archives—Columbiana Library, Columbia University.. License template: Public domain. License URL: none. Attribution text: none. File URL: https://upload.wikimedia.org/wikipedia/commons/2/2f/GehrigCU.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original. License template is an uploader assertion, not a verified fact -- mislabeled licenses are a known, recurring problem on Commons. Verify before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:45.561Z",
+      "updated_at": "2026-08-17T19:56:45.561Z",
+      "source_url": "https://commons.wikimedia.org/wiki/File:GehrigCU.jpg",
+      "source_domain": "commons.wikimedia.org",
+      "source_metadata": {
+        "source_record_id": "1574717",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Wikimedia Commons, File:GehrigCU.jpg"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-542",
+      "input_stream": "scheduled_discovery",
+      "title": "File:HOF Gehrig Lou plaque.jpg",
+      "source_name": "Wikimedia Commons",
+      "source_type": "archive",
+      "content_type": "photo",
+      "summary": "Discovered via Wikimedia Commons search for \"Lou Gehrig\". License template is an uploader assertion, not a verified fact.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Wikimedia Commons discovery for query \"Lou Gehrig\". File page: https://commons.wikimedia.org/wiki/File:HOF_Gehrig_Lou_plaque.jpg. Uploader: Beyond My Ken. Asserted creator: User <a href=\"https://en.wikipedia.org/wiki/User:R\" class=\"extiw\" title=\"en:User:R\">R</a> on <a href=\"https://en.wikipedia.org/wiki/Main_Page\" class=\"extiw\" title=\"en:Main Page\">en.wikipedia</a>. License template: Public domain. License URL: none. Attribution text: none. File URL: https://upload.wikimedia.org/wikipedia/commons/d/d0/HOF_Gehrig_Lou_plaque.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original. License template is an uploader assertion, not a verified fact -- mislabeled licenses are a known, recurring problem on Commons. Verify before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:45.562Z",
+      "updated_at": "2026-08-17T19:56:45.562Z",
+      "source_url": "https://commons.wikimedia.org/wiki/File:HOF_Gehrig_Lou_plaque.jpg",
+      "source_domain": "commons.wikimedia.org",
+      "source_metadata": {
+        "source_record_id": "3365082",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Wikimedia Commons, File:HOF Gehrig Lou plaque.jpg"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-543",
+      "input_stream": "scheduled_discovery",
+      "title": "File:Babe Ruth & Lou Gehrig at West Point 1927.jpg",
+      "source_name": "Wikimedia Commons",
+      "source_type": "archive",
+      "content_type": "photo",
+      "summary": "Discovered via Wikimedia Commons search for \"Lou Gehrig\". License template is an uploader assertion, not a verified fact.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Wikimedia Commons discovery for query \"Lou Gehrig\". File page: https://commons.wikimedia.org/wiki/File:Babe_Ruth_%26_Lou_Gehrig_at_West_Point_1927.jpg. Uploader: Caddyshack01. Asserted creator: USMA. License template: Public domain. License URL: none. Attribution text: none. File URL: https://upload.wikimedia.org/wikipedia/commons/2/26/Babe_Ruth_%26_Lou_Gehrig_at_West_Point_1927.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original. License template is an uploader assertion, not a verified fact -- mislabeled licenses are a known, recurring problem on Commons. Verify before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:45.562Z",
+      "updated_at": "2026-08-17T19:56:45.562Z",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Babe_Ruth_%26_Lou_Gehrig_at_West_Point_1927.jpg",
+      "source_domain": "commons.wikimedia.org",
+      "source_metadata": {
+        "source_record_id": "7469385",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Wikimedia Commons, File:Babe Ruth & Lou Gehrig at West Point 1927.jpg"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-544",
+      "input_stream": "scheduled_discovery",
+      "title": "File:Jimmie Foxx, Babe Ruth, Lou Gehrig, Al Simmons.jpg",
+      "source_name": "Wikimedia Commons",
+      "source_type": "archive",
+      "content_type": "photo",
+      "summary": "Discovered via Wikimedia Commons search for \"Lou Gehrig\". License template is an uploader assertion, not a verified fact.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Wikimedia Commons discovery for query \"Lou Gehrig\". File page: https://commons.wikimedia.org/wiki/File:Jimmie_Foxx,_Babe_Ruth,_Lou_Gehrig,_Al_Simmons.jpg. Uploader: Muboshgu. Asserted creator: unattributed. License template: CC BY 1.0. License URL: https://creativecommons.org/licenses/by/1.0. Attribution text: none. File URL: https://upload.wikimedia.org/wikipedia/commons/f/f8/Jimmie_Foxx%2C_Babe_Ruth%2C_Lou_Gehrig%2C_Al_Simmons.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original. License template is an uploader assertion, not a verified fact -- mislabeled licenses are a known, recurring problem on Commons. Verify before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:45.562Z",
+      "updated_at": "2026-08-17T19:56:45.562Z",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Jimmie_Foxx,_Babe_Ruth,_Lou_Gehrig,_Al_Simmons.jpg",
+      "source_domain": "commons.wikimedia.org",
+      "source_metadata": {
+        "source_record_id": "12128467",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Wikimedia Commons, File:Jimmie Foxx, Babe Ruth, Lou Gehrig, Al Simmons.jpg"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-545",
+      "input_stream": "scheduled_discovery",
+      "title": "File:Lou Gehrig 1925.jpg",
+      "source_name": "Wikimedia Commons",
+      "source_type": "archive",
+      "content_type": "photo",
+      "summary": "Discovered via Wikimedia Commons search for \"Lou Gehrig\". License template is an uploader assertion, not a verified fact.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Wikimedia Commons discovery for query \"Lou Gehrig\". File page: https://commons.wikimedia.org/wiki/File:Lou_Gehrig_1925.jpg. Uploader: Delaywaves. Asserted creator: The Library of Congress. License template: Public domain. License URL: none. Attribution text: none. File URL: https://upload.wikimedia.org/wikipedia/commons/1/12/Lou_Gehrig_1925.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original. License template is an uploader assertion, not a verified fact -- mislabeled licenses are a known, recurring problem on Commons. Verify before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:45.562Z",
+      "updated_at": "2026-08-17T19:56:45.562Z",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Lou_Gehrig_1925.jpg",
+      "source_domain": "commons.wikimedia.org",
+      "source_metadata": {
+        "source_record_id": "15089567",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Wikimedia Commons, File:Lou Gehrig 1925.jpg"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-546",
+      "input_stream": "scheduled_discovery",
+      "title": "File:Lou Gehrig Way 2010.JPG",
+      "source_name": "Wikimedia Commons",
+      "source_type": "archive",
+      "content_type": "photo",
+      "summary": "Discovered via Wikimedia Commons search for \"Lou Gehrig\". License template is an uploader assertion, not a verified fact.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Wikimedia Commons discovery for query \"Lou Gehrig\". File page: https://commons.wikimedia.org/wiki/File:Lou_Gehrig_Way_2010.JPG. Uploader: BotMultichillT. Asserted creator: <a href=\"https://en.wikipedia.org/wiki/User:Anthony22\" class=\"extiw\" title=\"en:User:Anthony22\">Anthony22</a> (<a href=\"https://en.wikipedia.org/wiki/User_talk:Anthony22\" class=\"extiw\" title=\"en:User talk:Anthony22\">talk</a>). License template: CC BY-SA 3.0. License URL: https://creativecommons.org/licenses/by-sa/3.0. Attribution text: <a href=\"https://en.wikipedia.org/wiki/User:Anthony22\" class=\"extiw\" title=\"en:User:Anthony22\">Anthony22</a> at <a class=\"external text\" data-mw-original-href=\"http://en.wikipedia.org\" href=\"https://en.wikipedia.org\">en.wikipedia</a>. File URL: https://upload.wikimedia.org/wikipedia/commons/5/5d/Lou_Gehrig_Way_2010.JPG?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original. License template is an uploader assertion, not a verified fact -- mislabeled licenses are a known, recurring problem on Commons. Verify before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:45.562Z",
+      "updated_at": "2026-08-17T19:56:45.562Z",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Lou_Gehrig_Way_2010.JPG",
+      "source_domain": "commons.wikimedia.org",
+      "source_metadata": {
+        "source_record_id": "17781034",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Wikimedia Commons, File:Lou Gehrig Way 2010.JPG"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-547",
+      "input_stream": "scheduled_discovery",
+      "title": "File:Gehrig in rawhide.jpg",
+      "source_name": "Wikimedia Commons",
+      "source_type": "archive",
+      "content_type": "photo",
+      "summary": "Discovered via Wikimedia Commons search for \"Lou Gehrig\". License template is an uploader assertion, not a verified fact.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Wikimedia Commons discovery for query \"Lou Gehrig\". File page: https://commons.wikimedia.org/wiki/File:Gehrig_in_rawhide.jpg. Uploader: Oaktree b. Asserted creator: Production Company: Sol Lesser Productions. License template: Public domain. License URL: none. Attribution text: none. File URL: https://upload.wikimedia.org/wikipedia/commons/d/d6/Gehrig_in_rawhide.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original. License template is an uploader assertion, not a verified fact -- mislabeled licenses are a known, recurring problem on Commons. Verify before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:45.562Z",
+      "updated_at": "2026-08-17T19:56:45.562Z",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Gehrig_in_rawhide.jpg",
+      "source_domain": "commons.wikimedia.org",
+      "source_metadata": {
+        "source_record_id": "17858657",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Wikimedia Commons, File:Gehrig in rawhide.jpg"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-548",
+      "input_stream": "scheduled_discovery",
+      "title": "File:Lou Gehrig stockbroker 1929.jpg",
+      "source_name": "Wikimedia Commons",
+      "source_type": "archive",
+      "content_type": "photo",
+      "summary": "Discovered via Wikimedia Commons search for \"Lou Gehrig\". License template is an uploader assertion, not a verified fact.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Wikimedia Commons discovery for query \"Lou Gehrig\". File page: https://commons.wikimedia.org/wiki/File:Lou_Gehrig_stockbroker_1929.jpg. Uploader: Renamed user 995577823Xyn. Asserted creator: Wide World Photos. License template: Public domain. License URL: none. Attribution text: none. File URL: https://upload.wikimedia.org/wikipedia/commons/e/e6/Lou_Gehrig_stockbroker_1929.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original. License template is an uploader assertion, not a verified fact -- mislabeled licenses are a known, recurring problem on Commons. Verify before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:45.562Z",
+      "updated_at": "2026-08-17T19:56:45.562Z",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Lou_Gehrig_stockbroker_1929.jpg",
+      "source_domain": "commons.wikimedia.org",
+      "source_metadata": {
+        "source_record_id": "37520245",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Wikimedia Commons, File:Lou Gehrig stockbroker 1929.jpg"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-549",
+      "input_stream": "scheduled_discovery",
+      "title": "File:Lou Gehrig as a new Yankee 11 Jun 1923.jpg",
+      "source_name": "Wikimedia Commons",
+      "source_type": "archive",
+      "content_type": "photo",
+      "summary": "Discovered via Wikimedia Commons search for \"Lou Gehrig\". License template is an uploader assertion, not a verified fact.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Wikimedia Commons discovery for query \"Lou Gehrig\". File page: https://commons.wikimedia.org/wiki/File:Lou_Gehrig_as_a_new_Yankee_11_Jun_1923.jpg. Uploader: Scewing. Asserted creator: Pacific &amp; Atlantic Photos, Inc. License template: Public domain. License URL: none. Attribution text: none. File URL: https://upload.wikimedia.org/wikipedia/commons/3/38/Lou_Gehrig_as_a_new_Yankee_11_Jun_1923.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original. License template is an uploader assertion, not a verified fact -- mislabeled licenses are a known, recurring problem on Commons. Verify before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:45.562Z",
+      "updated_at": "2026-08-17T19:56:45.562Z",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Lou_Gehrig_as_a_new_Yankee_11_Jun_1923.jpg",
+      "source_domain": "commons.wikimedia.org",
+      "source_metadata": {
+        "source_record_id": "41470554",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Wikimedia Commons, File:Lou Gehrig as a new Yankee 11 Jun 1923.jpg"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-550",
+      "input_stream": "scheduled_discovery",
+      "title": "File:Henry Louis \"Lou\" Gehrig from Sports Exchange All-Stars trade cards (W603) MET DPB882285.jpg",
+      "source_name": "Wikimedia Commons",
+      "source_type": "archive",
+      "content_type": "photo",
+      "summary": "Discovered via Wikimedia Commons search for \"Lou Gehrig\". License template is an uploader assertion, not a verified fact.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Wikimedia Commons discovery for query \"Lou Gehrig\". File page: https://commons.wikimedia.org/wiki/File:Henry_Louis_%22Lou%22_Gehrig_from_Sports_Exchange_All-Stars_trade_cards_(W603)_MET_DPB882285.jpg. Uploader: Pharos. Asserted creator: unknown. License template: CC0. License URL: http://creativecommons.org/publicdomain/zero/1.0/deed.en. Attribution text: none. File URL: https://upload.wikimedia.org/wikipedia/commons/a/a4/Henry_Louis_%22Lou%22_Gehrig_from_Sports_Exchange_All-Stars_trade_cards_%28W603%29_MET_DPB882285.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original. License template is an uploader assertion, not a verified fact -- mislabeled licenses are a known, recurring problem on Commons. Verify before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:45.562Z",
+      "updated_at": "2026-08-17T19:56:45.562Z",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Henry_Louis_%22Lou%22_Gehrig_from_Sports_Exchange_All-Stars_trade_cards_(W603)_MET_DPB882285.jpg",
+      "source_domain": "commons.wikimedia.org",
+      "source_metadata": {
+        "source_record_id": "76056942",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Wikimedia Commons, File:Henry Louis \"Lou\" Gehrig from Sports Exchange All-Stars trade cards (W603) MET DPB882285.jpg"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-551",
+      "input_stream": "scheduled_discovery",
+      "title": "File:Lou Gehrig and Hank Greenberg 1935.jpg",
+      "source_name": "Wikimedia Commons",
+      "source_type": "archive",
+      "content_type": "photo",
+      "summary": "Discovered via Wikimedia Commons search for \"Lou Gehrig\". License template is an uploader assertion, not a verified fact.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Wikimedia Commons discovery for query \"Lou Gehrig\". File page: https://commons.wikimedia.org/wiki/File:Lou_Gehrig_and_Hank_Greenberg_1935.jpg. Uploader: Fezarik. Asserted creator: Unknown author<span style=\"display: none;\">Unknown author</span>. License template: Public domain. License URL: none. Attribution text: none. File URL: https://upload.wikimedia.org/wikipedia/commons/8/8d/Lou_Gehrig_and_Hank_Greenberg_1935.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original. License template is an uploader assertion, not a verified fact -- mislabeled licenses are a known, recurring problem on Commons. Verify before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:45.562Z",
+      "updated_at": "2026-08-17T19:56:45.562Z",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Lou_Gehrig_and_Hank_Greenberg_1935.jpg",
+      "source_domain": "commons.wikimedia.org",
+      "source_metadata": {
+        "source_record_id": "90844827",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Wikimedia Commons, File:Lou Gehrig and Hank Greenberg 1935.jpg"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-552",
+      "input_stream": "scheduled_discovery",
+      "title": "File:Lou Gehrig beating ball, Aug 27, 1928.jpg",
+      "source_name": "Wikimedia Commons",
+      "source_type": "archive",
+      "content_type": "photo",
+      "summary": "Discovered via Wikimedia Commons search for \"Lou Gehrig\". License template is an uploader assertion, not a verified fact.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Wikimedia Commons discovery for query \"Lou Gehrig\". File page: https://commons.wikimedia.org/wiki/File:Lou_Gehrig_beating_ball,_Aug_27,_1928.jpg. Uploader: Abzeronow. Asserted creator: New York Daily News. License template: Public domain. License URL: none. Attribution text: none. File URL: https://upload.wikimedia.org/wikipedia/commons/1/14/Lou_Gehrig_beating_ball%2C_Aug_27%2C_1928.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original. License template is an uploader assertion, not a verified fact -- mislabeled licenses are a known, recurring problem on Commons. Verify before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:45.562Z",
+      "updated_at": "2026-08-17T19:56:45.562Z",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Lou_Gehrig_beating_ball,_Aug_27,_1928.jpg",
+      "source_domain": "commons.wikimedia.org",
+      "source_metadata": {
+        "source_record_id": "153002171",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Wikimedia Commons, File:Lou Gehrig beating ball, Aug 27, 1928.jpg"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-553",
+      "input_stream": "scheduled_discovery",
+      "title": "File:One Time Lou Failed, Oct. 4, 1928.jpg",
+      "source_name": "Wikimedia Commons",
+      "source_type": "archive",
+      "content_type": "photo",
+      "summary": "Discovered via Wikimedia Commons search for \"Lou Gehrig\". License template is an uploader assertion, not a verified fact.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Wikimedia Commons discovery for query \"Lou Gehrig\". File page: https://commons.wikimedia.org/wiki/File:One_Time_Lou_Failed,_Oct._4,_1928.jpg. Uploader: Abzeronow. Asserted creator: New York Daily News. License template: Public domain. License URL: none. Attribution text: none. File URL: https://upload.wikimedia.org/wikipedia/commons/b/bd/One_Time_Lou_Failed%2C_Oct._4%2C_1928.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original. License template is an uploader assertion, not a verified fact -- mislabeled licenses are a known, recurring problem on Commons. Verify before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:45.562Z",
+      "updated_at": "2026-08-17T19:56:45.562Z",
+      "source_url": "https://commons.wikimedia.org/wiki/File:One_Time_Lou_Failed,_Oct._4,_1928.jpg",
+      "source_domain": "commons.wikimedia.org",
+      "source_metadata": {
+        "source_record_id": "154847539",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Wikimedia Commons, File:One Time Lou Failed, Oct. 4, 1928.jpg"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-554",
+      "input_stream": "scheduled_discovery",
+      "title": "File:Lou Gehrig congratulating Babe Ruth with a kick, Oct. 9, 1928.jpg",
+      "source_name": "Wikimedia Commons",
+      "source_type": "archive",
+      "content_type": "photo",
+      "summary": "Discovered via Wikimedia Commons search for \"Lou Gehrig\". License template is an uploader assertion, not a verified fact.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Wikimedia Commons discovery for query \"Lou Gehrig\". File page: https://commons.wikimedia.org/wiki/File:Lou_Gehrig_congratulating_Babe_Ruth_with_a_kick,_Oct._9,_1928.jpg. Uploader: Abzeronow. Asserted creator: St. Louis Post-Dispatch. License template: Public domain. License URL: none. Attribution text: none. File URL: https://upload.wikimedia.org/wikipedia/commons/3/36/Lou_Gehrig_congratulating_Babe_Ruth_with_a_kick%2C_Oct._9%2C_1928.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original. License template is an uploader assertion, not a verified fact -- mislabeled licenses are a known, recurring problem on Commons. Verify before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:45.562Z",
+      "updated_at": "2026-08-17T19:56:45.562Z",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Lou_Gehrig_congratulating_Babe_Ruth_with_a_kick,_Oct._9,_1928.jpg",
+      "source_domain": "commons.wikimedia.org",
+      "source_metadata": {
+        "source_record_id": "155381997",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Wikimedia Commons, File:Lou Gehrig congratulating Babe Ruth with a kick, Oct. 9, 1928.jpg"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-555",
+      "input_stream": "scheduled_discovery",
+      "title": "File:Babe Ruth and Lou Gehrig 1928 barnstorming tour.jpg",
+      "source_name": "Wikimedia Commons",
+      "source_type": "archive",
+      "content_type": "photo",
+      "summary": "Discovered via Wikimedia Commons search for \"Lou Gehrig\". License template is an uploader assertion, not a verified fact.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Wikimedia Commons discovery for query \"Lou Gehrig\". File page: https://commons.wikimedia.org/wiki/File:Babe_Ruth_and_Lou_Gehrig_1928_barnstorming_tour.jpg. Uploader: Kzirkel. Asserted creator: Unknown author<span style=\"display: none;\">Unknown author</span>. License template: Public domain. License URL: none. Attribution text: none. File URL: https://upload.wikimedia.org/wikipedia/commons/f/f0/Babe_Ruth_and_Lou_Gehrig_1928_barnstorming_tour.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original. License template is an uploader assertion, not a verified fact -- mislabeled licenses are a known, recurring problem on Commons. Verify before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:45.562Z",
+      "updated_at": "2026-08-17T19:56:45.562Z",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Babe_Ruth_and_Lou_Gehrig_1928_barnstorming_tour.jpg",
+      "source_domain": "commons.wikimedia.org",
+      "source_metadata": {
+        "source_record_id": "157343511",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Wikimedia Commons, File:Babe Ruth and Lou Gehrig 1928 barnstorming tour.jpg"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-556",
+      "input_stream": "scheduled_discovery",
+      "title": "File:Ruth-Gehrig-barnstorming-tour-1927.jpg",
+      "source_name": "Wikimedia Commons",
+      "source_type": "archive",
+      "content_type": "photo",
+      "summary": "Discovered via Wikimedia Commons search for \"Lou Gehrig\". License template is an uploader assertion, not a verified fact.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Wikimedia Commons discovery for query \"Lou Gehrig\". File page: https://commons.wikimedia.org/wiki/File:Ruth-Gehrig-barnstorming-tour-1927.jpg. Uploader: Kzirkel. Asserted creator: Unknown author<span style=\"display: none;\">Unknown author</span>. License template: Public domain. License URL: none. Attribution text: none. File URL: https://upload.wikimedia.org/wikipedia/commons/2/20/Ruth-Gehrig-barnstorming-tour-1927.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original. License template is an uploader assertion, not a verified fact -- mislabeled licenses are a known, recurring problem on Commons. Verify before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:45.562Z",
+      "updated_at": "2026-08-17T19:56:45.562Z",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Ruth-Gehrig-barnstorming-tour-1927.jpg",
+      "source_domain": "commons.wikimedia.org",
+      "source_metadata": {
+        "source_record_id": "157343513",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Wikimedia Commons, File:Ruth-Gehrig-barnstorming-tour-1927.jpg"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-557",
+      "input_stream": "scheduled_discovery",
+      "title": "File:1925 Exhibits Lou Gehrig Rookie.png",
+      "source_name": "Wikimedia Commons",
+      "source_type": "archive",
+      "content_type": "photo",
+      "summary": "Discovered via Wikimedia Commons search for \"Lou Gehrig\". License template is an uploader assertion, not a verified fact.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Wikimedia Commons discovery for query \"Lou Gehrig\". File page: https://commons.wikimedia.org/wiki/File:1925_Exhibits_Lou_Gehrig_Rookie.png. Uploader: Scewing. Asserted creator: Exhibit Supply Company of Chicago. License template: Public domain. License URL: none. Attribution text: none. File URL: https://upload.wikimedia.org/wikipedia/commons/6/66/1925_Exhibits_Lou_Gehrig_Rookie.png?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original. License template is an uploader assertion, not a verified fact -- mislabeled licenses are a known, recurring problem on Commons. Verify before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:45.562Z",
+      "updated_at": "2026-08-17T19:56:45.562Z",
+      "source_url": "https://commons.wikimedia.org/wiki/File:1925_Exhibits_Lou_Gehrig_Rookie.png",
+      "source_domain": "commons.wikimedia.org",
+      "source_metadata": {
+        "source_record_id": "163975838",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Wikimedia Commons, File:1925 Exhibits Lou Gehrig Rookie.png"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-558",
+      "input_stream": "scheduled_discovery",
+      "title": "File:Lou Gehrig finishes his 19th home run of the season, June 19, 1929.jpg",
+      "source_name": "Wikimedia Commons",
+      "source_type": "archive",
+      "content_type": "photo",
+      "summary": "Discovered via Wikimedia Commons search for \"Lou Gehrig\". License template is an uploader assertion, not a verified fact.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Wikimedia Commons discovery for query \"Lou Gehrig\". File page: https://commons.wikimedia.org/wiki/File:Lou_Gehrig_finishes_his_19th_home_run_of_the_season,_June_19,_1929.jpg. Uploader: Abzeronow. Asserted creator: New York Daily News. License template: Public domain. License URL: none. Attribution text: none. File URL: https://upload.wikimedia.org/wikipedia/commons/1/15/Lou_Gehrig_finishes_his_19th_home_run_of_the_season%2C_June_19%2C_1929.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original. License template is an uploader assertion, not a verified fact -- mislabeled licenses are a known, recurring problem on Commons. Verify before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:45.562Z",
+      "updated_at": "2026-08-17T19:56:45.562Z",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Lou_Gehrig_finishes_his_19th_home_run_of_the_season,_June_19,_1929.jpg",
+      "source_domain": "commons.wikimedia.org",
+      "source_metadata": {
+        "source_record_id": "172804160",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Wikimedia Commons, File:Lou Gehrig finishes his 19th home run of the season, June 19, 1929.jpg"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-559",
+      "input_stream": "scheduled_discovery",
+      "title": "File:Lou Gehrig in 1923.jpg",
+      "source_name": "Wikimedia Commons",
+      "source_type": "archive",
+      "content_type": "photo",
+      "summary": "Discovered via Wikimedia Commons search for \"Lou Gehrig\". License template is an uploader assertion, not a verified fact.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Wikimedia Commons discovery for query \"Lou Gehrig\". File page: https://commons.wikimedia.org/wiki/File:Lou_Gehrig_in_1923.jpg. Uploader: CrowbarCatalyst. Asserted creator: Unknown author<span style=\"display: none;\">Unknown author</span>. License template: Public domain. License URL: none. Attribution text: none. File URL: https://upload.wikimedia.org/wikipedia/commons/f/f5/Lou_Gehrig_in_1923.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original. License template is an uploader assertion, not a verified fact -- mislabeled licenses are a known, recurring problem on Commons. Verify before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:45.562Z",
+      "updated_at": "2026-08-17T19:56:45.562Z",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Lou_Gehrig_in_1923.jpg",
+      "source_domain": "commons.wikimedia.org",
+      "source_metadata": {
+        "source_record_id": "197451945",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Wikimedia Commons, File:Lou Gehrig in 1923.jpg"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-560",
+      "input_stream": "scheduled_discovery",
+      "title": "File:Lou Gehrig in 1923 (cropped).jpg",
+      "source_name": "Wikimedia Commons",
+      "source_type": "archive",
+      "content_type": "photo",
+      "summary": "Discovered via Wikimedia Commons search for \"Lou Gehrig\". License template is an uploader assertion, not a verified fact.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated discovery candidate. Rights conclusion, relevance, and publication decisions require human review per #3551 core safety rule.",
+      "provenance_notes": "Wikimedia Commons discovery for query \"Lou Gehrig\". File page: https://commons.wikimedia.org/wiki/File:Lou_Gehrig_in_1923_(cropped).jpg. Uploader: CrowbarCatalyst. Asserted creator: Unknown author<span style=\"display: none;\">Unknown author</span>. License template: Public domain. License URL: none. Attribution text: none. File URL: https://upload.wikimedia.org/wikipedia/commons/6/60/Lou_Gehrig_in_1923_%28cropped%29.jpg?utm_source=commons.wikimedia.org&utm_campaign=imageinfo&utm_content=original. License template is an uploader assertion, not a verified fact -- mislabeled licenses are a known, recurring problem on Commons. Verify before any rights conclusion.",
+      "created_at": "2026-08-17T19:56:45.562Z",
+      "updated_at": "2026-08-17T19:56:45.562Z",
+      "source_url": "https://commons.wikimedia.org/wiki/File:Lou_Gehrig_in_1923_(cropped).jpg",
+      "source_domain": "commons.wikimedia.org",
+      "source_metadata": {
+        "source_record_id": "197453961",
+        "date_accessed": "2026-08-17",
+        "source_citation": "Wikimedia Commons, File:Lou Gehrig in 1923 (cropped).jpg"
+      }
+    }
+  ]
+}

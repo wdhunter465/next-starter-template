@@ -1,0 +1,37 @@
+{
+  "search_runs": [
+    {
+      "run_uid": "run-openverse-2026-08-17T19-56-44-499Z",
+      "source_domain": "openverse.org",
+      "query": "Lou Gehrig",
+      "result_limit": 20,
+      "status": "completed_with_limit",
+      "discovered_count": 20,
+      "new_count": 20,
+      "error_count": 0,
+      "error_summary": null
+    },
+    {
+      "run_uid": "run-loc-2026-08-17T19-56-44-499Z",
+      "source_domain": "loc.gov",
+      "query": "Lou Gehrig",
+      "result_limit": 20,
+      "status": "completed_with_limit",
+      "discovered_count": 20,
+      "new_count": 20,
+      "error_count": 0,
+      "error_summary": null
+    },
+    {
+      "run_uid": "run-wikimedia-2026-08-17T19-56-44-499Z",
+      "source_domain": "commons.wikimedia.org",
+      "query": "Lou Gehrig",
+      "result_limit": 20,
+      "status": "completed_with_limit",
+      "discovered_count": 20,
+      "new_count": 20,
+      "error_count": 0,
+      "error_summary": null
+    }
+  ]
+}

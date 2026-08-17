@@ -12,12 +12,33 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
+import { register } from 'node:module';
 import { fileURLToPath } from 'node:url';
-import {
+
+// Node strip-types cannot resolve extensionless relative imports inside .ts
+// files. Register a resolver so this CLI can load candidate-import.ts without
+// adding .ts specifiers that tsc (moduleResolution=bundler) rejects.
+register(
+  `data:text/javascript,${encodeURIComponent(`
+export async function resolve(specifier, context, nextResolve) {
+  if (specifier.startsWith('.') && !/\\.(?:js|mjs|cjs|json|ts|tsx)$/i.test(specifier)) {
+    try {
+      return await nextResolve(specifier + '.ts', context);
+    } catch {
+      return nextResolve(specifier, context);
+    }
+  }
+  return nextResolve(specifier, context);
+}
+`)}`,
+  import.meta.url,
+);
+
+const {
   buildCandidateImportPlan,
   buildImportSqlBatch,
   validateCandidateRegistry,
-} from '../../functions/_lib/content-pipeline-candidate-import.ts';
+} = await import('../../functions/_lib/content-pipeline-candidate-import.ts');
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, '../..');
@@ -106,6 +127,9 @@ function loadRegistry(filePath) {
 
 function executeSqlFile(database, target, sqlFile) {
   const args = ['wrangler', 'd1', 'execute', database];
+  if (database === 'lgfc-litedev') {
+    args.push('--env', 'preview');
+  }
   if (target === 'local') {
     args.push('--local');
   } else {
@@ -135,7 +159,12 @@ function main() {
   }
 
   const plan = buildCandidateImportPlan(registry);
-  const sqlBatch = buildImportSqlBatch(plan);
+  let sqlBatch = buildImportSqlBatch(plan);
+  if (options.target === 'remote') {
+    // Cloudflare D1 remote execute rejects SQL BEGIN/COMMIT; wrangler already
+    // applies the uploaded file atomically and rolls back on failure.
+    sqlBatch = sqlBatch.replace(/^\s*BEGIN;\s*/i, '').replace(/\s*COMMIT;\s*$/i, '');
+  }
   console.log(
     `Validated ${plan.candidateCount} candidate(s); prepared ${plan.statements.length} SQL statement(s) in one transaction batch.`,
   );
