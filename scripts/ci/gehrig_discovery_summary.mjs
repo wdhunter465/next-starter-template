@@ -36,10 +36,21 @@ function formatCandidatesTable(candidates) {
   const rows = candidates
     .map(
       (c) =>
-        `| ${escapeMarkdownTableCell(c.candidate_id)} | ${escapeMarkdownTableCell(c.source_name)} | ${escapeMarkdownTableCell(c.title)} | ${escapeMarkdownTableCell(c.source_url || '(none)')} |`,
+        `| ${escapeMarkdownTableCell(c.candidate_id)} | ${escapeMarkdownTableCell(c.source_name)} | ${escapeMarkdownTableCell(c.title)} | ${escapeMarkdownTableCell(c.date_or_period || '')} | ${escapeMarkdownTableCell((c.people_tags || []).join(', '))} | ${escapeMarkdownTableCell(c.credit_line || '')} | ${escapeMarkdownTableCell(c.source_url || '(none)')} |`,
     )
     .join('\n');
-  return `| Candidate ID | Source | Title | Source URL |\n| --- | --- | --- | --- |\n${rows}\n`;
+  return `| Candidate ID | Source | Title | Date/Period | People Tags | Credit Line | Source URL |\n| --- | --- | --- | --- | --- | --- | --- |\n${rows}\n`;
+}
+
+function formatCaptionsTable(candidates) {
+  const withCaption = (candidates || []).filter((c) => c.summary);
+  if (withCaption.length === 0) {
+    return '_No candidate captions/summaries for this run._\n';
+  }
+  const rows = withCaption
+    .map((c) => `| ${escapeMarkdownTableCell(c.candidate_id)} | ${escapeMarkdownTableCell(c.summary)} |`)
+    .join('\n');
+  return `| Candidate ID | Caption / Summary |\n| --- | --- |\n${rows}\n`;
 }
 
 function formatSearchRunsTable(searchRuns) {
@@ -87,6 +98,10 @@ function main() {
     formatSearchRunsTable(searchRuns),
     '### Candidates',
     formatCandidatesTable(candidates),
+    '### Captions',
+    '_Uploader/source-provided caption text (e.g. Wikimedia\'s ImageDescription), not independently verified -- a description, not a rights statement._',
+    '',
+    formatCaptionsTable(candidates),
     '### Wikimedia Commons license notes',
     '_Uploader-asserted at time of discovery -- not a verified fact. Mislabeled licenses are a known, recurring problem on Commons. Confirm on the file page itself before recording any rights_evidence conclusion._',
     '',
