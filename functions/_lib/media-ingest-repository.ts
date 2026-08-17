@@ -26,33 +26,31 @@ export type CommitIngestedMediaResult = {
 
 // Idempotent: re-running with the same mediaUid (derived from the content
 // checksum) is a no-op on media_assets and a safe re-link on content_items.
+// Uses INSERT OR IGNORE rather than SELECT-then-INSERT so two concurrent
+// ingests of the same bytes can't have the loser fail on the media_uid
+// UNIQUE constraint -- both end up idempotently pointing at the same row.
 export async function commitIngestedMedia(
   db: any,
   input: CommitIngestedMediaInput,
 ): Promise<CommitIngestedMediaResult> {
-  const existing = await db
-    .prepare('SELECT media_uid FROM media_assets WHERE media_uid = ? LIMIT 1')
-    .bind(input.mediaUid)
-    .first();
+  const insertResult = await db
+    .prepare(
+      `INSERT OR IGNORE INTO media_assets (
+        media_uid, b2_key, b2_file_id, size, etag,
+        rights_hold, rights_hold_reason, rights_hold_set_at
+      ) VALUES (?, ?, ?, ?, ?, 0, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'))`,
+    )
+    .bind(
+      input.mediaUid,
+      input.b2Key,
+      input.b2FileId ?? null,
+      input.size,
+      input.etag ?? null,
+      `rights_evidence_conclusion:${input.conclusion} reviewer:${input.reviewer}`,
+    )
+    .run();
 
-  if (!existing) {
-    await db
-      .prepare(
-        `INSERT INTO media_assets (
-          media_uid, b2_key, b2_file_id, size, etag,
-          rights_hold, rights_hold_reason, rights_hold_set_at
-        ) VALUES (?, ?, ?, ?, ?, 0, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'))`,
-      )
-      .bind(
-        input.mediaUid,
-        input.b2Key,
-        input.b2FileId ?? null,
-        input.size,
-        input.etag ?? null,
-        `rights_evidence_conclusion:${input.conclusion} reviewer:${input.reviewer}`,
-      )
-      .run();
-  }
+  const alreadyExisted = Number((insertResult as { meta?: { changes?: number } })?.meta?.changes ?? 0) === 0;
 
   await updateCandidateMediaReferences(
     db,
@@ -61,5 +59,5 @@ export async function commitIngestedMedia(
     { actor: input.reviewer, notes: `#3552 ingestion: linked media_uid ${input.mediaUid}` },
   );
 
-  return { mediaUid: input.mediaUid, b2Key: input.b2Key, alreadyExisted: Boolean(existing) };
+  return { mediaUid: input.mediaUid, b2Key: input.b2Key, alreadyExisted };
 }

@@ -66,7 +66,7 @@ export const onRequestPost = async (context: any): Promise<Response> => {
   if (!candidateTables.ok) return jsonResponse(candidateTables.body, candidateTables.status);
   const evidenceTables = await requireRightsEvidenceTables(d1.db);
   if (!evidenceTables.ok) return jsonResponse(evidenceTables.body, evidenceTables.status);
-  const mediaTables = await requireTables(d1.db, ['media_assets']);
+  const mediaTables = await requireTables(d1.db, ['media_assets', 'sources']);
   if (!mediaTables.ok) return jsonResponse(mediaTables.body, mediaTables.status);
 
   try {
@@ -115,6 +115,17 @@ export const onRequestPost = async (context: any): Promise<Response> => {
       return jsonResponse({ ok: false, error: `source_fetch_url returned HTTP ${sourceResponse.status}.` }, 502);
     }
 
+    // fetch() follows redirects by default, so a request that started on an
+    // allowlisted host could have been redirected to an untrusted one --
+    // re-check the URL actually served, not just the one requested.
+    const finalUrlCheck = validateIngestSourceUrl(sourceResponse.url, approvedDomains);
+    if (!finalUrlCheck.ok) {
+      return jsonResponse(
+        { ok: false, error: `source_fetch_url redirected off the allowlist: ${finalUrlCheck.error}` },
+        400,
+      );
+    }
+
     const contentType = sourceResponse.headers.get('content-type');
     const contentTypeCheck = validateIngestContentType(contentType);
     if (!contentTypeCheck.ok) {
@@ -137,7 +148,13 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     const checksum = await sha256Hex(bytes);
     const mediaUid = `sha256_${checksum.slice(0, 40)}`;
     const extension = CONTENT_TYPE_EXTENSIONS[normalizedContentType] ?? 'bin';
-    const b2Key = buildNewIntakeKey(`${candidateId}/${mediaUid}.${extension}`);
+    // Keyed by content checksum only (not candidate_id): two candidates that
+    // happen to resolve to identical bytes must land on the same B2 object,
+    // matching media_assets.media_uid's global uniqueness. Keying by
+    // candidate_id as well would let a second candidate's ingest skip the B2
+    // write (media_uid already exists) while still linking to a key that
+    // was never actually written for it.
+    const b2Key = buildNewIntakeKey(`${mediaUid}.${extension}`);
 
     let etag: string | null = null;
     const alreadyInB2 = await d1.db
@@ -149,7 +166,6 @@ export const onRequestPost = async (context: any): Promise<Response> => {
         key: b2Key,
         body: bytes,
         contentType: normalizedContentType,
-        checksumSha256Hex: checksum,
       });
       etag = putResult.etag;
     }

@@ -136,7 +136,19 @@ function requestUrlAndMethod(input: unknown, init: unknown): { url: string; meth
   return { url: String(input), method: (init as { method?: string } | undefined)?.method ?? 'GET' };
 }
 
-function mockFetchForSourceAndB2(options?: { sourceBytes?: Uint8Array; sourceContentType?: string }) {
+// Response.url is normally populated by the fetch implementation from the
+// final (post-redirect) URL and isn't settable via the constructor -- tests
+// that care about it (the redirect-allowlist check) need to force it.
+function responseWithUrl(response: Response, url: string): Response {
+  Object.defineProperty(response, 'url', { value: url, configurable: true });
+  return response;
+}
+
+function mockFetchForSourceAndB2(options?: {
+  sourceBytes?: Uint8Array;
+  sourceContentType?: string;
+  finalSourceUrl?: string;
+}) {
   const sourceBytes = options?.sourceBytes ?? FAKE_JPEG_BYTES;
   const sourceContentType = options?.sourceContentType ?? 'image/jpeg';
 
@@ -145,8 +157,10 @@ function mockFetchForSourceAndB2(options?: { sourceBytes?: Uint8Array; sourceCon
     if (url.startsWith(B2_ENV.B2_ENDPOINT)) {
       return new Response(null, { status: 200, headers: { ETag: '"fake-etag"' } });
     }
-    // Source fetch (LOC/Commons/Openverse).
-    return new Response(sourceBytes, { status: 200, headers: { 'Content-Type': sourceContentType } });
+    // Source fetch (LOC/Commons/Openverse). Defaults to reporting the
+    // requested URL as final (no redirect) unless a test says otherwise.
+    const sourceResponse = new Response(sourceBytes, { status: 200, headers: { 'Content-Type': sourceContentType } });
+    return responseWithUrl(sourceResponse, options?.finalSourceUrl ?? url);
   });
 }
 
@@ -314,5 +328,85 @@ describe('content pipeline ingestion (#3552)', () => {
       return url.startsWith(B2_ENV.B2_ENDPOINT) && method === 'PUT';
     });
     expect(b2PutCallsAfterSecond).toHaveLength(1); // still just the one PUT from the first call
+  });
+
+  it('two different candidates ingesting identical bytes land on the same B2 key (checksum-derived, not candidate-scoped)', async () => {
+    const db = freshDb();
+    const candidateA = await upsertCandidate(db, minimalCandidate({ candidate_id: 'lgfc-gehrig-2026-001' }));
+    const candidateB = await upsertCandidate(db, minimalCandidate({ candidate_id: 'lgfc-gehrig-2026-002' }));
+    for (const candidate of [candidateA, candidateB]) {
+      await recordRightsEvidence(db, {
+        content_item_id: candidate.id,
+        evidence_type: 'loc_statement',
+        reviewer: 'Bill',
+        conclusion: 'public_domain_confirmed',
+        conclusion_rationale: 'LOC no known restrictions + pre-1931 publication.',
+      });
+    }
+    const fetchSpy = mockFetchForSourceAndB2();
+
+    const firstResponse = await ingestPost({
+      env: { DB: db, ...B2_ENV },
+      request: adminPostRequest('/api/admin/content-pipeline/ingest', {
+        candidate_id: 'lgfc-gehrig-2026-001',
+        source_fetch_url: 'https://loc.gov/item/one.jpg',
+      }),
+    });
+    const firstBody = await firstResponse.json();
+    expect(firstBody.already_ingested).toBe(false);
+
+    // Different candidate, same underlying bytes (identical FAKE_JPEG_BYTES).
+    const secondResponse = await ingestPost({
+      env: { DB: db, ...B2_ENV },
+      request: adminPostRequest('/api/admin/content-pipeline/ingest', {
+        candidate_id: 'lgfc-gehrig-2026-002',
+        source_fetch_url: 'https://loc.gov/item/two.jpg',
+      }),
+    });
+    const secondBody = await secondResponse.json();
+
+    expect(secondBody.b2_key).toBe(firstBody.b2_key);
+    expect(secondBody.already_ingested).toBe(true);
+
+    const b2PutCalls = fetchSpy.mock.calls.filter(([input, init]) => {
+      const { url, method } = requestUrlAndMethod(input, init);
+      return url.startsWith(B2_ENV.B2_ENDPOINT) && method === 'PUT';
+    });
+    expect(b2PutCalls).toHaveLength(1); // only the first candidate's ingest actually wrote to B2
+
+    // The second candidate must still be linked to the real, actually-written key.
+    const contentItemRow = (await db
+      .prepare('SELECT media_asset_id FROM content_items WHERE candidate_id = ?')
+      .bind('lgfc-gehrig-2026-002')
+      .first()) as { media_asset_id: string };
+    expect(contentItemRow.media_asset_id).toBe(`b2://${firstBody.b2_key}`);
+  });
+
+  it('rejects a source that redirects off the allowlist, even though the requested URL was allowlisted', async () => {
+    const db = freshDb();
+    const candidate = await upsertCandidate(db, minimalCandidate());
+    await recordRightsEvidence(db, {
+      content_item_id: candidate.id,
+      evidence_type: 'loc_statement',
+      reviewer: 'Bill',
+      conclusion: 'public_domain_confirmed',
+      conclusion_rationale: 'LOC no known restrictions + pre-1931 publication.',
+    });
+    const fetchSpy = mockFetchForSourceAndB2({ finalSourceUrl: 'https://attacker-controlled.example/payload.jpg' });
+
+    const response = await ingestPost({
+      env: { DB: db, ...B2_ENV },
+      request: adminPostRequest('/api/admin/content-pipeline/ingest', {
+        candidate_id: 'lgfc-gehrig-2026-999',
+        source_fetch_url: 'https://loc.gov/item/example.jpg',
+      }),
+    });
+
+    expect(response.status).toBe(400);
+    const b2PutCalls = fetchSpy.mock.calls.filter(([input, init]) => {
+      const { url, method } = requestUrlAndMethod(input, init);
+      return url.startsWith(B2_ENV.B2_ENDPOINT) && method === 'PUT';
+    });
+    expect(b2PutCalls).toHaveLength(0);
   });
 });

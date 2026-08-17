@@ -119,7 +119,6 @@ export type PutB2ObjectInput = {
   key: string;
   body: ArrayBuffer | Uint8Array;
   contentType: string;
-  checksumSha256Hex: string;
 };
 
 export type PutB2ObjectResult = {
@@ -131,6 +130,12 @@ export type PutB2ObjectResult = {
  * the #3552 content-ingestion Worker to write an already-approved,
  * already-validated original -- callers are responsible for content-type,
  * size, and checksum validation before calling this.
+ *
+ * Does not send x-amz-checksum-sha256: that header requires a base64-encoded
+ * digest, not hex, and its exact acceptance semantics on B2 (vs. AWS S3
+ * proper) are unverified from this environment -- request signing already
+ * authenticates the request, and the returned ETag is available for callers
+ * that want to compare it against their own checksum.
  */
 export async function putB2Object(cfg: B2Bindings, input: PutB2ObjectInput): Promise<PutB2ObjectResult> {
   const aws = b2AwsClient(cfg);
@@ -140,7 +145,6 @@ export async function putB2Object(cfg: B2Bindings, input: PutB2ObjectInput): Pro
     body: input.body,
     headers: {
       "Content-Type": input.contentType,
-      "x-amz-checksum-sha256": input.checksumSha256Hex,
     },
   });
   if (!res.ok) {
