@@ -22,7 +22,7 @@ PRAGMA foreign_keys = ON;
 CREATE TABLE IF NOT EXISTS content_search_runs (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   run_uid TEXT NOT NULL UNIQUE,
-  source_id INTEGER REFERENCES sources(id),
+  source_id INTEGER NOT NULL REFERENCES sources(id),
   query TEXT,
   filters TEXT NOT NULL DEFAULT '{}',
   result_limit INTEGER,
@@ -92,15 +92,16 @@ CREATE INDEX IF NOT EXISTS idx_rights_evidence_search_run
   ON rights_evidence(search_run_id)
   WHERE search_run_id IS NOT NULL;
 
--- #3551's six approved sources. Idempotent: relies on the unique index
--- on sources(source_domain) from migration 0042. `source_trust_status`
--- reflects that USCO/CMG are human-run, not automated discovery adapters.
-INSERT INTO sources (source_domain, source_name, source_type, source_trust_status, source_citation)
+-- #3551's six approved sources. Idempotent via INSERT OR IGNORE against the
+-- partial unique index on sources(source_domain) from migration 0042 (this
+-- repo's established seed pattern -- see 0009/0019/0021/0045).
+-- `source_trust_status` reflects that USCO/CMG are human-run, not automated
+-- discovery adapters.
+INSERT OR IGNORE INTO sources (source_domain, source_name, source_type, source_trust_status, source_citation)
 VALUES
   ('loc.gov', 'Library of Congress', 'library', 'trusted', 'Library of Congress digital collections and catalog'),
   ('commons.wikimedia.org', 'Wikimedia Commons', 'archive', 'trusted', 'Wikimedia Commons licensed/public-domain media repository'),
   ('openverse.org', 'Openverse', 'other', 'trusted', 'Openverse open-license/public-domain media search aggregator'),
   ('dp.la', 'Digital Public Library of America', 'institution', 'trusted', 'DPLA aggregated US library/museum/archive collections'),
   ('copyright.gov', 'U.S. Copyright Office', 'institution', 'trusted', 'Copyright Public Records System; human-run verification only'),
-  ('cmgworldwide.com', 'CMG Worldwide', 'operator', 'trusted', 'Estate-controlled Gehrig rights/licensing relationship; not a bulk source')
-ON CONFLICT(source_domain) WHERE source_domain IS NOT NULL AND trim(source_domain) != '' DO NOTHING;
+  ('cmgworldwide.com', 'CMG Worldwide', 'operator', 'trusted', 'Estate-controlled Gehrig rights/licensing relationship; not a bulk source');
