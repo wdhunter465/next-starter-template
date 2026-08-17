@@ -35,6 +35,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { determineSearchRunTerminalStatus } from '../../functions/_lib/content-search-run-outcome.ts';
+import { extractPeopleTags, extractDateOrPeriod } from '../../functions/_lib/content-pipeline-discovery-text-signals.ts';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, '../..');
@@ -182,12 +183,18 @@ function absoluteHttpUrl(url) {
 
 /**
  * Builds a schema-valid candidate. Optional string fields (source_url,
- * source_owner, source_domain, date_or_period) are omitted entirely when
- * absent -- the schema types them as plain "string" with no null option, so
- * writing null fails validation. source_metadata is constrained to exactly
- * {source_record_id, date_accessed, source_citation}; anything richer
- * (license text, uploader, rights advisory, etc.) goes into provenance_notes
- * instead, which is unrestricted free text.
+ * source_owner, source_domain, date_or_period, credit_line) are omitted
+ * entirely when absent -- the schema types them as plain "string" with no
+ * null option, so writing null fails validation. source_metadata is
+ * constrained to exactly {source_record_id, date_accessed, source_citation};
+ * anything richer (license text, uploader, rights advisory, etc.) goes into
+ * provenance_notes instead, which is unrestricted free text.
+ *
+ * peopleTags/creditLine/dateOrPeriod may be derived from best-effort text
+ * matching (see extractPeopleTags/extractDateOrPeriod below) -- these are
+ * metadata-quality signals for a human reviewer, never a rights or identity
+ * determination. A wrong or missing tag here is a data-quality issue to
+ * correct in review, not a safety issue.
  */
 function baseCandidate({
   id,
@@ -199,6 +206,8 @@ function baseCandidate({
   sourceUrl,
   summary,
   dateOrPeriod,
+  creditLine,
+  peopleTags,
   provenanceNotes,
   sourceRecordId,
   sourceCitation,
@@ -212,7 +221,7 @@ function baseCandidate({
     source_type: sourceType,
     content_type: 'photo',
     summary,
-    people_tags: ['Lou Gehrig'],
+    people_tags: peopleTags && peopleTags.length > 0 ? [...new Set(peopleTags)] : ['Lou Gehrig'],
     topic_tags: [...new Set(['baseball', ...topicTags])],
     location_tags: [],
     rights_status: 'unknown',
@@ -233,6 +242,7 @@ function baseCandidate({
   if (sourceOwner) candidate.source_owner = sourceOwner;
   if (sourceDomain) candidate.source_domain = sourceDomain;
   if (dateOrPeriod) candidate.date_or_period = dateOrPeriod;
+  if (creditLine) candidate.credit_line = creditLine;
 
   const sourceMetadata = {};
   if (sourceRecordId) sourceMetadata.source_record_id = String(sourceRecordId);
@@ -342,6 +352,12 @@ async function collectWikimediaCommons(query, limit, nextId, licenseNotesOut = [
     const info = page.imageinfo?.[0] ?? {};
     const meta = info.extmetadata ?? {};
     const licenseTemplate = meta.LicenseShortName?.value ?? null;
+    const titleText = page.title || 'Untitled Commons file';
+    const imageDescription = stripHtml(meta.ImageDescription?.value ?? null);
+    const creditLine = stripHtml(meta.Credit?.value ?? null) || stripHtml(meta.Attribution?.value ?? null) || undefined;
+    const dateOrPeriod =
+      stripHtml(meta.DateTimeOriginal?.value ?? null) || extractDateOrPeriod(`${titleText} ${imageDescription ?? ''}`);
+    const peopleTags = extractPeopleTags(`${titleText} ${imageDescription ?? ''}`);
 
     const provenanceNotes = [
       `Wikimedia Commons discovery for query "${query}".`,
@@ -359,7 +375,7 @@ async function collectWikimediaCommons(query, limit, nextId, licenseNotesOut = [
 
     licenseNotesOut.push({
       candidate_id: id,
-      title: page.title || 'Untitled Commons file',
+      title: titleText,
       source_url: info.descriptionurl ?? null,
       license_short_name: licenseTemplate,
       license_url: meta.LicenseUrl?.value ?? null,
@@ -372,15 +388,20 @@ async function collectWikimediaCommons(query, limit, nextId, licenseNotesOut = [
 
     return baseCandidate({
       id,
-      title: page.title || 'Untitled Commons file',
+      title: titleText,
       sourceType: 'archive',
       sourceName: 'Wikimedia Commons',
       sourceDomain: 'commons.wikimedia.org',
       sourceUrl: info.descriptionurl || undefined,
-      summary: `Discovered via Wikimedia Commons search for "${query}". License template is an uploader assertion, not a verified fact.`,
+      summary: imageDescription
+        ? `${imageDescription} (Wikimedia Commons caption, uploader-provided -- not independently verified.)`
+        : `Discovered via Wikimedia Commons search for "${query}". License template is an uploader assertion, not a verified fact.`,
+      dateOrPeriod,
+      creditLine,
+      peopleTags,
       provenanceNotes,
       sourceRecordId: page.pageid ?? page.title,
-      sourceCitation: `Wikimedia Commons, ${page.title ?? 'unknown file'}`,
+      sourceCitation: `Wikimedia Commons, ${titleText}`,
     });
   });
 }
