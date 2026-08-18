@@ -6,7 +6,7 @@ Owns: Canonical lane, role, promotion-profile, transition, communication, runner
 Does Not Own: Current team-member assignments, workflow implementation details, repository settings, or production credentials
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
 Related Issues: #2640, #2641, #2639
-Last Reviewed: 2026-07-19
+Last Reviewed: 2026-08-18
 ---
 
 # Operating Lanes and Promotion Profiles
@@ -28,7 +28,7 @@ Define the canonical durable roles, lane topology, promotion profiles, allowed t
 
 ## Intended final state
 
-All operating docs, controllers, and handoffs use this vocabulary without alternate lane models or direct Sandbox/Development → Production paths.
+All operating docs, controllers, and handoffs use this vocabulary without alternate lane models or direct Sandbox or Development → Production paths.
 
 ## 1. Durable roles
 

@@ -6,14 +6,26 @@ Owns: Evidence that Follow-up 3/5 (#2564) made Git/branch/PR authority mandatory
 Does Not Own: Follow-ups 4–5, Program #1719 production promotion, or merge authority
 Canonical Reference: /docs/templates/agent-assignment-template.md
 Related Issues: #2564, #1719, #2528, #2563
-Last Reviewed: 2026-07-18
+Last Reviewed: 2026-08-18
 ---
 
 # Agent assignment Git/PR field hardening — #2564
 
-## Objective
+## Purpose
 
 Make every future Cursor implementation assignment state execution environment and Git/PR authority as mandatory fields so local-only completion cannot be confused with authorized branch/PR delivery.
+
+## Scope
+
+This report owns evidence that Follow-up 3/5 (#2564) made Git/branch/PR authority mandatory in the agent-assignment envelope. It does not own Follow-ups 4–5, Program #1719 production promotion, or merge authority.
+
+## Current known truth
+
+The assignment template required-fields table and copy/paste block are the field definitions. Cursor must not treat narrative prose as Git or PR authority.
+
+## Intended final state
+
+Future assignments state runtime, working branch, base/target, create/commit/push/PR authorization, PR target, initial PR state, and post-PR continuation as exact fields, with self-approval/self-merge/`main` promotion remaining prohibited by default.
 
 ## Predecessor
 

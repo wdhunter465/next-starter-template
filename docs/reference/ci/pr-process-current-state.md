@@ -6,7 +6,7 @@ Owns: Current PR process baseline after #2228 and #2469 closeout
 Does Not Own: Canonical PR-process policy, live GitHub branch protection settings, or GitHub App settings
 Canonical Reference: /docs/governance/PR_PROCESS.md
 Related Issues: #2175, #2208, #2228, #2469
-Last Reviewed: 2026-07-12
+Last Reviewed: 2026-08-18
 ---
 
 # PR Process Current State
@@ -21,7 +21,7 @@ This reference covers required checks, active advisory checks, manual-only workf
 
 ## Current known truth
 
-The PR-process redesign is implemented around stable-facts PR bodies, GitHub-native reviewer state, deterministic required checks, advisory-first promotion, single-owner post-merge closeout, and routine incremental exception housekeeping. There is no active dedicated #1075 CI phase-generation engine. Controlled and operational authority documents that formerly described that engine as active are reconciled by #2469.
+The PR-process redesign is implemented around stable-facts PR bodies, GitHub-native reviewer state, deterministic required checks, advisory-first promotion, single-owner post-merge closeout, and routine incremental exception housekeeping. There is no active dedicated #1075 CI phase-generation engine. Controlled and operational authority documents that formerly described that engine as active are reconciled by #2469. #2175 and #2208 closed complete on 2026-07-04; they are historical related Issues, not open pre-closeout operator work. If live branch protection later diverges from the documented `quality` and `gitleaks` required-check surface, handle that as a new bounded Ops correction.
 
 ## Intended final state
 

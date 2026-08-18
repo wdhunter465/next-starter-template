@@ -6,7 +6,7 @@ Owns: Task #1724 durable issue-mutation and closeout permission matrix for Progr
 Does Not Own: Workflow YAML, CI scripts, runtime code, unauthorized GitHub mutation, Cursor self-merge, or automatic merge to main
 Canonical Reference: /docs/governance/PR_PROCESS.md
 Related Issues: #1724, #1719, #1723, #1722, #1725, #1726
-Last Reviewed: 2026-07-16
+Last Reviewed: 2026-08-18
 ---
 
 # Issue Mutation and Closeout Permission Policy (#1724)
@@ -17,6 +17,18 @@ Define when agents may or may not close, reopen, relabel, or otherwise mutate
 GitHub issues during PR closeout and ordinary program execution, under Program
 `#1719` Model B construction on
 `component/pmo-governance-workflow-automation`.
+
+## Scope
+
+This report owns the Task #1724 issue-mutation and closeout permission matrix for Program #1719. It does not grant workflow, CI, runtime, self-merge, or automatic `main` merge authority.
+
+## Current known truth
+
+Cursor default-denies close, reopen, relabel, and other GitHub issue mutations unless the active source Issue explicitly grants the exact action. Merge is not closeout. Component-branch documentation integration does not authorize source-issue closeout.
+
+## Intended final state
+
+Agents and closeout automation consult this matrix instead of inferring mutation permission from PR merge or documentation recommendations.
 
 ## Documentation authority (same model as #1723)
 

@@ -6,7 +6,7 @@ Owns: Task #1723 durable evidence reconciling PR readiness, batch review, merge 
 Does Not Own: Workflow YAML, CI scripts, runtime code, issue mutation, Cursor self-merge, or automatic merge to main
 Canonical Reference: /docs/governance/PR_PROCESS.md
 Related Issues: #1723, #1719, #1722, #1724
-Last Reviewed: 2026-07-16
+Last Reviewed: 2026-08-18
 ---
 
 # PR Readiness and Merge Authority Control (#1723)
@@ -16,6 +16,18 @@ Last Reviewed: 2026-07-16
 Reconcile PR process/governance docs for readiness, batch review, human review,
 merge authority, and documentation authority levels under Program `#1719`
 Model B construction on `component/pmo-governance-workflow-automation`.
+
+## Scope
+
+This report owns Task #1723 evidence reconciling PR readiness, batch review, merge authority, and documentation authority levels for Program #1719. It does not change workflow YAML, CI scripts, runtime code, or issue-mutation permissions.
+
+## Current known truth
+
+`READY FOR REVIEW` is not merge authority for `main`. Bill/ChatGPT approve `main` merges. Model B `component-auto-integration` is allowed when the source Issue authorizes it. Governance-folder placement does not invent an intermediate human gate on the component branch for Tasks #1723 or #1724.
+
+## Intended final state
+
+PR-process docs keep two documentation authority levels (component project vs `main`) without restoring an obsolete protected-review stop for governance-doc children.
 
 ## Documentation authority levels
 

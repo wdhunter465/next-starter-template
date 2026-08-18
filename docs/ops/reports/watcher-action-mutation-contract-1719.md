@@ -6,14 +6,26 @@ Owns: Evidence that Follow-up 5/5 (#2566) published advisory vs dispatcher watch
 Does Not Own: ChatGPT product automation configuration, production promotion merge, source/program closeout mutation, or Cursor self-approval
 Canonical Reference: /docs/ops/pmo/queue-watch-and-dispatch-protocol.md
 Related Issues: #2566, #1719, #2528, #2565, #2564, #2563, #2562, #1724
-Last Reviewed: 2026-07-18
+Last Reviewed: 2026-08-18
 ---
 
 # Watcher action and mutation authority contract — #2566
 
-## Objective
+## Purpose
 
 Define a precise watcher contract that separates detection-only watches from watches authorized to perform bounded repository actions, so watchers do not repeatedly report actionable work while being unable to advance it.
+
+## Scope
+
+This report owns evidence that Follow-up 5/5 (#2566) published advisory vs dispatcher watcher profiles, bounded mutation classes, protected-action denial, reusable prompt patterns, and five-follow-up integration verification. It does not configure ChatGPT product automation, merge Production promotion, close source/program Issues, or authorize Cursor self-approval.
+
+## Current known truth
+
+Advisory watchers detect and notify only. Dispatcher watchers may perform only named mutation classes when the controlling Issue explicitly authorizes them. Generic words such as monitor, review, watch, or notify are not mutation authority.
+
+## Intended final state
+
+Watchers either report without mutating or execute only the bounded classes listed in the queue-watch protocol, with merge, issue closure, and other protected actions remaining owner-only.
 
 ## Predecessor
 
@@ -34,7 +46,7 @@ When explicitly authorized, a dispatcher watcher may:
 
 1. Comment on issues/PRs.
 2. Consume `CHATGPT HANDOFF` with one `CHATGPT RESPONSE` or `CHATGPT CLOSEOUT`.
-3. Post one separate `LOCAL CURSOR RESUME` referencing that response/closeout.
+3. Optionally post a resume-style comment referencing that response/closeout. That comment is context-only and is **not** a gating wake or dispatch requirement. Cursor Local Bridge eligibility is labels/status only (#3013); there is no comment-marker protocol.
 4. Assign source issue / active PR to `wdhunter645`.
 5. Restore approved Cursor wake labels `agent:cursor` + `handoff:ready`.
 6. Clear stale completed-predecessor blockers.
