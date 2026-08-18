@@ -53,6 +53,14 @@ function printUsage() {
   );
 }
 
+function readFlagValue(argv, index, flagName) {
+  const value = argv[index + 1];
+  if (!value || value.startsWith('--')) {
+    throw new Error(`Missing value for ${flagName}`);
+  }
+  return value;
+}
+
 function parseArgs(argv) {
   const options = { confirm: false, database: 'lgfc_lite', target: 'local', dryRun: false };
   for (let index = 0; index < argv.length; index += 1) {
@@ -60,7 +68,7 @@ function parseArgs(argv) {
     if (arg === '--confirm') {
       options.confirm = true;
     } else if (arg === '--database') {
-      options.database = argv[index + 1];
+      options.database = readFlagValue(argv, index, '--database');
       index += 1;
     } else if (arg === '--local') {
       options.target = 'local';
