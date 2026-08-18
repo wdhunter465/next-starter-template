@@ -196,6 +196,19 @@ export async function commitMemberPhotoSubmission(
     .run();
   const alreadyExisted = Number((insertResult as { meta?: { changes?: number } })?.meta?.changes ?? 0) === 0;
 
+  // When alreadyExisted is true, the INSERT was a no-op (ON CONFLICT DO
+  // NOTHING) -- a retry with a *different* rights_choice than the original
+  // upload must not report outcome.rightsHold as if it had taken effect.
+  // Read back what's actually stored so the response always matches D1.
+  const actualRightsHold = alreadyExisted
+    ? Number(
+        ((await db
+          .prepare('SELECT rights_hold FROM media_assets WHERE media_uid = ? LIMIT 1')
+          .bind(input.mediaUid)
+          .first()) as { rights_hold: number } | null)?.rights_hold ?? outcome.rightsHold,
+      )
+    : outcome.rightsHold;
+
   await db
     .prepare(
       `INSERT INTO content_items (
@@ -299,6 +312,6 @@ export async function commitMemberPhotoSubmission(
     mediaUid: input.mediaUid,
     b2Key: input.b2Key,
     alreadyExisted,
-    rightsHold: outcome.rightsHold,
+    rightsHold: actualRightsHold as 0 | 1,
   };
 }

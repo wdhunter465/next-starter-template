@@ -36,33 +36,39 @@ function RightsChoiceFields({
     <div style={{ marginTop: 6, paddingTop: 10, borderTop: '1px solid rgba(255,255,255,0.14)' }}>
       <h3 style={{ margin: '0 0 8px 0', fontSize: 15 }}>Rights and permission</h3>
       <p style={{ margin: '0 0 10px 0', fontSize: 13, opacity: 0.8 }}>
-        Check exactly one. We need this before we can review your submission.
+        Pick one. We need this before we can review your submission.
       </p>
 
-      <label style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 8, cursor: 'pointer' }}>
-        <input
-          type="checkbox"
-          checked={rightsChoice === 'member_owns_full_grant'}
-          onChange={() => setRightsChoice(rightsChoice === 'member_owns_full_grant' ? '' : 'member_owns_full_grant')}
-          style={{ marginTop: 3 }}
-        />
-        <span>
-          This was created by me, or shows my personal collection. I grant full permission for the Lou Gehrig Fan
-          Club to use it on the website.
-        </span>
-      </label>
+      {/* Mutually exclusive by nature -- a radio group (not independently
+          toggleable checkboxes) is the correct, accessible control: screen
+          readers announce it as a single choice and arrow-key navigation
+          works as expected. */}
+      <div role="radiogroup" aria-label="Rights and permission">
+        <label style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginBottom: 8, cursor: 'pointer' }}>
+          <input
+            type="radio"
+            name={`${idPrefix}-rights-choice`}
+            checked={rightsChoice === 'member_owns_full_grant'}
+            onChange={() => setRightsChoice('member_owns_full_grant')}
+            style={{ marginTop: 3 }}
+          />
+          <span>
+            This was created by me, or shows my personal collection. I grant full permission for the Lou Gehrig Fan
+            Club to use it on the website.
+          </span>
+        </label>
 
-      <label style={{ display: 'flex', gap: 8, alignItems: 'flex-start', cursor: 'pointer' }}>
-        <input
-          type="checkbox"
-          checked={rightsChoice === 'external_source_needs_evaluation'}
-          onChange={() =>
-            setRightsChoice(rightsChoice === 'external_source_needs_evaluation' ? '' : 'external_source_needs_evaluation')
-          }
-          style={{ marginTop: 3 }}
-        />
-        <span>I don&apos;t own this &mdash; I found it elsewhere. Provide the source URL below for copyright review.</span>
-      </label>
+        <label style={{ display: 'flex', gap: 8, alignItems: 'flex-start', cursor: 'pointer' }}>
+          <input
+            type="radio"
+            name={`${idPrefix}-rights-choice`}
+            checked={rightsChoice === 'external_source_needs_evaluation'}
+            onChange={() => setRightsChoice('external_source_needs_evaluation')}
+            style={{ marginTop: 3 }}
+          />
+          <span>I don&apos;t own this &mdash; I found it elsewhere. Provide the source URL below for copyright review.</span>
+        </label>
+      </div>
 
       {rightsChoice === 'external_source_needs_evaluation' && (
         <input

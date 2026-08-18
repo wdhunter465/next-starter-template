@@ -230,6 +230,11 @@ describe('content pipeline member submission intake -- two-choice rights UX (#35
     expect(grantedLivingPerson.publication_status).toBe('not_ready');
     // Rights are still fully cleared -- only publication readiness is held back.
     expect(grantedLivingPerson.rights_status).toBe('permission_granted');
+    // review_status must not claim approved_public_candidate while privacy
+    // is still pending -- docs/how-to/website/member-submission-review.md:
+    // "Do not set approved_public_candidate until rights and privacy both
+    // acceptable."
+    expect(grantedLivingPerson.review_status).toBe('pending_review');
 
     const evaluationNeeded = deriveRightsOutcome('external_source_needs_evaluation', 'none');
     expect(evaluationNeeded.admin_followup_required).toBe(true);

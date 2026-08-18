@@ -400,4 +400,37 @@ describe('POST /api/fanclub/photos/upload (#3552/#3553 Path C -- two-choice righ
       .get(firstBody.media_uid) as { n: number };
     expect(mediaCount.n).toBe(1);
   });
+
+  it('a duplicate upload with a different rights_choice reports the actual stored rights_hold, not the new choice', async () => {
+    const pair = freshDb();
+    seedMemberSession(pair.sqlite);
+    mockB2Put();
+
+    // First upload picks external_source_needs_evaluation -- the row is
+    // inserted held (rights_hold=1).
+    const first = await uploadPost({
+      env: { DB: pair.db, ...B2_ENV },
+      request: uploadRequest(evaluationFields(), { bytes: FAKE_JPEG_BYTES, name: 'photo.jpg', type: 'image/jpeg' }),
+    });
+    const firstBody = (await first.json()) as { media_uid: string; rights_hold: number };
+    expect(firstBody.rights_hold).toBe(1);
+
+    // Second upload of the *identical bytes* picks member_owns_full_grant.
+    // The media_assets INSERT is a no-op (ON CONFLICT DO NOTHING), so the
+    // actually-stored rights_hold is still 1 -- the response must reflect
+    // that, not the second request's own choice.
+    const second = await uploadPost({
+      env: { DB: pair.db, ...B2_ENV },
+      request: uploadRequest(grantFields(), { bytes: FAKE_JPEG_BYTES, name: 'photo.jpg', type: 'image/jpeg' }),
+    });
+    const secondBody = (await second.json()) as { media_uid: string; already_existed: boolean; rights_hold: number };
+    expect(secondBody.media_uid).toBe(firstBody.media_uid);
+    expect(secondBody.already_existed).toBe(true);
+    expect(secondBody.rights_hold).toBe(1);
+
+    const mediaRow = pair.sqlite
+      .prepare('SELECT rights_hold FROM media_assets WHERE media_uid = ?')
+      .get(firstBody.media_uid) as { rights_hold: number };
+    expect(mediaRow.rights_hold).toBe(1);
+  });
 });

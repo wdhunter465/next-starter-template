@@ -46,6 +46,7 @@ export const MEMBER_SUBMISSION_INTAKE_TABLES = [
   'tags',
   'content_item_tags',
   'rights_evidence',
+  'publication_candidates',
 ] as const;
 
 // #3552/#3553: replaces the old free-text ownership_statement/permission_statement
@@ -179,15 +180,17 @@ export function deriveRightsOutcome(
   const privacyNeedsFollowup = ['living_person', 'minors', 'sensitive'].includes(privacyFlag);
 
   if (rightsChoice === 'member_owns_full_grant') {
+    // Privacy review is a separate concern from copyright (docs/how-to/website/
+    // member-submission-review.md: "Do not set approved_public_candidate until
+    // rights and privacy both acceptable") -- a fully rights-cleared submission
+    // about a living person still isn't publish-ready, and review_status must
+    // say so too, not just publication_status.
     return {
       ownership_statement: 'Member attests this content was created by them or is from their personal collection.',
       permission_statement: 'Member grants LGFC full permission to use this content on the website.',
       consent_status: 'granted',
       rights_status: 'permission_granted',
-      review_status: 'approved_public_candidate',
-      // Privacy review is a separate concern from copyright -- a fully
-      // rights-cleared submission about a living person still isn't
-      // publish-ready until that's independently resolved.
+      review_status: privacyNeedsFollowup ? 'pending_review' : 'approved_public_candidate',
       publication_status: privacyNeedsFollowup ? 'not_ready' : 'approved_for_publish',
       admin_followup_required: privacyNeedsFollowup,
     };
