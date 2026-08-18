@@ -15,8 +15,6 @@ This document is the **supporting merge-protection surface** under the CI and Ve
 
 It documents the expected required-check surface for `main` after #2228 closeout. It is **not** a Domain Policy co-owner. Conflicts with domain policy resolve through `docs/governance/CI-AND-VERIFICATION.md`. PR lifecycle procedure remains in `docs/governance/PR_PROCESS.md`.
 
-#2175 and #2208 are **closed complete**. Operator confirmation those issues once required is finished; this reference no longer treats them as open pre-closeout work.
-
 ## Required checks
 
 Configure branch protection for `main` with these deterministic checks only:
@@ -69,12 +67,14 @@ OPS runtime, post-merge closeout, and metrics workflows are not merge-protection
 
 Repo-owned docs cannot mutate GitHub settings. Expected required checks on `main` remain only `quality` and `gitleaks`.
 
-If live branch protection diverges from this surface:
+#2175 and #2208 closed complete on 2026-07-04. Do not reopen them for branch-protection confirmation. If live `main` protection diverges from this reference, open a **new bounded Ops correction** Issue.
+
+Operator steps:
 
 1. Open repository **Settings → Branches → Branch protection rules** for `main`.
 2. Under **Require status checks to pass**, confirm only `quality` and `gitleaks` are required.
 3. Remove any retired checks listed above if still present.
-4. Handle the mismatch as a **new bounded Ops correction** issue — do not reopen #2175 or #2208.
+4. If the live surface does not match, record the mismatch on a new bounded Ops Issue. Do not treat #2175 or #2208 as open pre-closeout work.
 
 ## Validation
 
