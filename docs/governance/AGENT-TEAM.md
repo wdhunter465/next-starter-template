@@ -5,7 +5,7 @@ Authority Level: Domain Policy
 Owns: Durable LGFC roles, recognized agent product inventory, current member mapping, approval authority, protected stops, operating modes, launch-control workflow boundaries, member work-precedence mapping, and delegated task-closeout role boundaries
 Does Not Own: Queue and priority semantics, shared execution detail, tool-specific runtime behavior, PMO sizing, promotion-profile policy, communication mutation taxonomy, or production mechanics
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2494, #2640, #2641, #2648, #2699, #2700, #3052, #3145, #3142, #3152, #3240, #3188, #3605
+Related Issues: #2494, #2640, #2641, #2648, #2699, #2700, #3052, #3145, #3142, #3152, #3240, #3188, #3605, #3611
 Last Reviewed: 2026-08-18
 ---
 
@@ -131,7 +131,7 @@ Lanes define authority. The separate Operations, Governance, PMO, and Engineerin
 
 Operations Monitoring and Hold Issues receive required interval updates but do not block Active PMO or Governance work. An actionable Operations Issue interrupts ordinary PMO and Governance implementation at the nearest safe checkpoint. Governance does not interrupt PMO or Engineering.
 
-After packaging one Cursor assignment, Cursor Local returns to the remaining assigned/resume queue in this same precedence order (#3605). A quiet poll (`fresh=0`) is not idle while that queue is non-empty.
+After packaging one Cursor assignment, Cursor Local returns to the remaining assigned/resume queue in this same precedence order (#3605). A quiet poll (`fresh=0`) is not idle while that queue is non-empty. An item waiting on independent review, approval, or another long-running process does not occupy the session; continue `nextExecutable` and keep the waiting item for gate and reviewer follow-through only (#3611).
 
 ### Claude Code
 
