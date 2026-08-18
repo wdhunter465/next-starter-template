@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: LGFC merge-protection required check surface, consolidated deterministic blockers, and branch-protection naming alignment as a supporting specification
 Does Not Own: CI and Verification Domain Policy; GitHub branch protection settings UI; reviewer lifecycle policy; PR hygiene policy; OPS runtime workflows
 Canonical Reference: /docs/governance/CI-AND-VERIFICATION.md
-Related Issues: #2689, #2175, #2184, #2208, #2228, #2657
-Last Reviewed: 2026-08-07
+Related Issues: #2689, #2175, #2184, #2208, #2228, #2657, #2271
+Last Reviewed: 2026-08-18
 ---
 
 # LGFC Merge Protection Surface
@@ -14,6 +14,8 @@ Last Reviewed: 2026-08-07
 This document is the **supporting merge-protection surface** under the CI and Verification Domain Policy (`docs/governance/CI-AND-VERIFICATION.md`).
 
 It documents the expected required-check surface for `main` after #2228 closeout. It is **not** a Domain Policy co-owner. Conflicts with domain policy resolve through `docs/governance/CI-AND-VERIFICATION.md`. PR lifecycle procedure remains in `docs/governance/PR_PROCESS.md`.
+
+#2175 and #2208 are **closed complete**. Operator confirmation those issues once required is finished; this reference no longer treats them as open pre-closeout work.
 
 ## Required checks
 
@@ -31,6 +33,8 @@ Configure branch protection for `main` with these deterministic checks only:
 | `pr-hygiene` | `GATE — PR Hygiene` | Stable PR-body validation; artifact + upsert comment |
 | `diff-scope` | `GATE — Diff Scope` | Allowed-path diff validation; artifact + upsert comment; transient GitHub API retry via repository script (#2657) |
 | `reviewer-response-completion` | `GATE — Reviewer Response Completion` | GitHub-native reviewer lifecycle; artifact; transient GitHub API retry via repository script (#2657) |
+
+Advisory checks remain advisory unless a future source issue promotes them after advisory evidence under `/docs/governance/PR_PROCESS.md`.
 
 ## Manual-only / paused (not merge blockers)
 
@@ -63,14 +67,14 @@ OPS runtime, post-merge closeout, and metrics workflows are not merge-protection
 
 ## Live GitHub verification (operator)
 
-Bill/ChatGPT must confirm live branch protection on `main` matches this reference. Repo-owned docs cannot mutate GitHub settings.
+Repo-owned docs cannot mutate GitHub settings. Expected required checks on `main` remain only `quality` and `gitleaks`.
 
-Operator steps:
+If live branch protection diverges from this surface:
 
 1. Open repository **Settings → Branches → Branch protection rules** for `main`.
 2. Under **Require status checks to pass**, confirm only `quality` and `gitleaks` are required.
 3. Remove any retired checks listed above if still present.
-4. Record confirmation in #2175 and #2208 before closing those issues.
+4. Handle the mismatch as a **new bounded Ops correction** issue — do not reopen #2175 or #2208.
 
 ## Validation
 

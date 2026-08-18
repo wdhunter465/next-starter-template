@@ -5,8 +5,11 @@ Authority Level: Controlled
 Owns: Current PR process baseline after #2228 and #2469 closeout
 Does Not Own: Canonical PR-process policy, live GitHub branch protection settings, or GitHub App settings
 Canonical Reference: /docs/governance/PR_PROCESS.md
-Related Issues: #2175, #2208, #2228, #2469
-Last Reviewed: 2026-07-12
+Supporting References:
+  - /docs/reference/ci/merge-protection-surface.md
+  - /docs/reference/ci/pr-workflow-ci-inventory.md
+Related Issues: #2175, #2208, #2228, #2469, #2271
+Last Reviewed: 2026-08-18
 ---
 
 # PR Process Current State
@@ -22,6 +25,8 @@ This reference covers required checks, active advisory checks, manual-only workf
 ## Current known truth
 
 The PR-process redesign is implemented around stable-facts PR bodies, GitHub-native reviewer state, deterministic required checks, advisory-first promotion, single-owner post-merge closeout, and routine incremental exception housekeeping. There is no active dedicated #1075 CI phase-generation engine. Controlled and operational authority documents that formerly described that engine as active are reconciled by #2469.
+
+#2175 and #2208 are **closed complete**. Pre-closeout operator actions those issues once required are finished; this reference no longer treats them as open work.
 
 ## Intended final state
 
@@ -39,14 +44,14 @@ Current principles:
 - routine incremental exception housekeeping;
 - no dedicated #1075 CI phase-generation engine.
 
-## Required operator confirmation
+## Branch protection alignment
 
-Before merging #2469, verify live branch protection for `main` requires only:
+Documented required checks for `main` are only:
 
 - `quality`
 - `gitleaks`
 
-Remove retired check names if still configured.
+Live GitHub branch-protection settings are outside repo-owned docs. If live settings ever diverge from this surface, open a **new bounded Ops correction** issue; do not reopen #2175 or #2208.
 
 ## Required checks
 
@@ -62,6 +67,8 @@ Remove retired check names if still configured.
 | `pr-hygiene` | `gate-pr-hygiene.yml` |
 | `diff-scope` | `gate-diff-scope.yml` |
 | `reviewer-response-completion` | `reviewer-response-completion.yml` |
+
+Advisory checks remain advisory unless a future source issue promotes them with evidence under `/docs/governance/PR_PROCESS.md`.
 
 ## Manual-only / rebuild later
 
