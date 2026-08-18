@@ -362,6 +362,29 @@ describe('Fan Club operational pages', () => {
     expect(screen.getByPlaceholderText('Article title')).toBeInTheDocument();
   });
 
+  it('clears the selected photo file when switching away from Photo and back', () => {
+    render(<FanclubSubmitPage />);
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Photo' }));
+    fireEvent.change(screen.getByPlaceholderText('Your name'), { target: { value: 'Lou G.' } });
+    fireEvent.click(screen.getByRole('radio', { name: /This was created by me/ }));
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'anonymous' } });
+
+    const file = new File(['bytes'], 'lou.jpg', { type: 'image/jpeg' });
+    fireEvent.change(screen.getByLabelText('Photo file'), { target: { files: [file] } });
+    expect((screen.getByLabelText('Photo file') as HTMLInputElement).files?.[0]).toBe(file);
+    expect(screen.getByRole('button', { name: 'Submit photo' })).toBeEnabled();
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Article' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'Photo' }));
+
+    // The remounted file input can only ever start empty -- confirm the
+    // stale File no longer lingers in state and silently blocks submission
+    // rather than letting a hidden, no-longer-visible file go through.
+    expect((screen.getByLabelText('Photo file') as HTMLInputElement).files?.length).toBe(0);
+    expect(screen.getByRole('button', { name: 'Submit photo' })).toBeDisabled();
+  });
+
   it('renders chat empty and error states for member workflows', async () => {
     const fetchMock = vi
       .spyOn(globalThis, 'fetch')

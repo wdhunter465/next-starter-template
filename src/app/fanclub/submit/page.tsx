@@ -159,6 +159,11 @@ export default function FanclubSubmitPage() {
   function switchKind(next: SubmissionKind) {
     setKind(next);
     setMsg('');
+    // The photo file input remounts (it's keyed) so it always shows empty on
+    // return, but its File would otherwise linger in state and get submitted
+    // unseen -- clear it so state matches what the user can see.
+    setFile(null);
+    setCaption('');
   }
 
   async function submitArticle() {
@@ -290,6 +295,7 @@ export default function FanclubSubmitPage() {
             <div key="photo-fields" style={{ display: 'grid', gap: 10 }}>
               <input
                 type="file"
+                aria-label="Photo file"
                 accept="image/jpeg,image/png,image/gif,image/webp,image/tiff"
                 onChange={(e) => setFile(e.target.files?.[0] ?? null)}
                 style={inputStyle}
