@@ -21,7 +21,7 @@ This report owns evidence that Follow-up 3/5 (#2564) made Git/branch/PR authorit
 
 ## Current known truth
 
-The assignment template required-fields table and copy/paste block are the field definitions. Cursor must not treat narrative prose as Git or PR authority.
+The assignment template required-fields table (section 3) and the Git/PR fields in the mandatory template block are the field definitions. Historical heading **2A** was renumbered; live `CURSOR-RULES.md` cross-references section 3. Cursor must not treat narrative prose as Git or PR authority.
 
 ## Intended final state
 
@@ -35,9 +35,9 @@ Future assignments state runtime, working branch, base/target, create/commit/pus
 
 | Path | Change |
 | --- | --- |
-| `docs/templates/agent-assignment-template.md` | Added required-fields rows and mandatory template section **2A. Git / Branch / PR Authority**; updated checkpoint and prohibited omissions; distinguished local-only vs branch/PR delivery |
-| `docs/ops/ai/CURSOR-RULES.md` | Minimal cross-reference to section 2A; stop if Git/PR fields missing |
-| `docs/reference/pmo/lgfc-cursor-execution-contract.md` | Minimal Default Permissions note that section 2A fields are mandatory authorization |
+| `docs/templates/agent-assignment-template.md` | Added Git/PR authority as required-fields rows and mandatory template Git/PR fields; current heading is **3. Required assignment fields** (historical **2A** was renumbered); distinguished local-only vs branch/PR delivery |
+| `docs/ops/ai/CURSOR-RULES.md` | Minimal cross-reference to section 3 required-fields table and the mandatory template Git/PR block; stop if Git/PR fields missing |
+| `docs/reference/pmo/lgfc-cursor-execution-contract.md` | Minimal Default Permissions note that section 3 Git/PR fields are mandatory authorization |
 | `docs/ops/reports/agent-assignment-git-pr-fields-1719.md` | This report |
 
 ## Mandatory fields added
@@ -64,15 +64,15 @@ Future assignments state runtime, working branch, base/target, create/commit/pus
 | Document | Alignment |
 | --- | --- |
 | Assignment template | Owns the mandatory field definitions and copy/paste block |
-| `CURSOR-RULES.md` | Points Cursor at section 2A; forbids treating narrative as Git/PR authority |
-| Cursor execution contract | Restates that create/commit/push/PR require section 2A fields |
+| `CURSOR-RULES.md` | Points Cursor at section 3 required-fields table; forbids treating narrative as Git/PR authority |
+| Cursor execution contract | Restates that create/commit/push/PR require section 3 Git/PR fields |
 
 ## Acceptance mapping
 
 | Criterion | Result |
 | --- | --- |
 | Future assignments must make local/cloud execution explicit | PASS — Runtime / execution environment required |
-| Branch, base, create, commit, push, PR authority are mandatory fields | PASS — section 2A + required-fields table |
+| Branch, base, create, commit, push, PR authority are mandatory fields | PASS — section 3 required-fields table + mandatory template Git/PR block |
 | PR target and post-PR continuation explicit | PASS |
 | Template distinguishes local-only from branch/PR delivery | PASS |
 | Cursor rules and execution contract reference fields consistently | PASS |

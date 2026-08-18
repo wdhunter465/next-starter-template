@@ -17,7 +17,7 @@ Last Reviewed: 2026-08-18
 
 # PMO Governance / Workflow Automation Completion Implementation Plan
 
-> **Construction state (2026-07-16, resynchronized #2775):** Program #1719 documentation construction on `component/pmo-governance-workflow-automation` is complete through Task #1727 (`docs/ops/reports/pmo-governance-workflow-automation-closeout-1727.md`). Task #1725 was previously complete and was not rerun. Cursor may not approve, merge to `main`, close, reopen, or relabel issues. Bill/Atlas acceptance and Bill/ChatGPT-approved promotion to `main` remain outstanding; #2775 prepares a replacement candidate after the component branch fell behind current `main`.
+> **Construction state (2026-07-16, resynchronized #2775; promotion 2026-08-04):** Program #1719 documentation construction on `component/pmo-governance-workflow-automation` is complete through Task #1727 (`docs/ops/reports/pmo-governance-workflow-automation-closeout-1727.md`). Task #1725 was previously complete and was not rerun. Cursor may not approve, merge to `main`, close, reopen, or relabel issues unless a source Issue explicitly grants that authority. Promotion PR #3040 merged to `main` on 2026-08-04; this plan is a construction-complete record/reference, not an active child-execution queue.
 
 ## Purpose
 
@@ -151,8 +151,8 @@ Protected review points for intermediate governance-doc gates on `#1723`/`#1724`
 
 ## Readiness conclusion
 
-This implementation plan is the construction-complete record of the Cursor execution sequence for Program #1719. It is a reference for promotion, not a currently active child-execution queue.
+This implementation plan is the construction-complete record of the Cursor execution sequence for Program #1719. It is a reference after promotion, not a currently active child-execution queue.
 
 Status: `construction-complete-component`.
 
-Execution: documentation construction complete through Task #1727 on the component branch. Bill/ChatGPT-approved promotion to `main` remains outstanding per the construction-state note above.
+Execution: documentation construction complete through Task #1727. Promotion PR #3040 merged to `main` on 2026-08-04. This plan remains a construction-complete record/reference.
