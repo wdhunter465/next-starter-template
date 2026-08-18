@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Repository work-queue classification, queue precedence, team-assignment and priority namespaces, team vs agent claim lifecycle, Active and Pipeline priority semantics, Project Graduation, queue-state transitions, universal agent collaboration, and collaboration interaction with pull requests
 Does Not Own: Product outcome, final priority decisions, project design, implementation methods, recovery strategy, PR approval decisions, Production authorization, dashboard runtime implementation, or label-migration execution
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2695, #2699, #3055, #3113, #3145, #3152, #3240, #3134
-Last Reviewed: 2026-08-09
+Related Issues: #2695, #2699, #3055, #3113, #3145, #3152, #3240, #3134, #3188
+Last Reviewed: 2026-08-18
 ---
 
 # Work Queues and Collaboration
@@ -488,6 +488,8 @@ A request identifies:
 ### Acknowledgment
 
 The target agent acknowledges on the same source Issue, states the accepted scope, and identifies any missing evidence.
+
+Acknowledgment is required before the target claims unrelated work, unless a higher-priority numbered Operations interrupt applies. Acknowledgment does not transfer queue ownership or manufacture approval.
 
 ### Response
 

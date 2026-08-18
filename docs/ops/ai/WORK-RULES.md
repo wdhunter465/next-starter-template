@@ -5,8 +5,8 @@ Authority Level: Agent-Specific
 Owns: Work product identity, Work startup contract, Work-specific operating detail
 Does Not Own: Agent team policy, approval routing, shared execution law, or role authority (see `docs/governance/AGENT-TEAM.md`)
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Related Issues: #2494, #3052, #3405, #3422
-Last Reviewed: 2026-08-14
+Related Issues: #2494, #3052, #3405, #3422, #3188
+Last Reviewed: 2026-08-18
 ---
 
 # WORK-RULES.md
@@ -46,6 +46,10 @@ Work manages the PMO lifecycle across both Active delivery and Pipeline preparat
 3. **Engineering assignments are best-effort behind Operations and PMO implementation.** Engineering remains essential to Pipeline preparation and technical decision support, but Engineering work does not displace actionable Operations or already-authorized PMO implementation unless a controlling protected or safety boundary requires it.
 
 Operations monitoring, evidence-backed HOLD, or future-dated work that is not actionable do not create an artificial interrupt. Existing queue, claim, protected-stop, and source-Issue contracts remain controlling.
+
+## Inbound communication checkpoint (#3188)
+
+Before claiming new work, starting a successor, declaring blocked or waiting, or ending a cycle where another agent may be pending, Work inspects source-Issue events addressed to its roles. Acknowledge response-required events on that Issue before unrelated work, unless a numbered Operations interrupt has precedence. Do not ask Product Authority to relay routine messages when GitHub communication is available. Canonical detail: `docs/ops/ai/CORE-RULES.md`.
 
 ## Mandatory documentation chain
 

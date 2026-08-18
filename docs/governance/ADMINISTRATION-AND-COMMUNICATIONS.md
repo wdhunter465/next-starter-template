@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Cross-lane and cross-queue communication transport, evidence routing, repository-state reconciliation, acknowledgment, escalation, hold/resume administration, collaboration routing, reporting, closeout policy, and closeout delegation boundaries
 Does Not Own: Product outcomes, priority decisions, queue ownership decisions, design decisions, implementation methods, PR approval decisions, incident recovery strategy, runner host maintenance, or Production authorization
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2640, #2641, #2639, #2648, #2695, #2699, #2700, #2709, #3055, #3113
-Last Reviewed: 2026-08-06
+Related Issues: #2640, #2641, #2639, #2648, #2695, #2699, #2700, #2709, #3055, #3113, #3188
+Last Reviewed: 2026-08-18
 ---
 
 # Administration and Communications
@@ -129,6 +129,10 @@ The receiving role holder responds on that Issue first.
 Implementation delivery uses `IMPLEMENTATION HANDOFF`. Required formal PR inspection uses `PR REVIEW REQUEST`. Universal assistance uses the collaboration lifecycle below. Eligible assigned task closeout uses a `CLOSEOUT` event on the source Issue before or as part of the terminal transaction.
 
 A routing transaction is incomplete until the target participant, bounded request, blocking scope, retained authority, acknowledgment requirement, and completion condition are durable and unambiguous.
+
+Product Authority is not the default transport between operating agents. Human relay is a bounded fallback for unavailable or impaired GitHub communication and for protected Product, cost, legal, privacy, credential, destructive-data, or Production decisions. Routine assignments, acknowledgments, findings, remediation, status, resumes, and completion messages must travel on the source Issue.
+
+PR comments alone do not satisfy source-Issue routing or acknowledgment. Stale unanswered response-required events are detected by `scripts/ops/detect-stale-communication.mjs`, which posts at most one deduplicated `COMMUNICATION EXCEPTION` per event identity and does not invent a role decision.
 
 ## Universal collaboration lifecycle
 

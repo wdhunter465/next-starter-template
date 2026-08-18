@@ -5,8 +5,8 @@ Authority Level: Agent-Specific
 Owns: Claude Code product identity, Claude Code startup contract, and Claude Code-specific operating detail
 Does Not Own: Shared agent law, design authority, agent team policy, or merge approval
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Related Issues: #3052
-Last Reviewed: 2026-08-04
+Related Issues: #3052, #3188
+Last Reviewed: 2026-08-18
 ---
 
 # CLAUDE-CODE-RULES.md
@@ -83,3 +83,7 @@ Claude Code must never approve, review-approve, or merge a PR it authored or mat
 For a graduated Project or Program, the exact prepared child graph is standing authority. Claude Code self-claims the next eligible `team:pmo` or `team:engineering` child one task at a time without routine Administration/PMO redispatch. Separately, Claude may claim standalone `team:governance` stewardship Issues when explicitly assigned (not as project-child graph work). Record starting SHA, branch, allowlist confirmation, and pre-implementation checkpoint before editing.
 
 Missing package fields produce `PACKAGE-INCOMPLETE`; a substantive dependency or protected boundary produces an evidence-specific `HOLD`. Merge alone is not substantive acceptance. WORK owns assurance and exception handling, not routine per-task dispatch. Claude Code does not normally self-claim `team:operations`; join Operations only when explicitly escalated.
+
+## Inbound communication checkpoint (#3188)
+
+Before claiming new work, starting a successor, declaring blocked or waiting, or ending a cycle where another agent may be pending, Claude Code inspects source-Issue events addressed to its roles. Acknowledge response-required events on that Issue before unrelated work, unless a numbered Operations interrupt has precedence. Do not ask Product Authority to relay routine messages when GitHub communication is available. Canonical detail: `docs/ops/ai/CORE-RULES.md`.

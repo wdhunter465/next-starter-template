@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Durable LGFC roles, recognized agent product inventory, current member mapping, approval authority, protected stops, operating modes, launch-control workflow boundaries, member work-precedence mapping, and delegated task-closeout role boundaries
 Does Not Own: Queue and priority semantics, shared execution detail, tool-specific runtime behavior, PMO sizing, promotion-profile policy, communication mutation taxonomy, or production mechanics
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2494, #2640, #2641, #2648, #2699, #2700, #3052, #3145, #3142, #3152, #3240
-Last Reviewed: 2026-08-09
+Related Issues: #2494, #2640, #2641, #2648, #2699, #2700, #3052, #3145, #3142, #3152, #3240, #3188
+Last Reviewed: 2026-08-18
 ---
 
 # Agent Team
@@ -99,6 +99,10 @@ Future agents and systems may be assigned compatible roles through an approved m
 - Product Authority is not expected to copy, interpret, or relay routine assignments, findings, remediation requests, acknowledgments, resumes, status, or completion messages.
 - Human relay through Product Authority is the least-desired fallback when the canonical channel is unavailable or Product Authority intervention is intentionally required.
 - Any externally relayed decision must be written back to GitHub by the responsible role holder before repository work depends on it.
+- Work, Cursor Local, and Claude Code inspect inbound source-Issue events addressed to their role before claiming unrelated work, starting a successor, declaring blocked or waiting, or ending a cycle where a response may be pending (`docs/ops/ai/CORE-RULES.md`, inbound communication checkpoint).
+- A response-required event must be acknowledged on the same source Issue before unrelated work is claimed, unless a higher-priority numbered Operations interrupt applies.
+- Operating agents must not ask Product Authority to relay routine messages to another LGFC agent when GitHub communication is available.
+- Stale unanswered response-required events are surfaced by the repository communication detector; the detector does not create acknowledgments or role decisions.
 
 ## Lane topology
 

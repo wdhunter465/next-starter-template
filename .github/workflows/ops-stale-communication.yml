@@ -1,0 +1,56 @@
+name: OPS — Stale communication detector
+
+# #3188: source-Issue-first stale / unanswered communication exceptions.
+# The job never acknowledges, reassigns, or invents a role decision.
+# Pull requests run offline self-test only.
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: scan (read-only) or apply (post missing exceptions)
+        required: false
+        default: 'apply'
+  pull_request:
+    paths:
+      - scripts/ops/detect-stale-communication.mjs
+      - scripts/ops/test-detect-stale-communication.mjs
+      - .github/workflows/ops-stale-communication.yml
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  detect:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Offline self-test
+        run: node scripts/ops/test-detect-stale-communication.mjs
+
+      - name: Scan or apply
+        if: github.event_name != 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: wdhunter465/next-starter-template
+          DETECT_MODE: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.mode || 'apply' }}
+        run: |
+          set -euo pipefail
+          MODE="${DETECT_MODE}"
+          if [ "${MODE}" != "scan" ] && [ "${MODE}" != "apply" ]; then
+            MODE=apply
+          fi
+          node scripts/ops/detect-stale-communication.mjs \
+            --mode="${MODE}" \
+            --repo=wdhunter465/next-starter-template \
+            --max-posts=3
