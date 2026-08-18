@@ -16,6 +16,7 @@ export const STALE_SOURCE_ISSUE_LABELS = [
 	'status:implementation',
 	'status:implementation-ready',
 	'status:ready-for-cursor',
+	'status:ready',
 	...INTERMEDIATE_SOURCE_ISSUE_LABELS,
 ];
 

@@ -5,7 +5,7 @@ Authority Level: Controlled
 Owns: LGFC merge-protection required check surface, consolidated deterministic blockers, and branch-protection naming alignment as a supporting specification
 Does Not Own: CI and Verification Domain Policy; GitHub branch protection settings UI; reviewer lifecycle policy; PR hygiene policy; OPS runtime workflows
 Canonical Reference: /docs/governance/CI-AND-VERIFICATION.md
-Related Issues: #2689, #2175, #2184, #2208, #2228, #2657
+Related Issues: #2689, #2175, #2184, #2208, #2228, #2657, #2271
 Last Reviewed: 2026-08-18
 ---
 
@@ -31,6 +31,8 @@ Configure branch protection for `main` with these deterministic checks only:
 | `pr-hygiene` | `GATE — PR Hygiene` | Stable PR-body validation; artifact + upsert comment |
 | `diff-scope` | `GATE — Diff Scope` | Allowed-path diff validation; artifact + upsert comment; transient GitHub API retry via repository script (#2657) |
 | `reviewer-response-completion` | `GATE — Reviewer Response Completion` | GitHub-native reviewer lifecycle; artifact; transient GitHub API retry via repository script (#2657) |
+
+Advisory checks remain advisory unless a future source issue promotes them after advisory evidence under `/docs/governance/PR_PROCESS.md`.
 
 ## Manual-only / paused (not merge blockers)
 
@@ -63,9 +65,9 @@ OPS runtime, post-merge closeout, and metrics workflows are not merge-protection
 
 ## Live GitHub verification (operator)
 
-Bill/ChatGPT must confirm live branch protection on `main` matches this reference. Repo-owned docs cannot mutate GitHub settings.
+Repo-owned docs cannot mutate GitHub settings. Expected required checks on `main` remain only `quality` and `gitleaks`.
 
-#2175 and #2208 closed complete on 2026-07-04. Do not reopen them for branch-protection confirmation. If live `main` protection diverges from this reference, open a new bounded Ops correction Issue.
+#2175 and #2208 closed complete on 2026-07-04. Do not reopen them for branch-protection confirmation. If live `main` protection diverges from this reference, open a **new bounded Ops correction** Issue.
 
 Operator steps:
 
