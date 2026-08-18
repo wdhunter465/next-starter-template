@@ -112,15 +112,21 @@ function uploadRequest(
   });
 }
 
-function validFields(overrides: Record<string, string> = {}): Record<string, string> {
+function grantFields(overrides: Record<string, string> = {}): Record<string, string> {
   return {
     submitter_name: 'Jane Member',
-    ownership_statement: 'I took this photo myself at the 2025 club picnic.',
-    permission_statement: 'LGFC may use this on the website.',
     credit_preference: 'public_credit',
-    attest_owns_rights: 'true',
+    rights_choice: 'member_owns_full_grant',
     ...overrides,
   };
+}
+
+function evaluationFields(overrides: Record<string, string> = {}): Record<string, string> {
+  return grantFields({
+    rights_choice: 'external_source_needs_evaluation',
+    source_url: 'https://commons.wikimedia.org/wiki/File:Example.jpg',
+    ...overrides,
+  });
 }
 
 function mockB2Put() {
@@ -133,7 +139,7 @@ function mockB2Put() {
   });
 }
 
-describe('POST /api/fanclub/photos/upload (#3552/#3553 Path C)', () => {
+describe('POST /api/fanclub/photos/upload (#3552/#3553 Path C -- two-choice rights UX)', () => {
   afterEach(() => {
     vi.restoreAllMocks();
   });
@@ -144,52 +150,74 @@ describe('POST /api/fanclub/photos/upload (#3552/#3553 Path C)', () => {
 
     const response = await uploadPost({
       env: { DB: db, ...B2_ENV },
-      request: uploadRequest(validFields(), { bytes: FAKE_JPEG_BYTES, name: 'photo.jpg', type: 'image/jpeg' }, 'no-such-session'),
+      request: uploadRequest(grantFields(), { bytes: FAKE_JPEG_BYTES, name: 'photo.jpg', type: 'image/jpeg' }, 'no-such-session'),
     });
 
     expect(response.status).toBe(401);
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
-  it('fails closed (400) when the rights-attestation checkbox is missing, even with everything else valid', async () => {
+  it('fails closed (400) when rights_choice is missing or invalid, even with everything else valid', async () => {
     const { sqlite, db } = freshDb();
     seedMemberSession(sqlite);
     const fetchSpy = mockB2Put();
 
+    const missing = await uploadPost({
+      env: { DB: db, ...B2_ENV },
+      request: uploadRequest(
+        grantFields({ rights_choice: '' }),
+        { bytes: FAKE_JPEG_BYTES, name: 'photo.jpg', type: 'image/jpeg' },
+      ),
+    });
+    expect(missing.status).toBe(400);
+
+    const invalid = await uploadPost({
+      env: { DB: db, ...B2_ENV },
+      request: uploadRequest(
+        grantFields({ rights_choice: 'something_else' }),
+        { bytes: FAKE_JPEG_BYTES, name: 'photo.jpg', type: 'image/jpeg' },
+      ),
+    });
+    expect(invalid.status).toBe(400);
+
+    expect(fetchSpy).not.toHaveBeenCalled();
+    const count = sqlite.prepare('SELECT COUNT(*) AS n FROM member_submissions').get() as { n: number };
+    expect(count.n).toBe(0);
+  });
+
+  it('fails closed (400) when rights_choice is external_source_needs_evaluation but source_url is missing', async () => {
+    const { sqlite, db } = freshDb();
+    seedMemberSession(sqlite);
+
     const response = await uploadPost({
       env: { DB: db, ...B2_ENV },
       request: uploadRequest(
-        validFields({ attest_owns_rights: '' }),
+        grantFields({ rights_choice: 'external_source_needs_evaluation' }),
         { bytes: FAKE_JPEG_BYTES, name: 'photo.jpg', type: 'image/jpeg' },
       ),
     });
 
     expect(response.status).toBe(400);
-    expect(fetchSpy).not.toHaveBeenCalled();
-
     const count = sqlite.prepare('SELECT COUNT(*) AS n FROM member_submissions').get() as { n: number };
     expect(count.n).toBe(0);
   });
 
-  it.each(['submitter_name', 'ownership_statement', 'permission_statement', 'credit_preference'])(
-    'fails closed (400) when %s is missing',
-    async (field) => {
-      const { sqlite, db } = freshDb();
-      seedMemberSession(sqlite);
+  it.each(['submitter_name', 'credit_preference'])('fails closed (400) when %s is missing', async (field) => {
+    const { sqlite, db } = freshDb();
+    seedMemberSession(sqlite);
 
-      const response = await uploadPost({
-        env: { DB: db, ...B2_ENV },
-        request: uploadRequest(
-          validFields({ [field]: '' }),
-          { bytes: FAKE_JPEG_BYTES, name: 'photo.jpg', type: 'image/jpeg' },
-        ),
-      });
+    const response = await uploadPost({
+      env: { DB: db, ...B2_ENV },
+      request: uploadRequest(
+        grantFields({ [field]: '' }),
+        { bytes: FAKE_JPEG_BYTES, name: 'photo.jpg', type: 'image/jpeg' },
+      ),
+    });
 
-      expect(response.status).toBe(400);
-      const count = sqlite.prepare('SELECT COUNT(*) AS n FROM member_submissions').get() as { n: number };
-      expect(count.n).toBe(0);
-    },
-  );
+    expect(response.status).toBe(400);
+    const count = sqlite.prepare('SELECT COUNT(*) AS n FROM member_submissions').get() as { n: number };
+    expect(count.n).toBe(0);
+  });
 
   it('rejects a file whose bytes do not match its declared content type', async () => {
     const { sqlite, db } = freshDb();
@@ -197,7 +225,7 @@ describe('POST /api/fanclub/photos/upload (#3552/#3553 Path C)', () => {
 
     const response = await uploadPost({
       env: { DB: db, ...B2_ENV },
-      request: uploadRequest(validFields(), {
+      request: uploadRequest(grantFields(), {
         bytes: new TextEncoder().encode('<html>not an image</html>'),
         name: 'photo.jpg',
         type: 'image/jpeg',
@@ -207,21 +235,32 @@ describe('POST /api/fanclub/photos/upload (#3552/#3553 Path C)', () => {
     expect(response.status).toBe(422);
   });
 
-  it('submits a valid, attested photo: B2 write + pending member_submissions row + media_assets still held', async () => {
+  it('member_owns_full_grant: clears rights immediately -- media_assets.rights_hold=0, consent granted', async () => {
     const { sqlite, db } = freshDb();
     seedMemberSession(sqlite);
     const fetchSpy = mockB2Put();
 
     const response = await uploadPost({
       env: { DB: db, ...B2_ENV },
-      request: uploadRequest(validFields(), { bytes: FAKE_JPEG_BYTES, name: 'photo.jpg', type: 'image/jpeg' }),
+      request: uploadRequest(grantFields({ people_tags: 'Lou Gehrig, Babe Ruth' }), {
+        bytes: FAKE_JPEG_BYTES,
+        name: 'photo.jpg',
+        type: 'image/jpeg',
+      }),
     });
 
     expect(response.status).toBe(200);
-    const body = (await response.json()) as { ok: boolean; b2_key: string; media_uid: string; already_existed: boolean };
+    const body = (await response.json()) as {
+      ok: boolean;
+      b2_key: string;
+      media_uid: string;
+      already_existed: boolean;
+      rights_hold: number;
+    };
     expect(body.ok).toBe(true);
     expect(body.b2_key.startsWith('LGFC_MEMBER_')).toBe(true);
     expect(body.already_existed).toBe(false);
+    expect(body.rights_hold).toBe(0);
 
     const b2PutCalls = fetchSpy.mock.calls.filter(([input]) => {
       const url = input instanceof Request ? input.url : String(input);
@@ -230,35 +269,103 @@ describe('POST /api/fanclub/photos/upload (#3552/#3553 Path C)', () => {
     expect(b2PutCalls).toHaveLength(1);
 
     const mediaRow = sqlite
-      .prepare('SELECT rights_hold FROM media_assets WHERE media_uid = ?')
-      .get(body.media_uid) as { rights_hold: number };
-    // Member self-attestation is recorded as evidence, but never self-grants
-    // publish approval -- the row stays at the column default (held) until
-    // an admin separately reviews it.
-    expect(mediaRow.rights_hold).toBe(1);
+      .prepare('SELECT rights_hold, rights_hold_reason FROM media_assets WHERE media_uid = ?')
+      .get(body.media_uid) as { rights_hold: number; rights_hold_reason: string };
+    expect(mediaRow.rights_hold).toBe(0);
+    expect(mediaRow.rights_hold_reason).toContain('reviewer:Jane Member');
 
     const contentItemRow = sqlite
-      .prepare("SELECT input_stream, content_type, media_asset_id FROM content_items WHERE candidate_id = ?")
-      .get(`member-photo-${body.media_uid}`) as { input_stream: string; content_type: string; media_asset_id: string };
+      .prepare(
+        'SELECT input_stream, content_type, rights_status, review_status, media_asset_id FROM content_items WHERE candidate_id = ?',
+      )
+      .get(`member-photo-${body.media_uid}`) as {
+      input_stream: string;
+      content_type: string;
+      rights_status: string;
+      review_status: string;
+      media_asset_id: string;
+    };
     expect(contentItemRow.input_stream).toBe('member_submission');
     expect(contentItemRow.content_type).toBe('photo');
+    expect(contentItemRow.rights_status).toBe('permission_granted');
+    expect(contentItemRow.review_status).toBe('approved_public_candidate');
     expect(contentItemRow.media_asset_id).toBe(`b2://${body.b2_key}`);
 
     const submissionRow = sqlite
       .prepare(
-        `SELECT ms.consent_status, ms.ownership_statement, ms.permission_statement, ms.credit_preference
+        `SELECT ms.consent_status, ms.admin_followup_required, ms.credit_preference
          FROM member_submissions ms JOIN content_items ci ON ci.id = ms.content_item_id
          WHERE ci.candidate_id = ?`,
       )
       .get(`member-photo-${body.media_uid}`) as {
       consent_status: string;
-      ownership_statement: string;
-      permission_statement: string;
+      admin_followup_required: number;
       credit_preference: string;
     };
-    expect(submissionRow.consent_status).toBe('pending');
-    expect(submissionRow.ownership_statement).toBe('I took this photo myself at the 2025 club picnic.');
+    expect(submissionRow.consent_status).toBe('granted');
+    expect(submissionRow.admin_followup_required).toBe(0);
     expect(submissionRow.credit_preference).toBe('public_credit');
+
+    const evidence = sqlite
+      .prepare(
+        `SELECT re.evidence_type, re.conclusion, re.reviewer
+         FROM rights_evidence re JOIN content_items ci ON ci.id = re.content_item_id
+         WHERE ci.candidate_id = ?`,
+      )
+      .get(`member-photo-${body.media_uid}`) as { evidence_type: string; conclusion: string; reviewer: string };
+    expect(evidence.evidence_type).toBe('member_ownership');
+    expect(evidence.conclusion).toBe('lgfc_member_owned_item_photo');
+    expect(evidence.reviewer).toBe('Jane Member');
+
+    const tagCount = sqlite
+      .prepare(
+        `SELECT COUNT(*) AS n FROM content_item_tags cit JOIN content_items ci ON ci.id = cit.content_item_id
+         WHERE ci.candidate_id = ?`,
+      )
+      .get(`member-photo-${body.media_uid}`) as { n: number };
+    expect(tagCount.n).toBe(2);
+  });
+
+  it('external_source_needs_evaluation: photo stays held and is queued for copyright evaluation', async () => {
+    const { sqlite, db } = freshDb();
+    seedMemberSession(sqlite);
+    mockB2Put();
+
+    const response = await uploadPost({
+      env: { DB: db, ...B2_ENV },
+      request: uploadRequest(evaluationFields(), { bytes: FAKE_JPEG_BYTES, name: 'photo.jpg', type: 'image/jpeg' }),
+    });
+
+    expect(response.status).toBe(200);
+    const body = (await response.json()) as { ok: boolean; media_uid: string; rights_hold: number };
+    expect(body.ok).toBe(true);
+    expect(body.rights_hold).toBe(1);
+
+    const mediaRow = sqlite
+      .prepare('SELECT rights_hold FROM media_assets WHERE media_uid = ?')
+      .get(body.media_uid) as { rights_hold: number };
+    expect(mediaRow.rights_hold).toBe(1);
+
+    const submissionRow = sqlite
+      .prepare(
+        `SELECT ms.consent_status, ms.admin_followup_required
+         FROM member_submissions ms JOIN content_items ci ON ci.id = ms.content_item_id
+         WHERE ci.candidate_id = ?`,
+      )
+      .get(`member-photo-${body.media_uid}`) as { consent_status: string; admin_followup_required: number };
+    expect(submissionRow.consent_status).toBe('pending');
+    expect(submissionRow.admin_followup_required).toBe(1);
+
+    const evidence = sqlite
+      .prepare(
+        `SELECT re.evidence_type, re.conclusion, re.evidence_url
+         FROM rights_evidence re JOIN content_items ci ON ci.id = re.content_item_id
+         WHERE ci.candidate_id = ?`,
+      )
+      .get(`member-photo-${body.media_uid}`) as { evidence_type: string; conclusion: string | null; evidence_url: string };
+    expect(evidence.evidence_type).toBe('other');
+    expect(evidence.conclusion).toBeNull();
+    expect(evidence.evidence_url).toBe('https://commons.wikimedia.org/wiki/File:Example.jpg');
   });
 
   it('a second identical upload is idempotent: no second B2 write, same media_uid', async () => {
@@ -268,13 +375,13 @@ describe('POST /api/fanclub/photos/upload (#3552/#3553 Path C)', () => {
 
     const first = await uploadPost({
       env: { DB: db, ...B2_ENV },
-      request: uploadRequest(validFields(), { bytes: FAKE_JPEG_BYTES, name: 'photo.jpg', type: 'image/jpeg' }),
+      request: uploadRequest(grantFields(), { bytes: FAKE_JPEG_BYTES, name: 'photo.jpg', type: 'image/jpeg' }),
     });
     const firstBody = (await first.json()) as { media_uid: string };
 
     const second = await uploadPost({
       env: { DB: db, ...B2_ENV },
-      request: uploadRequest(validFields(), { bytes: FAKE_JPEG_BYTES, name: 'photo.jpg', type: 'image/jpeg' }),
+      request: uploadRequest(grantFields(), { bytes: FAKE_JPEG_BYTES, name: 'photo.jpg', type: 'image/jpeg' }),
     });
     expect(second.status).toBe(200);
     const secondBody = (await second.json()) as { media_uid: string; already_existed: boolean };
@@ -292,5 +399,38 @@ describe('POST /api/fanclub/photos/upload (#3552/#3553 Path C)', () => {
       .prepare('SELECT COUNT(*) AS n FROM media_assets WHERE media_uid = ?')
       .get(firstBody.media_uid) as { n: number };
     expect(mediaCount.n).toBe(1);
+  });
+
+  it('a duplicate upload with a different rights_choice reports the actual stored rights_hold, not the new choice', async () => {
+    const pair = freshDb();
+    seedMemberSession(pair.sqlite);
+    mockB2Put();
+
+    // First upload picks external_source_needs_evaluation -- the row is
+    // inserted held (rights_hold=1).
+    const first = await uploadPost({
+      env: { DB: pair.db, ...B2_ENV },
+      request: uploadRequest(evaluationFields(), { bytes: FAKE_JPEG_BYTES, name: 'photo.jpg', type: 'image/jpeg' }),
+    });
+    const firstBody = (await first.json()) as { media_uid: string; rights_hold: number };
+    expect(firstBody.rights_hold).toBe(1);
+
+    // Second upload of the *identical bytes* picks member_owns_full_grant.
+    // The media_assets INSERT is a no-op (ON CONFLICT DO NOTHING), so the
+    // actually-stored rights_hold is still 1 -- the response must reflect
+    // that, not the second request's own choice.
+    const second = await uploadPost({
+      env: { DB: pair.db, ...B2_ENV },
+      request: uploadRequest(grantFields(), { bytes: FAKE_JPEG_BYTES, name: 'photo.jpg', type: 'image/jpeg' }),
+    });
+    const secondBody = (await second.json()) as { media_uid: string; already_existed: boolean; rights_hold: number };
+    expect(secondBody.media_uid).toBe(firstBody.media_uid);
+    expect(secondBody.already_existed).toBe(true);
+    expect(secondBody.rights_hold).toBe(1);
+
+    const mediaRow = pair.sqlite
+      .prepare('SELECT rights_hold FROM media_assets WHERE media_uid = ?')
+      .get(firstBody.media_uid) as { rights_hold: number };
+    expect(mediaRow.rights_hold).toBe(1);
   });
 });

@@ -7,8 +7,8 @@ import {
   allocateMemberSubmissionCandidateId,
   buildMemberSubmissionCandidateRecord,
   candidateAllocationYearFromIso,
-  computeAdminFollowupRequired,
   deriveMemberIntakeContentType,
+  deriveRightsOutcome,
   isCandidateIdUniqueConflict,
   parseMemberSubmissionIntakeBody,
   persistMemberSubmissionIntake,
@@ -56,8 +56,8 @@ function wrapSqliteAsD1(sqlite: DatabaseSync) {
           return { results: stmt.all(...args) };
         },
         async run() {
-          stmt.run(...args);
-          return { success: true };
+          const info = stmt.run(...args);
+          return { success: true, meta: { last_row_id: Number(info.lastInsertRowid) } };
         },
       });
 
@@ -70,8 +70,8 @@ function wrapSqliteAsD1(sqlite: DatabaseSync) {
           return { results: stmt.all() };
         },
         async run() {
-          stmt.run();
-          return { success: true };
+          const info = stmt.run();
+          return { success: true, meta: { last_row_id: Number(info.lastInsertRowid) } };
         },
       };
     },
@@ -107,12 +107,18 @@ function validIntakeBody(overrides: Record<string, unknown> = {}) {
     title: 'Grandpa at Yankee Stadium',
     summary: 'My grandfather attended a Gehrig game in 1938.',
     submission_type: 'story',
-    ownership_statement: 'I own this family memory and related notes.',
-    permission_statement: 'LGFC may use this story for internal review and possible publication with credit.',
+    rights_choice: 'member_owns_full_grant',
     credit_preference: 'public_credit',
-    consent_status: 'pending',
     ...overrides,
   };
+}
+
+function externalSourceBody(overrides: Record<string, unknown> = {}) {
+  return validIntakeBody({
+    rights_choice: 'external_source_needs_evaluation',
+    source_url: 'https://commons.wikimedia.org/wiki/File:Example.jpg',
+    ...overrides,
+  });
 }
 
 function memberPostRequest(body: unknown, sessionId = 'session-2316'): Request {
@@ -126,22 +132,61 @@ function memberPostRequest(body: unknown, sessionId = 'session-2316'): Request {
   });
 }
 
-describe('content pipeline member submission intake (#2316)', () => {
-  it('parses required intake fields and rejects member-controlled classification fields', () => {
+describe('content pipeline member submission intake -- two-choice rights UX (#3552/#3553)', () => {
+  it('parses a valid member_owns_full_grant submission and derives statement text server-side', () => {
     const parsed = parseMemberSubmissionIntakeBody(validIntakeBody());
     expect(parsed.ok).toBe(true);
-    if (parsed.ok) {
-      expect(parsed.request.admin_followup_required).toBe(true);
-    }
+    if (!parsed.ok) return;
+    expect(parsed.request.consent_status).toBe('granted');
+    expect(parsed.request.rights_status).toBe('permission_granted');
+    expect(parsed.request.review_status).toBe('approved_public_candidate');
+    expect(parsed.request.publication_status).toBe('approved_for_publish');
+    expect(parsed.request.admin_followup_required).toBe(false);
+    expect(parsed.request.ownership_statement.length).toBeGreaterThan(0);
+    expect(parsed.request.permission_statement.length).toBeGreaterThan(0);
+  });
 
+  it('parses a valid external_source_needs_evaluation submission and queues it pending', () => {
+    const parsed = parseMemberSubmissionIntakeBody(externalSourceBody());
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) return;
+    expect(parsed.request.consent_status).toBe('pending');
+    expect(parsed.request.rights_status).toBe('permission_needed');
+    expect(parsed.request.review_status).toBe('pending_review');
+    expect(parsed.request.publication_status).toBe('not_ready');
+    expect(parsed.request.admin_followup_required).toBe(true);
+    expect(parsed.request.source_url).toBe('https://commons.wikimedia.org/wiki/File:Example.jpg');
+  });
+
+  it('rejects external_source_needs_evaluation without a source_url', () => {
+    const parsed = parseMemberSubmissionIntakeBody(
+      validIntakeBody({ rights_choice: 'external_source_needs_evaluation' }),
+    );
+    expect(parsed.ok).toBe(false);
+    if (parsed.ok) return;
+    expect(parsed.error).toContain('source_url is required');
+  });
+
+  it('rejects a missing or invalid rights_choice', () => {
+    const missing = parseMemberSubmissionIntakeBody(validIntakeBody({ rights_choice: '' }));
+    expect(missing.ok).toBe(false);
+
+    const invalid = parseMemberSubmissionIntakeBody(validIntakeBody({ rights_choice: 'something_else' }));
+    expect(invalid.ok).toBe(false);
+  });
+
+  it('rejects the old free-text ownership_statement/permission_statement fields', () => {
+    const parsed = parseMemberSubmissionIntakeBody(
+      validIntakeBody({ ownership_statement: 'I wrote this myself.' }),
+    );
+    expect(parsed.ok).toBe(false);
+    if (parsed.ok) return;
+    expect(parsed.error).toContain('rights_choice instead');
+  });
+
+  it('rejects other member-controlled classification fields', () => {
     const missingTitle = parseMemberSubmissionIntakeBody(validIntakeBody({ title: '   ' }));
     expect(missingTitle.ok).toBe(false);
-
-    const grantedConsent = parseMemberSubmissionIntakeBody(validIntakeBody({ consent_status: 'granted' }));
-    expect(grantedConsent.ok).toBe(false);
-    if (!grantedConsent.ok) {
-      expect(grantedConsent.error).toContain('pending');
-    }
 
     const suppliedSourceType = parseMemberSubmissionIntakeBody(validIntakeBody({ source_type: 'member' }));
     expect(suppliedSourceType.ok).toBe(false);
@@ -175,25 +220,28 @@ describe('content pipeline member submission intake (#2316)', () => {
     expect(candidate.content_type).toBe('photo');
   });
 
-  it('computes admin follow-up for privacy-sensitive and pending consent cases', () => {
-    expect(
-      computeAdminFollowupRequired({
-        consent_status: 'pending',
-        privacy_flag: 'none',
-        permission_statement: 'LGFC may use this.',
-      }),
-    ).toBe(true);
+  it('deriveRightsOutcome: privacy follow-up still applies even on a fully-granted submission', () => {
+    const grantedNoPrivacy = deriveRightsOutcome('member_owns_full_grant', 'none');
+    expect(grantedNoPrivacy.admin_followup_required).toBe(false);
+    expect(grantedNoPrivacy.publication_status).toBe('approved_for_publish');
 
-    expect(
-      computeAdminFollowupRequired({
-        consent_status: 'granted',
-        privacy_flag: 'living_person',
-        permission_statement: 'LGFC may use this.',
-      }),
-    ).toBe(true);
+    const grantedLivingPerson = deriveRightsOutcome('member_owns_full_grant', 'living_person');
+    expect(grantedLivingPerson.admin_followup_required).toBe(true);
+    expect(grantedLivingPerson.publication_status).toBe('not_ready');
+    // Rights are still fully cleared -- only publication readiness is held back.
+    expect(grantedLivingPerson.rights_status).toBe('permission_granted');
+    // review_status must not claim approved_public_candidate while privacy
+    // is still pending -- docs/how-to/website/member-submission-review.md:
+    // "Do not set approved_public_candidate until rights and privacy both
+    // acceptable."
+    expect(grantedLivingPerson.review_status).toBe('pending_review');
+
+    const evaluationNeeded = deriveRightsOutcome('external_source_needs_evaluation', 'none');
+    expect(evaluationNeeded.admin_followup_required).toBe(true);
+    expect(evaluationNeeded.rights_status).toBe('permission_needed');
   });
 
-  it('builds member_submission candidates with safe default review states', () => {
+  it('builds member_submission candidates reflecting the fully-granted outcome', () => {
     const parsed = parseMemberSubmissionIntakeBody(validIntakeBody());
     expect(parsed.ok).toBe(true);
     if (!parsed.ok) return;
@@ -206,68 +254,132 @@ describe('content pipeline member submission intake (#2316)', () => {
     });
 
     expect(candidate.input_stream).toBe('member_submission');
-    expect(candidate.publication_status).toBe('not_ready');
-    expect(candidate.review_status).toBe('pending_review');
-    expect(candidate.rights_status).toBe('permission_needed');
+    expect(candidate.publication_status).toBe('approved_for_publish');
+    expect(candidate.review_status).toBe('approved_public_candidate');
+    expect(candidate.rights_status).toBe('permission_granted');
+    expect(candidate.member_submission?.consent_status).toBe('granted');
     expect(candidate.member_submission?.submitter_contact).toBe('member@example.com');
   });
 
-  it('persists content_items, submitters, and member_submissions without publication promotion', async () => {
+  it('persists a fully-granted submission with a matching rights_evidence conclusion', async () => {
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
     const db = wrapSqliteAsD1(sqlite);
 
     const parsed = parseMemberSubmissionIntakeBody(
       validIntakeBody({
-        privacy_flag: 'living_person',
-        uploaded_media_reference: 'b2://pending/photo-ref',
         people_tags: ['Lou Gehrig'],
+        topic_tags: ['1938 season'],
       }),
     );
     expect(parsed.ok).toBe(true);
     if (!parsed.ok) return;
 
-    const intakeNow = '2026-07-06T19:00:00.000Z';
     const result = await persistMemberSubmissionIntake(db, parsed.request, {
       submitterContact: 'member@example.com',
       memberSubmitterId: 'member@example.com',
-      now: intakeNow,
+      now: '2026-07-06T19:00:00.000Z',
     });
 
-    expect(result.publication_status).toBe('not_ready');
+    expect(result.publication_status).toBe('approved_for_publish');
+    expect(result.rights_status).toBe('permission_granted');
     expect(result.candidate_id).toBe('lgfc-gehrig-2026-001');
 
     const contentItem = sqlite
       .prepare(`SELECT * FROM content_items WHERE candidate_id = ?`)
       .get(result.candidate_id) as Record<string, unknown>;
-    expect(contentItem.publication_status).toBe('not_ready');
+    expect(contentItem.publication_status).toBe('approved_for_publish');
+    expect(contentItem.rights_status).toBe('permission_granted');
     expect(contentItem.content_inventory_id).toBeNull();
-    expect(contentItem.input_stream).toBe('member_submission');
-    expect(contentItem.source_type).toBe('member');
-    expect(contentItem.content_type).toBe('story');
 
     const memberSubmission = sqlite
       .prepare(
-        `SELECT ms.*, s.submitter_contact, s.submitter_name
+        `SELECT ms.*, s.submitter_contact
          FROM member_submissions ms
          JOIN content_items ci ON ci.id = ms.content_item_id
          JOIN submitters s ON s.id = ms.submitter_id
          WHERE ci.candidate_id = ?`,
       )
       .get(result.candidate_id) as Record<string, unknown>;
-    expect(memberSubmission.submitter_contact).toBe('member@example.com');
-    expect(memberSubmission.consent_status).toBe('pending');
-    expect(memberSubmission.admin_followup_required).toBe(1);
+    expect(memberSubmission.consent_status).toBe('granted');
+    expect(memberSubmission.admin_followup_required).toBe(0);
 
-    const publicationCount = sqlite
-      .prepare(`SELECT COUNT(*) AS count FROM publication_candidates`)
-      .get() as { count: number };
-    expect(publicationCount.count).toBe(0);
+    const evidence = sqlite
+      .prepare(
+        `SELECT re.evidence_type, re.conclusion, re.reviewer
+         FROM rights_evidence re
+         JOIN content_items ci ON ci.id = re.content_item_id
+         WHERE ci.candidate_id = ?`,
+      )
+      .get(result.candidate_id) as Record<string, unknown>;
+    expect(evidence.evidence_type).toBe('member_ownership');
+    expect(evidence.conclusion).toBe('permission_granted');
+    expect(evidence.reviewer).toBe('Jane Member');
+
+    const tagCount = sqlite
+      .prepare(
+        `SELECT COUNT(*) AS n FROM content_item_tags cit
+         JOIN content_items ci ON ci.id = cit.content_item_id
+         WHERE ci.candidate_id = ?`,
+      )
+      .get(result.candidate_id) as { n: number };
+    expect(tagCount.n).toBe(2);
+
+    // Fully-granted submissions are staged into publication_candidates so
+    // "no separate admin step for rights" doesn't leave them approved but
+    // invisible to the normal promotion workflow.
+    const publicationCandidate = sqlite
+      .prepare(
+        `SELECT pc.publication_target, pc.status, pc.credit_line
+         FROM publication_candidates pc
+         JOIN content_items ci ON ci.id = pc.content_item_id
+         WHERE ci.candidate_id = ?`,
+      )
+      .get(result.candidate_id) as Record<string, unknown>;
+    expect(publicationCandidate.publication_target).toBe('library');
+    expect(publicationCandidate.status).toBe('staging');
+    expect(publicationCandidate.credit_line).toBe('Jane Member');
 
     const inventoryCount = sqlite
       .prepare(`SELECT COUNT(*) AS count FROM content_inventory`)
       .get() as { count: number };
     expect(inventoryCount.count).toBe(0);
+  });
+
+  it('persists an external-source submission with a no-conclusion rights_evidence row awaiting evaluation', async () => {
+    const sqlite = new DatabaseSync(':memory:');
+    applyRepoMigrations(sqlite);
+    const db = wrapSqliteAsD1(sqlite);
+
+    const parsed = parseMemberSubmissionIntakeBody(externalSourceBody());
+    expect(parsed.ok).toBe(true);
+    if (!parsed.ok) return;
+
+    const result = await persistMemberSubmissionIntake(db, parsed.request, {
+      submitterContact: 'member@example.com',
+      memberSubmitterId: 'member@example.com',
+      now: '2026-07-06T19:00:00.000Z',
+    });
+
+    expect(result.publication_status).toBe('not_ready');
+    expect(result.rights_status).toBe('permission_needed');
+
+    const evidence = sqlite
+      .prepare(
+        `SELECT re.evidence_type, re.conclusion, re.evidence_url
+         FROM rights_evidence re
+         JOIN content_items ci ON ci.id = re.content_item_id
+         WHERE ci.candidate_id = ?`,
+      )
+      .get(result.candidate_id) as Record<string, unknown>;
+    expect(evidence.evidence_type).toBe('other');
+    expect(evidence.conclusion).toBeNull();
+    expect(evidence.evidence_url).toBe('https://commons.wikimedia.org/wiki/File:Example.jpg');
+
+    const publicationCount = sqlite
+      .prepare(`SELECT COUNT(*) AS count FROM publication_candidates`)
+      .get() as { count: number };
+    expect(publicationCount.count).toBe(0);
   });
 
   it('allocates sequential candidate IDs within an explicit allocation year', async () => {
@@ -357,7 +469,7 @@ describe('content pipeline member submission intake (#2316)', () => {
     expect(invalidContentType.status).toBe(400);
   });
 
-  it('ignores client admin_followup_required:false and persists admin follow-up as true', async () => {
+  it('ignores any client-supplied admin_followup_required and derives it server-side', async () => {
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
     seedMemberSession(sqlite);
@@ -365,7 +477,7 @@ describe('content pipeline member submission intake (#2316)', () => {
 
     const response = await memberSubmitPost({
       env: { DB: db },
-      request: memberPostRequest(validIntakeBody({ admin_followup_required: false })),
+      request: memberPostRequest(externalSourceBody({ admin_followup_required: false })),
     });
 
     expect(response.status).toBe(200);
@@ -397,7 +509,7 @@ describe('content pipeline member submission intake (#2316)', () => {
     expect(response.status).toBe(200);
     const body = await response.json();
     expect(body.ok).toBe(true);
-    expect(body.publication_status).toBe('not_ready');
+    expect(body.publication_status).toBe('approved_for_publish');
     expect(body.candidate_id).toMatch(/^lgfc-gehrig-\d{4}-\d{3,}$/);
     expect(body.submitter_contact).toBeUndefined();
     expect(body.ownership_statement).toBeUndefined();
@@ -407,9 +519,10 @@ describe('content pipeline member submission intake (#2316)', () => {
     const serialized = serializeMemberSubmissionIntakeResponse({
       candidate_id: body.candidate_id,
       input_stream: 'member_submission',
-      publication_status: 'not_ready',
-      review_status: 'pending_review',
-      admin_followup_required: true,
+      publication_status: 'approved_for_publish',
+      review_status: 'approved_public_candidate',
+      rights_status: 'permission_granted',
+      admin_followup_required: false,
     });
     expect(JSON.stringify(serialized)).not.toContain('member@example.com');
   });

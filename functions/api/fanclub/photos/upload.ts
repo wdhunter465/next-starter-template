@@ -1,14 +1,11 @@
 // POST /api/fanclub/photos/upload
-// #3552/#3553 Path C: an authenticated member uploads their own photo,
-// attesting they own the rights to it. This endpoint captures that
-// attestation and writes the file to B2 -- it never grants publish
-// approval itself. The submission lands with member_submissions
-// consent_status='pending' and media_assets.rights_hold left at its
-// column default (held); an admin must separately review it (the same
-// "read the evidence, then decide" review flow Path B already uses) before
-// it can ever become visible on the live site. See
-// functions/_lib/member-photo-submission-repository.ts for the core safety
-// rule this preserves.
+// #3552/#3553 Path C: an authenticated member uploads their own photo and
+// picks exactly one of two rights choices -- member_owns_full_grant (clears
+// rights immediately, no separate admin step, per explicit product
+// direction) or external_source_needs_evaluation (queues it for the same
+// copyright-evaluation review Path B's externally-sourced candidates get).
+// See functions/_lib/member-photo-submission-repository.ts for the rights
+// derivation and the safety rationale.
 
 import { requireMember } from "../../../_lib/session";
 import { jsonResponse } from "../../../_lib/d1";
@@ -24,13 +21,24 @@ import { buildMemberUploadKey } from "../../../_lib/content-pipeline-media-key";
 import {
   commitMemberPhotoSubmission,
   requireMemberPhotoSubmissionTables,
+  PHOTO_RIGHTS_CHOICES,
   type CreditPreference,
+  type PhotoRightsChoice,
 } from "../../../_lib/member-photo-submission-repository";
 
 const CREDIT_PREFERENCES = new Set<CreditPreference>(["public_credit", "anonymous", "private", "custom"]);
+const RIGHTS_CHOICE_SET = new Set<string>(PHOTO_RIGHTS_CHOICES);
 
 function isCreditPreference(value: string): value is CreditPreference {
   return CREDIT_PREFERENCES.has(value as CreditPreference);
+}
+
+function parseTagList(value: FormDataEntryValue | null): string[] {
+  if (typeof value !== "string") return [];
+  return value
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter(Boolean);
 }
 
 export const onRequestPost = async (context: any): Promise<Response> => {
@@ -57,31 +65,32 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     return jsonResponse({ ok: false, error: "A 'file' field with the image is required." }, 400);
   }
 
-  // The attestation checkbox is the entire legal gate for this endpoint --
-  // fail closed if it's missing, unchecked, or anything other than the
-  // literal string a checked HTML checkbox sends.
-  const attestOwnsRights = String(form.get("attest_owns_rights") ?? "").trim().toLowerCase();
-  if (attestOwnsRights !== "true" && attestOwnsRights !== "on") {
-    return jsonResponse(
-      { ok: false, error: "You must attest that you own the rights to this photo before it can be submitted." },
-      400,
-    );
-  }
-
-  const ownershipStatement = String(form.get("ownership_statement") ?? "").trim();
-  const permissionStatement = String(form.get("permission_statement") ?? "").trim();
+  const rightsChoiceRaw = String(form.get("rights_choice") ?? "").trim();
+  const sourceUrl = String(form.get("source_url") ?? "").trim();
   const creditPreferenceRaw = String(form.get("credit_preference") ?? "").trim();
   const caption = String(form.get("caption") ?? "").trim() || null;
   const customCreditLine = String(form.get("custom_credit_line") ?? "").trim() || null;
   const submitterName = String(form.get("submitter_name") ?? "").trim();
 
-  if (!ownershipStatement || !permissionStatement || !creditPreferenceRaw || !submitterName) {
+  if (!submitterName || !creditPreferenceRaw) {
     return jsonResponse(
-      {
-        ok: false,
-        error:
-          "Fields 'submitter_name', 'ownership_statement', 'permission_statement', and 'credit_preference' are all required",
-      },
+      { ok: false, error: "Fields 'submitter_name' and 'credit_preference' are required." },
+      400,
+    );
+  }
+
+  // rights_choice is the entire legal gate for this endpoint -- fail closed
+  // if it's missing, invalid, or (for the external-source choice) missing
+  // its required source_url, before ever touching the file or B2.
+  if (!rightsChoiceRaw || !RIGHTS_CHOICE_SET.has(rightsChoiceRaw)) {
+    return jsonResponse(
+      { ok: false, error: `rights_choice is required and must be one of: ${[...RIGHTS_CHOICE_SET].join(", ")}` },
+      400,
+    );
+  }
+  if (rightsChoiceRaw === "external_source_needs_evaluation" && !sourceUrl) {
+    return jsonResponse(
+      { ok: false, error: "source_url is required when rights_choice is external_source_needs_evaluation." },
       400,
     );
   }
@@ -135,8 +144,8 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     const result = await commitMemberPhotoSubmission(auth.db, {
       submitterEmail: auth.email,
       submitterName,
-      ownershipStatement,
-      permissionStatement,
+      rightsChoice: rightsChoiceRaw as PhotoRightsChoice,
+      sourceUrl: sourceUrl || null,
       creditPreference: creditPreferenceRaw,
       customCreditLine,
       caption,
@@ -144,6 +153,9 @@ export const onRequestPost = async (context: any): Promise<Response> => {
       b2Key,
       size: bytes.byteLength,
       etag,
+      peopleTags: parseTagList(form.get("people_tags")),
+      topicTags: parseTagList(form.get("topic_tags")),
+      locationTags: parseTagList(form.get("location_tags")),
     });
 
     return jsonResponse(
@@ -153,7 +165,11 @@ export const onRequestPost = async (context: any): Promise<Response> => {
         media_uid: result.mediaUid,
         b2_key: result.b2Key,
         already_existed: result.alreadyExisted,
-        message: "Photo submitted for rights review. It will not appear on the site until an admin approves it.",
+        rights_hold: result.rightsHold,
+        message:
+          result.rightsHold === 0
+            ? "Photo submitted. Rights fully granted -- it will sync to the site on the next daily update."
+            : "Photo submitted and queued for copyright evaluation. It will not appear on the site until an admin approves it.",
       },
       200,
     );

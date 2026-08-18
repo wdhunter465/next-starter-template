@@ -1,4 +1,4 @@
-import { fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor, within } from '@testing-library/react';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -291,35 +291,63 @@ describe('Fan Club operational pages', () => {
     expect(screen.getByRole('link', { name: 'Submit a story or note' })).toHaveAttribute('href', '/fanclub/submit');
   });
 
-  it('submits library articles with the member session cookie and surfaces API errors', async () => {
+  it('submits articles with the member_owns_full_grant rights checkbox and surfaces API errors', async () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
       jsonResponse({ ok: false, error: 'Not authenticated' }, 401) as never,
     );
 
     render(<FanclubSubmitPage />);
 
-    fireEvent.change(screen.getByPlaceholderText('Your name'), { target: { value: 'Casey Member' } });
-    fireEvent.change(screen.getByPlaceholderText('Article title'), { target: { value: 'Club memory' } });
-    fireEvent.change(screen.getByPlaceholderText('Paste your article text here…'), {
+    const articleSection = screen.getByRole('heading', { name: 'Submit an article' }).closest('section')!;
+    const article = within(articleSection);
+
+    fireEvent.change(article.getByPlaceholderText('Your name'), { target: { value: 'Casey Member' } });
+    fireEvent.change(article.getByPlaceholderText('Article title'), { target: { value: 'Club memory' } });
+    fireEvent.change(article.getByPlaceholderText('Paste your article text here…'), {
       target: { value: 'This is a long enough member submission for review.' },
     });
-    fireEvent.change(screen.getByPlaceholderText(/Ownership:/), { target: { value: 'I wrote this myself.' } });
-    fireEvent.change(screen.getByPlaceholderText(/Permission:/), {
-      target: { value: 'LGFC may use this submission.' },
-    });
-    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'public_credit' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Submit' }));
+    fireEvent.click(
+      article.getByText(/This was created by me, or shows my personal collection/, { selector: 'span' }),
+    );
+    fireEvent.change(article.getByRole('combobox'), { target: { value: 'public_credit' } });
+    fireEvent.click(article.getByRole('button', { name: 'Submit article' }));
 
     await waitFor(() => {
-      expect(screen.getByText(/error: not authenticated/i)).toBeInTheDocument();
+      expect(article.getByText(/error: not authenticated/i)).toBeInTheDocument();
     });
     expect(fetchMock).toHaveBeenCalledWith(
-      '/api/library/submit',
+      '/api/library/content-pipeline/submit',
       expect.objectContaining({
         method: 'POST',
         credentials: 'include',
       }),
     );
+    const [, requestInit] = fetchMock.mock.calls[0] as [string, RequestInit];
+    const body = JSON.parse(String(requestInit.body));
+    expect(body.rights_choice).toBe('member_owns_full_grant');
+  });
+
+  it('requires a source_url before an article with the external-source checkbox can submit', async () => {
+    render(<FanclubSubmitPage />);
+
+    const articleSection = screen.getByRole('heading', { name: 'Submit an article' }).closest('section')!;
+    const article = within(articleSection);
+
+    fireEvent.change(article.getByPlaceholderText('Your name'), { target: { value: 'Casey Member' } });
+    fireEvent.change(article.getByPlaceholderText('Article title'), { target: { value: 'Club memory' } });
+    fireEvent.change(article.getByPlaceholderText('Paste your article text here…'), {
+      target: { value: 'This is a long enough member submission for review.' },
+    });
+    fireEvent.click(article.getByText(/I don.t own this/, { selector: 'span' }));
+    fireEvent.change(article.getByRole('combobox'), { target: { value: 'public_credit' } });
+
+    expect(article.getByRole('button', { name: 'Submit article' })).toBeDisabled();
+
+    fireEvent.change(article.getByPlaceholderText('Source URL (where you found this)'), {
+      target: { value: 'https://commons.wikimedia.org/wiki/File:Example.jpg' },
+    });
+
+    expect(article.getByRole('button', { name: 'Submit article' })).not.toBeDisabled();
   });
 
   it('renders chat empty and error states for member workflows', async () => {
