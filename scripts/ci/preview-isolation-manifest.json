@@ -145,8 +145,8 @@
     { "method": "POST", "path": "/api/reports/close", "handler": "functions/api/reports/close.ts", "classification": "production-shared", "tables": ["reports"], "requiresAdminToken": true },
     { "method": "POST", "path": "/api/fanclub/profile", "handler": "functions/api/fanclub/profile.ts", "classification": "production-shared", "tables": ["members", "join_requests"] },
     { "method": "POST", "path": "/api/library/submit", "handler": "functions/api/library/submit.ts", "classification": "production-shared", "tables": ["library_entries"] },
-    { "method": "POST", "path": "/api/library/content-pipeline/submit", "handler": "functions/api/library/content-pipeline/submit.ts", "classification": "production-shared", "tables": ["content_items", "member_submissions"] },
-    { "method": "POST", "path": "/api/fanclub/photos/upload", "handler": "functions/api/fanclub/photos/upload.ts", "classification": "production-shared", "tables": ["content_items", "member_submissions", "submitters", "media_assets"] },
+    { "method": "POST", "path": "/api/library/content-pipeline/submit", "handler": "functions/api/library/content-pipeline/submit.ts", "classification": "production-shared", "tables": ["content_items", "member_submissions", "submitters", "tags", "content_item_tags", "rights_evidence", "publication_candidates"] },
+    { "method": "POST", "path": "/api/fanclub/photos/upload", "handler": "functions/api/fanclub/photos/upload.ts", "classification": "production-shared", "tables": ["content_items", "member_submissions", "submitters", "media_assets", "tags", "content_item_tags", "rights_evidence"] },
     { "method": "POST", "path": "/api/discussions/create", "handler": "functions/api/discussions/create.ts", "classification": "production-shared", "tables": ["discussions"] },
     { "method": "POST", "path": "/api/admin/**", "handler": "functions/api/admin/**", "classification": "production-shared", "requiresAdminToken": true }
   ]

@@ -60,8 +60,8 @@ function wrapSqliteAsD1(sqlite: DatabaseSync) {
           return { results: stmt.all(...args) };
         },
         async run() {
-          stmt.run(...args);
-          return { success: true };
+          const info = stmt.run(...args);
+          return { success: true, meta: { last_row_id: Number(info.lastInsertRowid) } };
         },
       });
       return {
@@ -73,8 +73,8 @@ function wrapSqliteAsD1(sqlite: DatabaseSync) {
           return { results: stmt.all() };
         },
         async run() {
-          stmt.run();
-          return { success: true };
+          const info = stmt.run();
+          return { success: true, meta: { last_row_id: Number(info.lastInsertRowid) } };
         },
       };
     },
@@ -96,10 +96,8 @@ function validIntakeBody(overrides: Record<string, unknown> = {}) {
     title: 'Family photo lead',
     summary: 'Photo from a family album.',
     submission_type: 'photo',
-    ownership_statement: 'I own this family photo.',
-    permission_statement: 'LGFC may review this photo for internal editorial use.',
+    rights_choice: 'member_owns_full_grant',
     credit_preference: 'public_credit',
-    consent_status: 'pending',
     ...overrides,
   };
 }
