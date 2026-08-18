@@ -2,9 +2,13 @@ name: GATE — Reviewer Response Completion
 
 on:
   pull_request:
-    types: [opened, synchronize, reopened, ready_for_review]
+    # A: code-green on every push; review-closed is merge-readiness.
+    # C: re-run when PR body (disposition section) is edited.
+    types: [opened, synchronize, reopened, ready_for_review, edited]
   pull_request_review:
     types: [submitted, dismissed]
+  pull_request_review_comment:
+    types: [created, edited, deleted]
   workflow_dispatch:
     inputs:
       pr_number:
@@ -23,6 +27,40 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Decide enforce vs advisory posture
+        id: posture
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_ACTION: ${{ github.event.action }}
+        run: |
+          # A + B: On pure push/open/reopen, run advisory so async bots cannot
+          # deadlock the gate. Enforce on review lifecycle events, ready_for_review,
+          # body edits (disposition updates), and manual dispatch.
+          ENFORCE="false"
+          case "${EVENT_NAME}" in
+            pull_request_review|pull_request_review_comment|workflow_dispatch)
+              ENFORCE="true"
+              ;;
+            pull_request)
+              case "${EVENT_ACTION}" in
+                ready_for_review|edited)
+                  ENFORCE="true"
+                  ;;
+                opened|synchronize|reopened)
+                  ENFORCE="false"
+                  ;;
+                *)
+                  ENFORCE="false"
+                  ;;
+              esac
+              ;;
+            *)
+              ENFORCE="false"
+              ;;
+          esac
+          echo "enforce_failure=${ENFORCE}" >> "${GITHUB_OUTPUT}"
+          echo "Reviewer lifecycle posture: event=${EVENT_NAME} action=${EVENT_ACTION:-n/a} enforce=${ENFORCE}"
+
       - name: Reviewer lifecycle disposition audit
         id: reviewer_lifecycle
         env:
@@ -30,8 +68,8 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
-          # #2683 rec 2: fail closed on undispositioned / outdated-without-disposition findings
-          ENFORCE_FAILURE: 'true'
+          # #3281: event-conditional enforcement (A). No longer hard-fail every synchronize.
+          ENFORCE_FAILURE: ${{ steps.posture.outputs.enforce_failure }}
           REVIEWER_LIFECYCLE_RESULT_JSON: ${{ runner.temp }}/reviewer_lifecycle_result.json
           REVIEWER_LIFECYCLE_RESULT_MD: ${{ runner.temp }}/reviewer_lifecycle_result.md
         run: node scripts/ci/reviewer_lifecycle_gate.mjs
@@ -48,4 +86,11 @@ jobs:
 
       - name: Reviewer disposition gate complete
         if: success()
-        run: echo "Reviewer lifecycle disposition check passed (enforcing undispositioned and outdated-without-disposition)."
+        env:
+          ENFORCE: ${{ steps.posture.outputs.enforce_failure }}
+        run: |
+          if [ "${ENFORCE}" = "true" ]; then
+            echo "Reviewer lifecycle disposition check passed (enforcing)."
+          else
+            echo "Reviewer lifecycle disposition check passed (advisory on this event)."
+          fi
