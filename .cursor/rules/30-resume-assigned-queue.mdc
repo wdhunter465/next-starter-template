@@ -7,7 +7,12 @@ alwaysApply: true
 
 Always-on ticks must re-read discovered work. `fresh=0` is not idle when the resume queue is non-empty (`/tmp/lgfc-cursor-resume-queue.json`).
 
-After a PR is opened, a HOLD is posted, or PACKAGE-INCOMPLETE is recorded, immediately continue `nextExecutable`:
+An item is *waiting* when:
+
+- its linked open authored PR has latest checks SUCCESS (independent review or merge approval), or
+- it is `handoff:ready` (labels/status only — not website Go)
+
+`nextExecutable` is the highest-ranked resume-queue item that is not waiting. After a PR is opened, a HOLD is posted, or PACKAGE-INCOMPLETE is recorded, immediately continue `nextExecutable`:
 
 1. Numbered Operations interrupts that still need a Cursor action
 2. Assigned open Issues that are not merely waiting on review
@@ -15,7 +20,9 @@ After a PR is opened, a HOLD is posted, or PACKAGE-INCOMPLETE is recorded, immed
 4. Cursor-owned `post-merge-failure`
 5. `agent:cursor` + `status:active` that is not merely waiting on review
 
-Waiting on independent review, merge approval, or another long-running process is follow-through only. Do not occupy the session with standing-queue status. Interrupt a waiting item when gates fail, a reviewer comments, or a Cursor-owned closeout exception opens.
+If `nextExecutable` is absent, keep looping for follow-through on waiting items. Do not idle and do not self-merge.
+
+Waiting is follow-through only. Do not occupy the session with standing-queue status. Interrupt a waiting item when gates fail, a reviewer comments, or a Cursor-owned closeout exception opens.
 
 Do not mix remaining queue items into the just-opened PR. `handoff:ready` is not website Go. Do not self-merge.
 

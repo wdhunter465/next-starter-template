@@ -61,7 +61,7 @@ If additional work is discovered → log it in the source Issue or PR, do not ex
 
 ---
 
-# ASSIGNED-QUEUE CONTINUATION (#3605)
+# ASSIGNED-QUEUE CONTINUATION (#3605 / #3611)
 
 A wake with no *new* GitHub events is not idle when discovered work remains.
 
@@ -75,7 +75,7 @@ After packaging one assignment (PR opened, HOLD, or PACKAGE-INCOMPLETE recorded 
 
 Do not treat `fresh=0` or “brief status + keep looping” as permission to stop while that resume queue is non-empty. One Issue → one PR; do not mix remaining queue items into the just-opened PR. `handoff:ready` is not website Go. Do not self-merge.
 
-Waiting on independent review, merge approval, or another long-running process for a packaged assignment is still not idle (#3611). Keep that item for gate, reviewer, and post-merge follow-through. Immediately continue `nextExecutable` — the next eligible item that is not merely waiting. Do not occupy the session with standing-queue status while other assigned or `agent:cursor` work remains.
+Waiting on independent review, merge approval, or another long-running process for a packaged assignment is still not idle (#3611). An item is *waiting* when its linked open authored PR has latest checks SUCCESS, or when it is `handoff:ready` (labels/status only — not website Go). Keep waiting items for gate, reviewer, and post-merge follow-through. Immediately continue `nextExecutable` — the next eligible item that is not merely waiting. If `nextExecutable` is absent, keep looping for follow-through on waiting items; do not idle and do not self-merge. Do not occupy the session with standing-queue status while other assigned or `agent:cursor` work remains.
 
 The always-on poller persists the resume queue at `/tmp/lgfc-cursor-resume-queue.json` and includes `waiting` plus `nextExecutable`.
 
