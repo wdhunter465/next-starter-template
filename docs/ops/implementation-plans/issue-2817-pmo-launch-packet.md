@@ -33,8 +33,10 @@ Give PMO / Engineering a complete-enough launch package for Project #2817: work 
 
 ## Current known truth
 
-- #2817 is Pipeline / Definition. Product Authority: Bill. PMO Design Owner: ChatGPT / Atlas. Future implementation agent after graduation: Cursor Local.
+- #2817 is Pipeline / Planning and is ready for PMO Graduation Review. Product Authority: Bill. PMO Design Owner: ChatGPT / Atlas. Implementation / Operations owner for remaining children: Cursor Local (Product Authority assignment 2026-08-18).
 - Authoritative order is the #2817 table. Issue numbers are not the task order (#2819 is Order 007, not Task 001).
+- Order 001 #2818 is **CLOSED COMPLETE**, reconciled 2026-08-13 as satisfied/superseded by accepted D1 isolation project #3355. That close is not a #2817 serial implementation start.
+- After Graduation `GO`, the first executable child is **#2822**. Remaining children stay graduation-prep (`PACKAGE-INCOMPLETE` for execution) until GO plus a child checkpoint with an exact allowlist.
 - This PR targets `main` and is Model A documentation. The **project** remains Model B after graduation.
 
 ## Intended final state
@@ -72,8 +74,8 @@ Day-2 Operations is post-promotion ownership. It is not appended to the promotio
 
 | Order | Issue | Workstream | Predecessor | Successor |
 | ---: | ---: | --- | --- | --- |
-| 001 | #2818 | Isolate Preview and Component resources from Production | Graduation GO | #2822 |
-| 002 | #2822 | Define the Model A Development-to-Candidate transition | #2818 closeout | #2823 |
+| 001 | #2818 | Isolate Preview and Component resources from Production | Satisfied by #3355 ACCEPT (closed 2026-08-13) | #2822 |
+| 002 | #2822 | Define the Model A Development-to-Candidate transition | #2818 ACCEPT via #3355; Graduation GO | #2823 |
 | 003 | #2823 | Reconcile the repository entry-point authority chain | #2822 closeout | #2820 |
 | 004 | #2820 | Reduce duplicated normative governance rules | #2823 closeout | #2821 |
 | 005 | #2821 | Implement a policy-control capability matrix | #2820 closeout | #2825 |
@@ -95,6 +97,7 @@ Halt condition for every row: predecessor not `ACCEPT`, missing child allowlist,
 Positive:
 
 - Child graph in this packet matches the #2817 “Authoritative child task graph” table (15 rows; Order 001 = #2818).
+- Open children carry the same Order / predecessor / successor fields and `agent:cursor`.
 - `npx vitest run tests/diataxis-folder-audit.test.mjs` on changed Markdown.
 - PR hygiene allowlist covers only the three preparation paths.
 
@@ -112,6 +115,14 @@ Negative:
 
 PMO / Engineering can take this packet to Graduation Review. Recommendation is **ready for review**, not implementation Go and not self-merge.
 
+Recorded for Graduation Review:
+
+- Implementation owner after GO: Cursor Local
+- First executable task after GO: #2822
+- Remaining open children carry Order / predecessor / successor / halt fields and `agent:cursor`
+
 - [x] Design draft cites the #2817 15-child graph
 - [x] Launch packet cites the same graph and promotion path
+- [x] Open children reconciled to that graph and assigned Cursor Local for post-GO execution
+- [x] #2818 closed COMPLETE via #3355; not reopened
 - [ ] PMO meeting records Graduation `GO` or `NO-GO` on #2817
