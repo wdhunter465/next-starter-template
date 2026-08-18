@@ -5,7 +5,7 @@ Authority Level: Evidence / Design Record
 Owns: Design draft for Project #2817 governance implementation, safety, and effectiveness remediation
 Does Not Own: Product priority, implementation Go, Production promotion, or child-issue file-touch allowlists
 Canonical Reference: /docs/governance/PMO-PORTFOLIO.md
-Related Issues: #2817, #2818, #2819, #2820, #2821, #2822, #2823, #2824, #2825, #2826, #2827, #2828, #2829, #2830, #2831, #2832
+Related Issues: #2817, #2818, #2819, #2820, #2821, #2822, #2823, #2824, #2825, #2826, #2827, #2828, #2829, #2830, #2831, #2832, #3355
 Last Reviewed: 2026-08-18
 ---
 
