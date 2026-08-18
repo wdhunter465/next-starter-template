@@ -7,7 +7,7 @@ import { requireAdmin } from "../../_lib/auth";
 export const onRequestPost = async (context: any): Promise<Response> => {
   const { request, env } = context;
 
-  const deny = requireAdmin(request, env);
+  const deny = await requireAdmin(request, env);
   if (deny) return deny;
 
   try {

@@ -3,7 +3,7 @@ import { parsePositiveInt } from '../../../_lib/faqModeration';
 
 export const onRequestPost = async (context: { request: Request; env: { DB?: unknown } }): Promise<Response> => {
   const { request, env } = context;
-  const deny = requireAdmin(request, env);
+  const deny = await requireAdmin(request, env);
   if (deny) return deny;
 
   try {

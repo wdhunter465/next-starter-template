@@ -7,7 +7,7 @@ import { requireD1, requireTables, jsonResponse } from "../../../_lib/d1";
 export const onRequestGet = async (context: any): Promise<Response> => {
   const { request, env } = context;
 
-  const deny = requireAdmin(request, env);
+  const deny = await requireAdmin(request, env);
   if (deny) return deny;
 
   const d1 = requireD1(env);
