@@ -291,29 +291,25 @@ describe('Fan Club operational pages', () => {
     expect(screen.getByRole('link', { name: 'Submit a story or note' })).toHaveAttribute('href', '/fanclub/submit');
   });
 
-  it('submits articles with the member_owns_full_grant rights checkbox and surfaces API errors', async () => {
+  it('submits articles with the member_owns_full_grant rights choice and surfaces API errors', async () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
       jsonResponse({ ok: false, error: 'Not authenticated' }, 401) as never,
     );
 
     render(<FanclubSubmitPage />);
 
-    const articleSection = screen.getByRole('heading', { name: 'Submit an article' }).closest('section')!;
-    const article = within(articleSection);
-
-    fireEvent.change(article.getByPlaceholderText('Your name'), { target: { value: 'Casey Member' } });
-    fireEvent.change(article.getByPlaceholderText('Article title'), { target: { value: 'Club memory' } });
-    fireEvent.change(article.getByPlaceholderText('Paste your article text here…'), {
+    // Article is the default selected kind on the consolidated form.
+    fireEvent.change(screen.getByPlaceholderText('Your name'), { target: { value: 'Casey Member' } });
+    fireEvent.change(screen.getByPlaceholderText('Article title'), { target: { value: 'Club memory' } });
+    fireEvent.change(screen.getByPlaceholderText('Paste your article text here…'), {
       target: { value: 'This is a long enough member submission for review.' },
     });
-    fireEvent.click(
-      article.getByText(/This was created by me, or shows my personal collection/, { selector: 'span' }),
-    );
-    fireEvent.change(article.getByRole('combobox'), { target: { value: 'public_credit' } });
-    fireEvent.click(article.getByRole('button', { name: 'Submit article' }));
+    fireEvent.click(screen.getByText(/This was created by me, or shows my personal collection/, { selector: 'span' }));
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'public_credit' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Submit article' }));
 
     await waitFor(() => {
-      expect(article.getByText(/error: not authenticated/i)).toBeInTheDocument();
+      expect(screen.getByText(/error: not authenticated/i)).toBeInTheDocument();
     });
     expect(fetchMock).toHaveBeenCalledWith(
       '/api/library/content-pipeline/submit',
@@ -327,27 +323,66 @@ describe('Fan Club operational pages', () => {
     expect(body.rights_choice).toBe('member_owns_full_grant');
   });
 
-  it('requires a source_url before an article with the external-source checkbox can submit', async () => {
+  it('requires a source_url before an article with the external-source choice can submit', async () => {
     render(<FanclubSubmitPage />);
 
-    const articleSection = screen.getByRole('heading', { name: 'Submit an article' }).closest('section')!;
-    const article = within(articleSection);
-
-    fireEvent.change(article.getByPlaceholderText('Your name'), { target: { value: 'Casey Member' } });
-    fireEvent.change(article.getByPlaceholderText('Article title'), { target: { value: 'Club memory' } });
-    fireEvent.change(article.getByPlaceholderText('Paste your article text here…'), {
+    fireEvent.change(screen.getByPlaceholderText('Your name'), { target: { value: 'Casey Member' } });
+    fireEvent.change(screen.getByPlaceholderText('Article title'), { target: { value: 'Club memory' } });
+    fireEvent.change(screen.getByPlaceholderText('Paste your article text here…'), {
       target: { value: 'This is a long enough member submission for review.' },
     });
-    fireEvent.click(article.getByText(/I don.t own this/, { selector: 'span' }));
-    fireEvent.change(article.getByRole('combobox'), { target: { value: 'public_credit' } });
+    fireEvent.click(screen.getByText(/I don.t own this/, { selector: 'span' }));
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'public_credit' } });
 
-    expect(article.getByRole('button', { name: 'Submit article' })).toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Submit article' })).toBeDisabled();
 
-    fireEvent.change(article.getByPlaceholderText('Source URL (where you found this)'), {
+    fireEvent.change(screen.getByPlaceholderText('Source URL (where you found this)'), {
       target: { value: 'https://commons.wikimedia.org/wiki/File:Example.jpg' },
     });
 
-    expect(article.getByRole('button', { name: 'Submit article' })).not.toBeDisabled();
+    expect(screen.getByRole('button', { name: 'Submit article' })).not.toBeDisabled();
+  });
+
+  it('switching the submission kind to Photo swaps the article fields for a file input, and back', () => {
+    render(<FanclubSubmitPage />);
+
+    expect(screen.getByPlaceholderText('Article title')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Submit article' })).toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Photo' }));
+
+    expect(screen.queryByPlaceholderText('Article title')).not.toBeInTheDocument();
+    expect(screen.getByPlaceholderText('Caption (optional)')).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: 'Submit photo' })).toBeInTheDocument();
+    // Shared fields (rights choice, tags, credit preference) are not duplicated.
+    expect(screen.getAllByText('Rights and permission')).toHaveLength(1);
+    expect(screen.getAllByRole('combobox')).toHaveLength(1);
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Article' }));
+    expect(screen.getByPlaceholderText('Article title')).toBeInTheDocument();
+  });
+
+  it('clears the selected photo file when switching away from Photo and back', () => {
+    render(<FanclubSubmitPage />);
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Photo' }));
+    fireEvent.change(screen.getByPlaceholderText('Your name'), { target: { value: 'Lou G.' } });
+    fireEvent.click(screen.getByRole('radio', { name: /This was created by me/ }));
+    fireEvent.change(screen.getByRole('combobox'), { target: { value: 'anonymous' } });
+
+    const file = new File(['bytes'], 'lou.jpg', { type: 'image/jpeg' });
+    fireEvent.change(screen.getByLabelText('Photo file'), { target: { files: [file] } });
+    expect((screen.getByLabelText('Photo file') as HTMLInputElement).files?.[0]).toBe(file);
+    expect(screen.getByRole('button', { name: 'Submit photo' })).toBeEnabled();
+
+    fireEvent.click(screen.getByRole('radio', { name: 'Article' }));
+    fireEvent.click(screen.getByRole('radio', { name: 'Photo' }));
+
+    // The remounted file input can only ever start empty -- confirm the
+    // stale File no longer lingers in state and silently blocks submission
+    // rather than letting a hidden, no-longer-visible file go through.
+    expect((screen.getByLabelText('Photo file') as HTMLInputElement).files?.length).toBe(0);
+    expect(screen.getByRole('button', { name: 'Submit photo' })).toBeDisabled();
   });
 
   it('renders chat empty and error states for member workflows', async () => {
