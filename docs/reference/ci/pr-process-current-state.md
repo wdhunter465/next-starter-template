@@ -2,10 +2,10 @@
 Doc Type: Reference
 Audience: Human + AI
 Authority Level: Controlled
-Owns: Current PR process baseline after #2228 and #2469 closeout
+Owns: Current PR process baseline after #2228, #2469, and #3281 closeout
 Does Not Own: Canonical PR-process policy, live GitHub branch protection settings, or GitHub App settings
 Canonical Reference: /docs/governance/PR_PROCESS.md
-Related Issues: #2175, #2208, #2228, #2469, #2271
+Related Issues: #2175, #2208, #2228, #2469, #2271, #3281
 Last Reviewed: 2026-08-18
 ---
 
@@ -13,19 +13,21 @@ Last Reviewed: 2026-08-18
 
 ## Purpose
 
-Define the current implemented PR-process baseline after the July 2026 rebuild and the retirement of the #1075 orchestration path.
+Define the current implemented PR-process baseline after the July 2026 rebuild, the retirement of the #1075 orchestration path, and the #3281 reviewer-gate race remediation.
 
 ## Scope
 
-This reference covers required checks, active advisory checks, manual-only workflows, post-merge ownership, and the operational effect of #2469. It does not change canonical policy or live branch-protection settings.
+This reference covers required checks, active advisory checks, manual-only workflows, post-merge ownership, and the operational effect of #2469 and #3281. It does not change canonical policy or live branch-protection settings.
 
 ## Current known truth
 
 The PR-process redesign is implemented around stable-facts PR bodies, GitHub-native reviewer state, deterministic required checks, advisory-first promotion, single-owner post-merge closeout, and routine incremental exception housekeeping. There is no active dedicated #1075 CI phase-generation engine. Controlled and operational authority documents that formerly described that engine as active are reconciled by #2469. #2175 and #2208 closed complete on 2026-07-04; they are historical related Issues, not open pre-closeout operator work. If live branch protection later diverges from the documented `quality` and `gitleaks` required-check surface, handle that as a new bounded Ops correction.
 
+#3281 splits **code green** (every push) from **review closed** (merge-readiness). `reviewer-response-completion` is advisory on pure `synchronize` / open / reopen so async trusted bots cannot deadlock the gate; it enforces on review events, `ready_for_review`, PR body edit, and manual dispatch. Closeout prefers native thread resolve; prior-SHA outdated bot threads do not block pre-merge solely by being outdated.
+
 ## Intended final state
 
-The repository maintains this minimal deterministic PR surface, confirms live branch protection matches documented required checks, and prevents retired #1075 mechanisms or PR-body lifecycle mutation from returning without new authorization and evidence.
+The repository maintains this minimal deterministic PR surface, confirms live branch protection matches documented required checks, and prevents retired #1075 mechanisms or push-time PR-body lifecycle deadlocks from returning without new authorization and evidence.
 
 ## Status
 
@@ -35,6 +37,7 @@ Current principles:
 - GitHub-native reviewer lifecycle;
 - deterministic required checks;
 - advisory-first promotion;
+- event-conditional reviewer disposition (advisory on push; enforce on merge-readiness signals);
 - single-owner post-merge closeout;
 - routine incremental exception housekeeping;
 - no dedicated #1075 CI phase-generation engine.
@@ -55,15 +58,15 @@ Live GitHub branch-protection settings are outside repo-owned docs. Remove retir
 | `quality` | `gate-quality.yml` |
 | `gitleaks` | `gitleaks.yml` |
 
-## Active advisory checks
+## Active advisory / event-conditional checks
 
 | Job | Workflow |
 | --- | --- |
 | `pr-hygiene` | `gate-pr-hygiene.yml` |
 | `diff-scope` | `gate-diff-scope.yml` |
-| `reviewer-response-completion` | `reviewer-response-completion.yml` |
+| `reviewer-response-completion` | `reviewer-response-completion.yml` (advisory on push; enforcing on review / ready_for_review / body edit / dispatch) |
 
-Advisory checks remain advisory unless a future source issue promotes them with evidence under `/docs/governance/PR_PROCESS.md`.
+Do not promote advisory gates to required status without satisfying `/docs/governance/PR_PROCESS.md`.
 
 ## Manual-only / rebuild later
 
@@ -94,4 +97,4 @@ The remaining exception queue is handled incrementally through routine housekeep
 
 ## Do not promote without evidence
 
-Do not promote advisory gates to required status or restore PR-body lifecycle mutation without satisfying `/docs/governance/PR_PROCESS.md`.
+Do not promote advisory gates to required status or restore push-time PR-body lifecycle deadlocks without satisfying `/docs/governance/PR_PROCESS.md`.
