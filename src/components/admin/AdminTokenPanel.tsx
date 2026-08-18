@@ -42,7 +42,8 @@ export default function AdminTokenPanel({ onSaved }: AdminTokenPanelProps) {
         </button>
       </div>
       <p className={styles.tokenHelp}>
-        Admin pages are session-gated; operational APIs also require the configured admin token.
+        Signing in with an admin account is enough to use the admin pages. This token is only needed for
+        scripts and automation that don&apos;t have a browser session &mdash; you can leave it blank.
       </p>
       {message ? <p className={styles.tokenHelp}>{message}</p> : null}
     </section>

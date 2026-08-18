@@ -16,7 +16,7 @@ export const onRequestGet = async (): Promise<Response> => {
 export const onRequestPost = async (context: any): Promise<Response> => {
   const { request, env } = context;
 
-  const deny = requireAdmin(request, env);
+  const deny = await requireAdmin(request, env);
   if (deny) return deny;
 
   const d1 = requireD1(env);

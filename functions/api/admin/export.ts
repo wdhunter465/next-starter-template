@@ -7,7 +7,7 @@ import { toCsv } from "../../_lib/csv";
 export const onRequestGet = async (context: any): Promise<Response> => {
   const { request, env } = context;
 
-  const deny = requireAdmin(request, env);
+  const deny = await requireAdmin(request, env);
   if (deny) return deny;
 
   const db = env.DB as any;

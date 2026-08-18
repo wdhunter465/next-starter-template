@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 
 import {
   askStatusesForFilter,
@@ -59,19 +59,67 @@ describe('faq moderation helpers', () => {
 });
 
 describe('admin auth fail-closed', () => {
-  it('rejects missing or invalid admin token', async () => {
+  it('rejects missing or invalid admin token when no admin session is present', async () => {
     const { requireAdmin } = await import('../functions/_lib/auth');
 
-    const unconfigured = requireAdmin(new Request('https://example.com'), { ADMIN_TOKEN: '' });
+    // No env.DB binding at all -- the session check short-circuits (requireD1
+    // fails), so these exercise the static-token fallback path in isolation.
+    const unconfigured = await requireAdmin(new Request('https://example.com'), { ADMIN_TOKEN: '' });
     expect(unconfigured?.status).toBe(503);
 
-    const unauthorized = requireAdmin(new Request('https://example.com'), { ADMIN_TOKEN: 'secret' });
+    const unauthorized = await requireAdmin(new Request('https://example.com'), { ADMIN_TOKEN: 'secret' });
     expect(unauthorized?.status).toBe(401);
 
-    const ok = requireAdmin(
+    const ok = await requireAdmin(
       new Request('https://example.com', { headers: { 'x-admin-token': 'secret' } }),
       { ADMIN_TOKEN: 'secret' },
     );
     expect(ok).toBeNull();
+  });
+
+  it('accepts a signed-in admin member session with no token required', async () => {
+    const { requireAdmin } = await import('../functions/_lib/auth');
+
+    const db = {
+      prepare: vi.fn((sql: string) => ({
+        bind: vi.fn().mockReturnThis(),
+        first: vi
+          .fn()
+          .mockResolvedValue(
+            sql.includes('member_sessions') ? { email: 'admin@example.com' } : { role: 'admin' },
+          ),
+        run: vi.fn().mockResolvedValue({}),
+      })),
+    };
+
+    const request = new Request('https://example.com', {
+      headers: { Cookie: 'lgfc_session=abc123' },
+    });
+
+    const result = await requireAdmin(request, { DB: db, ADMIN_TOKEN: '' });
+    expect(result).toBeNull();
+  });
+
+  it('rejects a signed-in member session without the admin role, even with no token configured', async () => {
+    const { requireAdmin } = await import('../functions/_lib/auth');
+
+    const db = {
+      prepare: vi.fn((sql: string) => ({
+        bind: vi.fn().mockReturnThis(),
+        first: vi
+          .fn()
+          .mockResolvedValue(
+            sql.includes('member_sessions') ? { email: 'member@example.com' } : { role: 'member' },
+          ),
+        run: vi.fn().mockResolvedValue({}),
+      })),
+    };
+
+    const request = new Request('https://example.com', {
+      headers: { Cookie: 'lgfc_session=abc123' },
+    });
+
+    const result = await requireAdmin(request, { DB: db, ADMIN_TOKEN: '' });
+    expect(result?.status).toBe(503);
   });
 });

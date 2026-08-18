@@ -7,11 +7,15 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 // Product Authority approved reactivation once legacy photos cleared
 // rights review). Forcing active: true here keeps this regression
 // coverage meaningful without depending on the live flag value.
-const HELD = Object.freeze({
-  active: true,
-  reason: 'media_rights_review',
-  message: 'Weekly Matchup is temporarily paused.',
-});
+// vi.mock() factories are hoisted above imports/const declarations, so the
+// held object must be created via vi.hoisted() rather than a plain const.
+const { HELD } = vi.hoisted(() => ({
+  HELD: Object.freeze({
+    active: true,
+    reason: 'media_rights_review',
+    message: 'Weekly Matchup is temporarily paused.',
+  }),
+}));
 
 vi.mock('@/lib/matchup-hold', () => ({
   WEEKLY_MATCHUP_HOLD: HELD,

@@ -15,7 +15,7 @@ function json(data: any, status = 200): Response {
 
 export const onRequestGet = async (context: any): Promise<Response> => {
   const { request, env } = context;
-  const deny = requireAdmin(request, env);
+  const deny = await requireAdmin(request, env);
   if (deny) return deny;
 
   const url = new URL(request.url);
@@ -49,7 +49,7 @@ export const onRequestGet = async (context: any): Promise<Response> => {
 
 export const onRequestPost = async (context: any): Promise<Response> => {
   const { request, env } = context;
-  const deny = requireAdmin(request, env);
+  const deny = await requireAdmin(request, env);
   if (deny) return deny;
 
   try {
@@ -75,7 +75,7 @@ export const onRequestPost = async (context: any): Promise<Response> => {
 
 export const onRequestPatch = async (context: any): Promise<Response> => {
   const { request, env } = context;
-  const deny = requireAdmin(request, env);
+  const deny = await requireAdmin(request, env);
   if (deny) return deny;
 
   try {

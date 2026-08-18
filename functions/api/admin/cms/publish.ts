@@ -15,7 +15,7 @@ function json(res: any, status = 200) {
 export const onRequestPost = async (context: any): Promise<Response> => {
   const { request, env } = context;
 
-  const unauthorized = requireAdmin(request, env);
+  const unauthorized = await requireAdmin(request, env);
   if (unauthorized) return unauthorized;
 
   try {

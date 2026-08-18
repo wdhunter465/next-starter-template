@@ -20,7 +20,7 @@ type Block = {
 export const onRequestGet = async (context: any): Promise<Response> => {
   const { request, env } = context;
 
-  const unauthorized = requireAdmin(request, env);
+  const unauthorized = await requireAdmin(request, env);
   if (unauthorized) return unauthorized;
 
   const url = new URL(request.url);
