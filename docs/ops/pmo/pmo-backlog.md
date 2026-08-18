@@ -5,8 +5,8 @@ Authority Level: Operational Authority
 Owns: Verified PMO backlog state, preparation status, active assignment summary, and closeout-remediation visibility
 Does Not Own: Product priority decisions, implementation authority, Production approval, or status inferred without repository evidence
 Canonical Reference: /docs/governance/PMO-PORTFOLIO.md
-Related Issues: #1255, #1719, #2215, #2615, #2678, #2779, #2784
-Last Reviewed: 2026-08-11
+Related Issues: #1255, #1719, #2215, #2615, #2678, #2779, #2784, #2817
+Last Reviewed: 2026-08-18
 ---
 
 # PMO Backlog
@@ -33,6 +33,12 @@ Canonical policy: `docs/governance/PROJECT-DOCUMENTATION-AND-AS-BUILT.md`.
 | #2784 | Active PMO implementation | Claude | #2918 | Active |
 
 ChatGPT / Atlas owns PMO / Engineering. Bill retains Product and Production authority.
+
+## Engineering Pipeline preparation
+
+| Project | Lane | Preparation owner | Package state | Readiness |
+| --- | --- | --- | --- | --- |
+| #2817 | Pipeline Engineering Preparation | ChatGPT | Launch packet and design draft cite the #2817 15-child graph (Order 001 = #2818; GitHub numbers are not sequential) | Ready for PMO Graduation Review (packet complete; GO is a PMO meeting decision) |
 
 ## Closeout remediation
 
