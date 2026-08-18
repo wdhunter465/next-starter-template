@@ -60,12 +60,24 @@ export function makeWranglerD1({ database, target, cwd }) {
 
     return {
       async run() {
+        // Each .run() is a separate `wrangler d1 execute` invocation, so
+        // PRAGMA state (like foreign_keys) never persists from a prior
+        // call -- enforce it fresh on every write rather than relying on
+        // whatever a given D1/wrangler version defaults to, so callers that
+        // depend on FK enforcement (e.g. an intentionally-ordered cascade
+        // delete) can't silently succeed out of order.
+        //
         // wrangler's own `meta.changes`/`meta.last_row_id` aren't reliably
         // populated for --local --json output, so pull them explicitly via
         // a trailing statement using standard SQLite functions instead --
         // this works identically against --local and --remote.
-        const results = execJson(`${inlined}; SELECT changes() AS changes, last_insert_rowid() AS last_row_id;`);
-        const writeResult = results[0];
+        const results = execJson(
+          `PRAGMA foreign_keys = ON; ${inlined}; SELECT changes() AS changes, last_insert_rowid() AS last_row_id;`,
+        );
+        // results: [PRAGMA, <write>, <changes/last_insert_rowid>] -- index
+        // from the end so this stays correct regardless of how many
+        // statements are prepended ahead of the write.
+        const writeResult = results[results.length - 2];
         const countsRow = results[results.length - 1]?.results?.[0] ?? {};
         return {
           success: writeResult?.success ?? false,
