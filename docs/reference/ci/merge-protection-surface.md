@@ -6,7 +6,7 @@ Owns: LGFC merge-protection required check surface, consolidated deterministic b
 Does Not Own: CI and Verification Domain Policy; GitHub branch protection settings UI; reviewer lifecycle policy; PR hygiene policy; OPS runtime workflows
 Canonical Reference: /docs/governance/CI-AND-VERIFICATION.md
 Related Issues: #2689, #2175, #2184, #2208, #2228, #2657
-Last Reviewed: 2026-08-07
+Last Reviewed: 2026-08-18
 ---
 
 # LGFC Merge Protection Surface
@@ -65,12 +65,14 @@ OPS runtime, post-merge closeout, and metrics workflows are not merge-protection
 
 Bill/ChatGPT must confirm live branch protection on `main` matches this reference. Repo-owned docs cannot mutate GitHub settings.
 
+#2175 and #2208 closed complete on 2026-07-04. Do not reopen them for branch-protection confirmation. If live `main` protection diverges from this reference, open a new bounded Ops correction Issue.
+
 Operator steps:
 
 1. Open repository **Settings → Branches → Branch protection rules** for `main`.
 2. Under **Require status checks to pass**, confirm only `quality` and `gitleaks` are required.
 3. Remove any retired checks listed above if still present.
-4. Record confirmation in #2175 and #2208 before closing those issues.
+4. If the live surface does not match, record the mismatch on a new bounded Ops Issue. Do not treat #2175 or #2208 as open pre-closeout work.
 
 ## Validation
 
