@@ -5,7 +5,7 @@ Authority Level: Core
 Owns: Shared execution rules, enforcement model, PR discipline, stop conditions, shared product-startup framework
 Does Not Own: Design authority, platform configuration, tracker content
 Canonical Reference: /docs/ops/ai/SHARED-AGENT-RULES.md
-Related Issues: #3055, #3113, #3117, #3138, #3142, #3188, #3605
+Related Issues: #3055, #3113, #3117, #3138, #3142, #3188, #3605, #3611
 Last Reviewed: 2026-08-18
 ---
 
@@ -75,7 +75,9 @@ After packaging one assignment (PR opened, HOLD, or PACKAGE-INCOMPLETE recorded 
 
 Do not treat `fresh=0` or “brief status + keep looping” as permission to stop while that resume queue is non-empty. One Issue → one PR; do not mix remaining queue items into the just-opened PR. `handoff:ready` is not website Go. Do not self-merge.
 
-The always-on poller persists the resume queue at `/tmp/lgfc-cursor-resume-queue.json`.
+Waiting on independent review, merge approval, or another long-running process for a packaged assignment is still not idle (#3611). Keep that item for gate, reviewer, and post-merge follow-through. Immediately continue `nextExecutable` — the next eligible item that is not merely waiting. Do not occupy the session with standing-queue status while other assigned or `agent:cursor` work remains.
+
+The always-on poller persists the resume queue at `/tmp/lgfc-cursor-resume-queue.json` and includes `waiting` plus `nextExecutable`.
 
 ---
 
@@ -131,7 +133,7 @@ All agents must follow the execution pattern that has produced the lowest-fricti
 6. Run task-relevant local checks before marking the PR ready.
 7. Update the PR body so the allowlist, change summary, acceptance criteria, and verification evidence match the final diff.
 8. Do not include unrelated tracker, documentation, runtime, workflow, or cleanup edits.
-9. When the scoped PR is ready for review or blocked by a documented gate, stop *that Issue's implementation* and immediately return to the remaining assigned/resume queue (#3605). Do not idle the session.
+9. When the scoped PR is ready for review or blocked by a documented gate, stop *that Issue's implementation* and immediately return to the remaining assigned/resume queue (#3605). Select `nextExecutable`; do not wait silently on independent review (#3611). Do not idle the session.
 
 This standard applies to Cursor, Codex, ChatGPT, Copilot, and any future implementation agent.
 
