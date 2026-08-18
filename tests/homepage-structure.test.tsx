@@ -1,5 +1,5 @@
 import { render, screen, within } from '@testing-library/react';
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import HomePage from '@/app/page';
 
 /**
@@ -39,17 +39,22 @@ describe('Homepage Structure - V6 Specification Enforcement', () => {
   });
 
   it('should have Weekly Matchup section second', () => {
+    // Reactivated 2026-08-18 (#3552); stub fetch to a pending promise so the
+    // component deterministically stays in its loading state rather than
+    // depending on jsdom's unmocked-fetch behavior for a relative URL.
+    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(() => new Promise(() => {}));
+
     render(<HomePage />);
-    
+
     // Weekly Matchup should have its specific heading
-    const weeklyHeading = screen.getByRole('heading', { 
+    const weeklyHeading = screen.getByRole('heading', {
       name: /weekly photo matchup/i,
-      level: 2 
+      level: 2
     });
     expect(weeklyHeading).toBeInTheDocument();
-    // Reactivated 2026-08-18 (#3552); no fetch mock here, so the pending
-    // /api/matchup/current request leaves the component in its loading state.
     expect(screen.getByText(/loading matchup/i)).toBeInTheDocument();
+
+    fetchSpy.mockRestore();
   });
 
   it('should have Join/Login CTA section (Membership CTA)', () => {
