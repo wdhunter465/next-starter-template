@@ -43,7 +43,7 @@ describe('reviewer comment disposition parsing', () => {
 });
 
 describe('reviewer comment disposition enforcement', () => {
-  it('fails unresolved active inline review threads', () => {
+  it('fails unresolved active inline review threads on current head', () => {
     const result = evaluateReviewerCommentDisposition({
       body: '## REVIEWER RESPONSE ACCOUNTING\n- none yet',
       reviewComments: [{
@@ -63,7 +63,7 @@ describe('reviewer comment disposition enforcement', () => {
     expect(result.failures[0].code).toBe('undispositioned_reviewer_comment');
   });
 
-  it('fails outdated threads with no explicit disposition', () => {
+  it('does not fail pre-merge solely on outdated prior-SHA threads without disposition (#3281 E)', () => {
     const result = evaluateReviewerCommentDisposition({
       body: '## REVIEWER RESPONSE ACCOUNTING\n- reviewed',
       reviewComments: [{
@@ -76,6 +76,27 @@ describe('reviewer comment disposition enforcement', () => {
         created_at: '2026-06-01T00:00:00Z',
       }],
       headSha: 'new-sha',
+      auditPhase: 'pre_merge',
+    });
+
+    expect(result.ok).toBe(true);
+    expect(result.outdatedWithoutDispositionCount).toBe(0);
+  });
+
+  it('still tracks outdated-without-disposition for post-merge audit', () => {
+    const result = evaluateReviewerCommentDisposition({
+      body: '## REVIEWER RESPONSE ACCOUNTING\n- reviewed',
+      reviewComments: [{
+        id: 2002,
+        user: { login: 'cubic-dev-ai[bot]' },
+        commit_id: 'old-sha',
+        path: 'scripts/ci/example.mjs',
+        line: 12,
+        body: 'Outdated finding on prior commit.',
+        created_at: '2026-06-01T00:00:00Z',
+      }],
+      headSha: 'new-sha',
+      auditPhase: 'post_merge',
     });
 
     expect(result.ok).toBe(false);
@@ -102,6 +123,37 @@ describe('reviewer comment disposition enforcement', () => {
     });
 
     expect(result.ok).toBe(true);
+  });
+
+  it('passes current-head threads closed by native resolve-by-reply without body disposition (#3281 D)', () => {
+    const result = evaluateReviewerCommentDisposition({
+      body: '## REVIEWER RESPONSE ACCOUNTING\n- none',
+      reviewComments: [
+        {
+          id: 2100,
+          user: { login: 'copilot-pull-request-reviewer[bot]' },
+          commit_id: 'abc123',
+          path: 'scripts/ci/example.mjs',
+          line: 10,
+          body: 'Please fix this issue.',
+          created_at: '2026-06-01T00:00:00Z',
+        },
+        {
+          id: 2101,
+          in_reply_to_id: 2100,
+          user: { login: 'implementer' },
+          commit_id: 'abc123',
+          path: 'scripts/ci/example.mjs',
+          line: 10,
+          body: '✅ Addressed in follow-up commit.',
+          created_at: '2026-06-01T00:05:00Z',
+        },
+      ],
+      headSha: 'abc123',
+    });
+
+    expect(result.ok).toBe(true);
+    expect(result.undispositionedCount).toBe(0);
   });
 
   it('captures late post-merge reviewer comments as disposition failures', () => {
@@ -209,7 +261,6 @@ describe('reviewer response gate integration', () => {
     });
 
     expect(lifecycle.shouldFail).toBe(false);
-    expect(lifecycle.assessment.reason).toBe('reviewer-accounting-ok');
   });
 
   it('blocks pull_request_target when late findings remain undispositioned', () => {
@@ -239,7 +290,7 @@ describe('reviewer response gate integration', () => {
     expect(accounting.reason).toBe('undispositioned-reviewer-comment');
   });
 
-  it('fails lifecycle assessment for undispositioned trusted inline comments', () => {
+  it('fails lifecycle assessment for undispositioned trusted inline comments on current head', () => {
     const result = assessReviewerLifecycle({
       eventName: 'pull_request_target',
       labels: ['docs-only'],
@@ -260,6 +311,29 @@ describe('reviewer response gate integration', () => {
 
     expect(result.shouldFail).toBe(true);
     expect(result.assessment.reason).toBe('undispositioned-reviewer-comment');
+  });
+
+  it('does not fail lifecycle on outdated prior-SHA bot comments without disposition on pre-merge (#3281 E)', () => {
+    const result = assessReviewerLifecycle({
+      eventName: 'pull_request',
+      labels: ['ci'],
+      files: ['scripts/ci/reviewer_lifecycle_gate.mjs'],
+      enforceFailure: true,
+      headSha: 'new-sha',
+      body: '## REVIEWER RESPONSE ACCOUNTING\n- reviewed only',
+      reviewComments: [{
+        id: 2002,
+        user: { login: 'cubic-dev-ai[bot]' },
+        commit_id: 'old-sha',
+        path: 'scripts/ci/reviewer_lifecycle_gate.mjs',
+        line: 12,
+        body: 'Outdated finding on prior commit.',
+        created_at: '2026-06-01T00:00:00Z',
+      }],
+    });
+
+    expect(result.shouldFail).toBe(false);
+    expect(result.disposition.outdatedWithoutDispositionCount).toBe(0);
   });
 
   it('passes response gate when all actionable comments are dispositioned', () => {

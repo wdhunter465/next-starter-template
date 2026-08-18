@@ -168,6 +168,17 @@ export function collectInlineReviewThreads(reviewComments = []) {
   }));
 }
 
+/**
+ * Evaluate trusted-reviewer comment disposition for pre-merge or post-merge audit.
+ *
+ * #3281 (D + E):
+ * - Prefer GitHub-native thread resolve (or resolve-by-reply text) over PR-body
+ *   comment-ID ledgers for trusted bot findings.
+ * - Do not block solely because a trusted bot comment from a prior SHA is
+ *   outdated when the thread is resolved / finding addressed on current head.
+ * Body dispositions remain a valid alternative closeout path and are still
+ * useful for human CHANGES_REQUESTED paper trails on protected paths.
+ */
 export function evaluateReviewerCommentDisposition({
   body = '',
   issueComments = [],
@@ -219,10 +230,16 @@ export function evaluateReviewerCommentDisposition({
       continue;
     }
 
-    if (resolved && !outdated) continue;
+    // D: native resolve (or resolve-by-reply) is sufficient closeout — whether or
+    // not the comment is on the current head SHA.
+    if (resolved) continue;
 
+    // E: prior-SHA outdated bot threads that are not resolved do not block
+    // pre-merge by themselves. They remain trackable for post-merge reaudit.
+    // Blocking requires unresolved actionable threads on the current head (or
+    // human CHANGES_REQUESTED handled elsewhere in the lifecycle gate).
     if (outdated) {
-      if (!hasValidDisposition(disposition)) {
+      if (!hasValidDisposition(disposition) && auditPhase === 'post_merge') {
         outdatedWithoutDisposition.push({
           commentId: String(threadId),
           reviewer: user,
@@ -232,7 +249,9 @@ export function evaluateReviewerCommentDisposition({
       continue;
     }
 
-    if (!resolved && !hasValidDisposition(disposition)) {
+    // Current-head unresolved trusted thread: body disposition still accepted
+    // as closeout alternative to native resolve.
+    if (!hasValidDisposition(disposition)) {
       undispositioned.push({
         commentId: String(threadId),
         reviewer: user,
@@ -336,16 +355,18 @@ export function evaluateReviewerCommentDisposition({
   for (const item of undispositioned) {
     failures.push({
       code: item.late ? 'late_undispositioned_reviewer_comment' : 'undispositioned_reviewer_comment',
-      message: `Trusted reviewer comment ${item.commentId} (${item.kind}) lacks required PR-body disposition.`,
+      message: `Trusted reviewer comment ${item.commentId} (${item.kind}) lacks required closeout (native thread resolve or PR-body disposition).`,
       commentId: item.commentId,
       reviewer: item.reviewer,
     });
   }
 
+  // Outdated-without-disposition failures are retained for post-merge audit only
+  // (#3281 E). Pre-merge no longer deadlocks on prior-SHA bot threads.
   for (const item of outdatedWithoutDisposition) {
     failures.push({
       code: 'outdated_reviewer_thread_without_disposition',
-      message: `Outdated trusted reviewer thread ${item.commentId} requires explicit PR-body disposition with comment ID and thread state.`,
+      message: `Outdated trusted reviewer thread ${item.commentId} requires explicit PR-body disposition with comment ID and thread state (post-merge audit).`,
       commentId: item.commentId,
       reviewer: item.reviewer,
     });
@@ -365,6 +386,6 @@ export function evaluateReviewerCommentDisposition({
     lateFindings,
     summary: failures.length
       ? `${failures.length} reviewer disposition failure(s); ${undispositioned.length} undispositioned, ${outdatedWithoutDisposition.length} outdated without disposition, ${lateFindings.length} late finding(s).`
-      : 'All actionable trusted reviewer comments are dispositioned.',
+      : 'All actionable trusted reviewer comments are closed out (native resolve and/or disposition).',
   };
 }

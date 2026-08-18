@@ -69,7 +69,7 @@ describe('native lifecycle assessment', () => {
     expect(state.outdated).toHaveLength(1);
   });
 
-  it('fails closed on outdated trusted review comments without PR-body disposition', () => {
+  it('does not fail closed on outdated trusted review comments without disposition pre-merge (#3281 E)', () => {
     const result = assessReviewerLifecycle({
       enforceFailure: true,
       files: ['scripts/ci/reviewer_lifecycle_gate.mjs'],
@@ -86,9 +86,8 @@ describe('native lifecycle assessment', () => {
       }],
     });
 
-    expect(result.shouldFail).toBe(true);
-    expect(result.assessment.reason).toBe('outdated-reviewer-thread-without-disposition');
-    expect(result.disposition.outdatedWithoutDispositionCount).toBe(1);
+    expect(result.shouldFail).toBe(false);
+    expect(result.disposition.outdatedWithoutDispositionCount).toBe(0);
   });
 
   it('passes when outdated trusted review comments have explicit dispositions', () => {
