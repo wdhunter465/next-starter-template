@@ -6,7 +6,7 @@ Owns: Task #1726 durable workflow/CI implementation-candidate scoping matrix sep
 Does Not Own: Workflow YAML edits, CI script edits, runtime code, secrets, unauthorized issue mutation, Cursor self-merge, or automatic merge to main
 Canonical Reference: /docs/ops/pmo/workflow-automation.md
 Related Issues: #1726, #1719, #1721, #1725, #1724, #1727, #1500
-Last Reviewed: 2026-07-16
+Last Reviewed: 2026-08-18
 ---
 
 # Workflow / CI Implementation Candidate Scoping (#1726)
@@ -27,6 +27,18 @@ inspected **read-only**.
 Assessment date: **2026-07-16**.
 Read-only counts: **62** workflow files under `.github/workflows/`; **70**
 entries under `scripts/ci/` (including `post-merge-closeout/`).
+
+## Scope
+
+This report owns the Task #1726 candidate matrix that separates docs-only, workflow YAML, and CI-script work for Program #1719 successors. It does not edit workflow YAML, CI scripts, runtime code, or GitHub issue state.
+
+## Current known truth
+
+Remaining automation gaps from #1721 / #1500 are classified into bounded future candidates. This task inspected `.github/workflows/**` and `scripts/ci/**` read-only and did not implement those surfaces.
+
+## Intended final state
+
+Successor issues can launch from this matrix without inferring class, owner, or non-action from chat history.
 
 ## Authority and delivery model
 
