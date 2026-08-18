@@ -17,6 +17,19 @@
 // matching cleared media_assets row, so re-running (e.g. on every daily
 // sync) is always safe and a no-op once a row has been reconciled.
 
+// media_assets.b2_key is indexed but NOT unique (migrations/0010_media_assets.sql),
+// so every correlated lookup below pins to a single deterministic row via
+// "ORDER BY ma.id DESC LIMIT 1" -- without it, a duplicate b2_key (e.g. a key
+// re-ingested under a second media_uid) would make these scalar subqueries
+// return more than one row, which SQLite raises as a runtime error and would
+// break the whole daily sync job, not just this one photos row.
+//
+// reviewed_at / rights_hold_set_at are both taken from the matched
+// media_assets row's own rights_hold_set_at -- the real timestamp of when
+// that decision was recorded (commitIngestedMedia sets it at commit time,
+// i.e. when the already-reviewed conclusion was acted on) -- rather than
+// "now" (the time this reconciliation happens to run, which would make an
+// old, already-reviewed decision look like it was just made).
 export const RECONCILE_PHOTOS_RIGHTS_FROM_MEDIA_ASSETS_SQL = `
 UPDATE photos
 SET rights_hold = 0,
@@ -27,16 +40,30 @@ SET rights_hold = 0,
        FROM media_assets ma
        WHERE ma.b2_key = photos.photo_id
          AND ma.rights_hold = 0
-         AND ma.rights_hold_reason LIKE '%reviewer:%'),
+         AND ma.rights_hold_reason LIKE '%reviewer:%'
+       ORDER BY ma.id DESC LIMIT 1),
       'see_media_assets_rights_hold_reason'
     ),
-    reviewed_at = COALESCE(photos.reviewed_at, strftime('%Y-%m-%dT%H:%M:%fZ', 'now')),
+    reviewed_at = COALESCE(
+      photos.reviewed_at,
+      (SELECT ma.rights_hold_set_at FROM media_assets ma
+       WHERE ma.b2_key = photos.photo_id AND ma.rights_hold = 0
+       ORDER BY ma.id DESC LIMIT 1),
+      strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+    ),
     rights_hold_reason = (
       SELECT ma.rights_hold_reason
       FROM media_assets ma
       WHERE ma.b2_key = photos.photo_id AND ma.rights_hold = 0
+      ORDER BY ma.id DESC LIMIT 1
     ),
-    rights_hold_set_at = COALESCE(photos.rights_hold_set_at, strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+    rights_hold_set_at = COALESCE(
+      (SELECT ma.rights_hold_set_at FROM media_assets ma
+       WHERE ma.b2_key = photos.photo_id AND ma.rights_hold = 0
+       ORDER BY ma.id DESC LIMIT 1),
+      photos.rights_hold_set_at,
+      strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
+    )
 WHERE photos.rights_hold = 1
   AND EXISTS (
     SELECT 1 FROM media_assets ma

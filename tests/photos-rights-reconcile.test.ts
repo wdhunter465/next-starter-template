@@ -24,11 +24,18 @@ function insertMediaAsset(
     b2Key,
     rightsHold,
     rightsHoldReason,
-  }: { mediaUid: string; b2Key: string; rightsHold: number; rightsHoldReason: string | null },
+    rightsHoldSetAt = null,
+  }: {
+    mediaUid: string;
+    b2Key: string;
+    rightsHold: number;
+    rightsHoldReason: string | null;
+    rightsHoldSetAt?: string | null;
+  },
 ) {
   db.prepare(
-    'INSERT INTO media_assets (media_uid, b2_key, size, rights_hold, rights_hold_reason) VALUES (?, ?, ?, ?, ?)',
-  ).run(mediaUid, b2Key, 1024, rightsHold, rightsHoldReason);
+    'INSERT INTO media_assets (media_uid, b2_key, size, rights_hold, rights_hold_reason, rights_hold_set_at) VALUES (?, ?, ?, ?, ?, ?)',
+  ).run(mediaUid, b2Key, 1024, rightsHold, rightsHoldReason, rightsHoldSetAt);
 }
 
 function insertPhoto(db: DatabaseSync, { photoId, url }: { photoId: string; url: string }) {
@@ -47,6 +54,7 @@ describe('RECONCILE_PHOTOS_RIGHTS_FROM_MEDIA_ASSETS_SQL (#3552/#3553)', () => {
       b2Key: 'LGFC_sha256_matched.jpg',
       rightsHold: 0,
       rightsHoldReason: 'rights_evidence_conclusion:public_domain_confirmed reviewer:Bill Hunter',
+      rightsHoldSetAt: '2026-08-18T12:27:31.331Z',
     });
     insertPhoto(db, {
       photoId: 'LGFC_sha256_matched.jpg',
@@ -57,7 +65,7 @@ describe('RECONCILE_PHOTOS_RIGHTS_FROM_MEDIA_ASSETS_SQL (#3552/#3553)', () => {
 
     const row = db
       .prepare(
-        'SELECT rights_hold, publication_eligible, rights_status, reviewed_by, rights_hold_reason FROM photos WHERE photo_id = ?',
+        'SELECT rights_hold, publication_eligible, rights_status, reviewed_by, rights_hold_reason, reviewed_at, rights_hold_set_at FROM photos WHERE photo_id = ?',
       )
       .get('LGFC_sha256_matched.jpg') as {
       rights_hold: number;
@@ -65,6 +73,8 @@ describe('RECONCILE_PHOTOS_RIGHTS_FROM_MEDIA_ASSETS_SQL (#3552/#3553)', () => {
       rights_status: string;
       reviewed_by: string;
       rights_hold_reason: string;
+      reviewed_at: string;
+      rights_hold_set_at: string;
     };
 
     expect(row.rights_hold).toBe(0);
@@ -72,6 +82,49 @@ describe('RECONCILE_PHOTOS_RIGHTS_FROM_MEDIA_ASSETS_SQL (#3552/#3553)', () => {
     expect(row.rights_status).toBe('permission_granted');
     expect(row.reviewed_by).toBe('Bill Hunter');
     expect(row.rights_hold_reason).toBe('rights_evidence_conclusion:public_domain_confirmed reviewer:Bill Hunter');
+    // Both timestamps come from the real historical review time recorded on
+    // media_assets, not from when this reconciliation happened to run.
+    expect(row.reviewed_at).toBe('2026-08-18T12:27:31.331Z');
+    expect(row.rights_hold_set_at).toBe('2026-08-18T12:27:31.331Z');
+  });
+
+  it('does not throw when the same b2_key appears on more than one cleared media_assets row', () => {
+    const db = new DatabaseSync(':memory:');
+    applyRepoMigrations(db);
+
+    // b2_key is indexed but not UNIQUE (migrations/0010_media_assets.sql) --
+    // two rows can legitimately share one key (e.g. re-ingest under a new
+    // media_uid). The reconciliation SQL must still produce exactly one
+    // deterministic answer instead of a "subquery returned more than one
+    // row" runtime error.
+    insertMediaAsset(db, {
+      mediaUid: 'sha256_dup_old',
+      b2Key: 'LGFC_sha256_dup.jpg',
+      rightsHold: 0,
+      rightsHoldReason: 'rights_evidence_conclusion:public_domain_confirmed reviewer:Bill Hunter',
+      rightsHoldSetAt: '2026-08-01T00:00:00.000Z',
+    });
+    insertMediaAsset(db, {
+      mediaUid: 'sha256_dup_new',
+      b2Key: 'LGFC_sha256_dup.jpg',
+      rightsHold: 0,
+      rightsHoldReason: 'rights_evidence_conclusion:permission_granted reviewer:Bill Hunter',
+      rightsHoldSetAt: '2026-08-18T00:00:00.000Z',
+    });
+    insertPhoto(db, {
+      photoId: 'LGFC_sha256_dup.jpg',
+      url: 'https://example.com/LGFC_sha256_dup.jpg',
+    });
+
+    expect(() => db.exec(RECONCILE_PHOTOS_RIGHTS_FROM_MEDIA_ASSETS_SQL)).not.toThrow();
+
+    const row = db
+      .prepare('SELECT rights_hold, rights_hold_reason FROM photos WHERE photo_id = ?')
+      .get('LGFC_sha256_dup.jpg') as { rights_hold: number; rights_hold_reason: string };
+
+    expect(row.rights_hold).toBe(0);
+    // Deterministically picks the most recently inserted (highest id) row.
+    expect(row.rights_hold_reason).toBe('rights_evidence_conclusion:permission_granted reviewer:Bill Hunter');
   });
 
   it('leaves a held photos row alone when there is no matching cleared media_assets row', () => {
