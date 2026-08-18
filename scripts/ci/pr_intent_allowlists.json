@@ -80,7 +80,8 @@
         ".npmrc",
         ".prettierrc",
         ".prettierignore",
-        ".editorconfig"
+        ".editorconfig",
+        ".cursor/rules/"
       ],
       "deny_prefixes": []
     },

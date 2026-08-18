@@ -36,6 +36,7 @@
         ".prettierrc",
         ".prettierignore",
         ".editorconfig",
+        ".cursor/rules/",
         "docs/ops/",
         "playwright.config.ts",
         "tests/"

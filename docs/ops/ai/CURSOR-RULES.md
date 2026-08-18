@@ -5,7 +5,7 @@ Authority Level: Superseded
 Owns: Historical pointer only — Cursor implementation policy moved to governance
 Does Not Own: Agent team policy, runtime routing standard, or shared execution law
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Related Issues: #2494, #2564, #3212, #3424, #3188
+Related Issues: #2494, #2564, #3212, #3424, #3188, #3605
 Last Reviewed: 2026-08-18
 ---
 
@@ -54,3 +54,7 @@ Missing package fields produce `PACKAGE-INCOMPLETE`; a substantive dependency or
 ## Inbound communication checkpoint (#3188)
 
 Before claiming new work, starting a successor, declaring blocked or waiting, or ending a cycle where another agent may be pending, Cursor inspects source-Issue events addressed to Implementation / Operations. Acknowledge response-required events on that Issue before unrelated work, unless a numbered Operations interrupt has precedence. Do not ask Product Authority to relay routine messages when GitHub communication is available. Canonical detail: `docs/ops/ai/CORE-RULES.md`.
+
+## Assigned-queue continuation (#3605)
+
+Pointer only. Binding assigned-queue continuation lives in [`docs/ops/ai/CORE-RULES.md`](./CORE-RULES.md) (`ASSIGNED-QUEUE CONTINUATION`) and [`docs/governance/AGENT-TEAM.md`](../../governance/AGENT-TEAM.md). This file does not add independent idle or resume-queue policy.

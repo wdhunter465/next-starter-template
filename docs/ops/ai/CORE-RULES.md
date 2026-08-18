@@ -5,7 +5,7 @@ Authority Level: Core
 Owns: Shared execution rules, enforcement model, PR discipline, stop conditions, shared product-startup framework
 Does Not Own: Design authority, platform configuration, tracker content
 Canonical Reference: /docs/ops/ai/SHARED-AGENT-RULES.md
-Related Issues: #3055, #3113, #3117, #3138, #3142, #3188
+Related Issues: #3055, #3113, #3117, #3138, #3142, #3188, #3605
 Last Reviewed: 2026-08-18
 ---
 
@@ -61,6 +61,24 @@ If additional work is discovered → log it in the source Issue or PR, do not ex
 
 ---
 
+# ASSIGNED-QUEUE CONTINUATION (#3605)
+
+A wake with no *new* GitHub events is not idle when discovered work remains.
+
+After packaging one assignment (PR opened, HOLD, or PACKAGE-INCOMPLETE recorded on the source Issue), immediately re-evaluate and continue the next eligible item from:
+
+- numbered Operations interrupts;
+- Issues assigned to the operator;
+- open authored PRs with failing or pending gates;
+- Cursor-owned `post-merge-failure`;
+- `agent:cursor` + `status:active` claims.
+
+Do not treat `fresh=0` or “brief status + keep looping” as permission to stop while that resume queue is non-empty. One Issue → one PR; do not mix remaining queue items into the just-opened PR. `handoff:ready` is not website Go. Do not self-merge.
+
+The always-on poller persists the resume queue at `/tmp/lgfc-cursor-resume-queue.json`.
+
+---
+
 # ISSUE-FIRST HARD GATE
 
 A live, open same-repository governing source Issue is a **mandatory hard precondition** for every repository-changing action: branch creation, first commit, Pull Request, workflow edit, code change, documentation change, configuration change, emergency containment, or any other repository mutation.
@@ -113,7 +131,7 @@ All agents must follow the execution pattern that has produced the lowest-fricti
 6. Run task-relevant local checks before marking the PR ready.
 7. Update the PR body so the allowlist, change summary, acceptance criteria, and verification evidence match the final diff.
 8. Do not include unrelated tracker, documentation, runtime, workflow, or cleanup edits.
-9. Stop when the scoped PR is ready for review or blocked by a documented gate.
+9. When the scoped PR is ready for review or blocked by a documented gate, stop *that Issue's implementation* and immediately return to the remaining assigned/resume queue (#3605). Do not idle the session.
 
 This standard applies to Cursor, Codex, ChatGPT, Copilot, and any future implementation agent.
 
