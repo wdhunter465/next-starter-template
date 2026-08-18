@@ -5,13 +5,19 @@ Authority Level: Learning Path
 Owns: One worked example of classifying a project from Engineering qualification through Active
 Does Not Own: Canonical stage definitions, weekly meeting procedure, or Product decisions
 Canonical Reference: /docs/how-to/pmo/run-pmo-lifecycle-and-priority.md
-Related Issues: #3597
+Related Issues: #3597, #3620
 Last Reviewed: 2026-08-18
 ---
 
 # Classify a Project Through the PMO Lifecycle
 
-This walkthrough uses a fictional project so a new operator can see the labels change. It is not repository authority. Use the how-to for real Issues.
+## Goal
+
+Learn to classify one fictional project from Engineering qualification through Active and Closed, using the canonical labels.
+
+This walkthrough is not repository authority. Use the how-to for real Issues.
+
+## Walkthrough
 
 ## Starting point
 
