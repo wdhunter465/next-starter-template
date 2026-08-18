@@ -47,7 +47,9 @@ describe('Homepage Structure - V6 Specification Enforcement', () => {
       level: 2 
     });
     expect(weeklyHeading).toBeInTheDocument();
-    expect(screen.getByText(/weekly matchup is temporarily paused/i)).toBeInTheDocument();
+    // Reactivated 2026-08-18 (#3552); no fetch mock here, so the pending
+    // /api/matchup/current request leaves the component in its loading state.
+    expect(screen.getByText(/loading matchup/i)).toBeInTheDocument();
   });
 
   it('should have Join/Login CTA section (Membership CTA)', () => {

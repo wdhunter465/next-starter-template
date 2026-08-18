@@ -1,10 +1,28 @@
 import { render, screen } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
-import WeeklyMatchup from '@/components/WeeklyMatchup';
-import { WEEKLY_MATCHUP_HOLD } from '@/lib/matchup-hold';
-import { onRequest as publicMatchupMiddleware } from '../functions/api/matchup/_middleware';
-import { onRequest as adminMatchupMiddleware } from '../functions/api/admin/matchup/_middleware';
+// This suite verifies the break-glass hold mechanism itself still fails
+// closed correctly, independent of whatever the flag is currently set to
+// in src/lib/matchup-hold.ts (active: false since 2026-08-18, #3552 --
+// Product Authority approved reactivation once legacy photos cleared
+// rights review). Forcing active: true here keeps this regression
+// coverage meaningful without depending on the live flag value.
+const HELD = Object.freeze({
+  active: true,
+  reason: 'media_rights_review',
+  message: 'Weekly Matchup is temporarily paused.',
+});
+
+vi.mock('@/lib/matchup-hold', () => ({
+  WEEKLY_MATCHUP_HOLD: HELD,
+  isWeeklyMatchupHeld: () => HELD.active,
+}));
+
+const WEEKLY_MATCHUP_HOLD = HELD;
+
+const { default: WeeklyMatchup } = await import('@/components/WeeklyMatchup');
+const { onRequest: publicMatchupMiddleware } = await import('../functions/api/matchup/_middleware');
+const { onRequest: adminMatchupMiddleware } = await import('../functions/api/admin/matchup/_middleware');
 
 describe('Weekly Matchup break-glass hold (#3548)', () => {
   beforeEach(() => {

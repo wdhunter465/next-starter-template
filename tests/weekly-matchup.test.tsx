@@ -45,7 +45,7 @@ function mockVotedMatchupFetch(lastWeek: Record<string, unknown> | null) {
   });
 }
 
-describe.skip('WeeklyMatchup legacy interactive behavior (paused by #3548)', () => {
+describe('WeeklyMatchup interactive behavior (reactivated 2026-08-18, #3552)', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     window.localStorage.clear();
