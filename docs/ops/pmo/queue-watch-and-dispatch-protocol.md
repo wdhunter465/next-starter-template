@@ -252,13 +252,19 @@ After deterministic predecessor completion (validated merge + successful post-me
 
 Ordered-predecessor conditions are satisfied by deterministic completion (or WORK `ACCEPT` when a substantive gate is defined), not by queue-wide freeze. If fields are missing, set `PACKAGE-INCOMPLETE` and return it to WORK for correction. If a substantive protected stop or real collision blocks a specific action, set evidence-specific `HOLD` with owner, required evidence, and release condition — scoped to that action only. Do not use generic `BLOCKED`, queue-wide freeze, or repeat-dispatch prose.
 
-## Engineering Pipeline dispatch
+## Engineering qualification and Pipeline dispatch
 
-For ChatGPT preparation:
+For Engineering qualification:
 
-1. identify Pipeline parents with `team:engineering`, Engineering priority, and one truthful stage;
-2. select preparation work according to Engineering priority;
-3. for Engineering P1, confirm one peer preparation Issue exists or create/reactivate it through authorized PMO closeout;
+1. identify Issues with `team:engineering` and no `pmo:pipeline`;
+2. confirm minimum qualification fields exist before Pipeline entry;
+3. after qualification, remove `team:engineering` and enter PMO Pipeline at Initial Idea with `pmo:pipeline-priority:<n>`.
+
+For PMO Pipeline preparation:
+
+1. identify Pipeline parents with `team:pmo`, Pipeline priority, and one truthful canonical stage;
+2. select preparation work according to Pipeline ordered priority;
+3. for Pending Launch Packet / Graduation Candidate, confirm one peer launch-packet Issue exists or create/reactivate it through authorized PMO closeout;
 4. ensure the preparation Issue references `Related Pipeline Project:` or `Graduation Target:`;
 5. reject `Parent Project:` and `pmo:task` on preparation work;
 6. produce requirements, design, authority reconciliation, implementation plan, ordered child Issues, validation, rollback, risks, and Go/No-Go evidence;
@@ -266,22 +272,22 @@ For ChatGPT preparation:
 8. do not authorize Active implementation through collaboration;
 9. route the completed graduation package to the weekly PMO review.
 
-Pipeline stage and Engineering priority remain independent. Engineering P1 does not mean Ready for Launch.
+Pipeline stage and Pipeline priority remain independent. Pipeline Priority 1 does not mean Graduation Candidate.
 
 ## Project Graduation dispatch
 
 On explicit PMO Go:
 
-1. verify the parent is truthfully Ready for Launch;
+1. verify the parent is truthfully Graduation Candidate;
 2. verify the graduation package and decision authority;
-3. remove Pipeline stage, Engineering team, and Engineering priority;
-4. add Active lifecycle and PMO team;
-5. apply the PMO-selected Active priority independently;
-6. record execution owner, first executable child, delivery profile, and implementation Go;
+3. remove Pipeline stage and `pmo:pipeline-priority:*`;
+4. keep `team:pmo` and add Active lifecycle;
+5. apply the PMO-selected Active ordered priority independently;
+6. record one start-to-finish implementation owner, first executable child, delivery profile, and implementation Go;
 7. preserve the prepared child sequence and dependencies;
 8. begin PMO Active dispatch only after the transition is complete.
 
-Engineering priority never transfers automatically to PMO priority.
+Pipeline priority never transfers automatically to Active priority.
 
 ## Universal collaboration dispatch
 

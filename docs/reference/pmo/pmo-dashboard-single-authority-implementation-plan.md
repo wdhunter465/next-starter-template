@@ -4,9 +4,9 @@ Audience: Human + AI
 Authority Level: Historical Controlled Implementation Plan
 Owns: Historical record of the #2610 frozen-inventory authority repair
 Does Not Own: Current queue, priority, Project Graduation, dashboard target contract, runtime migration, or live Issue mutation
-Canonical Reference: /docs/ops/pmo/PMO-JULY-2026-DASHBOARD-SPECIFICATION.md
-Related Issues: #2610, #2611, #2612, #2699, #2702
-Last Reviewed: 2026-07-21
+Canonical Reference: /docs/reference/pmo/pmo-lifecycle-and-priority-contract.md
+Related Issues: #2610, #2611, #2612, #2699, #2702, #3597
+Last Reviewed: 2026-08-18
 ---
 
 # PMO Dashboard Single-Authority Implementation Plan
@@ -18,9 +18,11 @@ This document records the earlier #2610 repair that removed frozen `expectedLife
 That repair remains valid historical context, but this document is **superseded for current queue and priority behavior** by:
 
 - `docs/governance/WORK-QUEUES-AND-COLLABORATION.md`;
-- `docs/ops/pmo/PMO-JULY-2026-OPERATING-MODEL.md`;
-- `docs/ops/pmo/PMO-JULY-2026-DASHBOARD-SPECIFICATION.md`;
+- `docs/reference/pmo/pmo-lifecycle-and-priority-contract.md`;
+- `docs/how-to/pmo/pmo-dashboard.md`;
 - runtime transition Issue #2702.
+
+The July 2026 operating and dashboard documents are historical only.
 
 The final documentation reconciliation was performed directly by ChatGPT under #2699 from the PMO meeting record. Implementation agents must not reinterpret the superseded examples in this historical plan.
 

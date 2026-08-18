@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: PMO intake, work sizing, delivery-model selection, Sandbox authorization, Pipeline preparation direction, Project Graduation, launch authorization, portfolio inventory, and authoritative priority decisions
 Does Not Own: Queue-label mechanics, Development execution, Promotion Candidate execution, CI implementation, Administration & Communications mutation procedure, Day-2 recovery strategy, or Production approval
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2477, #2487, #2640, #2641, #2695, #2699, #3055, #3113
-Last Reviewed: 2026-08-06
+Related Issues: #2477, #2487, #2640, #2641, #2695, #2699, #3055, #3113, #3597
+Last Reviewed: 2026-08-18
 ---
 
 # PMO Portfolio
@@ -18,6 +18,15 @@ This document defines how work enters the portfolio, how it is designed and size
 PMO / Engineering owns the decision package. Administration & Communications prepares, routes, records, and reconciles the package but does not make the decision.
 
 Queue classification, priority-label namespaces, queue precedence, preparation-assignment structure, and universal collaboration are defined in `docs/governance/WORK-QUEUES-AND-COLLABORATION.md`.
+
+Diátaxis surfaces:
+
+- explanation: `docs/explanation/pmo/engineering-qualification-and-pmo-lifecycle.md`
+- reference: `docs/reference/pmo/pmo-lifecycle-and-priority-contract.md`
+- how-to: `docs/how-to/pmo/run-pmo-lifecycle-and-priority.md`
+- tutorial: `docs/tutorials/pmo/classify-a-project-through-pmo-lifecycle.md`
+
+This policy does not duplicate those operating details.
 
 PMO defines **sequencing and readiness coordination**, not a general execution gate. PMO prepares launch packages, orders projects, and records prerequisites; it does not deny otherwise authorized, collision-safe implementation after Project Graduation `GO`.
 
@@ -45,23 +54,36 @@ Product Authority makes final priority and business decisions. PMO / Engineering
 
 ## Intake
 
-Every one-off, project, and program enters PMO with:
+Every one-off, project, and program enters Engineering qualification before PMO Pipeline.
 
-- stated objective;
-- provisional size;
+Engineering qualification records:
+
+- stated objective and current-state deficiency;
+- why remediation is required;
+- intended outcome;
+- remediation objectives / design direction;
 - Product Authority and PMO / Engineering roles;
-- initial Pipeline/Engineering priority or Idea state;
-- known constraints and dependencies;
-- current lane and profile;
-- unresolved design assumptions.
+- known constraints, dependencies, risks, and protected decisions;
+- useful candidate direction where available.
 
-Provisional intake is not launch authority.
+Provisional intake is not launch authority. Engineering does not complete the final detailed design or launch packet.
+
+When minimum qualification is satisfied, remove `team:engineering` and enter PMO Pipeline at Initial Idea with a Pipeline ordered priority.
 
 Pipeline priority identifies preparation order. Pipeline stage identifies actual maturity. Neither establishes implementation Go.
 
 ## Pipeline preparation
 
-Before implementation Go, PMO / Engineering defines:
+PMO Pipeline owns design drafting, multi-agent/stakeholder feedback, design approval, detailed design, implementation planning, child-task creation/linkage, and full launch-packet preparation.
+
+Canonical stages:
+
+1. Initial Idea
+2. Drafted Design
+3. Pending Launch Packet
+4. Graduation Candidate
+
+Before implementation Go, PMO defines:
 
 - requirements and acceptance criteria;
 - architecture and design;
@@ -74,13 +96,11 @@ Before implementation Go, PMO / Engineering defines:
 - Promotion Candidate expectations;
 - Production and Day-2 boundaries.
 
-When the PMO meeting sets a Pipeline project to Engineering Priority 1, the same decision must create or reactivate accountable Engineering preparation work owned by ChatGPT.
+When the PMO meeting needs accountable launch-packet work, the same decision must create or reactivate that preparation work. The work is a peer Issue related to the Pipeline parent. It is not a project child task, does not use `pmo:task`, and does not count toward implementation completion percentage.
 
-That preparation work is a peer Issue related to the Pipeline parent. It is not a project child task, does not use `pmo:task`, and does not count toward implementation completion percentage.
+The required output is a complete launch package for Graduation Candidate review, including the master Issue, ordered child Issues, implementation plan, dependencies, validation, rollback, stop conditions, one intended implementation owner, and Go/No-Go readiness assessment.
 
-The required output is a complete-enough launch package for the next applicable PMO meeting, including the master Issue, ordered child Issues, implementation plan, dependencies, validation, rollback, stop conditions, execution recommendation, and Go/No-Go readiness assessment.
-
-A Pipeline project may remain at any priority or stage without a time limit. Priority changes are manual PMO decisions and do not assert that the project is already launch-ready.
+A Pipeline project may remain at any priority or stage without a time limit. Priority changes are manual PMO decisions and do not assert that the project is already launch-ready. Pipeline work is not Active because design or Sandbox/Development work exists.
 
 ## Sandbox authority
 
@@ -157,18 +177,18 @@ Development cannot promote directly to Production.
 
 ## Project Graduation and implementation Go
 
-Project Graduation is the explicit PMO transition from Pipeline/Engineering preparation to Active/PMO implementation.
+Project Graduation is the explicit PMO transition from Pipeline preparation to Active implementation.
 
 Graduation requires:
 
-- a complete-enough launch package;
-- truthful Ready for Launch stage;
+- a complete design and launch package;
+- truthful Graduation Candidate stage;
 - PMO meeting review;
 - explicit Go;
-- a newly assigned Active PMO priority;
-- recorded implementation owner, first executable task, and authority.
+- a newly assigned Active ordered priority;
+- recorded single start-to-finish implementation owner, first executable task, and authority.
 
-Engineering priority does not transfer automatically to Active PMO priority. Engineering Priority 1 means prepare first. PMO Priority 1 means implement and complete first.
+Pipeline priority does not transfer automatically to Active PMO priority. Pipeline Priority 1 means prepare first. Active Priority 1 means implement and complete first.
 
 Implementation Go authorizes Development execution against the complete work package. It does not authorize Production promotion.
 
@@ -205,16 +225,16 @@ Ordinary predecessor or advisory conditions are not queue-wide `HOLD` or `BLOCKE
 
 ## Active priority decisions
 
-The PMO meeting manually assigns and changes Active parent priority according to the model in `WORK-QUEUES-AND-COLLABORATION.md`:
+The PMO meeting manually assigns and changes Active parent priority as an ordered sequence 1...XXX according to `WORK-QUEUES-AND-COLLABORATION.md`:
 
-- P1, P2, and P3 each have a maximum of four parent projects;
-- P4 has no fixed limit;
-- completed-task percentage produces promotion-eligibility information only;
+- the number is work order, not severity;
+- there is no 1–4 cap;
+- Pipeline and Active sequences are independent;
 - no priority change is automatic;
-- projects may complete at any Active priority;
+- projects may complete at any Active ordered position;
 - verification, promotion, Production validation, and closeout remain Active work.
 
-Website delivery may be maintained as the top LGFC priority through PMO decisions. It is not an automatic permanent priority rule independent of portfolio conditions.
+Website delivery may be maintained as the top LGFC Active position through PMO decisions. It is not an automatic permanent priority rule independent of portfolio conditions.
 
 ## Operations interrupt precedence
 
@@ -307,7 +327,7 @@ This policy supersedes lower-level PMO instructions where they:
 - use one priority meaning for both Active implementation and Pipeline preparation;
 - require team priority on child implementation tasks;
 - allow priority without accountable Pipeline preparation work;
-- treat Engineering Priority 1 as proof of launch readiness;
+- treat Pipeline Priority 1 as proof of launch readiness;
 - permit administrative reporting, generic predecessor state, or routine per-task PMO review to block independent Development after implementation Go;
 - require additional risk-based elevation before a qualifying numbered Operations Issue interrupts normal work;
 - use queue-wide `HOLD` or `BLOCKED` for ordinary predecessor or advisory conditions;

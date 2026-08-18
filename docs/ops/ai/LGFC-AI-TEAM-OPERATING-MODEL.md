@@ -55,9 +55,7 @@ Prior routing that listed Codex as a primary or secondary implementation agent i
 
 Every LGFC task follows one predictable path: Bill defines requirements → ChatGPT and Bill finalize design → ChatGPT publishes a documentation package → Bill approves → ChatGPT creates program and child issues → Cursor reviews the launch-control package → Bill/ChatGPT authorize execution → Cursor implements within scope with verification stop points → ChatGPT and Bill review gates → Bill authorizes continue, hold, or revise.
 
-PMO program lifecycle status reporting terms (**Ready for Launch**, **Implementation
-Active**, **Post-Implementation Verification**, **Complete / Closed**) are
-defined in `/docs/ops/pmo/PMO-JULY-2026-OPERATING-MODEL.md`. Ready for Launch means prepared for Bill/ChatGPT Go/No-Go, not production complete.
+PMO program lifecycle stages (**Initial Idea**, **Drafted Design**, **Pending Launch Packet**, **Graduation Candidate**, **Active**, **Closed**) and ordered Pipeline/Active priorities are defined in `/docs/reference/pmo/pmo-lifecycle-and-priority-contract.md`. Graduation Candidate means prepared for PMO Go/No-Go, not production complete.
 
 ---
 

@@ -4,9 +4,9 @@ Audience: PMO operators and AI agents
 Authority Level: Operational Guidance
 Owns: PMO dashboard generation, refresh, validation procedure, operator remediation flow, and GitHub Pages limitations
 Does Not Own: PMO lifecycle definitions, queue and priority policy, PMO issue contract, dashboard JSON specification, GitHub Issues source records, or Cloudflare production deployment
-Canonical Reference: /docs/ops/pmo/PMO-JULY-2026-DASHBOARD-SPECIFICATION.md
-Related Issues: #2101, #2299, #2313, #2471, #2516, #2610, #2611, #2699, #2702, #3116, #3136
-Last Reviewed: 2026-08-07
+Canonical Reference: /docs/reference/pmo/pmo-lifecycle-and-priority-contract.md
+Related Issues: #2101, #2299, #2313, #2471, #2516, #2610, #2611, #2699, #2702, #3116, #3136, #3597
+Last Reviewed: 2026-08-18
 ---
 
 # PMO Dashboard
@@ -17,7 +17,7 @@ The PMO dashboard is a generated static GitHub Pages reporting surface for PMO-m
 
 The dashboard normalizes public-safe Issue data into Active, Pipeline, Completed, and Incomplete views. Generated JSON is reporting-only and must not override live Issue metadata.
 
-Queue, priority, Project Graduation, and collaboration semantics are owned by `docs/governance/WORK-QUEUES-AND-COLLABORATION.md`. The JSON and view contract is owned by `docs/ops/pmo/PMO-JULY-2026-DASHBOARD-SPECIFICATION.md`.
+Queue, priority, Project Graduation, and collaboration semantics are owned by `docs/governance/WORK-QUEUES-AND-COLLABORATION.md`. The JSON and view contract is owned by `docs/reference/pmo/pmo-lifecycle-and-priority-contract.md`. The July 2026 dashboard specification is superseded historical context.
 
 This operator guidance was reconciled directly by ChatGPT under #2699 from the PMO meeting decisions. It must not be delegated to an implementation agent to reinterpret the meeting record.
 
@@ -38,11 +38,12 @@ It does not authorize:
 - GitHub Issues are the live source and sole operational authority.
 - The dashboard is reporting-only.
 - `pmo` identifies PMO-tracked portfolio parents and project tasks.
-- Active parents use `team:pmo` and one `pmo:priority:1` through `pmo:priority:4`.
-- Pipeline parents use `team:engineering`, one `eng:priority:1` through `eng:priority:4` or `eng:priority:idea`, and one Pipeline stage.
-- Pipeline priority reports preparation order; Pipeline stage reports maturity. They are independent.
+- Active parents use `team:pmo` and one `pmo:priority:<n>` ordered position with no 1–4 cap.
+- Pipeline parents use `team:pmo`, one `pmo:pipeline-priority:<n>`, and one canonical Pipeline stage.
+- Pipeline priority reports preparation order; Pipeline stage reports maturity. They are independent of Active priority.
+- Graduation Candidate is still Pipeline. It reports prepared maturity and does not authorize implementation.
 - Project child tasks use `pmo:task`, a valid parent reference, and lifecycle state. Child tasks do not carry any team label or team-priority label.
-- Standalone Operations Issues and peer Engineering preparation Issues are not PMO portfolio rows and do not count toward project completion.
+- Standalone Operations Issues and Engineering qualification Issues are not PMO portfolio rows and do not count toward project completion.
 - Generated output that does not meet this contract belongs in Incomplete rather than receiving an invented default.
 - The target runtime transition is tracked in #2702. Until it merges, legacy generated output may lag the canonical documentation; operators must use live GitHub Issues and the canonical policies when they conflict.
 
@@ -91,7 +92,7 @@ A project child task requires:
 - a valid parent reference;
 - lifecycle state;
 - no `team:*` label;
-- no `ops:*`, `eng:priority:*`, or `pmo:priority:*` label.
+- no `ops:*`, `eng:priority:*`, `pmo:priority:*`, or `pmo:pipeline-priority:*` label.
 
 Child projects inside an active parent program may use:
 
@@ -109,20 +110,19 @@ Validation runs before placement.
 
 ```text
 invalid required metadata -> Incomplete
-pmo:active + team:pmo + pmo:priority:1..4 -> Active
-pmo:pipeline + team:engineering + eng:priority:* + one pmo:stage:* -> Pipeline
+pmo:active + team:pmo + pmo:priority:<n> -> Active
+pmo:pipeline + team:pmo + pmo:pipeline-priority:<n> + one canonical pmo:stage:* -> Pipeline
 pmo:closed + terminal GitHub state -> Completed
 pmo:task + valid parent -> nested task accounting, not a standalone row
-standalone Operations or Engineering preparation Issue -> excluded from PMO portfolio rows
+standalone Operations or Engineering qualification Issue -> excluded from PMO portfolio rows
 ```
 
-Ready for Launch is still Pipeline. It reports prepared maturity and does not authorize implementation.
+Graduation Candidate is still Pipeline. It reports prepared maturity and does not authorize implementation.
 
 ### Sorting
 
-- Active parents sort by PMO priority, then update time.
-- Pipeline parents sort by Engineering priority, then Pipeline stage, then update time.
-- `eng:priority:idea` displays as `Idea` and sorts after numbered Engineering priorities unless an agenda view explicitly filters it.
+- Active parents sort numerically by Active `pmo:priority:<n>`, then update time.
+- Pipeline parents sort numerically by independent `pmo:pipeline-priority:<n>`, then Pipeline stage, then update time.
 - Completed parents sort by close time, then update time.
 - Incomplete rows sort by error severity, then update time.
 
@@ -142,10 +142,10 @@ Typical defects include:
 
 - missing or conflicting lifecycle;
 - Active parent missing or conflicting `team:pmo` or PMO priority;
-- Pipeline parent missing or conflicting `team:engineering`, Engineering priority, or stage;
+- Pipeline parent missing or conflicting `team:pmo`, Pipeline priority, or canonical stage;
 - cross-namespace team or priority labels;
-- PMO priority on Pipeline;
-- Engineering priority on Active;
+- Active `pmo:priority:*` on Pipeline;
+- `eng:priority:*` on Pipeline or Active;
 - any team priority on a child task;
 - invalid parent reference or task math;
 - Operations or Engineering peer work misclassified as a child;
@@ -154,8 +154,8 @@ Typical defects include:
 Remediation procedure:
 
 1. Open the live Issue.
-2. Determine whether it is an Active parent, Pipeline parent, project child, standalone Operations Issue, peer Engineering preparation Issue, or excluded record.
-3. Compare its metadata with the operating model and dashboard specification.
+2. Determine whether it is an Active parent, Pipeline parent, project child, standalone Operations Issue, Engineering qualification Issue, or excluded record.
+3. Compare its metadata with the lifecycle contract and queue policy.
 4. Correct metadata only through authorized PMO reconciliation or the reviewed #2702 migration process.
 5. Regenerate and validate output.
 6. Confirm movement into the correct view only after the contract violation is gone.
@@ -166,11 +166,11 @@ Do not invent missing team, priority, stage, parent, or graduation decisions mer
 
 1. Read the current GitHub Issue and the canonical queue policy before changing metadata.
 2. Confirm parent records use lifecycle-matching team and priority:
-   - Active: `team:pmo` plus one `pmo:priority:1..4`;
-   - Pipeline: `team:engineering` plus one `eng:priority:1..4` or `eng:priority:idea`, plus one stage.
+   - Active: `team:pmo` plus one `pmo:priority:<n>`;
+   - Pipeline: `team:pmo` plus one `pmo:pipeline-priority:<n>`, plus one canonical stage.
 3. Confirm child tasks have `pmo:task`, a valid parent, and no team-level priority.
 4. When Incomplete is flooded with `pmo:task` rows and parent `taskCount` values are zero, dry-run then apply `node scripts/pmo-dashboard/reconcile-task-child-labels.mjs` (add `--apply` only after reviewing the plan). The script strips prohibited child queue/stage labels and reconciles lifecycle labels; it does not invent parent references.
-5. Confirm Operations and Engineering preparation peer Issues are not included in parent task accounting.
+5. Confirm Operations and Engineering qualification Issues are not included in parent task accounting.
 6. On a feature branch, confirm **Validate PMO dashboard branch changes** runs the deterministic fixture successfully.
 7. On `main`, scheduled (every 30 minutes), or manual **Build PMO dashboard** runs, confirm generation/validation of `site/pmo-dashboard/dashboard-data.json` and artifact upload.
 8. Treat feature-branch fixture success as code-path evidence only. Use a live `main`, scheduled, or manual build for current-inventory evidence.

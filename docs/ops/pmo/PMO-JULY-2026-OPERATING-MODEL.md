@@ -1,19 +1,36 @@
 ---
 Doc Type: Operations
 Audience: Human + AI
-Authority Level: Canonical PMO Operational Authority
-Owns: PMO issue contract, lifecycle and Pipeline-stage representation, portfolio reporting, parent/child accounting, preparation and launch procedures, Cursor execution boundaries, Operations handoff, archive treatment, and PMO dashboard data-quality expectations
-Does Not Own: Product priority decisions, queue and priority semantics, work sizing policy, delivery-model policy, runtime implementation, workflow YAML, Production configuration, secrets, or unauthorized GitHub mutation
+Authority Level: Historical / Superseded
+Owns: Historical July 2026 PMO issue-contract snapshot
+Does Not Own: Current lifecycle, ordered priority, or dashboard contract
 Canonical Reference: /docs/governance/PMO-PORTFOLIO.md
-Related Issues: #2100, #2296, #2487, #2516, #2610, #2611, #2699, #2709
-Last Reviewed: 2026-07-21
+Related Issues: #2100, #2296, #2487, #2516, #2610, #2611, #2699, #2709, #3597
+Last Reviewed: 2026-08-18
 ---
 
 # PMO July 2026 Operating Model
 
 ## Status
 
-This document is the operational PMO issue-contract and reporting standard.
+**Superseded for current PMO lifecycle, ordered priority, and stage semantics (#3597).**
+
+Still-valid operating content has been migrated to:
+
+| Topic | Canonical owner |
+| --- | --- |
+| Why the model exists | `docs/explanation/pmo/engineering-qualification-and-pmo-lifecycle.md` |
+| Lifecycle/priority/label contract | `docs/reference/pmo/pmo-lifecycle-and-priority-contract.md` |
+| Stage, priority, and graduation procedure | `docs/how-to/pmo/run-pmo-lifecycle-and-priority.md` |
+| Weekly meeting procedure | `docs/how-to/pmo/run-weekly-pmo-priority-and-graduation-review.md` |
+| Dashboard operator procedure | `docs/how-to/pmo/pmo-dashboard.md` |
+| Queue policy | `docs/governance/WORK-QUEUES-AND-COLLABORATION.md` |
+| Portfolio decisions | `docs/governance/PMO-PORTFOLIO.md` |
+| Open-Issue remap | `docs/ops/pmo/issue-3597-pmo-lifecycle-migration-plan.md` |
+
+Do not use this July file for current stage names, P1–P4 capacity bands, or `team:engineering` Pipeline ownership. Physical archive move remains a later recorded disposition after zero current-document navigation links remain.
+
+This document is the historical operational PMO issue-contract and reporting standard from July 2026.
 
 Canonical policy ownership is divided as follows:
 

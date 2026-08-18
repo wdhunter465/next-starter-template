@@ -25,12 +25,12 @@
       {
         "name": "team:pmo",
         "color": "0052cc",
-        "description": "PMO Active implementation queue owner for launched portfolio parents"
+        "description": "PMO owner for Pipeline preparation parents and Active implementation parents"
       },
       {
         "name": "team:engineering",
         "color": "5319e7",
-        "description": "Engineering Pipeline-preparation queue owner for unlaunched portfolio parents and peer preparation Issues"
+        "description": "Engineering qualification-gate owner for work that has not yet entered PMO Pipeline"
       }
     ],
     "operations": [
@@ -106,7 +106,7 @@
       {
         "name": "pmo:pipeline",
         "color": "c5def5",
-        "description": "PMO-tracked parent retained in Engineering preparation or future graduation review"
+        "description": "PMO-tracked parent in PMO Pipeline preparation; not Active until Project Graduation"
       },
       {
         "name": "pmo:active",
@@ -124,86 +124,97 @@
         "description": "Project implementation child; never a standalone portfolio row and never team-prioritized"
       }
     ],
-    "pmoPriority": [
-      {
-        "name": "pmo:priority:1",
-        "color": "0052cc",
-        "description": "Active PMO parent priority 1"
-      },
-      {
-        "name": "pmo:priority:2",
-        "color": "1d76db",
-        "description": "Active PMO parent priority 2"
-      },
-      {
-        "name": "pmo:priority:3",
-        "color": "539bf5",
-        "description": "Active PMO parent priority 3"
-      },
-      {
-        "name": "pmo:priority:4",
-        "color": "c5def5",
-        "description": "Active PMO parent priority 4"
-      }
-    ],
+    "pmoActivePriority": {
+      "pattern": "^pmo:priority:[1-9]\\d*$",
+      "seedLabels": [
+        {
+          "name": "pmo:priority:1",
+          "color": "0052cc",
+          "description": "Active ordered queue position 1; create pmo:priority:<n> as needed with no 1-4 cap"
+        },
+        {
+          "name": "pmo:priority:2",
+          "color": "1d76db",
+          "description": "Active ordered queue position 2"
+        },
+        {
+          "name": "pmo:priority:3",
+          "color": "539bf5",
+          "description": "Active ordered queue position 3"
+        },
+        {
+          "name": "pmo:priority:4",
+          "color": "c5def5",
+          "description": "Active ordered queue position 4"
+        }
+      ]
+    },
+    "pmoPipelinePriority": {
+      "pattern": "^pmo:pipeline-priority:[1-9]\\d*$",
+      "seedLabels": [
+        {
+          "name": "pmo:pipeline-priority:1",
+          "color": "c5def5",
+          "description": "Pipeline ordered queue position 1; independent from Active pmo:priority:<n>"
+        }
+      ]
+    },
     "engineeringPriority": [
       {
         "name": "eng:priority:1",
         "color": "5319e7",
-        "description": "Engineering Pipeline preparation priority 1"
+        "description": "Engineering qualification-queue order 1; not a PMO Pipeline or Active position"
       },
       {
         "name": "eng:priority:2",
         "color": "7057ff",
-        "description": "Engineering Pipeline preparation priority 2"
+        "description": "Engineering qualification-queue order 2"
       },
       {
         "name": "eng:priority:3",
         "color": "a2eeef",
-        "description": "Engineering Pipeline preparation priority 3"
+        "description": "Engineering qualification-queue order 3"
       },
       {
         "name": "eng:priority:4",
         "color": "d4c5f9",
-        "description": "Engineering Pipeline preparation priority 4"
+        "description": "Engineering qualification-queue order 4"
       },
       {
         "name": "eng:priority:idea",
         "color": "ededed",
-        "description": "Pipeline topic retained for PMO awareness without numbered preparation priority"
+        "description": "Engineering qualification topic retained without numbered qualification order"
       }
     ],
     "pipelineStage": [
       {
-        "name": "pmo:stage:intake",
+        "name": "pmo:stage:initial-idea",
         "color": "ededed",
-        "description": "Pipeline maturity: Intake"
+        "description": "Pipeline stage: Initial Idea"
       },
       {
-        "name": "pmo:stage:discovery",
+        "name": "pmo:stage:drafted-design",
         "color": "d4c5f9",
-        "description": "Pipeline maturity: Discovery"
+        "description": "Pipeline stage: Drafted Design"
       },
       {
-        "name": "pmo:stage:definition",
-        "color": "c5def5",
-        "description": "Pipeline maturity: Definition"
-      },
-      {
-        "name": "pmo:stage:planning",
-        "color": "bfdadc",
-        "description": "Pipeline maturity: Planning"
-      },
-      {
-        "name": "pmo:stage:prep",
+        "name": "pmo:stage:pending-launch-packet",
         "color": "fbca04",
-        "description": "Pipeline maturity: Preparation"
+        "description": "Pipeline stage: Pending Launch Packet"
       },
       {
-        "name": "pmo:stage:ready-for-launch",
+        "name": "pmo:stage:graduation-candidate",
         "color": "0e8a16",
-        "description": "Pipeline maturity: Ready for Launch; implementation is not yet authorized"
+        "description": "Pipeline stage: Graduation Candidate; implementation is not yet authorized"
       }
+    ],
+    "legacyPipelineStage": [
+      "pmo:stage:intake",
+      "pmo:stage:discovery",
+      "pmo:stage:definition",
+      "pmo:stage:planning",
+      "pmo:stage:prep",
+      "pmo:stage:ready-for-launch"
     ]
   },
   "rules": [
@@ -228,6 +239,7 @@
       ],
       "forbidsPrefixes": [
         "pmo:priority:",
+        "pmo:pipeline-priority:",
         "eng:priority:",
         "gov:",
         "pmo:stage:"
@@ -249,6 +261,7 @@
       "forbidsPrefixes": [
         "ops:",
         "pmo:priority:",
+        "pmo:pipeline-priority:",
         "eng:priority:",
         "pmo:stage:"
       ]
@@ -263,18 +276,18 @@
       "requires": [
         "team:pmo"
       ],
-      "requiresExactlyOneOf": [
-        "pmo:priority:1",
-        "pmo:priority:2",
-        "pmo:priority:3",
-        "pmo:priority:4"
-      ],
+      "requiresExactlyOneMatching": "^pmo:priority:[1-9]\\d*$",
       "forbidsPrefixes": [
         "eng:priority:",
+        "pmo:pipeline-priority:",
         "ops:",
         "gov:"
       ],
       "forbids": [
+        "pmo:stage:initial-idea",
+        "pmo:stage:drafted-design",
+        "pmo:stage:pending-launch-packet",
+        "pmo:stage:graduation-candidate",
         "pmo:stage:intake",
         "pmo:stage:discovery",
         "pmo:stage:definition",
@@ -291,18 +304,18 @@
         "portfolio-parent"
       ],
       "requires": [
-        "team:engineering"
+        "team:pmo"
       ],
+      "requiresExactlyOneMatching": "^pmo:pipeline-priority:[1-9]\\d*$",
       "requiresExactlyOneOf": [
-        "eng:priority:1",
-        "eng:priority:2",
-        "eng:priority:3",
-        "eng:priority:4",
-        "eng:priority:idea"
+        "pmo:stage:initial-idea",
+        "pmo:stage:drafted-design",
+        "pmo:stage:pending-launch-packet",
+        "pmo:stage:graduation-candidate"
       ],
-      "requiresExactlyOnePrefix": "pmo:stage:",
       "forbidsPrefixes": [
         "pmo:priority:",
+        "eng:priority:",
         "ops:",
         "gov:"
       ]
@@ -323,6 +336,7 @@
         "ops:",
         "gov:",
         "pmo:priority:",
+        "pmo:pipeline-priority:",
         "eng:priority:"
       ]
     },
@@ -331,14 +345,13 @@
       "transition": "pipeline-to-active",
       "remove": [
         "pmo:pipeline",
-        "team:engineering",
-        "eng:priority:*",
+        "pmo:pipeline-priority:*",
         "pmo:stage:*"
       ],
       "add": [
         "pmo:active",
         "team:pmo",
-        "one PMO-selected pmo:priority:1..4"
+        "one PMO-selected pmo:priority:<n> Active ordered position"
       ],
       "automaticPriorityTransfer": false
     }
@@ -373,8 +386,38 @@
       {
         "from": "pmo:priority:idea",
         "to": "eng:priority:idea",
-        "appliesWhen": "PMO-tracked Pipeline portfolio parent",
+        "appliesWhen": "pre-Pipeline Engineering qualification Issue",
         "otherwise": "quarantine"
+      },
+      {
+        "from": "pmo:stage:intake",
+        "to": "pmo:stage:initial-idea",
+        "appliesWhen": "PMO-tracked Pipeline portfolio parent after Engineering qualification"
+      },
+      {
+        "from": "pmo:stage:discovery",
+        "to": "pmo:stage:drafted-design",
+        "appliesWhen": "PMO-tracked Pipeline portfolio parent"
+      },
+      {
+        "from": "pmo:stage:definition",
+        "to": "pmo:stage:drafted-design",
+        "appliesWhen": "PMO-tracked Pipeline portfolio parent"
+      },
+      {
+        "from": "pmo:stage:planning",
+        "to": "pmo:stage:pending-launch-packet",
+        "appliesWhen": "PMO-tracked Pipeline portfolio parent"
+      },
+      {
+        "from": "pmo:stage:prep",
+        "to": "pmo:stage:pending-launch-packet",
+        "appliesWhen": "PMO-tracked Pipeline portfolio parent"
+      },
+      {
+        "from": "pmo:stage:ready-for-launch",
+        "to": "pmo:stage:graduation-candidate",
+        "appliesWhen": "PMO-tracked Pipeline portfolio parent"
       }
     ],
     "removeFromProjectChildren": [
@@ -382,6 +425,7 @@
       "ops:*",
       "gov:*",
       "pmo:priority:*",
+      "pmo:pipeline-priority:*",
       "eng:priority:*"
     ],
     "prohibited": [

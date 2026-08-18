@@ -2,11 +2,11 @@
 Doc Type: How-to
 Audience: Human + AI
 Authority Level: Procedure
-Owns: Weekly PMO meeting sequence for Active priority, Engineering Pipeline priority, preparation ownership, Project Graduation, and metadata reconciliation
+Owns: Weekly PMO meeting sequence for Active ordered priority, Pipeline ordered priority, Engineering qualification, Project Graduation, and metadata reconciliation
 Does Not Own: Product priority decisions, implementation execution, recovery strategy, PR approval, Production authorization, or dashboard runtime behavior
 Canonical Reference: /docs/governance/WORK-QUEUES-AND-COLLABORATION.md
-Related Issues: #2699, #2705, #2706
-Last Reviewed: 2026-07-21
+Related Issues: #2699, #2705, #2706, #3597
+Last Reviewed: 2026-08-18
 ---
 
 # Run the Weekly PMO Priority and Graduation Review
@@ -20,7 +20,7 @@ Provide one weekly review path for Bill and ChatGPT to govern the PMO portfolio 
 Use:
 
 - live PMO-tracked GitHub parent Issues;
-- current lifecycle, Pipeline stage, team, and priority labels;
+- current lifecycle, Pipeline stage, team, and ordered priority labels;
 - linked task completion evidence;
 - open Engineering preparation assignments;
 - Project Graduation packages;
@@ -51,57 +51,42 @@ Do not conduct normal project dispatch while a numbered Operations Issue remains
 For each Active parent:
 
 - confirm `team:pmo`;
-- confirm exactly one `pmo:priority:1` through `pmo:priority:4` label;
+- confirm exactly one `pmo:priority:<n>` ordered position with no 1–4 cap;
 - confirm child tasks do not carry PMO priority;
 - review completion percentage and executable next work;
 - identify holds, blocked dependencies, promotion state, Production state, and closeout needs.
 
-Apply capacity limits:
+Renumber the Active sequence 1...XXX when parents were added, removed, held, closed, or reprioritized.
 
-- maximum four P1 parent projects;
-- maximum four P2 parent projects;
-- maximum four P3 parent projects;
-- no fixed P4 limit.
+No priority changes occur automatically. Projects may complete at any Active ordered position.
 
-Use completion thresholds only as eligibility signals:
-
-- P2 at 80% may be considered for P1;
-- P3 at 70% may be considered for P2;
-- P4 at 50% may be considered for P3.
-
-No priority changes occur automatically. Projects may complete at any Active priority.
-
-## Step 3 — Review the Engineering Pipeline queue
+## Step 3 — Review the PMO Pipeline queue
 
 For each Pipeline parent:
 
-- confirm `team:engineering`;
-- confirm exactly one `eng:priority:1` through `eng:priority:4`, or `eng:priority:idea`;
-- confirm one truthful Pipeline stage;
+- confirm `team:pmo`;
+- confirm exactly one `pmo:pipeline-priority:<n>`;
+- confirm one truthful canonical stage: Initial Idea, Drafted Design, Pending Launch Packet, or Graduation Candidate;
 - distinguish preparation priority from actual maturity;
 - review whether current preparation ownership is sufficient.
 
-Any Pipeline project may move directly to Engineering P1 regardless of current stage.
+Legacy `team:engineering` on `pmo:pipeline` or retired `pmo:stage:*` labels are Incomplete until migrated.
 
 There is no time limit for remaining in a priority or stage.
 
-## Step 4 — Create accountable preparation work
+## Step 4 — Review Engineering qualification and launch-packet work
 
-For every Pipeline parent newly assigned Engineering P1:
+1. Identify `team:engineering` Issues that still lack minimum qualification fields.
+2. Move qualified Issues into Pipeline at Initial Idea.
+3. For Pipeline parents at Pending Launch Packet, create or reactivate one peer launch-packet assignment if missing.
+4. Use `Related Pipeline Project:` or `Graduation Target:`; do not use `Parent Project:` or `pmo:task`.
+5. Record the target PMO review meeting and required launch-package outputs.
 
-1. create or reactivate one peer Engineering preparation Issue;
-2. assign ChatGPT as preparation owner;
-3. use `Related Pipeline Project:` or `Graduation Target:`;
-4. do not use `Parent Project:`;
-5. do not apply `pmo:task`;
-6. record the target PMO review meeting;
-7. define the required launch-package outputs.
-
-There must be no more than one open preparation assignment for the same Pipeline parent.
+There must be no more than one open launch-packet assignment for the same Pipeline parent.
 
 ## Step 5 — Review Project Graduation candidates
 
-A candidate should normally be at Ready for Launch and have:
+A candidate must be at Graduation Candidate and have:
 
 - reconciled objective, scope, and non-goals;
 - approved requirements and acceptance criteria;
@@ -125,26 +110,26 @@ ADJUSTMENT
 
 ### Go
 
-Project Graduation transfers the parent from Engineering/Pipeline to PMO/Active.
+Project Graduation transfers the parent from Pipeline to Active.
 
 Record:
 
-- removal of Pipeline stage and Engineering priority;
-- assignment of `team:pmo`;
-- a newly selected Active PMO priority;
-- execution owner;
+- removal of Pipeline stage and `pmo:pipeline-priority:*`;
+- `team:pmo` retained;
+- a newly selected Active ordered priority `pmo:priority:<n>`;
+- one start-to-finish implementation owner;
 - first executable child task;
 - implementation Go and applicable delivery profile.
 
-Engineering priority never transfers automatically to Active PMO priority.
+Pipeline priority never transfers automatically to Active PMO priority.
 
 ### No-Go
 
-Retain the project in Engineering/Pipeline and record the reason and next condition.
+Retain the project in Pipeline and record the reason and next condition.
 
 ### Hold
 
-Retain the project in Engineering/Pipeline and record the hold owner, evidence needed, and review condition.
+Retain the project in Pipeline and record the hold owner, evidence needed, and review condition.
 
 ### Adjustment
 

@@ -98,26 +98,26 @@ async function main() {
     issue({
       number: 9102,
       title: 'PROJECT: Pipeline stage fixture',
-      labels: ['pmo', 'pmo:pipeline', 'team:engineering', 'eng:priority:2', 'pmo:stage:prep']
+      labels: ['pmo', 'pmo:pipeline', 'team:pmo', 'pmo:pipeline-priority:2', 'pmo:stage:pending-launch-packet']
     })
   ], (data) => {
     const hit = findView(data, 9102);
     assert(hit?.view === 'pmoPipeline', 'T2: Pipeline placement');
-    assert(hit.row.teamLabel === 'team:engineering', 'T2: Pipeline team');
-    assert(hit.row.priorityLabel === 'eng:priority:2', 'T2: Engineering priority');
-    assert(hit.row.pipelineStageLabel === 'pmo:stage:prep', 'T2: stage label');
+    assert(hit.row.teamLabel === 'team:pmo', 'T2: Pipeline team');
+    assert(hit.row.priorityLabel === 'pmo:pipeline-priority:2', 'T2: Pipeline priority');
+    assert(hit.row.pipelineStageLabel === 'pmo:stage:pending-launch-packet', 'T2: stage label');
   });
 
   await withBuild([
     issue({
       number: 9103,
       title: 'STRATEGY: Idea fixture',
-      labels: ['pmo', 'pmo:pipeline', 'team:engineering', 'eng:priority:idea', 'pmo:stage:intake']
+      labels: ['pmo', 'pmo:pipeline', 'team:pmo', 'pmo:pipeline-priority:12', 'pmo:stage:initial-idea']
     })
   ], (data) => {
     const hit = findView(data, 9103);
     assert(hit?.view === 'pmoPipeline', 'T3: Pipeline placement');
-    assert(hit.row.priorityDisplay === 'Idea', 'T3: Idea display');
+    assert(hit.row.priorityDisplay === '12', 'T3: unbounded Pipeline priority display');
   });
 
   await withBuild([
@@ -137,7 +137,7 @@ async function main() {
     [9105, ['pmo', 'team:pmo', 'pmo:priority:1'], /lifecycle/i],
     [9106, ['pmo', 'pmo:active', 'pmo:pipeline', 'team:pmo', 'pmo:priority:1'], /conflicting lifecycle/i],
     [9107, ['pmo', 'pmo:active', 'team:pmo', 'pmo:priority:none'], /priority/i],
-    [9108, ['pmo', 'pmo:pipeline', 'team:engineering', 'eng:priority:2'], /stage/i],
+    [9108, ['pmo', 'pmo:pipeline', 'team:pmo', 'pmo:pipeline-priority:2'], /stage/i],
     [9109, ['pmo', 'pmo:closed'], /open GitHub issue carries pmo:closed/i]
   ]) {
     await withBuild([issue({ number, title: `PROJECT: Invalid ${number}`, labels })], (data) => {
@@ -179,14 +179,21 @@ async function main() {
   await withBuild([
     issue({ number: 9112, labels: ['pmo', 'pmo:active', 'team:pmo', 'pmo:priority:5'] })
   ], (data) => {
-    assert(findView(data, 9112)?.view === 'incomplete', 'T12c: priority 5 fails closed');
+    assert(findView(data, 9112)?.view === 'activePrograms', 'T12c: priority 5 is a valid ordered Active position');
+    assert(findView(data, 9112).row.priorityDisplay === '5', 'T12c: priority 5 display');
+  });
+  await withBuild([
+    issue({ number: 9112, labels: ['pmo', 'pmo:active', 'team:pmo', 'pmo:priority:12'] })
+  ], (data) => {
+    assert(findView(data, 9112)?.view === 'activePrograms', 'T12d: priority 12 is a valid ordered Active position');
+    assert(findView(data, 9112).row.priorityDisplay === '12', 'T12d: priority 12 display');
   });
 
   await withBuild([
     issue({
       number: 9113,
       title: 'PROJECT: Transition target',
-      labels: ['pmo', 'pmo:pipeline', 'team:engineering', 'eng:priority:2', 'pmo:stage:prep']
+      labels: ['pmo', 'pmo:pipeline', 'team:pmo', 'pmo:pipeline-priority:2', 'pmo:stage:pending-launch-packet']
     })
   ], (data) => {
     assert(findView(data, 9113)?.view === 'pmoPipeline', 'T13a: starts Pipeline');

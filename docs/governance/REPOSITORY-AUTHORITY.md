@@ -5,8 +5,8 @@ Authority Level: Constitutional
 Owns: Repository precedence, GitHub Issue authority, domain ownership, lane topology, work-queue topology, canonical-source rules, supersession, and unresolved-conflict escalation
 Does Not Own: Detailed PMO, queue, delivery, agent, CI, Administration, Operations, collaboration, or platform procedures
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2477, #2486, #2640, #2641, #2678, #2686, #2690, #2699, #2720, #2941
-Last Reviewed: 2026-07-29
+Related Issues: #2477, #2486, #2640, #2641, #2678, #2686, #2690, #2699, #2720, #2941, #3597
+Last Reviewed: 2026-08-18
 ---
 
 # Repository Authority
@@ -104,22 +104,24 @@ Lanes define durable authority and responsibility. Work queues define which auth
 ```text
 Operations interrupt queue
         |
+        +-- Governance stewardship queue
         +-- PMO Active implementation queue
-        +-- Engineering Pipeline-preparation queue
+        +-- PMO Pipeline preparation queue
+        +-- Engineering qualification queue
 ```
 
 Constitutional queue invariants:
 
 1. Numbered Operations work has interrupt precedence over PMO and Engineering work.
-2. PMO Active implementation and Engineering Pipeline preparation are peer normal-work queues.
+2. PMO Active implementation and PMO Pipeline preparation are peer PMO queues with independent ordered priorities. Engineering qualification is the pre-Pipeline gate and is not Active implementation.
 3. A source Issue belongs to at most one team queue at a time.
-4. Team-priority namespaces are mutually exclusive.
+4. Team-priority namespaces are mutually exclusive. Active `pmo:priority:<n>` and Pipeline `pmo:pipeline-priority:<n>` are separate domains.
 5. Operations Monitoring and Hold are non-blocking states subject to recorded interval review.
 6. Project child tasks do not receive team-level priority; the parent priority selects the project and the project sequence selects the task.
-7. Pipeline-to-Active movement requires explicit Project Graduation and a newly assigned Active priority.
+7. Pipeline-to-Active movement requires explicit Project Graduation, a newly assigned Active ordered priority, and one start-to-finish implementation owner.
 8. Collaboration may add participants but never creates dual queue ownership.
 
-Detailed queue, priority, graduation, and collaboration rules live in `docs/governance/WORK-QUEUES-AND-COLLABORATION.md`.
+Detailed queue, priority, graduation, and collaboration rules live in `docs/governance/WORK-QUEUES-AND-COLLABORATION.md`. Machine mapping lives in `docs/reference/pmo/pmo-lifecycle-and-priority-contract.md`.
 
 ## Promotion-profile authority
 
@@ -145,7 +147,7 @@ Each domain has exactly one canonical policy file.
 | --- | --- | --- |
 | Product and Design | `docs/governance/PRODUCT-AND-DESIGN.md` | Product behavior, UX, functional requirements |
 | PMO and Portfolio | `docs/governance/PMO-PORTFOLIO.md` | Intake, sizing, priority decisions, launch authorization, PMO / Engineering boundaries |
-| Work Queues and Collaboration | `docs/governance/WORK-QUEUES-AND-COLLABORATION.md` | Queue classification and precedence, team/priority namespaces, Active and Pipeline priority semantics, Project Graduation, universal collaboration |
+| Work Queues and Collaboration | `docs/governance/WORK-QUEUES-AND-COLLABORATION.md` | Queue classification and precedence, team/priority namespaces, ordered Active and Pipeline priority, Project Graduation, universal collaboration |
 | Delivery and Release | `docs/governance/DELIVERY-AND-RELEASE.md` | Delivery models, four promotion profiles, integration, approval, rollback, promotion |
 | Agent Team | `docs/governance/AGENT-TEAM.md` | Durable roles, current member mapping, approval and protected-stop policy |
 | CI and Verification | `docs/governance/CI-AND-VERIFICATION.md` | Check classification, deterministic evidence, promotion criteria, failure routing, post-merge verification |
@@ -164,6 +166,7 @@ Supporting references inform a domain but do not share policy ownership.
 | --- | --- |
 | Lane and profile contract | `docs/reference/operations/operating-lanes-and-promotion-profiles.md` |
 | Work queue and collaboration contract | `docs/reference/operations/work-queue-and-collaboration-contract.md` |
+| PMO lifecycle and priority contract | `docs/reference/pmo/pmo-lifecycle-and-priority-contract.md` |
 | Administration mutation contract | `docs/reference/operations/administrative-control-lane-contract.md` |
 | Runner contract | `docs/reference/ci/repository-runner-contract.md` |
 | Product design standards | `docs/reference/design/LGFC-Production-Design-and-Standards.md` |

@@ -4,12 +4,8 @@ const TEAM_LABELS = new Set([
   'team:pmo',
   'team:engineering'
 ]);
-const PMO_PRIORITIES = new Set([
-  'pmo:priority:1',
-  'pmo:priority:2',
-  'pmo:priority:3',
-  'pmo:priority:4'
-]);
+const PMO_ACTIVE_PRIORITY_RE = /^pmo:priority:([1-9]\d*)$/;
+const PMO_PIPELINE_PRIORITY_RE = /^pmo:pipeline-priority:([1-9]\d*)$/;
 const ENGINEERING_PRIORITIES = new Set([
   'eng:priority:1',
   'eng:priority:2',
@@ -40,9 +36,21 @@ function normalizeLabels(input) {
     .filter(Boolean);
 }
 
+export function isPmoActivePriorityLabel(label) {
+  return typeof label === 'string' && PMO_ACTIVE_PRIORITY_RE.test(label);
+}
+
+export function isPmoPipelinePriorityLabel(label) {
+  return typeof label === 'string' && PMO_PIPELINE_PRIORITY_RE.test(label);
+}
+
 function priorityDisplay(label) {
   if (!label) return null;
   if (label === 'eng:priority:idea') return 'Idea';
+  const active = label.match(PMO_ACTIVE_PRIORITY_RE);
+  if (active) return active[1];
+  const pipeline = label.match(PMO_PIPELINE_PRIORITY_RE);
+  if (pipeline) return pipeline[1];
   const match = label.match(/:(\d+)$/);
   return match ? match[1] : null;
 }
@@ -56,6 +64,7 @@ export function analyzeQueueLabels({ labels: input, lifecycle, role = 'portfolio
   const labels = normalizeLabels(input);
   const teams = labels.filter((label) => TEAM_LABELS.has(label) || label.startsWith('team:'));
   const pmoPriorities = labels.filter((label) => label.startsWith('pmo:priority:'));
+  const pipelinePriorities = labels.filter((label) => label.startsWith('pmo:pipeline-priority:'));
   const engineeringPriorities = labels.filter((label) => label.startsWith('eng:priority:'));
   const operationsStates = labels.filter((label) => label.startsWith('ops:'));
   const governanceStates = labels.filter((label) => label.startsWith('gov:'));
@@ -82,12 +91,14 @@ export function analyzeQueueLabels({ labels: input, lifecycle, role = 'portfolio
     }
     if (
       pmoPriorities.length ||
+      pipelinePriorities.length ||
       engineeringPriorities.length ||
       operationsStates.length ||
       governanceStates.length
     ) {
       const prohibited = [
         ...pmoPriorities,
+        ...pipelinePriorities,
         ...engineeringPriorities,
         ...operationsStates,
         ...governanceStates
@@ -96,7 +107,7 @@ export function analyzeQueueLabels({ labels: input, lifecycle, role = 'portfolio
         errors,
         remediation,
         `project child carries prohibited queue priority/state label(s): ${prohibited.join(', ')}`,
-        'Remove team:*, ops:*, gov:*, pmo:priority:*, and eng:priority:* labels from project children'
+        'Remove team:*, ops:*, gov:*, pmo:priority:*, pmo:pipeline-priority:*, and eng:priority:* labels from project children'
       );
     }
     return {
@@ -117,14 +128,14 @@ export function analyzeQueueLabels({ labels: input, lifecycle, role = 'portfolio
         'Keep exactly team:pmo'
       );
     }
-    const accepted = pmoPriorities.filter((label) => PMO_PRIORITIES.has(label));
-    const unsupported = pmoPriorities.filter((label) => !PMO_PRIORITIES.has(label));
+    const accepted = pmoPriorities.filter((label) => isPmoActivePriorityLabel(label));
+    const unsupported = pmoPriorities.filter((label) => !isPmoActivePriorityLabel(label));
     if (unsupported.length) {
       addError(
         errors,
         remediation,
         `unsupported Active PMO priority label(s): ${unsupported.join(', ')}`,
-        'Use exactly one pmo:priority:1 through pmo:priority:4'
+        'Use exactly one pmo:priority:<n> where n is a positive integer with no 1-4 cap'
       );
     }
     if (accepted.length !== 1 || pmoPriorities.length !== 1) {
@@ -132,19 +143,25 @@ export function analyzeQueueLabels({ labels: input, lifecycle, role = 'portfolio
         errors,
         remediation,
         'active portfolio parent requires exactly one PMO priority',
-        'Keep exactly one pmo:priority:1 through pmo:priority:4'
+        'Keep exactly one pmo:priority:<n> ordered Active queue position'
       );
     }
-    if (engineeringPriorities.length || operationsStates.length || governanceStates.length) {
+    if (
+      pipelinePriorities.length ||
+      engineeringPriorities.length ||
+      operationsStates.length ||
+      governanceStates.length
+    ) {
       addError(
         errors,
         remediation,
         `active portfolio parent carries cross-namespace label(s): ${[
+          ...pipelinePriorities,
           ...engineeringPriorities,
           ...operationsStates,
           ...governanceStates
         ].join(', ')}`,
-        'Remove Engineering priority and Operations/Governance state labels from Active PMO parents'
+        'Remove Pipeline priority and Engineering/Operations/Governance labels from Active PMO parents'
       );
     }
     const priorityLabel = accepted.length === 1 && pmoPriorities.length === 1 ? accepted[0] : null;
@@ -158,49 +175,54 @@ export function analyzeQueueLabels({ labels: input, lifecycle, role = 'portfolio
   }
 
   if (lifecycle === 'pipeline') {
-    if (teams.length !== 1 || teams[0] !== 'team:engineering') {
+    if (teams.length !== 1 || teams[0] !== 'team:pmo') {
       addError(
         errors,
         remediation,
-        'Pipeline portfolio parent requires exactly team:engineering',
-        'Keep exactly team:engineering'
+        'Pipeline portfolio parent requires exactly team:pmo',
+        'Keep exactly team:pmo; team:engineering is only for pre-Pipeline Engineering qualification'
       );
     }
-    const accepted = engineeringPriorities.filter((label) => ENGINEERING_PRIORITIES.has(label));
-    const unsupported = engineeringPriorities.filter((label) => !ENGINEERING_PRIORITIES.has(label));
+    const accepted = pipelinePriorities.filter((label) => isPmoPipelinePriorityLabel(label));
+    const unsupported = pipelinePriorities.filter((label) => !isPmoPipelinePriorityLabel(label));
     if (unsupported.length) {
       addError(
         errors,
         remediation,
-        `unsupported Engineering priority label(s): ${unsupported.join(', ')}`,
-        'Use exactly one eng:priority:1 through eng:priority:4 or eng:priority:idea'
+        `unsupported Pipeline priority label(s): ${unsupported.join(', ')}`,
+        'Use exactly one pmo:pipeline-priority:<n> where n is a positive integer with no 1-4 cap'
       );
     }
-    if (accepted.length !== 1 || engineeringPriorities.length !== 1) {
+    if (accepted.length !== 1 || pipelinePriorities.length !== 1) {
       addError(
         errors,
         remediation,
-        'Pipeline portfolio parent requires exactly one Engineering priority',
-        'Keep exactly one eng:priority:1 through eng:priority:4 or eng:priority:idea'
+        'Pipeline portfolio parent requires exactly one Pipeline priority',
+        'Keep exactly one pmo:pipeline-priority:<n> ordered Pipeline queue position'
       );
     }
-    if (pmoPriorities.length || operationsStates.length || governanceStates.length) {
+    if (
+      pmoPriorities.length ||
+      engineeringPriorities.length ||
+      operationsStates.length ||
+      governanceStates.length
+    ) {
       addError(
         errors,
         remediation,
         `Pipeline portfolio parent carries cross-namespace label(s): ${[
           ...pmoPriorities,
+          ...engineeringPriorities,
           ...operationsStates,
           ...governanceStates
         ].join(', ')}`,
-        'Remove PMO priority and Operations/Governance state labels from Pipeline Engineering parents'
+        'Remove Active pmo:priority:*, eng:priority:*, and Operations/Governance labels from Pipeline parents'
       );
     }
     const priorityLabel =
-      accepted.length === 1 && engineeringPriorities.length === 1 ? accepted[0] : null;
+      accepted.length === 1 && pipelinePriorities.length === 1 ? accepted[0] : null;
     return {
-      teamLabel:
-        teams.length === 1 && teams[0] === 'team:engineering' ? teams[0] : null,
+      teamLabel: teams.length === 1 && teams[0] === 'team:pmo' ? teams[0] : null,
       priorityLabel,
       priorityDisplay: priorityDisplay(priorityLabel),
       errors: [...new Set(errors)],
@@ -217,7 +239,7 @@ export function analyzeQueueLabels({ labels: input, lifecycle, role = 'portfolio
         'Remove team:operations from PMO portfolio records'
       );
     }
-    if (pmoPriorities.length > 1 || engineeringPriorities.length > 1) {
+    if (pmoPriorities.length > 1 || pipelinePriorities.length > 1 || engineeringPriorities.length > 1) {
       addError(
         errors,
         remediation,
@@ -225,7 +247,12 @@ export function analyzeQueueLabels({ labels: input, lifecycle, role = 'portfolio
         'Keep at most one historical matching priority label'
       );
     }
-    if (pmoPriorities.length && engineeringPriorities.length) {
+    const namespaceCount = [
+      pmoPriorities.length > 0,
+      pipelinePriorities.length > 0,
+      engineeringPriorities.length > 0
+    ].filter(Boolean).length;
+    if (namespaceCount > 1) {
       addError(
         errors,
         remediation,
@@ -241,7 +268,7 @@ export function analyzeQueueLabels({ labels: input, lifecycle, role = 'portfolio
         'Remove Engineering priority or correct the historical team owner'
       );
     }
-    if (teams[0] === 'team:engineering' && pmoPriorities.length) {
+    if (teams[0] === 'team:engineering' && (pmoPriorities.length || pipelinePriorities.length)) {
       addError(
         errors,
         remediation,
@@ -252,9 +279,11 @@ export function analyzeQueueLabels({ labels: input, lifecycle, role = 'portfolio
     const priorityLabel =
       pmoPriorities.length === 1
         ? pmoPriorities[0]
-        : engineeringPriorities.length === 1
-          ? engineeringPriorities[0]
-          : null;
+        : pipelinePriorities.length === 1
+          ? pipelinePriorities[0]
+          : engineeringPriorities.length === 1
+            ? engineeringPriorities[0]
+            : null;
     return {
       teamLabel: teams.length === 1 && TEAM_LABELS.has(teams[0]) ? teams[0] : null,
       priorityLabel,
@@ -284,13 +313,10 @@ function carriesConflictingQueueNamespace(labels, allowedTeam) {
     (label) =>
       (label.startsWith('team:') && label !== allowedTeam) ||
       label.startsWith('pmo:priority:') ||
+      label.startsWith('pmo:pipeline-priority:') ||
       label.startsWith('pmo:stage:') ||
       label.startsWith('eng:priority:') ||
-      // Native Operations state/priority labels (ops:*) are allowed on clean
-      // team:operations peers and must not count as contradictions.
       (allowedTeam !== 'team:operations' && label.startsWith('ops:')) ||
-      // Native Governance state/priority labels (gov:*) are allowed on clean
-      // team:governance peers and must not count as contradictions.
       (allowedTeam !== 'team:governance' && label.startsWith('gov:'))
   );
 }
@@ -327,10 +353,16 @@ export function isPeerEngineeringPreparation(issue) {
     && !/^\s*Parent(?:\s+(?:program|project|issue))?\s*:/im.test(body);
 }
 
+const PMO_PRIORITIES = {
+  has: isPmoActivePriorityLabel
+};
+
 export {
   ENGINEERING_PRIORITIES,
   GOVERNANCE_STATES,
   OPERATIONS_STATES,
+  PMO_ACTIVE_PRIORITY_RE,
+  PMO_PIPELINE_PRIORITY_RE,
   PMO_PRIORITIES,
   TEAM_LABELS
 };

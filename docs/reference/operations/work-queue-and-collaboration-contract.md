@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: Stable queue-classification, priority-namespace, Project Graduation, and universal collaboration metadata contract
 Does Not Own: Product priority decisions, project scope, implementation method, recovery strategy, PR approval, Production authorization, or runtime automation
 Canonical Reference: /docs/governance/WORK-QUEUES-AND-COLLABORATION.md
-Related Issues: #2699
-Last Reviewed: 2026-07-21
+Related Issues: #2699, #3597
+Last Reviewed: 2026-08-18
 ---
 
 # Work Queue and Collaboration Contract
@@ -15,18 +15,20 @@ Last Reviewed: 2026-07-21
 
 Define the stable repository-wide representation for Operations, PMO, Engineering, Project Graduation, and agent-to-agent collaboration.
 
-The canonical policy is `docs/governance/WORK-QUEUES-AND-COLLABORATION.md`.
+The canonical policy is `docs/governance/WORK-QUEUES-AND-COLLABORATION.md`. Machine mapping is `docs/reference/pmo/pmo-lifecycle-and-priority-contract.md`.
 
 ## Queue hierarchy
 
 ```text
 Operations interrupt queue
         |
+        +-- Governance stewardship queue
         +-- PMO Active implementation queue
-        +-- Engineering Pipeline-preparation queue
+        +-- PMO Pipeline preparation queue
+        +-- Engineering qualification queue
 ```
 
-Operations has precedence while a numbered Operations Issue is actionable. PMO and Engineering are peer normal-work queues.
+Operations has precedence while a numbered Operations Issue is actionable. PMO Active, PMO Pipeline, and Engineering qualification are peer normal-work queues.
 
 ## Exclusive team assignment
 
@@ -44,9 +46,11 @@ Invalid combinations include:
 
 ```text
 team:engineering + pmo:priority:1
+team:engineering + pmo:pipeline
 team:pmo + eng:priority:1
 team:operations + team:pmo
 ops:priority:2 + eng:priority:2
+pmo:priority:1 + pmo:pipeline-priority:1
 ```
 
 Collaboration does not change the team label.
@@ -69,19 +73,31 @@ Numbered Operations priorities interrupt PMO and Engineering. `ops:monitoring` a
 
 ```text
 team:pmo
-pmo:priority:1 | pmo:priority:2 | pmo:priority:3 | pmo:priority:4
+pmo:active
+pmo:priority:<n>
 ```
 
-PMO priority belongs only to the Active parent program or project.
+`<n>` is a positive integer with no 1–4 cap. Active priority belongs only to the Active parent program or project.
 
-### Engineering Pipeline
+### PMO Pipeline
+
+```text
+team:pmo
+pmo:pipeline
+pmo:pipeline-priority:<n>
+pmo:stage:initial-idea | pmo:stage:drafted-design | pmo:stage:pending-launch-packet | pmo:stage:graduation-candidate
+```
+
+Pipeline priority belongs only to Pipeline portfolio parents. It orders preparation, not implementation, and does not report maturity.
+
+### Engineering qualification
 
 ```text
 team:engineering
 eng:priority:1 | eng:priority:2 | eng:priority:3 | eng:priority:4 | eng:priority:idea
 ```
 
-Engineering priority belongs to Pipeline portfolio parents and peer preparation assignments. It orders preparation, not implementation, and does not report maturity.
+Engineering labels belong to pre-Pipeline qualification Issues only. They do not appear on `pmo:pipeline` parents.
 
 ## Child-task invariant
 
@@ -94,7 +110,7 @@ Project child tasks:
 
 ## Pipeline preparation assignment
 
-An Engineering P1 Pipeline parent requires one open peer preparation assignment owned by ChatGPT.
+A Pipeline parent at Pending Launch Packet or Graduation Candidate may have one open peer launch-packet assignment.
 
 The assignment uses:
 
@@ -112,20 +128,20 @@ It must not use `Parent Project:` or `pmo:task`.
 
 ## Project Graduation transition
 
-Project Graduation is the explicit PMO Go decision that transfers a parent from Pipeline/Engineering to Active/PMO.
+Project Graduation is the explicit PMO Go decision that transfers a parent from Pipeline to Active.
 
 Transition:
 
 ```text
-remove team:engineering
-remove eng:priority:*
+remove pmo:pipeline
+remove pmo:pipeline-priority:*
 remove Pipeline stage representation
-add team:pmo
-add pmo:priority:<PMO decision>
+keep team:pmo
+add pmo:priority:<n>
 add Active lifecycle representation
 ```
 
-Engineering priority never transfers automatically to PMO priority.
+Pipeline priority never transfers automatically to Active priority.
 
 ## Universal collaboration events
 

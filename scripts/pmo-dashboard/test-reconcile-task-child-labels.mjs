@@ -44,6 +44,17 @@ function same(a, b) {
 
 {
   const plan = planTaskChildLabelReconciliation({
+    number: 31,
+    state: 'open',
+    title: 'TASK: pipeline-priority open child',
+    labels: ['pmo', 'pmo:task', 'pmo:active', 'pmo:pipeline-priority:12']
+  });
+  assert(same(plan.add, []), 'pipeline-priority open child needs no adds');
+  assert(same(plan.remove, ['pmo:pipeline-priority:12']), 'open child strips Pipeline priority');
+}
+
+{
+  const plan = planTaskChildLabelReconciliation({
     number: 4,
     state: 'open',
     title: 'TASK: already valid',

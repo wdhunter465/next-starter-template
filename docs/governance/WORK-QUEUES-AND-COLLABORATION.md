@@ -2,10 +2,10 @@
 Doc Type: Governance
 Audience: Human + AI
 Authority Level: Domain Policy
-Owns: Repository work-queue classification, queue precedence, team-assignment and priority namespaces, team vs agent claim lifecycle, Active and Pipeline priority semantics, Project Graduation, queue-state transitions, universal agent collaboration, and collaboration interaction with pull requests
+Owns: Repository work-queue classification, queue precedence, team-assignment and priority namespaces, team vs agent claim lifecycle, ordered Active and Pipeline priority, Project Graduation, queue-state transitions, universal agent collaboration, and collaboration interaction with pull requests
 Does Not Own: Product outcome, final priority decisions, project design, implementation methods, recovery strategy, PR approval decisions, Production authorization, dashboard runtime implementation, or label-migration execution
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2695, #2699, #3055, #3113, #3145, #3152, #3240, #3134, #3188
+Related Issues: #2695, #2699, #3055, #3113, #3145, #3152, #3240, #3134, #3188, #3597
 Last Reviewed: 2026-08-18
 ---
 
@@ -15,17 +15,20 @@ Last Reviewed: 2026-08-18
 
 This document defines how LGFC work is classified, prioritized, interrupted, prepared, executed, and collaboratively supported across the repository.
 
-It establishes one Operations interrupt queue above three peer normal-work queues:
+It establishes one Operations interrupt queue above peer normal-work queues:
 
 ```text
 Operations interrupt queue
         |
         +-- Governance stewardship queue
         +-- PMO Active implementation queue
-        +-- Engineering Pipeline-preparation queue
+        +-- PMO Pipeline preparation queue
+        +-- Engineering qualification queue
 ```
 
-Operations has precedence while numbered Operations work is actionable. Governance, PMO, and Engineering are peer normal-work queues with mutually exclusive meanings and priority namespaces. Governance is **not** an Operations interrupt queue and is **not** an Active PMO Project queue.
+Operations has precedence while numbered Operations work is actionable. Governance, PMO Active, PMO Pipeline, and Engineering qualification are peer normal-work queues with mutually exclusive meanings and priority namespaces. Governance is **not** an Operations interrupt queue and is **not** an Active PMO Project queue.
+
+Explanation: `docs/explanation/pmo/engineering-qualification-and-pmo-lifecycle.md`. Machine contract: `docs/reference/pmo/pmo-lifecycle-and-priority-contract.md`. Procedures: `docs/how-to/pmo/run-pmo-lifecycle-and-priority.md`.
 
 PMO defines **sequencing and readiness coordination**, not a general execution gate. PMO orders launched projects and records prerequisites; it does not deny otherwise authorized, collision-safe work. Dependencies and prerequisites are normally comments, package notes, and order metadata — not queue-wide `HOLD` or `BLOCKED` states for ordinary predecessor or advisory conditions.
 
@@ -77,25 +80,42 @@ Cursor Local is the normal implementation executor for bounded Governance docume
 
 ### PMO
 
-PMO is the Active queue for launched projects being implemented, validated, promoted, deployed, verified, and closed. PMO coordinates **when** work runs and **in what order**; it is not a blanket deny gate for authorized implementation.
+PMO owns two independent lifecycle queues:
 
-PMO priority answers:
+- **Pipeline** — design drafting, stakeholder feedback, design approval, detailed design, implementation planning, child-task creation, and launch-packet preparation.
+- **Active** — launched projects being implemented, validated, promoted, deployed, verified, and closed.
 
-> In what order should launched projects receive focus and be completed?
+PMO coordinates **when** work runs and **in what order**; it is not a blanket deny gate for authorized implementation.
+
+Pipeline priority answers:
+
+> In what order should Pipeline projects be prepared for a future Graduation decision?
+
+Active priority answers:
+
+> In what order should launched projects receive implementation focus and be completed?
 
 The PMO meeting governs parent priority, project launch, project hold or reprioritization, Project Graduation, and project completion.
 
 The project governs child-task sequence, dependencies, implementation order, and technical execution within approved authority.
 
+Pipeline work is not Active merely because design, Sandbox, or Development work exists. Only Project Graduation creates Active status.
+
 ### Engineering
 
-Engineering is the Pipeline-preparation queue for projects that have not received implementation Go.
+Engineering is the qualification gate immediately before PMO Pipeline entry.
 
 Engineering priority answers:
 
-> In what order should Pipeline projects be designed, documented, packaged, and made ready for a future Go/No-Go decision?
+> In what order should proposed projects be qualified so PMO can enter them at Initial Idea?
 
-ChatGPT is the normal Engineering preparation owner. Cursor may collaborate for bounded repository inspection, feasibility evidence, validation design, or authorized Sandbox work. Collaboration does not authorize Active implementation.
+A project is ready to leave Engineering when the Issue establishes, at minimum, the problem, why remediation is required, the intended outcome, remediation objectives or design direction, and material constraints, dependencies, risks, and protected decisions already known.
+
+Engineering does **not** complete the final detailed design, full implementation plan, or launch packet. Those are PMO Pipeline responsibilities.
+
+`team:engineering` represents only work still undergoing Engineering qualification. Once minimum qualification is satisfied, remove `team:engineering` and enter PMO Pipeline at Initial Idea.
+
+ChatGPT is the normal Engineering qualification owner. Cursor may collaborate for bounded repository inspection, feasibility evidence, validation design, or authorized Sandbox work. Collaboration does not authorize Active implementation.
 
 ## Exclusive queue ownership
 
@@ -114,8 +134,9 @@ Classification rule:
 
 - accepted capability failed/degraded/unsafe → Operations;
 - repository governance/standards/documentation stewardship or isolated policy/audit → Governance;
-- already-launched Project/Program being delivered → PMO;
-- future Project/Program being designed/prepared → Engineering.
+- already-launched Project/Program being delivered → PMO Active;
+- Project/Program being designed and packaged for graduation → PMO Pipeline;
+- future Project/Program still forming a coherent problem statement → Engineering qualification.
 
 Active Project children that edit documentation remain on the PMO parent graph (`team:pmo` parent / `pmo:task` child) — they are not moved to Governance merely because they edit docs.
 
@@ -123,11 +144,13 @@ Examples of invalid state:
 
 ```text
 team:engineering + pmo:priority:1
+team:engineering + pmo:pipeline
 team:pmo + eng:priority:1
 team:operations + team:pmo
 team:governance + ops:priority:1
 ops:priority:2 + eng:priority:2
 gov:priority:1 + pmo:priority:1
+pmo:priority:1 + pmo:pipeline-priority:1
 ```
 
 Collaboration labels or collaborator assignments do not change the queue owner.
@@ -242,80 +265,89 @@ Review and Hold must record reason, owner, update interval or next-review time, 
 
 ### PMO labels
 
-Active portfolio parents use:
+PMO Pipeline parents use:
 
 ```text
 team:pmo
-pmo:priority:1 | pmo:priority:2 | pmo:priority:3 | pmo:priority:4
+pmo:pipeline
+pmo:pipeline-priority:<n>
+pmo:stage:initial-idea | pmo:stage:drafted-design | pmo:stage:pending-launch-packet | pmo:stage:graduation-candidate
 ```
 
-PMO priority is defined only on the Active project or program parent. Child tasks do not receive PMO priority labels.
+PMO Active parents use:
+
+```text
+team:pmo
+pmo:active
+pmo:priority:<n>
+```
+
+`<n>` is a positive integer with no 1–4 cap. Pipeline and Active sequences are independent. Child tasks do not receive PMO priority labels.
+
+Canonical stage and priority facts: `docs/reference/pmo/pmo-lifecycle-and-priority-contract.md`.
 
 ### Engineering labels
 
-Pipeline portfolio parents and their peer Engineering preparation assignments use:
+Engineering qualification Issues use:
 
 ```text
 team:engineering
+```
+
+and may use optional qualification-order labels:
+
+```text
 eng:priority:1 | eng:priority:2 | eng:priority:3 | eng:priority:4 | eng:priority:idea
 ```
 
-Engineering priority is not implementation authority and does not indicate actual readiness. Pipeline stage separately reports maturity.
+Engineering labels are not Pipeline ownership and do not authorize Active implementation.
 
 ## Active PMO priority model
 
-| Priority | Execution meaning | Capacity | Promotion eligibility signal |
-| --- | --- | ---: | --- |
-| P1 | Current team focus whenever executable work exists | Maximum 4 parent projects | Not applicable |
-| P2 | Work when no executable P1 work exists | Maximum 4 parent projects | Eligible for P1 consideration at 80% complete |
-| P3 | Work when no executable P1 or P2 work exists | Maximum 4 parent projects | Eligible for P2 consideration at 70% complete |
-| P4 | Opportunistic work when higher-priority work is not executable | No fixed limit | Eligible for P3 consideration at 50% complete |
+Active priority is the ordered work sequence of Active parents: **Active Priority 1, 2, 3 ... XXX**.
+
+It is not a four-level severity class and is not a capacity band of four P1/P2/P3 projects.
 
 Rules:
 
+- `1` is the next/highest Active implementation position; higher numbers follow in order.
+- The numbering supports the full Active queue length.
+- Pipeline priority never transfers automatically to Active priority.
 - All priority changes are manual PMO meeting decisions.
-- Percentage completion is completed linked tasks divided by total linked tasks.
-- Thresholds signal eligibility only; they never change priority automatically.
-- Eligibility may be stated in the parent description.
-- Capacity limits apply to parent projects/programs, not child tasks.
-- A project may complete and close at P2, P3, or P4.
-- Lower-priority completion is valid use of otherwise idle execution capacity.
+- When projects are added, removed, held, closed, or reprioritized, PMO may renumber the Active queue so the sequence remains contiguous where practical.
+- Lifecycle stage and priority are separate: stage is preparation/implementation state; priority is order among peers in the same lifecycle.
+- A project may complete and close at any Active ordered position.
 - Verification, promotion, deployment validation, and administrative closeout remain Active project work.
-- Website delivery may be established as the top LGFC priority by the PMO meeting, but it is not permanently hard-coded as automatic P1 policy.
+- Website delivery may be established as the top LGFC Active position by the PMO meeting, but it is not permanently hard-coded as automatic Active 1 policy.
 
-## Engineering Pipeline priority model
+## Pipeline priority model
 
-Pipeline priority controls preparation order, not implementation order.
+Pipeline priority is the ordered work sequence of Pipeline parents: **Pipeline Priority 1, 2, 3 ... XXX**.
 
-| Engineering priority | Meaning |
-| --- | --- |
-| P1 | Prepare this project for the next applicable PMO graduation review ahead of lower-priority Pipeline work |
-| P2 | Next preparation wave after current P1 preparation needs |
-| P3 | Future definition and planning work |
-| P4 | Opportunistic or longer-range preparation |
-| Idea | Retained for PMO awareness without numbered preparation priority |
+It controls preparation order, not implementation order, and is independent of the Active sequence.
 
 Rules:
 
+- `1` is the next/highest Pipeline preparation position.
 - Priority and Pipeline stage are independent.
-- Any Pipeline project may move directly from P2, P3, P4, or Idea to Engineering P1.
-- Engineering P1 may truthfully remain at Intake, Discovery, Definition, Planning, Preparation, or Ready for Launch.
-- There is no time limit for a project to remain at any Engineering priority or Pipeline stage.
+- There is no time limit for a project to remain at any Pipeline priority or stage.
 - Priority changes are manual PMO meeting decisions.
-- Engineering P1 creates accountable preparation work; priority alone is not considered sufficient routing.
+- Graduation Candidate still does not authorize Active implementation.
 
-## Engineering preparation assignment
+## Engineering qualification assignment
 
-When the PMO meeting sets a Pipeline parent to Engineering P1, the same meeting closeout must create or reactivate one peer Engineering preparation Issue owned by ChatGPT.
+Engineering qualification remains on `team:engineering` until the minimum qualification fields exist. It is not a Pipeline parent and does not use `pmo:pipeline`.
 
-The preparation Issue:
+After qualification, PMO Pipeline owns design and launch-packet work. Lifecycle-preparation agents may be assigned during Pipeline. The Active implementation owner is selected or confirmed only at Graduation.
+
+When the PMO meeting needs accountable launch-packet work on a Pipeline parent, it creates or reactivates one peer preparation Issue related to that parent. The assignment:
 
 - is peer to the Pipeline parent;
 - references the parent with `Related Pipeline Project: #<number>` or `Graduation Target: #<number>`;
 - must not use `Parent Project:`;
 - must not use `pmo:task`;
 - does not count toward implementation completion percentage;
-- carries `team:engineering` and the applicable `eng:priority:*` label;
+- does not carry `team:engineering` after the parent has entered Pipeline;
 - has one bounded objective: prepare the project for Project Graduation review.
 
 Required preparation outputs include, as applicable:
@@ -334,30 +366,30 @@ Required preparation outputs include, as applicable:
 - launch-readiness assessment;
 - Go, No-Go, Hold, or Adjustment recommendation.
 
-There must be no more than one open Engineering preparation assignment for the same Pipeline parent.
+There must be no more than one open launch-packet preparation assignment for the same Pipeline parent.
 
 ## Project Graduation
 
-Project Graduation is the explicit PMO transition from Pipeline/Engineering preparation into Active/PMO implementation.
+Project Graduation is the explicit PMO transition from Pipeline preparation into Active implementation.
 
 Graduation requires:
 
-1. a complete-enough launch package;
-2. truthful `Ready for Launch` Pipeline stage;
+1. a complete design and launch package;
+2. truthful `Graduation Candidate` Pipeline stage;
 3. PMO meeting review;
 4. explicit Go;
-5. assignment of an Active PMO priority;
-6. recorded execution owner, first executable task, and implementation authority.
+5. assignment of an Active ordered priority (`pmo:priority:<n>`);
+6. recorded single start-to-finish implementation owner, first executable task, and implementation authority.
 
 At graduation:
 
 - remove the Pipeline lifecycle and stage representation;
-- remove `team:engineering` and `eng:priority:*`;
+- remove `pmo:pipeline-priority:*`;
 - add the Active lifecycle representation;
-- add `team:pmo` and the PMO-selected `pmo:priority:*`;
+- keep `team:pmo` and add the PMO-selected `pmo:priority:<n>`;
 - preserve the prepared task sequence and dependencies.
 
-Engineering priority never transfers automatically to PMO priority. Engineering P1 means prepare first; PMO P1 means execute and complete first.
+Pipeline Priority never transfers automatically to Active Priority. Pipeline 1 means prepare first. Active 1 means implement first.
 
 ## Child-task execution order
 
@@ -550,10 +582,10 @@ Only real project implementation tasks use `Parent Project:` and child-task clas
 The weekly PMO meeting between Bill and ChatGPT reviews:
 
 - all PMO dashboard portfolio parents;
-- Active priority and capacity;
-- Engineering Pipeline priority and stage;
-- new Engineering P1 preparation assignments;
-- graduation candidates;
+- Active ordered priority;
+- Pipeline ordered priority and stage;
+- Engineering qualification Issues ready for Pipeline entry;
+- Graduation Candidates;
 - Go, No-Go, Hold, Adjustment, reprioritization, and completion decisions;
 - stale or contradictory portfolio metadata.
 
@@ -581,7 +613,7 @@ This policy supersedes lower-level or legacy instructions that:
 - combine PMO Active priority with Pipeline preparation priority;
 - require priority labels on child implementation tasks;
 - allow one Issue to belong to multiple team-priority namespaces;
-- treat Pipeline P1 as proof of launch readiness;
+- treat Pipeline Priority 1 as proof of launch readiness;
 - allow a priority change without accountable preparation work;
 - create a second Issue merely to enable agent collaboration;
 - require collaborators to take over branch or PR work when bounded Issue-based guidance is sufficient;
