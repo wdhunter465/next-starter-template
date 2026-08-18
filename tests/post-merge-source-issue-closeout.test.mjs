@@ -524,9 +524,23 @@ describe('source issue closeout evidence', () => {
 			'status:implementation',
 			'status:implementation-ready',
 			'status:ready-for-cursor',
+			'status:ready',
 			'status:changes-requested',
 			'status:in-progress',
 		]);
+	});
+
+	it('treats PMO status:ready as a stale label during terminal reconciliation', () => {
+		const plan = planTerminalLabelReconciliation({
+			issueLabels: ['team:pmo', 'status:ready', 'documentation'],
+			repoLabels: ['status:complete'],
+		});
+
+		expect(plan).toMatchObject({
+			ok: true,
+			addLabel: 'status:complete',
+		});
+		expect(plan.removeLabels).toContain('status:ready');
 	});
 
 	it('treats intermediate review labels as removable during terminal reconciliation', () => {

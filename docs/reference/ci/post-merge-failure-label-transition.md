@@ -6,7 +6,7 @@ Owns: Post-merge failure label taxonomy, terminal vs intermediate status labels,
 Does Not Own: PR merge authority, workflow YAML implementation outside documented scripts, PMO dashboard precedence
 Canonical Reference: /docs/reference/ci/post-merge-validation-surface.md
 Related Issues: #2418, #2364, #2420, #2425
-Last Reviewed: 2026-07-10
+Last Reviewed: 2026-08-18
 ---
 
 # Post-Merge Failure Label Transition
@@ -62,6 +62,7 @@ CI may remove these during successful or idempotent closeout when validation pas
 - `status:implementation`
 - `status:implementation-ready`
 - `status:ready-for-cursor`
+- `status:ready`
 - `status:changes-requested`
 - `status:in-progress`
 
