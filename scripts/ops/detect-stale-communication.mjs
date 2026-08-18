@@ -127,29 +127,34 @@ export function evaluateStaleCommunication(comments, options = {}) {
     .sort((a, b) => Date.parse(a.createdAt) - Date.parse(b.createdAt));
 
   const findings = [];
-  for (let index = 0; index < ordered.length; index += 1) {
-    const comment = ordered[index];
+  const unmatched = [];
+
+  for (const comment of ordered) {
     const event = primaryEvent(comment.body);
-    const responses = REQUEST_EVENTS[event];
-    if (!responses) continue;
+    if (!event) continue;
+    if (REQUEST_EVENTS[event]) {
+      unmatched.push({ comment, event });
+      continue;
+    }
+    for (let index = unmatched.length - 1; index >= 0; index -= 1) {
+      const open = unmatched[index];
+      const accepted = REQUEST_EVENTS[open.event] || [];
+      if (!accepted.includes(event)) continue;
+      unmatched.splice(index, 1);
+      findings.push({
+        status: 'resolved',
+        event: open.event,
+        issueNumber,
+        sourceCommentId: String(open.comment.id),
+      });
+      break;
+    }
+  }
+
+  for (const { comment, event } of unmatched) {
     if (isProtectedEscalation(comment.body)) {
       findings.push({
         status: 'protected_escalation',
-        event,
-        issueNumber,
-        sourceCommentId: String(comment.id),
-      });
-      continue;
-    }
-
-    const later = ordered.slice(index + 1);
-    const answered = later.some((candidate) => {
-      const laterEvent = primaryEvent(candidate.body);
-      return laterEvent && responses.includes(laterEvent);
-    });
-    if (answered) {
-      findings.push({
-        status: 'resolved',
         event,
         issueNumber,
         sourceCommentId: String(comment.id),
@@ -259,6 +264,8 @@ function runGh(ghArgs) {
   }
 }
 
+const SEARCH_LIMIT = 100;
+
 function searchOpenIssues(repo, phrase) {
   const output = runGh([
     'search',
@@ -268,12 +275,18 @@ function searchOpenIssues(repo, phrase) {
     '--state',
     'open',
     '--limit',
-    '50',
+    String(SEARCH_LIMIT),
     '--json',
     'number,title,updatedAt',
     phrase,
   ]);
-  return JSON.parse(output || '[]');
+  const hits = JSON.parse(output || '[]');
+  if (hits.length >= SEARCH_LIMIT) {
+    console.error(
+      `WARN: issue search truncated at ${SEARCH_LIMIT} for ${JSON.stringify(phrase)}`,
+    );
+  }
+  return hits;
 }
 
 function fetchComments(repo, issueNumber) {
@@ -365,6 +378,35 @@ function runSelfTest() {
     { now, issueNumber },
   );
   assert(resolved.some((row) => row.status === 'resolved'), 'request+ack should resolve');
+
+  const stacked = evaluateStaleCommunication(
+    [
+      {
+        id: 3,
+        createdAt: isoMinutesAgo(30, now),
+        body: '## COLLABORATION REQUEST\nTarget: Cursor first',
+      },
+      {
+        id: 4,
+        createdAt: isoMinutesAgo(20, now),
+        body: '## COLLABORATION REQUEST\nTarget: Cursor second',
+      },
+      {
+        id: 5,
+        createdAt: isoMinutesAgo(15, now),
+        body: '## COLLABORATION ACKNOWLEDGED\nAccepted scope: second only',
+      },
+    ],
+    { now, issueNumber },
+  );
+  assert(
+    stacked.some((row) => row.sourceCommentId === '4' && row.status === 'resolved'),
+    'later request consumes the ack',
+  );
+  assert(
+    stacked.some((row) => row.sourceCommentId === '3' && row.status === 'stale'),
+    'earlier unmatched request remains stale',
+  );
 
   const stale = evaluateStaleCommunication(
     [

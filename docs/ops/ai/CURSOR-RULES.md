@@ -5,7 +5,7 @@ Authority Level: Superseded
 Owns: Historical pointer only — Cursor implementation policy moved to governance
 Does Not Own: Agent team policy, runtime routing standard, or shared execution law
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Related Issues: #2494, #2564, #3212, #3424, #3188, #3188
+Related Issues: #2494, #2564, #3212, #3424, #3188
 Last Reviewed: 2026-08-18
 ---
 
