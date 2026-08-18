@@ -5,7 +5,7 @@ Authority Level: Operational Authority
 Owns: Repository queue watch, Operations interrupt dispatch, peer PMO and Engineering dispatch, source-Issue collaboration routing, local Cursor wake routing, acknowledgment, stale-communication recovery, profile-aware continuation, and bounded administrative reconciliation
 Does Not Own: Product or priority decisions, queue ownership decisions, Engineering design decisions, PR approval, Production authorization, recovery strategy, workflow implementation, credentials, or project objectives
 Canonical Reference: /docs/governance/ADMINISTRATION-AND-COMMUNICATIONS.md
-Related Issues: #2396, #2492, #2640, #2641, #2639, #2695, #2699, #2709, #3055, #3113, #3069, #3188
+Related Issues: #2396, #2492, #2640, #2641, #2639, #2695, #2699, #2709, #3055, #3113, #3069, #3188, #3605
 Last Reviewed: 2026-08-18
 ---
 
@@ -429,6 +429,8 @@ Until controller migration completes, a valid local wake requires:
 8. no numbered Operations Issue with higher precedence.
 
 The wake marker is transport only. It does not prove pickup.
+
+A local always-on tick with `fresh=0` is not an idle cycle when the poller resume queue still lists numbered Operations work, assigned Issues, open authored PRs with failing or pending gates, Cursor-owned `post-merge-failure`, or `agent:cursor`+`status:active` claims (#3605). After one bounded action is packaged, the dispatcher’s next cycle must select the next eligible resume-queue item rather than waiting for a new event.
 
 ## Acknowledgment and stale communication
 

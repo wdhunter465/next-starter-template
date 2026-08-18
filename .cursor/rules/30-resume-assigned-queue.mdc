@@ -1,0 +1,20 @@
+---
+description: After packaging one assignment, continue the remaining assigned/resume queue. Quiet polls are not idle.
+alwaysApply: true
+---
+
+# Resume assigned queue (#3605)
+
+Always-on ticks must re-read discovered work. `fresh=0` is not idle when the resume queue is non-empty (`/tmp/lgfc-cursor-resume-queue.json`).
+
+After a PR is opened, a HOLD is posted, or PACKAGE-INCOMPLETE is recorded, immediately continue the next eligible item:
+
+1. Numbered Operations interrupts
+2. Assigned open Issues
+3. Open authored PRs with failing or pending gates
+4. Cursor-owned `post-merge-failure`
+5. `agent:cursor` + `status:active`
+
+Do not mix remaining queue items into the just-opened PR. `handoff:ready` is not website Go. Do not self-merge.
+
+Canonical: `docs/ops/ai/CORE-RULES.md` assigned-queue continuation.
