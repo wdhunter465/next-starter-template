@@ -1,8 +1,11 @@
 import { describe, expect, it } from 'vitest';
 import {
   DECISION_MATRIX,
+  PMO_LIFECYCLE_STAGES,
   assertNoConflictingModels,
   classifyWorkEvidence,
+  isPmoLifecycleStageValid,
+  isPmoPriorityValid,
 } from './support/pmo_work_classification.mjs';
 
 describe('PMO work-size and delivery-model classification', () => {
@@ -45,5 +48,34 @@ describe('PMO work-size and delivery-model classification', () => {
     const first = classifyWorkEvidence(sample);
     const second = classifyWorkEvidence(sample);
     expect(second).toEqual(first);
+  });
+
+  it('validates canonical 6-stage PMO lifecycle stages (#3597)', () => {
+    expect(PMO_LIFECYCLE_STAGES).toEqual([
+      'initial-idea',
+      'drafted-design',
+      'pending-launch-packet',
+      'graduation-candidate',
+      'active',
+      'closed',
+    ]);
+
+    for (const stage of PMO_LIFECYCLE_STAGES) {
+      expect(isPmoLifecycleStageValid(stage)).toBe(true);
+    }
+
+    expect(isPmoLifecycleStageValid('invalid-stage')).toBe(false);
+  });
+
+  it('validates 1...XXX execution order priorities for PMO and Engineering (#3597)', () => {
+    expect(isPmoPriorityValid(1)).toBe(true);
+    expect(isPmoPriorityValid(5)).toBe(true);
+    expect(isPmoPriorityValid(42)).toBe(true);
+    expect(isPmoPriorityValid('1')).toBe(true);
+    expect(isPmoPriorityValid('10')).toBe(true);
+
+    expect(isPmoPriorityValid(0)).toBe(false);
+    expect(isPmoPriorityValid(-1)).toBe(false);
+    expect(isPmoPriorityValid('invalid')).toBe(false);
   });
 });

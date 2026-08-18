@@ -1,7 +1,32 @@
 /**
- * PMO work-size and Model A/B classification fixture for issue #2487.
+ * PMO work-size and Model A/B classification fixture for issue #2487 and #3597.
  * Implements docs/reference/pmo/work-size-and-delivery-model-contract.md
+ * and docs/governance/PMO-PORTFOLIO.md
  */
+
+export const PMO_LIFECYCLE_STAGES = [
+  'initial-idea',
+  'drafted-design',
+  'pending-launch-packet',
+  'graduation-candidate',
+  'active',
+  'closed',
+];
+
+export function isPmoPriorityValid(priority) {
+  if (typeof priority === 'number') {
+    return Number.isInteger(priority) && priority >= 1;
+  }
+  if (typeof priority === 'string') {
+    const parsed = Number.parseInt(priority, 10);
+    return !Number.isNaN(parsed) && parsed >= 1 && String(parsed) === priority.trim();
+  }
+  return false;
+}
+
+export function isPmoLifecycleStageValid(stage) {
+  return PMO_LIFECYCLE_STAGES.includes(stage);
+}
 
 export const DECISION_MATRIX = [
   {
