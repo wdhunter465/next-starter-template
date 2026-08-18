@@ -2,7 +2,7 @@
 Doc Type: Tutorial
 Audience: New PMO operators and agents
 Authority Level: Learning Path
-Owns: One worked example of classifying a project from Engineering qualification through Active
+Owns: One worked example of classifying a project from Engineering qualification through Active and Closed
 Does Not Own: Canonical stage definitions, weekly meeting procedure, or Product decisions
 Canonical Reference: /docs/how-to/pmo/run-pmo-lifecycle-and-priority.md
 Related Issues: #3597, #3620
