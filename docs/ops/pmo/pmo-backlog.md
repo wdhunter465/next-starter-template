@@ -38,7 +38,7 @@ ChatGPT / Atlas owns PMO / Engineering. Bill retains Product and Production auth
 
 | Project | Lane | Preparation owner | Package state | Readiness |
 | --- | --- | --- | --- | --- |
-| #2817 | Pipeline Engineering Preparation | ChatGPT | Launch packet & Design draft complete (mapped child graph #2819-#2832) | Ready for PMO Graduation Review (GO recommendation) |
+| #2817 | Pipeline Engineering Preparation | ChatGPT | Launch packet & Design draft complete (mapped 15-task child graph #2818-#2832) | Ready for PMO Graduation Review (GO recommendation) |
 
 ## Closeout remediation
 
