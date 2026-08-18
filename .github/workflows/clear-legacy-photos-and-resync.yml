@@ -1,0 +1,111 @@
+name: OPS — Clear Legacy Photos + B2 Resync (#3552)
+
+# One-time cleanup after Bill manually reduced the B2 bucket down to 15 real
+# files (10 newly LGFC_-ingested via #3580 + 5 pre-existing). The legacy
+# `photos` table still has rows for every object that used to be in B2;
+# this clears photos and its dependents (content_inventory_media has a hard
+# FK with ON DELETE RESTRICT; weekly_matchups/weekly_votes and
+# milestones.photo_id are unenforced but would go stale), then runs the
+# existing, already-production-proven b2_d1_incremental_sync.sh to rebuild
+# `photos` from the real, current B2 bucket contents. No schema changes.
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_write:
+        description: 'Type "confirm" to run this workflow at all (it always clears photos + dependents and resyncs from B2 when confirm_write matches)'
+        required: true
+        type: string
+
+concurrency:
+  group: clear-legacy-photos-and-resync
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  clear-and-resync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require explicit confirmation
+        env:
+          CONFIRM_WRITE: ${{ github.event.inputs.confirm_write }}
+        run: |
+          if [ "$CONFIRM_WRITE" != "confirm" ]; then
+            echo "confirm_write must be exactly 'confirm' -- refusing to clear photos or write to Production D1/B2."
+            exit 1
+          fi
+
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify Cloudflare D1 credentials
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DATABASE_NAME: lgfc_lite
+        run: node scripts/ci/verify_cloudflare_d1_auth.mjs
+
+      - name: Clear photos + dependents (content_inventory_media, weekly_matchups, weekly_votes, milestones.photo_id)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          node --experimental-strip-types scripts/ops/clear-legacy-photos-and-dependents.mjs \
+            --confirm --database lgfc_lite --remote
+
+      - name: Install AWS CLI v2
+        run: bash scripts/ci/install_aws_cli_v2.sh
+
+      - name: Install jq
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y jq
+
+      - name: Run B2 S3 Smoke Test
+        env:
+          B2_ENDPOINT: ${{ secrets.B2_ENDPOINT }}
+          B2_BUCKET: ${{ secrets.B2_BUCKET }}
+          B2_KEY_ID: ${{ secrets.B2_KEY_ID }}
+          B2_APP_KEY: ${{ secrets.B2_APP_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.B2_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.B2_APP_KEY }}
+          AWS_EC2_METADATA_DISABLED: true
+        run: bash scripts/b2_s3_smoketest.sh
+
+      - name: Run B2 -> D1 incremental sync (repopulate photos from the real 15-file bucket)
+        id: sync
+        env:
+          B2_ENDPOINT: ${{ secrets.B2_ENDPOINT }}
+          B2_BUCKET: ${{ secrets.B2_BUCKET }}
+          B2_KEY_ID: ${{ secrets.B2_KEY_ID }}
+          B2_APP_KEY: ${{ secrets.B2_APP_KEY }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.B2_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.B2_APP_KEY }}
+          AWS_EC2_METADATA_DISABLED: true
+          D1_DATABASE_NAME: lgfc_lite
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: bash scripts/b2_d1_incremental_sync.sh
+
+      - name: Write step summary
+        if: always()
+        run: |
+          {
+            echo "## OPS — Clear Legacy Photos + B2 Resync (#3552)"
+            echo ""
+            echo "Cleared photos + dependents (content_inventory_media, weekly_matchups,"
+            echo "weekly_votes, milestones.photo_id), then resynced photos from the real"
+            echo "B2 bucket contents."
+            echo ""
+            echo "Resync outcome: ${{ steps.sync.outcome }}"
+          } >> "$GITHUB_STEP_SUMMARY"
