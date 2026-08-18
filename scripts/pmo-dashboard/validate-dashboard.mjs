@@ -9,30 +9,20 @@ const requiredViews = ['activePrograms', 'pmoPipeline', 'completedPrograms', 'in
 const validRowLifecycles = new Set(['active', 'pipeline', 'closed', 'incomplete']);
 const FORBIDDEN_INVENTORY_LIVE_STATE_FIELDS = ['expectedLifecycle', 'expectedPriority', 'expectedTeam'];
 const stageLabels = new Set([
-  'pmo:stage:intake',
-  'pmo:stage:discovery',
-  'pmo:stage:definition',
-  'pmo:stage:planning',
-  'pmo:stage:prep',
-  'pmo:stage:ready-for-launch'
+  'pmo:stage:initial-idea',
+  'pmo:stage:drafted-design',
+  'pmo:stage:pending-launch-packet',
+  'pmo:stage:graduation-candidate'
 ]);
-const pmoPriorities = new Set(['pmo:priority:1', 'pmo:priority:2', 'pmo:priority:3', 'pmo:priority:4']);
-const engineeringPriorities = new Set([
-  'eng:priority:1',
-  'eng:priority:2',
-  'eng:priority:3',
-  'eng:priority:4',
-  'eng:priority:idea'
-]);
+const pmoActivePriorityRe = /^pmo:priority:[1-9]\d*$/;
+const pmoPipelinePriorityRe = /^pmo:pipeline-priority:[1-9]\d*$/;
 const allowedStatusByView = {
   activePrograms: new Set(['Active']),
   pmoPipeline: new Set([
-    'Idea / topic intake',
-    'Discussion / discovery',
-    'Definition / design',
-    'Planning',
-    'Implementation preparation',
-    'Ready for launch'
+    'Initial Idea',
+    'Drafted Design',
+    'Pending Launch Packet',
+    'Graduation Candidate'
   ]),
   completedPrograms: new Set(['Completed']),
   incomplete: new Set(['Incomplete'])
@@ -82,19 +72,26 @@ function validateQueueFields(row, label, view) {
   }
   if (view === 'activePrograms') {
     if (row.teamLabel !== 'team:pmo') errors.push(`${label} Active rows require team:pmo`);
-    if (!pmoPriorities.has(row.priorityLabel)) errors.push(`${label} Active rows require pmo:priority:1 through pmo:priority:4`);
+    if (!pmoActivePriorityRe.test(row.priorityLabel || '')) {
+      errors.push(`${label} Active rows require pmo:priority:<n> with n a positive integer and no 1-4 cap`);
+    }
   } else if (view === 'pmoPipeline') {
-    if (row.teamLabel !== 'team:engineering') errors.push(`${label} Pipeline rows require team:engineering`);
-    if (!engineeringPriorities.has(row.priorityLabel)) {
-      errors.push(`${label} Pipeline rows require eng:priority:1 through eng:priority:4 or eng:priority:idea`);
+    if (row.teamLabel !== 'team:pmo') errors.push(`${label} Pipeline rows require team:pmo`);
+    if (!pmoPipelinePriorityRe.test(row.priorityLabel || '')) {
+      errors.push(`${label} Pipeline rows require pmo:pipeline-priority:<n> with n a positive integer and no 1-4 cap`);
     }
   } else if (view === 'completedPrograms') {
     if (row.teamLabel === 'team:operations') errors.push(`${label} completed PMO rows cannot use team:operations`);
-    if (row.teamLabel === 'team:pmo' && row.priorityLabel && !pmoPriorities.has(row.priorityLabel)) {
-      errors.push(`${label} completed team:pmo rows may only retain a PMO priority`);
+    if (
+      row.teamLabel === 'team:pmo' &&
+      row.priorityLabel &&
+      !pmoActivePriorityRe.test(row.priorityLabel) &&
+      !pmoPipelinePriorityRe.test(row.priorityLabel)
+    ) {
+      errors.push(`${label} completed team:pmo rows may only retain a PMO Active or Pipeline priority`);
     }
-    if (row.teamLabel === 'team:engineering' && row.priorityLabel && !engineeringPriorities.has(row.priorityLabel)) {
-      errors.push(`${label} completed team:engineering rows may only retain an Engineering priority`);
+    if (row.teamLabel === 'team:engineering' && row.priorityLabel) {
+      errors.push(`${label} completed team:engineering rows must not retain PMO portfolio priority`);
     }
   }
 }

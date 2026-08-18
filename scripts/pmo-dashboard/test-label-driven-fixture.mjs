@@ -52,11 +52,12 @@ async function main() {
 
     const pipelineMap = byNumber(pipeline);
     assert(pipelineMap.has(9004) && pipelineMap.has(9005), 'pipeline rows');
-    assert(pipelineMap.get(9004).teamLabel === 'team:engineering', '#9004 Engineering team');
-    assert(pipelineMap.get(9004).priorityLabel === 'eng:priority:3', '#9004 Engineering priority');
-    assert(pipelineMap.get(9005).priorityLabel === 'eng:priority:idea', '#9005 idea priority');
-    assert(pipelineMap.get(9005).priorityDisplay === 'Idea', '#9005 idea display');
-    assert(pipelineMap.get(9004).pipelineStageDisplay === 'Ready for launch', '#9004 stage display');
+    assert(pipelineMap.get(9004).teamLabel === 'team:pmo', '#9004 Pipeline team');
+    assert(pipelineMap.get(9004).priorityLabel === 'pmo:pipeline-priority:3', '#9004 Pipeline priority');
+    assert(pipelineMap.get(9005).priorityLabel === 'pmo:pipeline-priority:12', '#9005 unbounded Pipeline priority');
+    assert(pipelineMap.get(9005).priorityDisplay === '12', '#9005 unbounded display');
+    assert(pipelineMap.get(9004).pipelineStageDisplay === 'Graduation Candidate', '#9004 stage display');
+    assert(pipeline[0].issueNumber === 9004, 'Pipeline sorts by independent numeric priority');
 
     const completedMap = byNumber(completed);
     assert(completed[0].issueNumber === 9006, 'completed newest first');

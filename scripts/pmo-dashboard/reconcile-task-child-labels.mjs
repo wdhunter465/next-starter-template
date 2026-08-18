@@ -1,9 +1,9 @@
 #!/usr/bin/env node
 /**
- * Reconcile live pmo:task Issue labels to the July 2026 child-task contract.
+ * Reconcile live pmo:task Issue labels to the child-task contract.
  *
  * Safe automatic mutations:
- * - remove team:*, pmo:priority:*, eng:priority:*, ops:*, and pmo:stage:* from children
+ * - remove team:*, pmo:priority:*, pmo:pipeline-priority:*, eng:priority:*, ops:*, and pmo:stage:* from children
  * - closed Issues → exactly pmo:closed (drop other lifecycle labels)
  * - open Issues missing lifecycle → add pmo:active
  * - open Issues carrying pmo:closed → drop pmo:closed and ensure one open lifecycle
@@ -34,6 +34,7 @@ function isProhibitedChildLabel(label) {
   return (
     label.startsWith('team:')
     || label.startsWith('pmo:priority:')
+    || label.startsWith('pmo:pipeline-priority:')
     || label.startsWith('eng:priority:')
     || label.startsWith('ops:')
     || label.startsWith('pmo:stage:')

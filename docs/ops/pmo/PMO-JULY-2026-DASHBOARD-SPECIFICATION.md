@@ -1,15 +1,19 @@
 ---
 Doc Type: Operations Specification
 Audience: PMO operators, AI agents, dashboard maintainers
-Authority Level: Canonical PMO Dashboard Authority
-Owns: PMO dashboard JSON contract, portfolio view placement, lifecycle-specific team and priority validation, Incomplete behavior, task calculations, sorting, and rendering expectations
-Does Not Own: PMO governance decisions, queue policy, GitHub Issue mutation, workflow YAML, runtime implementation, live label creation, or bulk migration
-Canonical Reference: /docs/ops/pmo/PMO-JULY-2026-OPERATING-MODEL.md
-Related Issues: #2313, #2471, #2516, #2610, #2611, #2699, #2709
-Last Reviewed: 2026-07-21
+Authority Level: Historical / Superseded
+Owns: Historical July 2026 PMO dashboard JSON contract
+Does Not Own: Current queue, priority, lifecycle, or dashboard target contract
+Canonical Reference: /docs/reference/pmo/pmo-lifecycle-and-priority-contract.md
+Related Issues: #2313, #2471, #2516, #2610, #2611, #2699, #2709, #3597
+Last Reviewed: 2026-08-18
 ---
 
 # PMO July 2026 Dashboard Specification
+
+## Status
+
+**Superseded for current dashboard classification, sort, and priority rules (#3597).** Use `docs/reference/pmo/pmo-lifecycle-and-priority-contract.md` and `docs/how-to/pmo/pmo-dashboard.md`. This file remains historical evidence of the July 2026 reporting snapshot and must not be used as live authority.
 
 ## Purpose
 

@@ -30,20 +30,16 @@ const LIFECYCLE_FROM_LABEL = {
   'pmo:closed': 'closed'
 };
 const STAGE_ORDER = [
-  'pmo:stage:intake',
-  'pmo:stage:discovery',
-  'pmo:stage:definition',
-  'pmo:stage:planning',
-  'pmo:stage:prep',
-  'pmo:stage:ready-for-launch'
+  'pmo:stage:initial-idea',
+  'pmo:stage:drafted-design',
+  'pmo:stage:pending-launch-packet',
+  'pmo:stage:graduation-candidate'
 ];
 const STAGE_DISPLAY = {
-  'pmo:stage:intake': 'Idea / topic intake',
-  'pmo:stage:discovery': 'Discussion / discovery',
-  'pmo:stage:definition': 'Definition / design',
-  'pmo:stage:planning': 'Planning',
-  'pmo:stage:prep': 'Implementation preparation',
-  'pmo:stage:ready-for-launch': 'Ready for launch'
+  'pmo:stage:initial-idea': 'Initial Idea',
+  'pmo:stage:drafted-design': 'Drafted Design',
+  'pmo:stage:pending-launch-packet': 'Pending Launch Packet',
+  'pmo:stage:graduation-candidate': 'Graduation Candidate'
 };
 const PARENT_REF_PATTERN = /^\s*(?:[-*]\s*)?(?:Parent(?:\s+(?:program|project|issue))?)\s*:\s*#?(\d+)\b/im;
 
@@ -392,9 +388,8 @@ function buildRow(entry, tasksByParent) {
 }
 
 function prioritySortValue(row) {
-  if (row.priorityLabel === 'eng:priority:idea') return Number.POSITIVE_INFINITY;
   const parsed = Number(row.priorityDisplay);
-  return Number.isFinite(parsed) ? parsed : Number.POSITIVE_INFINITY - 1;
+  return Number.isFinite(parsed) ? parsed : Number.POSITIVE_INFINITY;
 }
 
 function updatedSortValue(row) {

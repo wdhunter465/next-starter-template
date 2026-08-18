@@ -35,7 +35,7 @@
     "state": "open",
     "html_url": "https://github.com/wdhunter645/next-starter-template/issues/9004",
     "body": "Owner / Agent: ChatGPT\nProject Description: Ready-for-launch pipeline project.\n",
-    "labels": [{"name":"pmo"},{"name":"pmo:pipeline"},{"name":"team:engineering"},{"name":"eng:priority:3"},{"name":"pmo:stage:ready-for-launch"}],
+    "labels": [{"name":"pmo"},{"name":"pmo:pipeline"},{"name":"team:pmo"},{"name":"pmo:pipeline-priority:3"},{"name":"pmo:stage:graduation-candidate"}],
     "updated_at": "2026-07-14T12:00:00Z",
     "closed_at": null
   },
@@ -45,7 +45,7 @@
     "state": "open",
     "html_url": "https://github.com/wdhunter645/next-starter-template/issues/9005",
     "body": "Owner / Agent: ChatGPT\nProgram Description: Strategy retained in pipeline as idea priority.\n",
-    "labels": [{"name":"pmo"},{"name":"pmo:pipeline"},{"name":"team:engineering"},{"name":"eng:priority:idea"},{"name":"pmo:stage:intake"}],
+    "labels": [{"name":"pmo"},{"name":"pmo:pipeline"},{"name":"team:pmo"},{"name":"pmo:pipeline-priority:12"},{"name":"pmo:stage:initial-idea"}],
     "updated_at": "2026-07-14T11:00:00Z",
     "closed_at": null
   },

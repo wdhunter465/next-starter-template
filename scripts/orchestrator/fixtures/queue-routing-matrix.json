@@ -96,21 +96,40 @@
       }
     },
     {
-      "id": "engineering-prep-only",
-      "description": "Pipeline Engineering P1 parent is preparation selection only",
+      "id": "engineering-qualification-only",
+      "description": "team:engineering without pmo:pipeline is Engineering qualification only",
       "issue": {
         "number": 3001,
         "state": "open",
         "labels": [
-          "pmo",
-          "pmo:pipeline",
           "team:engineering",
-          "eng:priority:1",
-          "pmo:stage:prep"
+          "eng:priority:1"
         ]
       },
       "expect": {
-        "lane": "engineering_pipeline",
+        "lane": "engineering_qualification",
+        "action": "qualification",
+        "precedenceRank": 3,
+        "authorizesActiveImplementation": false,
+        "eligible": true
+      }
+    },
+    {
+      "id": "pmo-pipeline-preparation-only",
+      "description": "PMO Pipeline parent is preparation selection only and does not authorize Active implementation",
+      "issue": {
+        "number": 3003,
+        "state": "open",
+        "labels": [
+          "pmo",
+          "pmo:pipeline",
+          "team:pmo",
+          "pmo:pipeline-priority:1",
+          "pmo:stage:pending-launch-packet"
+        ]
+      },
+      "expect": {
+        "lane": "pmo_pipeline",
         "action": "preparation",
         "precedenceRank": 3,
         "authorizesActiveImplementation": false,
@@ -118,24 +137,24 @@
       }
     },
     {
-      "id": "ready-for-launch-without-go",
-      "description": "Pipeline Ready for Launch without Go does not launch implementation",
+      "id": "graduation-candidate-without-go",
+      "description": "Pipeline Graduation Candidate without Go does not launch implementation",
       "issue": {
         "number": 3002,
         "state": "open",
         "labels": [
           "pmo",
           "pmo:pipeline",
-          "team:engineering",
-          "eng:priority:1",
-          "pmo:stage:ready-for-launch"
+          "team:pmo",
+          "pmo:pipeline-priority:1",
+          "pmo:stage:graduation-candidate"
         ]
       },
       "context": {
         "productionGo": false
       },
       "expect": {
-        "lane": "engineering_pipeline",
+        "lane": "pmo_pipeline",
         "action": "preparation",
         "authorizesActiveImplementation": false,
         "eligible": true
@@ -290,9 +309,9 @@
           "labels": [
             "pmo",
             "pmo:pipeline",
-            "team:engineering",
-            "eng:priority:1",
-            "pmo:stage:prep"
+            "team:pmo",
+            "pmo:pipeline-priority:1",
+            "pmo:stage:pending-launch-packet"
           ]
         },
         {

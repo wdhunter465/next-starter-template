@@ -82,9 +82,9 @@ for (const testCase of matrix.selectionCases || []) {
       labels: [
         { name: 'pmo' },
         { name: 'pmo:pipeline' },
-        { name: 'team:engineering' },
-        { name: 'eng:priority:1' },
-        { name: 'pmo:stage:prep' }
+        { name: 'team:pmo' },
+        { name: 'pmo:pipeline-priority:1' },
+        { name: 'pmo:stage:pending-launch-packet' }
       ],
       body: ''
     },
@@ -123,10 +123,10 @@ for (const testCase of matrix.selectionCases || []) {
     ],
     { skipQueueRoutingCheck: false }
   );
-  assert(!bad.ok, 'cross-namespace queue state must fail Bridge eligibility');
+  assert(bad.ok, 'Bridge launch remains mechanically eligible; queue conflict is informational');
   assert(
-    bad.errors.some((error) => error.startsWith('queue_routing_ineligible:')),
-    'queue_routing_ineligible error required'
+    bad.semanticFindings.some((error) => error.startsWith('queue_routing_ineligible:')),
+    'queue_routing_ineligible finding required'
   );
 }
 

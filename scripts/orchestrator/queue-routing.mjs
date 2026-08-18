@@ -13,12 +13,8 @@ const OPS_NUMBERED = new Set([
   'ops:priority:4'
 ]);
 const OPS_INTERVAL = new Set(['ops:monitoring', 'ops:hold']);
-const PMO_PRIORITIES = new Set([
-  'pmo:priority:1',
-  'pmo:priority:2',
-  'pmo:priority:3',
-  'pmo:priority:4'
-]);
+const PMO_ACTIVE_PRIORITY_RE = /^pmo:priority:[1-9]\d*$/;
+const PMO_PIPELINE_PRIORITY_RE = /^pmo:pipeline-priority:[1-9]\d*$/;
 const ENG_PRIORITIES = new Set([
   'eng:priority:1',
   'eng:priority:2',
@@ -44,6 +40,14 @@ function teamLabels(labels) {
 
 function firstMatch(labels, set) {
   return labels.find((label) => set.has(label)) || null;
+}
+
+function firstActivePriority(labels) {
+  return labels.find((label) => PMO_ACTIVE_PRIORITY_RE.test(label)) || null;
+}
+
+function firstPipelinePriority(labels) {
+  return labels.find((label) => PMO_PIPELINE_PRIORITY_RE.test(label)) || null;
 }
 
 function parentRef(body) {
@@ -111,12 +115,14 @@ export function classifyQueueCandidate(issue, context = {}) {
     (label) => OPS_NUMBERED.has(label) || OPS_INTERVAL.has(label) || label.startsWith('ops:')
   );
   const pmoPriorities = labels.filter((label) => label.startsWith('pmo:priority:'));
+  const pipelinePriorities = labels.filter((label) => label.startsWith('pmo:pipeline-priority:'));
   const engPriorities = labels.filter((label) => label.startsWith('eng:priority:'));
 
   // Cross-namespace priority / ownership conflicts fail closed.
   const namespacesPresent = [
     opsStates.length > 0,
     pmoPriorities.length > 0,
+    pipelinePriorities.length > 0,
     engPriorities.length > 0
   ].filter(Boolean).length;
   if (namespacesPresent > 1) {
@@ -124,7 +130,14 @@ export function classifyQueueCandidate(issue, context = {}) {
   }
 
   const isTask = labels.includes('pmo:task');
-  if (isTask && (teams.length > 0 || pmoPriorities.length || engPriorities.length || opsStates.length)) {
+  if (
+    isTask &&
+    (teams.length > 0 ||
+      pmoPriorities.length ||
+      pipelinePriorities.length ||
+      engPriorities.length ||
+      opsStates.length)
+  ) {
     return failClosed({
       lane: 'pmo_active',
       reasons: ['pmo_child_carries_team_or_priority']
@@ -188,7 +201,7 @@ export function classifyQueueCandidate(issue, context = {}) {
       if (
         !parentLabels.includes('team:pmo') ||
         !parentLabels.includes('pmo:active') ||
-        !firstMatch(parentLabels, PMO_PRIORITIES)
+        !firstActivePriority(parentLabels)
       ) {
         return failClosed({
           lane: 'pmo_active',
@@ -209,13 +222,13 @@ export function classifyQueueCandidate(issue, context = {}) {
         precedenceRank: 2,
         blocksNormalWork: false,
         authorizesActiveImplementation: true,
-        priorityLabel: firstMatch(parentLabels, PMO_PRIORITIES),
+        priorityLabel: firstActivePriority(parentLabels),
         reasons: ['pmo_active_executable_child']
       };
     }
 
     // Active portfolio parent itself is selection context, not a leaf dispatch by default.
-    if (teams[0] === 'team:pmo' && firstMatch(labels, PMO_PRIORITIES)) {
+    if (teams[0] === 'team:pmo' && firstActivePriority(labels)) {
       return {
         eligible: false,
         failClosed: false,
@@ -224,59 +237,68 @@ export function classifyQueueCandidate(issue, context = {}) {
         precedenceRank: 2,
         blocksNormalWork: false,
         authorizesActiveImplementation: false,
-        priorityLabel: firstMatch(labels, PMO_PRIORITIES),
+        priorityLabel: firstActivePriority(labels),
         reasons: ['pmo_active_parent_selection_only']
       };
     }
     return failClosed({ lane: 'pmo_active', reasons: ['active_shape_invalid'] });
   }
 
-  // Engineering Pipeline preparation
-  if (labels.includes('pmo:pipeline') || teams[0] === 'team:engineering') {
-    if (teams[0] !== 'team:engineering') {
+  // Engineering qualification (pre-Pipeline only)
+  if (teams[0] === 'team:engineering' && !labels.includes('pmo:pipeline')) {
+    if (pmoPriorities.length || pipelinePriorities.length) {
       return failClosed({
-        lane: 'engineering_pipeline',
-        reasons: ['pipeline_requires_team_engineering']
+        lane: 'engineering_qualification',
+        reasons: ['qualification_cross_namespace_pmo_priority']
       });
-    }
-    const engPriority = firstMatch(labels, ENG_PRIORITIES);
-    if (!engPriority) {
-      return failClosed({
-        lane: 'engineering_pipeline',
-        reasons: ['pipeline_missing_engineering_priority']
-      });
-    }
-    if (pmoPriorities.length) {
-      return failClosed({
-        lane: 'engineering_pipeline',
-        reasons: ['pipeline_cross_namespace_pmo_priority']
-      });
-    }
-    const ready = labels.includes('pmo:stage:ready-for-launch');
-    if (ready && context.productionGo) {
-      // Go still does not auto-authorize Active implementation from Pipeline alone.
-      return {
-        eligible: true,
-        failClosed: false,
-        lane: 'engineering_pipeline',
-        action: 'preparation',
-        precedenceRank: 3,
-        blocksNormalWork: false,
-        authorizesActiveImplementation: false,
-        priorityLabel: engPriority,
-        reasons: ['pipeline_ready_still_preparation_until_graduation']
-      };
     }
     return {
       eligible: true,
       failClosed: false,
-      lane: 'engineering_pipeline',
+      lane: 'engineering_qualification',
+      action: 'qualification',
+      precedenceRank: 3,
+      blocksNormalWork: false,
+      authorizesActiveImplementation: false,
+      priorityLabel: firstMatch(labels, ENG_PRIORITIES),
+      reasons: ['engineering_qualification_only']
+    };
+  }
+
+  // PMO Pipeline preparation
+  if (labels.includes('pmo:pipeline')) {
+    if (teams[0] !== 'team:pmo') {
+      return failClosed({
+        lane: 'pmo_pipeline',
+        reasons: ['pipeline_requires_team_pmo']
+      });
+    }
+    const pipelinePriority = firstPipelinePriority(labels);
+    if (!pipelinePriority) {
+      return failClosed({
+        lane: 'pmo_pipeline',
+        reasons: ['pipeline_missing_pipeline_priority']
+      });
+    }
+    if (pmoPriorities.length || engPriorities.length) {
+      return failClosed({
+        lane: 'pmo_pipeline',
+        reasons: ['pipeline_cross_namespace_priority']
+      });
+    }
+    const graduationCandidate = labels.includes('pmo:stage:graduation-candidate');
+    return {
+      eligible: true,
+      failClosed: false,
+      lane: 'pmo_pipeline',
       action: 'preparation',
       precedenceRank: 3,
       blocksNormalWork: false,
       authorizesActiveImplementation: false,
-      priorityLabel: engPriority,
-      reasons: ['engineering_preparation_only']
+      priorityLabel: pipelinePriority,
+      reasons: graduationCandidate
+        ? ['pipeline_graduation_candidate_until_graduation']
+        : ['pmo_pipeline_preparation_only']
     };
   }
 
@@ -291,7 +313,8 @@ export function evaluateCollaborationBoundary(sourceIssue, collaboration = {}) {
   const owner = teamLabels(labels)[0] || collaboration.sourceOwner || null;
   const priority =
     firstMatch(labels, OPS_NUMBERED) ||
-    firstMatch(labels, PMO_PRIORITIES) ||
+    firstActivePriority(labels) ||
+    firstPipelinePriority(labels) ||
     firstMatch(labels, ENG_PRIORITIES) ||
     collaboration.sourcePriority ||
     null;
@@ -361,7 +384,8 @@ export function selectNextDispatch(candidates = [], sharedContext = {}) {
 export {
   OPS_NUMBERED,
   OPS_INTERVAL,
-  PMO_PRIORITIES,
+  PMO_ACTIVE_PRIORITY_RE,
+  PMO_PIPELINE_PRIORITY_RE,
   ENG_PRIORITIES,
   TEAM_LABELS,
   parentRef

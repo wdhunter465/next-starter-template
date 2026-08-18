@@ -26,15 +26,23 @@ const pipeline = analyze({
   labels: [
     'pmo',
     'pmo:pipeline',
-    'team:engineering',
-    'eng:priority:idea',
-    'pmo:stage:intake'
+    'team:pmo',
+    'pmo:pipeline-priority:12',
+    'pmo:stage:initial-idea'
   ],
   lifecycle: 'pipeline'
 });
 assert(pipeline.errors.length === 0, 'pipeline parent should be valid');
-assert(pipeline.teamLabel === 'team:engineering', 'pipeline team label');
-assert(pipeline.priorityDisplay === 'Idea', 'pipeline idea display');
+assert(pipeline.teamLabel === 'team:pmo', 'pipeline team label');
+assert(pipeline.priorityLabel === 'pmo:pipeline-priority:12', 'pipeline priority label');
+assert(pipeline.priorityDisplay === '12', 'pipeline unbounded priority display');
+
+const activeUnbounded = analyze({
+  labels: ['pmo', 'pmo:active', 'team:pmo', 'pmo:priority:12'],
+  lifecycle: 'active'
+});
+assert(activeUnbounded.errors.length === 0, 'active priority 12 should be valid');
+assert(activeUnbounded.priorityDisplay === '12', 'active unbounded priority display');
 
 for (const invalid of [
   analyze({ labels: ['pmo', 'pmo:active', 'pmo:priority:1'], lifecycle: 'active' }),
@@ -44,6 +52,14 @@ for (const invalid of [
   }),
   analyze({
     labels: ['pmo', 'pmo:pipeline', 'team:engineering', 'pmo:priority:1'],
+    lifecycle: 'pipeline'
+  }),
+  analyze({
+    labels: ['pmo', 'pmo:pipeline', 'team:pmo', 'pmo:priority:1'],
+    lifecycle: 'pipeline'
+  }),
+  analyze({
+    labels: ['pmo', 'pmo:pipeline', 'team:engineering', 'eng:priority:1'],
     lifecycle: 'pipeline'
   }),
   analyze({
