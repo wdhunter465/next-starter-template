@@ -6,7 +6,7 @@ Owns: Task #1722 durable Cursor continuation/stop contract matrix for main vs Mo
 Does Not Own: Workflow YAML implementation, CI script changes, merge to main, or unauthorized issue mutation
 Canonical Reference: /docs/reference/pmo/lgfc-cursor-execution-contract.md
 Related Issues: #1722, #1719, #1720, #1721, #1723, #1724, #1725
-Last Reviewed: 2026-07-16
+Last Reviewed: 2026-08-18
 ---
 
 # Cursor Continuation and Queue Contract Matrix (#1722)
@@ -16,6 +16,18 @@ Last Reviewed: 2026-07-16
 Publish the authoritative continuation/stop matrix promised by Task `#1721`
 gap G-01 and harden
 `docs/reference/pmo/lgfc-cursor-execution-contract.md` for Program `#1719`.
+
+## Scope
+
+This report owns the Task #1722 continuation/stop matrix for `main`, Model B component-auto-integration, and continuous reduced-gate paths. It does not change workflow YAML, CI scripts, or merge authority.
+
+## Current known truth
+
+Cursor handoff, merge authority, and successor rules differ by PR base. Non-`main` component PRs may auto-merge when authorized; `main` requires Bill/ChatGPT approval. Material stops remain authority conflict, allowlist overrun, unauthorized protected-surface change, material design/priority decisions, unremediable required checks, and unclean predecessor integration.
+
+## Intended final state
+
+Program #1719 children use this matrix instead of a universal stop-at-READY-FOR-REVIEW rule.
 
 ## Authority
 
@@ -62,7 +74,7 @@ placement, correctable validation failures, governance-folder placement alone.
 | #1721 | Complete on component (PR #2545) | Gap inventory |
 | #1722 | Complete on component (PR #2548) | Contract matrix |
 | #1723 | Complete on component (PR #2555) | PR readiness / merge authority; two-level docs authority |
-| #1724 | Mutation matrix (Task #1724) | Component-doc model; no intermediate human gate for governance docs |
+| #1724 | Complete on component | Component-doc model; no intermediate human gate for governance docs |
 | #1725 | Complete | Do not rerun |
 | #1726 / #1727 | Later | Implementation candidates / terminal |
 

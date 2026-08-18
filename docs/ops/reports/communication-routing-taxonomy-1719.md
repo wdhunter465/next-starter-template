@@ -6,14 +6,26 @@ Owns: Evidence that Follow-up 4/5 (#2565) published a separate communication and
 Does Not Own: Follow-up 5/5, label creation/deletion, issue mutation, or production promotion
 Canonical Reference: /docs/ops/pmo/queue-watch-and-dispatch-protocol.md
 Related Issues: #2565, #1719, #2528, #2564
-Last Reviewed: 2026-07-18
+Last Reviewed: 2026-08-18
 ---
 
 # Communication and routing taxonomy — #2565
 
-## Objective
+## Purpose
 
 Publish one unambiguous taxonomy that separates PMO portfolio metadata, PR classification, ChatGPT review routing, Cursor execution wake signals, and operational status labels.
+
+## Scope
+
+This report owns evidence that Follow-up 4/5 (#2565) published the communication and routing taxonomy. It does not create or delete labels, mutate issues, or promote to Production.
+
+## Current known truth
+
+Five namespaces are separate: PMO portfolio metadata, PR classification, ChatGPT review routing, Cursor execution routing, and operational status. `agent:cursor` plus `handoff:ready` is the required wake pair; prose naming Cursor as next does not wake.
+
+## Intended final state
+
+Operators and automation consume each namespace for its stated action and do not substitute one family for another.
 
 ## Predecessor
 

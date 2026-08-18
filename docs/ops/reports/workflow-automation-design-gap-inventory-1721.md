@@ -6,7 +6,7 @@ Owns: Task #1721 durable evidence for workflow-automation design migration to PM
 Does Not Own: Workflow YAML implementation, CI script implementation, runtime code, secrets, merge to main, or GitHub issue mutation
 Canonical Reference: /docs/ops/pmo/workflow-automation.md
 Related Issues: #1721, #1719, #1720, #1722, #1723, #1724, #1725, #1726, #1727, #1411, #1500
-Last Reviewed: 2026-07-16
+Last Reviewed: 2026-08-18
 ---
 
 # Workflow Automation Design Migration and Gap Inventory (#1721)
@@ -17,6 +17,18 @@ Deliver Task **#1721** for parent program **#1719**. Inventory current
 workflow-automation authority, confirm migration to PMO July 2026, and classify
 remaining gaps for successor tasks without implementing workflow YAML or CI
 scripts.
+
+## Scope
+
+This report owns Task #1721 migration evidence and gap classification for Program #1719. It does not implement workflow YAML, CI scripts, runtime code, or merge to `main`.
+
+## Current known truth
+
+Planning authority is `docs/ops/pmo/workflow-automation.md` under the PMO July 2026 operating model. Historical #1411 / `#1417`–`#1424` surfaces are evidence only. Program #1500 / Task #1725 satisfy the closeout and queue/wave baseline and are not rebuilt here.
+
+## Intended final state
+
+Successor tasks #1722–#1727 receive classified gaps without reopening completed closeout work or inferring YAML/script authority from this inventory.
 
 ## Boundary statements
 
