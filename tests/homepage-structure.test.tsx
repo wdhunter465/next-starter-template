@@ -42,19 +42,23 @@ describe('Homepage Structure - V6 Specification Enforcement', () => {
     // Reactivated 2026-08-18 (#3552); stub fetch to a pending promise so the
     // component deterministically stays in its loading state rather than
     // depending on jsdom's unmocked-fetch behavior for a relative URL.
-    const fetchSpy = vi.spyOn(globalThis, 'fetch').mockImplementation(() => new Promise(() => {}));
+    const fetchSpy = vi
+      .spyOn(globalThis, 'fetch')
+      .mockImplementation(() => new Promise<Response>(() => {}));
 
-    render(<HomePage />);
+    try {
+      render(<HomePage />);
 
-    // Weekly Matchup should have its specific heading
-    const weeklyHeading = screen.getByRole('heading', {
-      name: /weekly photo matchup/i,
-      level: 2
-    });
-    expect(weeklyHeading).toBeInTheDocument();
-    expect(screen.getByText(/loading matchup/i)).toBeInTheDocument();
-
-    fetchSpy.mockRestore();
+      // Weekly Matchup should have its specific heading
+      const weeklyHeading = screen.getByRole('heading', {
+        name: /weekly photo matchup/i,
+        level: 2
+      });
+      expect(weeklyHeading).toBeInTheDocument();
+      expect(screen.getByText(/loading matchup/i)).toBeInTheDocument();
+    } finally {
+      fetchSpy.mockRestore();
+    }
   });
 
   it('should have Join/Login CTA section (Membership CTA)', () => {
