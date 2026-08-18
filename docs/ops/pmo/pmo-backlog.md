@@ -38,7 +38,7 @@ ChatGPT / Atlas owns PMO / Engineering. Bill retains Product and Production auth
 
 | Project | Lane | Preparation owner | Package state | Readiness |
 | --- | --- | --- | --- | --- |
-| #2817 | Pipeline Engineering Preparation | ChatGPT | Launch packet and design draft cite the #2817 15-child graph (Order 001 = #2818; GitHub numbers are not sequential) | Ready for PMO Graduation Review (packet complete; GO is a PMO meeting decision) |
+| #2817 | Pipeline Engineering Preparation | ChatGPT (PMO); Cursor Local (child ownership / post-GO implementer) | Launch packet, design draft, and open children cite the #2817 15-child graph. #2818 CLOSED COMPLETE via #3355. First executable after GO: #2822 | Ready for PMO Graduation Review (GO is a PMO meeting decision; not implementation) |
 
 ## Closeout remediation
 

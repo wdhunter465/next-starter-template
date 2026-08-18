@@ -33,9 +33,11 @@ Record the technical design needed for PMO Graduation Review of Project #2817: p
 
 ## Current known truth
 
-- #2817 is an open Pipeline project. Assessment baseline commit is `29a13728b9f94d9f58174e3d098349ee656442c5`.
+- #2817 is an open Pipeline project, ready for Graduation Review. Assessment baseline commit is `29a13728b9f94d9f58174e3d098349ee656442c5`.
 - The authoritative child graph lives on #2817. GitHub issue numbers are concurrent-creation IDs; **Order** is the execution sequence.
-- Highest-risk finding: Preview and Component environments may share Production bindings and data, so Model B component work is not a safe non-Production environment until isolation is proven (#2818).
+- Order 001 #2818 is CLOSED COMPLETE: D1 Production vs Preview/Dev isolation was accepted under #3355 (2026-08-13 PMO reconciliation). That is not a #2817 serial launch.
+- Remaining Preview/Component isolation risk is no longer the D1 identity gap. Any later non-D1 isolation defect (credentials, write guards, outbound services) needs a new bounded Issue, not a reopened #2818.
+- Product Authority assigned remaining children to Cursor Local (2026-08-18) for post-GO Implementation / Operations. PMO / Engineering remains ChatGPT / Atlas. Graduation `GO` is still a PMO meeting decision.
 - Repository branch naming is `main`. Merges to `main` are Production-path evidence, not merges to `master`.
 - This preparation PR targets `main` as documentation only. Child execution after graduation remains Model B on `component/**` unless a later PMO decision changes the delivery model.
 
@@ -71,7 +73,7 @@ Copied from #2817. Do not reorder by GitHub number.
 
 ### Immediate safety
 
-1. **Environment isolation (#2818).** Preview and Component must not share Production D1, rate-limiter namespaces, admin/media mutation paths, or Production administrative credentials. Runtime write guards fail closed.
+1. **Environment isolation (#2818).** D1 Production vs Preview/Dev isolation is accepted via #3355. Remaining children must not treat component work as Production-safe for other shared mutable resources until those resources are proven isolated or explicitly dispositioned.
 2. **Model A path (#2822).** Model A must traverse Development → Promotion Candidate → Production without a hidden Development skip.
 3. **Entry-point chain (#2823).** `Agent.md` → repository authority → agent-team → shared/core rules must be one chain.
 4. **Policy control (#2820, #2821).** Deduplicate normative rules and publish a capability matrix of documented vs enforced vs measured controls.
@@ -104,7 +106,7 @@ Day-2 Operations is post-promotion ownership, not a fifth promotion-profile step
 
 | Risk | Severity | Mitigation |
 | --- | --- | --- |
-| Isolation incomplete while Model B proceeds | Critical | #2818 is Order 001; do not treat component work as non-Production until isolation is proven |
+| Isolation incomplete while Model B proceeds | Critical | #2818 D1 isolation is ACCEPT via #3355; first post-GO child is #2822. File a new Issue for any remaining non-D1 isolation defect. |
 | Child graph drift (omitting #2818 or starting at #2819) | High | Packet and draft must match the #2817 table |
 | Incomplete documentation merged to `main` | High | Pre-merge CI (`diataxis-folder-audit`, PR hygiene, delivery profile) |
 | Scope creep | Medium | Each child owns its Issue allowlist; this draft does not invent paths |
@@ -120,4 +122,5 @@ Day-2 Operations is post-promotion ownership, not a fifth promotion-profile step
 - [x] Authoritative 15-child graph including #2818 as Order 001
 - [x] `main` used as the repository default branch name
 - [x] Promotion path matches `docs/governance/PMO-PORTFOLIO.md`
+- [x] Open children owned by Cursor Local with graph fields; first executable after GO is #2822
 - [ ] PMO Graduation Review decision recorded on #2817 (not claimed by this draft)
