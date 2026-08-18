@@ -5,7 +5,7 @@ Authority Level: Controlled
 Owns: Current PR process baseline after #2228 and #2469 closeout
 Does Not Own: Canonical PR-process policy, live GitHub branch protection settings, or GitHub App settings
 Canonical Reference: /docs/governance/PR_PROCESS.md
-Related Issues: #2175, #2208, #2228, #2469
+Related Issues: #2175, #2208, #2228, #2469, #2271
 Last Reviewed: 2026-08-18
 ---
 
@@ -39,14 +39,14 @@ Current principles:
 - routine incremental exception housekeeping;
 - no dedicated #1075 CI phase-generation engine.
 
-## Required operator confirmation
+## Branch protection alignment
 
-Before merging #2469, verify live branch protection for `main` requires only:
+Documented required checks for `main` are only:
 
 - `quality`
 - `gitleaks`
 
-Remove retired check names if still configured.
+Live GitHub branch-protection settings are outside repo-owned docs. Remove retired check names if still configured on `main`. Any future live-setting mismatch is a **new bounded Ops correction** — do not reopen #2175, #2208, or #2469.
 
 ## Required checks
 
@@ -62,6 +62,8 @@ Remove retired check names if still configured.
 | `pr-hygiene` | `gate-pr-hygiene.yml` |
 | `diff-scope` | `gate-diff-scope.yml` |
 | `reviewer-response-completion` | `reviewer-response-completion.yml` |
+
+Advisory checks remain advisory unless a future source issue promotes them with evidence under `/docs/governance/PR_PROCESS.md`.
 
 ## Manual-only / rebuild later
 
