@@ -151,7 +151,7 @@ Protected review points for intermediate governance-doc gates on `#1723`/`#1724`
 
 ## Readiness conclusion
 
-This implementation plan is the active Cursor execution sequence for Program #1719.
+This implementation plan is the construction-complete record of the Cursor execution sequence for Program #1719. It is a reference for promotion, not a currently active child-execution queue.
 
 Status: `construction-complete-component`.
 
