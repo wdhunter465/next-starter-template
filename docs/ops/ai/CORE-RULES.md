@@ -5,8 +5,8 @@ Authority Level: Core
 Owns: Shared execution rules, enforcement model, PR discipline, stop conditions, shared product-startup framework
 Does Not Own: Design authority, platform configuration, tracker content
 Canonical Reference: /docs/ops/ai/SHARED-AGENT-RULES.md
-Related Issues: #3055, #3113, #3117, #3138, #3142
-Last Reviewed: 2026-08-08
+Related Issues: #3055, #3113, #3117, #3138, #3142, #3188
+Last Reviewed: 2026-08-18
 ---
 
 # CORE-RULES.md
@@ -344,6 +344,39 @@ No speculative redesign.
 
 ---
 
+# INBOUND COMMUNICATION CHECKPOINT (#3188)
+
+Before claiming new work, starting a successor, declaring blocked or waiting, or ending a work cycle where another agent response may be pending, Work, Cursor Local, and Claude Code must inspect communications addressed to their role on GitHub source Issues.
+
+The checkpoint covers at minimum:
+
+- `COLLABORATION REQUEST`
+- `PR REVIEW REQUEST`
+- `PROBLEM FOUND`
+- `GUIDANCE` / `ADJUSTMENT` responses that require resume
+- `RESUME`
+- `IMPLEMENTATION HANDOFF`
+- response-required closeout or verification events
+
+When a structured event requires a response, the target role holder must acknowledge it on the same authoritative source Issue before claiming unrelated work, unless a higher-priority numbered Operations interrupt applies. Acknowledgment confirms receipt and accepted scope; it does not manufacture authority or approval.
+
+## No-human-relay guardrail
+
+Product Authority is not the default transport between LGFC operating agents.
+
+Do not instruct Bill / Product Authority to tell another LGFC agent something, ask another agent for routine status or evidence, or relay remediation, review findings, acknowledgments, resumes, or completion messages when the target role can communicate through the canonical GitHub source-Issue workflow.
+
+Before requesting human relay, either:
+
+1. use the authoritative source Issue and canonical event vocabulary; or
+2. record why GitHub communication is unavailable or materially impaired, or why Product Authority intervention is specifically required for a protected Product, cost, legal, privacy, credential, destructive-data, or Production decision.
+
+Any externally relayed decision must be written back to GitHub by the responsible role holder before repository work depends on it.
+
+PR comments, reviews, checks, chat messages, and external notifications may contain technical evidence. They do not replace required source-Issue routing and acknowledgment.
+
+Stale or unanswered response-required events are detected by `scripts/ops/detect-stale-communication.mjs`. The detector posts at most one deduplicated communication exception per event identity. It does not acknowledge, reassign, or create a role decision.
+
 # MANDATORY STOP CONDITIONS
 
 STOP immediately if:
@@ -354,6 +387,7 @@ STOP immediately if:
 - required source Issue is missing
 - changed-file allowlist is missing
 - live PR state cannot be verified for a readiness claim
+- routine Product Authority relay is being requested while canonical GitHub communication is available
 
 ---
 

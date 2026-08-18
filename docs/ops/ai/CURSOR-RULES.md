@@ -5,7 +5,7 @@ Authority Level: Superseded
 Owns: Historical pointer only — Cursor implementation policy moved to governance
 Does Not Own: Agent team policy, runtime routing standard, or shared execution law
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Related Issues: #2494, #2564, #3212, #3424
+Related Issues: #2494, #2564, #3212, #3424, #3188
 Last Reviewed: 2026-08-18
 ---
 
@@ -50,3 +50,7 @@ Cursor must not treat narrative prose as Git or PR authority. If required Git/PR
 For a graduated Project or Program, the exact prepared child graph is standing authority. Cursor self-claims the next eligible `team:operations` or `team:pmo` child one task at a time without routine Administration/PMO redispatch. Separately, Cursor also self-claims eligible standalone `team:governance` stewardship Issues (not project-child graph work). Record starting SHA, branch, allowlist confirmation, and pre-implementation checkpoint before editing.
 
 Missing package fields produce `PACKAGE-INCOMPLETE`; a substantive dependency or protected boundary produces an evidence-specific `HOLD`. Merge alone is not substantive acceptance. WORK owns assurance and exception handling, not routine per-task dispatch. Cursor is not a normal Engineering executor. Governance stewardship is a normal Cursor queue and is not an Operations interrupt.
+
+## Inbound communication checkpoint (#3188)
+
+Before claiming new work, starting a successor, declaring blocked or waiting, or ending a cycle where another agent may be pending, Cursor inspects source-Issue events addressed to Implementation / Operations. Acknowledge response-required events on that Issue before unrelated work, unless a numbered Operations interrupt has precedence. Do not ask Product Authority to relay routine messages when GitHub communication is available. Canonical detail: `docs/ops/ai/CORE-RULES.md`.

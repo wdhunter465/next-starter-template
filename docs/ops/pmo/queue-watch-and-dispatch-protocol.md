@@ -5,8 +5,8 @@ Authority Level: Operational Authority
 Owns: Repository queue watch, Operations interrupt dispatch, peer PMO and Engineering dispatch, source-Issue collaboration routing, local Cursor wake routing, acknowledgment, stale-communication recovery, profile-aware continuation, and bounded administrative reconciliation
 Does Not Own: Product or priority decisions, queue ownership decisions, Engineering design decisions, PR approval, Production authorization, recovery strategy, workflow implementation, credentials, or project objectives
 Canonical Reference: /docs/governance/ADMINISTRATION-AND-COMMUNICATIONS.md
-Related Issues: #2396, #2492, #2640, #2641, #2639, #2695, #2699, #2709, #3055, #3113, #3069
-Last Reviewed: 2026-08-14
+Related Issues: #2396, #2492, #2640, #2641, #2639, #2695, #2699, #2709, #3055, #3113, #3069, #3188
+Last Reviewed: 2026-08-18
 ---
 
 # Queue Watch and Dispatch Protocol
@@ -440,6 +440,11 @@ The wake marker is transport only. It does not prove pickup.
 - Runner failure is a communication fault routed to Day-2 Operations.
 - A stale `RESUME` does not override a numbered Operations interrupt or explicit hold.
 - Monitoring and Hold records are stale when their required update interval passes without evidence.
+- Source-Issue-first detection of unanswered `COLLABORATION REQUEST`, `PR REVIEW REQUEST`, `PROBLEM FOUND`, and `IMPLEMENTATION HANDOFF` events is performed by `scripts/ops/detect-stale-communication.mjs` (#3188).
+- The detector uses a 5-minute SLO aligned with #2679 T3, posts at most one `COMMUNICATION EXCEPTION` per `lgfc-stale-communication:<issue>:<comment-id>` marker, and caps posts per run to prevent alert storms.
+- The detector does not acknowledge, reassign, or create role decisions. PR comments are not routing authority.
+- Protected Product Authority escalations are classified, not treated as stale agent-to-agent communication.
+- Target role holders acknowledge pending required communication before claiming unrelated lower-priority work; numbered Operations interrupts retain precedence.
 
 ## Closeout and successor handling
 
