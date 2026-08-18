@@ -5,7 +5,7 @@ Authority Level: Operational Authority
 Owns: Verified PMO backlog state, preparation status, active assignment summary, and closeout-remediation visibility
 Does Not Own: Product priority decisions, implementation authority, Production approval, or status inferred without repository evidence
 Canonical Reference: /docs/governance/PMO-PORTFOLIO.md
-Related Issues: #1255, #1719, #2215, #2615, #2678, #2779, #2784, #2817
+Related Issues: #1255, #1719, #2215, #2615, #2678, #2779, #2784, #2817, #3355
 Last Reviewed: 2026-08-18
 ---
 

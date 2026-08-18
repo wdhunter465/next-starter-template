@@ -5,7 +5,7 @@ Authority Level: Operational Plan
 Owns: PMO launch packet for Project #2817 — sizing, Model B selection, authoritative child graph, validation, rollback
 Does Not Own: Product priority, Graduation GO, Production promotion, or child file-touch allowlists
 Canonical Reference: /docs/governance/PMO-PORTFOLIO.md
-Related Issues: #2817, #2818, #2819, #2820, #2821, #2822, #2823, #2824, #2825, #2826, #2827, #2828, #2829, #2830, #2831, #2832
+Related Issues: #2817, #2818, #2819, #2820, #2821, #2822, #2823, #2824, #2825, #2826, #2827, #2828, #2829, #2830, #2831, #2832, #3355
 Last Reviewed: 2026-08-18
 ---
 
