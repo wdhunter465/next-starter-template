@@ -89,6 +89,17 @@ jobs:
           CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
         run: bash scripts/b2_d1_incremental_sync.sh
 
+      - name: Reconcile photos rights from media_assets
+        id: rights_reconcile
+        env:
+          D1_DATABASE_NAME: ${{ secrets.D1_DATABASE_NAME }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
+        run: |
+          node --experimental-strip-types scripts/ops/reconcile-photos-rights-from-media-assets.mjs \
+            --confirm --database "${D1_DATABASE_NAME:-lgfc_lite}" --remote
+
       - name: Run B2 → D1 deletion reconciliation
         id: reconcile
         env:
