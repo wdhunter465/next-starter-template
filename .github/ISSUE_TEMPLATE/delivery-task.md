@@ -2,7 +2,7 @@
 name: Delivery Task
 about: Model A/B or emergency task with stable delivery metadata
 title: 'TASK: <short title>'
-labels: ['agent:cursor']
+labels: []
 assignees: []
 ---
 
