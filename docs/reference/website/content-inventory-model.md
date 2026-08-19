@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: Content inventory model, field definitions, submission queue requirements, media association requirements, and schema invariants for project #1256
 Does Not Own: D1 migration files, runtime API implementation, UI copy, or editorial fact approval
 Canonical Reference: /docs/reference/design/LGFC-Production-Design-and-Standards.md
-Related issues: #1256, #824, #819, #1137, #1689, #1685
-Last Reviewed: 2026-06-23
+Related issues: #1256, #824, #819, #1137, #1689, #1685, #2881
+Last Reviewed: 2026-08-19
 ---
 
 # Content Inventory Model
@@ -44,6 +44,8 @@ The production design authority identifies:
   authority;
 - `submission_queue` as the member-submission intake and review queue;
 - `photos` as the canonical D1 table name for photo data;
+- `content_inventory_media` as the as-built story-media association table
+  (`migrations/0038_content_inventory_media_association.sql`, #2881);
 - `library_entries` as a legacy Day 1 written-content table that must not be
   silently orphaned if reads move to `content_inventory`.
 
@@ -163,8 +165,8 @@ Media remains associated with stories but does not replace the story inventory.
 Approved implementation requirements:
 
 - media binary objects and derivatives remain outside `content_inventory`;
-- story-media links are represented in D1, either through an existing approved
-  media table such as `photos` or an approved association table;
+- story-media links are represented in D1 by `content_inventory_media` joining
+  `content_inventory` to `photos`;
 - each linked media item identifies its role, display order, caption or alt text,
   and source/credit data when distinct from the story source;
 - memorabilia remains a tagged/filtered view of `photos`, not a separate
@@ -172,15 +174,23 @@ Approved implementation requirements:
 
 ### Story-media association fields
 
-If the current implementation does not already provide equivalent story-media
-linkage, a future child issue should add or reconcile an association model with
-these requirements:
+As-built table `content_inventory_media` (migration `0038`) is the association
+layer only. Media binaries and photo catalog rows remain in `photos`; this table
+does not duplicate media storage. `media_id` is a foreign key to `photos(id)`
+with `ON DELETE RESTRICT`.
+
+Read/write path:
+
+- helper: `functions/_lib/content-inventory-media.ts`
+- admin API: `GET`/`POST` `/api/admin/editorial/media-associations`
+- coverage: `tests/content-inventory-media.test.ts`
+- list order: `display_order ASC`, then `id ASC`
 
 | Field | Required | Purpose |
 |---|---:|---|
 | `story_id` | yes | References `content_inventory.id`. |
-| `media_id` | yes | References the approved media/photo record. |
-| `media_role` | yes | Primary image, gallery image, OCR source, newspaper source, memorabilia reference, or supporting image. |
+| `media_id` | yes | References `photos.id`. |
+| `media_role` | yes | `primary_image`, `gallery_image`, `ocr_source`, `newspaper_source`, `memorabilia_reference`, or `supporting_image`. |
 | `display_order` | yes | Stable ordering for story presentation. |
 | `caption` | no | Editorial caption. |
 | `alt_text` | yes for public images | Accessibility text. |
