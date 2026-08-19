@@ -5,17 +5,29 @@ Authority Level: Learning Path
 Owns: One worked example of classifying a project from Engineering qualification through Active
 Does Not Own: Canonical stage definitions, weekly meeting procedure, or Product decisions
 Canonical Reference: /docs/how-to/pmo/run-pmo-lifecycle-and-priority.md
-Related Issues: #3597, #3620
-Last Reviewed: 2026-08-18
+Related Issues: #3597, #3620, #3622
+Last Reviewed: 2026-08-19
 ---
 
 # Classify a Project Through the PMO Lifecycle
 
 ## Goal
 
-Learn to classify one fictional project from Engineering qualification through Active and Closed, using the canonical labels.
+Learn how a fictional LGFC project moves from Engineering qualification into PMO Pipeline, progresses through design and launch-packet preparation, graduates to Active, and closes while keeping lifecycle state and ordered priority separate.
 
 This walkthrough is not repository authority. Use the how-to for real Issues.
+
+## Outcome
+
+By the end of this tutorial, the reader should be able to:
+
+- identify when an Issue is still in Engineering qualification;
+- move a qualified project into PMO Pipeline at Initial Idea;
+- recognize the evidence required for Drafted Design, Pending Launch Packet, and Graduation Candidate;
+- distinguish Pipeline priority from Active priority;
+- perform the label transition for explicit graduation to Active;
+- understand that one implementation owner is selected for start-to-finish Active execution;
+- close the PMO parent without incorrectly moving it into Operations.
 
 ## Walkthrough
 
