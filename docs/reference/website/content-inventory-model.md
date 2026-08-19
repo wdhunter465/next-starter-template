@@ -183,6 +183,7 @@ Read/write path:
 
 - helper: `functions/_lib/content-inventory-media.ts`
 - admin API: `GET`/`POST` `/api/admin/editorial/media-associations`
+- coverage: `tests/content-inventory-media.test.ts`
 - list order: `display_order ASC`, then `id ASC`
 
 | Field | Required | Purpose |
