@@ -9,19 +9,22 @@ import {
 import { onRequestGet as mediaAssociationsGet } from '../functions/api/admin/editorial/media-associations';
 import { onRequestPost as mediaAssociationsPost } from '../functions/api/admin/editorial/media-associations';
 import { onRequestPost as editorialReviewPost } from '../functions/api/admin/editorial/review';
+import { ADMIN_SESSION_COOKIE, withAdminSession } from './helpers/adminSession';
 
-function adminPostRequest(path: string, body: unknown, token = 'secret'): Request {
+function adminPostRequest(path: string, body: unknown, cookie: string | null = ADMIN_SESSION_COOKIE): Request {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (cookie) headers.Cookie = cookie;
   return new Request(`https://www.lougehrigfanclub.com${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
+    headers,
     body: JSON.stringify(body),
   });
 }
 
-function adminGetRequest(path: string, token = 'secret'): Request {
-  return new Request(`https://www.lougehrigfanclub.com${path}`, {
-    headers: { 'x-admin-token': token },
-  });
+function adminGetRequest(path: string, cookie: string | null = ADMIN_SESSION_COOKIE): Request {
+  const headers: Record<string, string> = {};
+  if (cookie) headers.Cookie = cookie;
+  return new Request(`https://www.lougehrigfanclub.com${path}`, { headers });
 }
 
 function makeMediaDb(options?: {
@@ -254,7 +257,7 @@ describe('editorial media association APIs', () => {
           },
         ],
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(response.status).toBe(200);
@@ -295,7 +298,7 @@ describe('editorial media association APIs', () => {
         source_name: 'Member interview',
         credit_line: 'Member Name',
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(response.status).toBe(400);
@@ -326,7 +329,7 @@ describe('editorial media association APIs', () => {
           },
         ],
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(response.status).toBe(200);
@@ -357,7 +360,7 @@ describe('editorial media association APIs', () => {
 
     const response = await mediaAssociationsGet({
       request: adminGetRequest('/api/admin/editorial/media-associations?story_id=12'),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(response.status).toBe(200);

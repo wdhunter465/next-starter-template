@@ -4,8 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import PageShell from '@/components/PageShell';
 import AdminNav from '@/components/admin/AdminNav';
 import AdminStatusText from '@/components/admin/AdminStatusText';
-import AdminTokenPanel from '@/components/admin/AdminTokenPanel';
-import { adminJson, getStoredAdminToken } from '@/lib/adminClient';
+import { adminJson } from '@/lib/adminClient';
 
 const ALLOWED_SECTION_OPTIONS = [
   { key: 'club_home', label: 'Club Home' },
@@ -215,18 +214,12 @@ export default function AdminEditorialArchivePage() {
   const [inventory, setInventory] = useState<InventoryRecord[]>([]);
   const [submissionFilter, setSubmissionFilter] = useState<SubmissionFilter>('pending');
   const [inventoryFilter, setInventoryFilter] = useState<InventoryFilter>('all');
-  const [tokenReady, setTokenReady] = useState(false);
+  // AdminLayout already gates this whole route tree on an admin session (#3547);
+  // actionsEnabled/tokenReady only tracks the initial load race, not authorization.
+  const tokenReady = true;
   const loadRequestRef = useRef(0);
 
   const load = useCallback(async () => {
-    if (!getStoredAdminToken()) {
-      setSubmissions([]);
-      setInventory([]);
-      setStatus('Save an admin API token above to load editorial records.');
-      setLoading(false);
-      return;
-    }
-
     const requestId = ++loadRequestRef.current;
     setLoading(true);
     setStatus('Loading editorial queue…');
@@ -236,11 +229,6 @@ export default function AdminEditorialArchivePage() {
     );
 
     if (requestId !== loadRequestRef.current) {
-      return;
-    }
-
-    if (!getStoredAdminToken()) {
-      setLoading(false);
       return;
     }
 
@@ -264,11 +252,6 @@ export default function AdminEditorialArchivePage() {
 
   const saveInventory = useCallback(
     async (payload: Record<string, unknown>, label: string) => {
-      if (!getStoredAdminToken()) {
-        setStatus('Error: Save an admin API token above before saving inventory records.');
-        return false;
-      }
-
       setStatus(`${label}…`);
       const result = await adminJson<{ ok: true; id: number; action: string }>('/api/admin/editorial/inventory', {
         method: 'POST',
@@ -294,11 +277,6 @@ export default function AdminEditorialArchivePage() {
       form: HTMLFormElement,
       options: { retentionReason?: string } = {},
     ) => {
-      if (!getStoredAdminToken()) {
-        setStatus('Error: Save an admin API token above before reviewing submissions.');
-        return;
-      }
-
       const metadata = readMetadataFromForm(form);
       setStatus(`Recording ${action.replace('_', ' ')} for "${submission.title}"…`);
 
@@ -363,11 +341,6 @@ export default function AdminEditorialArchivePage() {
 
   const updatePublication = useCallback(
     async (payload: PublicationPayload) => {
-      if (!getStoredAdminToken()) {
-        setStatus('Error: Save an admin API token above before updating publication state.');
-        return;
-      }
-
       setStatus(`Updating archive record ${payload.id}…`);
 
       const result = await adminJson<{ ok: true }>('/api/admin/editorial/publish', {
@@ -387,10 +360,7 @@ export default function AdminEditorialArchivePage() {
   );
 
   useEffect(() => {
-    if (getStoredAdminToken()) {
-      setTokenReady(true);
-      void load();
-    }
+    void load();
   }, [load]);
 
   return (
@@ -399,26 +369,6 @@ export default function AdminEditorialArchivePage() {
       subtitle="Review member submissions and publish approved records through content_inventory."
     >
       <AdminNav />
-      <AdminTokenPanel
-        onSaved={() => {
-          if (!getStoredAdminToken()) {
-            loadRequestRef.current += 1;
-            setTokenReady(false);
-            setLoading(false);
-            setSubmissions([]);
-            setInventory([]);
-            setStatus('Save an admin API token above to load editorial records.');
-            return;
-          }
-          setTokenReady(true);
-          void load();
-        }}
-      />
-
-      {!tokenReady ? (
-        <p style={{ marginTop: 16, opacity: 0.85 }}>Save an admin API token above to load editorial records.</p>
-      ) : null}
-
       <div style={{ display: 'grid', gap: 18, marginTop: 16 }}>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
           <button
@@ -688,11 +638,6 @@ function MediaAssociationsEditor(props: {
   }, [props.initialAssociations, props.storyId]);
 
   const saveAssociations = async () => {
-    if (!getStoredAdminToken()) {
-      props.onStatus('Error: Save an admin API token above before saving media associations.');
-      return;
-    }
-
     let mediaAssociations: MediaAssociation[] = [];
     try {
       mediaAssociations = parseMediaAssociationsJson(jsonValue);

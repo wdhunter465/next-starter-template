@@ -168,52 +168,6 @@
   border-color: rgba(0,0,0,0.30);
 }
 
-.tokenCard{
-  border:1px solid rgba(0,0,0,0.12);
-  border-radius:16px;
-  padding:16px;
-  background: rgba(255,255,255,0.95);
-}
-
-.tokenRow{
-  display:flex;
-  gap:10px;
-  align-items:center;
-  flex-wrap:wrap;
-}
-
-.tokenLabel{
-  font-weight:700;
-  min-width: 110px;
-}
-
-.tokenInput{
-  padding:10px 12px;
-  border-radius:12px;
-  border:1px solid rgba(0,0,0,0.22);
-  min-width: 260px;
-}
-
-.tokenBtn{
-  padding:10px 14px;
-  border-radius:12px;
-  border:1px solid rgba(0,0,0,0.22);
-  background:#fff;
-  font-weight:700;
-  cursor:pointer;
-}
-
-.tokenBtn:disabled{
-  opacity:0.6;
-  cursor:not-allowed;
-}
-
-.tokenHelp{
-  margin:10px 0 0 0;
-  font-size:13px;
-  opacity:0.85;
-}
-
 .err{
   margin:10px 0 0 0;
   color:#b00020;

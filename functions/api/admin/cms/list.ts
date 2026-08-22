@@ -1,5 +1,5 @@
 // GET /api/admin/cms/list?page=home (optional)
-// Returns CMS content_blocks (draft + published). Protected by ADMIN_TOKEN.
+// Returns CMS content_blocks (draft + published). Protected by an authenticated D1 admin member session (requireAdmin).
 
 import { requireAdmin } from "../../../_lib/auth";
 

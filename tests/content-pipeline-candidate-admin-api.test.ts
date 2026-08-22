@@ -14,8 +14,7 @@ import {
 import type { CandidateRecord } from '../functions/_lib/content-pipeline-candidate-import';
 import { onRequestGet as candidatesGet } from '../functions/api/admin/content-pipeline/candidates/index';
 import { onRequestPost as candidateReviewPost } from '../functions/api/admin/content-pipeline/candidates/review';
-
-const ADMIN_TOKEN = 'test-admin-token';
+import { ADMIN_SESSION_COOKIE, seedAdminSession } from './helpers/adminSqliteSession';
 
 function moderationEventsForCandidate(sqlite: DatabaseSync, candidateId: string) {
   return sqlite
@@ -120,16 +119,18 @@ function wrapSqliteAsD1(sqlite: DatabaseSync) {
   };
 }
 
-function adminGetRequest(path: string, token = ADMIN_TOKEN): Request {
-  return new Request(`https://www.lougehrigfanclub.com${path}`, {
-    headers: { 'x-admin-token': token },
-  });
+function adminGetRequest(path: string, cookie: string | null = ADMIN_SESSION_COOKIE): Request {
+  const headers: Record<string, string> = {};
+  if (cookie) headers.Cookie = cookie;
+  return new Request(`https://www.lougehrigfanclub.com${path}`, { headers });
 }
 
-function adminPostRequest(path: string, body: unknown, token = ADMIN_TOKEN): Request {
+function adminPostRequest(path: string, body: unknown, cookie: string | null = ADMIN_SESSION_COOKIE): Request {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (cookie) headers.Cookie = cookie;
   return new Request(`https://www.lougehrigfanclub.com${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
+    headers,
     body: JSON.stringify(body),
   });
 }
@@ -198,18 +199,22 @@ describe('content pipeline candidate admin API (#2310)', () => {
   });
 
   it('returns 401 without admin authorization', async () => {
+    const sqlite = new DatabaseSync(':memory:');
+    applyRepoMigrations(sqlite);
+    const db = wrapSqliteAsD1(sqlite);
+
     const response = await candidatesGet({
-      env: { DB: {}, ADMIN_TOKEN },
-      request: adminGetRequest('/api/admin/content-pipeline/candidates', 'wrong-token'),
+      env: { DB: db },
+      request: adminGetRequest('/api/admin/content-pipeline/candidates', null),
     });
 
     expect(response.status).toBe(401);
-    await expect(response.json()).resolves.toMatchObject({ ok: false, error: 'Unauthorized.' });
+    await expect(response.json()).resolves.toMatchObject({ ok: false, error: 'Not authenticated' });
   });
 
-  it('returns 503 when admin token is not configured', async () => {
+  it('returns 503 when the D1 binding is missing', async () => {
     const response = await candidatesGet({
-      env: { DB: {} },
+      env: {},
       request: adminGetRequest('/api/admin/content-pipeline/candidates'),
     });
 
@@ -219,6 +224,7 @@ describe('content pipeline candidate admin API (#2310)', () => {
   it('lists and fetches candidates through admin routes', async () => {
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
+    seedAdminSession(sqlite);
     const db = wrapSqliteAsD1(sqlite);
     await upsertCandidate(db, minimalCandidate({ candidate_id: 'lgfc-gehrig-2026-801' }));
     await upsertCandidate(
@@ -230,7 +236,7 @@ describe('content pipeline candidate admin API (#2310)', () => {
     );
 
     const listResponse = await candidatesGet({
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
       request: adminGetRequest('/api/admin/content-pipeline/candidates?review_status=approved_internal_reference'),
     });
     expect(listResponse.status).toBe(200);
@@ -240,7 +246,7 @@ describe('content pipeline candidate admin API (#2310)', () => {
     expect(listBody.candidates[0].candidate_id).toBe('lgfc-gehrig-2026-802');
 
     const getResponse = await candidatesGet({
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
       request: adminGetRequest('/api/admin/content-pipeline/candidates?candidate_id=lgfc-gehrig-2026-801'),
     });
     expect(getResponse.status).toBe(200);
@@ -251,22 +257,23 @@ describe('content pipeline candidate admin API (#2310)', () => {
   it('returns 404 for missing candidates, 400 for malformed candidate_id, and 400 for invalid review payloads', async () => {
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
+    seedAdminSession(sqlite);
     const db = wrapSqliteAsD1(sqlite);
 
     const malformed = await candidatesGet({
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
       request: adminGetRequest('/api/admin/content-pipeline/candidates?candidate_id=bad-id'),
     });
     expect(malformed.status).toBe(400);
 
     const missing = await candidatesGet({
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
       request: adminGetRequest('/api/admin/content-pipeline/candidates?candidate_id=lgfc-gehrig-2026-404'),
     });
     expect(missing.status).toBe(404);
 
     const invalidReview = await candidateReviewPost({
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
       request: adminPostRequest('/api/admin/content-pipeline/candidates/review', {
         candidate_id: 'lgfc-gehrig-2026-404',
         review_status: 'not_a_valid_status',
@@ -278,11 +285,12 @@ describe('content pipeline candidate admin API (#2310)', () => {
   it('rejects publication_status published on admin review updates', async () => {
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
+    seedAdminSession(sqlite);
     const db = wrapSqliteAsD1(sqlite);
     await upsertCandidate(db, minimalCandidate());
 
     const response = await candidateReviewPost({
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
       request: adminPostRequest('/api/admin/content-pipeline/candidates/review', {
         candidate_id: 'lgfc-gehrig-2026-999',
         publication_status: 'published',
@@ -297,11 +305,12 @@ describe('content pipeline candidate admin API (#2310)', () => {
   it('applies allowed review-state updates through the admin review route', async () => {
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
+    seedAdminSession(sqlite);
     const db = wrapSqliteAsD1(sqlite);
     await upsertCandidate(db, minimalCandidate());
 
     const response = await candidateReviewPost({
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
       request: adminPostRequest('/api/admin/content-pipeline/candidates/review', {
         candidate_id: 'lgfc-gehrig-2026-999',
         review_status: 'approved_internal_reference',
@@ -336,6 +345,7 @@ describe('content pipeline candidate admin API (#2310)', () => {
   it('writes publication_prep and privacy_update event types for matching field changes', async () => {
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
+    seedAdminSession(sqlite);
     const db = wrapSqliteAsD1(sqlite);
     await upsertCandidate(db, minimalCandidate());
 
@@ -355,6 +365,7 @@ describe('content pipeline candidate admin API (#2310)', () => {
   it('does not write moderation events when review-state update is a no-op', async () => {
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
+    seedAdminSession(sqlite);
     const db = wrapSqliteAsD1(sqlite);
     await upsertCandidate(db, minimalCandidate());
 
@@ -369,6 +380,7 @@ describe('content pipeline candidate admin API (#2310)', () => {
   it('audits candidate registry create with a single review_state_change row', async () => {
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
+    seedAdminSession(sqlite);
     const db = wrapSqliteAsD1(sqlite);
 
     await upsertCandidate(db, minimalCandidate({ candidate_id: 'lgfc-gehrig-2026-880' }));

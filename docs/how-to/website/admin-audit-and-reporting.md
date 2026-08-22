@@ -6,7 +6,7 @@ Owns: Audit snapshot, protected CSV export, and report closeout procedures
 Does Not Own: CI reporting, secret rotation, or bulk PII export policy
 Canonical Reference: /docs/reference/architecture/access-model.md
 Related issues: #1258, #1565, #1127
-Last Reviewed: 2026-06-14
+Last Reviewed: 2026-08-22
 ---
 
 # Admin Audit and Reporting
@@ -25,7 +25,7 @@ APIs: `/api/admin/stats`, `/api/admin/export`, `/api/admin/reports/list`,
 
 ## Steps
 
-1. Sign in as admin and save the admin API token on the audit page.
+1. Sign in as an admin member.
 2. Click **Refresh** to load stats and the open report queue.
 3. Review operational snapshot and unavailable-table warnings.
 4. Export allowlisted tables or close reviewed reports with admin notes.
@@ -35,10 +35,9 @@ APIs: `/api/admin/stats`, `/api/admin/export`, `/api/admin/reports/list`,
 
 ### Load audit surfaces
 
-1. Open **Audit & Reporting**.
-2. Save token when prompted.
-3. Click **Refresh** (disabled while other actions are busy).
-4. Confirm status moves from token prompt to loaded snapshot.
+1. Open **Audit & Reporting**; the snapshot loads automatically for a signed-in admin member.
+2. Click **Refresh** (disabled while other actions are busy).
+3. Confirm status moves from loading to the loaded snapshot.
 
 ### Operational snapshot
 
@@ -50,7 +49,7 @@ APIs: `/api/admin/stats`, `/api/admin/export`, `/api/admin/reports/list`,
 
 1. Choose an allowlisted table (join requests, join email log, library entries,
    photos, page content).
-2. Click **Download CSV** (requires token; disabled while busy).
+2. Click **Download CSV** (disabled while busy).
 3. Confirm browser download and success status.
 4. Reporter emails are not included in report exports from this lane.
 
@@ -67,14 +66,14 @@ APIs: `/api/admin/stats`, `/api/admin/export`, `/api/admin/reports/list`,
 - Click **open** or **closed** to switch queues (active filter button is disabled).
 - Only the report list reloads on filter change; stats are not re-fetched.
 
-### Token removal
+### Access
 
-Clearing the admin token resets reports, stats, and controls until a token is saved again.
+The page loads reports and stats automatically for a signed-in admin member — no token step. Session expiry or sign-out surfaces as `401`/`403` `Error:` status text on the next action.
 
 ## Verification
 
-- `tests/admin-audit-reporting.test.tsx` — token gating, token clear reset, stats error alerts.
-- Manual: export and close require token; `Error:` prefixes on API failures.
+- `tests/admin-audit-reporting.test.tsx` — admin session load, non-admin/unauthenticated rejection, stats error alerts.
+- Manual: export and close require an admin session; `Error:` prefixes on API failures.
 
 ## Closeout Criteria
 

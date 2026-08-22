@@ -109,7 +109,6 @@ describe('admin club staging (#2043)', () => {
   });
 
   it('binds a staged inventory row into the existing preview frame without calling it published', async () => {
-    window.localStorage.setItem('lgfc_admin_token', 'secret');
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(
       new Response(
         JSON.stringify({
@@ -149,7 +148,6 @@ describe('admin club staging (#2043)', () => {
   });
 
   it('disables Mark reviewed when source, credit, rights, or privacy is missing', async () => {
-    window.localStorage.setItem('lgfc_admin_token', 'secret');
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(
       new Response(
         JSON.stringify({
@@ -188,7 +186,6 @@ describe('admin club staging (#2043)', () => {
 
   it('publishes an approved inventory row from club staging without treating the preview as public', async () => {
     const user = userEvent.setup();
-    window.localStorage.setItem('lgfc_admin_token', 'secret');
     const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
       if (String(input).includes('/api/admin/editorial/publish') && init?.method === 'POST') {
         return new Response(JSON.stringify({ ok: true, id: 12, status: 'published', operational_state: 'published' }), {
@@ -245,7 +242,6 @@ describe('admin club staging (#2043)', () => {
 
   it('saves rotation order through the editorial inventory API', async () => {
     const user = userEvent.setup();
-    window.localStorage.setItem('lgfc_admin_token', 'secret');
     const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input, init) => {
       if (String(input).includes('/api/admin/editorial/inventory') && init?.method === 'POST') {
         return new Response(JSON.stringify({ ok: true, id: 12, action: 'update' }), {
@@ -306,7 +302,6 @@ describe('admin club staging (#2043)', () => {
 
   it('previews a future published rotation set without treating it as a public route', async () => {
     const user = userEvent.setup();
-    window.localStorage.setItem('lgfc_admin_token', 'secret');
     const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation(async (input) => {
       const url = String(input);
       if (url.includes('/api/admin/editorial/rotation-preview')) {

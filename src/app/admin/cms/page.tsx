@@ -5,8 +5,7 @@ import Link from 'next/link';
 import PageShell from '@/components/PageShell';
 import AdminNav from '@/components/admin/AdminNav';
 import AdminStatusText from '@/components/admin/AdminStatusText';
-import AdminTokenPanel from '@/components/admin/AdminTokenPanel';
-import { adminJson, getStoredAdminToken } from '@/lib/adminClient';
+import { adminJson } from '@/lib/adminClient';
 
 type Block = {
   key: string;
@@ -40,7 +39,6 @@ type CmsPublishResponse = {
 };
 
 export default function AdminCMS() {
-  const [tokenReady, setTokenReady] = useState(false);
   const [pages, setPages] = useState<string[]>([]);
   const [page, setPage] = useState<string>('');
   const [blocks, setBlocks] = useState<Block[]>([]);
@@ -55,12 +53,6 @@ export default function AdminCMS() {
   const [editBody, setEditBody] = useState('');
 
   useEffect(() => {
-    if (getStoredAdminToken()) {
-      setTokenReady(true);
-    }
-  }, []);
-
-  useEffect(() => {
     if (!selected) return;
     setEditKey(selected.key);
     setEditPage(selected.page);
@@ -71,13 +63,6 @@ export default function AdminCMS() {
 
   const load = useCallback(
     async (targetPage?: string) => {
-      if (!getStoredAdminToken()) {
-        setStatus('Save an admin API token above to load CMS blocks.');
-        setPages([]);
-        setBlocks([]);
-        return;
-      }
-
       setStatus('Loading...');
       const qs = targetPage ? `?page=${encodeURIComponent(targetPage)}` : '';
       const result = await adminJson<CmsListResponse>(`/api/admin/cms/list${qs}`);
@@ -97,8 +82,6 @@ export default function AdminCMS() {
   );
 
   const saveDraft = useCallback(async () => {
-    if (!getStoredAdminToken()) return;
-
     setStatus('Saving draft...');
     const result = await adminJson<CmsSaveResponse>('/api/admin/cms/save', {
       method: 'POST',
@@ -123,7 +106,7 @@ export default function AdminCMS() {
   }, [editBody, editKey, editPage, editSection, editTitle, load, page]);
 
   const publish = useCallback(async () => {
-    if (!getStoredAdminToken() || !selectedKey) return;
+    if (!selectedKey) return;
 
     setStatus('Publishing...');
     const result = await adminJson<CmsPublishResponse>('/api/admin/cms/publish', {
@@ -141,38 +124,13 @@ export default function AdminCMS() {
   }, [load, page, selectedKey]);
 
   useEffect(() => {
-    if (tokenReady) {
-      void load();
-    }
-  }, [load, tokenReady]);
+    void load();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   return (
     <PageShell title="Admin – CMS Blocks" subtitle="Manage published CMS blocks (content_blocks) in D1">
       <AdminNav />
-      <AdminTokenPanel
-        onSaved={() => {
-          if (!getStoredAdminToken()) {
-            setTokenReady(false);
-            setPages([]);
-            setBlocks([]);
-            setPage('');
-            setSelectedKey('');
-            setEditKey('');
-            setEditPage('');
-            setEditSection('');
-            setEditTitle('');
-            setEditBody('');
-            setStatus('Save an admin API token above to load CMS blocks.');
-            return;
-          }
-          if (tokenReady) {
-            void load(page || undefined);
-          } else {
-            setTokenReady(true);
-          }
-        }}
-      />
-
       <div style={{ padding: 24, maxWidth: 1200, margin: '0 auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap' }}>
           <div>
@@ -187,12 +145,6 @@ export default function AdminCMS() {
             </Link>
           </div>
         </div>
-
-        {!tokenReady ? (
-          <p style={{ marginTop: 16, opacity: 0.85 }}>
-            Save an admin API token above to load CMS blocks.
-          </p>
-        ) : null}
 
         <section style={{ marginTop: 16, padding: 12, border: '1px solid #ddd', borderRadius: 12 }}>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>

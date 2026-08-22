@@ -1,6 +1,6 @@
 // POST /api/admin/media-assets/sync-from-b2?maxObjects=2000
 // Lists objects from B2 (S3 ListObjectsV2) and INSERT OR IGNORE into D1 media_assets.
-// Requires ADMIN_TOKEN and Pages secrets B2_ENDPOINT, B2_BUCKET, B2_KEY_ID, B2_APP_KEY.
+// Requires an authenticated D1 admin member session and Pages secrets B2_ENDPOINT, B2_BUCKET, B2_KEY_ID, B2_APP_KEY.
 
 import { requireAdmin } from "../../../_lib/auth";
 import { requireD1, requireTables, jsonResponse } from "../../../_lib/d1";

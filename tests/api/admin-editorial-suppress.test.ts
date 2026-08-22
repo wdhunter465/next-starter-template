@@ -4,8 +4,7 @@ import { DatabaseSync, type SQLInputValue } from 'node:sqlite';
 import { describe, expect, it } from 'vitest';
 
 import { onRequestPost } from '../../functions/api/admin/editorial/suppress';
-
-const ADMIN_TOKEN = 'test-admin-token';
+import { ADMIN_SESSION_COOKIE, seedAdminSession } from '../helpers/adminSqliteSession';
 
 function applyRepoMigrations(db: DatabaseSync) {
   const migrationsDir = path.join(process.cwd(), 'migrations');
@@ -65,10 +64,12 @@ function insertPublishedContentRow(sqlite: DatabaseSync): number {
   return row.id;
 }
 
-function suppressRequest(body: unknown, token = ADMIN_TOKEN): Request {
+function suppressRequest(body: unknown, cookie: string | null = ADMIN_SESSION_COOKIE): Request {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (cookie) headers.Cookie = cookie;
   return new Request('https://www.lougehrigfanclub.com/api/admin/editorial/suppress', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
+    headers,
     body: JSON.stringify(body),
   });
 }
@@ -77,6 +78,7 @@ describe('POST /api/admin/editorial/suppress (#2919, F5 takedown)', () => {
   it('archives the record and records auditable takedown evidence', async () => {
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
+    seedAdminSession(sqlite);
     const id = insertPublishedContentRow(sqlite);
     const db = wrapSqliteAsD1(sqlite);
 
@@ -86,7 +88,7 @@ describe('POST /api/admin/editorial/suppress (#2919, F5 takedown)', () => {
         suppression_reason: 'Rights holder requested removal by email 2026-08-05.',
         takedown_request_source: 'Support@LouGehrigFanClub.com email from J. Smith',
       }),
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
     } as any);
     const json = (await res.json()) as { ok: boolean };
     expect(res.status).toBe(200);
@@ -107,6 +109,7 @@ describe('POST /api/admin/editorial/suppress (#2919, F5 takedown)', () => {
   it('fails closed (400) when suppression_reason is missing', async () => {
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
+    seedAdminSession(sqlite);
     const id = insertPublishedContentRow(sqlite);
     const db = wrapSqliteAsD1(sqlite);
 
@@ -115,7 +118,7 @@ describe('POST /api/admin/editorial/suppress (#2919, F5 takedown)', () => {
         content_inventory_id: id,
         takedown_request_source: 'Support email',
       }),
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
     } as any);
     expect(res.status).toBe(400);
 
@@ -126,6 +129,7 @@ describe('POST /api/admin/editorial/suppress (#2919, F5 takedown)', () => {
   it('returns 404 for an unknown content_inventory_id', async () => {
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
+    seedAdminSession(sqlite);
     const db = wrapSqliteAsD1(sqlite);
 
     const res = await onRequestPost({
@@ -134,23 +138,24 @@ describe('POST /api/admin/editorial/suppress (#2919, F5 takedown)', () => {
         suppression_reason: 'Rights holder requested removal.',
         takedown_request_source: 'Support email',
       }),
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
     } as any);
     expect(res.status).toBe(404);
   });
 
-  it('rejects requests without a valid admin token', async () => {
+  it('rejects requests without a valid admin session', async () => {
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
+    seedAdminSession(sqlite);
     const id = insertPublishedContentRow(sqlite);
     const db = wrapSqliteAsD1(sqlite);
 
     const res = await onRequestPost({
       request: suppressRequest(
         { content_inventory_id: id, suppression_reason: 'x', takedown_request_source: 'y' },
-        'wrong-token',
+        null,
       ),
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
     } as any);
     expect(res.status).toBe(401);
   });

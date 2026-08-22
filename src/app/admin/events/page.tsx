@@ -4,8 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import PageShell from '@/components/PageShell';
 import AdminNav from '@/components/admin/AdminNav';
 import AdminStatusText from '@/components/admin/AdminStatusText';
-import AdminTokenPanel from '@/components/admin/AdminTokenPanel';
-import { adminJson, getStoredAdminToken } from '@/lib/adminClient';
+import { adminJson } from '@/lib/adminClient';
 
 type EventRecord = {
   id: number;
@@ -106,7 +105,7 @@ function draftFromRecord(record: EventRecord): EventDraft {
 
 export default function AdminEventsPage() {
   const [month, setMonth] = useState(monthKeyFromDate());
-  const [status, setStatus] = useState('Save an admin API token above to load events.');
+  const [status, setStatus] = useState('Loading events…');
   const [seedStatus, setSeedStatus] = useState('');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -114,7 +113,8 @@ export default function AdminEventsPage() {
   const [items, setItems] = useState<EventRecord[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [draft, setDraft] = useState<EventDraft>(EMPTY_DRAFT);
-  const [tokenReady, setTokenReady] = useState(false);
+  // AdminLayout already gates this whole route tree on an admin session (#3547).
+  const tokenReady = true;
   const loadRequestRef = useRef(0);
 
   const selected = useMemo(
@@ -123,13 +123,6 @@ export default function AdminEventsPage() {
   );
 
   const load = useCallback(async () => {
-    if (!getStoredAdminToken()) {
-      setItems([]);
-      setStatus('Save an admin API token above to load events.');
-      setLoading(false);
-      return;
-    }
-
     const requestId = ++loadRequestRef.current;
     setLoading(true);
     setStatus(`Loading events for ${month}…`);
@@ -139,11 +132,6 @@ export default function AdminEventsPage() {
     );
 
     if (requestId !== loadRequestRef.current) {
-      return;
-    }
-
-    if (!getStoredAdminToken()) {
-      setLoading(false);
       return;
     }
 
@@ -171,11 +159,6 @@ export default function AdminEventsPage() {
   }, []);
 
   const createEvent = useCallback(async () => {
-    if (!getStoredAdminToken()) {
-      setStatus('Error: Save an admin API token above before creating events.');
-      return;
-    }
-
     setSaving(true);
     setStatus('Creating event…');
 
@@ -199,11 +182,6 @@ export default function AdminEventsPage() {
   const updateEvent = useCallback(async () => {
     if (selectedId === null) return;
 
-    if (!getStoredAdminToken()) {
-      setStatus('Error: Save an admin API token above before updating events.');
-      return;
-    }
-
     setSaving(true);
     setStatus(`Updating event ${selectedId}…`);
 
@@ -224,11 +202,6 @@ export default function AdminEventsPage() {
   }, [draft, load, selectedId]);
 
   const seedNextTen = useCallback(async () => {
-    if (!getStoredAdminToken()) {
-      setSeedStatus('Error: Save an admin API token above before seeding events.');
-      return;
-    }
-
     setSeeding(true);
     setSeedStatus('Seeding placeholder events…');
 
@@ -251,10 +224,7 @@ export default function AdminEventsPage() {
   }, [load]);
 
   useEffect(() => {
-    if (getStoredAdminToken()) {
-      setTokenReady(true);
-      void load();
-    }
+    void load();
   }, [load]);
 
   return (
@@ -263,30 +233,6 @@ export default function AdminEventsPage() {
       subtitle="Create, update, and seed events that feed the public /events page and homepage calendar."
     >
       <AdminNav />
-      <AdminTokenPanel
-        onSaved={() => {
-          if (!getStoredAdminToken()) {
-            loadRequestRef.current += 1;
-            setTokenReady(false);
-            setLoading(false);
-            setSaving(false);
-            setSeeding(false);
-            setItems([]);
-            setSelectedId(null);
-            setDraft(EMPTY_DRAFT);
-            setSeedStatus('');
-            setStatus('Save an admin API token above to load events.');
-            return;
-          }
-          setTokenReady(true);
-          void load();
-        }}
-      />
-
-      {!tokenReady ? (
-        <p style={{ marginTop: 16, opacity: 0.85 }}>Save an admin API token above to load events.</p>
-      ) : null}
-
       <div style={{ display: 'grid', gap: 18, marginTop: 16 }}>
         <div style={{ display: 'grid', gap: 10 }}>
           <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>

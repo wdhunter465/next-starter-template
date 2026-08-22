@@ -20,8 +20,7 @@ import {
   onRequestPost as searchRunsPost,
 } from '../functions/api/admin/content-pipeline/search-runs/index';
 import { onRequestPost as searchRunsCompletePost } from '../functions/api/admin/content-pipeline/search-runs/complete';
-
-const ADMIN_TOKEN = 'test-admin-token';
+import { ADMIN_SESSION_COOKIE, seedAdminSession } from './helpers/adminSqliteSession';
 
 function applyRepoMigrations(db: DatabaseSync) {
   const migrationsDir = path.join(process.cwd(), 'migrations');
@@ -94,6 +93,7 @@ function wrapSqliteAsD1(sqlite: DatabaseSync) {
 function freshDb() {
   const sqlite = new DatabaseSync(':memory:');
   applyRepoMigrations(sqlite);
+  seedAdminSession(sqlite);
   return wrapSqliteAsD1(sqlite);
 }
 
@@ -102,16 +102,18 @@ async function locSourceId(db: ReturnType<typeof wrapSqliteAsD1>): Promise<numbe
   return Number((row as { id: number }).id);
 }
 
-function adminGetRequest(path: string, token = ADMIN_TOKEN): Request {
-  return new Request(`https://www.lougehrigfanclub.com${path}`, {
-    headers: { 'x-admin-token': token },
-  });
+function adminGetRequest(path: string, cookie: string | null = ADMIN_SESSION_COOKIE): Request {
+  const headers: Record<string, string> = {};
+  if (cookie) headers.Cookie = cookie;
+  return new Request(`https://www.lougehrigfanclub.com${path}`, { headers });
 }
 
-function adminPostRequest(path: string, body: unknown, token = ADMIN_TOKEN): Request {
+function adminPostRequest(path: string, body: unknown, cookie: string | null = ADMIN_SESSION_COOKIE): Request {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (cookie) headers.Cookie = cookie;
   return new Request(`https://www.lougehrigfanclub.com${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
+    headers,
     body: JSON.stringify(body),
   });
 }
@@ -229,8 +231,8 @@ describe('search run repository (#3552)', () => {
 describe('search run admin API (#3552)', () => {
   it('returns 401 without admin authorization', async () => {
     const response = await searchRunsGet({
-      env: { DB: {}, ADMIN_TOKEN },
-      request: adminGetRequest('/api/admin/content-pipeline/search-runs', 'wrong-token'),
+      env: { DB: {} },
+      request: adminGetRequest('/api/admin/content-pipeline/search-runs', null),
     });
     expect(response.status).toBe(401);
   });
@@ -238,7 +240,7 @@ describe('search run admin API (#3552)', () => {
   it('rejects starting a run against an unapproved source_domain', async () => {
     const db = freshDb();
     const response = await searchRunsPost({
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
       request: adminPostRequest('/api/admin/content-pipeline/search-runs', {
         run_uid: 'run-bad-source',
         source_domain: 'random-flea-market.example',
@@ -251,7 +253,7 @@ describe('search run admin API (#3552)', () => {
     const db = freshDb();
 
     const startResponse = await searchRunsPost({
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
       request: adminPostRequest('/api/admin/content-pipeline/search-runs', {
         run_uid: 'run-e2e-1',
         source_domain: 'loc.gov',
@@ -264,7 +266,7 @@ describe('search run admin API (#3552)', () => {
     expect(startBody.run.status).toBe('running');
 
     const completeResponse = await searchRunsCompletePost({
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
       request: adminPostRequest('/api/admin/content-pipeline/search-runs/complete', {
         run_uid: 'run-e2e-1',
         status: 'completed',
@@ -279,7 +281,7 @@ describe('search run admin API (#3552)', () => {
 
     // Completing an already-terminal run is rejected, not silently accepted.
     const secondComplete = await searchRunsCompletePost({
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
       request: adminPostRequest('/api/admin/content-pipeline/search-runs/complete', {
         run_uid: 'run-e2e-1',
         status: 'no_results',
@@ -288,7 +290,7 @@ describe('search run admin API (#3552)', () => {
     expect(secondComplete.status).toBe(409);
 
     const listResponse = await searchRunsGet({
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
       request: adminGetRequest('/api/admin/content-pipeline/search-runs?status=completed'),
     });
     const listBody = await listResponse.json();
@@ -299,7 +301,7 @@ describe('search run admin API (#3552)', () => {
   it('completing an unknown run_uid returns 404', async () => {
     const db = freshDb();
     const response = await searchRunsCompletePost({
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
       request: adminPostRequest('/api/admin/content-pipeline/search-runs/complete', {
         run_uid: 'does-not-exist',
         status: 'completed',
@@ -313,13 +315,13 @@ describe('search run admin API (#3552)', () => {
     const body = { run_uid: 'run-dup', source_domain: 'loc.gov' };
 
     const first = await searchRunsPost({
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
       request: adminPostRequest('/api/admin/content-pipeline/search-runs', body),
     });
     expect(first.status).toBe(201);
 
     const second = await searchRunsPost({
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
       request: adminPostRequest('/api/admin/content-pipeline/search-runs', body),
     });
     expect(second.status).toBe(409);

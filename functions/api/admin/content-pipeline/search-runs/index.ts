@@ -1,5 +1,5 @@
 // GET/POST /api/admin/content-pipeline/search-runs
-// Lists or starts a #3552 content discovery search run. Protected by ADMIN_TOKEN.
+// Lists or starts a #3552 content discovery search run. Protected by an authenticated D1 admin member session (requireAdmin).
 // A run always belongs to exactly one allowlisted source (#3551's workflow:
 // "Operator chooses an enabled discovery/research service from the approved list").
 

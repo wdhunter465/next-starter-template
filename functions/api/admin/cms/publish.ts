@@ -1,7 +1,7 @@
 // POST /api/admin/cms/publish
 // Body: { key, updated_by? }
 // Publishes a CMS content_block (copies body_md -> published_body_md), increments version, writes a revision.
-// Protected by ADMIN_TOKEN.
+// Protected by an authenticated D1 admin member session (requireAdmin).
 
 import { requireAdmin } from "../../../_lib/auth";
 

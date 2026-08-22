@@ -7,6 +7,7 @@ import {
 } from '../functions/api/matchup/current';
 import { onRequestPost as matchupRepairPost } from '../functions/api/matchup/repair';
 import { onRequestPost as adminMatchupRepairPost } from '../functions/api/admin/matchup/repair';
+import { ADMIN_SESSION_COOKIE, withAdminSession } from './helpers/adminSession';
 
 function jsonResponse(body: unknown, status = 200): Response {
   return new Response(JSON.stringify(body), {
@@ -222,7 +223,7 @@ describe('matchup broken-image repair', () => {
     expect(audit.source_issue).toBeNull();
   });
 
-  it('admin repair (HTTP adapter) rejects an invalid/missing ADMIN_TOKEN before mutating anything', async () => {
+  it('admin repair (HTTP adapter) rejects a request without an admin session before mutating anything', async () => {
     const weekStart = '2026-07-13';
     const { db, matchups, votes } = makeRepairDb({
       weekStart,
@@ -239,10 +240,10 @@ describe('matchup broken-image repair', () => {
     const response = await adminMatchupRepairPost({
       request: new Request('https://www.lougehrigfanclub.com/api/admin/matchup/repair', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-token': 'wrong-token' },
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ broken_photo_id: 20, source_issue: 3028 }),
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: db },
     });
 
     expect(response.status).toBe(401);
@@ -288,10 +289,10 @@ describe('matchup broken-image repair', () => {
     const response = await adminMatchupRepairPost({
       request: new Request('https://www.lougehrigfanclub.com/api/admin/matchup/repair', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-token': 'secret' },
+        headers: { 'Content-Type': 'application/json', Cookie: ADMIN_SESSION_COOKIE },
         body: JSON.stringify({ broken_photo_id: 20, source_issue: 3028 }),
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(response.status).toBe(200);
@@ -333,10 +334,10 @@ describe('matchup broken-image repair', () => {
     const response = await adminMatchupRepairPost({
       request: new Request('https://www.lougehrigfanclub.com/api/admin/matchup/repair', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-admin-token': 'secret' },
+        headers: { 'Content-Type': 'application/json', Cookie: ADMIN_SESSION_COOKIE },
         body: JSON.stringify({ broken_photo_id: 20 }),
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(response.status).toBe(400);

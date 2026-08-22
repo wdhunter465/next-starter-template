@@ -6,7 +6,7 @@ Owns: Event calendar administration and public read-path stability checks
 Does Not Own: Homepage section order, ICS feeds, or ticket integrations
 Canonical Reference: /docs/reference/architecture/access-model.md
 Related issues: #1258, #1565, #1124
-Last Reviewed: 2026-06-14
+Last Reviewed: 2026-08-22
 ---
 
 # Admin Events Calendar
@@ -24,7 +24,7 @@ APIs: `functions/api/admin/events/**`, public reads `functions/api/events/**`.
 
 ## Steps
 
-1. Sign in as admin and save the admin API token.
+1. Sign in as an admin member.
 2. Open **Events**.
 3. Load the event list.
 4. Create or update events; use seed controls only when intentionally backfilling.
@@ -34,10 +34,9 @@ APIs: `functions/api/admin/events/**`, public reads `functions/api/events/**`.
 
 ### List and edit
 
-1. Open **Events**.
-2. Save token; refresh list.
-3. Select an event or create a new record with required date/title fields.
-4. Save changes; confirm success status.
+1. Open **Events**; the list loads automatically for a signed-in admin member.
+2. Select an event or create a new record with required date/title fields.
+3. Save changes; confirm success status.
 
 ### Seed next events
 
@@ -57,7 +56,7 @@ Defer full production validation to `#1259` when launch CI is required.
 ## Verification
 
 - `tests/admin-events.test.tsx`
-- Manual: CRUD fails closed without token; `Error:` on API errors.
+- Manual: CRUD fails closed without an authenticated admin session; `Error:` on API errors.
 
 ## Closeout Criteria
 

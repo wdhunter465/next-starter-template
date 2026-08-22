@@ -9,6 +9,7 @@ import { onRequestPost as eventsSeedPost } from '../functions/api/admin/events/s
 import { onRequestPost as eventsUpdatePost } from '../functions/api/admin/events/update';
 import { onRequestGet as publicEventsMonthGet } from '../functions/api/events/month';
 import { onRequestGet as publicEventsNextGet } from '../functions/api/events/next';
+import { ADMIN_SESSION_COOKIE, withAdminSession } from './helpers/adminSession';
 
 const mockUsePathname = vi.hoisted(() => vi.fn(() => '/admin/events'));
 
@@ -31,16 +32,18 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
-function adminGetRequest(path: string, token = 'secret'): Request {
-  return new Request(`https://www.lougehrigfanclub.com${path}`, {
-    headers: { 'x-admin-token': token },
-  });
+function adminGetRequest(path: string, cookie: string | null = ADMIN_SESSION_COOKIE): Request {
+  const headers: Record<string, string> = {};
+  if (cookie) headers.Cookie = cookie;
+  return new Request(`https://www.lougehrigfanclub.com${path}`, { headers });
 }
 
-function adminPostRequest(path: string, body: unknown = {}, token = 'secret'): Request {
+function adminPostRequest(path: string, body: unknown = {}, cookie: string | null = ADMIN_SESSION_COOKIE): Request {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (cookie) headers.Cookie = cookie;
   return new Request(`https://www.lougehrigfanclub.com${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
+    headers,
     body: JSON.stringify(body),
   });
 }
@@ -139,72 +142,19 @@ function makeEventsDb(rows: Array<Record<string, unknown>> = []) {
 describe('admin events page', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
-    window.localStorage.clear();
-    window.localStorage.setItem('lgfc_admin_token', 'secret');
     mockUsePathname.mockReturnValue('/admin/events');
   });
 
-  it('renders admin navigation and token controls', async () => {
+  it('renders admin navigation', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ ok: true, items: [] }));
 
     render(<AdminEventsPage />);
 
     expect(screen.getByRole('link', { name: 'Events' })).toBeInTheDocument();
-    expect(screen.getByLabelText('Admin token')).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByText(/No events found for/i)).toBeInTheDocument();
     });
-  });
-
-  it('does not load events until an admin token is saved', async () => {
-    window.localStorage.removeItem('lgfc_admin_token');
-    const fetchMock = vi.spyOn(globalThis, 'fetch');
-
-    render(<AdminEventsPage />);
-
-    expect(screen.getAllByText(/Save an admin API token above to load events/i).length).toBeGreaterThan(0);
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
-
-  it('clears event state when the admin token is removed', async () => {
-    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
-      const path = String(input);
-      if (path.startsWith('/api/admin/events/list')) {
-        return Promise.resolve(
-          jsonResponse({
-            ok: true,
-            items: [
-              {
-                id: 1,
-                title: 'Fan Club Meetup',
-                start_date: '2026-06-15',
-                end_date: '2026-06-15',
-                status: 'posted',
-              },
-            ],
-          }),
-        );
-      }
-      return Promise.reject(new Error(`Unexpected fetch: ${path}`));
-    });
-
-    render(<AdminEventsPage />);
-
-    await waitFor(() => {
-      expect(screen.getByText('Fan Club Meetup')).toBeInTheDocument();
-    });
-
-    window.localStorage.removeItem('lgfc_admin_token');
-    fireEvent.change(screen.getByLabelText('Admin token'), { target: { value: '' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Save token' }));
-
-    await waitFor(() => {
-      expect(screen.queryByText('Fan Club Meetup')).not.toBeInTheDocument();
-      expect(screen.getAllByText(/Save an admin API token above to load events/i).length).toBeGreaterThan(0);
-    });
-
-    expect(fetchMock.mock.calls.filter(([path]) => String(path).startsWith('/api/admin/events/list'))).toHaveLength(1);
   });
 
   it('announces list errors via AdminStatusText alert', async () => {
@@ -222,11 +172,9 @@ describe('admin events page', () => {
     });
   });
 
-  it('loads events with the stored admin token', async () => {
-    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation((input, init) => {
-      const headers = init?.headers instanceof Headers ? init.headers : new Headers(init?.headers);
+  it('loads events on mount for a signed-in admin', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
       expect(String(input)).toMatch(/^\/api\/admin\/events\/list\?month=/);
-      expect(headers.get('x-admin-token')).toBe('secret');
 
       return Promise.resolve(
         jsonResponse({
@@ -386,7 +334,7 @@ describe('admin events APIs', () => {
   it('rejects unauthenticated list requests', async () => {
     const response = await eventsListGet({
       request: adminGetRequest('/api/admin/events/list', ''),
-      env: { ADMIN_TOKEN: 'secret', DB: makeEventsDb().db },
+      env: { DB: withAdminSession(makeEventsDb().db) },
     });
 
     expect(response.status).toBe(401);
@@ -395,7 +343,7 @@ describe('admin events APIs', () => {
   it('fails closed when D1 is unavailable for list requests', async () => {
     const response = await eventsListGet({
       request: adminGetRequest('/api/admin/events/list'),
-      env: { ADMIN_TOKEN: 'secret' },
+      env: {},
     });
 
     expect(response.status).toBe(503);
@@ -418,7 +366,7 @@ describe('admin events APIs', () => {
 
     const response = await eventsListGet({
       request: adminGetRequest('/api/admin/events/list?month=2026-06'),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(response.status).toBe(200);
@@ -445,7 +393,7 @@ describe('admin events APIs', () => {
         external_url: 'https://www.lougehrigfanclub.com',
         status: 'posted',
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(response.status).toBe(200);
@@ -473,7 +421,7 @@ describe('admin events APIs', () => {
         external_url: '',
         status: 'hidden',
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(response.status).toBe(200);
@@ -488,7 +436,7 @@ describe('admin events APIs', () => {
   it('fails closed when seeding without D1', async () => {
     const response = await eventsSeedPost({
       request: adminPostRequest('/api/admin/events/seed-next10'),
-      env: { ADMIN_TOKEN: 'secret' },
+      env: {},
     });
 
     expect(response.status).toBe(503);
@@ -511,7 +459,7 @@ describe('admin events APIs', () => {
 
     const response = await eventsListGet({
       request: adminGetRequest('/api/admin/events/list?month=not-a-month'),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(response.status).toBe(400);
@@ -530,7 +478,7 @@ describe('admin events APIs', () => {
         start_date: '2026-06-18',
         external_url: 'javascript:alert(1)',
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(response.status).toBe(400);
@@ -553,7 +501,7 @@ describe('admin events APIs', () => {
 
     const response = await eventsSeedPost({
       request: adminPostRequest('/api/admin/events/seed-next10'),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(response.status).toBe(200);

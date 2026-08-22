@@ -2,7 +2,7 @@
 // Admin-only mid-week broken-slot replace (#3028).
 // Body: { broken_photo_id: number, source_issue: number|string }
 //
-// Requires ADMIN_TOKEN + source_issue (GitHub Issue). Pair change clears votes (0–0).
+// Requires an authenticated D1 admin member session + source_issue (GitHub Issue). Pair change clears votes (0–0).
 // Vote restore is not possible with current schema.
 
 import { requireAdmin } from "../../../_lib/auth";

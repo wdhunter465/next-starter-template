@@ -1,5 +1,5 @@
 // GET /api/admin/content/list?slug=/about (optional)
-// Returns live + draft content blocks. Protected by ADMIN_TOKEN.
+// Returns live + draft content blocks. Protected by an authenticated D1 admin member session (requireAdmin).
 
 import { requireAdmin } from "../../../_lib/auth";
 

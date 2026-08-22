@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from 'react';
 import styles from './AdminDashboard.module.css';
-import AdminTokenPanel from './AdminTokenPanel';
 import AdminStatusText from './AdminStatusText';
 import { adminJson, isRecord } from '@/lib/adminClient';
 
@@ -52,8 +51,6 @@ export default function AdminDashboard() {
 
   return (
     <div className={styles.wrap}>
-      <AdminTokenPanel onSaved={() => void loadStats()} />
-
       <div className={styles.grid}>
         <a className={styles.card} href="/admin/content">
           <div className={styles.cardTitle}>Page Content</div>

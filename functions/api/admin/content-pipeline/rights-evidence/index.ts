@@ -1,6 +1,6 @@
 // GET/POST /api/admin/content-pipeline/rights-evidence
 // Lists or records rights evidence for a #3552 content pipeline candidate.
-// Protected by ADMIN_TOKEN. Recording a conclusion here is the only way a
+// Protected by an authenticated D1 admin member session (requireAdmin). Recording a conclusion here is the only way a
 // candidate's rights determination advances -- nothing does this automatically.
 
 import { isValidCandidateId, parseRecordRightsEvidenceRequest } from '../../../../_lib/rights-evidence-admin';

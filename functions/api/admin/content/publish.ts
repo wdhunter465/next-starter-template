@@ -1,6 +1,6 @@
 // POST /api/admin/content/publish
 // Body: { slug, section? }  (if section omitted, publishes all draft sections for the slug)
-// Promotes draft -> live, and writes prior live to history. Protected by ADMIN_TOKEN.
+// Promotes draft -> live, and writes prior live to history. Protected by an authenticated D1 admin member session (requireAdmin).
 
 import { requireAdmin } from "../../../_lib/auth";
 

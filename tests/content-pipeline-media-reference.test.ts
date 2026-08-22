@@ -23,7 +23,7 @@ import { onRequestGet as candidatesGet } from '../functions/api/admin/content-pi
 import { onRequestPost as mediaReferencePost } from '../functions/api/admin/content-pipeline/candidates/media-reference';
 import { onRequestPost as memberSubmitPost } from '../functions/api/library/content-pipeline/submit';
 
-const ADMIN_TOKEN = 'test-admin-token';
+import { ADMIN_SESSION_COOKIE, seedAdminSession } from './helpers/adminSqliteSession';
 
 function applyRepoMigrations(db: DatabaseSync) {
   const migrationsDir = path.join(process.cwd(), 'migrations');
@@ -104,14 +104,14 @@ function validIntakeBody(overrides: Record<string, unknown> = {}) {
 
 function adminGetRequest(path: string): Request {
   return new Request(`https://www.lougehrigfanclub.com${path}`, {
-    headers: { 'x-admin-token': ADMIN_TOKEN },
+    headers: { Cookie: ADMIN_SESSION_COOKIE },
   });
 }
 
 function adminPostRequest(path: string, body: unknown): Request {
   return new Request(`https://www.lougehrigfanclub.com${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-admin-token': ADMIN_TOKEN },
+    headers: { 'Content-Type': 'application/json', Cookie: ADMIN_SESSION_COOKIE },
     body: JSON.stringify(body),
   });
 }
@@ -159,6 +159,7 @@ describe('content pipeline media reference integration (#2319)', () => {
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
     seedMemberSession(sqlite);
+    seedAdminSession(sqlite);
     const db = wrapSqliteAsD1(sqlite);
 
     const memberResponse = await memberSubmitPost({
@@ -172,7 +173,7 @@ describe('content pipeline media reference integration (#2319)', () => {
     expect(memberBody.uploaded_media_reference).toBeUndefined();
 
     const adminResponse = await candidatesGet({
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
       request: adminGetRequest(
         `/api/admin/content-pipeline/candidates?candidate_id=${memberBody.candidate_id}`,
       ),
@@ -193,6 +194,7 @@ describe('content pipeline media reference integration (#2319)', () => {
 
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
+    seedAdminSession(sqlite);
     seedMemberSession(sqlite);
     const db = wrapSqliteAsD1(sqlite);
 
@@ -208,6 +210,7 @@ describe('content pipeline media reference integration (#2319)', () => {
   it('updates candidate media references through the admin route and records moderation events', async () => {
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
+    seedAdminSession(sqlite);
     const db = wrapSqliteAsD1(sqlite);
 
     const parsed = parseMemberSubmissionIntakeBody(
@@ -223,7 +226,7 @@ describe('content pipeline media reference integration (#2319)', () => {
     });
 
     const response = await mediaReferencePost({
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
       request: adminPostRequest('/api/admin/content-pipeline/candidates/media-reference', {
         candidate_id: persisted.candidate_id,
         media_asset_id: 'media_uid:lgfc-photo-001',
@@ -275,6 +278,7 @@ describe('content pipeline media reference integration (#2319)', () => {
   it('does not write a moderation event when media reference update is a no-op', async () => {
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
+    seedAdminSession(sqlite);
     const db = wrapSqliteAsD1(sqlite);
 
     const parsed = parseMemberSubmissionIntakeBody(
@@ -299,7 +303,7 @@ describe('content pipeline media reference integration (#2319)', () => {
       .get(persisted.candidate_id) as { count: number };
 
     const response = await mediaReferencePost({
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
       request: adminPostRequest('/api/admin/content-pipeline/candidates/media-reference', {
         candidate_id: persisted.candidate_id,
         uploaded_media_reference: 'b2://pending/original.jpg',
@@ -321,6 +325,7 @@ describe('content pipeline media reference integration (#2319)', () => {
   it('returns 400 when uploaded_media_reference update targets a candidate without member_submissions', async () => {
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
+    seedAdminSession(sqlite);
     const db = wrapSqliteAsD1(sqlite);
 
     const candidate: CandidateRecord = {
@@ -345,7 +350,7 @@ describe('content pipeline media reference integration (#2319)', () => {
     await upsertCandidate(db, candidate);
 
     const response = await mediaReferencePost({
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
       request: adminPostRequest('/api/admin/content-pipeline/candidates/media-reference', {
         candidate_id: candidate.candidate_id,
         uploaded_media_reference: 'b2://pending/reviewed.jpg',
@@ -379,6 +384,7 @@ describe('content pipeline media reference integration (#2319)', () => {
   it('updates media_asset_id on admin-seeded candidates without member_submissions rows', async () => {
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
+    seedAdminSession(sqlite);
     const db = wrapSqliteAsD1(sqlite);
 
     const candidate: CandidateRecord = {

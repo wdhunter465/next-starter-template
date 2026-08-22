@@ -1,6 +1,6 @@
 // POST /api/admin/cms/save
 // Body: { key, page, section, title, body_md, updated_by? }
-// Upserts a CMS content_block, sets status='draft', increments version, writes a revision. Protected by ADMIN_TOKEN.
+// Upserts a CMS content_block, sets status='draft', increments version, writes a revision. Protected by an authenticated D1 admin member session (requireAdmin).
 
 import { requireAdmin } from "../../../_lib/auth";
 

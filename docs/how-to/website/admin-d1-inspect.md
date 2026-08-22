@@ -6,7 +6,7 @@ Owns: D1 inspect diagnostic procedure for operators
 Does Not Own: D1 migrations, production data repair, or schema design
 Canonical Reference: /docs/reference/architecture/access-model.md
 Related issues: #1258, #1565, #1119, #2157
-Last Reviewed: 2026-07-04
+Last Reviewed: 2026-08-22
 ---
 
 # Admin D1 Inspect
@@ -26,19 +26,17 @@ API: `/api/admin/d1-inspect`
 ## Steps
 
 1. Sign in as admin (session gate).
-2. Open **D1 Inspect**.
-3. Save the admin API token via `AdminTokenPanel` (same `localStorage` key as other admin pages).
-4. Select a table; load schema and sample rows.
-5. For photo curation prep: open the **`photos`** table and review `is_matchup_eligible` values (default `0` for new/synced rows).
+2. Open **D1 Inspect**; the table list loads automatically.
+3. Select a table; load schema and sample rows.
+4. For photo curation prep: open the **`photos`** table and review `is_matchup_eligible` values (default `0` for new/synced rows).
 
 ## Procedure
 
 ### Access
 
-1. Navigate to **D1 Inspect**.
-2. Save token when prompted (unified with other admin surfaces via `AdminTokenPanel`).
-3. Choose table from the selector.
-4. Run inspect; review counts and sample JSON.
+1. Navigate to **D1 Inspect**. Table list loads automatically for a signed-in admin member — no token step.
+2. Choose table from the selector.
+3. Run inspect; review counts and sample JSON.
 
 ### Photo eligibility inspection
 
@@ -51,8 +49,9 @@ Canonical semantics: `/docs/reference/platform/Backblaze_B2.md`.
 
 ## Fail-closed expectations
 
-- Missing `ADMIN_TOKEN` in environment → API `503`.
-- Missing or wrong browser token → API `401`.
+- Missing `DB` binding → API `503`.
+- No admin session → API `401`.
+- Valid session but not an admin member → API `403`.
 - UI remains session-gated like other `/admin/**` routes.
 
 ## Safety
@@ -64,8 +63,8 @@ Canonical semantics: `/docs/reference/platform/Backblaze_B2.md`.
 
 ## Verification
 
-- Manual: inspect loads only with valid session and saved token.
-- Cross-check `docs/reference/architecture/access-model.md` dual-gate table.
+- Manual: inspect loads only with a valid admin session.
+- Cross-check `docs/reference/architecture/access-model.md` access model table.
 
 ## Closeout Criteria
 

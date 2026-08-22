@@ -4,8 +4,7 @@ import { DatabaseSync, type SQLInputValue } from 'node:sqlite';
 import { describe, expect, it } from 'vitest';
 
 import { onRequestPost } from '../../functions/api/admin/member-operations/delete';
-
-const ADMIN_TOKEN = 'test-admin-token';
+import { ADMIN_SESSION_COOKIE, seedAdminSession } from '../helpers/adminSqliteSession';
 
 function applyRepoMigrations(db: DatabaseSync) {
   const migrationsDir = path.join(process.cwd(), 'migrations');
@@ -63,10 +62,12 @@ function seedMember(sqlite: DatabaseSync, email = 'member@example.com') {
   `);
 }
 
-function deleteRequest(body: unknown, token = ADMIN_TOKEN): Request {
+function deleteRequest(body: unknown, cookie: string | null = ADMIN_SESSION_COOKIE): Request {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (cookie) headers.Cookie = cookie;
   return new Request('https://www.lougehrigfanclub.com/api/admin/member-operations/delete', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
+    headers,
     body: JSON.stringify(body),
   });
 }
@@ -76,6 +77,7 @@ describe('POST /api/admin/member-operations/delete (#2919, F6 soft deletion)', (
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
     seedMember(sqlite);
+    seedAdminSession(sqlite);
     const db = wrapSqliteAsD1(sqlite);
 
     const res = await onRequestPost({
@@ -84,7 +86,7 @@ describe('POST /api/admin/member-operations/delete (#2919, F6 soft deletion)', (
         deletion_reason: 'Member requested account deletion by email.',
         deleted_by: 'admin@lougehrigfanclub.com',
       }),
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
     } as any);
     expect(res.status).toBe(200);
 
@@ -105,6 +107,7 @@ describe('POST /api/admin/member-operations/delete (#2919, F6 soft deletion)', (
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
     seedMember(sqlite);
+    seedAdminSession(sqlite);
     const db = wrapSqliteAsD1(sqlite);
 
     await onRequestPost({
@@ -113,12 +116,12 @@ describe('POST /api/admin/member-operations/delete (#2919, F6 soft deletion)', (
         deletion_reason: 'test',
         deleted_by: 'admin@lougehrigfanclub.com',
       }),
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
     } as any);
 
     const res = await onRequestPost({
       request: deleteRequest({ email: 'member@example.com', action: 'restore' }),
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
     } as any);
     expect(res.status).toBe(200);
 
@@ -130,11 +133,12 @@ describe('POST /api/admin/member-operations/delete (#2919, F6 soft deletion)', (
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
     seedMember(sqlite);
+    seedAdminSession(sqlite);
     const db = wrapSqliteAsD1(sqlite);
 
     const res = await onRequestPost({
       request: deleteRequest({ email: 'member@example.com' }),
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
     } as any);
     expect(res.status).toBe(400);
 
@@ -146,26 +150,28 @@ describe('POST /api/admin/member-operations/delete (#2919, F6 soft deletion)', (
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
     seedMember(sqlite);
+    seedAdminSession(sqlite);
     const db = wrapSqliteAsD1(sqlite);
     const body = { email: 'member@example.com', deletion_reason: 'x', deleted_by: 'admin@lougehrigfanclub.com' };
 
-    await onRequestPost({ request: deleteRequest(body), env: { DB: db, ADMIN_TOKEN } } as any);
-    const res = await onRequestPost({ request: deleteRequest(body), env: { DB: db, ADMIN_TOKEN } } as any);
+    await onRequestPost({ request: deleteRequest(body), env: { DB: db } } as any);
+    const res = await onRequestPost({ request: deleteRequest(body), env: { DB: db } } as any);
     expect(res.status).toBe(409);
   });
 
-  it('rejects requests without a valid admin token', async () => {
+  it('rejects requests without a valid admin session', async () => {
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
     seedMember(sqlite);
+    seedAdminSession(sqlite);
     const db = wrapSqliteAsD1(sqlite);
 
     const res = await onRequestPost({
       request: deleteRequest(
         { email: 'member@example.com', deletion_reason: 'x', deleted_by: 'y' },
-        'wrong-token',
+        null,
       ),
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
     } as any);
     expect(res.status).toBe(401);
   });

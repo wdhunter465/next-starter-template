@@ -2,7 +2,7 @@
 // Admin CRUD (minimal):
 // - GET: list quotes (optional q=search, status=posted|hidden)
 // - POST: add quote
-// Protected by ADMIN_TOKEN.
+// Protected by an authenticated D1 admin member session (requireAdmin).
 
 import { requireAdmin } from "../../_lib/auth";
 

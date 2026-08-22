@@ -4,7 +4,6 @@ import { useCallback, useEffect, useState } from 'react';
 import PageShell from '@/components/PageShell';
 import AdminNav from '@/components/admin/AdminNav';
 import AdminStatusText from '@/components/admin/AdminStatusText';
-import AdminTokenPanel from '@/components/admin/AdminTokenPanel';
 import styles from '@/components/admin/AdminDashboard.module.css';
 import { adminJson } from '@/lib/adminClient';
 
@@ -169,8 +168,6 @@ export default function AdminModerationPage() {
     <PageShell title="Admin Moderation" subtitle="Review reports, Ask submissions, and pending FAQ entries">
       <AdminNav />
       <div className={styles.wrap}>
-        <AdminTokenPanel onSaved={() => void loadAll()} />
-
         {message ? (
           message.startsWith('Error:') ? (
             <AdminStatusText message={message} className={styles.status} />

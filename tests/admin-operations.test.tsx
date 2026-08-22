@@ -1,5 +1,4 @@
 import { render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -12,6 +11,7 @@ import AdminDashboard from '@/components/admin/AdminDashboard';
 import AdminNav from '@/components/admin/AdminNav';
 import { onRequestGet as statsGet } from '../functions/api/admin/stats';
 import { onRequestGet as worklistGet } from '../functions/api/admin/worklist';
+import { ADMIN_SESSION_COOKIE, withAdminSession } from './helpers/adminSession';
 
 const mockUseMemberSession = vi.hoisted(() => vi.fn());
 const mockUsePathname = vi.hoisted(() => vi.fn(() => '/admin'));
@@ -39,16 +39,15 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
-function adminRequest(path: string, token = 'secret'): Request {
-  return new Request(`https://www.lougehrigfanclub.com${path}`, {
-    headers: { 'x-admin-token': token },
-  });
+function adminRequest(path: string, cookie: string | null = ADMIN_SESSION_COOKIE): Request {
+  const headers: Record<string, string> = {};
+  if (cookie) headers.Cookie = cookie;
+  return new Request(`https://www.lougehrigfanclub.com${path}`, { headers });
 }
 
 describe('admin route shell', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
-    window.localStorage.clear();
     mockUsePathname.mockReturnValue('/admin');
   });
 
@@ -91,12 +90,10 @@ describe('admin route shell', () => {
 describe('admin operational pages', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
-    window.localStorage.clear();
-    window.localStorage.setItem('lgfc_admin_token', 'secret');
     mockUsePathname.mockReturnValue('/admin');
   });
 
-  it('renders join-request empty states and sends the admin token', async () => {
+  it('renders join-request empty states on mount', async () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ ok: true, items: [] }) as never);
 
     render(<AdminJoinRequestsPage />);
@@ -106,8 +103,6 @@ describe('admin operational pages', () => {
       '/api/admin/join-requests/list?limit=50',
       expect.objectContaining({ cache: 'no-store' }),
     );
-    const headers = fetchMock.mock.calls[0][1]?.headers as Headers;
-    expect(headers.get('x-admin-token')).toBe('secret');
   });
 
   it('renders worklist empty states without crashing', async () => {
@@ -161,23 +156,10 @@ describe('admin operational pages', () => {
 describe('admin d1 inspect page', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
-    window.localStorage.clear();
     mockUsePathname.mockReturnValue('/admin/d1-test');
   });
 
-  it('does not fetch D1 tables until a token is stored', async () => {
-    const fetchMock = vi.spyOn(globalThis, 'fetch');
-
-    render(<AdminD1TestPage />);
-
-    expect(screen.getByText('Save an admin API token above to load D1 tables.')).toBeInTheDocument();
-    await waitFor(() => {
-      expect(fetchMock).not.toHaveBeenCalled();
-    });
-  });
-
-  it('loads D1 tables when a token is stored and announces API failures', async () => {
-    window.localStorage.setItem('lgfc_admin_token', 'secret');
+  it('loads D1 tables on mount and announces API failures', async () => {
     const fetchMock = vi
       .spyOn(globalThis, 'fetch')
       .mockResolvedValue(jsonResponse({ ok: false, error: 'Unauthorized.' }, 401) as never);
@@ -192,26 +174,6 @@ describe('admin d1 inspect page', () => {
     });
     const alert = await screen.findByRole('alert');
     expect(alert).toHaveTextContent(/error: unauthorized/i);
-  });
-
-  it('restores token gating when the admin token is cleared', async () => {
-    window.localStorage.setItem('lgfc_admin_token', 'secret');
-    const fetchMock = vi
-      .spyOn(globalThis, 'fetch')
-      .mockResolvedValue(jsonResponse({ ok: true, tables: [] }) as never);
-
-    render(<AdminD1TestPage />);
-
-    await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalled();
-    });
-
-    const tokenInput = screen.getByLabelText('Admin token');
-    await userEvent.clear(tokenInput);
-    await userEvent.click(screen.getByRole('button', { name: 'Save token' }));
-
-    expect(screen.getByText('Save an admin API token above to load D1 tables.')).toBeInTheDocument();
-    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 });
 
@@ -228,7 +190,7 @@ describe('admin operational APIs', () => {
 
     const response = await statsGet({
       request: adminRequest('/api/admin/stats'),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(response.status).toBe(200);
@@ -250,7 +212,7 @@ describe('admin operational APIs', () => {
 
     const response = await worklistGet({
       request: adminRequest('/api/admin/worklist'),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(response.status).toBe(200);

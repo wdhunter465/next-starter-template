@@ -1,5 +1,5 @@
 // GET /api/admin/stats
-// Returns row counts for core tables. Protected by ADMIN_TOKEN.
+// Returns row counts for core tables. Protected by an authenticated D1 admin member session (requireAdmin).
 
 import { requireAdmin } from "../../_lib/auth";
 

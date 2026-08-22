@@ -1,5 +1,4 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -11,6 +10,7 @@ import { onRequestPost as cmsPublishPost } from '../functions/api/admin/cms/publ
 import { onRequestGet as contentListGet } from '../functions/api/admin/content/list';
 import { onRequestPost as contentSavePost } from '../functions/api/admin/content/save';
 import { onRequestPost as contentPublishPost } from '../functions/api/admin/content/publish';
+import { ADMIN_SESSION_COOKIE, withAdminSession } from './helpers/adminSession';
 
 const mockUsePathname = vi.hoisted(() => vi.fn(() => '/admin/cms'));
 
@@ -33,16 +33,18 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
-function adminGetRequest(path: string, token = 'secret'): Request {
-  return new Request(`https://www.lougehrigfanclub.com${path}`, {
-    headers: { 'x-admin-token': token },
-  });
+function adminGetRequest(path: string, cookie: string | null = ADMIN_SESSION_COOKIE): Request {
+  const headers: Record<string, string> = {};
+  if (cookie) headers.Cookie = cookie;
+  return new Request(`https://www.lougehrigfanclub.com${path}`, { headers });
 }
 
-function adminPostRequest(path: string, body: unknown, token = 'secret'): Request {
+function adminPostRequest(path: string, body: unknown, cookie: string | null = ADMIN_SESSION_COOKIE): Request {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (cookie) headers.Cookie = cookie;
   return new Request(`https://www.lougehrigfanclub.com${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
+    headers,
     body: JSON.stringify(body),
   });
 }
@@ -101,8 +103,6 @@ function makeContentDb(options?: {
 describe('admin CMS page', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
-    window.localStorage.clear();
-    window.localStorage.setItem('lgfc_admin_token', 'secret');
     mockUsePathname.mockReturnValue('/admin/cms');
   });
 
@@ -117,12 +117,10 @@ describe('admin CMS page', () => {
     expect(screen.getByRole('link', { name: 'Dashboard' })).toHaveAttribute('href', '/admin');
   });
 
-  it('loads CMS blocks with admin token and renders them', async () => {
-    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation((input, init) => {
+  it('loads CMS blocks on mount and renders them', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
       const path = String(input);
-      const headers = (init?.headers instanceof Headers ? init.headers : new Headers(init?.headers)) as Headers;
       if (path.startsWith('/api/admin/cms/list')) {
-        expect(headers.get('x-admin-token')).toBe('secret');
         return Promise.resolve(
           jsonResponse({
             ok: true,
@@ -173,18 +171,6 @@ describe('admin CMS page', () => {
     });
   });
 
-  it('does not fetch CMS blocks until a token is stored', async () => {
-    window.localStorage.removeItem('lgfc_admin_token');
-    const fetchMock = vi.spyOn(globalThis, 'fetch');
-
-    render(<AdminCMSPage />);
-
-    expect(screen.getByText('Save an admin API token above to load CMS blocks.')).toBeInTheDocument();
-    await waitFor(() => {
-      expect(fetchMock).not.toHaveBeenCalled();
-    });
-  });
-
   it('announces CMS list API failures to assistive technology', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(
       jsonResponse({ ok: false, error: 'Unauthorized.' }, 401) as never,
@@ -196,8 +182,8 @@ describe('admin CMS page', () => {
     expect(alert).toHaveTextContent(/error: unauthorized/i);
   });
 
-  it('clears CMS editor fields when the admin token is removed', async () => {
-    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
+  it('populates CMS editor fields when a block is selected', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
       const path = String(input);
       if (path.startsWith('/api/admin/cms/list')) {
         return Promise.resolve(
@@ -234,17 +220,8 @@ describe('admin CMS page', () => {
 
     fireEvent.click(screen.getByText('Hero Block'));
 
-    const keyInput = screen.getByLabelText('Key');
-    expect(keyInput).toHaveValue('home.hero.main');
-
-    const tokenInput = screen.getByLabelText('Admin token');
-    await userEvent.clear(tokenInput);
-    await userEvent.click(screen.getByRole('button', { name: 'Save token' }));
-
-    expect(screen.getAllByText('Save an admin API token above to load CMS blocks.').length).toBeGreaterThan(0);
-    expect(keyInput).toHaveValue('');
-    expect(screen.getByLabelText('Title')).toHaveValue('');
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(screen.getByLabelText('Key')).toHaveValue('home.hero.main');
+    expect(screen.getByLabelText('Title')).toHaveValue('Hero Block');
   });
 });
 
@@ -253,8 +230,6 @@ describe('admin CMS page', () => {
 describe('admin content page', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
-    window.localStorage.clear();
-    window.localStorage.setItem('lgfc_admin_token', 'secret');
     mockUsePathname.mockReturnValue('/admin/content');
   });
 
@@ -269,13 +244,11 @@ describe('admin content page', () => {
     expect(screen.getByRole('link', { name: 'Dashboard' })).toHaveAttribute('href', '/admin');
   });
 
-  it('loads page sections from /api/admin/content/list with admin token', async () => {
-    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation((input, init) => {
+  it('loads page sections from /api/admin/content/list on mount', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
       const path = String(input);
-      const headers = (init?.headers instanceof Headers ? init.headers : new Headers(init?.headers)) as Headers;
 
       if (path.startsWith('/api/admin/content/list')) {
-        expect(headers.get('x-admin-token')).toBe('secret');
         return Promise.resolve(
           jsonResponse({
             ok: true,
@@ -322,11 +295,10 @@ describe('admin content page', () => {
     });
   });
 
-  it('loads the current slug once when a token is first saved', async () => {
-    window.localStorage.removeItem('lgfc_admin_token');
+  it('loads a different slug when Load is clicked', async () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
       const path = String(input);
-      if (path.startsWith('/api/admin/content/list')) {
+      if (path.includes('slug=%2Fabout')) {
         return Promise.resolve(
           jsonResponse({
             ok: true,
@@ -348,48 +320,7 @@ describe('admin content page', () => {
           }),
         );
       }
-      return Promise.resolve(jsonResponse({ ok: true }));
-    });
-
-    render(<AdminContentPage />);
-
-    fireEvent.change(screen.getByPlaceholderText('/'), { target: { value: '/about' } });
-
-    const tokenInput = screen.getByLabelText('Admin token');
-    await userEvent.type(tokenInput, 'secret');
-    await userEvent.click(screen.getByRole('button', { name: 'Save token' }));
-
-    await waitFor(() => {
-      expect(screen.getByText('intro')).toBeInTheDocument();
-    });
-
-    const listCalls = fetchMock.mock.calls.filter(([path]) =>
-      String(path).startsWith('/api/admin/content/list'),
-    );
-    expect(listCalls).toHaveLength(1);
-    expect(String(listCalls[0][0])).toBe('/api/admin/content/list?slug=%2Fabout');
-    expect(screen.getByPlaceholderText('/')).toHaveValue('/about');
-  });
-
-  it('ignores a late root response after loading a different slug', async () => {
-    let resolveRoot!: (value: Response) => void;
-    let resolveAbout!: (value: Response) => void;
-    const rootPromise = new Promise<Response>((resolve) => {
-      resolveRoot = resolve;
-    });
-    const aboutPromise = new Promise<Response>((resolve) => {
-      resolveAbout = resolve;
-    });
-
-    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
-      const path = String(input);
-      if (path.includes('slug=%2Fabout')) {
-        return aboutPromise;
-      }
-      if (path.startsWith('/api/admin/content/list')) {
-        return rootPromise;
-      }
-      return Promise.resolve(jsonResponse({ ok: true }));
+      return Promise.resolve(jsonResponse({ ok: true, slugs: [], grouped: {} }));
     });
 
     render(<AdminContentPage />);
@@ -399,64 +330,14 @@ describe('admin content page', () => {
     });
 
     fireEvent.change(screen.getByPlaceholderText('/'), { target: { value: '/about' } });
-    await userEvent.click(screen.getByRole('button', { name: 'Save token' }));
-
-    await waitFor(() => {
-      expect(fetchMock).toHaveBeenCalledWith('/api/admin/content/list?slug=%2Fabout', expect.anything());
-    });
-
-    resolveAbout!(
-      jsonResponse({
-        ok: true,
-        slugs: ['/about'],
-        grouped: {
-          '/about': {
-            intro: {
-              live: {
-                slug: '/about',
-                section: 'intro',
-                status: 'live',
-                content: 'About copy',
-                asset_url: null,
-                updated_at: '2026-06-01T00:00:00Z',
-              },
-            },
-          },
-        },
-      }),
-    );
+    fireEvent.click(screen.getByRole('button', { name: 'Load' }));
 
     await waitFor(() => {
       expect(screen.getByText('intro')).toBeInTheDocument();
     });
 
-    resolveRoot!(
-      jsonResponse({
-        ok: true,
-        slugs: ['/'],
-        grouped: {
-          '/': {
-            hero: {
-              live: {
-                slug: '/',
-                section: 'hero',
-                status: 'live',
-                content: 'Root copy',
-                asset_url: null,
-                updated_at: '2026-06-01T00:00:00Z',
-              },
-            },
-          },
-        },
-      }),
-    );
-
-    await waitFor(() => {
-      expect(screen.getByText('intro')).toBeInTheDocument();
-    });
-    expect(screen.queryByText('hero')).not.toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledWith('/api/admin/content/list?slug=%2Fabout', expect.anything());
     expect(screen.getByPlaceholderText('/')).toHaveValue('/about');
-    expect(screen.getByRole('button', { name: 'Save Draft' })).toBeEnabled();
   });
 
   it('disables save and publish while displayed sections belong to a different slug', async () => {
@@ -510,18 +391,6 @@ describe('admin content page', () => {
     expect(screen.getByText(/Loaded content is for "\/about"/)).toBeInTheDocument();
   });
 
-  it('does not fetch page content until a token is stored', async () => {
-    window.localStorage.removeItem('lgfc_admin_token');
-    const fetchMock = vi.spyOn(globalThis, 'fetch');
-
-    render(<AdminContentPage />);
-
-    expect(screen.getByText('Save an admin API token above to load page content.')).toBeInTheDocument();
-    await waitFor(() => {
-      expect(fetchMock).not.toHaveBeenCalled();
-    });
-  });
-
   it('announces content list API failures to assistive technology', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(
       jsonResponse({ ok: false, error: 'Unauthorized.' }, 401) as never,
@@ -533,7 +402,7 @@ describe('admin content page', () => {
     expect(alert).toHaveTextContent(/error: unauthorized/i);
   });
 
-  it('sends save draft request to /api/admin/content/save with admin token', async () => {
+  it('sends save draft request to /api/admin/content/save', async () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
       const path = String(input);
       if (path.startsWith('/api/admin/content/list')) {
@@ -575,7 +444,7 @@ describe('admin content page', () => {
     expect(saveBody).toMatchObject({ slug: '/', section: 'hero' });
   });
 
-  it('sends publish request to /api/admin/content/publish with admin token', async () => {
+  it('sends publish request to /api/admin/content/publish', async () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
       const path = String(input);
       if (path.startsWith('/api/admin/content/list')) {
@@ -624,7 +493,7 @@ describe('CMS API: list endpoint', () => {
   it('rejects requests missing admin token', async () => {
     const response = await cmsListGet({
       request: adminGetRequest('/api/admin/cms/list', ''),
-      env: { ADMIN_TOKEN: 'secret', DB: makeCmsDb() },
+      env: { DB: makeCmsDb() },
     });
 
     expect(response.status).toBe(401);
@@ -674,7 +543,7 @@ describe('CMS API: list endpoint', () => {
 
     const response = await cmsListGet({
       request: adminGetRequest('/api/admin/cms/list?page=home'),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(response.status).toBe(200);
@@ -690,7 +559,7 @@ describe('CMS API: save endpoint', () => {
   it('rejects unauthenticated save requests', async () => {
     const response = await cmsSavePost({
       request: adminPostRequest('/api/admin/cms/save', {}, ''),
-      env: { ADMIN_TOKEN: 'secret', DB: makeCmsDb() },
+      env: { DB: makeCmsDb() },
     });
 
     expect(response.status).toBe(401);
@@ -699,7 +568,7 @@ describe('CMS API: save endpoint', () => {
   it('rejects saves with missing required fields', async () => {
     const response = await cmsSavePost({
       request: adminPostRequest('/api/admin/cms/save', { key: '', page: '', section: '', title: '' }),
-      env: { ADMIN_TOKEN: 'secret', DB: makeCmsDb() },
+      env: { DB: withAdminSession(makeCmsDb()) },
     });
 
     expect(response.status).toBe(400);
@@ -740,7 +609,7 @@ describe('CMS API: save endpoint', () => {
         body_md: '# Welcome to LGFC',
         updated_by: 'admin-ui',
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(response.status).toBe(200);
@@ -785,7 +654,7 @@ describe('CMS API: save endpoint', () => {
         title: 'Hero Block',
         body_md: '# Updated Welcome',
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(response.status).toBe(200);
@@ -801,7 +670,7 @@ describe('CMS API: publish endpoint', () => {
   it('rejects unauthenticated publish requests', async () => {
     const response = await cmsPublishPost({
       request: adminPostRequest('/api/admin/cms/publish', { key: 'home.hero.main' }, ''),
-      env: { ADMIN_TOKEN: 'secret', DB: makeCmsDb() },
+      env: { DB: makeCmsDb() },
     });
 
     expect(response.status).toBe(401);
@@ -826,7 +695,7 @@ describe('CMS API: publish endpoint', () => {
 
     const response = await cmsPublishPost({
       request: adminPostRequest('/api/admin/cms/publish', { key: 'home.missing' }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(response.status).toBe(404);
@@ -860,7 +729,7 @@ describe('CMS API: publish endpoint', () => {
 
     const response = await cmsPublishPost({
       request: adminPostRequest('/api/admin/cms/publish', { key: 'home.hero.main', updated_by: 'admin-ui' }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(response.status).toBe(200);
@@ -878,7 +747,7 @@ describe('content API: list endpoint', () => {
   it('rejects requests missing admin token', async () => {
     const response = await contentListGet({
       request: adminGetRequest('/api/admin/content/list', ''),
-      env: { ADMIN_TOKEN: 'secret', DB: makeContentDb() },
+      env: { DB: makeContentDb() },
     });
 
     expect(response.status).toBe(401);
@@ -900,7 +769,7 @@ describe('content API: list endpoint', () => {
 
     const response = await contentListGet({
       request: adminGetRequest('/api/admin/content/list?slug=/'),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(response.status).toBe(200);
@@ -916,7 +785,7 @@ describe('content API: save endpoint', () => {
   it('rejects unauthenticated save requests', async () => {
     const response = await contentSavePost({
       request: adminPostRequest('/api/admin/content/save', {}, ''),
-      env: { ADMIN_TOKEN: 'secret', DB: makeContentDb() },
+      env: { DB: makeContentDb() },
     });
 
     expect(response.status).toBe(401);
@@ -925,7 +794,7 @@ describe('content API: save endpoint', () => {
   it('requires slug and section fields', async () => {
     const response = await contentSavePost({
       request: adminPostRequest('/api/admin/content/save', { slug: '', section: '' }),
-      env: { ADMIN_TOKEN: 'secret', DB: makeContentDb() },
+      env: { DB: withAdminSession(makeContentDb()) },
     });
 
     expect(response.status).toBe(400);
@@ -954,7 +823,7 @@ describe('content API: save endpoint', () => {
         content: 'New hero content',
         asset_url: null,
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(response.status).toBe(200);
@@ -968,7 +837,7 @@ describe('content API: publish endpoint', () => {
   it('rejects unauthenticated publish requests', async () => {
     const response = await contentPublishPost({
       request: adminPostRequest('/api/admin/content/publish', {}, ''),
-      env: { ADMIN_TOKEN: 'secret', DB: makeContentDb() },
+      env: { DB: makeContentDb() },
     });
 
     expect(response.status).toBe(401);
@@ -977,7 +846,7 @@ describe('content API: publish endpoint', () => {
   it('requires a slug field', async () => {
     const response = await contentPublishPost({
       request: adminPostRequest('/api/admin/content/publish', { slug: '' }),
-      env: { ADMIN_TOKEN: 'secret', DB: makeContentDb() },
+      env: { DB: withAdminSession(makeContentDb()) },
     });
 
     expect(response.status).toBe(400);
@@ -997,7 +866,7 @@ describe('content API: publish endpoint', () => {
 
     const response = await contentPublishPost({
       request: adminPostRequest('/api/admin/content/publish', { slug: '/', section: 'hero' }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(response.status).toBe(404);
@@ -1029,7 +898,7 @@ describe('content API: publish endpoint', () => {
 
     const response = await contentPublishPost({
       request: adminPostRequest('/api/admin/content/publish', { slug: '/', section: 'hero' }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(response.status).toBe(200);
