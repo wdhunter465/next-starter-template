@@ -51,8 +51,8 @@ export async function onRequest(context: {
     requiredBindings: [
       { key: "DB", hint: "D1 binding is required for auth/admin/member APIs" },
     ],
-    // Admin authorization (session + D1 role) is enforced per-endpoint via requireAdmin,
-    // not here -- this middleware only fail-fasts on the shared DB binding.
+    // We intentionally do NOT require ADMIN_TOKEN globally here, because most /api/admin/*
+    // endpoints already guard themselves and return a clear error when missing.
   });
 
   if (missing.length) {
