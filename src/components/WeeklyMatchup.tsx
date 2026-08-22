@@ -237,7 +237,8 @@ export default function WeeklyMatchup() {
 
   return (
     <div className="card">
-      <h2 className="title-lgfc" style={{ marginTop: 24 }}>Weekly Photo Matchup</h2>
+      {/* Title text is governance-locked (#3559 / v6 lock scripts). */}
+      <h2 className="title-lgfc" style={{ marginTop: 24 }}>Weekly Photo Matchup. Vote for your favorite!</h2>
 
       {matchupPaused && <div style={{ paddingTop: 12 }}>{WEEKLY_MATCHUP_HOLD.message}</div>}
 
