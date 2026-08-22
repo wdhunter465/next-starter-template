@@ -28,7 +28,7 @@ closeout packet.
 
 | Claim | Status | Evidence |
 | --- | --- | --- |
-| Project #2431 (Phase 1) | **Closed complete** 2026-07-22 | github.com/wdhunter465/next-starter-template/issues/2431 |
+| Project #2431 (Phase 1) | **Closed complete** 2026-07-22 | https://github.com/wdhunter465/next-starter-template/issues/2431 |
 | Child tasks #2432–#2438 | **All closed complete** | issues #2432–#2438, each `status:complete` |
 | `CONTRACT-FROZEN: content-asset-model v1` (CC-001) | **Valid — independently verified** | #2433 `CHATGPT CLOSEOUT` after PR #2675 merge `d233e295` |
 | `CONTRACT-FROZEN: provenance-rights-publication v1` (CC-002) | **Valid — independently verified** | #2434 closeout after PR #2684 merge `6d020f34` |
@@ -36,7 +36,7 @@ closeout packet.
 | CI-002 apply mode | **Still deferred (D-009)** | risk/deferred-work register on `component/content-collection-phase1`; not authorized |
 | Downstream feature-lane recommendation | **CONDITIONAL GO for opening explicit child issues; NO-GO for automatic launch** | `docs/ops/reports/content-collection-phase1-validation-closeout-2438.md` (component branch only), accepted in #2438 comment 2026-07-22T01:37:54Z |
 | GAL-001 / LIB-001 / MEM-001 / CLUB-001 implementation issues | **Not opened** | issue search for these titles created after 2026-07-22 returns zero results |
-| `component/content-collection-phase1` → `main` promotion | **Not started** | no PR with base `main` / head `component/content-collection-phase1` exists; branch is 2,249 commits ahead of `main`'s merge base |
+| `component/content-collection-phase1` → `main` promotion | **Not started** | no PR with base `main` / head `component/content-collection-phase1` exists; the branch has diverged substantially from `main` and has not been rebased or promoted |
 | Successor program #1700 (Fundraiser/Charity) | **Closed complete** 2026-07-24, unrelated to GAL/LIB/MEM/CLUB | issue #1700 |
 
 ## The gap this review closes
