@@ -6,7 +6,7 @@ Owns: Content Collection Phase 1 preparation, child issue graph, Go / NoGo check
 Does Not Own: Implementation launch, merge authorization, feature-lane release, public publication, AI/OCR/crawler implementation, or issue closure
 Canonical Reference: /docs/ops/implementation-plans/content-collection/package-index.md
 Related Issues: #2431, #2432, #2433, #2434, #2435, #2436, #2437, #2438, #2359, #2365, #1738
-Last Reviewed: 2026-07-10
+Last Reviewed: 2026-08-22
 ---
 
 # Content Collection Phase 1 Launch Preparation
@@ -37,7 +37,22 @@ Primary Phase 0 artifacts on `main`:
 - `docs/ops/implementation-plans/content-collection/packages/ci-002-admin-closeout-auto-repair-package.md`
 - `docs/ops/implementation-plans/content-collection/packages/val-001-integrated-program-validation-package.md`
 
-## Current known truth
+## Current known truth (updated post-closeout, 2026-08-22)
+
+- Phase 1 parent issue #2431 and child issues #2432 through #2438 are **closed complete** (2026-07-22).
+  See `docs/ops/reports/content-collection-phase1-post-closeout-status-review.md` for the reconciled status
+  and next steps; this section is retained for the original preparation record below.
+- Both freeze markers are independently verified: `CONTRACT-FROZEN: content-asset-model v1` (#2433) and
+  `CONTRACT-FROZEN: provenance-rights-publication v1` (#2434).
+- CI-001 and CI-002 dry-run/preclearance tooling completed after the CI Stage 0 gap analysis (#2435); CI-002
+  apply mode remains deferred (D-009).
+- Feature lanes GAL / LIB / MEM / CLUB are **CONDITIONAL GO** for opening explicit implementation child
+  issues (each with its own allowlist) — this is not an automatic launch, and no such issue has been opened
+  yet. CLUB-001 stays conditional pending separate shell-risk / #2463 coordination.
+- `component/content-collection-phase1` has not been promoted to `main`; that decision remains open.
+- AI approval, OCR implementation, crawler expansion, and automatic public publication remain deferred.
+
+### Original preparation record (as of 2026-07-10, before Phase 1 launch)
 
 - Phase 1 preparation parent issue: #2431.
 - Prepared child issues: #2432 through #2438.
@@ -65,13 +80,13 @@ Primary outcomes:
 
 | Order | Issue | Title | Package / Lane | Predecessor | Successor | Launch state |
 | ---: | --- | --- | --- | --- | --- | --- |
-| 0 | #2432 | Phase 1 Gate 0 — Readiness Reconciliation and Stale-State Repair | Gate 0 | #2431 Go / NoGo | #2433 | Prepared; blocked |
-| 1 | #2433 | CC-001 Content Asset Contract Freeze | CC-001 / P1 | #2432 | #2434 | Prepared; blocked |
-| 2 | #2434 | CC-002 Provenance Rights and Publication Contract Freeze | CC-002 / P1 | #2433 | #2435 | Prepared; blocked |
-| 3 | #2435 | CI Stage 0 Current-State Gap Analysis | CI Stage 0 / P6 | #2434 | #2436 | Prepared; blocked |
-| 4 | #2436 | CI-001 PR Body Generator Preclearance Tooling | CI-001 / P6 | #2435 | #2437 | Prepared; blocked |
-| 5 | #2437 | CI-002 Admin Closeout Auto-Repair Boundary | CI-002 / P6 | #2435 and #2436 | #2438 | Prepared; blocked |
-| 6 | #2438 | Validation Closeout and Downstream Release Recommendation | VAL-001 | #2433 through #2437 | downstream Go / NoGo | Prepared; blocked |
+| 0 | #2432 | Phase 1 Gate 0 — Readiness Reconciliation and Stale-State Repair | Gate 0 | #2431 Go / NoGo | #2433 | Closed complete (PR #2674) |
+| 1 | #2433 | CC-001 Content Asset Contract Freeze | CC-001 / P1 | #2432 | #2434 | Closed complete (PR #2675) — freeze marker verified |
+| 2 | #2434 | CC-002 Provenance Rights and Publication Contract Freeze | CC-002 / P1 | #2433 | #2435 | Closed complete (PR #2684) — freeze marker verified |
+| 3 | #2435 | CI Stage 0 Current-State Gap Analysis | CI Stage 0 / P6 | #2434 | #2436 | Closed complete (PR #2685) |
+| 4 | #2436 | CI-001 PR Body Generator Preclearance Tooling | CI-001 / P6 | #2435 | #2437 | Closed complete (PR #2704, #2729) |
+| 5 | #2437 | CI-002 Admin Closeout Auto-Repair Boundary | CI-002 / P6 | #2435 and #2436 | #2438 | Closed complete, dry-run only (PR #2738, #2742) |
+| 6 | #2438 | Validation Closeout and Downstream Release Recommendation | VAL-001 | #2433 through #2437 | downstream Go / NoGo | Closed complete (PR #2749, #2750) — CONDITIONAL GO recorded |
 
 ## Phase 1 sequencing decision
 
@@ -83,19 +98,19 @@ Default sequence is serial until Bill / ChatGPT explicitly authorize parallelism
 4. #2436 and #2437 may proceed after #2435 only if their allowlists remain disjoint or explicitly serialized.
 5. #2438 is terminal and does not itself launch feature lanes.
 
-## Go / NoGo checklist
+## Go / NoGo checklist (resolved 2026-07-22 — record kept for audit trail)
 
-Before implementation starts:
-
-- [ ] #2431 reviewed by Bill / ChatGPT.
-- [ ] This document is merged or explicitly accepted as the Phase 1 prep reference.
-- [ ] #2432 through #2438 exist and remain blocked pending launch.
-- [ ] Phase 0 terminal status is reconciled in the package index and launch checklist.
-- [ ] CC-001 and CC-002 freeze criteria are accepted.
-- [ ] CI Stage 0 is accepted as predecessor to CI-001 / CI-002 tooling.
-- [ ] Feature lanes remain blocked until freeze marker verification.
-- [ ] Review throttle is accepted: maximum two to three `READY FOR REVIEW` PRs.
-- [ ] No issue authorizes public publication, AI approval, OCR, crawler expansion, or automatic publication.
+- [x] #2431 reviewed by Bill / ChatGPT — project-level Go recorded; issue closed complete 2026-07-22.
+- [x] This document was accepted as the Phase 1 prep reference and execution proceeded.
+- [x] #2432 through #2438 exist and are closed complete.
+- [x] Phase 0 terminal status was reconciled (#2432).
+- [x] CC-001 and CC-002 freeze criteria are accepted and both freeze markers independently verified.
+- [x] CI Stage 0 preceded CI-001 / CI-002 tooling (#2435 before #2436/#2437).
+- [x] Feature lanes remained blocked until freeze marker verification; verification is now complete and the
+      lanes are CONDITIONAL GO for explicit child-issue authorization only (not automatic launch).
+- [x] Review throttle was observed during Phase 1 execution.
+- [x] No issue authorized public publication, AI approval, OCR, crawler expansion, or automatic publication —
+      those remain deferred.
 
 ## Freeze marker rule
 
@@ -144,7 +159,7 @@ Documentation-only Phase 1 prep validation:
 
 Implementation tasks must add package-specific validation from their source issues and package docs.
 
-## Acceptance criteria
+## Acceptance criteria (original, pre-launch record)
 
 - Phase 1 issue graph is created.
 - Repository documentation reflects Phase 0 complete and Phase 1 prepared.
@@ -152,3 +167,7 @@ Implementation tasks must add package-specific validation from their source issu
 - Feature-lane release remains blocked until contract freeze evidence is verified.
 - CI-001 and CI-002 remain sequenced behind Stage 0.
 - Bill / ChatGPT can make Go / NoGo from repo docs and GitHub Issues without relying on chat memory.
+
+All of the above were satisfied and Phase 1 executed to closure. For current status, the
+component→`main` promotion gap, and the open next steps, see
+`docs/ops/reports/content-collection-phase1-post-closeout-status-review.md`.

@@ -6,7 +6,7 @@ Owns: Index, asset inventory, promotion-status tracking, and Phase 1 preparation
 Does Not Own: Canonical content model, governance law, runtime implementation, launch authorization, or merge authority
 Canonical Reference: /docs/ops/reports/content-collection-docs-audit-dedup-2360.md
 Related Issues: #2365, #2361, #2362, #2363, #2364, #2359, #2360, #1738, #2286, #2431, #2432, #2433, #2434, #2435, #2436, #2437, #2438
-Last Reviewed: 2026-07-10
+Last Reviewed: 2026-08-22
 ---
 
 # Content Collection Package Index
@@ -20,6 +20,9 @@ These are **operational envelopes** for future Cursor tasks. They become executa
 **Phase 0 closeout:** `docs/ops/reports/content-collection-phase0-promotion-closeout-2365.md`
 
 **Phase 1 prep:** `docs/ops/implementation-plans/content-collection/phase1-launch-prep.md`
+
+**Phase 1 closed complete (2026-07-22); post-closeout status:**
+`docs/ops/reports/content-collection-phase1-post-closeout-status-review.md`
 
 ## Foundation packages (#2361)
 
@@ -64,17 +67,22 @@ These are **operational envelopes** for future Cursor tasks. They become executa
 | SUP-005 | Deferred work register | [deferred-work-register.md](./support/deferred-work-register.md) | `validated` | #2419, #2424, #2427 |
 | SUP-006 | Risk register | [risk-register.md](./support/risk-register.md) | `validated` | #2419, #2424 |
 
-## Phase 1 prepared issue graph
+## Phase 1 issue graph (closed complete 2026-07-22)
 
 | Order | Issue | Title | Package / lane | Launch state |
 | ---: | --- | --- | --- | --- |
-| 0 | #2432 | Phase 1 Gate 0 — Readiness Reconciliation and Stale-State Repair | Gate 0 | Blocked pending #2431 Go / NoGo |
-| 1 | #2433 | CC-001 Content Asset Contract Freeze | CC-001 / P1 | Blocked pending #2431 Go / NoGo |
-| 2 | #2434 | CC-002 Provenance Rights and Publication Contract Freeze | CC-002 / P1 | Blocked pending #2431 Go / NoGo |
-| 3 | #2435 | CI Stage 0 Current-State Gap Analysis | CI Stage 0 / P6 | Blocked pending #2431 Go / NoGo |
-| 4 | #2436 | CI-001 PR Body Generator Preclearance Tooling | CI-001 / P6 | Blocked pending #2431 and #2435 |
-| 5 | #2437 | CI-002 Admin Closeout Auto-Repair Boundary | CI-002 / P6 | Blocked pending #2431 and #2435 |
-| 6 | #2438 | Validation Closeout and Downstream Release Recommendation | VAL-001 | Blocked pending #2431 Go / NoGo |
+| 0 | #2432 | Phase 1 Gate 0 — Readiness Reconciliation and Stale-State Repair | Gate 0 | Closed complete — PR #2674 |
+| 1 | #2433 | CC-001 Content Asset Contract Freeze | CC-001 / P1 | Closed complete — PR #2675; `CONTRACT-FROZEN: content-asset-model v1` verified |
+| 2 | #2434 | CC-002 Provenance Rights and Publication Contract Freeze | CC-002 / P1 | Closed complete — PR #2684; `CONTRACT-FROZEN: provenance-rights-publication v1` verified |
+| 3 | #2435 | CI Stage 0 Current-State Gap Analysis | CI Stage 0 / P6 | Closed complete — PR #2685 |
+| 4 | #2436 | CI-001 PR Body Generator Preclearance Tooling | CI-001 / P6 | Closed complete — PR #2704, #2729 |
+| 5 | #2437 | CI-002 Admin Closeout Auto-Repair Boundary | CI-002 / P6 | Closed complete (dry-run only) — PR #2738, #2742 |
+| 6 | #2438 | Validation Closeout and Downstream Release Recommendation | VAL-001 | Closed complete — PR #2749, #2750; **CONDITIONAL GO** for explicit GAL/LIB/MEM child issues, **NO-GO** for automatic launch |
+
+All Phase 1 evidence above lives on `component/content-collection-phase1`, which has not been promoted to
+`main`. See `docs/ops/reports/content-collection-phase1-post-closeout-status-review.md` for the current gap
+and next-step recommendations, including that no GAL-001/LIB-001/MEM-001/CLUB-001 implementation issue has
+been opened as of 2026-08-22 despite the CONDITIONAL GO.
 
 ## GitHub-only (not repo docs)
 
@@ -86,13 +94,19 @@ These are **operational envelopes** for future Cursor tasks. They become executa
 ## Current known truth
 
 - Phase 0 docs promotion (#2360–#2365) completed via PR #2427.
-- Phase 1 preparation issue set is #2431–#2438.
-- #2431 is the prepared Phase 1 Go / NoGo control issue.
+- Phase 1 (#2431) and its child issue set #2432–#2438 are **closed complete** (2026-07-22). See the
+  Phase 1 issue graph table above and
+  `docs/ops/reports/content-collection-phase1-post-closeout-status-review.md`.
+- Both freeze markers are independently verified: `CONTRACT-FROZEN: content-asset-model v1` (#2433) and
+  `CONTRACT-FROZEN: provenance-rights-publication v1` (#2434).
+- Downstream recommendation from #2438 is **CONDITIONAL GO** for opening explicit GAL/LIB/MEM child issues
+  and **NO-GO** for automatic launch. No such child issue has been opened as of 2026-08-22.
+- `component/content-collection-phase1` has not been promoted to `main`; that promotion decision is open.
 - Rejected target roots remain `docs/ops/programs/` and `docs/reference/website/content-collection/` per #2360.
-- All four feature routes **exist** on `main` with member auth; packages document gaps vs CC-001/CC-002 and implementation allowlists.
+- All four feature routes **exist** on `main` with member auth; packages document gaps vs CC-001/CC-002 and
+  implementation allowlists. No GAL/LIB/MEM/CLUB feature-lane code has been implemented under Phase 1.
 - Intake `.docx` remains on `ChatGPT/drive-draft-intake-2367` only.
-- Feature code remains blocked until `CONTRACT-FROZEN: content-asset-model v1` is posted and ChatGPT verifies downstream release.
-- CI-001 / CI-002 tooling is Phase 1 work only after CI Stage 0 current-state gap analysis.
+- CI-001 / CI-002 dry-run tooling is complete for Phase 1 scope; CI-002 apply mode remains deferred (D-009).
 
 ## Source intake mapping
 
@@ -132,4 +146,8 @@ These are **operational envelopes** for future Cursor tasks. They become executa
 
 ## Execution
 
-Package, control, and support enrichment (#2361–#2364) stopped at Phase 0 docs. Phase 1 issues #2431–#2438 are prepared but blocked pending Go / NoGo. Code implementation requires a launched child issue with an explicit allowlist and validation plan.
+Package, control, and support enrichment (#2361–#2364) completed at Phase 0 docs. Phase 1 issues
+#2431–#2438 executed and closed complete on `component/content-collection-phase1` (2026-07-22); that
+branch is not yet promoted to `main`. Feature-lane code implementation (GAL/LIB/MEM/CLUB) still requires a
+launched child issue with an explicit allowlist and validation plan — the Phase 1 CONDITIONAL GO does not
+by itself authorize it.
