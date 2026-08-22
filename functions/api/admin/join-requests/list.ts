@@ -1,5 +1,5 @@
 // GET /api/admin/join-requests/list?limit=50
-// Returns recent join_requests. Protected by ADMIN_TOKEN.
+// Returns recent join_requests. Protected by an authenticated D1 admin member session (requireAdmin).
 
 import { requireAdmin } from "../../../_lib/auth";
 

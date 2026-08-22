@@ -3,9 +3,8 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import PageShell from '@/components/PageShell';
 import AdminNav from '@/components/admin/AdminNav';
-import AdminTokenPanel from '@/components/admin/AdminTokenPanel';
 import AdminStatusText from '@/components/admin/AdminStatusText';
-import { adminJson, getStoredAdminToken } from '@/lib/adminClient';
+import { adminJson } from '@/lib/adminClient';
 import styles from '@/components/admin/AdminDashboard.module.css';
 
 type TableInfo = { name: string; count: number };
@@ -36,7 +35,6 @@ export default function AdminD1TestPage() {
   const [error, setError] = useState<string>('');
   const [status, setStatus] = useState<string>('');
   const [loading, setLoading] = useState(false);
-  const [tokenReady, setTokenReady] = useState(false);
 
   const sorted = useMemo(() => [...tables].sort((a, b) => a.name.localeCompare(b.name)), [tables]);
 
@@ -92,16 +90,8 @@ export default function AdminD1TestPage() {
   }, []);
 
   useEffect(() => {
-    if (getStoredAdminToken()) {
-      setTokenReady(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    if (tokenReady) {
-      void load();
-    }
-  }, [tokenReady, load]);
+    void load();
+  }, [load]);
 
   return (
     <PageShell title="Admin – D1 Inspect" subtitle="Inspect tables and run safe, read-only queries">
@@ -110,39 +100,17 @@ export default function AdminD1TestPage() {
       <div style={localStyles.main}>
         <h1 style={localStyles.h1}>Admin • D1 Test</h1>
         <p style={localStyles.lead}>
-          Diagnostic view of D1 tables: row counts, schema, and sample rows. Uses the same admin API
-          token as other admin surfaces (`localStorage` via the token panel).
+          Diagnostic view of D1 tables: row counts, schema, and sample rows.
         </p>
 
         <div className={styles.wrap}>
-          <AdminTokenPanel
-            onSaved={() => {
-              if (!getStoredAdminToken()) {
-                setTokenReady(false);
-                setTables([]);
-                setDetail(null);
-                setError('');
-                setStatus('');
-                return;
-              }
-              if (tokenReady) {
-                void load();
-              } else {
-                setTokenReady(true);
-              }
-            }}
-          />
-
           <div className={styles.panel}>
             <div className={styles.panelHeader}>
               <div className={styles.panelTitle}>D1 table list</div>
-              <button className={styles.btn} type="button" onClick={() => void load()} disabled={loading || !tokenReady}>
+              <button className={styles.btn} type="button" onClick={() => void load()} disabled={loading}>
                 {loading ? 'Loading…' : 'Refresh'}
               </button>
             </div>
-            {!tokenReady ? (
-              <p className={styles.status}>Save an admin API token above to load D1 tables.</p>
-            ) : null}
             {status ? <p className={styles.status}>{status}</p> : null}
             {error ? <AdminStatusText message={error} className={styles.status} /> : null}
           </div>

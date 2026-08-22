@@ -1,11 +1,12 @@
 import { describe, expect, it, vi } from 'vitest';
 
 import { onRequestGet as rotationPreviewGet } from '../functions/api/admin/editorial/rotation-preview';
+import { ADMIN_SESSION_COOKIE, withAdminSession } from './helpers/adminSession';
 
-function jsonRequest(path: string, token = 'secret'): Request {
-  return new Request(`https://www.lougehrigfanclub.com${path}`, {
-    headers: { 'x-admin-token': token },
-  });
+function jsonRequest(path: string, cookie: string | null = ADMIN_SESSION_COOKIE): Request {
+  const headers: Record<string, string> = {};
+  if (cookie) headers.Cookie = cookie;
+  return new Request(`https://www.lougehrigfanclub.com${path}`, { headers });
 }
 
 function makeDb(inventory: Array<Record<string, unknown>>) {
@@ -60,14 +61,14 @@ function publishedRow(overrides: Record<string, unknown> = {}) {
 describe('admin editorial rotation preview (#3508)', () => {
   it('refuses unauthenticated preview', async () => {
     const response = await rotationPreviewGet({
-      request: jsonRequest('/api/admin/editorial/rotation-preview', ''),
-      env: { ADMIN_TOKEN: 'secret', DB: makeDb([]) },
+      request: jsonRequest('/api/admin/editorial/rotation-preview', null),
+      env: { DB: makeDb([]) },
     });
     expect(response.status).toBe(401);
   });
 
   it('rejects unknown sections and invalid as_of values', async () => {
-    const env = { ADMIN_TOKEN: 'secret', DB: makeDb([publishedRow()]) };
+    const env = { DB: withAdminSession(makeDb([publishedRow()])) };
 
     const badSection = await rotationPreviewGet({
       request: jsonRequest('/api/admin/editorial/rotation-preview?section=not_a_section'),
@@ -108,7 +109,7 @@ describe('admin editorial rotation preview (#3508)', () => {
 
     const response = await rotationPreviewGet({
       request: jsonRequest('/api/admin/editorial/rotation-preview?section=club_home&as_of=2026-06-04&limit=8'),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(response.status).toBe(200);

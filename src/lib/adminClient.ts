@@ -1,7 +1,5 @@
 'use client';
 
-export const ADMIN_TOKEN_STORAGE_KEY = 'lgfc_admin_token';
-
 export type AdminJsonResult<T> = {
   ok: boolean;
   status: number;
@@ -13,21 +11,6 @@ export function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null;
 }
 
-export function getStoredAdminToken(): string {
-  if (typeof window === 'undefined') return '';
-  return window.localStorage.getItem(ADMIN_TOKEN_STORAGE_KEY) || '';
-}
-
-export function setStoredAdminToken(token: string): void {
-  if (typeof window === 'undefined') return;
-  const normalized = token.trim();
-  if (normalized) {
-    window.localStorage.setItem(ADMIN_TOKEN_STORAGE_KEY, normalized);
-  } else {
-    window.localStorage.removeItem(ADMIN_TOKEN_STORAGE_KEY);
-  }
-}
-
 export type AdminDownloadResult = {
   ok: boolean;
   status: number;
@@ -37,12 +20,8 @@ export type AdminDownloadResult = {
 };
 
 export async function adminDownload(path: string): Promise<AdminDownloadResult> {
-  const token = getStoredAdminToken();
-  const headers = new Headers();
-  if (token) headers.set('x-admin-token', token);
-
   try {
-    const response = await fetch(path, { headers, cache: 'no-store' });
+    const response = await fetch(path, { credentials: 'include', cache: 'no-store' });
     const contentType = response.headers.get('Content-Type') || '';
     const disposition = response.headers.get('Content-Disposition') || '';
     const filenameMatch = disposition.match(/filename="([^"]+)"/);
@@ -72,15 +51,14 @@ export async function adminDownload(path: string): Promise<AdminDownloadResult> 
 }
 
 export async function adminJson<T>(path: string, init: RequestInit = {}): Promise<AdminJsonResult<T>> {
-  const token = getStoredAdminToken();
   const headers = new Headers(init.headers);
-  if (token) headers.set('x-admin-token', token);
   if (init.body && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json');
 
   try {
     const response = await fetch(path, {
       ...init,
       headers,
+      credentials: init.credentials ?? 'include',
       cache: init.cache ?? 'no-store',
     });
     const data: unknown = await response.json().catch(() => ({}));

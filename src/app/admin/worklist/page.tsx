@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import PageShell from '@/components/PageShell';
 import AdminNav from '@/components/admin/AdminNav';
-import AdminTokenPanel from '@/components/admin/AdminTokenPanel';
 import AdminStatusText from '@/components/admin/AdminStatusText';
 import { adminJson, isRecord } from '@/lib/adminClient';
 import styles from '@/components/admin/AdminDashboard.module.css';
@@ -117,8 +116,6 @@ export default function AdminWorklistPage() {
     <PageShell title="Admin Worklist" subtitle="Operational admin tasks, owners, due dates, and status">
       <AdminNav />
       <div className={styles.wrap}>
-        <AdminTokenPanel onSaved={() => void load()} />
-
         <form className={styles.panel} onSubmit={addItem}>
           <div className={styles.panelHeader}>
             <div className={styles.panelTitle}>Add worklist item</div>

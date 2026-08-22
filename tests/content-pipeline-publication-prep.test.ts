@@ -15,8 +15,7 @@ import {
 } from '../functions/_lib/content-pipeline-publication-prep';
 import { serializeAdminMediaReferences } from '../functions/_lib/content-pipeline-media-reference';
 import { onRequestGet as publicationPrepGet } from '../functions/api/admin/content-pipeline/publication-prep/index';
-
-const ADMIN_TOKEN = 'test-admin-token';
+import { ADMIN_SESSION_COOKIE, seedAdminSession } from './helpers/adminSqliteSession';
 
 function eligibleCandidate(overrides: Partial<CandidateRecord> = {}): CandidateRecord {
   return {
@@ -99,10 +98,10 @@ function wrapSqliteAsD1(sqlite: DatabaseSync) {
   };
 }
 
-function adminGetRequest(pathname: string, token = ADMIN_TOKEN): Request {
-  return new Request(`https://www.lougehrigfanclub.com${pathname}`, {
-    headers: { 'x-admin-token': token },
-  });
+function adminGetRequest(pathname: string, cookie: string | null = ADMIN_SESSION_COOKIE): Request {
+  const headers: Record<string, string> = {};
+  if (cookie) headers.Cookie = cookie;
+  return new Request(`https://www.lougehrigfanclub.com${pathname}`, { headers });
 }
 
 function publicApiFiles(): string[] {
@@ -326,8 +325,8 @@ describe('content pipeline publication prep (#2324)', () => {
 
   it('returns 401 without admin authorization', async () => {
     const response = await publicationPrepGet({
-      env: { DB: {}, ADMIN_TOKEN },
-      request: adminGetRequest('/api/admin/content-pipeline/publication-prep', 'wrong-token'),
+      env: { DB: {} },
+      request: adminGetRequest('/api/admin/content-pipeline/publication-prep', null),
     });
 
     expect(response.status).toBe(401);
@@ -336,6 +335,7 @@ describe('content pipeline publication prep (#2324)', () => {
   it('lists eligible candidates and returns ineligible detail with rationale', async () => {
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
+    seedAdminSession(sqlite);
     const db = wrapSqliteAsD1(sqlite);
 
     await upsertCandidate(db, eligibleCandidate({ candidate_id: 'lgfc-gehrig-2026-911' }));
@@ -349,7 +349,7 @@ describe('content pipeline publication prep (#2324)', () => {
     );
 
     const listResponse = await publicationPrepGet({
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
       request: adminGetRequest('/api/admin/content-pipeline/publication-prep'),
     });
     expect(listResponse.status).toBe(200);
@@ -360,7 +360,7 @@ describe('content pipeline publication prep (#2324)', () => {
     expect(listBody.publication_prep[0].eligibility.eligible).toBe(true);
 
     const detailResponse = await publicationPrepGet({
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
       request: adminGetRequest(
         '/api/admin/content-pipeline/publication-prep?candidate_id=lgfc-gehrig-2026-912',
       ),
@@ -374,6 +374,7 @@ describe('content pipeline publication prep (#2324)', () => {
   it('paginates eligible-only results after eligibility filtering', async () => {
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
+    seedAdminSession(sqlite);
     const db = wrapSqliteAsD1(sqlite);
 
     await upsertCandidate(
@@ -401,7 +402,7 @@ describe('content pipeline publication prep (#2324)', () => {
     );
 
     const pageOne = await publicationPrepGet({
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
       request: adminGetRequest('/api/admin/content-pipeline/publication-prep?limit=1&offset=0'),
     });
     expect(pageOne.status).toBe(200);
@@ -410,7 +411,7 @@ describe('content pipeline publication prep (#2324)', () => {
     expect(pageOneBody.publication_prep[0].candidate_id).toBe('lgfc-gehrig-2026-922');
 
     const pageTwo = await publicationPrepGet({
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
       request: adminGetRequest('/api/admin/content-pipeline/publication-prep?limit=1&offset=1'),
     });
     const pageTwoBody = await pageTwo.json();
@@ -428,6 +429,7 @@ describe('content pipeline publication prep (#2324)', () => {
   it('does not write moderation events when publication prep views are listed or fetched', async () => {
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
+    seedAdminSession(sqlite);
     const db = wrapSqliteAsD1(sqlite);
 
     await upsertCandidate(db, eligibleCandidate({ candidate_id: 'lgfc-gehrig-2026-931' }));
@@ -437,13 +439,13 @@ describe('content pipeline publication prep (#2324)', () => {
       .get() as { count: number };
 
     const listResponse = await publicationPrepGet({
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
       request: adminGetRequest('/api/admin/content-pipeline/publication-prep'),
     });
     expect(listResponse.status).toBe(200);
 
     const detailResponse = await publicationPrepGet({
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
       request: adminGetRequest(
         '/api/admin/content-pipeline/publication-prep?candidate_id=lgfc-gehrig-2026-931',
       ),

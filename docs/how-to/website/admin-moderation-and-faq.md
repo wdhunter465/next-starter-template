@@ -38,17 +38,15 @@ API areas: `functions/api/admin/faq/**`, `functions/api/admin/ask/**`,
 
 ### Moderation hub
 
-1. Open **Moderation**.
-2. Save token when prompted.
-3. Review Ask and related queue summaries.
-4. Follow in-page links to **FAQ Queue** or **Audit & Reporting** when needed.
-5. On failure, read `Error:` status; confirm token and D1 availability.
+1. Open **Moderation**; queue summaries load automatically for a signed-in admin member.
+2. Review Ask and related queue summaries.
+3. Follow in-page links to **FAQ Queue** or **Audit & Reporting** when needed.
+4. On failure, read `Error:` status; confirm admin session and D1 availability.
 
 ### FAQ queue
 
-1. Open **FAQ Queue**.
-2. Save token via `AdminTokenPanel`.
-3. Load pending/approved lists.
+1. Open **FAQ Queue**; lists load automatically.
+2. Load pending/approved lists.
 4. Approve or deny with required notes when the UI prompts.
 5. Confirm queue counts update after action.
 

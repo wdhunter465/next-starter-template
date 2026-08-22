@@ -1,5 +1,5 @@
 // GET /api/admin/editorial/list
-// Returns editorial submission queue and content_inventory records. Protected by ADMIN_TOKEN.
+// Returns editorial submission queue and content_inventory records. Protected by an authenticated D1 admin member session (requireAdmin).
 
 import { requireAdmin } from "../../../_lib/auth";
 import { listStoryMediaAssociations } from "../../../_lib/content-inventory-media";

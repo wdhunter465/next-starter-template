@@ -110,16 +110,16 @@ Assessment date: **2026-06-10** (`main` after `#1256` terminal closeout).
 
 Navigation source: `src/components/admin/AdminNav.tsx` (15 operational links).
 
-### Admin protection model (as-built)
+### Admin protection model (as-built, updated `#3547`)
 
 - **UI gate:** `src/app/admin/layout.tsx` uses `useMemberSession({ redirectTo: '/', requireAdmin: true })` — session cookie + `role === 'admin'` from `/api/session/me`.
-- **API gate:** `functions/_lib/auth.ts` `requireAdmin()` — `x-admin-token` or `Authorization: Bearer` must match `env.ADMIN_TOKEN`; fail-closed when unset.
-- **Client token panel:** Most admin pages use `AdminTokenPanel` + `src/lib/adminClient.ts` for API calls.
+- **API gate:** `functions/_lib/auth.ts` `requireAdmin()` delegates to `requireAdminMember()` (`functions/_lib/session.ts`) — requires a signed-in admin member session; no shared-secret fallback. Returns `401` unauthenticated, `403` non-admin, `503` if `DB` is unbound.
+- **Client:** All admin pages call `/api/admin/**` via `src/lib/adminClient.ts`, which sends only the browser's `lgfc_session` cookie (`credentials: 'include'`). There is no admin-token UI anywhere under `src/app/admin/**` or `src/components/admin/**`.
 
 **Access model documentation:** `docs/reference/architecture/access-model.md` was
-reconciled in Task 002 (PR `#1533`) to dual gating (session UI + `ADMIN_TOKEN` API).
-Task 004 unifies `/admin/d1-test` with `AdminTokenPanel` / `localStorage`
-(`adminClient.ts`). `footer-quotes` admin UI remains deferred.
+reconciled in Task 002 (PR `#1533`) to dual gating (session UI + `ADMIN_TOKEN` API),
+then updated again under `#3547` (2026-08-22) to remove `ADMIN_TOKEN` entirely and
+describe session-only authorization. `footer-quotes` admin UI remains deferred.
 
 ### Admin API surface (`functions/api/admin/**`)
 

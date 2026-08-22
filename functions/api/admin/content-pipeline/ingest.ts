@@ -2,7 +2,7 @@
 // #3551 steps 6-7: fetches an already rights-cleared candidate's approved
 // original directly from its allowlisted source, validates it, writes it to
 // B2 under the LGFC_ new-intake prefix, and commits the D1 media_assets/
-// content_items link. Protected by ADMIN_TOKEN.
+// content_items link. Protected by an authenticated D1 admin member session (requireAdmin).
 //
 // Refuses to run unless the candidate already has a recorded rights_evidence
 // conclusion (#3551's core safety rule: rights conclusions and publish

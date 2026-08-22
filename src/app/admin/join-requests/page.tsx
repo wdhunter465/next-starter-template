@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import PageShell from '@/components/PageShell';
 import AdminNav from '@/components/admin/AdminNav';
-import AdminTokenPanel from '@/components/admin/AdminTokenPanel';
 import AdminStatusText from '@/components/admin/AdminStatusText';
 import { adminJson, isRecord } from '@/lib/adminClient';
 import styles from '@/components/admin/AdminDashboard.module.css';
@@ -93,7 +92,6 @@ export default function AdminJoinRequestsPage() {
     <PageShell title="Join Requests" subtitle="Recent join requests captured from /join">
       <AdminNav />
       <div className={styles.wrap}>
-        <AdminTokenPanel onSaved={() => void load()} />
         <button
           onClick={() => void load()}
           className={styles.btn}

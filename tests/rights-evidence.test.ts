@@ -12,8 +12,7 @@ import {
   recordRightsEvidence,
 } from '../functions/_lib/rights-evidence-repository';
 import { onRequestGet as rightsEvidenceGet, onRequestPost as rightsEvidencePost } from '../functions/api/admin/content-pipeline/rights-evidence/index';
-
-const ADMIN_TOKEN = 'test-admin-token';
+import { ADMIN_SESSION_COOKIE, seedAdminSession } from './helpers/adminSqliteSession';
 
 function minimalCandidate(overrides: Partial<CandidateRecord> = {}): CandidateRecord {
   return {
@@ -100,16 +99,18 @@ function wrapSqliteAsD1(sqlite: DatabaseSync) {
   };
 }
 
-function adminGetRequest(path: string, token = ADMIN_TOKEN): Request {
-  return new Request(`https://www.lougehrigfanclub.com${path}`, {
-    headers: { 'x-admin-token': token },
-  });
+function adminGetRequest(path: string, cookie: string | null = ADMIN_SESSION_COOKIE): Request {
+  const headers: Record<string, string> = {};
+  if (cookie) headers.Cookie = cookie;
+  return new Request(`https://www.lougehrigfanclub.com${path}`, { headers });
 }
 
-function adminPostRequest(path: string, body: unknown, token = ADMIN_TOKEN): Request {
+function adminPostRequest(path: string, body: unknown, cookie: string | null = ADMIN_SESSION_COOKIE): Request {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (cookie) headers.Cookie = cookie;
   return new Request(`https://www.lougehrigfanclub.com${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
+    headers,
     body: JSON.stringify(body),
   });
 }
@@ -220,10 +221,10 @@ describe('rights evidence repository + admin API (#3552)', () => {
 
   it('returns 401 without admin authorization', async () => {
     const response = await rightsEvidenceGet({
-      env: { DB: {}, ADMIN_TOKEN },
+      env: { DB: {} },
       request: adminGetRequest(
         '/api/admin/content-pipeline/rights-evidence?candidate_id=lgfc-gehrig-2026-999',
-        'wrong-token',
+        null,
       ),
     });
 
@@ -233,10 +234,11 @@ describe('rights evidence repository + admin API (#3552)', () => {
   it('rejects recording evidence for a candidate that does not exist', async () => {
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
+    seedAdminSession(sqlite);
     const db = wrapSqliteAsD1(sqlite);
 
     const response = await rightsEvidencePost({
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
       request: adminPostRequest('/api/admin/content-pipeline/rights-evidence', {
         candidate_id: 'lgfc-gehrig-2026-404',
         evidence_type: 'loc_statement',
@@ -249,11 +251,12 @@ describe('rights evidence repository + admin API (#3552)', () => {
   it('records evidence through the admin API and resolves source_domain to source_id', async () => {
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
+    seedAdminSession(sqlite);
     const db = wrapSqliteAsD1(sqlite);
     await upsertCandidate(db, minimalCandidate());
 
     const postResponse = await rightsEvidencePost({
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
       request: adminPostRequest('/api/admin/content-pipeline/rights-evidence', {
         candidate_id: 'lgfc-gehrig-2026-999',
         evidence_type: 'loc_statement',
@@ -268,7 +271,7 @@ describe('rights evidence repository + admin API (#3552)', () => {
     expect(postBody.evidence.source_id).toEqual(expect.any(Number));
 
     const getResponse = await rightsEvidenceGet({
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
       request: adminGetRequest(
         '/api/admin/content-pipeline/rights-evidence?candidate_id=lgfc-gehrig-2026-999',
       ),
@@ -282,11 +285,12 @@ describe('rights evidence repository + admin API (#3552)', () => {
   it('rejects an unknown source_domain', async () => {
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
+    seedAdminSession(sqlite);
     const db = wrapSqliteAsD1(sqlite);
     await upsertCandidate(db, minimalCandidate());
 
     const response = await rightsEvidencePost({
-      env: { DB: db, ADMIN_TOKEN },
+      env: { DB: db },
       request: adminPostRequest('/api/admin/content-pipeline/rights-evidence', {
         candidate_id: 'lgfc-gehrig-2026-999',
         evidence_type: 'loc_statement',

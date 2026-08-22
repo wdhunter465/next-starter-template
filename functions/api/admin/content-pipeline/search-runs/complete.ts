@@ -1,6 +1,6 @@
 // POST /api/admin/content-pipeline/search-runs/complete
 // Marks a running #3552 search run with a terminal state and result counts.
-// Protected by ADMIN_TOKEN.
+// Protected by an authenticated D1 admin member session (requireAdmin).
 
 import { parseCompleteSearchRunRequest } from '../../../../_lib/content-search-run-admin';
 import {

@@ -1,5 +1,5 @@
 // POST /api/admin/editorial/publish
-// Updates content_inventory publication state. Protected by ADMIN_TOKEN.
+// Updates content_inventory publication state. Protected by an authenticated D1 admin member session (requireAdmin).
 // Fail-closed: A1–A7 plus S4/S9. Schedule writes are first_publish only. No Production D1 writes.
 
 import { requireAdmin } from "../../../_lib/auth";

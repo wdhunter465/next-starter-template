@@ -7,10 +7,9 @@ import { upsertCandidate } from '../functions/_lib/content-pipeline-candidate-re
 import type { CandidateRecord } from '../functions/_lib/content-pipeline-candidate-import';
 import { recordRightsEvidence } from '../functions/_lib/rights-evidence-repository';
 import { onRequestPost as ingestPost } from '../functions/api/admin/content-pipeline/ingest';
+import { ADMIN_SESSION_COOKIE, seedAdminSession } from './helpers/adminSqliteSession';
 
-const ADMIN_TOKEN = 'test-admin-token';
 const B2_ENV = {
-  ADMIN_TOKEN,
   B2_ENDPOINT: 'https://s3.example-b2.com',
   B2_BUCKET: 'lgfc-media',
   B2_KEY_ID: 'test-key-id',
@@ -115,13 +114,16 @@ function wrapSqliteAsD1(sqlite: DatabaseSync) {
 function freshDb() {
   const sqlite = new DatabaseSync(':memory:');
   applyRepoMigrations(sqlite);
+  seedAdminSession(sqlite);
   return wrapSqliteAsD1(sqlite);
 }
 
-function adminPostRequest(path: string, body: unknown, token = ADMIN_TOKEN): Request {
+function adminPostRequest(path: string, body: unknown, cookie: string | null = ADMIN_SESSION_COOKIE): Request {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (cookie) headers.Cookie = cookie;
   return new Request(`https://www.lougehrigfanclub.com${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
+    headers,
     body: JSON.stringify(body),
   });
 }
@@ -175,7 +177,7 @@ describe('content pipeline ingestion (#3552)', () => {
       request: adminPostRequest('/api/admin/content-pipeline/ingest', {
         candidate_id: 'lgfc-gehrig-2026-999',
         source_fetch_url: 'https://loc.gov/item/example.jpg',
-      }, 'wrong-token'),
+      }, null),
     });
     expect(response.status).toBe(401);
   });

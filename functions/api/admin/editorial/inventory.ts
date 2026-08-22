@@ -1,5 +1,5 @@
 // POST /api/admin/editorial/inventory
-// Creates or updates content_inventory draft metadata. Protected by ADMIN_TOKEN.
+// Creates or updates content_inventory draft metadata. Protected by an authenticated D1 admin member session (requireAdmin).
 
 import { requireAdmin } from "../../../_lib/auth";
 import { jsonResponse, requireD1, requireTables } from "../../../_lib/d1";

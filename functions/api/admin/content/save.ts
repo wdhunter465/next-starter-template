@@ -1,6 +1,6 @@
 // POST /api/admin/content/save
 // Body: { slug, section, content?, asset_url? }
-// Saves/updates a DRAFT row for that slug+section. Protected by ADMIN_TOKEN.
+// Saves/updates a DRAFT row for that slug+section. Protected by an authenticated D1 admin member session (requireAdmin).
 
 import { requireAdmin } from "../../../_lib/auth";
 

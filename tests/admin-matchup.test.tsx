@@ -9,6 +9,7 @@ import { onRequestGet as matchupListGet } from '../functions/api/admin/matchup/l
 import { onRequestPost as matchupUpdatePost } from '../functions/api/admin/matchup/update';
 import { onRequestGet as publicMatchupCurrentGet } from '../functions/api/matchup/current';
 import { onRequestGet as publicMatchupResultsGet } from '../functions/api/matchup/results';
+import { ADMIN_SESSION_COOKIE, withAdminSession } from './helpers/adminSession';
 
 const mockUsePathname = vi.hoisted(() => vi.fn(() => '/admin/matchup'));
 
@@ -31,16 +32,18 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
-function adminGetRequest(path: string, token = 'secret'): Request {
-  return new Request(`https://www.lougehrigfanclub.com${path}`, {
-    headers: { 'x-admin-token': token },
-  });
+function adminGetRequest(path: string, cookie: string | null = ADMIN_SESSION_COOKIE): Request {
+  const headers: Record<string, string> = {};
+  if (cookie) headers.Cookie = cookie;
+  return new Request(`https://www.lougehrigfanclub.com${path}`, { headers });
 }
 
-function adminPostRequest(path: string, body: unknown = {}, token = 'secret'): Request {
+function adminPostRequest(path: string, body: unknown = {}, cookie: string | null = ADMIN_SESSION_COOKIE): Request {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (cookie) headers.Cookie = cookie;
   return new Request(`https://www.lougehrigfanclub.com${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
+    headers,
     body: JSON.stringify(body),
   });
 }
@@ -183,8 +186,6 @@ function makeMatchupDb(matchups: Array<Record<string, unknown>> = [], votes: Rec
 describe('admin matchup page', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
-    window.localStorage.clear();
-    window.localStorage.setItem('lgfc_admin_token', 'secret');
     mockUsePathname.mockReturnValue('/admin/matchup');
   });
 
@@ -250,89 +251,6 @@ describe('admin matchup page', () => {
     await waitFor(() => {
       expect(screen.getByText(/Active matchup: week 2026-06-01/i)).toBeInTheDocument();
     });
-  });
-
-  it('does not load matchups until an admin token is saved', async () => {
-    window.localStorage.removeItem('lgfc_admin_token');
-    const fetchMock = vi.spyOn(globalThis, 'fetch');
-
-    render(<AdminMatchupPage />);
-
-    expect(screen.getAllByText(/Save an admin API token above to load matchups/i).length).toBeGreaterThan(0);
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
-
-  it('clears matchup state when the admin token is removed', async () => {
-    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
-      const path = String(input);
-
-      if (path.startsWith('/api/admin/matchup/list')) {
-        return Promise.resolve(
-          jsonResponse({
-            ok: true,
-            active: {
-              id: 2,
-              week_start: '2026-06-01',
-              photo_a_id: 10,
-              photo_b_id: 11,
-              status: 'active',
-              created_at: '2026-06-01T12:00:00Z',
-              votes: { a: 3, b: 5, total: 8, winner: 'b' },
-            },
-            items: [
-              {
-                id: 2,
-                week_start: '2026-06-01',
-                photo_a_id: 10,
-                photo_b_id: 11,
-                status: 'active',
-                created_at: '2026-06-01T12:00:00Z',
-                votes: { a: 3, b: 5, total: 8, winner: 'b' },
-              },
-            ],
-          }),
-        );
-      }
-
-      if (path === '/api/matchup/current') {
-        return Promise.resolve(
-          jsonResponse({
-            ok: true,
-            week_start: '2026-06-01',
-            matchup_id: 2,
-            items: [
-              { id: 10, url: '/photos/10.jpg' },
-              { id: 11, url: '/photos/11.jpg' },
-            ],
-          }),
-        );
-      }
-
-      if (path.startsWith('/api/matchup/results')) {
-        return Promise.resolve(
-          jsonResponse({ ok: true, week_start: '2026-06-01', totals: { a: 3, b: 5 }, last_week: null }),
-        );
-      }
-
-      return Promise.reject(new Error(`Unexpected fetch: ${path}`));
-    });
-
-    render(<AdminMatchupPage />);
-
-    await waitFor(() => {
-      expect(screen.getByText(/Active matchup: week 2026-06-01/i)).toBeInTheDocument();
-    });
-
-    window.localStorage.removeItem('lgfc_admin_token');
-    fireEvent.change(screen.getByLabelText('Admin token'), { target: { value: '' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Save token' }));
-
-    await waitFor(() => {
-      expect(screen.queryByText(/Active matchup: week 2026-06-01/i)).not.toBeInTheDocument();
-      expect(screen.getAllByText(/Save an admin API token above to load matchups/i).length).toBeGreaterThan(0);
-    });
-
-    expect(fetchMock.mock.calls.filter(([path]) => String(path).startsWith('/api/admin/matchup/list'))).toHaveLength(1);
   });
 
   it('announces list errors via AdminStatusText alert', async () => {
@@ -432,7 +350,7 @@ describe('admin matchup APIs', () => {
     const { db } = makeMatchupDb();
     const response = await matchupListGet({
       request: adminGetRequest('/api/admin/matchup/list', ''),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(response.status).toBe(401);
@@ -455,7 +373,7 @@ describe('admin matchup APIs', () => {
 
     const response = await matchupListGet({
       request: adminGetRequest('/api/admin/matchup/list'),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(response.status).toBe(200);
@@ -475,7 +393,7 @@ describe('admin matchup APIs', () => {
         photo_b_id: 4,
         status: 'closed',
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(createResponse.status).toBe(200);
@@ -487,7 +405,7 @@ describe('admin matchup APIs', () => {
         photo_a_id: 5,
         photo_b_id: 6,
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(duplicate.status).toBe(409);
@@ -503,7 +421,7 @@ describe('admin matchup APIs', () => {
         photo_b_id: 4,
         status: 'actve',
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(invalidStatus.status).toBe(400);
@@ -515,7 +433,7 @@ describe('admin matchup APIs', () => {
         photo_a_id: 99999,
         photo_b_id: 4,
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(missingPhoto.status).toBe(400);
@@ -544,7 +462,7 @@ describe('admin matchup APIs', () => {
 
     const response = await matchupUpdatePost({
       request: adminPostRequest('/api/admin/matchup/update', { id: 2, status: 'active' }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(response.status).toBe(200);
@@ -566,7 +484,7 @@ describe('admin matchup APIs', () => {
 
     const response = await matchupCloseActivePost({
       request: adminPostRequest('/api/admin/matchup/close-active'),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(response.status).toBe(200);

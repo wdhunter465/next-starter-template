@@ -1,5 +1,5 @@
 // GET /api/admin/content-pipeline/publication-prep
-// Admin-safe publication preparation views for reviewed candidates. Protected by ADMIN_TOKEN.
+// Admin-safe publication preparation views for reviewed candidates. Protected by an authenticated D1 admin member session (requireAdmin).
 
 import {
   CANDIDATE_ID_VALIDATION_MESSAGE,

@@ -2,7 +2,7 @@
 
 import { useCallback, useState } from 'react';
 import AdminStatusText from '@/components/admin/AdminStatusText';
-import { adminJson, getStoredAdminToken } from '@/lib/adminClient';
+import { adminJson } from '@/lib/adminClient';
 
 type FutureRotationItem = {
   id: number;
@@ -37,13 +37,6 @@ export default function ClubStagingFutureRotationPreview() {
   const [loading, setLoading] = useState(false);
 
   const load = useCallback(async () => {
-    if (!getStoredAdminToken()) {
-      setItems([]);
-      setAsOfReturned('');
-      setStatus('Error: Save an admin API token before previewing a future rotation set.');
-      return;
-    }
-
     setLoading(true);
     setStatus('Loading future rotation set…');
     const result = await adminJson<RotationPreviewResponse>(

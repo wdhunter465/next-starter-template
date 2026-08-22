@@ -4,8 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import PageShell from '@/components/PageShell';
 import AdminNav from '@/components/admin/AdminNav';
 import AdminStatusText from '@/components/admin/AdminStatusText';
-import AdminTokenPanel from '@/components/admin/AdminTokenPanel';
-import { adminJson, getStoredAdminToken } from '@/lib/adminClient';
+import { adminJson } from '@/lib/adminClient';
 
 type MatchupRecord = {
   id: number;
@@ -85,7 +84,7 @@ function mondayForDate(date = new Date()): string {
 }
 
 export default function AdminMatchupPage() {
-  const [status, setStatus] = useState('Save an admin API token above to load matchups.');
+  const [status, setStatus] = useState('Loading weekly matchups…');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [closing, setClosing] = useState(false);
@@ -96,7 +95,6 @@ export default function AdminMatchupPage() {
   const [publicCurrent, setPublicCurrent] = useState<PublicCurrentResponse | null>(null);
   const [publicResults, setPublicResults] = useState<PublicResultsResponse | null>(null);
   const [previewWeek, setPreviewWeek] = useState('');
-  const [tokenReady, setTokenReady] = useState(false);
   const loadRequestRef = useRef(0);
   const previewRequestRef = useRef(0);
   const actionBusy = loading || saving || closing || activating;
@@ -141,17 +139,6 @@ export default function AdminMatchupPage() {
   }, []);
 
   const load = useCallback(async () => {
-    if (!getStoredAdminToken()) {
-      setItems([]);
-      setActive(null);
-      setPreviewWeek('');
-      setPublicCurrent(null);
-      setPublicResults(null);
-      setStatus('Save an admin API token above to load matchups.');
-      setLoading(false);
-      return;
-    }
-
     const requestId = ++loadRequestRef.current;
     setLoading(true);
     setStatus('Loading weekly matchups…');
@@ -159,11 +146,6 @@ export default function AdminMatchupPage() {
     const result = await adminJson<MatchupListResponse>('/api/admin/matchup/list?limit=50');
 
     if (requestId !== loadRequestRef.current) {
-      return;
-    }
-
-    if (!getStoredAdminToken()) {
-      setLoading(false);
       return;
     }
 
@@ -187,11 +169,6 @@ export default function AdminMatchupPage() {
   }, [loadPublicPreview]);
 
   const createMatchup = useCallback(async () => {
-    if (!getStoredAdminToken()) {
-      setStatus('Error: Save an admin API token above before creating matchups.');
-      return;
-    }
-
     const week_start = draft.week_start.trim();
     const photo_a_id = Number(draft.photo_a_id);
     const photo_b_id = Number(draft.photo_b_id);
@@ -234,11 +211,6 @@ export default function AdminMatchupPage() {
 
   const activateMatchup = useCallback(
     async (record: MatchupRecord) => {
-      if (!getStoredAdminToken()) {
-        setStatus('Error: Save an admin API token above before activating matchups.');
-        return;
-      }
-
       setActivating(true);
       setStatus(`Activating matchup ${record.id}…`);
 
@@ -261,11 +233,6 @@ export default function AdminMatchupPage() {
   );
 
   const closeActiveMatchup = useCallback(async () => {
-    if (!getStoredAdminToken()) {
-      setStatus('Error: Save an admin API token above before closing matchups.');
-      return;
-    }
-
     setClosing(true);
     setStatus('Closing active matchup…');
 
@@ -289,10 +256,7 @@ export default function AdminMatchupPage() {
   }, [load]);
 
   useEffect(() => {
-    if (getStoredAdminToken()) {
-      setTokenReady(true);
-      void load();
-    }
+    void load();
   }, [load]);
 
   useEffect(() => {
@@ -307,50 +271,22 @@ export default function AdminMatchupPage() {
       subtitle="Review active matchup state, vote totals, and rotation controls without changing public voting contracts."
     >
       <AdminNav />
-      <AdminTokenPanel
-        onSaved={() => {
-          if (!getStoredAdminToken()) {
-            loadRequestRef.current += 1;
-            previewRequestRef.current += 1;
-            setTokenReady(false);
-            setLoading(false);
-            setSaving(false);
-            setClosing(false);
-            setActivating(false);
-            setItems([]);
-            setActive(null);
-            setPreviewWeek('');
-            setPublicCurrent(null);
-            setPublicResults(null);
-            setDraft({ ...EMPTY_DRAFT, week_start: mondayForDate() });
-            setStatus('Save an admin API token above to load matchups.');
-            return;
-          }
-          setTokenReady(true);
-          void load();
-        }}
-      />
-
-      {!tokenReady ? (
-        <p style={{ marginTop: 16, opacity: 0.85 }}>Save an admin API token above to load matchups.</p>
-      ) : null}
-
       <div style={{ display: 'grid', gap: 18, marginTop: 16 }}>
         <section style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: 14, padding: 14 }}>
           <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
             <button
               type="button"
               onClick={() => void load()}
-              disabled={actionBusy || !tokenReady}
-              style={buttonStyle(actionBusy || !tokenReady)}
+              disabled={actionBusy}
+              style={buttonStyle(actionBusy)}
             >
               {loading ? 'Loading…' : 'Refresh'}
             </button>
             <button
               type="button"
               onClick={() => void closeActiveMatchup()}
-              disabled={actionBusy || !tokenReady}
-              style={buttonStyle(actionBusy || !tokenReady)}
+              disabled={actionBusy}
+              style={buttonStyle(actionBusy)}
             >
               {closing ? 'Closing…' : 'Close active matchup'}
             </button>
@@ -377,7 +313,6 @@ export default function AdminMatchupPage() {
               <input
                 value={draft.week_start}
                 onChange={(e) => setDraft((prev) => ({ ...prev, week_start: e.target.value }))}
-                disabled={!tokenReady}
                 style={fieldStyle()}
               />
             </label>
@@ -387,7 +322,6 @@ export default function AdminMatchupPage() {
                 type="number"
                 value={draft.photo_a_id}
                 onChange={(e) => setDraft((prev) => ({ ...prev, photo_a_id: e.target.value }))}
-                disabled={!tokenReady}
                 style={fieldStyle()}
               />
             </label>
@@ -397,7 +331,6 @@ export default function AdminMatchupPage() {
                 type="number"
                 value={draft.photo_b_id}
                 onChange={(e) => setDraft((prev) => ({ ...prev, photo_b_id: e.target.value }))}
-                disabled={!tokenReady}
                 style={fieldStyle()}
               />
             </label>
@@ -408,7 +341,6 @@ export default function AdminMatchupPage() {
               type="checkbox"
               checked={draft.activate_on_create}
               onChange={(e) => setDraft((prev) => ({ ...prev, activate_on_create: e.target.checked }))}
-              disabled={!tokenReady}
             />
             Activate immediately (closes any other active matchup)
           </label>
@@ -416,8 +348,8 @@ export default function AdminMatchupPage() {
           <button
             type="button"
             onClick={() => void createMatchup()}
-            disabled={actionBusy || !tokenReady}
-            style={{ ...buttonStyle(actionBusy || !tokenReady), marginTop: 12 }}
+            disabled={actionBusy}
+            style={{ ...buttonStyle(actionBusy), marginTop: 12 }}
           >
             {saving ? 'Creating…' : 'Create matchup'}
           </button>
@@ -445,16 +377,16 @@ export default function AdminMatchupPage() {
                       <button
                         type="button"
                         onClick={() => setPreviewWeek(record.week_start)}
-                        disabled={actionBusy || !tokenReady}
-                        style={buttonStyle(actionBusy || !tokenReady)}
+                        disabled={actionBusy}
+                        style={buttonStyle(actionBusy)}
                       >
                         Preview week
                       </button>
                       <button
                         type="button"
                         onClick={() => void activateMatchup(record)}
-                        disabled={record.status === 'active' || actionBusy || !tokenReady}
-                        style={buttonStyle(record.status === 'active' || actionBusy || !tokenReady)}
+                        disabled={record.status === 'active' || actionBusy}
+                        style={buttonStyle(record.status === 'active' || actionBusy)}
                       >
                         Activate
                       </button>

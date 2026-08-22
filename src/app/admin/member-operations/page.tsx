@@ -3,7 +3,6 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import PageShell from '@/components/PageShell';
 import AdminNav from '@/components/admin/AdminNav';
-import AdminTokenPanel from '@/components/admin/AdminTokenPanel';
 import AdminStatusText from '@/components/admin/AdminStatusText';
 import { adminJson, isRecord } from '@/lib/adminClient';
 import styles from '@/components/admin/AdminDashboard.module.css';
@@ -126,8 +125,6 @@ export default function AdminMemberOperationsPage() {
     <PageShell title="Member Operations" subtitle="Admin-managed member onboarding and card content">
       <AdminNav />
       <div className={styles.wrap}>
-        <AdminTokenPanel onSaved={() => void loadAll()} />
-
         {endpoints.map((endpoint) => {
           const current = content[endpoint.key];
           return (

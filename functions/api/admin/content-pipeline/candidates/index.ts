@@ -1,5 +1,5 @@
 // GET /api/admin/content-pipeline/candidates
-// Lists or fetches LGFC content pipeline candidates. Protected by ADMIN_TOKEN.
+// Lists or fetches LGFC content pipeline candidates. Protected by an authenticated D1 admin member session (requireAdmin).
 
 import {
   isValidCandidateId,

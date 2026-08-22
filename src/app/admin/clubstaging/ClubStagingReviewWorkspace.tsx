@@ -2,8 +2,7 @@
 
 import { useCallback, useEffect, useState } from 'react';
 import AdminStatusText from '@/components/admin/AdminStatusText';
-import AdminTokenPanel from '@/components/admin/AdminTokenPanel';
-import { adminJson, getStoredAdminToken } from '@/lib/adminClient';
+import { adminJson } from '@/lib/adminClient';
 import type { ClubStagingRotationItem } from './clubStagingSamples';
 
 type StagingFilter = 'preview' | 'draft' | 'rejected' | 'approved' | 'scheduled';
@@ -90,21 +89,12 @@ export default function ClubStagingReviewWorkspace({ onPreviewItemsChange }: Clu
   const [storyType, setStoryType] = useState<(typeof STORY_TYPES)[number]>('brief');
   const [canonical, setCanonical] = useState(true);
   const [perspectiveLabel, setPerspectiveLabel] = useState('');
-  const [status, setStatus] = useState('Save an admin API token to load staged inventory.');
+  const [status, setStatus] = useState('Loading staged inventory…');
   const [loading, setLoading] = useState(false);
 
   const selected = rows.find((row) => row.id === selectedId) ?? null;
 
   const load = useCallback(async () => {
-    if (!getStoredAdminToken()) {
-      setRows([]);
-      setSelectedId(null);
-      onPreviewItemsChange(null);
-      setStatus('Save an admin API token to load staged inventory.');
-      setLoading(false);
-      return;
-    }
-
     setLoading(true);
     setStatus('Loading staged inventory…');
     const result = await adminJson<EditorialListResponse>(
@@ -158,10 +148,6 @@ export default function ClubStagingReviewWorkspace({ onPreviewItemsChange }: Clu
         setStatus('Error: Select a staged inventory row first.');
         return;
       }
-      if (!getStoredAdminToken()) {
-        setStatus('Error: Save an admin API token before recording a review outcome.');
-        return;
-      }
 
       const payload: Record<string, unknown> = {
         id: selected.id,
@@ -198,10 +184,6 @@ export default function ClubStagingReviewWorkspace({ onPreviewItemsChange }: Clu
   const saveRotationOrder = useCallback(async () => {
     if (!selected) {
       setStatus('Error: Select a staged inventory row first.');
-      return;
-    }
-    if (!getStoredAdminToken()) {
-      setStatus('Error: Save an admin API token before saving rotation order.');
       return;
     }
     if (!canonical && !perspectiveLabel.trim()) {
@@ -258,8 +240,6 @@ export default function ClubStagingReviewWorkspace({ onPreviewItemsChange }: Clu
         schedule, or publish. The preview frame below is not a public route; public helpers still read only published
         inventory.
       </p>
-
-      <AdminTokenPanel onSaved={() => void load()} />
 
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, margin: '16px 0' }}>
         {FILTERS.map((item) => (

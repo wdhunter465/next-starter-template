@@ -1,5 +1,4 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -8,6 +7,7 @@ import { onRequestGet as mediaListGet } from '../functions/api/admin/media-asset
 import { onRequestPost as mediaSyncPost } from '../functions/api/admin/media-assets/sync-from-b2';
 import { onRequestGet as photosGet } from '../functions/api/photos/get';
 import { onRequestGet as photosListGet } from '../functions/api/photos/list';
+import { ADMIN_SESSION_COOKIE, withAdminSession } from './helpers/adminSession';
 
 const mockUsePathname = vi.hoisted(() => vi.fn(() => '/admin/media-assets'));
 
@@ -30,16 +30,18 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
-function adminGetRequest(path: string, token = 'secret'): Request {
-  return new Request(`https://www.lougehrigfanclub.com${path}`, {
-    headers: { 'x-admin-token': token },
-  });
+function adminGetRequest(path: string, cookie: string | null = ADMIN_SESSION_COOKIE): Request {
+  const headers: Record<string, string> = {};
+  if (cookie) headers.Cookie = cookie;
+  return new Request(`https://www.lougehrigfanclub.com${path}`, { headers });
 }
 
-function adminPostRequest(path: string, token = 'secret'): Request {
+function adminPostRequest(path: string, cookie: string | null = ADMIN_SESSION_COOKIE): Request {
+  const headers: Record<string, string> = {};
+  if (cookie) headers.Cookie = cookie;
   return new Request(`https://www.lougehrigfanclub.com${path}`, {
     method: 'POST',
-    headers: { 'x-admin-token': token },
+    headers,
   });
 }
 
@@ -73,29 +75,24 @@ function makeMediaDb(rows: Array<Record<string, unknown>> = []) {
 describe('admin media assets page', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
-    window.localStorage.clear();
-    window.localStorage.setItem('lgfc_admin_token', 'secret');
     mockUsePathname.mockReturnValue('/admin/media-assets');
   });
 
-  it('renders admin navigation and token controls', async () => {
+  it('renders admin navigation', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(jsonResponse({ ok: true, items: [] }));
 
     render(<AdminMediaAssetsPage />);
 
     expect(screen.getByRole('link', { name: 'Media Assets' })).toBeInTheDocument();
-    expect(screen.getByLabelText('Admin token')).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByText('No media assets found.')).toBeInTheDocument();
     });
   });
 
-  it('loads media inventory with the stored admin token', async () => {
-    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation((input, init) => {
-      const headers = init?.headers instanceof Headers ? init.headers : new Headers(init?.headers);
+  it('loads media inventory on mount for a signed-in admin', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
       expect(String(input)).toBe('/api/admin/media-assets/list?limit=100');
-      expect(headers.get('x-admin-token')).toBe('secret');
 
       return Promise.resolve(
         jsonResponse({
@@ -127,18 +124,6 @@ describe('admin media assets page', () => {
     );
   });
 
-  it('does not fetch media inventory until a token is stored', async () => {
-    window.localStorage.removeItem('lgfc_admin_token');
-    const fetchMock = vi.spyOn(globalThis, 'fetch');
-
-    render(<AdminMediaAssetsPage />);
-
-    expect(screen.getByText('Save an admin API token above to load media assets.')).toBeInTheDocument();
-    await waitFor(() => {
-      expect(fetchMock).not.toHaveBeenCalled();
-    });
-  });
-
   it('announces inventory list API failures to assistive technology', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(
       jsonResponse({ ok: false, error: 'Database unavailable' }, 503) as never,
@@ -150,37 +135,10 @@ describe('admin media assets page', () => {
     expect(alert).toHaveTextContent(/error: database unavailable/i);
   });
 
-  it('clears inventory when the admin token is removed', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      jsonResponse({
-        ok: true,
-        items: [{ id: 7, media_uid: 'b2_abc', b2_key: 'photos/lou.jpg', size: 42 }],
-      }),
-    );
-
-    render(<AdminMediaAssetsPage />);
-
-    await waitFor(() => {
-      expect(screen.getByText('photos/lou.jpg')).toBeInTheDocument();
-    });
-
-    const tokenInput = screen.getByLabelText('Admin token');
-    await userEvent.clear(tokenInput);
-    await userEvent.click(screen.getByRole('button', { name: 'Save token' }));
-
-    await waitFor(() => {
-      expect(window.localStorage.getItem('lgfc_admin_token')).toBeNull();
-      expect(screen.queryByText('photos/lou.jpg')).not.toBeInTheDocument();
-    });
-    expect(screen.getAllByText('Save an admin API token above to load media assets.').length).toBeGreaterThan(0);
-  });
-
   it('posts B2 sync, reports changes, and refreshes inventory', async () => {
     let listCalls = 0;
     const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation((input, init) => {
       const path = String(input);
-      const headers = init?.headers instanceof Headers ? init.headers : new Headers(init?.headers);
-      expect(headers.get('x-admin-token')).toBe('secret');
 
       if (path === '/api/admin/media-assets/sync-from-b2') {
         expect(init?.method).toBe('POST');
@@ -245,7 +203,7 @@ describe('media assets admin API', () => {
   it('rejects unauthenticated list requests', async () => {
     const response = await mediaListGet({
       request: adminGetRequest('/api/admin/media-assets/list', ''),
-      env: { ADMIN_TOKEN: 'secret', DB: makeMediaDb().db },
+      env: { DB: withAdminSession(makeMediaDb().db) },
     });
 
     expect(response.status).toBe(401);
@@ -254,7 +212,7 @@ describe('media assets admin API', () => {
   it('fails closed when D1 is unavailable for inventory list requests', async () => {
     const response = await mediaListGet({
       request: adminGetRequest('/api/admin/media-assets/list'),
-      env: { ADMIN_TOKEN: 'secret' },
+      env: {},
     });
 
     expect(response.status).toBe(503);
@@ -279,7 +237,7 @@ describe('media assets admin API', () => {
 
     const response = await mediaListGet({
       request: adminGetRequest('/api/admin/media-assets/list?limit=9999'),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(response.status).toBe(200);
@@ -301,7 +259,7 @@ describe('media assets admin API', () => {
 
     const response = await mediaListGet({
       request: adminGetRequest('/api/admin/media-assets/list'),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(response.status).toBe(503);
@@ -315,7 +273,7 @@ describe('media assets admin API', () => {
   it('rejects unauthenticated B2 sync requests', async () => {
     const response = await mediaSyncPost({
       request: adminPostRequest('/api/admin/media-assets/sync-from-b2', ''),
-      env: { ADMIN_TOKEN: 'secret', DB: makeMediaDb().db },
+      env: { DB: withAdminSession(makeMediaDb().db) },
     });
 
     expect(response.status).toBe(401);
@@ -324,7 +282,7 @@ describe('media assets admin API', () => {
   it('fails closed when B2 secrets are missing for sync', async () => {
     const response = await mediaSyncPost({
       request: adminPostRequest('/api/admin/media-assets/sync-from-b2'),
-      env: { ADMIN_TOKEN: 'secret', DB: makeMediaDb().db },
+      env: { DB: withAdminSession(makeMediaDb().db) },
     });
 
     expect(response.status).toBe(503);

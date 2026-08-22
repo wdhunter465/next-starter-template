@@ -6,6 +6,7 @@ import AdminFaqPage from '@/app/admin/faq/page';
 import AdminModerationPage from '@/app/admin/moderation/page';
 import { onRequestPost as approveFaq } from '../functions/api/admin/faq/approve';
 import { onRequestPost as closeReport } from '../functions/api/reports/close';
+import { ADMIN_SESSION_COOKIE, withAdminSession } from './helpers/adminSession';
 
 const mockUsePathname = vi.hoisted(() => vi.fn(() => '/admin/moderation'));
 
@@ -28,10 +29,12 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
-function adminRequest(path: string, body: unknown, token = 'secret'): Request {
+function adminRequest(path: string, body: unknown, cookie: string | null = ADMIN_SESSION_COOKIE): Request {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (cookie) headers.Cookie = cookie;
   return new Request(`https://www.lougehrigfanclub.com${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
+    headers,
     body: JSON.stringify(body),
   });
 }
@@ -39,16 +42,12 @@ function adminRequest(path: string, body: unknown, token = 'secret'): Request {
 describe('admin moderation review hub', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
-    window.localStorage.clear();
-    window.localStorage.setItem('lgfc_admin_token', 'secret');
     mockUsePathname.mockReturnValue('/admin/moderation');
   });
 
-  it('loads report, ask, and FAQ queues with the stored admin token', async () => {
-    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation((input, init) => {
+  it('loads report, ask, and FAQ queues on mount for a signed-in admin', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
       const path = String(input);
-      const headers = init?.headers as Headers;
-      expect(headers.get('x-admin-token')).toBe('secret');
 
       if (path.startsWith('/api/admin/reports/list')) {
         return Promise.resolve(
@@ -265,23 +264,10 @@ describe('admin moderation review hub', () => {
 describe('admin FAQ moderation page', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
-    window.localStorage.clear();
     mockUsePathname.mockReturnValue('/admin/faq');
   });
 
-  it('does not fetch ask inbox until a token is stored', async () => {
-    const fetchMock = vi.spyOn(globalThis, 'fetch');
-
-    render(<AdminFaqPage />);
-
-    expect(screen.getByText('Save an admin API token above to load ask inbox.')).toBeInTheDocument();
-    await waitFor(() => {
-      expect(fetchMock).not.toHaveBeenCalled();
-    });
-  });
-
-  it('loads ask inbox when a token is stored and announces API failures', async () => {
-    window.localStorage.setItem('lgfc_admin_token', 'secret');
+  it('loads ask inbox on mount and announces API failures', async () => {
     const fetchMock = vi
       .spyOn(globalThis, 'fetch')
       .mockResolvedValue(jsonResponse({ ok: false, error: 'Unauthorized.' }, 401) as never);
@@ -311,7 +297,7 @@ describe('moderation API transitions', () => {
 
     const response = await closeReport({
       request: adminRequest('/api/reports/close', { id: 7, admin_note: 'Already handled' }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(response.status).toBe(404);
@@ -329,7 +315,7 @@ describe('moderation API transitions', () => {
 
     const response = await approveFaq({
       request: adminRequest('/api/admin/faq/approve', { id: 11, answer: 'Approved answer' }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(response.status).toBe(200);

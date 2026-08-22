@@ -5,28 +5,28 @@ Authority Level: Canonical Architecture Specification
 Owns: System architecture, data flows, access model, runtime dependencies
 Does Not Own: Operational runbooks; governance policies; UI/UX design specifics
 Canonical Reference: /docs/reference/design/LGFC-Production-Design-and-Standards.md
-Related issues: #1255, #1258, #3552, #3553
-Last Reviewed: 2026-08-18
+Related issues: #1255, #1258, #3552, #3553, #3547
+Last Reviewed: 2026-08-22
 ---
 
 # LGFC Admin Access Model — As-Built
 
-**Version:** 2026-08-18
-**Status:** Active (session-based API auth added under `#3552`/`#3553`)
+**Version:** 2026-08-22
+**Status:** Active (session-only admin authorization; shared `ADMIN_TOKEN` removed under `#3547`)
 
 ---
 
 ## Overview
 
-LGFC admin operations are gated at two surfaces, but as of 2026-08-18 a single
-sign-in satisfies both:
+LGFC admin operations are gated at two surfaces, both keyed off the same
+authenticated member session:
 
 1. **Admin UI session gate** — `/admin/**` pages require an authenticated member session with `role: admin`.
-2. **Admin API gate** — `/api/admin/**` endpoints require **either** a valid signed-in admin member session (the same cookie the UI gate already checks, now verified server-side) **or** the configured `ADMIN_TOKEN`.
+2. **Admin API gate** — `/api/admin/**` endpoints require the same signed-in admin member session (the `lgfc_session` cookie the UI gate already checks, re-verified server-side against D1). There is no shared-secret fallback.
 
-A site operator only needs to **sign in as an admin member** to use admin tools end-to-end — no separate token to obtain or paste. The static `ADMIN_TOKEN` remains available as a fallback for ops scripts, CI, and other non-browser automation that has no member session to send.
+A site operator only needs to **sign in as an admin member** to use admin tools end-to-end — no token to obtain, paste, or manage.
 
-This document reflects the as-built implementation on `main` after T40–T49 admin work (PRs `#1171`–`#1216`), Task 001 gap analysis (PR `#1531`), and the `#3552`/`#3553` session-based API auth change (closing the "Role/session hardening beyond `ADMIN_TOKEN`" gap noted below).
+This document reflects the as-built implementation on `main` after T40–T49 admin work (PRs `#1171`–`#1216`), Task 001 gap analysis (PR `#1531`), the `#3552`/`#3553` session-based API auth change, and the `#3547` removal of the `ADMIN_TOKEN` shared-secret fallback.
 
 ---
 
@@ -36,11 +36,9 @@ This document reflects the as-built implementation on `main` after T40–T49 adm
 | --- | --- | --- | --- |
 | Member session | `/api/session/me` | Cookie-backed member session; returns `role: admin \| member \| guest` | `functions/api/session/me.ts`, `functions/_lib/session.ts` |
 | Admin UI gate | `/admin/**` | Client layout redirects non-admin or unauthenticated users to `/` | `src/app/admin/layout.tsx`, `src/hooks/useMemberSession.ts` |
-| Admin API gate | `/api/admin/**` | Accepts a signed-in admin member session (`lgfc_session` cookie, `members.role = 'admin'`, verified server-side) OR `x-admin-token` / `Authorization: Bearer` matching `env.ADMIN_TOKEN`; fail-closed if neither is present/configured | `functions/_lib/auth.ts` (`requireAdmin`), `functions/_lib/session.ts` |
-| Operator token UX (optional) | Admin dashboard and most pages | Token entered in `AdminTokenPanel`; stored in browser `localStorage`. Not required for a signed-in admin member — only for scripted/token-only access | `src/components/admin/AdminTokenPanel.tsx`, `src/lib/adminClient.ts` |
-| D1 test token UX (exception) | `/admin/d1-test` only | Page-local token input; stored in `sessionStorage` (not shared with `adminClient`) | `src/app/admin/d1-test/page.tsx` |
+| Admin API gate | `/api/admin/**` | Requires a signed-in admin member session (`lgfc_session` cookie, `members.role = 'admin'`, verified server-side); fail-closed otherwise | `functions/_lib/auth.ts` (`requireAdmin`, delegates to `functions/_lib/session.ts` `requireAdminMember`) |
 
-**Security boundary:** The UI gate controls **who can see and navigate** admin pages. The API gate controls **who can read or mutate** privileged data, and as of `#3552`/`#3553` it independently re-verifies the same admin session server-side — it is a real enforcement point, not just a UX convenience layered on the token.
+**Security boundary:** The UI gate controls **who can see and navigate** admin pages. The API gate controls **who can read or mutate** privileged data, and independently re-verifies the same admin session server-side — it is the real enforcement point, not just a UX convenience.
 
 ---
 
@@ -66,17 +64,13 @@ While loading, or when the session is missing or `role !== 'admin'`, the layout 
 
 **What this does not protect:** Determined clients could still request static admin JS bundles directly. Sensitive operations remain blocked at the API layer.
 
-### Admin API token panel (optional)
+### No admin token step
 
-Most admin pages load data through `/api/admin/**`. The dashboard includes `AdminTokenPanel`, which:
-
-- Reads and writes `localStorage` key `lgfc_admin_token` (via `src/lib/adminClient.ts`)
-- Sends the saved value as header `x-admin-token` on admin API calls
-- Does **not** use `sessionStorage`
-
-Since `#3552`/`#3553`, this panel is **optional** for a signed-in admin member — the admin session cookie alone satisfies the API gate. It remains useful for scripted access, debugging against a specific token, or an environment where the session cookie isn't being sent for some reason.
-
-Help text on the panel: *"Signing in with an admin account is enough to use the admin pages. This token is only needed for scripts and automation that don't have a browser session — you can leave it blank."*
+As of `#3547`, admin pages load data through `/api/admin/**` using only the
+browser's `lgfc_session` cookie (`src/lib/adminClient.ts` calls `fetch(...,
+{ credentials: 'include' })`). There is no admin-token input anywhere in the
+admin UI, no `localStorage` token, and no `x-admin-token` header sent by any
+admin page. Signing in as an admin member is sufficient end-to-end.
 
 ---
 
@@ -88,35 +82,20 @@ Privileged operations are under `/api/admin/**`, including stats, export, workli
 
 ### Access model
 
-**Dual-path, either satisfies the gate:** Every admin API handler calls `await requireAdmin(request, env)` before reading or writing data.
+**Session-only:** Every admin API handler calls `await requireAdmin(request, env)` before reading or writing data. `requireAdmin` delegates to `requireAdminMember()` (`functions/_lib/session.ts`):
 
-**1. Session verification (primary path, added `#3552`/`#3553`):**
+- Server reads the `lgfc_session` cookie from the request.
+- Looks up the session in `member_sessions` (must be unexpired) to resolve an email.
+- Looks up `members.role` for that email.
+- `role = 'admin'` → request is authorized.
 
-- Server reads the `lgfc_session` cookie from the request
-- Looks up the session in `member_sessions` (must be unexpired) to resolve an email
-- Looks up `members.role` for that email
-- `role = 'admin'` → request is authorized, no token required
+**Failure modes:**
 
-**2. Static token verification (fallback path, for non-browser callers):**
+- No `DB` binding configured → `503` with `{ ok: false, error: "Database unavailable", ... }`
+- No session, or session doesn't resolve to a member → `401` with `{ ok: false, error: "Not authenticated" }`
+- Valid session but `role !== 'admin'` → `403` with `{ ok: false, error: "Admin required" }`
 
-- Client sends `x-admin-token` (or `Authorization: Bearer <token>`)
-- Server compares against `env.ADMIN_TOKEN`
-- Only reached if the session check above did not authorize the request
-
-**Failure modes** (only when neither path authorizes the request):
-
-- No admin session **and** `ADMIN_TOKEN` not configured → `503` with `{ ok: false, error: "Admin access is not configured." }`
-- No admin session **and** token missing or wrong → `401` with `{ ok: false, error: "Unauthorized." }`
-
-**Environment variable:**
-
-| Field | Value |
-| --- | --- |
-| Name | `ADMIN_TOKEN` |
-| Set in | Cloudflare Pages project settings (Production and Preview as needed) |
-| Repository | Never committed |
-| Recommended format | 32+ character random string |
-| Required? | No longer required for browser-based admin use once a member has `role = 'admin'`; still needed for ops scripts, CI, and other non-browser automation |
+There is no shared-secret fallback: `env.ADMIN_TOKEN` is not read anywhere in `functions/_lib/auth.ts`, and no admin route accepts `x-admin-token` or `Authorization: Bearer`.
 
 ### Example handler pattern
 
@@ -137,20 +116,19 @@ export const onRequestGet = async (context: any): Promise<Response> => {
 
 ## Operator workflow (site operator)
 
-Use this sequence when operating the live or preview site. No developer tooling is required beyond a browser and credentials supplied by the site maintainer.
+Use this sequence when operating the live or preview site. No developer tooling is required beyond a browser and an admin-role member account.
 
 ### Prerequisites
 
-- Your member account is assigned **admin** role in the member database (maintainer action).
-- No admin API token is needed for normal browser use. Ops scripts/CI still need the **admin API token** value for the target environment (maintainer shares out-of-band; never post in chat or email threads).
+- Your member account is assigned **admin** role in the member database (maintainer action). No admin API token exists to obtain or share.
 
 ### Operator sequence
 
 1. **Sign in as a member** using the normal site login flow (same as Fan Club / member areas).
 2. **Open an admin URL**, for example `/admin` or `/admin/moderation`.
 3. **Session check:** If you are not signed in or your account is not an admin, you are redirected to the homepage. Sign in with an admin account and try again.
-4. **Use admin tools:** Navigate via admin nav or dashboard cards. Lists, saves, exports, and publishes call `/api/admin/**`; your admin session cookie authorizes them automatically — no token needed.
-5. **If data does not load:** Confirm you're signed in as an admin account and on the correct preview or production URL. API errors surface in page status text (for example *"Error: Unauthorized."*). If the session cookie isn't reaching the API for some reason, the token panel remains available as a manual fallback.
+4. **Use admin tools:** Navigate via admin nav or dashboard cards. Lists, saves, exports, and publishes call `/api/admin/**`; your admin session cookie authorizes them automatically.
+5. **If data does not load:** Confirm you're signed in as an admin account and on the correct preview or production URL. API errors surface in page status text (for example *"Error: Not authenticated"* or *"Error: Admin required"*).
 6. **Sign out:** Use the normal site sign-out flow when finished on a shared machine; this clears the session cookie that authorizes both the UI and the API.
 
 ### Operator expectations
@@ -159,15 +137,17 @@ Use this sequence when operating the live or preview site. No developer tooling 
 | --- | --- |
 | Not signed in → visit `/admin` | Redirect to `/` |
 | Signed in as member (non-admin) → visit `/admin` | Redirect to `/` |
-| Signed in as admin | Full read/write per page capabilities — no token needed |
-| API called with a valid admin session cookie | Authorized (no token required) |
-| API called without an admin session and without a matching token | `401 Unauthorized` JSON response (`503` if `ADMIN_TOKEN` isn't configured at all) |
+| Signed in as admin | Full read/write per page capabilities |
+| API called with a valid admin session cookie | Authorized |
+| API called without a session | `401 Unauthorized` JSON response |
+| API called with a valid session but a non-admin member | `403 Forbidden` JSON response |
+| API called with no `DB` binding configured | `503` JSON response |
 
 ---
 
 ## Security boundary
 
-| Capability | UI session gate | API gate (session or token) |
+| Capability | UI session gate | API gate (session only) |
 | --- | --- | --- |
 | View admin page chrome and navigation | Required | Not required |
 | Load D1-backed lists, stats, exports | Required (to reach UI) | Required (for data) |
@@ -178,7 +158,7 @@ Use this sequence when operating the live or preview site. No developer tooling 
 
 **Protected by API gate (hard boundary):** database reads of sensitive data, all privileged writes, CSV exports, configuration changes.
 
-**API gate is independently enforced:** `requireAdmin` re-verifies the admin session server-side (session lookup + `members.role` check) rather than trusting the client-side UI gate; it is the real enforcement point for mutations and sensitive reads, with the static token as a secondary path.
+**API gate is independently enforced:** `requireAdmin` re-verifies the admin session server-side (session lookup + `members.role` check) rather than trusting the client-side UI gate; it is the sole enforcement point for mutations and sensitive reads.
 
 ---
 
@@ -193,7 +173,7 @@ Use this sequence when operating the live or preview site. No developer tooling 
 | Layer | `/admin/d1-test` behavior |
 | --- | --- |
 | Session UI gate | Same as other `/admin/**` routes (`layout.tsx` + `useMemberSession`) |
-| API gate | Same dual-path `requireAdmin` as other admin APIs — admin session cookie authorizes it; `AdminTokenPanel` / `localStorage` key `lgfc_admin_token` remains an optional fallback |
+| API gate | Same `requireAdmin` session check as other admin APIs — no token step |
 | API call | `/api/admin/d1-inspect` |
 
 Planned PMO program will add `photos.is_matchup_eligible` curation on this route; today it is inspect-only.
@@ -204,21 +184,19 @@ Planned PMO program will add `photos.is_matchup_eligible` curation on this route
 
 ### Cloudflare Pages environment variables
 
-1. Cloudflare Dashboard → Pages → project → Settings → Environment Variables
-2. Add `ADMIN_TOKEN` for Production (and Preview when testing admin APIs via scripts/CI)
-3. Redeploy after changes
+No admin-specific environment variable is required. The API gate depends only on the existing `DB` (D1) binding, already required for all member/session/admin surfaces.
 
 ### Local development
 
-Create a gitignored `.env.local` with `ADMIN_TOKEN=your-local-dev-token-here`, then start the local Cloudflare Pages dev server (`npm run dev:cf` per `package.json`). Signing in as an admin member locally also satisfies the API gate without the token.
+Sign in as an admin member against your local `DB` binding (`npm run dev:cf` per `package.json`); the admin session cookie satisfies both the UI and API gates with no additional configuration.
 
 ### Verification signals
 
 | Check | Expected result |
 | --- | --- |
-| `GET /api/admin/stats` with a valid admin session cookie, no token | `200` with stats payload |
-| `GET /api/admin/stats` without a session and without `x-admin-token` | `401 Unauthorized` JSON |
-| `GET /api/admin/stats` without a session but with valid `x-admin-token` | `200` with stats payload |
+| `GET /api/admin/stats` with a valid admin session cookie | `200` with stats payload |
+| `GET /api/admin/stats` without a session | `401 Unauthorized` JSON |
+| `GET /api/admin/stats` with a valid session but a non-admin member | `403 Forbidden` JSON |
 | Browser: sign in as admin → open `/admin/d1-test` | D1 table list loads, no token step needed |
 
 Operator how-to with full click-path detail may move to `docs/how-to/website/` in Task 013.
@@ -230,17 +208,14 @@ Operator how-to with full click-path detail may move to `docs/how-to/website/` i
 ### Threat model
 
 - Admin UI static assets may be discoverable; session gate reduces casual access, and the API gate independently re-verifies the session server-side.
-- All sensitive operations must fail without a valid admin session **and** a valid `ADMIN_TOKEN`.
-- Tokens in `localStorage` persist per browser origin; operators should clear tokens on shared devices if one was ever saved.
+- All sensitive operations must fail without a valid admin session — there is no alternate credential that can substitute for one.
 - Session cookies (`lgfc_session`) are `HttpOnly`, `Secure`, `SameSite=Lax`, and expire server-side via `member_sessions.expires_at`.
 
 ### Best practices
 
-1. Generate strong tokens (`openssl rand -hex 32` or equivalent) for the ops/CI fallback path
-2. Rotate `ADMIN_TOKEN` periodically; update operator copies
-3. Limit both admin-role member accounts and token distribution to authorized operators
-4. Review Cloudflare request logs for repeated `401`/`503` on `/api/admin/**`
-5. Never commit tokens or store them in repository files
+1. Limit admin-role member accounts to authorized operators; role changes happen in `members.role`, not via any distributed secret.
+2. Review Cloudflare request logs for repeated `401`/`403` on `/api/admin/**`.
+3. Sign out on shared devices when finished.
 
 ---
 
@@ -252,29 +227,33 @@ Early post–ZIP 41 documentation described admin UI pages as browser-reachable 
 
 ### 2026-06 as-built
 
-Admin UI used **session-backed layout gating** via `useMemberSession({ requireAdmin: true })` plus **`localStorage` admin token** (`adminClient.ts` / `AdminTokenPanel`) for admin API calls, including `/admin/d1-test`. The API layer only checked the static token — the UI session gate was client-side only and not independently re-verified server-side.
+Admin UI used **session-backed layout gating** via `useMemberSession({ requireAdmin: true })` plus a **`localStorage` admin token** (`adminClient.ts` / `AdminTokenPanel`) for admin API calls. The API layer only checked the static token — the UI session gate was client-side only and not independently re-verified server-side.
 
-### Current as-built (2026-08, `#3552`/`#3553`)
+### 2026-08 (`#3552`/`#3553`)
 
-The admin API gate (`requireAdmin`) now also accepts a signed-in admin member session, verified server-side against `member_sessions` and `members.role`. This closed the "operational APIs require pasting a token even though I already signed in as admin" friction reported by the site operator, and closed the "Role/session hardening beyond `ADMIN_TOKEN`" gap listed below. The static token remains supported for ops scripts and CI. Further login improvements (e.g. OAuth, MFA, passkeys) remain a future consideration, not part of this change.
+The admin API gate (`requireAdmin`) added support for a signed-in admin member session, verified server-side against `member_sessions` and `members.role`, alongside the existing static-token path (dual-gate: session **or** token).
+
+### Current as-built (2026-08-22, `#3547`)
+
+The static `ADMIN_TOKEN` shared-secret path was removed entirely. `requireAdmin` now delegates to `requireAdminMember()` and authorizes solely on a signed-in admin member session, returning `401` when unauthenticated and `403` when authenticated but not an admin. The browser admin-token input (`AdminTokenPanel`), `localStorage` key `lgfc_admin_token`, and all `x-admin-token` request headers were removed from the admin UI and `src/lib/adminClient.ts`. Further login improvements (e.g. OAuth, MFA, passkeys) remain a future consideration, not part of this change.
 
 ---
 
-## Follow-up gaps (explicit; no code in Task 002)
+## Follow-up gaps (explicit; no code beyond `#3547` scope)
 
 | Gap | Notes | Suggested route |
 | --- | --- | --- |
 | Dedicated operator how-to under `docs/how-to/website/` | Task 002 captures workflow in this spec; a standalone how-to may help non-technical operators | Task 013 runbooks |
 | D1 test photo curation UI | `/admin/d1-test` is inspect-only; `photos.is_matchup_eligible` editing deferred to PMO program | PMO admin tools program |
-| `footer-quotes` admin API without admin UI | Config surface still has no dedicated admin UI (session or token both work at the API layer) | Task 004 (deferred UI) |
-| Further login hardening (OAuth, MFA, passkeys) | Session-based admin API auth landed `#3552`/`#3553`; deeper identity work remains a future consideration per site operator | Future auth program; not `#1258` Task 002 |
+| `footer-quotes` admin API without admin UI | Config surface still has no dedicated admin UI (same session gate applies at the API layer) | Task 004 (deferred UI) |
+| Further login hardening (OAuth, MFA, passkeys) | Session-only admin API auth landed `#3547`; deeper identity work remains a future consideration per site operator | Future auth program; not `#1258` Task 002 |
 | PMO `production-ready` dependency-map fields | Plan promotion gate | ChatGPT/Bill before child issue creation |
 
 ---
 
 ## Future enhancements
 
-Phase 6+ may add layered role verification on APIs, stronger server-side UI enforcement, and audit logging. Until then, operators and agents should treat **session UI gate + `ADMIN_TOKEN` API gate** as the canonical model.
+Phase 6+ may add layered role verification on APIs, stronger server-side UI enforcement, and audit logging. Until then, operators and agents should treat **session UI gate + session-only API gate** as the canonical model.
 
 ---
 
@@ -283,9 +262,9 @@ Phase 6+ may add layered role verification on APIs, stronger server-side UI enfo
 - Task 001 inventory: `docs/ops/reports/website-operations-admin-as-built-gap-analysis.md`
 - Implementation plan: `docs/ops/implementation-plans/website-operations-admin.md`
 - Auth library: `functions/_lib/auth.ts`
+- Session library: `functions/_lib/session.ts`
 - Session API: `functions/api/session/me.ts`
 - Admin layout: `src/app/admin/layout.tsx`
 - Admin client: `src/lib/adminClient.ts`
-- Token panel: `src/components/admin/AdminTokenPanel.tsx`
 - Admin pages: `src/app/admin/**`
 - Admin APIs: `functions/api/admin/**`

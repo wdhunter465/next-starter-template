@@ -4,8 +4,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import PageShell from '@/components/PageShell';
 import AdminNav from '@/components/admin/AdminNav';
 import AdminStatusText from '@/components/admin/AdminStatusText';
-import AdminTokenPanel from '@/components/admin/AdminTokenPanel';
-import { adminJson, getStoredAdminToken } from '@/lib/adminClient';
+import { adminJson } from '@/lib/adminClient';
 
 type ContentBlock = {
   slug: string;
@@ -37,21 +36,12 @@ export default function AdminContentPage() {
   const [loading, setLoading] = useState<boolean>(false);
   const [sections, setSections] = useState<SectionBundle[]>([]);
   const [sectionsSlug, setSectionsSlug] = useState<string | null>(null);
-  const [tokenReady, setTokenReady] = useState(false);
   const loadRequestRef = useRef(0);
 
   const normalizedSlug = slug.trim() || '/';
   const sectionsMatchSlug = sectionsSlug === normalizedSlug;
 
   const load = useCallback(async (nextSlug?: string) => {
-    if (!getStoredAdminToken()) {
-      setSections([]);
-      setSectionsSlug(null);
-      setStatus('Save an admin API token above to load page content.');
-      setLoading(false);
-      return;
-    }
-
     const target = (nextSlug ?? slug).trim() || '/';
     const requestId = ++loadRequestRef.current;
     setLoading(true);
@@ -135,35 +125,13 @@ export default function AdminContentPage() {
   );
 
   useEffect(() => {
-    if (getStoredAdminToken()) {
-      setTokenReady(true);
-      void load('/');
-    }
+    void load('/');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   return (
     <PageShell title="Admin Content" subtitle="Edit site sections backed by D1 (when configured).">
       <AdminNav />
-      <AdminTokenPanel
-        onSaved={() => {
-          if (!getStoredAdminToken()) {
-            loadRequestRef.current += 1;
-            setTokenReady(false);
-            setSections([]);
-            setSectionsSlug(null);
-            setStatus('Save an admin API token above to load page content.');
-            return;
-          }
-          setTokenReady(true);
-          void load();
-        }}
-      />
-
-      {!tokenReady ? (
-        <p style={{ marginTop: 16, opacity: 0.85 }}>Save an admin API token above to load page content.</p>
-      ) : null}
-
       <div style={{ display: 'grid', gap: 14, marginTop: 16 }}>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
           <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>

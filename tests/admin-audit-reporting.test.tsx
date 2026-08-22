@@ -8,6 +8,7 @@ import { onRequestGet as exportGet } from '../functions/api/admin/export';
 import { onRequestGet as statsGet } from '../functions/api/admin/stats';
 import { onRequestPost as createReport } from '../functions/api/reports/create';
 import { onRequestPost as closeReport } from '../functions/api/reports/close';
+import { ADMIN_SESSION_COOKIE, withAdminSession } from './helpers/adminSession';
 
 const mockUsePathname = vi.hoisted(() => vi.fn(() => '/admin/audit'));
 
@@ -40,16 +41,18 @@ function csvResponse(body: string): Response {
   });
 }
 
-function adminRequest(path: string, token = 'secret'): Request {
-  return new Request(`https://www.lougehrigfanclub.com${path}`, {
-    headers: { 'x-admin-token': token },
-  });
+function adminRequest(path: string, cookie: string | null = ADMIN_SESSION_COOKIE): Request {
+  const headers: Record<string, string> = {};
+  if (cookie) headers.Cookie = cookie;
+  return new Request(`https://www.lougehrigfanclub.com${path}`, { headers });
 }
 
-function adminPostRequest(path: string, body: unknown, token = 'secret'): Request {
+function adminPostRequest(path: string, body: unknown, cookie: string | null = ADMIN_SESSION_COOKIE): Request {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (cookie) headers.Cookie = cookie;
   return new Request(`https://www.lougehrigfanclub.com${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
+    headers,
     body: JSON.stringify(body),
   });
 }
@@ -57,8 +60,6 @@ function adminPostRequest(path: string, body: unknown, token = 'secret'): Reques
 describe('admin audit reporting page', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
-    window.localStorage.clear();
-    window.localStorage.setItem('lgfc_admin_token', 'secret');
     mockUsePathname.mockReturnValue('/admin/audit');
     if (!URL.createObjectURL) {
       Object.defineProperty(URL, 'createObjectURL', {
@@ -126,75 +127,6 @@ describe('admin audit reporting page', () => {
     expect(screen.getByText('Unavailable tables: photos')).toBeInTheDocument();
     expect(screen.getByText('12')).toBeInTheDocument();
     expect(screen.getByRole('button', { name: 'Download CSV' })).toBeInTheDocument();
-
-    const statsCall = fetchMock.mock.calls.find(([path]) => String(path).startsWith('/api/admin/stats'));
-    const headers = statsCall?.[1]?.headers as Headers;
-    expect(headers.get('x-admin-token')).toBe('secret');
-  });
-
-  it('does not load audit surfaces until an admin token is saved', async () => {
-    window.localStorage.removeItem('lgfc_admin_token');
-    const fetchMock = vi.spyOn(globalThis, 'fetch');
-
-    render(<AdminAuditPage />);
-
-    expect(
-      screen.getAllByText(/Save an admin API token above to load audit surfaces/i).length,
-    ).toBeGreaterThan(0);
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
-
-  it('clears audit state when the admin token is removed', async () => {
-    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
-      const path = String(input);
-
-      if (path.startsWith('/api/admin/stats')) {
-        return Promise.resolve(
-          jsonResponse({
-            ok: true,
-            counts: { reports: 3, join_requests: 12 },
-          }),
-        );
-      }
-
-      if (path.startsWith('/api/admin/reports/list')) {
-        return Promise.resolve(
-          jsonResponse({
-            ok: true,
-            items: [
-              {
-                id: 4,
-                kind: 'discussion',
-                target_id: 99,
-                reporter_email: 'reader@example.com',
-                reason: 'Spam link',
-                status: 'open',
-                created_at: '2026-06-02T10:00:00Z',
-              },
-            ],
-          }),
-        );
-      }
-
-      return Promise.reject(new Error(`Unexpected fetch: ${path}`));
-    });
-
-    render(<AdminAuditPage />);
-
-    expect(await screen.findByText('Reporter: r***@example.com')).toBeInTheDocument();
-
-    window.localStorage.removeItem('lgfc_admin_token');
-    fireEvent.change(screen.getByLabelText('Admin token'), { target: { value: '' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Save token' }));
-
-    await waitFor(() => {
-      expect(screen.queryByText('Reporter: r***@example.com')).not.toBeInTheDocument();
-      expect(
-        screen.getAllByText(/Save an admin API token above to load audit surfaces/i).length,
-      ).toBeGreaterThan(0);
-    });
-
-    expect(fetchMock.mock.calls.filter(([path]) => String(path).startsWith('/api/admin/stats'))).toHaveLength(1);
   });
 
   it('announces stats errors via AdminStatusText alert', async () => {
@@ -216,8 +148,8 @@ describe('admin audit reporting page', () => {
     });
   });
 
-  it('closes a report and downloads CSV exports with the admin token', async () => {
-    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation((input, init) => {
+  it('closes a report and downloads CSV exports', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
       const path = String(input);
 
       if (path.startsWith('/api/admin/stats')) {
@@ -252,8 +184,6 @@ describe('admin audit reporting page', () => {
       }
 
       if (path.startsWith('/api/admin/export?')) {
-        const headers = init?.headers as Headers;
-        expect(headers.get('x-admin-token')).toBe('secret');
         return Promise.resolve(csvResponse('id,name\n1,Lou\n'));
       }
 
@@ -321,7 +251,7 @@ describe('audit and reporting APIs', () => {
 
     const response = await statsGet({
       request: adminRequest('/api/admin/stats'),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(response.status).toBe(200);
@@ -331,15 +261,11 @@ describe('audit and reporting APIs', () => {
     });
 
     const missingDb = await exportGet({
-      request: adminRequest('/api/admin/export?table=join_requests'),
-      env: { ADMIN_TOKEN: 'secret' },
+      request: adminRequest('/api/admin/export?table=join_requests', null),
+      env: {},
     });
 
     expect(missingDb.status).toBe(503);
-    await expect(missingDb.json()).resolves.toMatchObject({
-      ok: false,
-      error: 'D1 binding is not configured.',
-    });
   });
 
   it('returns CSV headers for empty export tables', async () => {
@@ -353,7 +279,7 @@ describe('audit and reporting APIs', () => {
 
     const response = await exportGet({
       request: adminRequest('/api/admin/export?table=library_entries'),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(response.status).toBe(200);
@@ -399,7 +325,7 @@ describe('audit and reporting APIs', () => {
 
     const response = await closeReport({
       request: adminPostRequest('/api/admin/reports/close', { id: 2, admin_note: 'done' }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(response.status).toBe(404);

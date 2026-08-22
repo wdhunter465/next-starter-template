@@ -4,8 +4,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import PageShell from '@/components/PageShell';
 import AdminNav from '@/components/admin/AdminNav';
 import AdminStatusText from '@/components/admin/AdminStatusText';
-import AdminTokenPanel from '@/components/admin/AdminTokenPanel';
-import { adminJson, getStoredAdminToken, isRecord } from '@/lib/adminClient';
+import { adminJson, isRecord } from '@/lib/adminClient';
 import styles from '@/components/admin/AdminDashboard.module.css';
 
 type FaqRow = {
@@ -40,7 +39,6 @@ type ItemsResponse<T> = {
 export default function AdminFaqPage() {
   const [status, setStatus] = useState('');
   const [tab, setTab] = useState<'ask' | 'faq'>('ask');
-  const [tokenReady, setTokenReady] = useState(false);
 
   const [askFilter, setAskFilter] = useState<'pending' | 'approved' | 'rejected' | 'archived'>('pending');
   const [askItems, setAskItems] = useState<AskRow[]>([]);
@@ -54,17 +52,7 @@ export default function AdminFaqPage() {
   const [draftPublish, setDraftPublish] = useState(false);
   const [draftPinned, setDraftPinned] = useState(false);
 
-  useEffect(() => {
-    if (getStoredAdminToken()) {
-      setTokenReady(true);
-    }
-  }, []);
-
   const loadAsk = useCallback(async () => {
-    if (!getStoredAdminToken()) {
-      setStatus('Save an admin API token above to load ask inbox.');
-      return;
-    }
     setStatus('Loading ask inbox…');
     const result = await adminJson<ItemsResponse<AskRow>>(`/api/admin/ask/list?status=${askFilter}`);
     if (!result.ok || !result.data) {
@@ -78,10 +66,6 @@ export default function AdminFaqPage() {
   }, [askFilter]);
 
   const loadFaq = useCallback(async () => {
-    if (!getStoredAdminToken()) {
-      setStatus('Save an admin API token above to load FAQs.');
-      return;
-    }
     setStatus('Loading FAQs…');
     const query = faqFilter === 'all' ? '' : `?status=${faqFilter}`;
     const result = await adminJson<ItemsResponse<Record<string, unknown>>>(`/api/admin/faq/list${query}`);
@@ -108,14 +92,12 @@ export default function AdminFaqPage() {
   }, [faqFilter]);
 
   useEffect(() => {
-    if (!tokenReady) return;
     if (tab === 'ask') void loadAsk();
-  }, [tab, tokenReady, loadAsk]);
+  }, [tab, loadAsk]);
 
   useEffect(() => {
-    if (!tokenReady) return;
     if (tab === 'faq') void loadFaq();
-  }, [tab, tokenReady, loadFaq]);
+  }, [tab, loadFaq]);
 
   async function askAction(path: string, id: number, body: Record<string, unknown>) {
     setStatus('Saving…');
@@ -189,29 +171,11 @@ export default function AdminFaqPage() {
 
   const askCountLabel = useMemo(() => `${askItems.length} item(s)`, [askItems.length]);
 
-  function handleTokenSaved() {
-    if (!getStoredAdminToken()) {
-      setTokenReady(false);
-      setAskItems([]);
-      setFaqItems([]);
-      setStatus('');
-      return;
-    }
-    if (tokenReady) {
-      if (tab === 'ask') void loadAsk();
-      else void loadFaq();
-    } else {
-      setTokenReady(true);
-    }
-  }
-
   return (
     <PageShell title="Admin • FAQ Moderation" subtitle="Ask inbox triage and FAQ publishing">
       <AdminNav />
 
       <div className={styles.wrap}>
-        <AdminTokenPanel onSaved={handleTokenSaved} />
-
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
           <button type="button" onClick={() => setTab('ask')} style={{ fontWeight: tab === 'ask' ? 700 : 400 }}>
             Ask Inbox
@@ -242,7 +206,7 @@ export default function AdminFaqPage() {
                   {value}
                 </button>
               ))}
-              <button type="button" onClick={() => void loadAsk()} disabled={!tokenReady}>
+              <button type="button" onClick={() => void loadAsk()}>
                 Refresh
               </button>
               <span style={{ opacity: 0.75 }}>{askCountLabel}</span>
@@ -339,9 +303,7 @@ export default function AdminFaqPage() {
                   )}
                 </div>
               ))}
-              {!tokenReady ? (
-                <p className="sub">Save an admin API token above to load ask inbox.</p>
-              ) : askItems.length === 0 ? (
+              {askItems.length === 0 ? (
                 <p className="sub">No ask inbox entries in this queue.</p>
               ) : null}
             </div>
@@ -383,7 +345,7 @@ export default function AdminFaqPage() {
                 />
                 Pin on publish
               </label>
-              <button type="button" style={{ marginTop: 12 }} onClick={() => void createFaq()} disabled={!tokenReady}>
+              <button type="button" style={{ marginTop: 12 }} onClick={() => void createFaq()}>
                 Create FAQ
               </button>
             </div>
@@ -399,7 +361,7 @@ export default function AdminFaqPage() {
                   {value}
                 </button>
               ))}
-              <button type="button" onClick={() => void loadFaq()} disabled={!tokenReady}>
+              <button type="button" onClick={() => void loadFaq()}>
                 Refresh
               </button>
             </div>
@@ -419,9 +381,7 @@ export default function AdminFaqPage() {
                   onDelete={() => void deleteFaq(item.id)}
                 />
               ))}
-              {!tokenReady ? (
-                <p className="sub">Save an admin API token above to load FAQs.</p>
-              ) : faqItems.length === 0 ? (
+              {faqItems.length === 0 ? (
                 <p className="sub">No FAQ entries in this filter.</p>
               ) : null}
             </div>

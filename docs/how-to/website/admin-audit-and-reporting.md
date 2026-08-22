@@ -67,14 +67,14 @@ APIs: `/api/admin/stats`, `/api/admin/export`, `/api/admin/reports/list`,
 - Click **open** or **closed** to switch queues (active filter button is disabled).
 - Only the report list reloads on filter change; stats are not re-fetched.
 
-### Token removal
+### Access
 
-Clearing the admin token resets reports, stats, and controls until a token is saved again.
+The page loads reports and stats automatically for a signed-in admin member — no token step. Session expiry or sign-out surfaces as `401`/`403` `Error:` status text on the next action.
 
 ## Verification
 
-- `tests/admin-audit-reporting.test.tsx` — token gating, token clear reset, stats error alerts.
-- Manual: export and close require token; `Error:` prefixes on API failures.
+- `tests/admin-audit-reporting.test.tsx` — admin session load, non-admin/unauthenticated rejection, stats error alerts.
+- Manual: export and close require an admin session; `Error:` prefixes on API failures.
 
 ## Closeout Criteria
 

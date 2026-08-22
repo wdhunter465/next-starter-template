@@ -1,5 +1,5 @@
 // GET /api/admin/export?table=join_requests|join_email_log|library_entries|photos|page_content
-// Returns CSV. Protected by ADMIN_TOKEN.
+// Returns CSV. Protected by an authenticated D1 admin member session (requireAdmin).
 
 import { requireAdmin } from "../../_lib/auth";
 import { toCsv } from "../../_lib/csv";

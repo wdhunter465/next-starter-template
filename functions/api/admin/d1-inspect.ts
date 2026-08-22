@@ -1,6 +1,6 @@
 // GET /api/admin/d1-inspect
 // Lists all D1 tables and row counts, and can return sample rows for a specific table.
-// Protected by ADMIN_TOKEN (x-admin-token / Authorization: Bearer).
+// Protected by an authenticated D1 admin member session (requireAdmin).
 //
 // Query params:
 //   ?table=<name>&limit=<n>  -> returns schema + up to n rows

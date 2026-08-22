@@ -12,6 +12,7 @@ import {
 import { onRequestGet as cmsListGet } from '../functions/api/admin/cms/list';
 import { onRequestPost as cmsSavePost } from '../functions/api/admin/cms/save';
 import { onRequestPost as cmsPublishPost } from '../functions/api/admin/cms/publish';
+import { ADMIN_SESSION_COOKIE, withAdminSession } from './helpers/adminSession';
 
 const mockUsePathname = vi.hoisted(() => vi.fn(() => '/admin/fundraiser-preview'));
 
@@ -34,16 +35,18 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
-function adminGetRequest(path: string, token = 'secret'): Request {
-  return new Request(`https://www.lougehrigfanclub.com${path}`, {
-    headers: { 'x-admin-token': token },
-  });
+function adminGetRequest(path: string, cookie: string | null = ADMIN_SESSION_COOKIE): Request {
+  const headers: Record<string, string> = {};
+  if (cookie) headers.Cookie = cookie;
+  return new Request(`https://www.lougehrigfanclub.com${path}`, { headers });
 }
 
-function adminPostRequest(path: string, body: unknown = {}, token = 'secret'): Request {
+function adminPostRequest(path: string, body: unknown = {}, cookie: string | null = ADMIN_SESSION_COOKIE): Request {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (cookie) headers.Cookie = cookie;
   return new Request(`https://www.lougehrigfanclub.com${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
+    headers,
     body: JSON.stringify(body),
   });
 }
@@ -61,12 +64,10 @@ function validCampaignBody() {
 describe('admin fundraiser preview page', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
-    window.localStorage.clear();
-    window.localStorage.setItem('lgfc_admin_token', 'secret');
     mockUsePathname.mockReturnValue('/admin/fundraiser-preview');
   });
 
-  it('renders admin navigation, token controls, and fundraiser validation state', async () => {
+  it('renders admin navigation and fundraiser validation state', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(
       jsonResponse({
         ok: true,
@@ -88,70 +89,10 @@ describe('admin fundraiser preview page', () => {
     render(<FundraiserPreviewPage />);
 
     expect(screen.getByRole('link', { name: 'Fundraiser Preview' })).toBeInTheDocument();
-    expect(screen.getByLabelText('Admin token')).toBeInTheDocument();
 
     await waitFor(() => {
       expect(screen.getByText(/Fundraiser source is valid/i)).toBeInTheDocument();
     });
-  });
-
-  it('does not load campaign spotlight until an admin token is saved', async () => {
-    window.localStorage.removeItem('lgfc_admin_token');
-    const fetchMock = vi.spyOn(globalThis, 'fetch');
-
-    render(<FundraiserPreviewPage />);
-
-    expect(
-      screen.getAllByText(/Save an admin API token above to load campaign spotlight/i).length,
-    ).toBeGreaterThan(0);
-    expect(fetchMock).not.toHaveBeenCalled();
-  });
-
-  it('clears campaign spotlight state when the admin token is removed', async () => {
-    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
-      const path = String(input);
-
-      if (path.startsWith('/api/admin/cms/list')) {
-        return Promise.resolve(
-          jsonResponse({
-            ok: true,
-            blocks: [
-              {
-                key: CAMPAIGN_SPOTLIGHT_KEY,
-                body_md: validCampaignBody(),
-                published_body_md: null,
-                version: 1,
-                status: 'draft',
-                updated_at: '2026-06-03T12:00:00Z',
-                published_at: null,
-                updated_by: 'admin-fundraiser-preview',
-              },
-            ],
-          }),
-        );
-      }
-
-      return Promise.reject(new Error(`Unexpected fetch: ${path}`));
-    });
-
-    render(<FundraiserPreviewPage />);
-
-    await waitFor(() => {
-      expect(screen.getByText('Campaign spotlight block loaded.')).toBeInTheDocument();
-    });
-
-    window.localStorage.removeItem('lgfc_admin_token');
-    fireEvent.change(screen.getByLabelText('Admin token'), { target: { value: '' } });
-    fireEvent.click(screen.getByRole('button', { name: 'Save token' }));
-
-    await waitFor(() => {
-      expect(screen.queryByText('Campaign spotlight block loaded.')).not.toBeInTheDocument();
-      expect(
-        screen.getAllByText(/Save an admin API token above to load campaign spotlight/i).length,
-      ).toBeGreaterThan(0);
-    });
-
-    expect(fetchMock.mock.calls.filter(([path]) => String(path).startsWith('/api/admin/cms/list'))).toHaveLength(1);
   });
 
   it('announces CMS list errors via AdminStatusText alert', async () => {
@@ -169,11 +110,9 @@ describe('admin fundraiser preview page', () => {
     });
   });
 
-  it('loads campaign spotlight CMS data with the stored admin token', async () => {
-    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation((input, init) => {
-      const headers = init?.headers instanceof Headers ? init.headers : new Headers(init?.headers);
+  it('loads campaign spotlight CMS data on mount', async () => {
+    const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
       expect(String(input)).toBe(`/api/admin/cms/list?page=${encodeURIComponent(CAMPAIGN_SPOTLIGHT_PAGE)}`);
-      expect(headers.get('x-admin-token')).toBe('secret');
 
       return Promise.resolve(
         jsonResponse({
@@ -302,8 +241,8 @@ describe('admin fundraiser preview page', () => {
 describe('fundraiser admin CMS APIs', () => {
   it('rejects unauthenticated CMS list requests', async () => {
     const response = await cmsListGet({
-      request: adminGetRequest('/api/admin/cms/list?page=home', ''),
-      env: { ADMIN_TOKEN: 'secret', DB: { prepare: vi.fn() } },
+      request: adminGetRequest('/api/admin/cms/list?page=home', null),
+      env: { DB: { prepare: vi.fn() } },
     });
 
     expect(response.status).toBe(401);
@@ -336,7 +275,7 @@ describe('fundraiser admin CMS APIs', () => {
 
     const response = await cmsListGet({
       request: adminGetRequest('/api/admin/cms/list?page=home'),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: withAdminSession(db) },
     });
 
     expect(response.status).toBe(200);
@@ -346,19 +285,19 @@ describe('fundraiser admin CMS APIs', () => {
     });
   });
 
-  it('rejects CMS save without admin token', async () => {
+  it('rejects CMS save without an admin session', async () => {
     const response = await cmsSavePost({
-      request: adminPostRequest('/api/admin/cms/save', { key: CAMPAIGN_SPOTLIGHT_KEY }, ''),
-      env: { ADMIN_TOKEN: 'secret', DB: { prepare: vi.fn() } },
+      request: adminPostRequest('/api/admin/cms/save', { key: CAMPAIGN_SPOTLIGHT_KEY }, null),
+      env: { DB: { prepare: vi.fn() } },
     });
 
     expect(response.status).toBe(401);
   });
 
-  it('rejects CMS publish without admin token', async () => {
+  it('rejects CMS publish without an admin session', async () => {
     const response = await cmsPublishPost({
-      request: adminPostRequest('/api/admin/cms/publish', { key: CAMPAIGN_SPOTLIGHT_KEY }, ''),
-      env: { ADMIN_TOKEN: 'secret', DB: { prepare: vi.fn() } },
+      request: adminPostRequest('/api/admin/cms/publish', { key: CAMPAIGN_SPOTLIGHT_KEY }, null),
+      env: { DB: { prepare: vi.fn() } },
     });
 
     expect(response.status).toBe(401);

@@ -1,5 +1,5 @@
 // GET /api/admin/events/list?month=YYYY-MM&limit=100
-// Returns events for admin review (includes hidden rows). Protected by ADMIN_TOKEN.
+// Returns events for admin review (includes hidden rows). Protected by an authenticated D1 admin member session (requireAdmin).
 
 import { requireAdmin } from "../../../_lib/auth";
 import { requireD1, requireTables, jsonResponse } from "../../../_lib/d1";

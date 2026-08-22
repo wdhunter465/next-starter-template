@@ -1,5 +1,4 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -11,6 +10,8 @@ import { onRequestPost as editorialInventoryPost } from '../functions/api/admin/
 import { onRequestPost as librarySubmitPost } from '../functions/api/library/submit';
 import { onRequestGet as fanclubLibraryGet } from '../functions/api/fanclub/library';
 import { onRequestGet as searchGet } from '../functions/api/search';
+
+const ADMIN_SESSION_COOKIE = 'lgfc_session=admin-session-1';
 
 const mockUsePathname = vi.hoisted(() => vi.fn(() => '/admin/editorial'));
 
@@ -33,16 +34,18 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
-function adminGetRequest(path: string, token = 'secret'): Request {
-  return new Request(`https://www.lougehrigfanclub.com${path}`, {
-    headers: { 'x-admin-token': token },
-  });
+function adminGetRequest(path: string, cookie: string | null = ADMIN_SESSION_COOKIE): Request {
+  const headers: Record<string, string> = {};
+  if (cookie) headers.Cookie = cookie;
+  return new Request(`https://www.lougehrigfanclub.com${path}`, { headers });
 }
 
-function adminPostRequest(path: string, body: unknown, token = 'secret'): Request {
+function adminPostRequest(path: string, body: unknown, cookie: string | null = ADMIN_SESSION_COOKIE): Request {
+  const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+  if (cookie) headers.Cookie = cookie;
   return new Request(`https://www.lougehrigfanclub.com${path}`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'x-admin-token': token },
+    headers,
     body: JSON.stringify(body),
   });
 }
@@ -62,11 +65,13 @@ function makeEditorialDb(options?: {
   inventory?: Array<Record<string, unknown>>;
   library?: Array<Record<string, unknown>>;
   sessionEmail?: string;
+  role?: 'admin' | 'member';
 }) {
   const submissions = options?.submissions ?? [];
   const inventory = options?.inventory ?? [];
   const library = options?.library ?? [];
   const sessionEmail = options?.sessionEmail ?? 'member@example.com';
+  const role = options?.role ?? 'admin';
   const runs: Array<{ sql: string; args: unknown[] }> = [];
   const tableNames = ['submission_queue', 'content_inventory', 'content_inventory_events', 'library_entries', 'member_sessions', 'members'];
 
@@ -143,6 +148,7 @@ function makeEditorialDb(options?: {
           return tableNames.includes(table) ? { name: table } : null;
         }
         if (sql.includes('FROM member_sessions')) return { email: sessionEmail };
+        if (sql.includes('FROM members') && sql.includes('role')) return { role };
         if (sql.includes("SELECT datetime('now')")) {
           return { now: '2026-06-02T12:00:00Z', purge_eligible_at: '2026-08-31T12:00:00Z' };
         }
@@ -194,12 +200,10 @@ function makeEditorialDb(options?: {
 describe('admin editorial archive page', () => {
   beforeEach(() => {
     vi.restoreAllMocks();
-    window.localStorage.clear();
-    window.localStorage.setItem('lgfc_admin_token', 'secret');
     mockUsePathname.mockReturnValue('/admin/editorial');
   });
 
-  it('loads pending submissions and archive publication state with admin token', async () => {
+  it('loads pending submissions and archive publication state on mount', async () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch').mockResolvedValue(
       jsonResponse({
         ok: true,
@@ -314,18 +318,6 @@ describe('admin editorial archive page', () => {
     });
   });
 
-  it('does not fetch editorial records until a token is stored', async () => {
-    window.localStorage.removeItem('lgfc_admin_token');
-    const fetchMock = vi.spyOn(globalThis, 'fetch');
-
-    render(<AdminEditorialArchivePage />);
-
-    expect(screen.getByText('Save an admin API token above to load editorial records.')).toBeInTheDocument();
-    await waitFor(() => {
-      expect(fetchMock).not.toHaveBeenCalled();
-    });
-  });
-
   it('announces editorial list API failures to assistive technology', async () => {
     vi.spyOn(globalThis, 'fetch').mockResolvedValue(
       jsonResponse({ ok: false, error: 'Database unavailable' }, 503) as never,
@@ -335,39 +327,6 @@ describe('admin editorial archive page', () => {
 
     const alert = await screen.findByRole('alert');
     expect(alert).toHaveTextContent(/error: database unavailable/i);
-  });
-
-  it('clears editorial state when the admin token is removed', async () => {
-    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
-      jsonResponse({
-        ok: true,
-        submissions: [
-          {
-            submission_id: 9,
-            submitted_by: 'Member',
-            title: 'Gehrig memory',
-            description: 'A submitted memory for review.',
-            status: 'pending',
-          },
-        ],
-        inventory: [],
-      }),
-    );
-
-    render(<AdminEditorialArchivePage />);
-
-    await waitFor(() => {
-      expect(screen.getByRole('heading', { name: 'Gehrig memory' })).toBeInTheDocument();
-    });
-
-    const tokenInput = screen.getByLabelText('Admin token');
-    await userEvent.clear(tokenInput);
-    await userEvent.click(screen.getByRole('button', { name: 'Save token' }));
-
-    await waitFor(() => {
-      expect(window.localStorage.getItem('lgfc_admin_token')).toBeNull();
-      expect(screen.queryByRole('heading', { name: 'Gehrig memory' })).not.toBeInTheDocument();
-    });
   });
 
   it('loads inventory records by selected publication status', async () => {
@@ -653,7 +612,7 @@ describe('editorial archive APIs', () => {
   it('rejects list requests without admin token', async () => {
     const response = await editorialListGet({
       request: adminGetRequest('/api/admin/editorial/list', ''),
-      env: { ADMIN_TOKEN: 'secret', DB: makeEditorialDb().db },
+      env: { DB: makeEditorialDb().db },
     });
 
     expect(response.status).toBe(401);
@@ -663,7 +622,6 @@ describe('editorial archive APIs', () => {
     const response = await editorialListGet({
       request: adminGetRequest('/api/admin/editorial/list'),
       env: {
-        ADMIN_TOKEN: 'secret',
         DB: makeEditorialDb({
           submissions: [{ submission_id: 1, title: 'Pending story', status: 'pending' }],
           inventory: [{ id: 2, title: 'Draft story', status: 'draft' }],
@@ -683,7 +641,6 @@ describe('editorial archive APIs', () => {
     const response = await editorialListGet({
       request: adminGetRequest('/api/admin/editorial/list?inventory_status=published'),
       env: {
-        ADMIN_TOKEN: 'secret',
         DB: makeEditorialDb({
           inventory: [
             { id: 2, title: 'Draft story', status: 'draft' },
@@ -724,7 +681,7 @@ describe('editorial archive APIs', () => {
         credit_line: 'Member <member@example.com>',
         event_year: 1939,
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: db },
     });
 
     expect(response.status).toBe(200);
@@ -768,7 +725,7 @@ describe('editorial archive APIs', () => {
         duplicate_candidate: 'submitted-story',
         review_notes: 'Needs source follow-up.',
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: db },
     });
 
     expect(response.status).toBe(200);
@@ -802,7 +759,7 @@ describe('editorial archive APIs', () => {
         submission_id: 7,
         action: 'triage',
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: db },
     });
 
     expect(response.status).toBe(409);
@@ -832,7 +789,7 @@ describe('editorial archive APIs', () => {
         duplicate_candidate: 'existing-story',
         review_notes: 'Merged useful source detail.',
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: db },
     });
 
     expect(response.status).toBe(200);
@@ -865,7 +822,7 @@ describe('editorial archive APIs', () => {
         action: 'reject',
         purge_eligible_at: 'not-a-real-date',
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: db },
     });
 
     expect(response.status).toBe(200);
@@ -894,7 +851,7 @@ describe('editorial archive APIs', () => {
         action: 'reject',
         review_notes: 'Out of scope after human review.',
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: db },
     });
 
     expect(response.status).toBe(200);
@@ -927,7 +884,7 @@ describe('editorial archive APIs', () => {
         action: 'reject',
         retention_reason: 'Retained for source follow-up.',
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: db },
     });
 
     expect(response.status).toBe(200);
@@ -957,7 +914,7 @@ describe('editorial archive APIs', () => {
         action: 'purge',
         review_notes: 'Quarterly purge complete.',
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: db },
     });
 
     expect(response.status).toBe(200);
@@ -990,7 +947,7 @@ describe('editorial archive APIs', () => {
         credit_line: 'Member <member@example.com>',
         event_year: '   ',
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: db },
     });
 
     expect(response.status).toBe(200);
@@ -1018,7 +975,7 @@ describe('editorial archive APIs', () => {
         action: 'approve',
         source_name: 'Member interview',
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: db },
     });
 
     expect(response.status).toBe(200);
@@ -1034,7 +991,7 @@ describe('editorial archive APIs', () => {
 
     const response = await editorialPublishPost({
       request: adminPostRequest('/api/admin/editorial/publish', { id: 4, status: 'published' }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: db },
     });
 
     expect(response.status).toBe(400);
@@ -1056,7 +1013,7 @@ describe('editorial archive APIs', () => {
         action: 'approve',
         approved_by: 'Bill',
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: db },
     });
 
     expect(response.status).toBe(200);
@@ -1088,7 +1045,7 @@ describe('editorial archive APIs', () => {
 
     const response = await editorialPublishPost({
       request: adminPostRequest('/api/admin/editorial/publish', { id: 4, status: 'published' }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: db },
     });
 
     expect(response.status).toBe(200);
@@ -1117,7 +1074,7 @@ describe('editorial archive APIs', () => {
 
     const response = await editorialPublishPost({
       request: adminPostRequest('/api/admin/editorial/publish', { id: 4, action: 'rollback' }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: db },
     });
 
     expect(response.status).toBe(400);
@@ -1142,7 +1099,7 @@ describe('editorial archive APIs', () => {
 
     const response = await editorialPublishPost({
       request: adminPostRequest('/api/admin/editorial/publish', { id: 4, action: 'rollback' }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: db },
     });
 
     expect(response.status).toBe(200);
@@ -1176,7 +1133,7 @@ describe('editorial archive APIs', () => {
         approved_by: 'Bill',
         approved_at: '2026-08-15T18:00:00Z',
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: db },
     });
 
     expect(response.status).toBe(200);
@@ -1210,7 +1167,7 @@ describe('editorial archive APIs', () => {
 
     const response = await editorialPublishPost({
       request: adminPostRequest('/api/admin/editorial/publish', { id: 4, status: 'published' }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: db },
     });
 
     expect(response.status).toBe(400);
@@ -1239,7 +1196,7 @@ describe('editorial archive APIs', () => {
 
     const response = await editorialPublishPost({
       request: adminPostRequest('/api/admin/editorial/publish', { id: 4, status: 'published' }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: db },
     });
 
     expect(response.status).toBe(200);
@@ -1267,7 +1224,7 @@ describe('editorial archive APIs', () => {
 
     const response = await editorialPublishPost({
       request: adminPostRequest('/api/admin/editorial/publish', { id: 4, status: 'archived' }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: db },
     });
 
     expect(response.status).toBe(400);
@@ -1296,7 +1253,7 @@ describe('editorial archive APIs', () => {
         action: 'schedule',
         scheduled_at: '2026-08-16T12:00:00Z',
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: db },
     });
 
     expect(response.status).toBe(200);
@@ -1333,7 +1290,7 @@ describe('editorial archive APIs', () => {
         id: 4,
         action: 'schedule',
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: db },
     });
 
     expect(response.status).toBe(400);
@@ -1360,7 +1317,7 @@ describe('editorial archive APIs', () => {
 
     const response = await editorialPublishPost({
       request: adminPostRequest('/api/admin/editorial/publish', { id: 4, status: 'published' }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: db },
     });
 
     expect(response.status).toBe(400);
@@ -1387,7 +1344,7 @@ describe('editorial archive APIs', () => {
 
     const response = await editorialPublishPost({
       request: adminPostRequest('/api/admin/editorial/publish', { id: 4, status: 'published' }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: db },
     });
 
     expect(response.status).toBe(200);
@@ -1423,7 +1380,7 @@ describe('editorial archive APIs', () => {
         action: 'pause_schedule',
         reason: 'Hold for Product review',
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: db },
     });
     expect(pause.status).toBe(200);
 
@@ -1445,7 +1402,7 @@ describe('editorial archive APIs', () => {
     });
     const fire = await editorialPublishPost({
       request: adminPostRequest('/api/admin/editorial/publish', { id: 4, status: 'published' }),
-      env: { ADMIN_TOKEN: 'secret', DB: pausedDb.db },
+      env: { DB: pausedDb.db },
     });
     expect(fire.status).toBe(400);
     await expect(fire.json()).resolves.toMatchObject({ ok: false, check_id: 'A4' });
@@ -1466,7 +1423,7 @@ describe('editorial archive APIs', () => {
         canonical: true,
         feature_weight: 2,
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: db },
     });
 
     expect(response.status).toBe(200);
@@ -1506,7 +1463,7 @@ describe('editorial archive APIs', () => {
         perspective_label: 'Alternate account',
         rotation_group: 'speech-day',
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: db },
     });
 
     expect(response.status).toBe(200);
@@ -1531,7 +1488,7 @@ describe('editorial archive APIs', () => {
         credit_line: 'Archive',
         canonical: false,
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: db },
     });
 
     expect(response.status).toBe(400);
@@ -1565,7 +1522,7 @@ describe('editorial archive APIs', () => {
         credit_line: 'Archive',
         canonical: false,
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: db },
+      env: { DB: db },
     });
 
     expect(response.status).toBe(400);
@@ -1778,7 +1735,6 @@ describe('member submissions and library archive reads', () => {
     const response = await editorialListGet({
       request: adminGetRequest('/api/admin/editorial/list?operational_state=preview'),
       env: {
-        ADMIN_TOKEN: 'secret',
         DB: makeEditorialDb({
           inventory: [
             { id: 2, title: 'Draft story', status: 'draft', operational_state: 'draft' },
@@ -1800,7 +1756,6 @@ describe('member submissions and library archive reads', () => {
     const response = await editorialListGet({
       request: adminGetRequest('/api/admin/editorial/list?inventory_status=draft&operational_state=staged'),
       env: {
-        ADMIN_TOKEN: 'secret',
         DB: makeEditorialDb({
           inventory: [
             { id: 2, title: 'Draft story', status: 'draft', operational_state: 'draft' },
@@ -1831,7 +1786,7 @@ describe('member submissions and library archive reads', () => {
     });
     const stage = await editorialPublishPost({
       request: adminPostRequest('/api/admin/editorial/publish', { id: 8, action: 'stage' }),
-      env: { ADMIN_TOKEN: 'secret', DB: staged.db },
+      env: { DB: staged.db },
     });
     expect(stage.status).toBe(200);
     expect(staged.runs.some((run) => run.sql.includes('operational_state') && run.args.includes('staged'))).toBe(
@@ -1856,7 +1811,7 @@ describe('member submissions and library archive reads', () => {
         action: 'review',
         reviewer: 'Editor',
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: incomplete.db },
+      env: { DB: incomplete.db },
     });
     expect(review.status).toBe(400);
     await expect(review.json()).resolves.toMatchObject({ check_id: 'S4' });
@@ -1883,7 +1838,7 @@ describe('member submissions and library archive reads', () => {
         action: 'review',
         reviewer: 'Editor',
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: reviewed.db },
+      env: { DB: reviewed.db },
     });
     expect(review.status).toBe(200);
     await expect(review.json()).resolves.toMatchObject({ operational_state: 'reviewed' });
@@ -1908,7 +1863,7 @@ describe('member submissions and library archive reads', () => {
         reviewer: 'Editor',
         reason: 'Rights still unresolved for public copy',
       }),
-      env: { ADMIN_TOKEN: 'secret', DB: rejected.db },
+      env: { DB: rejected.db },
     });
     expect(reject.status).toBe(200);
     await expect(reject.json()).resolves.toMatchObject({

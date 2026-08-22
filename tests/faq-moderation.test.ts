@@ -58,26 +58,46 @@ describe('faq moderation helpers', () => {
   });
 });
 
-describe('admin auth fail-closed', () => {
-  it('rejects missing or invalid admin token when no admin session is present', async () => {
+describe('admin auth fail-closed (#3547, session-only)', () => {
+  it('fails closed 503 when the D1 binding is missing', async () => {
     const { requireAdmin } = await import('../functions/_lib/auth');
 
-    // No env.DB binding at all -- the session check short-circuits (requireD1
-    // fails), so these exercise the static-token fallback path in isolation.
-    const unconfigured = await requireAdmin(new Request('https://example.com'), { ADMIN_TOKEN: '' });
-    expect(unconfigured?.status).toBe(503);
-
-    const unauthorized = await requireAdmin(new Request('https://example.com'), { ADMIN_TOKEN: 'secret' });
-    expect(unauthorized?.status).toBe(401);
-
-    const ok = await requireAdmin(
-      new Request('https://example.com', { headers: { 'x-admin-token': 'secret' } }),
-      { ADMIN_TOKEN: 'secret' },
-    );
-    expect(ok).toBeNull();
+    const result = await requireAdmin(new Request('https://example.com'), {});
+    expect(result?.status).toBe(503);
   });
 
-  it('accepts a signed-in admin member session with no token required', async () => {
+  it('returns 401 when no session cookie is present', async () => {
+    const { requireAdmin } = await import('../functions/_lib/auth');
+
+    const db = {
+      prepare: vi.fn(() => ({
+        bind: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue(null),
+        run: vi.fn().mockResolvedValue({}),
+      })),
+    };
+
+    const result = await requireAdmin(new Request('https://example.com'), { DB: db });
+    expect(result?.status).toBe(401);
+  });
+
+  it('does not accept a static admin token -- there is no token fallback', async () => {
+    const { requireAdmin } = await import('../functions/_lib/auth');
+
+    const db = {
+      prepare: vi.fn(() => ({
+        bind: vi.fn().mockReturnThis(),
+        first: vi.fn().mockResolvedValue(null),
+        run: vi.fn().mockResolvedValue({}),
+      })),
+    };
+
+    const request = new Request('https://example.com', { headers: { 'x-admin-token': 'secret' } });
+    const result = await requireAdmin(request, { DB: db, ADMIN_TOKEN: 'secret' });
+    expect(result?.status).toBe(401);
+  });
+
+  it('accepts a signed-in admin member session', async () => {
     const { requireAdmin } = await import('../functions/_lib/auth');
 
     const db = {
@@ -96,11 +116,11 @@ describe('admin auth fail-closed', () => {
       headers: { Cookie: 'lgfc_session=abc123' },
     });
 
-    const result = await requireAdmin(request, { DB: db, ADMIN_TOKEN: '' });
+    const result = await requireAdmin(request, { DB: db });
     expect(result).toBeNull();
   });
 
-  it('rejects a signed-in member session without the admin role, even with no token configured', async () => {
+  it('returns 403 for a signed-in member session without the admin role', async () => {
     const { requireAdmin } = await import('../functions/_lib/auth');
 
     const db = {
@@ -119,7 +139,7 @@ describe('admin auth fail-closed', () => {
       headers: { Cookie: 'lgfc_session=abc123' },
     });
 
-    const result = await requireAdmin(request, { DB: db, ADMIN_TOKEN: '' });
-    expect(result?.status).toBe(503);
+    const result = await requireAdmin(request, { DB: db });
+    expect(result?.status).toBe(403);
   });
 });

@@ -4,9 +4,8 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import PageShell from '@/components/PageShell';
 import AdminNav from '@/components/admin/AdminNav';
 import AdminStatusText from '@/components/admin/AdminStatusText';
-import AdminTokenPanel from '@/components/admin/AdminTokenPanel';
 import styles from '@/components/admin/AdminDashboard.module.css';
-import { adminDownload, adminJson, getStoredAdminToken } from '@/lib/adminClient';
+import { adminDownload, adminJson } from '@/lib/adminClient';
 
 type ReportItem = {
   id: number;
@@ -78,7 +77,7 @@ function buttonStyle(disabled = false): React.CSSProperties {
 }
 
 export default function AdminAuditPage() {
-  const [status, setStatus] = useState('Save an admin API token above to load audit surfaces.');
+  const [status, setStatus] = useState('Loading audit surfaces…');
   const [reportFilter, setReportFilter] = useState<(typeof REPORT_FILTERS)[number]>('open');
   const [reports, setReports] = useState<ReportItem[]>([]);
   const [reportNotes, setReportNotes] = useState<Record<number, string>>({});
@@ -89,7 +88,6 @@ export default function AdminAuditPage() {
   const [closing, setClosing] = useState(false);
   const [statsRows, setStatsRows] = useState<Array<{ table: string; count: number }>>([]);
   const [unavailableTables, setUnavailableTables] = useState<string[]>([]);
-  const [tokenReady, setTokenReady] = useState(false);
   const loadRequestRef = useRef(0);
   const reportRequestIdRef = useRef(0);
   const statsRequestIdRef = useRef(0);
@@ -110,23 +108,11 @@ export default function AdminAuditPage() {
   }, [statsRows]);
 
   const loadStats = useCallback(async () => {
-    if (!getStoredAdminToken()) {
-      setStatsRows([]);
-      setUnavailableTables([]);
-      setLoadingStats(false);
-      return;
-    }
-
     const requestId = ++statsRequestIdRef.current;
     setLoadingStats(true);
     const result = await adminJson<StatsResponse>('/api/admin/stats');
 
     if (requestId !== statsRequestIdRef.current) {
-      return;
-    }
-
-    if (!getStoredAdminToken()) {
-      setLoadingStats(false);
       return;
     }
 
@@ -155,12 +141,6 @@ export default function AdminAuditPage() {
   }, []);
 
   const loadReports = useCallback(async () => {
-    if (!getStoredAdminToken()) {
-      setReports([]);
-      setLoadingReports(false);
-      return;
-    }
-
     const currentFilter = filterRef.current;
     const requestId = ++reportRequestIdRef.current;
     setLoadingReports(true);
@@ -172,27 +152,12 @@ export default function AdminAuditPage() {
       return;
     }
 
-    if (!getStoredAdminToken()) {
-      setLoadingReports(false);
-      return;
-    }
-
     setReports(result.ok && result.data?.items ? result.data.items : []);
     if (!result.ok) setStatus(`Error: Reports failed — ${result.error}`);
     setLoadingReports(false);
   }, []);
 
   const refreshAll = useCallback(async () => {
-    if (!getStoredAdminToken()) {
-      setReports([]);
-      setStatsRows([]);
-      setUnavailableTables([]);
-      setStatus('Save an admin API token above to load audit surfaces.');
-      setLoadingReports(false);
-      setLoadingStats(false);
-      return;
-    }
-
     const requestId = ++loadRequestRef.current;
     setStatus('Refreshing audit surfaces…');
     await Promise.all([loadStats(), loadReports()]);
@@ -201,25 +166,15 @@ export default function AdminAuditPage() {
       return;
     }
 
-    if (!getStoredAdminToken()) {
-      return;
-    }
-
     setStatus((current) => (current === 'Refreshing audit surfaces…' ? 'Audit surfaces loaded.' : current));
   }, [loadReports, loadStats]);
 
   useEffect(() => {
-    if (getStoredAdminToken()) {
-      setTokenReady(true);
-      void refreshAll();
-    }
-  }, [refreshAll]);
+    void refreshAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
-    if (!getStoredAdminToken()) {
-      return;
-    }
-
     if (skipFilterEffectRef.current) {
       skipFilterEffectRef.current = false;
       return;
@@ -230,11 +185,6 @@ export default function AdminAuditPage() {
 
   const closeReport = useCallback(
     async (id: number) => {
-      if (!getStoredAdminToken()) {
-        setStatus('Error: Save an admin API token above before closing reports.');
-        return;
-      }
-
       setClosing(true);
       setStatus('Closing report…');
 
@@ -258,11 +208,6 @@ export default function AdminAuditPage() {
   );
 
   const downloadExport = useCallback(async () => {
-    if (!getStoredAdminToken()) {
-      setStatus('Error: Save an admin API token above before exporting data.');
-      return;
-    }
-
     setExporting(true);
     setStatus(`Exporting ${exportTable}…`);
 
@@ -293,40 +238,13 @@ export default function AdminAuditPage() {
     >
       <AdminNav />
       <div style={{ display: 'grid', gap: 16, marginTop: 16 }}>
-        <AdminTokenPanel
-          onSaved={() => {
-            if (!getStoredAdminToken()) {
-              loadRequestRef.current += 1;
-              reportRequestIdRef.current += 1;
-              statsRequestIdRef.current += 1;
-              setTokenReady(false);
-              setLoadingReports(false);
-              setLoadingStats(false);
-              setExporting(false);
-              setClosing(false);
-              setReports([]);
-              setStatsRows([]);
-              setUnavailableTables([]);
-              setReportNotes({});
-              setStatus('Save an admin API token above to load audit surfaces.');
-              return;
-            }
-            setTokenReady(true);
-            void refreshAll();
-          }}
-        />
-
-        {!tokenReady ? (
-          <p style={{ opacity: 0.85 }}>Save an admin API token above to load audit surfaces.</p>
-        ) : null}
-
         <div className={styles.panel}>
           <div className={styles.panelHeader}>
             <div className={styles.panelTitle}>Operational snapshot</div>
             <button
               className={styles.btn}
               onClick={() => void refreshAll()}
-              disabled={actionBusy || !tokenReady}
+              disabled={actionBusy}
             >
               Refresh
             </button>
@@ -382,7 +300,7 @@ export default function AdminAuditPage() {
                 onChange={(event) =>
                   setExportTable(event.target.value as (typeof EXPORT_TABLES)[number]['value'])
                 }
-                disabled={!tokenReady || actionBusy}
+                disabled={actionBusy}
                 style={fieldStyle()}
               >
                 {EXPORT_TABLES.map((option) => (
@@ -394,8 +312,8 @@ export default function AdminAuditPage() {
             </label>
             <button
               type="button"
-              style={{ ...buttonStyle(exporting || !tokenReady || actionBusy), alignSelf: 'end' }}
-              disabled={exporting || !tokenReady || actionBusy}
+              style={{ ...buttonStyle(exporting || actionBusy), alignSelf: 'end' }}
+              disabled={exporting || actionBusy}
               onClick={() => void downloadExport()}
             >
               Download CSV
@@ -409,7 +327,7 @@ export default function AdminAuditPage() {
             <button
               className={styles.btn}
               onClick={() => void loadReports()}
-              disabled={loadingReports || !tokenReady || actionBusy}
+              disabled={loadingReports || actionBusy}
             >
               Refresh reports
             </button>
@@ -423,8 +341,8 @@ export default function AdminAuditPage() {
               <button
                 key={filter}
                 type="button"
-                style={buttonStyle(!tokenReady || actionBusy)}
-                disabled={!tokenReady || actionBusy || reportFilter === filter}
+                style={buttonStyle(actionBusy)}
+                disabled={actionBusy || reportFilter === filter}
                 onClick={() => setReportFilter(filter)}
               >
                 {filter}
@@ -468,13 +386,13 @@ export default function AdminAuditPage() {
                       }
                       placeholder="Admin note for closeout"
                       rows={2}
-                      disabled={!tokenReady || actionBusy}
+                      disabled={actionBusy}
                       style={fieldStyle()}
                     />
                     <button
                       type="button"
-                      style={buttonStyle(!tokenReady || actionBusy)}
-                      disabled={!tokenReady || actionBusy}
+                      style={buttonStyle(actionBusy)}
+                      disabled={actionBusy}
                       onClick={() => void closeReport(report.id)}
                     >
                       Close report
