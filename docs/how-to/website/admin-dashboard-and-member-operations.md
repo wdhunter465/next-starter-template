@@ -27,7 +27,7 @@ Routes:
 
 ## Steps
 
-1. Sign in as admin and save the admin API token.
+1. Sign in as an admin member.
 2. Open the target route from `AdminNav` or dashboard cards.
 3. Refresh data; confirm stats or lists load.
 4. Perform the allowed action (review join request, update worklist item, edit member ops copy).
@@ -37,10 +37,9 @@ Routes:
 
 ### Dashboard (`/admin`)
 
-1. Open **Dashboard**.
-2. Save token if prompted.
-3. Review dashboard cards linking to operational lanes.
-4. Use stats snapshot when present; treat missing stats as token or API configuration issue.
+1. Open **Dashboard**; data loads automatically for a signed-in admin member.
+2. Review dashboard cards linking to operational lanes.
+3. Use stats snapshot when present; treat missing stats as a D1 or API configuration issue.
 
 ### Join requests (`/admin/join-requests`)
 
@@ -48,7 +47,7 @@ Routes:
 2. Refresh the queue.
 3. Review masked applicant fields; do not expect raw PII in admin UI.
 4. Use available actions per row (approve/deny or documented deferral).
-5. On API failure, note `Error:` status and retry after confirming token and D1 health.
+5. On API failure, note `Error:` status and retry after confirming admin session and D1 health.
 
 ### Worklist (`/admin/worklist`)
 
@@ -66,10 +65,10 @@ Routes:
 
 ## Verification
 
-- `tests/admin-operations.test.tsx` covers layout, nav, and token gating patterns.
-- Manual: each route loads only after token save; clearing token resets visible state.
+- `tests/admin-operations.test.tsx` covers layout, nav, and session-gated auth patterns.
+- Manual: each route loads only for a signed-in admin session; sign-out resets visible state.
 
 ## Closeout Criteria
 
 Join/worklist/member-ops actions are complete when API responses succeed, status
-text confirms the outcome, and no stale data remains after token clear.
+text confirms the outcome, and no stale data remains after sign-out.

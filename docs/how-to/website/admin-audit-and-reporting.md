@@ -25,7 +25,7 @@ APIs: `/api/admin/stats`, `/api/admin/export`, `/api/admin/reports/list`,
 
 ## Steps
 
-1. Sign in as admin and save the admin API token on the audit page.
+1. Sign in as an admin member.
 2. Click **Refresh** to load stats and the open report queue.
 3. Review operational snapshot and unavailable-table warnings.
 4. Export allowlisted tables or close reviewed reports with admin notes.
@@ -35,10 +35,9 @@ APIs: `/api/admin/stats`, `/api/admin/export`, `/api/admin/reports/list`,
 
 ### Load audit surfaces
 
-1. Open **Audit & Reporting**.
-2. Save token when prompted.
-3. Click **Refresh** (disabled while other actions are busy).
-4. Confirm status moves from token prompt to loaded snapshot.
+1. Open **Audit & Reporting**; the snapshot loads automatically for a signed-in admin member.
+2. Click **Refresh** (disabled while other actions are busy).
+3. Confirm status moves from loading to the loaded snapshot.
 
 ### Operational snapshot
 
@@ -50,7 +49,7 @@ APIs: `/api/admin/stats`, `/api/admin/export`, `/api/admin/reports/list`,
 
 1. Choose an allowlisted table (join requests, join email log, library entries,
    photos, page content).
-2. Click **Download CSV** (requires token; disabled while busy).
+2. Click **Download CSV** (disabled while busy).
 3. Confirm browser download and success status.
 4. Reporter emails are not included in report exports from this lane.
 

@@ -13,12 +13,18 @@ export function seedAdminSession(
   email = ADMIN_SESSION_EMAIL,
   sessionId = ADMIN_SESSION_ID,
 ): string {
-  sqlite.exec(`
-    INSERT INTO members (email, role) VALUES ('${email}', 'admin')
-      ON CONFLICT(email) DO UPDATE SET role = 'admin';
-    INSERT INTO member_sessions (id, email, expires_at)
-      VALUES ('${sessionId}', '${email}', datetime('now', '+1 day'))
-      ON CONFLICT(id) DO UPDATE SET expires_at = datetime('now', '+1 day');
-  `);
+  sqlite
+    .prepare(
+      `INSERT INTO members (email, role) VALUES (?, 'admin')
+         ON CONFLICT(email) DO UPDATE SET role = 'admin'`,
+    )
+    .run(email);
+  sqlite
+    .prepare(
+      `INSERT INTO member_sessions (id, email, expires_at)
+         VALUES (?, ?, datetime('now', '+1 day'))
+         ON CONFLICT(id) DO UPDATE SET expires_at = datetime('now', '+1 day')`,
+    )
+    .run(sessionId, email);
   return sessionId;
 }

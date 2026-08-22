@@ -28,7 +28,7 @@ API areas: `functions/api/admin/faq/**`, `functions/api/admin/ask/**`,
 
 ## Steps
 
-1. Sign in as admin and save the admin API token on the target page.
+1. Sign in as an admin member.
 2. Open **Moderation** or **FAQ Queue**.
 3. Refresh queues; confirm items render or empty-state messaging appears.
 4. Approve, deny, archive, or route items per editorial policy.
@@ -46,9 +46,9 @@ API areas: `functions/api/admin/faq/**`, `functions/api/admin/ask/**`,
 ### FAQ queue
 
 1. Open **FAQ Queue**; lists load automatically.
-2. Load pending/approved lists.
-4. Approve or deny with required notes when the UI prompts.
-5. Confirm queue counts update after action.
+2. Review pending/approved lists.
+3. Approve or deny with required notes when the UI prompts.
+4. Confirm queue counts update after action.
 
 ### Reports
 
@@ -57,8 +57,8 @@ Member report creation is public/member-scoped. Admin list/close lives under
 
 ## Verification
 
-- `tests/admin-moderation.test.tsx` — queue failure and FAQ token gating.
-- Manual: no queue loads without token; errors use accessible status text.
+- `tests/admin-moderation.test.tsx` — queue failure and FAQ auth behavior.
+- Manual: no queue loads without an authenticated admin session; errors use accessible status text.
 
 ## Closeout Criteria
 

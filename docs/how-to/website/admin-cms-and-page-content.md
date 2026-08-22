@@ -26,7 +26,7 @@ APIs: `functions/api/admin/cms/**`, `functions/api/admin/content/**`.
 
 ## Steps
 
-1. Sign in as admin and save the admin API token.
+1. Sign in as an admin member.
 2. Open **CMS Blocks** or **Page Content**.
 3. Load the list; select the target record.
 4. Edit fields; save draft changes.
@@ -73,7 +73,7 @@ See `docs/reference/website/unified-content-workflow.md` and
 ## Verification
 
 - `tests/admin-cms-content.test.tsx`
-- Manual: list/save/publish fail closed without token.
+- Manual: list/save/publish fail closed without an authenticated admin session.
 
 ## Closeout Criteria
 

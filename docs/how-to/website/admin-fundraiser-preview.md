@@ -24,7 +24,7 @@ Related public components: `CampaignSpotlightSlot`, `CampaignSpotlightCard`,
 
 ## Steps
 
-1. Sign in as admin and save the admin API token.
+1. Sign in as an admin member.
 2. Open **Fundraiser Preview**.
 3. Load preview payload.
 4. Validate campaign fields (title, link, dates, spotlight eligibility).
@@ -34,14 +34,13 @@ Related public components: `CampaignSpotlightSlot`, `CampaignSpotlightCard`,
 
 ### Load preview
 
-1. Open **Fundraiser Preview**.
-2. Save token when prompted.
-3. Refresh preview data.
-4. Review rendered preview panel and raw fields shown in the UI.
+1. Open **Fundraiser Preview**; preview data loads automatically for a signed-in admin member.
+2. Refresh preview data.
+3. Review rendered preview panel and raw fields shown in the UI.
 
 ### Fail-closed behavior
 
-- Without token, preview must not load privileged campaign configuration.
+- Without an authenticated admin session, preview must not load privileged campaign configuration.
 - On validation or API errors, status uses `Error:` prefix.
 - Do not expose draft campaign data on public routes until publish rules are met.
 
@@ -53,7 +52,7 @@ and link targets on the deployed site.
 ## Verification
 
 - `tests/admin-fundraiser-preview.test.tsx`
-- Manual: preview blocked until token saved.
+- Manual: preview blocked until signed in as an admin member.
 
 ## Closeout Criteria
 

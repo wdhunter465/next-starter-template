@@ -27,7 +27,7 @@ APIs: `functions/api/admin/matchup/**`, public `functions/api/matchup/**`.
 
 ## Steps
 
-1. Sign in as admin and save the admin API token.
+1. Sign in as an admin member.
 2. Open **Matchup**.
 3. Load matchup list and active record.
 4. Use the public preview panel to compare admin vs live homepage data.
@@ -37,9 +37,8 @@ APIs: `functions/api/admin/matchup/**`, public `functions/api/matchup/**`.
 
 ### Load matchups
 
-1. Open **Matchup**.
-2. Save token; wait for list load.
-3. Review active matchup and historical items.
+1. Open **Matchup**; the list loads automatically for a signed-in admin member.
+2. Review active matchup and historical items.
 
 ### Create matchup (override)
 
@@ -64,7 +63,7 @@ The admin page fetches `/api/matchup/current` and `/api/matchup/results` for ope
 
 - `tests/admin-matchup.test.tsx`
 - `tests/matchup-current-rotation.test.ts`
-- Manual: mutations blocked without token; stale refresh cancelled on token clear.
+- Manual: mutations blocked without an authenticated admin session; stale refresh cancelled on sign-out.
 
 ## Closeout Criteria
 

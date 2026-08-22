@@ -33,7 +33,7 @@ Related editorial how-tos (submission → review → publish):
 
 ## Steps
 
-1. Sign in as admin and save the admin API token.
+1. Sign in as an admin member.
 2. Open **Editorial Archive**.
 3. Load inventory or queue views exposed by the page.
 4. Perform review, merge, or publish actions per linked editorial how-tos.
@@ -43,9 +43,8 @@ Related editorial how-tos (submission → review → publish):
 
 ### Open editorial admin
 
-1. Navigate to **Editorial Archive**.
-2. Save token when prompted.
-3. Refresh lists (inventory, submissions, or review queues per UI).
+1. Navigate to **Editorial Archive**; lists load automatically for a signed-in admin member.
+2. Refresh lists (inventory, submissions, or review queues per UI).
 
 ### Review and publish
 
