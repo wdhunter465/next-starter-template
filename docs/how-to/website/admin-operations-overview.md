@@ -6,7 +6,7 @@ Owns: Entry-point operator workflow for Website Operations Admin surfaces under 
 Does Not Own: GitHub issue closure, runtime deployment, schema migration, or auth policy changes
 Canonical Reference: /docs/reference/architecture/access-model.md
 Related issues: #1255, #1258, #1565
-Last Reviewed: 2026-06-14
+Last Reviewed: 2026-08-22
 ---
 
 # Website Operations Admin — Overview

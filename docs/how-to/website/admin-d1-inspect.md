@@ -6,7 +6,7 @@ Owns: D1 inspect diagnostic procedure for operators
 Does Not Own: D1 migrations, production data repair, or schema design
 Canonical Reference: /docs/reference/architecture/access-model.md
 Related issues: #1258, #1565, #1119, #2157
-Last Reviewed: 2026-07-04
+Last Reviewed: 2026-08-22
 ---
 
 # Admin D1 Inspect

@@ -6,7 +6,7 @@ Owns: Event calendar administration and public read-path stability checks
 Does Not Own: Homepage section order, ICS feeds, or ticket integrations
 Canonical Reference: /docs/reference/architecture/access-model.md
 Related issues: #1258, #1565, #1124
-Last Reviewed: 2026-06-14
+Last Reviewed: 2026-08-22
 ---
 
 # Admin Events Calendar

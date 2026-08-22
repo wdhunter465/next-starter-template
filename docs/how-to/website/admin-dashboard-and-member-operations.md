@@ -6,7 +6,7 @@ Owns: Dashboard, join requests, worklist, and member-operations admin procedures
 Does Not Own: Member auth provisioning, D1 schema changes, or join approval policy
 Canonical Reference: /docs/reference/architecture/access-model.md
 Related issues: #1258, #1565, #1119
-Last Reviewed: 2026-06-14
+Last Reviewed: 2026-08-22
 ---
 
 # Admin Dashboard and Member Operations

@@ -6,7 +6,7 @@ Owns: Media asset inventory and B2 sync operator procedures
 Does Not Own: B2 bucket policy, photo schema migrations, or CDN configuration
 Canonical Reference: /docs/reference/architecture/access-model.md
 Related issues: #1258, #1565, #1122
-Last Reviewed: 2026-06-14
+Last Reviewed: 2026-08-22
 ---
 
 # Admin Media Assets

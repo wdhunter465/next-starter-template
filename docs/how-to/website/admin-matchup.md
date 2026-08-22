@@ -6,7 +6,7 @@ Owns: Weekly matchup override/emergency ops and public read-path checks
 Does Not Own: Voting model redesign, photo curation UI, or matchup product policy
 Canonical Reference: /docs/as-built/weekly-matchup-auto-rotation.md
 Related issues: #1258, #1565, #1126, #2157
-Last Reviewed: 2026-07-04
+Last Reviewed: 2026-08-22
 ---
 
 # Admin Matchup
