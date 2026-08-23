@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Repository work-queue classification, queue precedence, team-assignment and priority namespaces, team vs agent claim lifecycle, ordered Active and Pipeline priority, Project Graduation, queue-state transitions, universal agent collaboration, and collaboration interaction with pull requests
 Does Not Own: Product outcome, final priority decisions, project design, implementation methods, recovery strategy, PR approval decisions, Production authorization, dashboard runtime implementation, or label-migration execution
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2695, #2699, #3055, #3113, #3145, #3152, #3240, #3134, #3188, #3597
-Last Reviewed: 2026-08-18
+Related Issues: #2695, #2699, #3055, #3113, #3145, #3152, #3240, #3134, #3188, #3597, #3629, #3642
+Last Reviewed: 2026-08-23
 ---
 
 # Work Queues and Collaboration
@@ -27,6 +27,8 @@ Operations interrupt queue
 ```
 
 Operations has precedence while numbered Operations work is actionable. Governance, PMO Active, PMO Pipeline, and Engineering qualification are peer normal-work queues with mutually exclusive meanings and priority namespaces. Governance is **not** an Operations interrupt queue and is **not** an Active PMO Project queue.
+
+Their default normal-work *selection order* — the tie-break used when an agent has eligible work in more than one of these peer queues — is **PMO Active -> PMO Pipeline -> Engineering qualification -> Governance stewardship** (`docs/governance/REPOSITORY-AUTHORITY.md` invariant 9, decided in #3629). This is a scheduling order only; it does not make any queue subordinate to another in ownership, authority, or priority namespace. Blocking Governance matters preempt this order only for an actual authority conflict or an explicit Product Authority escalation — routine Governance stewardship, including #3629 itself, does not preempt queues already in motion. Re-evaluate this order at each task boundary rather than exhausting one queue before considering the next, and never interrupt in-flight work before its nearest safe checkpoint.
 
 Explanation: `docs/explanation/pmo/engineering-qualification-and-pmo-lifecycle.md`. Machine contract: `docs/reference/pmo/pmo-lifecycle-and-priority-contract.md`. Procedures: `docs/how-to/pmo/run-pmo-lifecycle-and-priority.md`.
 
@@ -458,14 +460,22 @@ Parallel execution is permitted only when the project master explicitly authoriz
 
 ## Daily work precedence
 
+The canonical cross-queue selection order is defined once, above, and in
+`docs/governance/REPOSITORY-AUTHORITY.md` invariant 9: **Operations (interrupt) ->
+PMO Active -> PMO Pipeline -> Engineering qualification -> Governance stewardship**
+(#3629). The per-agent lists below apply that single order to each agent's
+authorized eligible queues — they narrow *which* queues an agent may self-claim
+from, they do not define a competing *order* among the queues an agent is
+eligible for (#3629 rule 7).
+
 ### Cursor
 
 1. Actionable `team:operations` Issues (self-claim by queue priority and eligibility).
 2. Active `team:pmo` project/program children under standing parent authority (self-claim next eligible child).
 3. Actionable `team:governance` stewardship Issues (self-claim by `gov:*` priority/eligibility).
-4. Engineering collaboration only when explicitly requested and bounded — Cursor is not a normal Engineering executor.
+4. Engineering collaboration only when explicitly requested and bounded — Cursor is not a normal Engineering executor, so Engineering does not appear as a self-claim step.
 
-Operations Monitoring and Hold Issues receive their required interval updates but do not block PMO, Governance, or Engineering work. An actionable Operations Issue interrupts ordinary PMO and Governance implementation at the nearest safe checkpoint; Cursor resumes after the interrupt clears. Governance does not interrupt PMO or Engineering.
+Operations Monitoring and Hold Issues receive their required interval updates but do not block PMO, Governance, or Engineering work. An actionable Operations Issue interrupts ordinary PMO and Governance implementation at the nearest safe checkpoint; Cursor resumes after the interrupt clears. Governance does not interrupt PMO or Engineering except for a blocking Governance matter under #3629 (an actual authority conflict or explicit Product Authority escalation) — routine Governance stewardship never preempts.
 
 ### Claude Code
 
@@ -477,9 +487,9 @@ Operations Monitoring and Hold Issues receive their required interval updates bu
 ### Work
 
 1. Numbered Operations Issues when assigned for Tier 2 support, Engineering judgment, review, or coordination.
-2. Governance analysis, policy/design decisions, repository-governance review, and independent assurance when assigned.
-3. PMO preparation, graduation, monitoring, assurance, substantive acceptance, exception handling, and closeout.
-4. Engineering Pipeline preparation and portfolio reconciliation.
+2. PMO preparation, graduation, monitoring, assurance, substantive acceptance, exception handling, and closeout.
+3. Engineering Pipeline preparation and portfolio reconciliation.
+4. Governance analysis, policy/design decisions, repository-governance review, and independent assurance when assigned — reordered after PMO and Engineering per #3629; previously listed second.
 
 ## Universal collaboration method
 

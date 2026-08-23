@@ -109,7 +109,7 @@
       "expect": {
         "lane": "engineering_qualification",
         "action": "qualification",
-        "precedenceRank": 3,
+        "precedenceRank": 4,
         "authorizesActiveImplementation": false,
         "eligible": true
       }

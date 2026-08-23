@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Durable LGFC roles, recognized agent product inventory, current member mapping, approval authority, protected stops, operating modes, launch-control workflow boundaries, member work-precedence mapping, and delegated task-closeout role boundaries
 Does Not Own: Queue and priority semantics, shared execution detail, tool-specific runtime behavior, PMO sizing, promotion-profile policy, communication mutation taxonomy, or production mechanics
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2494, #2640, #2641, #2648, #2699, #2700, #3052, #3145, #3142, #3152, #3240, #3188, #3605, #3611
-Last Reviewed: 2026-08-18
+Related Issues: #2494, #2640, #2641, #2648, #2699, #2700, #3052, #3145, #3142, #3152, #3240, #3188, #3605, #3611, #3629, #3642
+Last Reviewed: 2026-08-23
 ---
 
 # Agent Team
@@ -122,34 +122,24 @@ Lanes define authority. The separate Operations, Governance, PMO, and Engineerin
 
 ## Daily work precedence
 
-### Cursor Local
+This document does not own queue and priority semantics (see "Does Not Own"
+above). The canonical cross-queue selection order — **Operations (interrupt) ->
+PMO Active -> PMO Pipeline -> Engineering qualification -> Governance
+stewardship** (#3629) — and each member's per-agent eligible-queue scope within
+that order are defined once in `docs/governance/REPOSITORY-AUTHORITY.md`
+invariant 9 and `docs/governance/WORK-QUEUES-AND-COLLABORATION.md` "Daily work
+precedence." Consult those, not a restated copy here, to avoid the two documents
+drifting out of agreement.
 
-1. Actionable `team:operations` Issues requiring remediation (normal Operations executor; self-claim by eligibility).
-2. Active `team:pmo` project/program children under standing parent authority (self-claim next eligible child).
-3. Actionable `team:governance` stewardship Issues (normal Governance executor for bounded repository/documentation changes; self-claim by eligibility).
-4. Bounded Engineering collaboration only when explicitly requested — Cursor is not a normal `team:engineering` executor.
+After packaging one Cursor assignment, Cursor Local returns to the remaining
+assigned/resume queue in that canonical precedence order (#3605). A quiet poll
+(`fresh=0`) is not idle while that queue is non-empty. An item waiting on
+independent review, approval, or another long-running process does not occupy
+the session; continue `nextExecutable` and keep the waiting item for gate and
+reviewer follow-through only (#3611).
 
-Operations Monitoring and Hold Issues receive required interval updates but do not block Active PMO or Governance work. An actionable Operations Issue interrupts ordinary PMO and Governance implementation at the nearest safe checkpoint. Governance does not interrupt PMO or Engineering.
-
-After packaging one Cursor assignment, Cursor Local returns to the remaining assigned/resume queue in this same precedence order (#3605). A quiet poll (`fresh=0`) is not idle while that queue is non-empty. An item waiting on independent review, approval, or another long-running process does not occupy the session; continue `nextExecutable` and keep the waiting item for gate and reviewer follow-through only (#3611).
-
-### Claude Code
-
-1. Active `team:pmo` project/program children under standing parent authority (self-claim when eligible) — operating in parallel with, not in place of, Cursor Local; each claimed task has exactly one executor.
-2. `team:engineering` Pipeline and Active Engineering work (normal Engineering executor; self-claim by eligibility).
-3. `team:governance` stewardship work when explicitly assigned (including independent governance/engineering review where separation of duty is preserved).
-4. Bounded `team:operations` support only when an Operations Issue is explicitly escalated beyond normal Cursor-only handling — Claude does not normally self-claim the Operations queue; escalation does not create a fifth Team or change Team ownership.
-
-Operations Monitoring and Hold Issues receive required interval updates but do not block Active PMO or Governance work.
-
-### Work
-
-1. Numbered Operations Issues when assigned for Tier 2 specialist support, Engineering judgment, independent review, or coordination.
-2. Governance analysis, policy/design decisions, repository-governance review, and independent assurance when assigned.
-3. PMO preparation, graduation, monitoring, assurance, substantive acceptance, exception handling, and closeout — including project-closeout administrative tasks.
-4. Engineering Pipeline preparation selected by Engineering priority.
-
-This precedence orders each member's available capacity. It does not merge team queues or transfer source-Issue ownership.
+This precedence orders each member's available capacity. It does not merge team
+queues or transfer source-Issue ownership.
 
 ## Authority boundaries
 

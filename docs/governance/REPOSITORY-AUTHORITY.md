@@ -5,8 +5,8 @@ Authority Level: Constitutional
 Owns: Repository precedence, GitHub Issue authority, domain ownership, lane topology, work-queue topology, canonical-source rules, supersession, and unresolved-conflict escalation
 Does Not Own: Detailed PMO, queue, delivery, agent, CI, Administration, Operations, collaboration, or platform procedures
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2477, #2486, #2640, #2641, #2678, #2686, #2690, #2699, #2720, #2941, #3597
-Last Reviewed: 2026-08-18
+Related Issues: #2477, #2486, #2640, #2641, #2678, #2686, #2690, #2699, #2720, #2941, #3597, #3629, #3642
+Last Reviewed: 2026-08-23
 ---
 
 # Repository Authority
@@ -112,7 +112,7 @@ Operations interrupt queue
 
 Constitutional queue invariants:
 
-1. Numbered Operations work has interrupt precedence over PMO and Engineering work.
+1. Numbered Operations work has interrupt precedence over PMO, Engineering, and Governance work.
 2. PMO Active implementation and PMO Pipeline preparation are peer PMO queues with independent ordered priorities. Engineering qualification is the pre-Pipeline gate and is not Active implementation.
 3. A source Issue belongs to at most one team queue at a time.
 4. Team-priority namespaces are mutually exclusive. Active `pmo:priority:<n>` and Pipeline `pmo:pipeline-priority:<n>` are separate domains.
@@ -120,6 +120,7 @@ Constitutional queue invariants:
 6. Project child tasks do not receive team-level priority; the parent priority selects the project and the project sequence selects the task.
 7. Pipeline-to-Active movement requires explicit Project Graduation, a newly assigned Active ordered priority, and one start-to-finish implementation owner.
 8. Collaboration may add participants but never creates dual queue ownership.
+9. Default normal-work selection order across the four non-interrupt queues is **PMO Active -> PMO Pipeline -> Engineering qualification -> Governance stewardship** (#3629). This is a scheduling tie-break for automated or ambiguous cross-queue selection; it does not change any queue's independent ownership, authority, or priority namespace under invariant 2, nor does it subordinate Governance's stewardship authority to the other three. Blocking Governance matters preempt this order only for an actual authority conflict or an explicit Product Authority escalation; routine Governance stewardship does not preempt queues already in motion. Queue-order re-evaluation happens at each task boundary, not only after a queue is exhausted, and never interrupts in-flight work before its nearest safe checkpoint.
 
 Detailed queue, priority, graduation, and collaboration rules live in `docs/governance/WORK-QUEUES-AND-COLLABORATION.md`. Machine mapping lives in `docs/reference/pmo/pmo-lifecycle-and-priority-contract.md`.
 

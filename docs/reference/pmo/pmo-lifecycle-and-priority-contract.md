@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: Canonical PMO lifecycle states, Engineering qualification mapping, ordered priority representation, dashboard and routing invariants
 Does Not Own: Product priority decisions, weekly meeting procedure, live GitHub label creation, or bulk Issue mutation
 Canonical Reference: /docs/governance/WORK-QUEUES-AND-COLLABORATION.md
-Related Issues: #3597, #2699, #2724
-Last Reviewed: 2026-08-18
+Related Issues: #3597, #2699, #2724, #3629, #3642
+Last Reviewed: 2026-08-23
 ---
 
 # PMO Lifecycle and Priority Contract
@@ -96,12 +96,22 @@ Engineering qualification Issues and standalone Operations/Governance Issues are
 
 ## Routing mapping
 
-| Shape | Lane | Authorizes Active implementation |
-| --- | --- | --- |
-| `team:engineering` without `pmo:pipeline` | `engineering_qualification` | no |
-| `pmo:pipeline` + `team:pmo` + pipeline priority | `pmo_pipeline` | no |
-| `pmo:active` child with valid Active parent | `pmo_active` | yes, when sequence and implementation authorization already exist |
-| numbered `ops:priority:*` | `operations` | no |
+Default cross-queue precedence for automated/ambiguous selection (#3629;
+implemented in `scripts/orchestrator/queue-routing.mjs` `precedenceRank`):
+Operations(1) -> PMO Active(2) -> PMO Pipeline(3) -> Engineering qualification(4)
+-> Governance stewardship(5). Operations and Governance interval/hold states are
+non-blocking and rank last (6) — they are excluded from `eligible` dispatch
+entirely.
+
+| Shape | Lane | Precedence | Authorizes Active implementation |
+| --- | --- | --- | --- |
+| numbered `ops:priority:*` | `operations` | 1 | no |
+| `pmo:active` child with valid Active parent | `pmo_active` | 2 | yes, when sequence and implementation authorization already exist |
+| `pmo:pipeline` + `team:pmo` + pipeline priority | `pmo_pipeline` | 3 | no |
+| `team:engineering` without `pmo:pipeline` | `engineering_qualification` | 4 | no |
+| `team:governance` + `gov:priority:*` | `governance` | 5 | no |
+| `ops:monitoring` / `ops:hold` | `operations` (interval) | 6, non-blocking | no |
+| `gov:review` / `gov:hold` | `governance` (interval) | 6, non-blocking | no |
 
 Project Graduation is the only Pipeline-to-Active transition. Graduation Candidate without Go remains preparation.
 
