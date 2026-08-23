@@ -2,8 +2,10 @@
 
 import { CANDIDATE_ID_PATTERN, CANDIDATE_ID_VALIDATION_MESSAGE } from './content-pipeline-candidate-constants';
 import {
+  RIGHTS_EVIDENCE_CHANNEL_SET,
   RIGHTS_EVIDENCE_CONCLUSION_SET,
   RIGHTS_EVIDENCE_TYPE_SET,
+  type RightsEvidenceChannel,
   type RightsEvidenceConclusion,
   type RightsEvidenceType,
 } from './rights-evidence-repository';
@@ -13,6 +15,9 @@ export { CANDIDATE_ID_PATTERN, CANDIDATE_ID_VALIDATION_MESSAGE };
 const EVIDENCE_TEXT_MAX_LENGTH = 8000;
 const EVIDENCE_URL_MAX_LENGTH = 2048;
 const CONCLUSION_RATIONALE_MAX_LENGTH = 4000;
+const RIGHTS_HOLDER_MAX_LENGTH = 500;
+const REPOSITORY_OR_COLLECTION_MAX_LENGTH = 500;
+const PUBLICATION_DATE_SOURCE_MAX_LENGTH = 500;
 
 export type RecordRightsEvidenceRequest = {
   candidate_id: string;
@@ -24,6 +29,12 @@ export type RecordRightsEvidenceRequest = {
   reviewer?: string;
   conclusion?: RightsEvidenceConclusion;
   conclusion_rationale?: string;
+  channel?: RightsEvidenceChannel;
+  rights_holder?: string;
+  repository_or_collection?: string;
+  publication_established?: 0 | 1;
+  us_publication_or_uraa_confirmed?: 0 | 1;
+  publication_date_source?: string;
 };
 
 export type ParseRecordRightsEvidenceResult =
@@ -39,6 +50,14 @@ function asOptionalTrimmedString(value: unknown, maxLength: number): string | un
   const trimmed = asTrimmedString(value);
   if (!trimmed) return undefined;
   return trimmed.length > maxLength ? trimmed.slice(0, maxLength) : trimmed;
+}
+
+// Accepts true/false/0/1 (and their string forms) and normalizes to 0/1.
+// Returns undefined for anything else, including missing values.
+function asBooleanishFlag(value: unknown): 0 | 1 | undefined {
+  if (value === true || value === 1 || value === '1' || value === 'true') return 1;
+  if (value === false || value === 0 || value === '0' || value === 'false') return 0;
+  return undefined;
 }
 
 export function parseRecordRightsEvidenceRequest(body: unknown): ParseRecordRightsEvidenceResult {
@@ -78,6 +97,60 @@ export function parseRecordRightsEvidenceRequest(body: unknown): ParseRecordRigh
     }
   }
 
+  // #3551's 2026-08-18 directive: no blanket approval. A conclusion is only
+  // ever authoritative for the specific channel it was recorded against, so
+  // that channel must be present whenever a conclusion is recorded.
+  let channel: RightsEvidenceChannel | undefined;
+  if (conclusion !== undefined) {
+    const rawChannel = asTrimmedString(record.channel);
+    if (!rawChannel || !RIGHTS_EVIDENCE_CHANNEL_SET.has(rawChannel)) {
+      return {
+        ok: false,
+        error: `channel is required when recording a conclusion and must be one of: ${[...RIGHTS_EVIDENCE_CHANNEL_SET].join(', ')}.`,
+      };
+    }
+    channel = rawChannel as RightsEvidenceChannel;
+  } else if (record.channel !== undefined && record.channel !== null) {
+    const rawChannel = asTrimmedString(record.channel);
+    if (rawChannel && RIGHTS_EVIDENCE_CHANNEL_SET.has(rawChannel)) {
+      channel = rawChannel as RightsEvidenceChannel;
+    }
+  }
+
+  // Evidence can carry a rights holder / source repository without a
+  // conclusion yet -- these are not conclusion-gated.
+  const rightsHolder = asOptionalTrimmedString(record.rights_holder, RIGHTS_HOLDER_MAX_LENGTH);
+  const repositoryOrCollection = asOptionalTrimmedString(
+    record.repository_or_collection,
+    REPOSITORY_OR_COLLECTION_MAX_LENGTH,
+  );
+
+  // pre_1931_publication evidence must carry its full structured basis --
+  // partial evidence for this evidence_type is not accepted.
+  let publicationEstablished: 0 | 1 | undefined;
+  let usPublicationOrUraaConfirmed: 0 | 1 | undefined;
+  let publicationDateSource: string | undefined;
+  if (evidenceType === 'pre_1931_publication') {
+    publicationEstablished = asBooleanishFlag(record.publication_established);
+    usPublicationOrUraaConfirmed = asBooleanishFlag(record.us_publication_or_uraa_confirmed);
+    publicationDateSource = asOptionalTrimmedString(
+      record.publication_date_source,
+      PUBLICATION_DATE_SOURCE_MAX_LENGTH,
+    );
+
+    const missing: string[] = [];
+    if (publicationEstablished === undefined) missing.push('publication_established');
+    if (usPublicationOrUraaConfirmed === undefined) missing.push('us_publication_or_uraa_confirmed');
+    if (!publicationDateSource) missing.push('publication_date_source');
+
+    if (missing.length > 0) {
+      return {
+        ok: false,
+        error: `pre_1931_publication evidence requires: ${missing.join(', ')}.`,
+      };
+    }
+  }
+
   let evidenceMetadata: Record<string, unknown> | undefined;
   if (record.evidence_metadata !== undefined && record.evidence_metadata !== null) {
     if (typeof record.evidence_metadata !== 'object' || Array.isArray(record.evidence_metadata)) {
@@ -96,6 +169,12 @@ export function parseRecordRightsEvidenceRequest(body: unknown): ParseRecordRigh
     reviewer: asOptionalTrimmedString(record.reviewer, 255),
     conclusion,
     conclusion_rationale: asOptionalTrimmedString(record.conclusion_rationale, CONCLUSION_RATIONALE_MAX_LENGTH),
+    channel,
+    rights_holder: rightsHolder,
+    repository_or_collection: repositoryOrCollection,
+    publication_established: publicationEstablished,
+    us_publication_or_uraa_confirmed: usPublicationOrUraaConfirmed,
+    publication_date_source: publicationDateSource,
   };
 
   return { ok: true, request };

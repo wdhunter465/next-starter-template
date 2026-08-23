@@ -14,6 +14,7 @@ import {
   requireContentPipelineMediaReferenceTables,
   serializeAdminMediaReferences,
 } from './content-pipeline-media-reference';
+import { getCurrentConclusionForCandidateChannel, type RightsEvidenceChannel } from './rights-evidence-repository';
 
 export { requireContentPipelineMediaReferenceTables as requireContentPipelinePublicationPrepTables };
 
@@ -35,6 +36,32 @@ const PREP_VALID_PUBLICATION_STATUSES = new Set(['draft_candidate', 'staged', 'a
 
 export const MEMBER_SUBMISSION_PREP_SOURCE_NAME = 'LGFC Member Submission';
 
+// Maps #3552's 11 fine-grained publication_target values to #3551's 5 coarse
+// rights-authorization channels (2026-08-18 Product Authority directive).
+export function channelForPublicationTarget(target: string | null): RightsEvidenceChannel | null {
+  if (!target) return null;
+  switch (target) {
+    case 'social':
+      return 'social_media';
+    case 'newsletter':
+      return 'newsletter_email';
+    case 'lou_gehrig_day':
+      return 'fundraiser_campaign';
+    case 'internal_reference_only':
+      return 'internal_archive_only';
+    case 'biography':
+    case 'timeline':
+    case 'gallery':
+    case 'library':
+    case 'memorabilia':
+    case 'article':
+    case 'homepage_feature':
+      return 'website';
+    default:
+      return null;
+  }
+}
+
 export type PublicationPrepGateResult = {
   pass: boolean;
   value: string | null;
@@ -55,6 +82,7 @@ export type PublicationPrepEligibility = {
     member_consent: PublicationPrepGateResult;
     publication_target: PublicationPrepGateResult;
     credit_line: PublicationPrepGateResult;
+    channel_rights_evidence: PublicationPrepGateResult;
   };
 };
 
@@ -128,6 +156,14 @@ export function evaluatePublicationPrepEligibility(
     | 'content_inventory_id'
   >,
   memberSubmission?: PublicationPrepMemberContext | null,
+  // Authoritative per-channel rights_evidence resolution for this candidate's
+  // publication_target channel, from getCurrentConclusionForCandidateChannel.
+  // `null`/omitted means "not applicable" (not a scheduled_discovery
+  // candidate, or its publication_target doesn't map to a known channel) --
+  // the gate below is a no-op in that case, by construction, for every
+  // input_stream other than scheduled_discovery (#2270's separate model for
+  // member_submission/admin_seed/public_research is left untouched).
+  channelConclusionFound?: boolean | null,
 ): PublicationPrepEligibility {
   const reasons: string[] = [];
 
@@ -230,6 +266,21 @@ export function evaluatePublicationPrepEligibility(
     reasons.push(creditLineGate.requirement);
   }
 
+  // #3551's 2026-08-18 channel-scoping directive: for scheduled_discovery
+  // candidates whose publication_target maps to a known channel, a
+  // conclusion recorded for a DIFFERENT channel does not authorize this one.
+  // Inert (always passes) for every other input_stream, and for a
+  // publication_target with no known channel mapping.
+  const targetChannel = channelForPublicationTarget(candidate.publication_target ?? null);
+  const channelRightsGate = gate(
+    candidate.input_stream !== 'scheduled_discovery' || !targetChannel || channelConclusionFound === true,
+    channelConclusionFound === null || channelConclusionFound === undefined ? null : String(channelConclusionFound),
+    "rights_evidence must carry a conclusion for the candidate's specific publication_target channel (scheduled_discovery only)",
+  );
+  if (!channelRightsGate.pass) {
+    reasons.push(channelRightsGate.requirement);
+  }
+
   const gates = {
     review_status: reviewGate,
     rights_status: rightsGate,
@@ -241,6 +292,7 @@ export function evaluatePublicationPrepEligibility(
     member_consent: memberConsentGate,
     publication_target: publicationTargetGate,
     credit_line: creditLineGate,
+    channel_rights_evidence: channelRightsGate,
   };
 
   return {
@@ -351,7 +403,21 @@ export async function buildPublicationPrepViewForCandidate(
     candidate as unknown as Record<string, unknown>,
     uploadedMediaReference,
   );
-  const eligibility = evaluatePublicationPrepEligibility(candidate, memberSubmission);
+
+  // Only scheduled_discovery candidates are governed by #3551's channel
+  // scoping; every other input_stream gets `null` (not applicable), which
+  // keeps the channel_rights_evidence gate inert -- a single extra indexed
+  // query is added per scheduled_discovery candidate only, not per row.
+  let channelConclusionFound: boolean | null = null;
+  if (candidate.input_stream === 'scheduled_discovery') {
+    const targetChannel = channelForPublicationTarget(candidate.publication_target ?? null);
+    if (targetChannel) {
+      const channelConclusion = await getCurrentConclusionForCandidateChannel(db, candidate.id, targetChannel);
+      channelConclusionFound = channelConclusion !== null;
+    }
+  }
+
+  const eligibility = evaluatePublicationPrepEligibility(candidate, memberSubmission, channelConclusionFound);
 
   return serializePublicationPrepView({
     candidate,
