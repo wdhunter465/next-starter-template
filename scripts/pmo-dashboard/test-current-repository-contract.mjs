@@ -68,6 +68,13 @@ async function main() {
     `multiple agent:* labels must surface conflict, got ${conflict.ownerAgent}`
   );
 
+  const unknownAgent = byNumber.get(9104);
+  assert(unknownAgent, 'expected active project #9104');
+  assert(
+    unknownAgent.ownerAgent === 'My Agent Id',
+    `unknown agent key agent:my-agent_id must normalize to 'My Agent Id', got ${unknownAgent.ownerAgent}`
+  );
+
   const repositoryOnlyData = await generateDashboard({ repository: 'example-owner/example-repository' });
   assert(
     repositoryOnlyData.repository === 'example-owner/example-repository',
