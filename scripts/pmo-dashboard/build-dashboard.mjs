@@ -43,6 +43,20 @@ const STAGE_DISPLAY = {
 };
 const PARENT_REF_PATTERN = /^\s*(?:[-*]\s*)?(?:Parent(?:\s+(?:program|project|issue))?)\s*:\s*#?(\d+)\b/im;
 
+/** Canonical agent:* label → display name for dashboard reporting. */
+const AGENT_DISPLAY = {
+  claude: 'Claude',
+  cursor: 'Cursor',
+  grok: 'Grok',
+  jules: 'Jules',
+  chatgpt: 'ChatGPT',
+  chat: 'ChatGPT',
+  work: 'Work',
+  codex: 'Codex',
+  copilot: 'Copilot',
+  cloudflareai: 'Cloudflare AI'
+};
+
 async function github(pathname) {
   const headers = { Accept: 'application/vnd.github+json', 'User-Agent': 'pmo-dashboard-generator' };
   if (TOKEN) headers.Authorization = `Bearer ${TOKEN}`;
@@ -144,11 +158,39 @@ function parseParentReference(issue) {
   return parseChildProject(issue.title)?.parentProgramIssue || null;
 }
 
+/**
+ * Canonical current agent ownership from live machine-readable labels.
+ * - exactly one agent:* → normalized display name
+ * - zero agent:* → Unassigned (body Owner / Agent and legacy owner:* must not invent ownership)
+ * - more than one agent:* → data-quality condition string (do not silently choose)
+ * Stale Issue-body "Owner / Agent:" never overrides agent:* labels.
+ */
+function normalizeAgentDisplay(agentKey) {
+  const key = String(agentKey || '').trim().toLowerCase();
+  if (!key) return null;
+  if (AGENT_DISPLAY[key]) return AGENT_DISPLAY[key];
+  // Preserve unknown agent ids with light capitalization of first segment.
+  return key.replace(/(^|[-_])([a-z])/g, (_, sep, ch) => (sep ? ` ${ch.toUpperCase()}` : ch.toUpperCase()));
+}
+
 function owner(issue) {
-  return field(issue.body, 'Owner / Agent')
-    || labels(issue).find((label) => label.startsWith('owner:'))?.replace('owner:', '')
-    || issue.assignees?.map((assignee) => assignee.login).join(', ')
-    || 'Pending Assignment';
+  const issueLabels = labels(issue);
+  const agentLabels = issueLabels.filter((label) => /^agent:/i.test(label));
+  if (agentLabels.length === 1) {
+    const key = agentLabels[0].replace(/^agent:/i, '');
+    return normalizeAgentDisplay(key) || key;
+  }
+  if (agentLabels.length > 1) {
+    return `Conflicting agent ownership: ${agentLabels.join(', ')}`;
+  }
+  // No agent:* label: report Unassigned. Do not let stale body text or legacy
+  // owner:* / assignees invent current ownership over the empty claim state.
+  // (Legacy owner:* remains available only as secondary signal when product
+  // later re-enables fallback; issue #3615 requires agent:* as sole canonical.)
+  void field(issue.body, 'Owner / Agent');
+  void issueLabels.find((label) => label.startsWith('owner:'));
+  void issue.assignees;
+  return 'Unassigned';
 }
 
 function isPlaceholderDescription(value) {

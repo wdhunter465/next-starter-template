@@ -4,13 +4,14 @@
     "title": "PROJECT: Current repository owner contract",
     "state": "open",
     "html_url": "https://github.com/wdhunter465/next-starter-template/issues/9100",
-    "body": "Owner / Agent: ChatGPT / Atlas\nProject Description: Owner labels are current execution authority.\n",
+    "body": "Owner / Agent: ChatGPT / Atlas\nProject Description: agent:* labels are current execution authority.\n",
     "labels": [
       {"name":"pmo"},
       {"name":"pmo:active"},
       {"name":"team:pmo"},
       {"name":"pmo:priority:1"},
-      {"name":"owner:cursor"}
+      {"name":"agent:cursor"},
+      {"name":"owner:chatgpt"}
     ],
     "assignees": [{"login":"fallback-assignee"}],
     "updated_at": "2026-08-05T22:00:00Z",
@@ -29,5 +30,39 @@
     ],
     "updated_at": "2026-08-05T21:00:00Z",
     "closed_at": "2026-08-05T21:00:00Z"
+  },
+  {
+    "number": 9102,
+    "title": "PROJECT: Unassigned agent claim contract",
+    "state": "open",
+    "html_url": "https://github.com/wdhunter465/next-starter-template/issues/9102",
+    "body": "Owner / Agent: Stale Body Agent\nProject Description: No agent:* label means Unassigned.\n",
+    "labels": [
+      {"name":"pmo"},
+      {"name":"pmo:active"},
+      {"name":"team:pmo"},
+      {"name":"pmo:priority:2"},
+      {"name":"owner:legacy"}
+    ],
+    "assignees": [{"login":"someone"}],
+    "updated_at": "2026-08-05T20:00:00Z",
+    "closed_at": null
+  },
+  {
+    "number": 9103,
+    "title": "PROJECT: Conflicting agent labels contract",
+    "state": "open",
+    "html_url": "https://github.com/wdhunter465/next-starter-template/issues/9103",
+    "body": "Owner / Agent: Should Not Appear\nProject Description: Multiple agent:* labels surface conflict.\n",
+    "labels": [
+      {"name":"pmo"},
+      {"name":"pmo:active"},
+      {"name":"team:pmo"},
+      {"name":"pmo:priority:3"},
+      {"name":"agent:claude"},
+      {"name":"agent:grok"}
+    ],
+    "updated_at": "2026-08-05T19:00:00Z",
+    "closed_at": null
   }
 ]

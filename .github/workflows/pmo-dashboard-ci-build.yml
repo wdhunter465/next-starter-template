@@ -3,8 +3,14 @@ name: PMO dashboard CI build
 on:
   workflow_dispatch:
   schedule:
-    # Freshness floor: Pages lag at most ~30 minutes unless manually dispatched.
+    # Reconciliation fallback: Pages lag at most ~30 minutes if events are missed.
     - cron: "*/30 * * * *"
+  # Event-driven refresh when PMO-relevant Issue state changes (#3615).
+  # Limited to main-branch operational runs; feature-branch pushes still use fixtures only.
+  # Concurrency cancel-in-progress coalesces event bursts. Dashboard output is published
+  # via Pages artifact (not committed), so rebuilds cannot self-trigger a loop.
+  issues:
+    types: [opened, reopened, closed, labeled, unlabeled, assigned, unassigned, edited]
   push:
     paths:
       - ".github/workflows/pmo-dashboard-ci-build.yml"
@@ -46,8 +52,8 @@ jobs:
       - name: Write branch validation summary
         run: |
           echo "## PMO dashboard branch validation" >> "$GITHUB_STEP_SUMMARY"
-          echo "Deterministic fixture generation, current-repository identity, owner precedence, and validation passed." >> "$GITHUB_STEP_SUMMARY"
-          echo "Live issue inventory validation runs on main, scheduled, and manual operational events only (no issue-event triggers)." >> "$GITHUB_STEP_SUMMARY"
+          echo "Deterministic fixture generation, current-repository identity, agent:* owner precedence, and validation passed." >> "$GITHUB_STEP_SUMMARY"
+          echo "Live issue inventory validation runs on main, scheduled, issue-event, and manual operational events." >> "$GITHUB_STEP_SUMMARY"
 
   build:
     name: Build PMO dashboard
@@ -82,4 +88,5 @@ jobs:
         run: |
           echo "## PMO dashboard CI build" >> "$GITHUB_STEP_SUMMARY"
           echo "Validated live GitHub issue inventory output at \`$PMO_DASHBOARD_OUT_DIR/\`." >> "$GITHUB_STEP_SUMMARY"
-          echo "Publish path: deploy workflow consumes this artifact via workflow_run (no issue-event fan-out)." >> "$GITHUB_STEP_SUMMARY"
+          echo "Trigger: ${{ github.event_name }} (schedule remains reconciliation fallback; issue events refresh ownership/lifecycle without waiting 30m)." >> "$GITHUB_STEP_SUMMARY"
+          echo "Publish path: deploy workflow consumes this artifact via workflow_run (Pages artifact, no commit loop)." >> "$GITHUB_STEP_SUMMARY"

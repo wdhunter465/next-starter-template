@@ -5,8 +5,8 @@ Authority Level: Operational Guidance
 Owns: PMO dashboard generation, refresh, validation procedure, operator remediation flow, and GitHub Pages limitations
 Does Not Own: PMO lifecycle definitions, queue and priority policy, PMO issue contract, dashboard JSON specification, GitHub Issues source records, or Cloudflare production deployment
 Canonical Reference: /docs/reference/pmo/pmo-lifecycle-and-priority-contract.md
-Related Issues: #2101, #2299, #2313, #2471, #2516, #2610, #2611, #2699, #2702, #3116, #3136, #3597
-Last Reviewed: 2026-08-18
+Related Issues: #2101, #2299, #2313, #2471, #2516, #2610, #2611, #2699, #2702, #3116, #3136, #3597, #3615
+Last Reviewed: 2026-08-23
 ---
 
 # PMO Dashboard
@@ -19,7 +19,7 @@ The dashboard normalizes public-safe Issue data into Active, Pipeline, Completed
 
 Queue, priority, Project Graduation, and collaboration semantics are owned by `docs/governance/WORK-QUEUES-AND-COLLABORATION.md`. The JSON and view contract is owned by `docs/reference/pmo/pmo-lifecycle-and-priority-contract.md`. The July 2026 dashboard specification is superseded historical context.
 
-This operator guidance was reconciled directly by ChatGPT under #2699 from the PMO meeting decisions. It must not be delegated to an implementation agent to reinterpret the meeting record.
+This operator guidance was reconciled directly by ChatGPT under #2699 from the PMO meeting decisions. It must not be delegated to an implementation agent to reinterpret the meeting record. Owner-display and event-refresh behavior were corrected under #3615.
 
 ## Scope
 
@@ -46,6 +46,18 @@ It does not authorize:
 - Standalone Operations Issues and Engineering qualification Issues are not PMO portfolio rows and do not count toward project completion.
 - Generated output that does not meet this contract belongs in Incomplete rather than receiving an invented default.
 - The target runtime transition is tracked in #2702. Until it merges, legacy generated output may lag the canonical documentation; operators must use live GitHub Issues and the canonical policies when they conflict.
+
+### Current agent ownership (`ownerAgent`)
+
+Current execution ownership on the dashboard comes only from live `agent:*` labels:
+
+| Live labels | Dashboard `ownerAgent` |
+| --- | --- |
+| Exactly one `agent:*` | Normalized display (e.g. `agent:claude` → Claude, `agent:cursor` → Cursor, `agent:grok` → Grok) |
+| Zero `agent:*` | `Unassigned` |
+| More than one `agent:*` | `Conflicting agent ownership: …` (data-quality surface; no silent pick) |
+
+Stale Issue-body `Owner / Agent:` prose, legacy `owner:*` labels, and native GitHub assignees **must not** override or invent ownership when `agent:*` is absent or present. Body text that still says Atlas while the Issue carries `agent:claude` must render Claude.
 
 ## Public access URLs
 
@@ -172,8 +184,8 @@ Do not invent missing team, priority, stage, parent, or graduation decisions mer
 4. When Incomplete is flooded with `pmo:task` rows and parent `taskCount` values are zero, dry-run then apply `node scripts/pmo-dashboard/reconcile-task-child-labels.mjs` (add `--apply` only after reviewing the plan). The script strips prohibited child queue/stage labels and reconciles lifecycle labels; it does not invent parent references.
 5. Confirm Operations and Engineering qualification Issues are not included in parent task accounting.
 6. On a feature branch, confirm **Validate PMO dashboard branch changes** runs the deterministic fixture successfully.
-7. On `main`, scheduled (every 30 minutes), or manual **Build PMO dashboard** runs, confirm generation/validation of `site/pmo-dashboard/dashboard-data.json` and artifact upload.
-8. Treat feature-branch fixture success as code-path evidence only. Use a live `main`, scheduled, or manual build for current-inventory evidence.
+7. On `main`, scheduled (every 30 minutes), issue-state events, or manual **Build PMO dashboard** runs, confirm generation/validation of `site/pmo-dashboard/dashboard-data.json` and artifact upload.
+8. Treat feature-branch fixture success as code-path evidence only. Use a live `main`, scheduled, issue-event, or manual build for current-inventory evidence.
 9. Confirm **PMO dashboard CI deploy** consumes the build artifact (preferred) or, for emergency manual/push paths, regenerates via `run-dashboard-build.mjs`, then reports GitHub Pages readiness.
 10. When Pages is unavailable or not configured for GitHub Actions, complete the one-time operator procedure below.
 11. Prefer manually dispatching **PMO dashboard CI build** (deploy follows via `workflow_run`). Dispatch deploy directly only when an emergency publish is required without a preceding build.
@@ -185,13 +197,16 @@ Do not invent missing team, priority, stage, parent, or graduation decisions mer
 ### Freshness contract
 
 - GitHub Issues remain the live source of truth and always override the dashboard snapshot.
-- GitHub Pages is a reporting snapshot. Expect lag of at most about 30 minutes under the scheduled build (plus deploy time), unless an operator manually dispatches **Build PMO dashboard**.
-- Dashboard CI does **not** run on issue open/edit/label/assign events. That fan-out starved required PR gates and is intentionally removed (Phase 1 redesign under #3136 / #3116).
+- **Primary freshness:** Issue open/reopen/close, label add/remove/change, assignment change, and relevant Issue edits trigger **PMO dashboard CI build** so ownership and lifecycle changes do not wait for the schedule (#3615).
+- **Fallback / reconciliation:** scheduled build every 30 minutes remains for missed events or API lag.
+- **Manual:** workflow_dispatch rebuild/repair remains available.
+- Publish path uses a Pages **artifact** (not a repository commit of dashboard HTML/JSON), so dashboard generation cannot create a self-triggering commit loop.
+- Concurrency is `cancel-in-progress` on a single build group so event bursts coalesce instead of stacking conflicting runs.
 - At meeting startup, fetch the published JSON, check `generatedAt`, and fall back to Issues if freshness is unacceptable.
 
 The checked-in `site/pmo-dashboard/dashboard-data.json` is a generated snapshot and may be stale. Use published Pages `generatedAt`, not the checked-in copy, for operator freshness.
 
-The build workflow performs live generation and validation on `main`, scheduled, and manual runs, then uploads an artifact. Deploy publishes that artifact to Pages (single build→deploy path). Feature-branch pushes use deterministic fixtures so unrelated live PMO metadata or transient API conditions do not block a proposed code change.
+The build workflow performs live generation and validation on `main`, scheduled, issue-event, and manual runs, then uploads an artifact. Deploy publishes that artifact to Pages (single build→deploy path). Feature-branch pushes use deterministic fixtures so unrelated live PMO metadata or transient API conditions do not block a proposed code change.
 
 Target validation must reject or quarantine:
 
@@ -234,6 +249,7 @@ Treat all Issue-derived values as untrusted display text. Escape titles, descrip
 - The public reporting surface is unavailable until GitHub Pages is configured.
 - Anticipated completion dates remain explicit Issue values or `TBD`; the dashboard does not forecast dates.
 - The first queue-aware runtime version does not require charts, per-project pages, or private reporting.
+- High-volume issue-event bursts are coalesced by concurrency; the schedule remains the floor if events are dropped.
 
 ## Related references
 
@@ -242,7 +258,8 @@ Treat all Issue-derived values as untrusted display text. Escape titles, descrip
 - PMO Dashboard Specification: `/docs/ops/pmo/PMO-JULY-2026-DASHBOARD-SPECIFICATION.md`
 - Weekly PMO review: `/docs/how-to/pmo/run-weekly-pmo-priority-and-graduation-review.md`
 - Runtime transition: `#2702`
+- Owner resolution and event refresh: `#3615`
 
 ## Supersession
 
-This how-to supersedes operator guidance that uses one PMO priority namespace for Active and Pipeline, requires priority on child tasks, treats Pipeline `pmo:priority:idea` as the target model, or counts peer Operations/Engineering work as project completion.
+This how-to supersedes operator guidance that uses one PMO priority namespace for Active and Pipeline, requires priority on child tasks, treats Pipeline `pmo:priority:idea` as the target model, counts peer Operations/Engineering work as project completion, resolves ownership from Issue-body `Owner / Agent` text over `agent:*` labels, or describes the dashboard as schedule-only without issue-event refresh.
