@@ -36,6 +36,15 @@ describe('agent-claim-contract (#3240)', () => {
     expect(result.class).toBe(CLAIM_CLASSES.EXPLICIT_RESERVATION);
   });
 
+  it('classifies active claim before reservation after reserved agent starts work', () => {
+    const result = classifyClaim({
+      labels: ['agent:claude'],
+      hasExplicitReservationEvidence: true,
+      hasRecentExecutionEvidence: true
+    });
+    expect(result.class).toBe(CLAIM_CLASSES.ACTIVE_CLAIM);
+  });
+
   it('classifies proven stale pre-assignment', () => {
     const result = classifyClaim({
       labels: ['agent:cursor'],
@@ -63,6 +72,16 @@ describe('agent-claim-contract (#3240)', () => {
       requestingAgent: 'grok'
     });
     expect(result.allowed).toBe(true);
+  });
+
+  it('does not let caller-provided NONE bypass a present agent label', () => {
+    const result = canClaim({
+      labels: ['team:engineering', 'agent:claude'],
+      claimClass: CLAIM_CLASSES.NONE,
+      requestingAgent: 'grok'
+    });
+    expect(result.allowed).toBe(false);
+    expect(result.reason).toMatch(/agent:claude/);
   });
 
   it('blocks independent claim when ACTIVE_CLAIM held by another agent', () => {

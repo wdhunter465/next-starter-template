@@ -110,7 +110,7 @@ Result: **0 `STALE_PREASSIGNMENT`** in this cursor pass. No label removals autho
 
 Deterministic helpers for claim decisions live in `scripts/ci/agent-claim-contract.mjs`:
 
-- `classifyClaim` — four-class model from evidence flags
+- `classifyClaim` — claim-state model from labels and evidence flags; returns the four migration classes plus `NONE` for queue-only Issues with no `agent:*` label
 - `canClaim` — collision control (queue-only / same-agent / blocked by ACTIVE or RESERVATION / stale reclaimable)
 - `shouldReleaseAtHandoff` — release at PR-ready unless remediation or post-merge duty remains
 
