@@ -18,6 +18,13 @@ export async function withBoundedRetry<T>(fn: () => Promise<T>, options: Bounded
   const isRetryable = options.isRetryable ?? (() => true);
   const delay = options.delay ?? ((ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms)));
 
+  // maxAttempts <= 0 (or non-integer) would otherwise skip the loop below
+  // entirely and throw `undefined` (lastError never gets set) -- an
+  // explicit, actionable error is much easier to debug than that.
+  if (!Number.isInteger(maxAttempts) || maxAttempts < 1) {
+    throw new RangeError(`withBoundedRetry: maxAttempts must be a positive integer, got ${maxAttempts}`);
+  }
+
   let lastError: unknown;
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     try {

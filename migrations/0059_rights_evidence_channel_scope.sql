@@ -174,7 +174,17 @@ CREATE TABLE content_items_next (
   curator_decision_by TEXT,
   curator_decision_at TEXT,
   curator_decision_notes TEXT,
-  FOREIGN KEY (duplicate_of) REFERENCES content_items_next(candidate_id)
+  -- DEFERRABLE INITIALLY DEFERRED: `duplicate_of` is self-referential and
+  -- the immediately-following `INSERT ... SELECT * FROM content_items`
+  -- below has no guaranteed row order. An IMMEDIATE (default) FK check
+  -- would fail if a row naming an as-yet-uninserted candidate_id in
+  -- `duplicate_of` happened to be copied before the row it points to.
+  -- Deferring the check to the end of this migration's single implicit
+  -- transaction (wrangler/D1 wraps the whole file in one) makes the copy
+  -- correct regardless of row order, at zero cost since every row -- and
+  -- therefore every candidate_id `duplicate_of` could reference -- exists
+  -- in content_items_next well before this migration's transaction commits.
+  FOREIGN KEY (duplicate_of) REFERENCES content_items_next(candidate_id) DEFERRABLE INITIALLY DEFERRED
 );
 
 INSERT INTO content_items_next SELECT * FROM content_items;

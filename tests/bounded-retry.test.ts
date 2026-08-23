@@ -67,4 +67,14 @@ describe('withBoundedRetry (#3657)', () => {
     await expect(withBoundedRetry(fn, { delay })).rejects.toThrow('always fails');
     expect(fn).toHaveBeenCalledTimes(3);
   });
+
+  // Copilot review finding on PR #3663: maxAttempts <= 0 previously skipped
+  // the loop entirely and threw `undefined` (lastError was never assigned),
+  // which is effectively impossible to debug. Now rejected explicitly.
+  it.each([0, -1, 1.5, -3])('rejects a non-positive-integer maxAttempts (%s) with a clear error, without calling fn', async (maxAttempts) => {
+    const fn = vi.fn().mockResolvedValue('should never run');
+
+    await expect(withBoundedRetry(fn, { maxAttempts })).rejects.toThrow(/maxAttempts must be a positive integer/);
+    expect(fn).not.toHaveBeenCalled();
+  });
 });

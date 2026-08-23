@@ -117,6 +117,25 @@ export function mapRightsEvidenceRow(row: RightsEvidenceRow): StoredRightsEviden
   };
 }
 
+// `channel` is NOT enforced as required here at the repository/DB level --
+// only the admin API's request parser (rights-evidence-admin.ts) requires
+// it, and only for that one write path. This is deliberate, not an
+// oversight (Copilot review finding on PR #3663 flagged this precisely):
+// two pre-existing, unrelated writers -- content-pipeline-member-submission-
+// intake.ts and member-photo-submission-repository.ts -- also call this
+// function to record a conclusion, and they never pass a channel. Those are
+// #2270's separate member-submission rights model, explicitly and
+// deliberately out of #3657's scope (per #3551's 2026-08-18 comment: "#3551
+// remains the controlling path for content LGFC itself discovers/collects
+// from approved external sources... complements #2270's member-submission
+// rights model"). channelForPublicationTarget's gate in
+// content-pipeline-publication-prep.ts is scoped to
+// `input_stream === 'scheduled_discovery'` for exactly this reason, so a
+// member-submission candidate's channel-less rights_evidence rows are never
+// read by that gate and never need a channel. A blanket "conclusion implies
+// channel" constraint at this function (or a DB-level CHECK/trigger) would
+// either break those two existing, already-shipped call sites or require
+// rewriting #2270's model as part of this package -- both out of scope here.
 export async function recordRightsEvidence(
   db: any,
   input: RightsEvidenceInput,
