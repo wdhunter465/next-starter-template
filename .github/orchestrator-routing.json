@@ -13,9 +13,13 @@
     "precedence": [
       "numbered_operations",
       "pmo_active_executable_children",
-      "engineering_pipeline_preparation",
-      "operations_monitoring_hold_interval_only"
+      "pmo_pipeline_preparation",
+      "engineering_qualification",
+      "governance_stewardship",
+      "operations_and_governance_interval_hold_only"
     ],
+    "precedenceDecision": "#3629",
+    "precedenceImplementation": "#3642",
     "rules": [
       "task-type and named-agent defaults never override queue ownership or priority namespace",
       "collaboration metadata never transfers ownership, priority, execution, approval, or Production authority",

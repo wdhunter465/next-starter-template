@@ -4,6 +4,9 @@
  *
  * Pure decision API over issue label/state snapshots. Does not mutate GitHub.
  * Authority: .github/queue-label-registry.json + #2724 routing matrix.
+ * Cross-queue precedence (#3629 decision, #3642 implementation): Operations(1) ->
+ * PMO Active(2) -> PMO Pipeline(3) -> Engineering(4) -> Governance(5); Operations
+ * and Governance interval/hold states are non-blocking and ranked last (6).
  */
 
 const OPS_NUMBERED = new Set([
@@ -22,7 +25,19 @@ const ENG_PRIORITIES = new Set([
   'eng:priority:4',
   'eng:priority:idea'
 ]);
-const TEAM_LABELS = new Set(['team:operations', 'team:pmo', 'team:engineering']);
+const GOV_NUMBERED = new Set([
+  'gov:priority:1',
+  'gov:priority:2',
+  'gov:priority:3',
+  'gov:priority:4'
+]);
+const GOV_INTERVAL = new Set(['gov:review', 'gov:hold']);
+const TEAM_LABELS = new Set([
+  'team:operations',
+  'team:pmo',
+  'team:engineering',
+  'team:governance'
+]);
 
 export function normalizeLabels(input) {
   return (input || [])
@@ -176,7 +191,7 @@ export function classifyQueueCandidate(issue, context = {}) {
         failClosed: false,
         lane: 'operations',
         action: 'interval_update',
-        precedenceRank: 4,
+        precedenceRank: 6,
         blocksNormalWork: false,
         authorizesActiveImplementation: false,
         priorityLabel: interval,
@@ -257,7 +272,7 @@ export function classifyQueueCandidate(issue, context = {}) {
       failClosed: false,
       lane: 'engineering_qualification',
       action: 'qualification',
-      precedenceRank: 3,
+      precedenceRank: 4,
       blocksNormalWork: false,
       authorizesActiveImplementation: false,
       priorityLabel: firstMatch(labels, ENG_PRIORITIES),
@@ -300,6 +315,48 @@ export function classifyQueueCandidate(issue, context = {}) {
         ? ['pipeline_graduation_candidate_until_graduation']
         : ['pmo_pipeline_preparation_only']
     };
+  }
+
+  // Governance stewardship (#3629: last in normal-work precedence; never an
+  // automatic interrupt -- the registry has no "blocking Governance matter" label,
+  // so that preemption per #3629's decision requires explicit Product Authority
+  // escalation outside this pure label classifier, not something inferred here).
+  if (teams[0] === 'team:governance') {
+    const numbered = firstMatch(labels, GOV_NUMBERED);
+    const interval = firstMatch(labels, GOV_INTERVAL);
+    if (numbered && interval) {
+      return failClosed({
+        lane: 'governance',
+        reasons: ['gov_priority_and_interval_conflict']
+      });
+    }
+    if (numbered) {
+      return {
+        eligible: true,
+        failClosed: false,
+        lane: 'governance',
+        action: 'dispatch',
+        precedenceRank: 5,
+        blocksNormalWork: false,
+        authorizesActiveImplementation: false,
+        priorityLabel: numbered,
+        reasons: ['governance_stewardship_normal_queue']
+      };
+    }
+    if (interval) {
+      return {
+        eligible: false,
+        failClosed: false,
+        lane: 'governance',
+        action: 'interval_update',
+        precedenceRank: 6,
+        blocksNormalWork: false,
+        authorizesActiveImplementation: false,
+        priorityLabel: interval,
+        reasons: ['governance_interval_non_blocking']
+      };
+    }
+    return failClosed({ lane: 'governance', reasons: ['governance_missing_state'] });
   }
 
   return failClosed({ reasons: ['unclassified_or_ambiguous'] });
@@ -387,6 +444,8 @@ export {
   PMO_ACTIVE_PRIORITY_RE,
   PMO_PIPELINE_PRIORITY_RE,
   ENG_PRIORITIES,
+  GOV_NUMBERED,
+  GOV_INTERVAL,
   TEAM_LABELS,
   parentRef
 };

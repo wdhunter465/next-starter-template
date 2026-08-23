@@ -5,8 +5,8 @@ Authority Level: Operational Authority
 Owns: Repository queue watch, Operations interrupt dispatch, peer PMO and Engineering dispatch, source-Issue collaboration routing, local Cursor wake routing, acknowledgment, stale-communication recovery, profile-aware continuation, and bounded administrative reconciliation
 Does Not Own: Product or priority decisions, queue ownership decisions, Engineering design decisions, PR approval, Production authorization, recovery strategy, workflow implementation, credentials, or project objectives
 Canonical Reference: /docs/governance/ADMINISTRATION-AND-COMMUNICATIONS.md
-Related Issues: #2396, #2492, #2640, #2641, #2639, #2695, #2699, #2709, #3055, #3113, #3069, #3188, #3605, #3611
-Last Reviewed: 2026-08-18
+Related Issues: #2396, #2492, #2640, #2641, #2639, #2695, #2699, #2709, #3055, #3113, #3069, #3188, #3605, #3611, #3629, #3642
+Last Reviewed: 2026-08-23
 ---
 
 # Queue Watch and Dispatch Protocol
@@ -188,14 +188,23 @@ A separate incident, Product Authority, Engineering, or protected hold may conti
 
 ## Normal work selection
 
-When no numbered Operations Issue is actionable, PMO and Engineering are peer eligible queues.
+When no numbered Operations Issue is actionable, PMO Active, PMO Pipeline,
+Engineering, and Governance are peer eligible queues with independent ownership
+and priority namespaces (`docs/governance/REPOSITORY-AUTHORITY.md` invariant 2).
 
-Agent-specific precedence is defined in `docs/governance/AGENT-TEAM.md`:
+The default cross-queue *selection order* among those four peer queues —
+**PMO Active -> PMO Pipeline -> Engineering qualification -> Governance
+stewardship** — is decided in #3629 and recorded once in
+`docs/governance/REPOSITORY-AUTHORITY.md` invariant 9 and
+`docs/governance/WORK-QUEUES-AND-COLLABORATION.md` "Daily work precedence."
+Each agent's eligible-queue scope within that order is defined in the same
+`WORK-QUEUES-AND-COLLABORATION.md` section — consult it directly rather than a
+restated copy here, so this protocol never drifts out of agreement with the
+canonical order.
 
-- Cursor: Operations, then PMO Active implementation, then bounded Engineering collaboration.
-- ChatGPT: assigned Operations Tier 2, assigned PMO work, then Engineering Pipeline preparation.
-
-Peer status means neither PMO nor Engineering priority converts into the other. It does not require both agents to use identical daily ordering.
+Peer status means no queue's priority converts into another's. It does not
+require every agent to be eligible for every queue, or to use an identical
+per-agent claim order beyond the canonical precedence.
 
 ## PMO Active dispatch
 

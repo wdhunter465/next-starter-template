@@ -73,6 +73,72 @@ for (const testCase of matrix.selectionCases || []) {
   );
 }
 
+// Governance branch coverage (#3629 decision, #3642 implementation).
+// Kept inline rather than added to fixtures/queue-routing-matrix.json, which is
+// outside #3642's declared file allowlist; only the one pre-existing case whose
+// expected precedenceRank changed as a direct consequence of the re-rank was
+// updated there.
+{
+  const numbered = classifyQueueCandidate({
+    number: 8001,
+    state: 'open',
+    labels: ['team:governance', 'gov:priority:1']
+  });
+  assert(numbered.lane === 'governance', 'gov-numbered: lane governance');
+  assert(numbered.eligible === true, 'gov-numbered: eligible');
+  assert(numbered.precedenceRank === 5, 'gov-numbered: rank 5 (last of the five #3629 lanes)');
+  assert(numbered.blocksNormalWork === false, 'gov-numbered: never an automatic interrupt');
+
+  const review = classifyQueueCandidate({
+    number: 8002,
+    state: 'open',
+    labels: ['team:governance', 'gov:review']
+  });
+  assert(review.lane === 'governance', 'gov-review: lane governance');
+  assert(review.action === 'interval_update', 'gov-review: interval_update');
+  assert(review.eligible === false, 'gov-review: non-blocking, not dispatchable');
+
+  const hold = classifyQueueCandidate({
+    number: 8003,
+    state: 'open',
+    labels: ['team:governance', 'gov:hold']
+  });
+  assert(hold.action === 'interval_update', 'gov-hold: interval_update');
+  assert(hold.eligible === false, 'gov-hold: non-blocking, not dispatchable');
+
+  const missing = classifyQueueCandidate({
+    number: 8004,
+    state: 'open',
+    labels: ['team:governance']
+  });
+  assert(missing.eligible === false, 'gov-missing-state: fails closed');
+  assert(missing.failClosed === true, 'gov-missing-state: failClosed true');
+
+  // #3629 adopted order end-to-end: PMO Pipeline before Engineering before Governance.
+  const order = selectNextDispatch([
+    { number: 8001, state: 'open', labels: ['team:governance', 'gov:priority:1'] },
+    { number: 3001, state: 'open', labels: ['team:engineering', 'eng:priority:1'] },
+    {
+      number: 3003,
+      state: 'open',
+      labels: [
+        'pmo',
+        'pmo:pipeline',
+        'team:pmo',
+        'pmo:pipeline-priority:1',
+        'pmo:stage:pending-launch-packet'
+      ]
+    }
+  ]);
+  assert(order.selectedIssueNumber === 3003, 'order: PMO Pipeline selected over Engineering and Governance');
+
+  const engBeforeGov = selectNextDispatch([
+    { number: 8001, state: 'open', labels: ['team:governance', 'gov:priority:1'] },
+    { number: 3001, state: 'open', labels: ['team:engineering', 'eng:priority:1'] }
+  ]);
+  assert(engBeforeGov.selectedIssueNumber === 3001, 'order: Engineering selected over Governance');
+}
+
 {
   const { selectFromIssues } = await import('./select-next-queue-work.mjs');
   const issues = [
