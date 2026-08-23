@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from '@testing-library/react';
+import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type { ReactNode } from 'react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
@@ -280,8 +280,7 @@ describe('admin club staging (#2043)', () => {
     render(<AdminClubStagingPage />);
 
     expect(await screen.findByRole('button', { name: 'Save rotation order' })).toBeInTheDocument();
-    await user.clear(screen.getByLabelText('Priority'));
-    await user.type(screen.getByLabelText('Priority'), '9');
+    fireEvent.change(screen.getByLabelText('Priority'), { target: { value: '9' } });
     await user.selectOptions(screen.getByLabelText('Story type'), 'secondary');
     await user.click(screen.getByRole('button', { name: 'Save rotation order' }));
 
