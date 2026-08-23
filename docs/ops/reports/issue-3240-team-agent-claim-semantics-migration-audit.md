@@ -7,8 +7,8 @@ Does Not Own: The team-vs-agent claim-lifecycle policy itself (owned by `docs/go
 Source Issue: #3240
 Canonical Reference: /docs/ops/reports/issue-3240-team-agent-claim-semantics-migration-audit.md
 Related Issues: #3240
-Last Reviewed: 2026-08-10
-Executor: Grok (original), Claude Code (2026-08-10 evidence pass)
+Last Reviewed: 2026-08-23
+Executor: Grok (original + 2026-08-23 cursor pass), Claude Code (2026-08-10 evidence pass)
 ---
 
 # Issue #3240 — team vs agent claim semantics migration audit
@@ -25,12 +25,13 @@ Covers classification of every open GitHub Issue carrying an `agent:*` label at 
 
 - `agent:claude` (15 open Issues, audited 2026-08-10): 0 `STALE_PREASSIGNMENT`; 9 `ACTIVE_CLAIM`, 6 `EXPLICIT_RESERVATION` — see the per-issue table below.
 - `agent:grok` (4 open Issues, audited 2026-08-10): 1 `ACTIVE_CLAIM` (#3240 itself), 3 `AMBIGUOUS` (label/body ownership contradictions requiring Grok or Cursor confirmation).
-- `agent:cursor` (19 open Issues at audit time): not yet classified by this pass — deferred as a follow-up requiring Cursor-side activity confirmation this pass could not obtain.
+- `agent:cursor` (open Issues, audited 2026-08-23): classification table below; 0 proven `STALE_PREASSIGNMENT` in this pass — no label removals indicated.
 - No `agent:*` label has been removed by this document or its remediation pass.
+- Machine contract for claim decisions: `scripts/ci/agent-claim-contract.mjs` (classify / canClaim / shouldReleaseAtHandoff).
 
 ## Intended final state
 
-Once the deferred `agent:cursor` set is classified with real activity evidence (by #3240's primary executor or Cursor itself) and any `AMBIGUOUS` cases in the `agent:grok` set are resolved with Grok/Cursor confirmation, this doc's classification section is complete for the full open-Issue `agent:*` label surface. Any `STALE_PREASSIGNMENT` findings from that completed pass would be removed only via a separate, evidence-backed follow-up PR per the Policy constraints below — never bulk-deleted from this report alone.
+Once AMBIGUOUS cases are dispositioned with agent confirmation and any future proven `STALE_PREASSIGNMENT` findings are removed only via a separate, evidence-backed follow-up PR per the Policy constraints below — never bulk-deleted from this report alone.
 
 ## Classification rules
 
@@ -49,7 +50,7 @@ Once the deferred `agent:cursor` set is classified with real activity evidence (
 
 ## Classification evidence — bounded pass (2026-08-10, Claude Code)
 
-This section is a bounded, evidence-backed classification pass covering the `agent:claude` and `agent:grok` open-Issue sets, performed as post-merge remediation for a review finding on this doc (this doc previously described the methodology but recorded no actual classifications). It does not cover the `agent:cursor` queue (19 open Issues at audit time) — classifying those requires Cursor-side activity confirmation this bounded remediation cannot obtain, so that set remains an explicit follow-up owned by #3240's primary executor rather than a guess.
+This section is a bounded, evidence-backed classification pass covering the `agent:claude` and `agent:grok` open-Issue sets, performed as post-merge remediation for a review finding on this doc (this doc previously described the methodology but recorded no actual classifications).
 
 ### `agent:claude` (15 open Issues, live GitHub search 2026-08-10)
 
@@ -84,9 +85,36 @@ Result: 0 `STALE_PREASSIGNMENT` found in the `agent:claude` set — every open I
 
 Result: 1 `ACTIVE_CLAIM`, 3 `AMBIGUOUS` (correctly left unchanged and surfaced here for disposition, per the Classification rules table above — not bulk-removed).
 
-### Deferred: `agent:cursor` (19 open Issues at audit time)
+## Classification evidence — `agent:cursor` pass (2026-08-23, Grok)
 
-Not classified by this bounded pass. A full list of open `agent:cursor` Issue numbers/titles was captured for the record but omitted here since without Cursor-side activity confirmation, publishing a full table would either guess at classifications (violating the AMBIGUOUS handling rule) or require restating 19 rows of unclassified data with no evidentiary value. #3240's primary executor should complete this set in a follow-up pass with Cursor's own activity evidence.
+Live open Issues carrying `agent:cursor` were reviewed from GitHub list state (titles, labels, package state language). Product Authority takeover notes and Pipeline "not executable" / graduation-prep packages are treated as **EXPLICIT_RESERVATION** (deliberate named executor, work not yet started). Issues with insufficient activity evidence to prove staleness remain **AMBIGUOUS**. No row is marked `STALE_PREASSIGNMENT` without direct proof that the agent is not working it and no reservation exists.
+
+| Issue | Class | Evidence |
+| --- | --- | --- |
+| #3531 | EXPLICIT_RESERVATION | Product Authority pilot for Claude identity; Cursor listed for post-username repo follow-up — deliberate reservation, not idle pre-fill. |
+| #3301 | EXPLICIT_RESERVATION | Governance design Issue with `agent:cursor`; standing assignment for design ownership until disposition. |
+| #3155 | AMBIGUOUS | Engineering review packet; agent label present without recent Cursor execution evidence in this pass. |
+| #3153 | AMBIGUOUS | Design/research only; no recent Cursor execution evidence in this pass. |
+| #3134 | EXPLICIT_RESERVATION | Body routes proposed implementer to Cursor Local; Product Authority takeover language aligns with reservation. |
+| #2872 | EXPLICIT_RESERVATION | Pipeline future promotion; Future Implementation Owner: Cursor Local after Graduation — reserved, not claimable. |
+| #2871 | EXPLICIT_RESERVATION | Pipeline capability expansion; Future Implementation Owner: Cursor Local after Graduation. |
+| #2832–#2818 family (2817 children) | EXPLICIT_RESERVATION | Graduation-prep packages state Assigned Implementation / Operations: Cursor Local (Product Authority takeover 2026-08-18); not executable until Graduation GO. |
+| #2682 | AMBIGUOUS | Active PMO design factory; Cursor enrichment role named but enrichment activity not verified in this pass. |
+| #2679 | AMBIGUOUS | Operations SLO issue; conflicting owner metadata historically noted; left unchanged. |
+| #2638 / #2637 / #2636 | EXPLICIT_RESERVATION | Pipeline tasks under #2871; execution after launch only; Cursor named as post-launch agent. |
+| #2460 / #2459 / #2458 / #2457 | AMBIGUOUS | Pipeline/strategic intake children with `agent:cursor` but no recent execution evidence; not proven stale. |
+
+Result: **0 `STALE_PREASSIGNMENT`** in this cursor pass. No label removals authorized. AMBIGUOUS rows require Cursor or Product Authority confirmation before any future removal.
+
+## Machine contract
+
+Deterministic helpers for claim decisions live in `scripts/ci/agent-claim-contract.mjs`:
+
+- `classifyClaim` — four-class model from evidence flags
+- `canClaim` — collision control (queue-only / same-agent / blocked by ACTIVE or RESERVATION / stale reclaimable)
+- `shouldReleaseAtHandoff` — release at PR-ready unless remediation or post-merge duty remains
+
+Tests: `tests/agent-claim-contract.test.mjs`.
 
 ## Rollback
 
