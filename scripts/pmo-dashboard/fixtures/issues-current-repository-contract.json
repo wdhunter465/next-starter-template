@@ -64,5 +64,21 @@
     ],
     "updated_at": "2026-08-05T19:00:00Z",
     "closed_at": null
+  },
+  {
+    "number": 9104,
+    "title": "PROJECT: Unknown agent label contract",
+    "state": "open",
+    "html_url": "https://github.com/wdhunter465/next-starter-template/issues/9104",
+    "body": "Project Description: Unknown agent key normalization test.\n",
+    "labels": [
+      {"name":"pmo"},
+      {"name":"pmo:active"},
+      {"name":"team:pmo"},
+      {"name":"pmo:priority:4"},
+      {"name":"agent:my-agent_id"}
+    ],
+    "updated_at": "2026-08-05T18:00:00Z",
+    "closed_at": null
   }
 ]
