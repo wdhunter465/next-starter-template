@@ -15,7 +15,7 @@ export const CLAIM_CLASSES = Object.freeze({
 const AGENT_LABEL_RE = /^agent:/i;
 
 /**
- * @param {string[]|undefined} labels
+ * @param {Array<string|{ name?: string }>|undefined} labels
  * @returns {string[]}
  */
 export function agentLabelsFrom(labels = []) {
@@ -29,7 +29,7 @@ export function agentLabelsFrom(labels = []) {
  * Never invents STALE without explicit evidence flags.
  *
  * @param {{
- *   labels?: string[],
+ *   labels?: Array<string|{ name?: string }>,
  *   hasRecentExecutionEvidence?: boolean,
  *   hasExplicitReservationEvidence?: boolean,
  *   hasStaleEvidence?: boolean,
@@ -56,18 +56,18 @@ export function classifyClaim(issue = {}) {
       reason: 'body ownership contradicts agent:* label'
     };
   }
-  if (issue.hasExplicitReservationEvidence) {
-    return {
-      class: CLAIM_CLASSES.EXPLICIT_RESERVATION,
-      agentLabels,
-      reason: 'Product Authority or controlling reservation evidence present'
-    };
-  }
   if (issue.hasRecentExecutionEvidence) {
     return {
       class: CLAIM_CLASSES.ACTIVE_CLAIM,
       agentLabels,
       reason: 'recent execution, remediation, or verification evidence'
+    };
+  }
+  if (issue.hasExplicitReservationEvidence) {
+    return {
+      class: CLAIM_CLASSES.EXPLICIT_RESERVATION,
+      agentLabels,
+      reason: 'Product Authority or controlling reservation evidence present'
     };
   }
   if (issue.hasStaleEvidence) {
@@ -89,7 +89,7 @@ export function classifyClaim(issue = {}) {
  * Collision-safe: another active/reserved claim blocks independent start.
  *
  * @param {{
- *   labels?: string[],
+ *   labels?: Array<string|{ name?: string }>,
  *   claimClass?: string,
  *   requestingAgent: string
  * }} input
@@ -115,8 +115,15 @@ export function canClaim(input = {}) {
       bodyContradictsLabel: input.bodyContradictsLabel
     }).class;
 
-  if (agentLabels.length === 0 || claimClass === CLAIM_CLASSES.NONE) {
+  if (agentLabels.length === 0) {
     return { allowed: true, reason: 'queue-only issue; no active claim' };
+  }
+
+  if (claimClass === CLAIM_CLASSES.NONE) {
+    return {
+      allowed: false,
+      reason: `blocked by inconsistent NONE claim state with agent labels: ${agentLabels.join(', ')}`
+    };
   }
 
   if (claimClass === CLAIM_CLASSES.STALE_PREASSIGNMENT) {
