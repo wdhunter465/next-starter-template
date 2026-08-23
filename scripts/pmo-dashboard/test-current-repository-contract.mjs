@@ -42,10 +42,31 @@ async function main() {
     `unexpected default repository ${defaultData.repository}`
   );
 
-  const row = defaultData.views.activePrograms.find((entry) => entry.issueNumber === 9100);
-  assert(row, 'expected active project #9100');
-  assert(row.ownerAgent === 'cursor', `owner label must override stale body metadata, got ${row.ownerAgent}`);
-  assert(row.taskCount === 1 && row.tasksCompleted === 1 && row.percentComplete === 100, 'closed direct child accounting');
+  const byNumber = new Map(defaultData.views.activePrograms.map((entry) => [entry.issueNumber, entry]));
+
+  const cursorOwned = byNumber.get(9100);
+  assert(cursorOwned, 'expected active project #9100');
+  assert(
+    cursorOwned.ownerAgent === 'Cursor',
+    `agent:cursor must override stale Owner / Agent body and legacy owner:*, got ${cursorOwned.ownerAgent}`
+  );
+  assert(cursorOwned.taskCount === 1 && cursorOwned.tasksCompleted === 1 && cursorOwned.percentComplete === 100, 'closed direct child accounting');
+
+  const unassigned = byNumber.get(9102);
+  assert(unassigned, 'expected active project #9102');
+  assert(
+    unassigned.ownerAgent === 'Unassigned',
+    `zero agent:* labels must render Unassigned (not body/legacy/assignee), got ${unassigned.ownerAgent}`
+  );
+
+  const conflict = byNumber.get(9103);
+  assert(conflict, 'expected active project #9103');
+  assert(
+    /Conflicting agent ownership/.test(conflict.ownerAgent)
+      && conflict.ownerAgent.includes('agent:claude')
+      && conflict.ownerAgent.includes('agent:grok'),
+    `multiple agent:* labels must surface conflict, got ${conflict.ownerAgent}`
+  );
 
   const repositoryOnlyData = await generateDashboard({ repository: 'example-owner/example-repository' });
   assert(
@@ -53,7 +74,7 @@ async function main() {
     `repository-only environment must remain internally consistent, got ${repositoryOnlyData.repository}`
   );
 
-  console.log('PMO current repository and owner contract test passed');
+  console.log('PMO current repository and agent:* owner contract test passed');
 }
 
 main().catch((error) => {
