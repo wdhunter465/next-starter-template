@@ -169,7 +169,8 @@ function normalizeAgentDisplay(agentKey) {
   const key = String(agentKey || '').trim().toLowerCase();
   if (!key) return null;
   if (AGENT_DISPLAY[key]) return AGENT_DISPLAY[key];
-  // Preserve unknown agent ids with light capitalization of first segment.
+  // Unknown agent ids: title-case each segment and replace -/_ with spaces
+  // (e.g. my-agent_id → My Agent Id).
   return key.replace(/(^|[-_])([a-z])/g, (_, sep, ch) => (sep ? ` ${ch.toUpperCase()}` : ch.toUpperCase()));
 }
 
@@ -306,7 +307,7 @@ function classifyTrackedIssue(issue, byNumber) {
       const parent = byNumber.get(parentIssueNumber);
       if (!parent || !isPmoTracked(parent)) {
         errors.push(`task parent #${parentIssueNumber} is missing or not PMO-tracked`);
-        remediation.push('Point the task parent reference at a PMO-tracked program/project issue');
+        remediation.push('Point the task parent reference at a portfolio program/project issue');
       } else if (hasTaskLabel(parent)) {
         errors.push(`task parent #${parentIssueNumber} is itself a pmo:task`);
         remediation.push('Point the task parent reference at a portfolio program/project issue');
