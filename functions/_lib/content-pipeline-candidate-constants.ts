@@ -50,6 +50,7 @@ export const CONTENT_PIPELINE_RIGHTS_STATUSES = [
   'permission_granted',
   'copyright_restricted',
   'blocked',
+  'lgfc_owned_confirmed',
 ] as const;
 
 export const CONTENT_PIPELINE_SOURCE_TRUST_STATUSES = [

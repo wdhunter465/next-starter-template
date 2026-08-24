@@ -24,6 +24,13 @@
  * 'pending_review', and publication_status 'not_ready' — this script never
  * decides a rights conclusion, per #3551's core safety rule.
  *
+ * Bounded retry with exponential backoff (functions/_lib/bounded-retry.ts)
+ * is now in effect on every source fetch: a transient failure (network
+ * error, HTTP 429, or HTTP 5xx) is retried up to 3 attempts before a search
+ * run is classified source_error/rate_limited, per #3551's "source failed
+ * after bounded retries" contract. Other 4xx responses fail fast without
+ * retrying, since retrying a malformed request cannot succeed.
+ *
  * Usage:
  *   node --experimental-strip-types scripts/content-pipeline/collect-gehrig-external-sources.mjs \
  *     [--query "Lou Gehrig"] [--sources openverse,loc,wikimedia] [--limit 20] \
@@ -36,6 +43,7 @@ import { fileURLToPath } from 'node:url';
 
 import { determineSearchRunTerminalStatus } from '../../functions/_lib/content-search-run-outcome.ts';
 import { extractPeopleTags, extractDateOrPeriod } from '../../functions/_lib/content-pipeline-discovery-text-signals.ts';
+import { withBoundedRetry } from '../../functions/_lib/bounded-retry.ts';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, '../..');
@@ -147,18 +155,44 @@ function makeCandidateIdFactory() {
   };
 }
 
-async function fetchJson(url, headers = {}) {
-  const response = await fetch(url, {
-    headers: {
-      'User-Agent': 'LGFC-Gehrig-Content-Discovery/1.0 (lougehrigfanclub.com; contact via site)',
-      Accept: 'application/json',
-      ...headers,
-    },
-  });
-  if (!response.ok) {
-    throw new Error(`${url} -> HTTP ${response.status}`);
+// Carries the raw HTTP status so isRetryable below can classify it without
+// parsing the error message string.
+class HttpStatusError extends Error {
+  constructor(url, status) {
+    super(`${url} -> HTTP ${status}`);
+    this.name = 'HttpStatusError';
+    this.status = status;
   }
-  return response.json();
+}
+
+async function fetchJson(url, headers = {}) {
+  return withBoundedRetry(
+    async () => {
+      const response = await fetch(url, {
+        headers: {
+          'User-Agent': 'LGFC-Gehrig-Content-Discovery/1.0 (lougehrigfanclub.com; contact via site)',
+          Accept: 'application/json',
+          ...headers,
+        },
+      });
+      if (!response.ok) {
+        throw new HttpStatusError(url, response.status);
+      }
+      return response.json();
+    },
+    {
+      isRetryable: (error) => {
+        if (error instanceof HttpStatusError) {
+          // 429 (rate limited) and 5xx (server-side) are transient --
+          // worth retrying. Other 4xx responses (bad request, not found,
+          // etc.) mean the request itself is wrong and retrying cannot help.
+          return error.status === 429 || error.status >= 500;
+        }
+        // A thrown fetch (network/DNS/TLS failure) is always transient.
+        return true;
+      },
+    },
+  );
 }
 
 function todayDateOnly() {

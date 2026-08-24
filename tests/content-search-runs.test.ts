@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { DatabaseSync, type SQLInputValue } from 'node:sqlite';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   parseCompleteSearchRunRequest,
@@ -20,6 +20,10 @@ import {
   onRequestPost as searchRunsPost,
 } from '../functions/api/admin/content-pipeline/search-runs/index';
 import { onRequestPost as searchRunsCompletePost } from '../functions/api/admin/content-pipeline/search-runs/complete';
+import { upsertCandidate } from '../functions/_lib/content-pipeline-candidate-repository';
+import type { CandidateRecord } from '../functions/_lib/content-pipeline-candidate-import';
+import { recordRightsEvidence } from '../functions/_lib/rights-evidence-repository';
+import { onRequestPost as ingestPost } from '../functions/api/admin/content-pipeline/ingest';
 import { ADMIN_SESSION_COOKIE, seedAdminSession } from './helpers/adminSqliteSession';
 
 function applyRepoMigrations(db: DatabaseSync) {
@@ -95,6 +99,36 @@ function freshDb() {
   applyRepoMigrations(sqlite);
   seedAdminSession(sqlite);
   return wrapSqliteAsD1(sqlite);
+}
+
+// Wraps the same sqlite-backed D1 shim as wrapSqliteAsD1, but makes any
+// prepared statement whose SQL text is matched by `shouldFail` throw on
+// `.run()` instead of executing -- used to simulate a D1 write failing
+// partway through an otherwise-successful operation (AC #13's "failed D1
+// commit" / "rollback" scenarios).
+function wrapSqliteAsD1WithFailure(sqlite: DatabaseSync, shouldFail: (sql: string) => boolean) {
+  const base = wrapSqliteAsD1(sqlite);
+  return {
+    ...base,
+    prepare(sql: string) {
+      if (!shouldFail(sql)) {
+        return base.prepare(sql);
+      }
+      const throwingRun = async () => {
+        throw new Error(`Simulated D1 write failure for: ${sql}`);
+      };
+      return {
+        bind: () => ({
+          first: async () => null,
+          all: async () => ({ results: [] }),
+          run: throwingRun,
+        }),
+        first: async () => null,
+        all: async () => ({ results: [] }),
+        run: throwingRun,
+      };
+    },
+  };
 }
 
 async function locSourceId(db: ReturnType<typeof wrapSqliteAsD1>): Promise<number> {
@@ -325,5 +359,251 @@ describe('search run admin API (#3552)', () => {
       request: adminPostRequest('/api/admin/content-pipeline/search-runs', body),
     });
     expect(second.status).toBe(409);
+  });
+});
+
+// AC #13's audit-flagged scenarios: failed B2 write, failed D1 commit, and
+// rollback -- none of these are properties of content_search_runs itself
+// (the B2/media-commit code path lives entirely in
+// functions/api/admin/content-pipeline/ingest.ts and
+// functions/_lib/media-ingest-repository.ts, neither of which is in #3657's
+// allowlisted files). These tests exercise that existing, already-shipped
+// code purely by import -- no source file outside the allowlist is edited --
+// to characterize its actual current failure behavior, per the design
+// package's explicit instruction to add these scenarios here.
+describe('B2 write / D1 commit / rollback failure scenarios (#3552 audit AC #13, exercised via #3657)', () => {
+  const B2_ENV = {
+    B2_ENDPOINT: 'https://s3.example-b2.com',
+    B2_BUCKET: 'lgfc-media',
+    B2_KEY_ID: 'test-key-id',
+    B2_APP_KEY: 'test-app-key',
+  };
+
+  const FAKE_JPEG_BYTES = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0, 0, 0x4a, 0x46, 0x49, 0x46, 0, 1]);
+
+  function minimalIngestCandidate(overrides: Partial<CandidateRecord> = {}): CandidateRecord {
+    return {
+      candidate_id: 'lgfc-gehrig-2026-999',
+      input_stream: 'scheduled_discovery',
+      title: 'Test candidate',
+      source_name: 'Library of Congress',
+      source_type: 'library',
+      content_type: 'photo',
+      summary: 'Test summary',
+      rights_status: 'unknown',
+      source_trust_status: 'trusted',
+      relevance_status: 'pending',
+      review_status: 'pending_review',
+      publication_status: 'not_ready',
+      privacy_flag: 'none',
+      privacy_review_status: 'not_applicable',
+      review_priority: 'normal',
+      created_at: '2026-08-17T16:00:00.000Z',
+      updated_at: '2026-08-17T16:00:00.000Z',
+      ...overrides,
+    };
+  }
+
+  function requestUrlAndMethod(input: unknown, init: unknown): { url: string; method: string } {
+    if (input instanceof Request) {
+      return { url: input.url, method: input.method };
+    }
+    return { url: String(input), method: (init as { method?: string } | undefined)?.method ?? 'GET' };
+  }
+
+  // Response.url is normally populated by the fetch implementation from the
+  // final (post-redirect) URL and isn't settable via the constructor --
+  // ingest.ts's redirect-allowlist check reads it, so mocks must force it.
+  function responseWithUrl(response: Response, url: string): Response {
+    Object.defineProperty(response, 'url', { value: url, configurable: true });
+    return response;
+  }
+
+  function adminIngestPostRequest(body: unknown): Request {
+    return new Request('https://www.lougehrigfanclub.com/api/admin/content-pipeline/ingest', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Cookie: ADMIN_SESSION_COOKIE },
+      body: JSON.stringify(body),
+    });
+  }
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it('failed B2 write: no D1 row is committed and the source fetch is not left in an inconsistent state', async () => {
+    const sqlite = new DatabaseSync(':memory:');
+    applyRepoMigrations(sqlite);
+    seedAdminSession(sqlite);
+    const db = wrapSqliteAsD1(sqlite);
+
+    const candidate = await upsertCandidate(db, minimalIngestCandidate());
+    await recordRightsEvidence(db, {
+      content_item_id: candidate.id,
+      evidence_type: 'loc_statement',
+      reviewer: 'Bill',
+      conclusion: 'public_domain_confirmed',
+      conclusion_rationale: 'LOC no known restrictions + pre-1931 publication.',
+      channel: 'website',
+    });
+
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const { url } = requestUrlAndMethod(input, init);
+      if (url.startsWith(B2_ENV.B2_ENDPOINT)) {
+        // The B2 PUT itself fails (simulates a network/service error).
+        throw new Error('simulated B2 PutObject network failure');
+      }
+      const sourceResponse = new Response(FAKE_JPEG_BYTES, { status: 200, headers: { 'Content-Type': 'image/jpeg' } });
+      return responseWithUrl(sourceResponse, url);
+    });
+
+    const response = await ingestPost({
+      env: { DB: db, ...B2_ENV },
+      request: adminIngestPostRequest({
+        candidate_id: 'lgfc-gehrig-2026-999',
+        source_fetch_url: 'https://loc.gov/item/example.jpg',
+      }),
+    });
+
+    // The failure surfaces as an error response, not a silent success.
+    expect(response.status).toBeGreaterThanOrEqual(500);
+    const body = await response.json();
+    expect(body.ok).toBe(false);
+
+    // No media_assets row and no content_items link were ever committed --
+    // the D1 commit step (commitIngestedMedia) never runs because the B2
+    // write throws before it's reached.
+    const mediaCount = sqlite.prepare('SELECT COUNT(*) AS count FROM media_assets').get() as { count: number };
+    expect(mediaCount.count).toBe(0);
+
+    const contentItemRow = sqlite
+      .prepare('SELECT media_asset_id FROM content_items WHERE candidate_id = ?')
+      .get('lgfc-gehrig-2026-999') as { media_asset_id: string | null };
+    expect(contentItemRow.media_asset_id).toBeNull();
+  });
+
+  it('failed D1 commit after a successful B2 write: the request does not silently succeed, but the B2-written object and its media_assets row are left without a content_items link (documented gap, not fixed here -- see comment)', async () => {
+    const sqlite = new DatabaseSync(':memory:');
+    applyRepoMigrations(sqlite);
+    seedAdminSession(sqlite);
+
+    // Only the content_items UPDATE issued by updateCandidateMediaReferences
+    // (inside commitIngestedMedia's second step) fails -- the media_assets
+    // INSERT that happens first is a separate, already-committed statement.
+    const db = wrapSqliteAsD1WithFailure(sqlite, (sql) => sql.includes('UPDATE content_items'));
+
+    const candidate = await upsertCandidate(db, minimalIngestCandidate());
+    await recordRightsEvidence(db, {
+      content_item_id: candidate.id,
+      evidence_type: 'loc_statement',
+      reviewer: 'Bill',
+      conclusion: 'public_domain_confirmed',
+      conclusion_rationale: 'LOC no known restrictions + pre-1931 publication.',
+      channel: 'website',
+    });
+
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const { url } = requestUrlAndMethod(input, init);
+      if (url.startsWith(B2_ENV.B2_ENDPOINT)) {
+        return new Response(null, { status: 200, headers: { ETag: '"fake-etag"' } });
+      }
+      const sourceResponse = new Response(FAKE_JPEG_BYTES, { status: 200, headers: { 'Content-Type': 'image/jpeg' } });
+      return responseWithUrl(sourceResponse, url);
+    });
+
+    const response = await ingestPost({
+      env: { DB: db, ...B2_ENV },
+      request: adminIngestPostRequest({
+        candidate_id: 'lgfc-gehrig-2026-999',
+        source_fetch_url: 'https://loc.gov/item/example.jpg',
+      }),
+    });
+
+    // The failure is reported, not swallowed -- a caller cannot mistake this
+    // for a successful ingest.
+    expect(response.status).toBeGreaterThanOrEqual(500);
+    const body = await response.json();
+    expect(body.ok).toBe(false);
+
+    // DOCUMENTED GAP (found by this test, not introduced by #3657, and NOT
+    // fixed here -- fixing it would mean wrapping the media_assets INSERT
+    // and the content_items UPDATE in one atomic D1 batch inside
+    // functions/_lib/media-ingest-repository.ts, which is outside #3657's
+    // allowlisted files; reported back to Bill per the package's explicit
+    // instruction rather than silently expanding scope):
+    //
+    // The B2 object was actually written, and media_assets recorded it, but
+    // content_items was never updated to point at it -- so a plain read of
+    // content_items shows no media, even though the bytes and the
+    // media_assets row genuinely exist. A later ingest retry with the same
+    // bytes would see `alreadyExisted: true` and still not repair the
+    // missing content_items link, because commitIngestedMedia's
+    // INSERT OR IGNORE only re-attempts the (already-failed) link step when
+    // it actually runs again -- which it does on every call, so a *retry*
+    // does self-heal here, but nothing about the first failed response
+    // guarantees a retry happens.
+    const mediaCount = sqlite.prepare('SELECT COUNT(*) AS count FROM media_assets').get() as { count: number };
+    expect(mediaCount.count).toBe(1); // the B2-written object's media_assets row was NOT rolled back
+
+    const contentItemRow = sqlite
+      .prepare('SELECT media_asset_id FROM content_items WHERE candidate_id = ?')
+      .get('lgfc-gehrig-2026-999') as { media_asset_id: string | null };
+    expect(contentItemRow.media_asset_id).toBeNull(); // the link itself was rolled back by the batch's own ROLLBACK
+  });
+
+  it('rollback: a search run that errors mid-completion is left running (not silently marked complete), so a later read cannot mistake it for success', async () => {
+    const sqlite = new DatabaseSync(':memory:');
+    applyRepoMigrations(sqlite);
+    seedAdminSession(sqlite);
+    const plainDb = wrapSqliteAsD1(sqlite);
+    const sourceRow = await plainDb.prepare('SELECT id FROM sources WHERE source_domain = ?').bind('loc.gov').first();
+    const sourceId = Number((sourceRow as { id: number }).id);
+
+    await startSearchRun(plainDb, { run_uid: 'run-rollback-1', source_id: sourceId });
+
+    const failingDb = wrapSqliteAsD1WithFailure(sqlite, (sql) => sql.includes('UPDATE content_search_runs') && sql.includes('SET status'));
+
+    await expect(
+      completeSearchRun(failingDb, 'run-rollback-1', { status: 'completed', discovered_count: 5 }),
+    ).rejects.toThrow(/Simulated D1 write failure/);
+
+    // The run must still read as 'running' -- not completed, and not stuck
+    // in some third, ambiguous state a later reader could mistake for
+    // success. The single-statement UPDATE either fully applies or (as
+    // here) doesn't run at all, so there is no partial-write state to worry
+    // about for this table.
+    const run = await getSearchRunByUid(plainDb, 'run-rollback-1');
+    expect(run?.status).toBe('running');
+    expect(run?.completed_at).toBeNull();
+
+    // A legitimate completion attempt afterward still succeeds -- the
+    // failed attempt didn't corrupt the row or leave it un-completable.
+    const recovered = await completeSearchRun(plainDb, 'run-rollback-1', { status: 'completed', discovered_count: 5 });
+    expect(recovered?.status).toBe('completed');
+  });
+
+  it('rollback: a rights_evidence INSERT failure records nothing -- no half-written evidence row that a later read could mistake for a real conclusion', async () => {
+    const sqlite = new DatabaseSync(':memory:');
+    applyRepoMigrations(sqlite);
+    const db = wrapSqliteAsD1(sqlite);
+    const candidate = await upsertCandidate(db, minimalIngestCandidate({ candidate_id: 'lgfc-gehrig-2026-998' }));
+
+    const failingDb = wrapSqliteAsD1WithFailure(sqlite, (sql) => sql.includes('INSERT INTO rights_evidence'));
+
+    await expect(
+      recordRightsEvidence(failingDb, {
+        content_item_id: candidate.id,
+        evidence_type: 'loc_statement',
+        reviewer: 'Bill',
+        conclusion: 'public_domain_confirmed',
+        conclusion_rationale: 'LOC no known restrictions.',
+        channel: 'website',
+      }),
+    ).rejects.toThrow(/Simulated D1 write failure/);
+
+    const count = sqlite
+      .prepare('SELECT COUNT(*) AS count FROM rights_evidence WHERE content_item_id = ?')
+      .get(candidate.id) as { count: number };
+    expect(count.count).toBe(0);
   });
 });

@@ -42,7 +42,11 @@ describe('mapConclusionToRightsStatus (#3552)', () => {
     expect(mapConclusionToRightsStatus('permission_granted')).toBe('permission_granted');
   });
 
-  it('maps lgfc_member_owned_item_photo to permission_granted', () => {
-    expect(mapConclusionToRightsStatus('lgfc_member_owned_item_photo')).toBe('permission_granted');
+  // #3657 / migration 0059: 'lgfc_owned_confirmed' now truthfully represents
+  // LGFC-owned material -- it no longer borrows 'permission_granted's
+  // meaning, which falsely implied a third party granted permission.
+  it('maps lgfc_member_owned_item_photo to lgfc_owned_confirmed, not permission_granted', () => {
+    expect(mapConclusionToRightsStatus('lgfc_member_owned_item_photo')).toBe('lgfc_owned_confirmed');
+    expect(mapConclusionToRightsStatus('lgfc_member_owned_item_photo')).not.toBe('permission_granted');
   });
 });

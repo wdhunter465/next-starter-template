@@ -8,6 +8,7 @@ import type { CandidateRecord } from '../functions/_lib/content-pipeline-candida
 import { parseRecordRightsEvidenceRequest } from '../functions/_lib/rights-evidence-admin';
 import {
   getCurrentConclusionForCandidate,
+  getCurrentConclusionForCandidateChannel,
   listRightsEvidenceForCandidate,
   recordRightsEvidence,
 } from '../functions/_lib/rights-evidence-repository';
@@ -164,6 +165,11 @@ describe('rights evidence request parsing (#3552)', () => {
       conclusion: 'public_domain_confirmed',
       reviewer: 'Bill',
       conclusion_rationale: 'LOC advisory + pre-1931 publication',
+      // #3657 / #3551 2026-08-18: channel is also required whenever a
+      // conclusion is recorded -- covered on its own by the dedicated
+      // channel-requirement tests below, included here too so this test
+      // keeps exercising a request that is actually complete.
+      channel: 'website',
     });
     expect(complete.ok).toBe(true);
   });
@@ -177,6 +183,107 @@ describe('rights evidence request parsing (#3552)', () => {
     expect(result.ok).toBe(true);
     if (result.ok) {
       expect(result.request.conclusion).toBeUndefined();
+    }
+  });
+
+  // #3551's 2026-08-18 channel-scoping directive: no blanket approval.
+  it('rejects recording a conclusion without a channel', () => {
+    const result = parseRecordRightsEvidenceRequest({
+      candidate_id: 'lgfc-gehrig-2026-999',
+      evidence_type: 'loc_statement',
+      conclusion: 'public_domain_confirmed',
+      reviewer: 'Bill',
+      conclusion_rationale: 'LOC advisory + pre-1931 publication',
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).toContain('channel is required');
+    }
+  });
+
+  it('rejects recording a conclusion with an invalid channel string', () => {
+    const result = parseRecordRightsEvidenceRequest({
+      candidate_id: 'lgfc-gehrig-2026-999',
+      evidence_type: 'loc_statement',
+      conclusion: 'public_domain_confirmed',
+      reviewer: 'Bill',
+      conclusion_rationale: 'LOC advisory + pre-1931 publication',
+      channel: 'carrier_pigeon',
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).toContain('channel');
+    }
+  });
+
+  it('accepts a conclusion recorded with a valid channel', () => {
+    const result = parseRecordRightsEvidenceRequest({
+      candidate_id: 'lgfc-gehrig-2026-999',
+      evidence_type: 'loc_statement',
+      conclusion: 'public_domain_confirmed',
+      reviewer: 'Bill',
+      conclusion_rationale: 'LOC advisory + pre-1931 publication',
+      channel: 'website',
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.request.channel).toBe('website');
+    }
+  });
+
+  it('accepts rights_holder / repository_or_collection without a conclusion', () => {
+    const result = parseRecordRightsEvidenceRequest({
+      candidate_id: 'lgfc-gehrig-2026-999',
+      evidence_type: 'member_ownership',
+      rights_holder: 'Jane Q. Member',
+      repository_or_collection: 'LGFC member donation archive',
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.request.rights_holder).toBe('Jane Q. Member');
+      expect(result.request.repository_or_collection).toBe('LGFC member donation archive');
+      expect(result.request.conclusion).toBeUndefined();
+    }
+  });
+
+  it('rejects pre_1931_publication evidence missing any structured field', () => {
+    const missingAll = parseRecordRightsEvidenceRequest({
+      candidate_id: 'lgfc-gehrig-2026-999',
+      evidence_type: 'pre_1931_publication',
+    });
+    expect(missingAll.ok).toBe(false);
+    if (!missingAll.ok) {
+      expect(missingAll.error).toContain('publication_established');
+      expect(missingAll.error).toContain('us_publication_or_uraa_confirmed');
+      expect(missingAll.error).toContain('publication_date_source');
+    }
+
+    const missingOne = parseRecordRightsEvidenceRequest({
+      candidate_id: 'lgfc-gehrig-2026-999',
+      evidence_type: 'pre_1931_publication',
+      publication_established: true,
+      us_publication_or_uraa_confirmed: true,
+    });
+    expect(missingOne.ok).toBe(false);
+    if (!missingOne.ok) {
+      expect(missingOne.error).toContain('publication_date_source');
+      expect(missingOne.error).not.toMatch(/publication_established|us_publication_or_uraa_confirmed/);
+    }
+  });
+
+  it('accepts pre_1931_publication evidence with all three structured fields present', () => {
+    const result = parseRecordRightsEvidenceRequest({
+      candidate_id: 'lgfc-gehrig-2026-999',
+      evidence_type: 'pre_1931_publication',
+      publication_established: true,
+      us_publication_or_uraa_confirmed: '1',
+      publication_date_source: '1928 Daily News archive',
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.request.publication_established).toBe(1);
+      expect(result.request.us_publication_or_uraa_confirmed).toBe(1);
+      expect(result.request.publication_date_source).toBe('1928 Daily News archive');
     }
   });
 });
@@ -299,5 +406,169 @@ describe('rights evidence repository + admin API (#3552)', () => {
     });
 
     expect(response.status).toBe(400);
+  });
+});
+
+describe('per-channel rights conclusion resolution (#3657 / #3551 2026-08-18 channel-scoping directive)', () => {
+  it('a conclusion recorded for one channel does not authorize a different channel', async () => {
+    const sqlite = new DatabaseSync(':memory:');
+    applyRepoMigrations(sqlite);
+    const db = wrapSqliteAsD1(sqlite);
+    const candidate = await upsertCandidate(db, minimalCandidate());
+
+    await recordRightsEvidence(db, {
+      content_item_id: candidate.id,
+      evidence_type: 'loc_statement',
+      reviewer: 'Bill',
+      conclusion: 'public_domain_confirmed',
+      conclusion_rationale: 'LOC advisory + pre-1931 publication.',
+      channel: 'website',
+    });
+
+    const websiteConclusion = await getCurrentConclusionForCandidateChannel(db, candidate.id, 'website');
+    expect(websiteConclusion?.conclusion).toBe('public_domain_confirmed');
+
+    // No conclusion was ever recorded for social_media -- a website clearance
+    // must not silently cover it.
+    const socialConclusion = await getCurrentConclusionForCandidateChannel(db, candidate.id, 'social_media');
+    expect(socialConclusion).toBeNull();
+  });
+
+  it('resolves independently per channel once multiple channels have conclusions', async () => {
+    const sqlite = new DatabaseSync(':memory:');
+    applyRepoMigrations(sqlite);
+    const db = wrapSqliteAsD1(sqlite);
+    const candidate = await upsertCandidate(db, minimalCandidate());
+
+    await recordRightsEvidence(db, {
+      content_item_id: candidate.id,
+      evidence_type: 'loc_statement',
+      reviewer: 'Bill',
+      conclusion: 'public_domain_confirmed',
+      conclusion_rationale: 'LOC advisory + pre-1931 publication.',
+      channel: 'website',
+    });
+    await recordRightsEvidence(db, {
+      content_item_id: candidate.id,
+      evidence_type: 'cmg_grant',
+      reviewer: 'Bill',
+      conclusion: 'permission_granted',
+      conclusion_rationale: 'CMG Worldwide newsletter usage grant.',
+      channel: 'newsletter_email',
+    });
+
+    expect((await getCurrentConclusionForCandidateChannel(db, candidate.id, 'website'))?.conclusion).toBe(
+      'public_domain_confirmed',
+    );
+    expect((await getCurrentConclusionForCandidateChannel(db, candidate.id, 'newsletter_email'))?.conclusion).toBe(
+      'permission_granted',
+    );
+    expect(await getCurrentConclusionForCandidateChannel(db, candidate.id, 'fundraiser_campaign')).toBeNull();
+  });
+
+  // #3552's audit-flagged "revoked permission" scenario. The append-only
+  // evidence model only ever supersedes a conclusion with a NEWER row that
+  // itself carries a non-null conclusion (see
+  // getCurrentConclusionForCandidateChannel's WHERE clause) -- and the fixed
+  // conclusion vocabulary (RIGHTS_EVIDENCE_CONCLUSIONS) has no value meaning
+  // "revoked" or "denied". #3657's scope explicitly forbids inventing new
+  // conclusion vocabulary without Bill's authorization, so full revocation
+  // (a later row that un-authorizes an earlier granted conclusion) is a
+  // known, pre-existing gap in the append-only model, NOT solved here --
+  // it is a candidate for a dedicated follow-up issue. This test documents
+  // the actual current behavior precisely so that gap is visible rather than
+  // silently assumed away.
+  it('documents current supersession semantics: a later evidence row without a conclusion does not revoke an earlier channel conclusion (known gap -- not solved in #3657, see comment above)', async () => {
+    const sqlite = new DatabaseSync(':memory:');
+    applyRepoMigrations(sqlite);
+    const db = wrapSqliteAsD1(sqlite);
+    const candidate = await upsertCandidate(db, minimalCandidate());
+
+    await recordRightsEvidence(db, {
+      content_item_id: candidate.id,
+      evidence_type: 'cmg_grant',
+      reviewer: 'Bill',
+      conclusion: 'permission_granted',
+      conclusion_rationale: 'CMG Worldwide website usage grant.',
+      channel: 'website',
+    });
+    expect((await getCurrentConclusionForCandidateChannel(db, candidate.id, 'website'))?.conclusion).toBe(
+      'permission_granted',
+    );
+
+    // A reviewer later learns the grant was revoked and records that fact as
+    // a new evidence row -- but cannot record a conclusion value that means
+    // "revoked" because no such value exists in the fixed vocabulary.
+    await recordRightsEvidence(db, {
+      content_item_id: candidate.id,
+      evidence_type: 'other',
+      reviewer: 'Bill',
+      evidence_text: 'CMG Worldwide revoked the website usage grant via email dated 2026-08-20.',
+      channel: 'website',
+      // conclusion intentionally omitted -- see comment above.
+    });
+
+    // Known gap: the resolver still finds the earlier 'permission_granted'
+    // row, because it only ever considers rows with a non-null conclusion.
+    // A caller relying on this resolver for a publication gate would
+    // currently NOT see the revocation. This is the exact behavior to fix
+    // in a dedicated follow-up, not a regression introduced by #3657.
+    const stillFound = await getCurrentConclusionForCandidateChannel(db, candidate.id, 'website');
+    expect(stillFound?.conclusion).toBe('permission_granted');
+
+    // The revocation note is nonetheless preserved in the append-only trail
+    // for a human reviewer to see.
+    const trail = await listRightsEvidenceForCandidate(db, candidate.id);
+    expect(trail[0].evidence_text).toContain('revoked');
+    expect(trail[0].conclusion).toBeNull();
+  });
+});
+
+describe('rights_holder / repository_or_collection / pre_1931 structured fields (#3657)', () => {
+  it('stores channel, rights_holder, and repository_or_collection as first-class columns', async () => {
+    const sqlite = new DatabaseSync(':memory:');
+    applyRepoMigrations(sqlite);
+    const db = wrapSqliteAsD1(sqlite);
+    const candidate = await upsertCandidate(db, minimalCandidate());
+
+    const stored = await recordRightsEvidence(db, {
+      content_item_id: candidate.id,
+      evidence_type: 'member_ownership',
+      channel: 'website',
+      rights_holder: 'Jane Q. Member',
+      repository_or_collection: 'LGFC member donation archive',
+    });
+
+    expect(stored.rights_holder).toBe('Jane Q. Member');
+    expect(stored.repository_or_collection).toBe('LGFC member donation archive');
+
+    const row = sqlite
+      .prepare('SELECT rights_holder, repository_or_collection FROM rights_evidence WHERE id = ?')
+      .get(stored.id) as { rights_holder: string; repository_or_collection: string };
+    expect(row.rights_holder).toBe('Jane Q. Member');
+    expect(row.repository_or_collection).toBe('LGFC member donation archive');
+  });
+
+  it('stores pre_1931_publication structured fields', async () => {
+    const sqlite = new DatabaseSync(':memory:');
+    applyRepoMigrations(sqlite);
+    const db = wrapSqliteAsD1(sqlite);
+    const candidate = await upsertCandidate(db, minimalCandidate());
+
+    const stored = await recordRightsEvidence(db, {
+      content_item_id: candidate.id,
+      evidence_type: 'pre_1931_publication',
+      reviewer: 'Bill',
+      conclusion: 'public_domain_confirmed',
+      conclusion_rationale: 'Confirmed 1928 publication.',
+      channel: 'website',
+      publication_established: 1,
+      us_publication_or_uraa_confirmed: 1,
+      publication_date_source: '1928 Daily News archive',
+    });
+
+    expect(stored.publication_established).toBe(1);
+    expect(stored.us_publication_or_uraa_confirmed).toBe(1);
+    expect(stored.publication_date_source).toBe('1928 Daily News archive');
   });
 });

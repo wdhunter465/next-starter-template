@@ -7,14 +7,31 @@ import { isValidCandidateId, parseRecordRightsEvidenceRequest } from '../../../.
 import { getCandidateByCandidateId } from '../../../../_lib/content-pipeline-candidate-repository';
 import { requireContentPipelineCandidateTables } from '../../../../_lib/content-pipeline-candidate-repository';
 import {
+  RIGHTS_EVIDENCE_CHANNELS,
   getCurrentConclusionForCandidate,
+  getCurrentConclusionForCandidateChannel,
   listRightsEvidenceForCandidate,
   recordRightsEvidence,
   requireRightsEvidenceTables,
+  type RightsEvidenceChannel,
+  type StoredRightsEvidence,
 } from '../../../../_lib/rights-evidence-repository';
 import { requireAdmin } from '../../../../_lib/auth';
 import { jsonResponse, requireD1 } from '../../../../_lib/d1';
 import { CANDIDATE_ID_VALIDATION_MESSAGE } from '../../../../_lib/rights-evidence-admin';
+
+async function resolveCurrentConclusionByChannel(
+  db: any,
+  contentItemId: number,
+): Promise<Record<RightsEvidenceChannel, StoredRightsEvidence | null>> {
+  const entries = await Promise.all(
+    RIGHTS_EVIDENCE_CHANNELS.map(async (channel) => {
+      const conclusion = await getCurrentConclusionForCandidateChannel(db, contentItemId, channel);
+      return [channel, conclusion] as const;
+    }),
+  );
+  return Object.fromEntries(entries) as Record<RightsEvidenceChannel, StoredRightsEvidence | null>;
+}
 
 async function resolveSourceId(db: any, sourceDomain: string | undefined): Promise<number | null> {
   if (!sourceDomain) return null;
@@ -51,16 +68,21 @@ export const onRequestGet = async (context: any): Promise<Response> => {
       return jsonResponse({ ok: false, error: 'Candidate not found.' }, 404);
     }
 
-    const [evidence, currentConclusion] = await Promise.all([
+    const [evidence, currentConclusion, currentConclusionByChannel] = await Promise.all([
       listRightsEvidenceForCandidate(d1.db, candidate.id),
       getCurrentConclusionForCandidate(d1.db, candidate.id),
+      resolveCurrentConclusionByChannel(d1.db, candidate.id),
     ]);
 
     return jsonResponse(
       {
         ok: true,
         candidate_id: candidateId,
+        // Informational/overview only -- do not gate on this. See
+        // current_conclusion_by_channel for the authoritative per-channel
+        // status (#3551's 2026-08-18 channel-scoping directive).
         current_conclusion: currentConclusion,
+        current_conclusion_by_channel: currentConclusionByChannel,
         evidence,
       },
       200,

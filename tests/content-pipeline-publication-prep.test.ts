@@ -7,6 +7,8 @@ import type { CandidateRecord } from '../functions/_lib/content-pipeline-candida
 import { PUBLICATION_STATUSES, REVIEW_STATUSES } from '../functions/_lib/content-pipeline-candidate-constants';
 import { upsertCandidate } from '../functions/_lib/content-pipeline-candidate-repository';
 import {
+  buildPublicationPrepViewForCandidate,
+  channelForPublicationTarget,
   evaluatePublicationPrepEligibility,
   MEMBER_SUBMISSION_PREP_SOURCE_NAME,
   parsePublicationPrepListQuery,
@@ -14,6 +16,7 @@ import {
   serializePublicationPrepView,
 } from '../functions/_lib/content-pipeline-publication-prep';
 import { serializeAdminMediaReferences } from '../functions/_lib/content-pipeline-media-reference';
+import { recordRightsEvidence } from '../functions/_lib/rights-evidence-repository';
 import { onRequestGet as publicationPrepGet } from '../functions/api/admin/content-pipeline/publication-prep/index';
 import { ADMIN_SESSION_COOKIE, seedAdminSession } from './helpers/adminSqliteSession';
 
@@ -77,8 +80,8 @@ function wrapSqliteAsD1(sqlite: DatabaseSync) {
           return { results: stmt.all(...args) };
         },
         async run() {
-          stmt.run(...args);
-          return { success: true };
+          const info = stmt.run(...args);
+          return { success: true, meta: { last_row_id: Number(info.lastInsertRowid) } };
         },
       });
       return {
@@ -90,8 +93,8 @@ function wrapSqliteAsD1(sqlite: DatabaseSync) {
           return { results: stmt.all() };
         },
         async run() {
-          stmt.run();
-          return { success: true };
+          const info = stmt.run();
+          return { success: true, meta: { last_row_id: Number(info.lastInsertRowid) } };
         },
       };
     },
@@ -456,6 +459,155 @@ describe('content pipeline publication prep (#2324)', () => {
       .prepare(`SELECT COUNT(*) AS count FROM moderation_events`)
       .get() as { count: number };
     expect(afterCount.count).toBe(beforeCount.count);
+  });
+
+  it('channelForPublicationTarget maps #3552 targets to #3551 channels', () => {
+    expect(channelForPublicationTarget('social')).toBe('social_media');
+    expect(channelForPublicationTarget('newsletter')).toBe('newsletter_email');
+    expect(channelForPublicationTarget('lou_gehrig_day')).toBe('fundraiser_campaign');
+    expect(channelForPublicationTarget('internal_reference_only')).toBe('internal_archive_only');
+    for (const websiteTarget of [
+      'biography',
+      'timeline',
+      'gallery',
+      'library',
+      'memorabilia',
+      'article',
+      'homepage_feature',
+    ]) {
+      expect(channelForPublicationTarget(websiteTarget)).toBe('website');
+    }
+    expect(channelForPublicationTarget(null)).toBeNull();
+    expect(channelForPublicationTarget('not_a_real_target')).toBeNull();
+  });
+
+  describe('channel-scoped rights gate for scheduled_discovery candidates (#3657 / #3551 2026-08-18)', () => {
+    function discoveryCandidate(overrides: Partial<CandidateRecord> = {}): CandidateRecord {
+      return eligibleCandidate({
+        input_stream: 'scheduled_discovery',
+        source_type: 'library',
+        rights_status: 'permission_granted',
+        ...overrides,
+      });
+    }
+
+    it('denies the gate directly when the conclusion covers a different channel than publication_target', () => {
+      // publication_target='social' maps to channel 'social_media', but only
+      // a 'website' conclusion was found -- channelConclusionFound reflects
+      // that mismatch as false.
+      const eligibility = evaluatePublicationPrepEligibility(
+        discoveryCandidate({ publication_target: 'social' }),
+        null,
+        false,
+      );
+      expect(eligibility.eligible).toBe(false);
+      expect(eligibility.gates.channel_rights_evidence.pass).toBe(false);
+      expect(eligibility.reasons).toContain(
+        "rights_evidence must carry a conclusion for the candidate's specific publication_target channel (scheduled_discovery only)",
+      );
+    });
+
+    it('passes the gate directly when publication_target maps to a channel with a found conclusion', () => {
+      const eligibility = evaluatePublicationPrepEligibility(
+        discoveryCandidate({ publication_target: 'library' }),
+        null,
+        true,
+      );
+      expect(eligibility.gates.channel_rights_evidence.pass).toBe(true);
+      expect(eligibility.eligible).toBe(true);
+    });
+
+    it('is a no-op for member_submission candidates regardless of channelConclusionFound', () => {
+      const memberContext = {
+        submission_type: 'story' as const,
+        consent_status: 'granted',
+        credit_preference: 'public_credit',
+        admin_followup_required: false,
+      };
+      const withFalse = evaluatePublicationPrepEligibility(
+        eligibleCandidate({ input_stream: 'member_submission', publication_target: 'social' }),
+        memberContext,
+        false,
+      );
+      expect(withFalse.gates.channel_rights_evidence.pass).toBe(true);
+
+      const withNull = evaluatePublicationPrepEligibility(
+        eligibleCandidate({ input_stream: 'member_submission', publication_target: 'social' }),
+        memberContext,
+        null,
+      );
+      expect(withNull.gates.channel_rights_evidence.pass).toBe(true);
+    });
+
+    it('is a no-op for admin_seed and public_research candidates regardless of channelConclusionFound', () => {
+      for (const inputStream of ['admin_seed', 'public_research'] as const) {
+        const eligibility = evaluatePublicationPrepEligibility(
+          eligibleCandidate({ input_stream: inputStream, publication_target: 'social' }),
+          null,
+          false,
+        );
+        expect(eligibility.gates.channel_rights_evidence.pass).toBe(true);
+      }
+    });
+
+    it('end-to-end: a scheduled_discovery candidate with a conclusion recorded only for website fails when publication_target is social, and passes when publication_target maps to website', async () => {
+      const sqlite = new DatabaseSync(':memory:');
+      applyRepoMigrations(sqlite);
+      const db = wrapSqliteAsD1(sqlite);
+
+      const candidate = await upsertCandidate(
+        db,
+        discoveryCandidate({ candidate_id: 'lgfc-gehrig-2026-941', publication_target: 'social' }),
+      );
+      await recordRightsEvidence(db, {
+        content_item_id: candidate.id,
+        evidence_type: 'loc_statement',
+        reviewer: 'Bill',
+        conclusion: 'public_domain_confirmed',
+        conclusion_rationale: 'LOC advisory + pre-1931 publication.',
+        channel: 'website',
+      });
+
+      const socialView = await buildPublicationPrepViewForCandidate(db, candidate);
+      expect(socialView.eligibility.gates.channel_rights_evidence.pass).toBe(false);
+      expect(socialView.eligibility.eligible).toBe(false);
+
+      // Same candidate, but re-targeted at a publication_target that maps to
+      // the 'website' channel the conclusion actually covers.
+      const websiteCandidate = { ...candidate, publication_target: 'library' };
+      const websiteView = await buildPublicationPrepViewForCandidate(db, websiteCandidate);
+      expect(websiteView.eligibility.gates.channel_rights_evidence.pass).toBe(true);
+      expect(websiteView.eligibility.eligible).toBe(true);
+    });
+
+    it('regression safety: a member_submission candidate with no rights_evidence rows at all is unaffected by the new gate', async () => {
+      const sqlite = new DatabaseSync(':memory:');
+      applyRepoMigrations(sqlite);
+      const db = wrapSqliteAsD1(sqlite);
+
+      const candidate = await upsertCandidate(
+        db,
+        eligibleCandidate({
+          candidate_id: 'lgfc-gehrig-2026-942',
+          input_stream: 'member_submission',
+          publication_target: 'social',
+        }),
+      );
+      sqlite
+        .prepare(
+          `INSERT INTO member_submissions (
+            content_item_id, submission_type, ownership_statement, permission_statement,
+            credit_preference, consent_status, admin_followup_required
+          ) VALUES (?, 'story', 'I own this', 'granted for LGFC use', 'public_credit', 'granted', 0)`,
+        )
+        .run(candidate.id);
+
+      const view = await buildPublicationPrepViewForCandidate(db, candidate);
+      // Governed purely by the pre-existing rights_status-based gate, as
+      // before -- the new channel gate must not add or change any reason.
+      expect(view.eligibility.gates.channel_rights_evidence.pass).toBe(true);
+      expect(view.eligibility.eligible).toBe(true);
+    });
   });
 
   it('does not register publication-prep route segments under non-admin API paths', () => {

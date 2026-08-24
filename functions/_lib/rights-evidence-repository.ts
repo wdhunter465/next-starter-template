@@ -27,12 +27,26 @@ export const RIGHTS_EVIDENCE_CONCLUSIONS = [
 export type RightsEvidenceType = (typeof RIGHTS_EVIDENCE_TYPES)[number];
 export type RightsEvidenceConclusion = (typeof RIGHTS_EVIDENCE_CONCLUSIONS)[number];
 
+// #3551's 2026-08-18 directive: rights conclusions are channel/use-specific,
+// not one blanket approval. A conclusion recorded for one channel never
+// silently authorizes another. See getCurrentConclusionForCandidateChannel
+// below, the authoritative per-channel resolver for gating.
+export const RIGHTS_EVIDENCE_CHANNELS = [
+  'website',
+  'social_media',
+  'newsletter_email',
+  'fundraiser_campaign',
+  'internal_archive_only',
+] as const;
+export type RightsEvidenceChannel = (typeof RIGHTS_EVIDENCE_CHANNELS)[number];
+
 function toSet<T extends string>(values: readonly T[]): Set<string> {
   return new Set(values);
 }
 
 export const RIGHTS_EVIDENCE_TYPE_SET = toSet(RIGHTS_EVIDENCE_TYPES);
 export const RIGHTS_EVIDENCE_CONCLUSION_SET = toSet(RIGHTS_EVIDENCE_CONCLUSIONS);
+export const RIGHTS_EVIDENCE_CHANNEL_SET = toSet(RIGHTS_EVIDENCE_CHANNELS);
 
 export type RightsEvidenceRow = {
   id: number;
@@ -49,6 +63,12 @@ export type RightsEvidenceRow = {
   recorded_at: string;
   created_at: string;
   updated_at: string;
+  channel: RightsEvidenceChannel | null;
+  rights_holder: string | null;
+  repository_or_collection: string | null;
+  publication_established: number | null;
+  us_publication_or_uraa_confirmed: number | null;
+  publication_date_source: string | null;
 };
 
 export type StoredRightsEvidence = Omit<RightsEvidenceRow, 'evidence_metadata'> & {
@@ -66,6 +86,12 @@ export type RightsEvidenceInput = {
   reviewer?: string | null;
   conclusion?: RightsEvidenceConclusion | null;
   conclusion_rationale?: string | null;
+  channel?: RightsEvidenceChannel | null;
+  rights_holder?: string | null;
+  repository_or_collection?: string | null;
+  publication_established?: number | null;
+  us_publication_or_uraa_confirmed?: number | null;
+  publication_date_source?: string | null;
 };
 
 export async function requireRightsEvidenceTables(db: unknown) {
@@ -91,6 +117,25 @@ export function mapRightsEvidenceRow(row: RightsEvidenceRow): StoredRightsEviden
   };
 }
 
+// `channel` is NOT enforced as required here at the repository/DB level --
+// only the admin API's request parser (rights-evidence-admin.ts) requires
+// it, and only for that one write path. This is deliberate, not an
+// oversight (Copilot review finding on PR #3663 flagged this precisely):
+// two pre-existing, unrelated writers -- content-pipeline-member-submission-
+// intake.ts and member-photo-submission-repository.ts -- also call this
+// function to record a conclusion, and they never pass a channel. Those are
+// #2270's separate member-submission rights model, explicitly and
+// deliberately out of #3657's scope (per #3551's 2026-08-18 comment: "#3551
+// remains the controlling path for content LGFC itself discovers/collects
+// from approved external sources... complements #2270's member-submission
+// rights model"). channelForPublicationTarget's gate in
+// content-pipeline-publication-prep.ts is scoped to
+// `input_stream === 'scheduled_discovery'` for exactly this reason, so a
+// member-submission candidate's channel-less rights_evidence rows are never
+// read by that gate and never need a channel. A blanket "conclusion implies
+// channel" constraint at this function (or a DB-level CHECK/trigger) would
+// either break those two existing, already-shipped call sites or require
+// rewriting #2270's model as part of this package -- both out of scope here.
 export async function recordRightsEvidence(
   db: any,
   input: RightsEvidenceInput,
@@ -101,8 +146,10 @@ export async function recordRightsEvidence(
     .prepare(
       `INSERT INTO rights_evidence (
         content_item_id, source_id, search_run_id, evidence_type, evidence_text,
-        evidence_url, evidence_metadata, reviewer, conclusion, conclusion_rationale
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        evidence_url, evidence_metadata, reviewer, conclusion, conclusion_rationale,
+        channel, rights_holder, repository_or_collection, publication_established,
+        us_publication_or_uraa_confirmed, publication_date_source
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       input.content_item_id,
@@ -115,6 +162,12 @@ export async function recordRightsEvidence(
       input.reviewer ?? null,
       input.conclusion ?? null,
       input.conclusion_rationale ?? null,
+      input.channel ?? null,
+      input.rights_holder ?? null,
+      input.repository_or_collection ?? null,
+      input.publication_established ?? null,
+      input.us_publication_or_uraa_confirmed ?? null,
+      input.publication_date_source ?? null,
     )
     .run();
 
@@ -147,10 +200,12 @@ export async function listRightsEvidenceForCandidate(
   return ((result.results ?? []) as RightsEvidenceRow[]).map(mapRightsEvidenceRow);
 }
 
-// The most recent evidence row that carries a conclusion is the candidate's
-// current rights determination. Earlier evidence (including any without a
-// conclusion, or a conclusion a later review superseded) stays in the trail
-// but does not govern eligibility.
+// The most recent evidence row that carries a conclusion, across ALL
+// channels. This is informational/overview only -- it is NOT authoritative
+// for any publication gate, since #3551's 2026-08-18 directive requires
+// conclusions to be channel-scoped: a conclusion recorded for one channel
+// must not silently authorize another. Use
+// getCurrentConclusionForCandidateChannel below for any gating decision.
 export async function getCurrentConclusionForCandidate(
   db: any,
   contentItemId: number,
@@ -163,6 +218,28 @@ export async function getCurrentConclusionForCandidate(
        LIMIT 1`,
     )
     .bind(contentItemId)
+    .first();
+
+  return row ? mapRightsEvidenceRow(row as RightsEvidenceRow) : null;
+}
+
+// Authoritative resolver for gating: the most recent conclusion recorded
+// specifically for this channel. A conclusion recorded for a different
+// channel never satisfies this -- #3551's 2026-08-18 directive that a
+// clearance for one channel must not silently authorize another.
+export async function getCurrentConclusionForCandidateChannel(
+  db: any,
+  contentItemId: number,
+  channel: RightsEvidenceChannel,
+): Promise<StoredRightsEvidence | null> {
+  const row = await db
+    .prepare(
+      `SELECT * FROM rights_evidence
+       WHERE content_item_id = ? AND channel = ? AND conclusion IS NOT NULL
+       ORDER BY recorded_at DESC, id DESC
+       LIMIT 1`,
+    )
+    .bind(contentItemId, channel)
     .first();
 
   return row ? mapRightsEvidenceRow(row as RightsEvidenceRow) : null;

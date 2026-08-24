@@ -34,6 +34,13 @@ export function mapLicenseToConclusion(licenseShortName: string | null | undefin
 // for each rights_evidence.conclusion value. The two enums predate each
 // other and don't share vocabulary 1:1 -- 'public_domain_candidate' is the
 // closest available value to a confirmed public-domain conclusion.
+//
+// Migration 0059 (#3657) added 'lgfc_owned_confirmed' specifically to fix
+// the one real mismatch here: 'lgfc_member_owned_item_photo' used to have
+// to borrow 'permission_granted's meaning, which falsely implied a third
+// party granted permission when in fact LGFC itself is the rights holder
+// with no identified third-party claim. It no longer needs to borrow that
+// meaning.
 export function mapConclusionToRightsStatus(conclusion: RightsEvidenceConclusion): string {
   switch (conclusion) {
     case 'public_domain_confirmed':
@@ -41,7 +48,7 @@ export function mapConclusionToRightsStatus(conclusion: RightsEvidenceConclusion
     case 'permission_granted':
       return 'permission_granted';
     case 'lgfc_member_owned_item_photo':
-      return 'permission_granted';
+      return 'lgfc_owned_confirmed';
     default: {
       const exhaustive: never = conclusion;
       throw new Error(`mapConclusionToRightsStatus: unhandled conclusion "${exhaustive}"`);
