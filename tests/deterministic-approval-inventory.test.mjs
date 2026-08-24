@@ -155,4 +155,37 @@ describe('deterministic-approval-inventory (#3671)', () => {
     expect(assertNoSelfApproval({ eligible: true, implementerIsApprover: false }).permitted).toBe(true);
     expect(assertNoSelfApproval({ eligible: false, implementerIsApprover: false }).permitted).toBe(false);
   });
+
+  it('keeps permitted and reason consistent when eligible is a non-boolean truthy value', () => {
+    const result = assertNoSelfApproval({ eligible: 'true', implementerIsApprover: false });
+    expect(result.permitted).toBe(false);
+    expect(result.reason).toBe('not eligible');
+  });
+
+  it('does not throw and fails closed when evidence is null', () => {
+    const result = evaluateDeterministicEligibility({
+      category: GATE_CATEGORIES.DOCUMENTATION_ONLY,
+      evidence: null
+    });
+    expect(result.eligible).toBe(false);
+    expect(result.mode).toBe(GATE_MODE.JUDGMENT);
+  });
+
+  it('does not throw and fails closed when evidence is a non-object', () => {
+    expect(() =>
+      evaluateDeterministicEligibility({ category: GATE_CATEGORIES.SANDBOX, evidence: 'yes' })
+    ).not.toThrow();
+    const result = evaluateDeterministicEligibility({ category: GATE_CATEGORIES.SANDBOX, evidence: 'yes' });
+    expect(result.eligible).toBe(false);
+  });
+
+  it('reports the actual disqualifier when touchesProtectedPath blocks an otherwise-complete evidence set', () => {
+    const result = evaluateDeterministicEligibility({
+      category: GATE_CATEGORIES.DOCUMENTATION_ONLY,
+      evidence: { allPathsMatchDocsGlob: true, touchesProtectedPath: true }
+    });
+    expect(result.eligible).toBe(false);
+    expect(result.reason).toMatch(/touchesProtectedPath/);
+    expect(result.reason).not.toMatch(/allPathsMatchDocsGlob/);
+  });
 });
