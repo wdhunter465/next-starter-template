@@ -5,7 +5,7 @@ Authority Level: Domain Policy
 Owns: Gate profiles, check classification, deterministic evidence, validation ownership, promotion verification criteria, failure routing, remediation boundaries, and post-merge verification ownership
 Does Not Own: Delivery Model A/B selection, agent approval routing, branch-protection UI settings, workflow YAML implementation, product/UX behavior, or platform isolation claims
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2689, #2686, #3668
+Related Issues: #2689, #2686, #3668, #3671
 Last Reviewed: 2026-08-24
 ---
 
@@ -15,7 +15,7 @@ Last Reviewed: 2026-08-24
 
 This document is the canonical **CI and Verification** domain policy. It defines who owns validation decisions, how checks are classified, what evidence counts, how failures route, where Deterministic CI stops and human Engineering approval begins, and how post-merge verification is owned.
 
-Detailed workflow inventories, classification matrices, merge-protection surfaces, preflight contracts, and as-built CI notes live under `docs/reference/ci/**`. Those files are **supporting specifications**, not co-owners of this domain policy. The deterministic PMO failure-remediation routing contract is documented at `docs/reference/pmo/failure-remediation-routing-contract.md`.
+Detailed workflow inventories, classification matrices, merge-protection surfaces, preflight contracts, and as-built CI notes live under `docs/reference/ci/**`. Those files are **supporting specifications**, not co-owners of this domain policy. The deterministic PMO failure-remediation routing contract is documented at `docs/reference/pmo/failure-remediation-routing-contract.md`. The deterministic-versus-judgment gate inventory and eligibility-signal contract is documented at `docs/reference/pmo/deterministic-approval-inventory-contract.md`.
 
 Delivery model selection and promotion-profile policy remain in `docs/governance/DELIVERY-AND-RELEASE.md` and `docs/governance/PMO-PORTFOLIO.md`. Agent roles and protected-stop contracts remain in `docs/governance/AGENT-TEAM.md`. PR process procedure remains in `docs/governance/PR_PROCESS.md`. Operations degradation remains in `docs/governance/OPERATIONS-AND-RECOVERY.md`.
 
