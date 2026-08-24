@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Gate profiles, check classification, deterministic evidence, validation ownership, promotion verification criteria, failure routing, remediation boundaries, and post-merge verification ownership
 Does Not Own: Delivery Model A/B selection, agent approval routing, branch-protection UI settings, workflow YAML implementation, product/UX behavior, or platform isolation claims
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2689, #2686
-Last Reviewed: 2026-07-21
+Related Issues: #2689, #2686, #3668
+Last Reviewed: 2026-08-24
 ---
 
 # CI and Verification
@@ -15,7 +15,7 @@ Last Reviewed: 2026-07-21
 
 This document is the canonical **CI and Verification** domain policy. It defines who owns validation decisions, how checks are classified, what evidence counts, how failures route, where Deterministic CI stops and human Engineering approval begins, and how post-merge verification is owned.
 
-Detailed workflow inventories, classification matrices, merge-protection surfaces, preflight contracts, and as-built CI notes live under `docs/reference/ci/**`. Those files are **supporting specifications**, not co-owners of this domain policy.
+Detailed workflow inventories, classification matrices, merge-protection surfaces, preflight contracts, and as-built CI notes live under `docs/reference/ci/**`. Those files are **supporting specifications**, not co-owners of this domain policy. The deterministic PMO failure-remediation routing contract is documented at `docs/reference/pmo/failure-remediation-routing-contract.md`.
 
 Delivery model selection and promotion-profile policy remain in `docs/governance/DELIVERY-AND-RELEASE.md` and `docs/governance/PMO-PORTFOLIO.md`. Agent roles and protected-stop contracts remain in `docs/governance/AGENT-TEAM.md`. PR process procedure remains in `docs/governance/PR_PROCESS.md`. Operations degradation remains in `docs/governance/OPERATIONS-AND-RECOVERY.md`.
 
@@ -130,6 +130,8 @@ Skipping a mandatory profile is a protected stop. Sandbox must not jump to Promo
 
 ## Failure routing and remediation boundaries
 
+The executable routing behavior for these classes is specified by `docs/reference/pmo/failure-remediation-routing-contract.md` and must remain subordinate to this policy.
+
 | Failure class | Routes to | Remediation boundary |
 | --- | --- | --- |
 | Deterministic required-check fail on Implementation work | Implementation / Operations | Fix inside allowlist; re-run checks on new head |
@@ -211,6 +213,7 @@ Cursor never self-approves CI or verification authority for protected or Product
 | Reviewer lifecycle surface | `docs/reference/ci/reviewer-lifecycle-surface.md` |
 | Repository runner contract | `docs/reference/ci/repository-runner-contract.md` |
 | Trusted reviewer evidence gate | `docs/reference/ci/trusted-reviewer-evidence-gate.md` |
+| Failure remediation routing contract | `docs/reference/pmo/failure-remediation-routing-contract.md` |
 
 Inventories under `docs/reference/ci/**` may be LOCKED as as-built facts. LOCKED means the specification is frozen for implementation claims; it does not make that file a Domain Policy co-owner.
 
@@ -236,6 +239,7 @@ A change is CI/verification drift when it:
 | Operations degradation and recovery | `docs/governance/OPERATIONS-AND-RECOVERY.md` |
 | Merge-protection surface | `docs/reference/ci/merge-protection-surface.md` |
 | Workflow classification | `docs/reference/ci/lgfc-ci-workflow-classification-matrix.md` |
+| Failure remediation routing | `docs/reference/pmo/failure-remediation-routing-contract.md` |
 
 ## Supersession
 
