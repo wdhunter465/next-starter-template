@@ -83,6 +83,11 @@ async function listIds(db, sql) {
   return (result.results ?? []).map((row) => row.id);
 }
 
+async function listRows(db, sql) {
+  const result = await db.prepare(sql).all();
+  return result.results ?? [];
+}
+
 async function buildInventory(db) {
   const photosTotal = await countRow(db, 'SELECT COUNT(*) AS n FROM photos');
   const mediaAssetsTotal = await countRow(db, 'SELECT COUNT(*) AS n FROM media_assets');
@@ -174,6 +179,28 @@ async function buildInventory(db) {
   const unaccountedPhotosIds = allPhotosIds.filter((id) => !accountedPhotosIds.has(id));
   const unaccountedMediaAssetsIds = allMediaAssetsIds.filter((id) => !accountedMediaAssetsIds.has(id));
 
+  // Row detail for the unaccounted rows only -- these are the ones whose
+  // actual disposition is unknown from category membership alone, so a
+  // human needs the real column values (not just an id) to reconcile them
+  // against an external source of truth (e.g. the actual B2 bucket
+  // listing).
+  let unaccountedPhotosDetail = [];
+  let unaccountedMediaAssetsDetail = [];
+  if (unaccountedPhotosIds.length > 0) {
+    unaccountedPhotosDetail = await listRows(
+      db,
+      `SELECT id, photo_id, url, rights_hold, rights_hold_reason, rights_status, publication_eligible, created_at
+       FROM photos WHERE id IN (${unaccountedPhotosIds.join(',')}) ORDER BY id`,
+    );
+  }
+  if (unaccountedMediaAssetsIds.length > 0) {
+    unaccountedMediaAssetsDetail = await listRows(
+      db,
+      `SELECT id, media_uid, b2_key, size, rights_hold, rights_hold_reason, ingested_at
+       FROM media_assets WHERE id IN (${unaccountedMediaAssetsIds.join(',')}) ORDER BY id`,
+    );
+  }
+
   return {
     photos: {
       total: photosTotal,
@@ -181,6 +208,7 @@ async function buildInventory(db) {
       category3_still_quarantined: stillQuarantinedPhotosIds,
       unaccounted_ids: unaccountedPhotosIds,
       unaccounted_count: unaccountedPhotosIds.length,
+      unaccounted_detail: unaccountedPhotosDetail,
     },
     media_assets: {
       total: mediaAssetsTotal,
@@ -188,6 +216,7 @@ async function buildInventory(db) {
       category3_still_quarantined: stillQuarantinedMediaAssetsIds,
       unaccounted_ids: unaccountedMediaAssetsIds,
       unaccounted_count: unaccountedMediaAssetsIds.length,
+      unaccounted_detail: unaccountedMediaAssetsDetail,
     },
     wikimedia_cross_check: {
       note: 'content_items rows with real per-item rights_evidence referencing wikimedia -- NOT photos/media_assets rows, out of scope for this table, listed only to confirm no overlap.',
