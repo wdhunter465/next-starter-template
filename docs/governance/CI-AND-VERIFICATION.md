@@ -5,7 +5,7 @@ Authority Level: Domain Policy
 Owns: Gate profiles, check classification, deterministic evidence, validation ownership, promotion verification criteria, failure routing, remediation boundaries, and post-merge verification ownership
 Does Not Own: Delivery Model A/B selection, agent approval routing, branch-protection UI settings, workflow YAML implementation, product/UX behavior, or platform isolation claims
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2689, #2686
+Related Issues: #2689, #2686, #3668
 Last Reviewed: 2026-07-21
 ---
 
