@@ -39,7 +39,8 @@ export const UNCLASSIFIABLE_ESCALATION_THRESHOLD = 3;
  *   scopeOrArchitectureQuestion?: boolean,
  *   repeatedUnclassifiableCount?: number,
  *   evidence?: string,
- *   permittedRemediationScope?: string
+ *   permittedRemediationScope?: string,
+ *   permittedScope?: string
  * }} FailureEvidence
  */
 
@@ -71,7 +72,7 @@ export function classifyFailure(evidence = {}) {
       reason: 'failure requires scope/architecture/acceptance judgment'
     };
   }
-  if (evidence.advisory && !evidence.required) {
+  if (evidence.advisory && evidence.required === false) {
     return {
       class: FAILURE_CLASSES.ADVISORY_DISPOSITION,
       reason: 'advisory-only finding on a non-required check'
@@ -127,7 +128,10 @@ export function routeFailure(evidence = {}) {
         phase,
         reason: classification.reason,
         evidence: evidence.evidence || null,
-        permittedScope: evidence.permittedRemediationScope || 'the failing check/file(s) only',
+        permittedScope:
+          evidence.permittedRemediationScope ||
+          evidence.permittedScope ||
+          'the failing check/file(s) only',
         retryLimit: null
       };
     case FAILURE_CLASSES.ADVISORY_DISPOSITION:
