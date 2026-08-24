@@ -5,13 +5,15 @@ Authority Level: Operational
 Owns: Package-complete project-child and child-remediation Issue format
 Does Not Own: Project Graduation, priority, Product/Production decisions, PR approval, or merge authority
 Canonical Reference: /docs/governance/WORK-QUEUES-AND-COLLABORATION.md
-Related Issues: #3055, #3113
+Related Issues: #3055, #3113, #3665
 Last Reviewed: 2026-08-06
 ---
 
 # Executable Child Task Template
 
 A child may enter the executable queue only when every applicable field below is complete. Missing fields produce `PACKAGE-INCOMPLETE` before branch creation or editing.
+
+The machine-readable projection of this template's required fields, plus deterministic package-completeness and lifecycle-state consistency validation, is defined in `docs/reference/pmo/executable-child-contract.md` (`scripts/ci/executable-child-contract.mjs`).
 
 ## Authority and sequence
 
