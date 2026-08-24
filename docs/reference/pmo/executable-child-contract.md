@@ -40,6 +40,38 @@ authority:
   `scripts/ci/agent-claim-contract.mjs`
 - Separation of duties: `docs/reference/agents/implementation-authority-contract.md`
 
+## Scope
+
+This document covers the required execution-contract field set, the
+package-completeness check, the lifecycle-state consistency check, and
+the composite evaluation for a PMO project **child** Issue. It does not
+cover Pipeline-parent launch-package completeness (see
+`docs/reference/pmo/pipeline-preparation-contract.md`), collision
+detection between claims (see
+`docs/reference/pmo/claim-collision-contract.md`), or dependency-graph
+child selection (see `docs/reference/pmo/next-executable-contract.md`).
+
+## Current known truth
+
+`scripts/ci/executable-child-contract.mjs` is implemented, unit-tested,
+and lint-clean as a pure-function library. It is **not** currently wired
+into any GitHub Actions workflow or other live enforcement entrypoint —
+consistent with `.github/queue-label-registry.json` shipping as
+`"status": "planning-only-no-live-mutation"`. Calling it today requires
+an explicit caller (a script, a future workflow step, or another module
+such as `scripts/ci/claim-collision-contract.mjs`); it does not yet
+block anything on its own.
+
+## Intended final state
+
+Once operator/PMO authority decides to enforce this contract live, the
+intended integration point is a CI step (or the existing PMO dashboard
+build) that calls `evaluateExecutableChildContract` for each PMO-tracked
+child Issue and surfaces `errors`/`remediation` as an advisory or
+required check, following the same staged rollout pattern used for
+`.github/queue-label-registry.json`. That wiring decision is out of
+scope for this document and its validator.
+
 ## Required execution-contract fields
 
 A child Issue is **package-complete** only when every field below has a
@@ -110,8 +142,8 @@ also enforces the core queue invariants already codified in
 `scripts/pmo-dashboard/queue-label-contract.mjs` (`analyzeQueueLabels`,
 `role: 'task'`):
 
-- exactly one `team:*` owner — project children carry none, since
-  `team:*` is a portfolio-parent concern;
+- no `team:*` owner on a project child — `team:*` is a portfolio-parent
+  concern, so a child carrying any `team:*` label fails closed;
 - no cross-namespace priority combination (`pmo:priority:*`,
   `pmo:pipeline-priority:*`, `eng:priority:*`, `ops:*`, `gov:*` are
   prohibited on a `pmo:task` child);
@@ -120,20 +152,23 @@ also enforces the core queue invariants already codified in
 
 ## Composite evaluation
 
-`evaluateExecutableChildContract(issue)` composes all three checks and
-returns a single fail-closed result:
+`evaluateExecutableChildContract(issue)` runs all three checks —
+queue invariants, lifecycle-state consistency, and package
+completeness — every time, and aggregates their evidence into one
+result. `status` reports the single highest-precedence outcome so
+callers have one value to branch on:
 
 | `status` | Meaning |
 | --- | --- |
-| `INVALID-QUEUE-STATE` | Malformed queue/label state (checked first — a malformed child cannot be evaluated for lifecycle or package state) |
-| `LIFECYCLE-CONTRADICTION` | Body/label/lifecycle contradiction detected |
-| `PACKAGE-INCOMPLETE` | One or more required fields missing or placeholder-only |
+| `INVALID-QUEUE-STATE` | Malformed queue/label state (highest precedence — reported even though lifecycle and package checks also ran) |
+| `LIFECYCLE-CONTRADICTION` | Body/label/lifecycle contradiction detected (queue state was valid) |
+| `PACKAGE-INCOMPLETE` | One or more required fields missing or placeholder-only (queue state valid, no lifecycle contradiction) |
 | `PACKAGE-COMPLETE` | All checks pass; `claimable: true` |
 
-The result always includes the full aggregated `errors` and `remediation`
-evidence from every check that ran, not only the highest-precedence one,
-so the owning role can correct every defect in a single pass rather than
-discovering them one at a time.
+The result's `errors` and `remediation` arrays are always the full
+aggregate from every check that ran, not only the highest-precedence
+one, so the owning role can correct every defect in a single pass
+rather than discovering them one at a time.
 
 ## Non-goals
 
