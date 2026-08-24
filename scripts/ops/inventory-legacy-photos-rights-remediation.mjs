@@ -5,16 +5,21 @@
  * Read-only. Mutates nothing. Identifies every `photos` / `media_assets` row
  * affected by the blanket quarantine-lift from migration 0054 (rows carrying
  * `rights_hold_reason = 'b2_audit_cleared_lgfc_owned_2026_08_17'`, the exact
- * marker that migration set) and separates them into the three #3658 Task 1
- * categories:
+ * marker that migration set) and separates them into #3658 Task 1's
+ * categories 1 and 3 (this table has no category-2 rows -- see below):
  *
  *   1. legacy rows with no valid per-item evidence (the substantive target
  *      population -- by definition all of them, since #3658's premise is
  *      that this population has never had real rights_evidence recorded);
- *   2. rows already quarantined / not publication-eligible, which must stay
- *      fail-closed unless independently supported;
+ *   3. rows already quarantined / not publication-eligible, which must stay
+ *      fail-closed unless independently supported.
  *
- * The 10 already-evidenced Wikimedia photos (#3658's second category) are
+ * Any row landing in neither category is reported by exact id as
+ * "unaccounted" -- Task 1's exit evidence requires reproducible counts AND
+ * item ids per category, so a classification gap must never be silently
+ * dropped into a count-only mismatch.
+ *
+ * The 10 already-evidenced Wikimedia photos (#3658's category 2) are
  * NOT `photos`/`media_assets` rows -- they are `content_items` rows in the
  * separate #3551/#3552 discovery-pipeline schema (linked via PR #3580's real
  * per-item `rights_evidence`). This script reports that population
@@ -111,7 +116,8 @@ async function buildInventory(db) {
   const stillQuarantinedMediaAssetsIds = await listIds(
     db,
     `SELECT id FROM media_assets
-     WHERE rights_hold_reason IS NULL OR rights_hold_reason != '${BLANKET_CLEARANCE_REASON}'
+     WHERE (rights_hold_reason IS NULL OR rights_hold_reason != '${BLANKET_CLEARANCE_REASON}')
+       AND rights_hold = 1
      ORDER BY id`,
   );
 
@@ -139,21 +145,28 @@ async function buildInventory(db) {
     console.error(`Wikimedia cross-check query failed (non-fatal): ${err.message}`);
   }
 
-  const accountedPhotos = category1PhotosIds.length + stillQuarantinedPhotosIds.length;
-  const accountedMediaAssets = category1MediaAssetsIds.length + stillQuarantinedMediaAssetsIds.length;
+  const allPhotosIds = await listIds(db, 'SELECT id FROM photos ORDER BY id');
+  const allMediaAssetsIds = await listIds(db, 'SELECT id FROM media_assets ORDER BY id');
+
+  const accountedPhotosIds = new Set([...category1PhotosIds, ...stillQuarantinedPhotosIds]);
+  const accountedMediaAssetsIds = new Set([...category1MediaAssetsIds, ...stillQuarantinedMediaAssetsIds]);
+  const unaccountedPhotosIds = allPhotosIds.filter((id) => !accountedPhotosIds.has(id));
+  const unaccountedMediaAssetsIds = allMediaAssetsIds.filter((id) => !accountedMediaAssetsIds.has(id));
 
   return {
     photos: {
       total: photosTotal,
       category1_no_valid_evidence: category1PhotosIds,
       category3_still_quarantined: stillQuarantinedPhotosIds,
-      unaccounted_count: photosTotal - accountedPhotos,
+      unaccounted_ids: unaccountedPhotosIds,
+      unaccounted_count: unaccountedPhotosIds.length,
     },
     media_assets: {
       total: mediaAssetsTotal,
       category1_no_valid_evidence: category1MediaAssetsIds,
       category3_still_quarantined: stillQuarantinedMediaAssetsIds,
-      unaccounted_count: mediaAssetsTotal - accountedMediaAssets,
+      unaccounted_ids: unaccountedMediaAssetsIds,
+      unaccounted_count: unaccountedMediaAssetsIds.length,
     },
     wikimedia_cross_check: {
       note: 'content_items rows with real per-item rights_evidence referencing wikimedia -- NOT photos/media_assets rows, out of scope for this table, listed only to confirm no overlap.',
@@ -168,13 +181,17 @@ function printReport(label, inventory) {
   console.log(`  category 1 (no valid per-item evidence -- substantive target): ${inventory.photos.category1_no_valid_evidence.length}`);
   console.log(`  category 3 (still quarantined / fail-closed, untouched): ${inventory.photos.category3_still_quarantined.length}`);
   if (inventory.photos.unaccounted_count !== 0) {
-    console.log(`  ⚠ UNACCOUNTED: ${inventory.photos.unaccounted_count} row(s) not classified by either category`);
+    console.log(
+      `  ⚠ UNACCOUNTED: ${inventory.photos.unaccounted_count} row(s) not classified by either category -- ids: ${inventory.photos.unaccounted_ids.join(', ')}`,
+    );
   }
   console.log(`media_assets: ${inventory.media_assets.total} total rows`);
   console.log(`  category 1 (no valid per-item evidence -- substantive target): ${inventory.media_assets.category1_no_valid_evidence.length}`);
   console.log(`  category 3 (still quarantined / fail-closed, untouched): ${inventory.media_assets.category3_still_quarantined.length}`);
   if (inventory.media_assets.unaccounted_count !== 0) {
-    console.log(`  ⚠ UNACCOUNTED: ${inventory.media_assets.unaccounted_count} row(s) not classified by either category`);
+    console.log(
+      `  ⚠ UNACCOUNTED: ${inventory.media_assets.unaccounted_count} row(s) not classified by either category -- ids: ${inventory.media_assets.unaccounted_ids.join(', ')}`,
+    );
   }
   console.log(`wikimedia cross-check (content_items, informational only): ${inventory.wikimedia_cross_check.content_item_ids.length} row(s)`);
 }
