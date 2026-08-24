@@ -117,25 +117,27 @@ export function mapRightsEvidenceRow(row: RightsEvidenceRow): StoredRightsEviden
   };
 }
 
-// `channel` is NOT enforced as required here at the repository/DB level --
-// only the admin API's request parser (rights-evidence-admin.ts) requires
-// it, and only for that one write path. This is deliberate, not an
-// oversight (Copilot review finding on PR #3663 flagged this precisely):
-// two pre-existing, unrelated writers -- content-pipeline-member-submission-
-// intake.ts and member-photo-submission-repository.ts -- also call this
-// function to record a conclusion, and they never pass a channel. Those are
-// #2270's separate member-submission rights model, explicitly and
-// deliberately out of #3657's scope (per #3551's 2026-08-18 comment: "#3551
-// remains the controlling path for content LGFC itself discovers/collects
-// from approved external sources... complements #2270's member-submission
-// rights model"). channelForPublicationTarget's gate in
-// content-pipeline-publication-prep.ts is scoped to
-// `input_stream === 'scheduled_discovery'` for exactly this reason, so a
-// member-submission candidate's channel-less rights_evidence rows are never
-// read by that gate and never need a channel. A blanket "conclusion implies
-// channel" constraint at this function (or a DB-level CHECK/trigger) would
-// either break those two existing, already-shipped call sites or require
-// rewriting #2270's model as part of this package -- both out of scope here.
+// Low-level insert. `channel` is NOT enforced as required here -- this
+// function is the shared primitive that #2270's member-submission writers
+// (content-pipeline-member-submission-intake.ts, member-photo-submission-
+// repository.ts; both outside #3657's allowlist) call directly and
+// intentionally without a channel. That is deliberate: those two are
+// #2270's separate member-submission rights model (per #3551's 2026-08-18
+// comment: "#3551 remains the controlling path for content LGFC itself
+// discovers/collects from approved external sources... complements #2270's
+// member-submission rights model"), and channelForPublicationTarget's gate
+// in content-pipeline-publication-prep.ts is scoped to
+// `input_stream === 'scheduled_discovery'`, so a member-submission
+// candidate's channel-less rows are never read by that gate.
+//
+// Governed/external-source callers (the admin rights-evidence API) MUST NOT
+// call this function directly -- use recordGovernedRightsEvidence below,
+// which enforces the channel-when-conclusion invariant at this repository
+// layer rather than relying solely on the admin HTTP request parser
+// (rights-evidence-admin.ts). #3657's 2026-08-24 reopened finding was
+// exactly this: the parser enforced it for one HTTP path, but nothing
+// prevented a governed caller from reaching this permissive primitive
+// directly. recordGovernedRightsEvidence closes that gap architecturally.
 export async function recordRightsEvidence(
   db: any,
   input: RightsEvidenceInput,
@@ -182,6 +184,30 @@ export async function recordRightsEvidence(
   }
 
   return mapRightsEvidenceRow(row as RightsEvidenceRow);
+}
+
+// Governed/external-source write path (the admin rights-evidence API and
+// any other scheduled_discovery-facing caller). Enforces #3551's 2026-08-18
+// channel-scoping directive at this repository layer: a conclusion can
+// never be recorded without a channel, independent of whatever validation
+// an individual HTTP caller happens to run first. #2270's member-submission
+// callers are not governed/external-source and must keep calling
+// recordRightsEvidence directly -- see the comment above it.
+export class GovernedRightsEvidenceChannelRequiredError extends Error {
+  constructor() {
+    super('channel is required when recording a governed rights_evidence conclusion.');
+    this.name = 'GovernedRightsEvidenceChannelRequiredError';
+  }
+}
+
+export async function recordGovernedRightsEvidence(
+  db: any,
+  input: RightsEvidenceInput,
+): Promise<StoredRightsEvidence> {
+  if (input.conclusion != null && input.channel == null) {
+    throw new GovernedRightsEvidenceChannelRequiredError();
+  }
+  return recordRightsEvidence(db, input);
 }
 
 export async function listRightsEvidenceForCandidate(

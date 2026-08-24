@@ -11,7 +11,7 @@ import {
   getCurrentConclusionForCandidate,
   getCurrentConclusionForCandidateChannel,
   listRightsEvidenceForCandidate,
-  recordRightsEvidence,
+  recordGovernedRightsEvidence,
   requireRightsEvidenceTables,
   type RightsEvidenceChannel,
   type StoredRightsEvidence,
@@ -125,7 +125,7 @@ export const onRequestPost = async (context: any): Promise<Response> => {
       return jsonResponse({ ok: false, error: `Unknown source_domain: ${source_domain}` }, 400);
     }
 
-    const stored = await recordRightsEvidence(d1.db, {
+    const stored = await recordGovernedRightsEvidence(d1.db, {
       ...evidenceInput,
       content_item_id: candidate.id,
       source_id: sourceId,

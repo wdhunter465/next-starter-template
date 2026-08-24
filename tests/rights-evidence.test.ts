@@ -7,9 +7,11 @@ import { upsertCandidate } from '../functions/_lib/content-pipeline-candidate-re
 import type { CandidateRecord } from '../functions/_lib/content-pipeline-candidate-import';
 import { parseRecordRightsEvidenceRequest } from '../functions/_lib/rights-evidence-admin';
 import {
+  GovernedRightsEvidenceChannelRequiredError,
   getCurrentConclusionForCandidate,
   getCurrentConclusionForCandidateChannel,
   listRightsEvidenceForCandidate,
+  recordGovernedRightsEvidence,
   recordRightsEvidence,
 } from '../functions/_lib/rights-evidence-repository';
 import { onRequestGet as rightsEvidenceGet, onRequestPost as rightsEvidencePost } from '../functions/api/admin/content-pipeline/rights-evidence/index';
@@ -406,6 +408,86 @@ describe('rights evidence repository + admin API (#3552)', () => {
     });
 
     expect(response.status).toBe(400);
+  });
+});
+
+describe('governed rights-evidence write path enforcement (#3657 2026-08-24 reopened finding)', () => {
+  it('recordGovernedRightsEvidence rejects a conclusion without a channel, independent of the admin HTTP parser', async () => {
+    const sqlite = new DatabaseSync(':memory:');
+    applyRepoMigrations(sqlite);
+    const db = wrapSqliteAsD1(sqlite);
+    const candidate = await upsertCandidate(db, minimalCandidate());
+
+    await expect(
+      recordGovernedRightsEvidence(db, {
+        content_item_id: candidate.id,
+        evidence_type: 'loc_statement',
+        reviewer: 'Bill',
+        conclusion: 'public_domain_confirmed',
+        conclusion_rationale: 'Confirmed 1928 newspaper publication, US, no URAA restoration.',
+        // channel intentionally omitted
+      }),
+    ).rejects.toThrow(GovernedRightsEvidenceChannelRequiredError);
+
+    // Nothing was persisted -- the rejected call left no trail behind.
+    expect(await listRightsEvidenceForCandidate(db, candidate.id)).toHaveLength(0);
+  });
+
+  it('recordGovernedRightsEvidence records normally once a channel is present', async () => {
+    const sqlite = new DatabaseSync(':memory:');
+    applyRepoMigrations(sqlite);
+    const db = wrapSqliteAsD1(sqlite);
+    const candidate = await upsertCandidate(db, minimalCandidate());
+
+    const stored = await recordGovernedRightsEvidence(db, {
+      content_item_id: candidate.id,
+      evidence_type: 'loc_statement',
+      reviewer: 'Bill',
+      conclusion: 'public_domain_confirmed',
+      conclusion_rationale: 'Confirmed 1928 newspaper publication, US, no URAA restoration.',
+      channel: 'website',
+    });
+
+    expect(stored.channel).toBe('website');
+    expect(await getCurrentConclusionForCandidateChannel(db, candidate.id, 'website')).not.toBeNull();
+  });
+
+  it('recordGovernedRightsEvidence allows evidence with no conclusion yet and no channel (metadata-only research record)', async () => {
+    const sqlite = new DatabaseSync(':memory:');
+    applyRepoMigrations(sqlite);
+    const db = wrapSqliteAsD1(sqlite);
+    const candidate = await upsertCandidate(db, minimalCandidate());
+
+    const stored = await recordGovernedRightsEvidence(db, {
+      content_item_id: candidate.id,
+      evidence_type: 'loc_statement',
+      evidence_text: 'No known restrictions on publication.',
+    });
+
+    expect(stored.conclusion).toBeNull();
+    expect(stored.channel).toBeNull();
+  });
+
+  it('recordRightsEvidence (the #2270 member-submission primitive) still permits a channel-less conclusion, and it is invisible to per-channel gating', async () => {
+    const sqlite = new DatabaseSync(':memory:');
+    applyRepoMigrations(sqlite);
+    const db = wrapSqliteAsD1(sqlite);
+    const candidate = await upsertCandidate(db, minimalCandidate());
+
+    // Mirrors how content-pipeline-member-submission-intake.ts and
+    // member-photo-submission-repository.ts call this today: a member's own
+    // ownership attestation, no channel, by #2270 design.
+    await recordRightsEvidence(db, {
+      content_item_id: candidate.id,
+      evidence_type: 'member_ownership',
+      reviewer: 'Jane Q. Member',
+      conclusion: 'permission_granted',
+      conclusion_rationale: 'Member attestation: owns the copyright.',
+    });
+
+    // Not authorized for any specific channel -- #3551's channel-scoped
+    // gate for scheduled_discovery candidates never sees this row.
+    expect(await getCurrentConclusionForCandidateChannel(db, candidate.id, 'website')).toBeNull();
   });
 });
 
