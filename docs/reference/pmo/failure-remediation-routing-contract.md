@@ -75,6 +75,25 @@ failure, unaffected project children and unrelated agent lanes are
 unaffected by construction; routing one Issue's failure never touches
 another Issue's evaluation.
 
+## Current known truth
+
+`scripts/ci/failure-remediation-routing.mjs` is implemented,
+unit-tested, and lint-clean as a pure-function library. It is not
+currently wired into any GitHub Actions workflow or other live
+enforcement entrypoint — a caller must construct the `FailureEvidence`
+object itself from a check-run/review event; this module does not read
+GitHub state.
+
+## Intended final state
+
+Once operator/PMO authority decides to enforce continuous CI failure
+routing live, the intended integration point is a webhook/workflow step
+that observes a `check_run.completed`/review event, derives
+`FailureEvidence` from it, and calls `routeFailure` to post the
+remediation evidence back onto the PR instead of requiring manual
+triage. That wiring decision is out of scope for this document and its
+router.
+
 ## Non-goals
 
 This contract does not perform independent review itself (`ACKNOWLEDGE`
