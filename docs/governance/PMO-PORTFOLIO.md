@@ -5,7 +5,7 @@ Authority Level: Domain Policy
 Owns: PMO intake, work sizing, delivery-model selection, Sandbox authorization, Pipeline preparation direction, Project Graduation, launch authorization, portfolio inventory, and authoritative priority decisions
 Does Not Own: Queue-label mechanics, Development execution, Promotion Candidate execution, CI implementation, Administration & Communications mutation procedure, Day-2 recovery strategy, or Production approval
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2477, #2487, #2640, #2641, #2695, #2699, #3055, #3113, #3597, #3666
+Related Issues: #2477, #2487, #2640, #2641, #2695, #2699, #3055, #3113, #3597, #3666, #3669
 Last Reviewed: 2026-08-18
 ---
 
