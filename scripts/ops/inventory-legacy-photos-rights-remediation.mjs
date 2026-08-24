@@ -145,6 +145,27 @@ async function buildInventory(db) {
     console.error(`Wikimedia cross-check query failed (non-fatal): ${err.message}`);
   }
 
+  // Cross-check only: confirms whether the LOC-sourced public-domain photo
+  // group already has real per-item rights_evidence recorded from when it
+  // was originally discovered, rather than assuming it needs a fresh
+  // verification task. Matches the schema's actual evidence_type/conclusion
+  // fields (not a text search), so this reports the real recorded
+  // determination, not a guess.
+  let locPublicDomainContentItemIds = [];
+  try {
+    locPublicDomainContentItemIds = await listIds(
+      db,
+      `SELECT DISTINCT ci.id AS id
+       FROM content_items ci
+       JOIN rights_evidence re ON re.content_item_id = ci.id
+       WHERE re.evidence_type = 'loc_statement'
+         AND re.conclusion = 'public_domain_confirmed'
+       ORDER BY ci.id`,
+    );
+  } catch (err) {
+    console.error(`LOC cross-check query failed (non-fatal): ${err.message}`);
+  }
+
   const allPhotosIds = await listIds(db, 'SELECT id FROM photos ORDER BY id');
   const allMediaAssetsIds = await listIds(db, 'SELECT id FROM media_assets ORDER BY id');
 
@@ -172,6 +193,10 @@ async function buildInventory(db) {
       note: 'content_items rows with real per-item rights_evidence referencing wikimedia -- NOT photos/media_assets rows, out of scope for this table, listed only to confirm no overlap.',
       content_item_ids: wikimediaContentItemIds,
     },
+    loc_public_domain_cross_check: {
+      note: "content_items rows with real per-item rights_evidence recording evidence_type='loc_statement' and conclusion='public_domain_confirmed' -- confirms whether the LOC public-domain photo group already has its determination recorded, so it is not re-flagged as needing verification.",
+      content_item_ids: locPublicDomainContentItemIds,
+    },
   };
 }
 
@@ -194,6 +219,7 @@ function printReport(label, inventory) {
     );
   }
   console.log(`wikimedia cross-check (content_items, informational only): ${inventory.wikimedia_cross_check.content_item_ids.length} row(s)`);
+  console.log(`LOC public-domain cross-check (content_items, informational only): ${inventory.loc_public_domain_cross_check.content_item_ids.length} row(s) already have recorded evidence`);
 }
 
 async function main() {
