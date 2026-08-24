@@ -5,7 +5,7 @@ Authority Level: Controlled
 Owns: Distributed Pipeline launch-package preparation eligibility, preparation-claim discipline, launch-package completeness, and preparer authority boundaries
 Does Not Own: Project Graduation, PMO Active priority assignment, implementation Go, or PMO/Engineering independent review itself
 Canonical Reference: /docs/governance/PMO-PORTFOLIO.md
-Related Issues: #3672, #3665, #3667
+Related Issues: #3672, #3665, #3667, #3240
 Last Reviewed: 2026-08-24
 ---
 
