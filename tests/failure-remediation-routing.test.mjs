@@ -34,6 +34,27 @@ describe('failure-remediation-routing (#3668)', () => {
     expect(result.permittedScope).toBeNull();
   });
 
+  it('fails closed when advisory requiredness is omitted or unknown', () => {
+    const result = routeFailure({
+      checkName: 'unknown-advisory-bot',
+      advisory: true,
+      evidence: 'Advisory finding with no authoritative requiredness classification'
+    });
+    expect(result.class).toBe(FAILURE_CLASSES.SCOPE_AUTHORITY_DEFECT);
+    expect(result.action).toBe(ROUTING_ACTIONS.ESCALATE);
+  });
+
+  it('accepts permittedScope as an alias for permittedRemediationScope', () => {
+    const result = routeFailure({
+      checkName: 'vitest',
+      required: true,
+      deterministic: true,
+      permittedScope: 'tests/failure-remediation-routing.test.mjs only'
+    });
+    expect(result.action).toBe(ROUTING_ACTIONS.REMEDIATE);
+    expect(result.permittedScope).toBe('tests/failure-remediation-routing.test.mjs only');
+  });
+
   it('escalates a scope/architecture defect rather than remediating it deterministically', () => {
     const result = routeFailure({
       required: true,
