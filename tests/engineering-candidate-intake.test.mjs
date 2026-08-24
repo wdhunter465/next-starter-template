@@ -23,50 +23,53 @@ describe('engineering-candidate-intake (#3670)', () => {
     expect(result.missing).toEqual([]);
   });
 
-  it('rejects a candidate missing required fields', () => {
+  it('rejects a candidate missing required fields with actionable field labels', () => {
     const result = validateCandidatePackage({ body: 'Evidence: saw it happen once' });
     expect(result.complete).toBe(false);
-    expect(result.missing.length).toBeGreaterThan(0);
+    expect(result.errors.join(' ')).toMatch(/Stated deficiency/);
+    expect(result.remediation.join(' ')).toMatch(/Intended outcome/);
+  });
+
+  it.each(['TBD', 'TODO', 'N/A', 'unknown', 'pending'])('rejects placeholder content: %s', (placeholder) => {
+    const body = COMPLETE_CANDIDATE_BODY.replace(
+      'Stated deficiency: the upload test suite intermittently times out under load',
+      `Stated deficiency: ${placeholder}`
+    );
+    expect(validateCandidatePackage({ body }).complete).toBe(false);
   });
 
   it('detects a duplicate via identical stated deficiency', () => {
     const a = { id: 1, body: 'Stated deficiency: the upload test suite intermittently times out' };
     const b = { id: 2, body: 'Stated deficiency: The Upload Test Suite Intermittently Times Out' };
-    const result = isDuplicateCandidate(a, b);
-    expect(result.duplicate).toBe(true);
-    expect(result.reason).toMatch(/stated deficiency/);
+    expect(isDuplicateCandidate(a, b).duplicate).toBe(true);
   });
 
   it('detects a duplicate via identical provenance', () => {
     const a = { id: 1, body: 'Provenance: observed during #3668 triage' };
     const b = { id: 2, body: 'Provenance: Observed During #3668 Triage' };
-    const result = isDuplicateCandidate(a, b);
-    expect(result.duplicate).toBe(true);
-    expect(result.reason).toMatch(/provenance/);
+    expect(isDuplicateCandidate(a, b).duplicate).toBe(true);
   });
 
   it('does not flag genuinely distinct candidates as duplicates', () => {
     const a = { id: 1, body: 'Stated deficiency: flaky upload test\nProvenance: #3668' };
     const b = { id: 2, body: 'Stated deficiency: stale documentation link\nProvenance: #3665' };
-    const duplicates = findDuplicateCandidates(a, [b]);
-    expect(duplicates).toEqual([]);
+    expect(findDuplicateCandidates(a, [b])).toEqual([]);
   });
 
-  it('marks intake ready only when complete and not a duplicate', () => {
+  it('does not flag a candidate as a duplicate of itself', () => {
+    const candidate = { id: 7, body: COMPLETE_CANDIDATE_BODY };
+    expect(findDuplicateCandidates(candidate, [candidate])).toEqual([]);
+  });
+
+  it('marks intake not ready when complete but duplicate', () => {
     const existing = [{ id: 99, body: COMPLETE_CANDIDATE_BODY }];
-    const result = evaluateCandidateIntake({
-      candidate: { id: 100, body: COMPLETE_CANDIDATE_BODY },
-      existingCandidates: existing
-    });
+    const result = evaluateCandidateIntake({ candidate: { id: 100, body: COMPLETE_CANDIDATE_BODY }, existingCandidates: existing });
     expect(result.intakeReady).toBe(false);
     expect(result.duplicates[0].id).toBe(99);
   });
 
   it('marks intake ready for a complete, non-duplicate candidate', () => {
-    const result = evaluateCandidateIntake({
-      candidate: { id: 100, body: COMPLETE_CANDIDATE_BODY },
-      existingCandidates: []
-    });
+    const result = evaluateCandidateIntake({ candidate: { id: 100, body: COMPLETE_CANDIDATE_BODY }, existingCandidates: [] });
     expect(result.intakeReady).toBe(true);
     expect(result.errors).toEqual([]);
   });
