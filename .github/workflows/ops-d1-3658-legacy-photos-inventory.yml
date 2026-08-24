@@ -1,0 +1,44 @@
+name: OPS — 3658 Legacy Photos Rights Inventory
+
+# #3658 Task 1 -- freeze and inventory the exact remediation population.
+# Runs scripts/ops/inventory-legacy-photos-rights-remediation.mjs (read-only,
+# fixed SELECT statements only, mutates nothing) against Development
+# (lgfc-litedev) and Production (lgfc_lite) so the real counts required by
+# Task 1's exit evidence can be recorded on the source Issue.
+
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Inventory Development (lgfc-litedev)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          node --experimental-strip-types scripts/ops/inventory-legacy-photos-rights-remediation.mjs \
+            --database lgfc-litedev --remote --json
+
+      - name: Inventory Production (lgfc_lite)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          node --experimental-strip-types scripts/ops/inventory-legacy-photos-rights-remediation.mjs \
+            --database lgfc_lite --remote --json
