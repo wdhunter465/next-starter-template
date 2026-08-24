@@ -5,7 +5,7 @@ Authority Level: Controlled
 Owns: Canonical PMO lifecycle states, Engineering qualification mapping, ordered priority representation, dashboard and routing invariants
 Does Not Own: Product priority decisions, weekly meeting procedure, live GitHub label creation, or bulk Issue mutation
 Canonical Reference: /docs/governance/WORK-QUEUES-AND-COLLABORATION.md
-Related Issues: #3597, #2699, #2724, #3629, #3642
+Related Issues: #3597, #2699, #2724, #3629, #3642, #3665
 Last Reviewed: 2026-08-23
 ---
 
