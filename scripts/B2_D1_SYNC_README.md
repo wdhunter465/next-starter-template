@@ -4,6 +4,22 @@
 
 The `b2_d1_incremental_sync.sh` script provides a **daily, idempotent** synchronization of Backblaze B2 objects to Cloudflare D1 database. It detects new files and inserts only previously unseen objects into the `photos` table.
 
+## Scope: which tables this covers
+
+**Today this sync (and `b2_d1_deletion_reconcile.sh`) only knows about the
+legacy `photos` table.** It has no awareness of the newer #3551/#3552 content
+pipeline tables (`content_items`, `rights_evidence`, `media_assets`) even
+though those tables also track photos backed by B2 objects.
+
+**Maintenance requirement: if a table that stores photo-library rows backed
+by B2 objects is ever added, removed, or renamed — in either the legacy
+`photos` model or the `content_items`/`media_assets` pipeline — this sync
+job's scope must be reviewed and, if needed, updated in the same PR.** A
+table holding B2-backed photo rows that this job doesn't know about means
+orphaned/missing-object rows in that table are never caught. See
+`docs/reference/content-pipeline-rights-data-dictionary.md` for the
+newer pipeline's table definitions and its own maintenance requirement.
+
 ## Key Features
 
 - ✅ **Idempotent**: Safe to re-run indefinitely, no duplicates

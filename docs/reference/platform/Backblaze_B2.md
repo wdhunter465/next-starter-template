@@ -106,6 +106,18 @@ Rules:
 
 Current implementation note: matchup rotation may temporarily treat `0` as eligible while the photo catalog is being curated. Tighten to `= 1` only after admin curation marks approved club photos.
 
+**Scope note:** this `-1`/`0`/`1` model is specific to the legacy `photos`
+table and the daily B2 → D1 sync described below, which only covers
+`photos`. The newer #3551/#3552 content pipeline tables (`content_items`,
+`media_assets`, `rights_evidence`) are a separate table family, not
+currently covered by that sync, and don't reuse this flag — `content_items`
+already has its own soft-delete columns (`deleted_at`, `retention_reason`,
+`purge_eligible_at`) suited to that pipeline instead. See
+`docs/reference/content-pipeline-rights-data-dictionary.md` for that
+pipeline's schema and `scripts/B2_D1_SYNC_README.md` for the sync job's
+current scope and the requirement to update it if a photo-library table is
+ever added or removed.
+
 ---
 
 ## Repo Tooling (B2 ↔ D1)
