@@ -256,10 +256,16 @@ describe('flagCandidateAsNearDuplicate (#3552 phase 4)', () => {
     expect(row.duplicate_of).toBe('lgfc-gehrig-2026-501');
     expect(row.review_priority).toBe('high');
 
+    // upsertCandidate itself already wrote a 'review_state_change'
+    // "candidate registry create" moderation event for this content_item
+    // when the row was first inserted -- moderation_events is an
+    // append-only audit trail, so filter to the specific event this test
+    // cares about rather than assuming only one row exists.
     const event = sqlite
       .prepare(
         `SELECT event_type, actor, to_state, notes FROM moderation_events
-         WHERE content_item_id = (SELECT id FROM content_items WHERE candidate_id = ?)`,
+         WHERE content_item_id = (SELECT id FROM content_items WHERE candidate_id = ?)
+           AND event_type = 'duplicate_flagged'`,
       )
       .get('lgfc-gehrig-2026-502') as { event_type: string; actor: string; to_state: string; notes: string };
     expect(event.event_type).toBe('duplicate_flagged');
