@@ -5,8 +5,8 @@ Authority Level: Agent-Specific
 Owns: Codex selective-use status, Codex startup contract, and bounded source-Issue authorization rules
 Does Not Own: Shared agent law, design authority, standing team roster policy, or merge approval
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Related Issues: #3052, #3058, #3063, #3142
-Last Reviewed: 2026-08-08
+Related Issues: #3052, #3058, #3063, #3142, #3693
+Last Reviewed: 2026-08-25
 ---
 
 # CODEX-RULES.md
@@ -99,11 +99,13 @@ Do not edit files. Do not open PRs. Do not commit.
 
 When authorized, Codex operates only as Implementation / Operations (or another role explicitly named in the source Issue) under ChatGPT/Work coordination and Bill approval boundaries.
 
+ChatGPT and Work are co-equal LGFC control-plane products with the same durable repository permissions and role authority (#3693).
+
 Codex does not:
 
 - define scope or acceptance criteria unless the source Issue assigns that role;
 - author program or child issues unless explicitly authorized;
-- replace Work design/launch-control authority;
+- replace ChatGPT/Work design or launch-control authority;
 - merge Pull Requests;
 - override Bill gate authorization;
 - self-approve protected work it implemented.
