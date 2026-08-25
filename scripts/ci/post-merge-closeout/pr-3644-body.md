@@ -39,7 +39,7 @@ disclosed in this PR's own scope rather than treated as a silent violation.
 
 ### Scope note: `scripts/orchestrator/fixtures/queue-routing-matrix.json`
 
-This file is **not** in the #3642 declared allowlist, but one line in it changed:
+This file is **not** in #3642's declared allowlist, but one line in it changed:
 the pre-existing `engineering-qualification-only` case's expected
 `precedenceRank` (`3` -> `4`). This is a direct, unavoidable consequence of
 #3642's own authorized instruction to re-rank `precedenceRank` per the adopted
@@ -95,8 +95,8 @@ Local verification:
   Result: PASS — 20 tests passed
 - Command: `bash scripts/ci/docs_check_headers.sh`
   Result: Same pre-existing failures as on `main` (unrelated files under
-  `docs/ops/reports/` for the 1075 CI rollout closeout/redesign notes and
-  `pmo-dashboard-reconciliation-3100.md`); none of the five docs touched by this
+  `docs/ops/implementation-plans/`, including the `issue-1075-*` rollout closeout/redesign notes,
+  plus `docs/ops/reports/pmo-dashboard-reconciliation-3100.md`); none of the five docs touched by this
   PR appear in the failure output.
 - Command: `node scripts/ci/diataxis_folder_audit.mjs`
   Result: PASS
@@ -118,9 +118,9 @@ CI verification:
 
 Criteria from #3642:
 
-- [x] All 8 files in scope state the same single cross-queue order and the same
+- [x] All 8 allowlisted files from #3642 state the same single cross-queue order and the same
   seven operating rules from the recorded governance decision, with no remaining
-  contradiction between them.
+  contradiction between them; the separately disclosed fixture exception is excluded from this count.
 - [x] `scripts/orchestrator/queue-routing.mjs` classifies a `team:governance`
   candidate correctly (no longer falls through to `unclassified_or_ambiguous`).
 - [x] `scripts/orchestrator/test-queue-routing.mjs` covers the new Governance
