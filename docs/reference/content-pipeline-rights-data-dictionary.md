@@ -73,6 +73,44 @@ either of the others, and only one is safe to treat as permanent.
 4. **D1** → `media_assets` row is INSERTed (`media_uid`, `b2_key`, `size`, ...) and
    `content_items.media_asset_id` is updated to point at it.
 
+### Source-URL dedupe guard on `content_items` (implemented)
+
+A photo rediscovered by a later search gets a fresh, unrelated `candidate_id`
+(see above — the ordinal is not stable across runs). Without a guard, that
+would create a second `content_items` row for the same real-world photo,
+and if both were ever published the same photo would appear on the site
+more than once. `content-pipeline-candidate-import.ts`'s
+`buildContentItemUpsert` prevents this: the `INSERT INTO content_items`
+statement only inserts a new row when no *other* row (different
+`candidate_id`) already has the same `source_url`:
+
+```sql
+INSERT INTO content_items (...)
+SELECT ...
+WHERE NOT EXISTS (
+  SELECT 1 FROM content_items existing
+  WHERE existing.source_url = <this candidate's source_url>
+    AND existing.candidate_id != <this candidate's candidate_id>
+)
+ON CONFLICT(candidate_id) DO UPDATE SET ...;
+```
+
+- A genuine re-import of the *same* `candidate_id` is unaffected — the
+  `candidate_id != ...` exclusion means it never blocks itself, and the
+  existing `ON CONFLICT(candidate_id) DO UPDATE` still applies.
+- A candidate with no `source_url` is never deduped (SQL NULL comparison
+  semantics make the guard a no-op) — there is nothing to compare against.
+- A skipped candidate simply never gets a `content_items` row at all — it
+  is not an error. `scripts/content-pipeline/import-seed-candidates.mjs`
+  runs a read-only follow-up query after each import and prints which
+  candidate_ids from that batch were skipped, so a dedupe is visible
+  rather than silent.
+- This is scoped to `source_url` exact match only — deliberately narrower
+  than a fuzzy/perceptual match. Cross-source duplicates (the same photo
+  found on two different platforms, therefore two different URLs) are not
+  caught by this guard; that is the separate, larger perceptual-hash
+  dedupe work (see the phased plan this document was built alongside).
+
 ### B2 key convention (PROPOSED)
 
 ```
@@ -100,7 +138,7 @@ Example: `LGFC_42_GehrigCU.jpg`.
 | `candidate_id` | System | Discovery-run ordinal. Not stable across runs — see Identifier model. |
 | `input_stream` | System | Which pipeline path created this row (`scheduled_discovery`, `member_submission`, etc.). |
 | `title` | Source-derived | The file's real name/title as given by the source platform, verbatim (e.g. `File:GehrigCU.jpg`). |
-| `source_url` | Source-derived | The exact page the item was found at. |
+| `source_url` | Source-derived | The exact page the item was found at. Also the dedupe key at import time — see "Source-URL dedupe guard" above. |
 | `source_name` | Source-derived | Human-readable source name (e.g. "Wikimedia Commons"). |
 | `source_owner` | Source-derived | Owning institution/org if the source states one. |
 | `source_domain` | Source-derived | Domain the item was found on. |

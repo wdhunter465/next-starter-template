@@ -144,6 +144,56 @@ function executeSqlFile(database, target, sqlFile) {
   });
 }
 
+/**
+ * Post-import verification (#3712 phase 1): the content_items INSERT is
+ * guarded to skip a candidate whose source_url already belongs to a
+ * different row, so a rediscovered photo never creates a duplicate. That
+ * means a skipped candidate_id simply never appears in content_items --
+ * report which of this batch's candidate_ids that happened to, so a
+ * skip is visible rather than silent.
+ */
+function reportDuplicateSkips(database, target, candidateIds) {
+  if (candidateIds.length === 0) return;
+
+  const args = ['wrangler', 'd1', 'execute', database, '--json'];
+  if (database === 'lgfc-litedev') {
+    args.push('--env', 'preview');
+  }
+  args.push(target === 'local' ? '--local' : '--remote');
+  const idList = candidateIds.map((id) => `'${id.replace(/'/g, "''")}'`).join(', ');
+  args.push('--command', `SELECT candidate_id FROM content_items WHERE candidate_id IN (${idList});`);
+
+  let stdout;
+  try {
+    stdout = execFileSync('npx', args, { cwd: repoRoot, encoding: 'utf8', env: process.env });
+  } catch (err) {
+    console.warn(`Duplicate-skip verification query failed (non-fatal): ${err.message}`);
+    return;
+  }
+
+  let present;
+  try {
+    const parsed = JSON.parse(stdout);
+    const results = parsed?.[0]?.results ?? [];
+    present = new Set(results.map((row) => row.candidate_id));
+  } catch (err) {
+    console.warn(`Could not parse duplicate-skip verification output (non-fatal): ${err.message}`);
+    return;
+  }
+
+  const skipped = candidateIds.filter((id) => !present.has(id));
+  if (skipped.length > 0) {
+    console.log(
+      `\n${skipped.length} candidate(s) skipped as source_url duplicates of an existing row (no new content_items row created):`,
+    );
+    for (const id of skipped) {
+      console.log(`  - ${id}`);
+    }
+  } else {
+    console.log(`\nNo candidates skipped as duplicates -- all ${candidateIds.length} are present in content_items.`);
+  }
+}
+
 function main() {
   assertNodeRuntime();
   const options = parseArgs(process.argv.slice(2));
@@ -198,6 +248,11 @@ function main() {
   }
 
   console.log('Import complete.');
+  reportDuplicateSkips(
+    options.database,
+    options.target,
+    registry.candidates.map((candidate) => candidate.candidate_id),
+  );
 }
 
 main();

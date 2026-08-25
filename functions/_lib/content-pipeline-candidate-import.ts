@@ -424,10 +424,25 @@ function buildContentItemUpsert(candidate: CandidateRecord): ImportSqlStatement 
     .map((column) => `${column} = excluded.${column}`)
     .join(',\n  ');
 
+  // Dedupe guard (#3712 phase 1): a candidate whose source_url already
+  // belongs to a DIFFERENT content_items row is never inserted as a new
+  // row -- the same real-world photo/article rediscovered under a fresh
+  // candidate_id must not create a duplicate. The `candidate_id != ...`
+  // exclusion keeps this from ever blocking a normal idempotent re-import
+  // of the same candidate_id (the ON CONFLICT upsert below still applies
+  // to that case). When source_url is NULL, SQL's NULL-comparison
+  // semantics make the EXISTS subquery find nothing, so the guard is a
+  // no-op -- there is nothing to dedupe against.
+  const sourceUrlSql = sqlString(candidate.source_url ?? null);
   const sql = `INSERT INTO content_items (
   ${columns.join(',\n  ')}
-) VALUES (
+)
+SELECT
   ${values.join(',\n  ')}
+WHERE NOT EXISTS (
+  SELECT 1 FROM content_items existing
+  WHERE existing.source_url = ${sourceUrlSql}
+    AND existing.candidate_id != ${sqlString(candidate.candidate_id)}
 )
 ON CONFLICT(candidate_id) DO UPDATE SET
   ${updateAssignments};`;
@@ -435,7 +450,7 @@ ON CONFLICT(candidate_id) DO UPDATE SET
   return {
     table: 'content_items',
     sql,
-    description: `Upsert content_items for ${candidate.candidate_id}`,
+    description: `Upsert content_items for ${candidate.candidate_id} (skipped if source_url duplicates a different row)`,
   };
 }
 
