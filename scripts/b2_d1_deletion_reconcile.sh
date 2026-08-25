@@ -143,6 +143,21 @@ extract_d1_rows() {
   ' 2>/dev/null || echo "[]"
 }
 
+# wrangler_exec falls back to plain (non-JSON) output when its --json
+# invocation fails but the plain retry succeeds (see wrangler_exec below) --
+# that fallback still exits 0, so a caller checking only the exit code would
+# treat unparseable output the same as "zero rows," silently under-counting
+# or skipping real reconciliation work instead of failing closed. Call this
+# right after any wrangler_exec command/file whose output must be JSON.
+require_json_response() {
+  local output="$1" context="$2"
+  if ! echo "$output" | jq -e '.' >/dev/null 2>&1; then
+    log "ERROR: $context: wrangler did not return parseable JSON (likely fell back to non-JSON output after --json failed). Refusing to treat this as zero rows."
+    log "$output"
+    exit 3
+  fi
+}
+
 emit_github_outputs() {
   local retired="$1" repaired="$2" sample="$3" media_retired="${4:-0}"
   local has_findings="false"
@@ -366,7 +381,7 @@ SQL_HEADER
 fi
 
 # ----------------------------------------------------------------------------
-# #3714 phase 2b: reconcile media_assets/content_items (the newer #3551/#3552
+# #3718 phase 2b: reconcile media_assets/content_items (the newer #3551/#3552
 # pipeline) against the SAME B2 listing already fetched above -- no extra B2
 # API calls. Soft-delete only, via content_items' own deleted_at/
 # retention_reason columns (migration 0042), built for exactly this. Never
@@ -377,7 +392,12 @@ fi
 # WHERE deleted_at IS NULL.
 # ----------------------------------------------------------------------------
 log "Checking for media_assets/content_items tables before phase 2b reconciliation..."
-MEDIA_TABLE_CHECK="$(wrangler_exec command "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('media_assets','content_items');")" || MEDIA_TABLE_CHECK=""
+MEDIA_TABLE_CHECK="$(wrangler_exec command "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('media_assets','content_items');")" || {
+  log "ERROR: Failed to check for media_assets/content_items tables"
+  log "$MEDIA_TABLE_CHECK"
+  exit 3
+}
+require_json_response "$MEDIA_TABLE_CHECK" "media_assets/content_items table-presence check"
 MEDIA_TABLES_PRESENT="$(echo "$MEDIA_TABLE_CHECK" | extract_d1_rows name 2>/dev/null | jq 'length' 2>/dev/null || echo 0)"
 
 MEDIA_STALE_COUNT=0
@@ -393,18 +413,17 @@ else
     log "$MEDIA_D1_OUT"
     exit 3
   }
+  require_json_response "$MEDIA_D1_OUT" "media_assets.b2_key query"
 
   MEDIA_EXISTING_KEYS_FILE="$WORKDIR/media_existing_keys.txt"
   : > "$MEDIA_EXISTING_KEYS_FILE"
-  if echo "$MEDIA_D1_OUT" | jq -e '.' >/dev/null 2>&1; then
-    echo "$MEDIA_D1_OUT" | jq -r '
-      [.. | arrays?] as $arrs
-      | ($arrs | map(select((.[0]?|type)=="object" and (.[0]?|has("k"))))) as $cands
-      | ($cands[0] // [])
-      | .[]?
-      | .k? // empty
-    ' 2>/dev/null >> "$MEDIA_EXISTING_KEYS_FILE" || true
-  fi
+  echo "$MEDIA_D1_OUT" | jq -r '
+    [.. | arrays?] as $arrs
+    | ($arrs | map(select((.[0]?|type)=="object" and (.[0]?|has("k"))))) as $cands
+    | ($cands[0] // [])
+    | .[]?
+    | .k? // empty
+  ' 2>/dev/null >> "$MEDIA_EXISTING_KEYS_FILE" || true
   LC_ALL=C sort -u "$MEDIA_EXISTING_KEYS_FILE" | grep -v '^$' > "$MEDIA_EXISTING_KEYS_FILE.sorted" || true
   mv "$MEDIA_EXISTING_KEYS_FILE.sorted" "$MEDIA_EXISTING_KEYS_FILE" 2>/dev/null || true
   MEDIA_EXISTING_COUNT="$(wc -l < "$MEDIA_EXISTING_KEYS_FILE" | tr -d ' ')"

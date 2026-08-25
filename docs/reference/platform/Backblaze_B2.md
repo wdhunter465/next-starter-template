@@ -113,7 +113,7 @@ Rules:
 table. The daily B2 → D1 *additive insert* sync
 (`scripts/b2_d1_incremental_sync.sh`) only ever writes to `photos`. The
 daily *deletion-reconciliation* sweep (`scripts/b2_d1_deletion_reconcile.sh`)
-covers both table families as of #3714 phase 2b: it still retires `photos`
+covers both table families as of #3718 phase 2b: it still retires `photos`
 rows via this `-1`/`0`/`1` flag, and separately soft-deletes `content_items`
 rows whose linked `media_assets.b2_key` is missing from B2 — but that side
 does **not** reuse this flag. `content_items` has its own soft-delete

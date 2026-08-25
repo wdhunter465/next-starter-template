@@ -102,7 +102,7 @@ if ! grep -q "repaired_matchups=" "$RECONCILE_SCRIPT"; then
 fi
 echo "  ✓ PASSED"
 
-echo "Test 10: Phase 2b (media_assets/content_items) reconciliation (#3714)..."
+echo "Test 10: Phase 2b (media_assets/content_items) reconciliation (#3718)..."
 if ! grep -q "phase 2b reconciliation" "$RECONCILE_SCRIPT"; then
   echo "  ✗ FAILED: Script should reconcile media_assets/content_items (phase 2b)"
   exit 1
@@ -129,6 +129,21 @@ if ! grep -q "jq -r '.objects\[\].external_id' \"\$OBJECTS_FILE\"" "$RECONCILE_S
 fi
 if ! grep -q "media_assets_retired_count=" "$RECONCILE_SCRIPT"; then
   echo "  ✗ FAILED: Script should emit media_assets_retired_count to GITHUB_OUTPUT"
+  exit 1
+fi
+echo "  ✓ PASSED"
+
+echo "Test 11: Phase 2b fails closed on unparseable wrangler JSON (#3718 Copilot finding)..."
+if ! grep -q "require_json_response" "$RECONCILE_SCRIPT"; then
+  echo "  ✗ FAILED: Script should guard phase 2b D1 reads against wrangler's non-JSON fallback"
+  exit 1
+fi
+if ! grep -q 'require_json_response "\$MEDIA_TABLE_CHECK"' "$RECONCILE_SCRIPT"; then
+  echo "  ✗ FAILED: Table-presence check must not silently treat unparseable output as 'tables absent'"
+  exit 1
+fi
+if ! grep -q 'require_json_response "\$MEDIA_D1_OUT"' "$RECONCILE_SCRIPT"; then
+  echo "  ✗ FAILED: media_assets.b2_key query must not silently treat unparseable output as 'zero rows'"
   exit 1
 fi
 echo "  ✓ PASSED"

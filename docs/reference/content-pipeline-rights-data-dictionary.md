@@ -33,7 +33,7 @@ it the same as updating a test for changed behavior.
 pipeline**, also
 review `scripts/B2_D1_SYNC_README.md` — the daily B2 → D1
 deletion-reconciliation job (`scripts/b2_d1_deletion_reconcile.sh`) covers
-both the legacy `photos` table and, as of #3714 phase 2b, `content_items`/
+both the legacy `photos` table and, as of #3718 phase 2b, `content_items`/
 `media_assets` (soft-delete via `content_items.deleted_at`, not the `photos`
 `is_matchup_eligible` flag). It needs to be extended (or a parallel
 reconciliation added) any time the set of B2-backed photo tables changes,

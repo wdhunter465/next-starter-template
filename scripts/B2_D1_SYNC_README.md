@@ -15,7 +15,7 @@ ingest paths (`scripts/content-pipeline/ingest-batch.mjs`, the admin ingest
 endpoint), not by this script.
 
 **`b2_d1_deletion_reconcile.sh` (the deletion-reconciliation side) covers
-both models as of #3714 phase 2b:** it soft-retires `photos` rows
+both models as of #3718 phase 2b:** it soft-retires `photos` rows
 (`is_matchup_eligible = -1`) *and* soft-deletes `content_items` rows whose
 linked `media_assets.b2_key` is missing from B2 (via `deleted_at` /
 `retention_reason`), reusing the same B2 listing for both. It skips the
