@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Durable LGFC roles, recognized agent product inventory, current member mapping, approval authority, protected stops, operating modes, launch-control workflow boundaries, member work-precedence mapping, and delegated task-closeout role boundaries
 Does Not Own: Queue and priority semantics, shared execution detail, tool-specific runtime behavior, PMO sizing, promotion-profile policy, communication mutation taxonomy, or production mechanics
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2494, #2640, #2641, #2648, #2699, #2700, #3052, #3145, #3142, #3152, #3240, #3188, #3605, #3611, #3629, #3642, #3655, #3667
-Last Reviewed: 2026-08-23
+Related Issues: #2494, #2640, #2641, #2648, #2699, #2700, #3052, #3145, #3142, #3152, #3240, #3188, #3605, #3611, #3629, #3642, #3655, #3667, #3693
+Last Reviewed: 2026-08-25
 ---
 
 # Agent Team
@@ -29,24 +29,24 @@ Queue precedence, team priority namespaces, Project Graduation, team vs agent cl
 | PMO / Engineering | Requirements, design, architecture, acceptance criteria, planning, Sandbox authority, implementation Go, aggregate project verification |
 | Implementation / Operations | Development and Promotion Candidate execution, testing, remediation, integration, deployment execution, implementation handoff, and closeout-packet evidence; no independent task acceptance |
 | PR Approver / Engineering | Independent validation that work meets design, acceptance, repository, and promotion requirements |
-| Administration & Communications | Evidence, routing, acknowledgments, escalation, repository-state reconciliation, hold/resume, reporting, WORK-controlled closeout, parent reconciliation, successor release, and authorized transaction execution |
+| Administration & Communications | Evidence, routing, acknowledgments, escalation, repository-state reconciliation, hold/resume, reporting, ChatGPT/Work-controlled closeout, parent reconciliation, successor release, and authorized transaction execution |
 | Day-2 Operations | Production monitoring, incident classification, containment, recovery strategy, operational hold release |
 | Deterministic CI | Machine-provable checks, evidence, eligible non-main integration, and bounded authorized automation |
 
 No role may self-approve work when independent review is required. Implementation / Operations may perform eligible administrative task closeout only after the required independent review, integration, validation, and post-integration evidence already exist.
 
-## WORK task and project acceptance ownership
+## ChatGPT / Work task and project acceptance ownership
 
-WORK holds the PMO / Engineering and Administration & Communications responsibility for evidence-backed task and project acceptance, closeout, parent reconciliation, and exception handling.
+ChatGPT and Work hold identical PMO / Engineering and Administration & Communications responsibility for evidence-backed task and project acceptance, closeout, parent reconciliation, and exception handling. They are co-equal products for this role set; the active product performing the work owns the transaction subject to separation of duty.
 
-For every implementation child that requires judgment, WORK independently reviews the live source Issue, final diff, required tests and failure paths, checks, review dispositions, integration identity, post-integration evidence, documentation, rollback readiness, and unresolved exceptions. WORK records one controlling disposition when assurance is required:
+For every implementation child that requires judgment, the active ChatGPT/Work role holder independently reviews the live source Issue, final diff, required tests and failure paths, checks, review dispositions, integration identity, post-integration evidence, documentation, rollback readiness, and unresolved exceptions. The role holder records one controlling disposition when assurance is required:
 
 - `ACCEPT` — reconcile/close the child and reconcile the parent when a substantive acceptance gate applies;
 - `HOLD` — record the true dependency or protected stop, owner, evidence needed, and release condition;
 - `REMEDIATE` — return bounded defects to the originating implementer and keep the affected transition fail-closed;
 - `VERIFY MORE` — identify the missing proof and keep the affected transition fail-closed.
 
-After a Project or Program is Active with a prepared child graph, eligible agents self-claim the next package-complete child under standing parent authority (#3145). WORK does not act as a routine per-task dispatcher or mandatory “release” gate between already-authorized children. Deterministic CI may execute mechanically provable closeout mutations, but WORK owns substantive acceptance decisions and verifies resulting repository state when judgment is required. WORK must not independently approve or verify a PR that WORK implemented. In that case, another authorized independent reviewer supplies the review evidence and Bill retains every required protected Product or Production decision.
+After a Project or Program is Active with a prepared child graph, eligible agents self-claim the next package-complete child under standing parent authority (#3145). ChatGPT/Work does not act as a routine per-task dispatcher or mandatory “release” gate between already-authorized children. Deterministic CI may execute mechanically provable closeout mutations, but ChatGPT/Work owns substantive acceptance decisions and verifies resulting repository state when judgment is required. Neither product may independently approve or verify a PR it implemented. In that case, another authorized independent reviewer supplies the review evidence and Bill retains every required protected Product or Production decision.
 
 `team:*` labels are durable Team ownership. `agent:*` labels are current execution claims or explicit Product Authority reservations only and must not be added merely to make an Issue visible. Full claim lifecycle (claim, release, reserved-assignment exception, stale-preassignment migration) is defined in `docs/governance/WORK-QUEUES-AND-COLLABORATION.md` under **Team ownership versus agent claim lifecycle** (#3240).
 
@@ -56,8 +56,9 @@ This inventory represents each distinct LGFC agent product separately rather tha
 
 | Product | Status | Distinct from | Product-specific rules file | `run startup` applies |
 | --- | --- | --- | --- | --- |
-| Work (OpenAI) | Active — LGFC team member | Ordinary Chat (same model family, outside the delivery chain) | `docs/ops/ai/WORK-RULES.md` | Yes |
-| Codex (OpenAI) | Active — LGFC team member; Operations / Implementation first responder for all Operations Issues opened and project implementer as assigned | Work | `docs/ops/ai/CODEX-RULES.md` | Yes |
+| ChatGPT (OpenAI) | Active — LGFC team member; co-equal with Work for mapped control-plane roles | Work | `docs/ops/ai/CHATGPT-RULES.md` | Yes |
+| Work (OpenAI) | Active — LGFC team member; co-equal with ChatGPT for mapped control-plane roles | ChatGPT | `docs/ops/ai/WORK-RULES.md` | Yes |
+| Codex (OpenAI) | Active — LGFC team member; Operations / Implementation first responder for all Operations Issues opened and project implementer as assigned | ChatGPT / Work | `docs/ops/ai/CODEX-RULES.md` | Yes |
 | Cursor Local / Cursor Cloud | Active — LGFC team member | — | `docs/ops/ai/CURSOR-RULES.md`, `.cursor/rules/*.mdc`, `AGENTS.md` (Cloud) | Yes (existing bootstrap, unchanged by #3052) |
 | Claude Code (Anthropic) | Active — LGFC team member | Claude (conversational) | `docs/ops/ai/CLAUDE-CODE-RULES.md` | Yes |
 | Grok | Active — LGFC team member | — | none | No product-specific startup contract recorded here |
@@ -65,7 +66,7 @@ This inventory represents each distinct LGFC agent product separately rather tha
 | CloudflareAI | Evaluation — repository read access only | — | none | No |
 | Gemini | Supporting research and repository monitoring/reporting — repository read access only | — | none | No |
 | Claude (Anthropic, conversational) | Supporting/advisory only — no durable role | Claude Code | none | No — outside the operational delivery chain; state this plainly if asked to perform repository work |
-| Notion | Supporting tool — controlled-document workspace | — | none | No — not a session-based operating agent; a data/document surface used by role holders (primarily Administration & Communications / Work) |
+| Notion | Supporting tool — controlled-document workspace | — | none | No — not a session-based operating agent; a data/document surface used by role holders (primarily Administration & Communications / ChatGPT / Work) |
 | GitHub Actions and repository automation | Active — Deterministic CI | — | n/a (workflow-defined) | n/a |
 
 ## Current team mapping
@@ -73,6 +74,7 @@ This inventory represents each distinct LGFC agent product separately rather tha
 | Current member or system | Assigned roles |
 | --- | --- |
 | Bill | Product Authority; Day-2 Operations; alternate protected approval when recorded |
+| ChatGPT | PMO / Engineering; PR Approver / Engineering; Administration & Communications; Day-2 Operations coordination and Tier 2 specialist support |
 | Work | PMO / Engineering; PR Approver / Engineering; Administration & Communications; Day-2 Operations coordination and Tier 2 specialist support |
 | Cursor Local | Implementation / Operations; Day-2 Operations remediation implementation |
 | Claude Code | Implementation / Operations; PR Approver / Engineering (only for work Claude Code did not itself implement) |
@@ -84,9 +86,9 @@ This inventory represents each distinct LGFC agent product separately rather tha
 | GitHub Actions and repository automation | Deterministic CI; Administration & Communications transport/evidence; authorized Day-2 monitoring and bounded remediation |
 | Repository runner and routing controller | Administration & Communications control-plane infrastructure; host/service maintained by Day-2 Operations |
 | Claude (conversational) | No durable repository role; bounded collaboration only under the Universal collaboration boundary below |
-| Notion | No durable repository role; controlled-document workspace supporting Administration & Communications / Work evidence and record-keeping; no GitHub mutation authority |
+| Notion | No durable repository role; controlled-document workspace supporting Administration & Communications evidence and record-keeping; no GitHub mutation authority |
 
-`Work` is the current name for the product this table and repository history previously called `ChatGPT` (#3052). The role contract is unchanged; only the product name is reconciled to match the actual OpenAI product performing this work. Ordinary conversational Chat is not a row in this table because it holds no durable repository role.
+ChatGPT and Work are distinct OpenAI product surfaces with identical LGFC repository permissions and durable role authority under #3693. A product-surface change between them does not alter the role contract, repository permissions, or required evidence. Product-specific rules may add execution discipline but may not reduce or expand the shared mapped authority without a governance change.
 
 Future agents and systems may be assigned compatible roles through an approved mapping change or project manifest. Changing the mapping does not change the role contract.
 
@@ -107,7 +109,7 @@ Future agents and systems may be assigned compatible roles through an approved m
 - Product Authority is not expected to copy, interpret, or relay routine assignments, findings, remediation requests, acknowledgments, resumes, status, or completion messages.
 - Human relay through Product Authority is the least-desired fallback when the canonical channel is unavailable or Product Authority intervention is intentionally required.
 - Any externally relayed decision must be written back to GitHub by the responsible role holder before repository work depends on it.
-- Work, Cursor Local, and Claude Code inspect inbound source-Issue events addressed to their role before claiming unrelated work, starting a successor, declaring blocked or waiting, or ending a cycle where a response may be pending (`docs/ops/ai/CORE-RULES.md`, inbound communication checkpoint).
+- ChatGPT, Work, Cursor Local, and Claude Code inspect inbound source-Issue events addressed to their role before claiming unrelated work, starting a successor, declaring blocked or waiting, or ending a cycle where a response may be pending (`docs/ops/ai/CORE-RULES.md`, inbound communication checkpoint).
 - A response-required event must be acknowledged on the same source Issue before unrelated work is claimed, unless a higher-priority numbered Operations interrupt applies.
 - Operating agents must not ask Product Authority to relay routine messages to another LGFC agent when GitHub communication is available.
 - Stale unanswered response-required events are surfaced by the repository communication detector; the detector does not create acknowledgments or role decisions.
@@ -320,7 +322,7 @@ Before Development begins, the source authority includes:
 
 ## Startup orientation
 
-When Product Authority says `run startup`, the active product identifies itself and performs its own product-specific orientation-only startup, then stops — Product Authority does not need to say `run Work startup` or `run Claude Code startup`; see `docs/ops/ai/CORE-RULES.md`'s "PRODUCT STARTUP FRAMEWORK" for the shared skeleton and `docs/ops/ai/WORK-RULES.md`, `docs/ops/ai/CODEX-RULES.md`, and `docs/ops/ai/CLAUDE-CODE-RULES.md` for each product's contract. Startup does not authorize queue audit, implementation resume, GitHub mutation, or administrative reconciliation, regardless of product.
+When Product Authority says `run startup`, the active product identifies itself and performs its own product-specific orientation-only startup, then stops. See `docs/ops/ai/CORE-RULES.md`'s "PRODUCT STARTUP FRAMEWORK" for the shared skeleton and `docs/ops/ai/CHATGPT-RULES.md`, `docs/ops/ai/WORK-RULES.md`, `docs/ops/ai/CODEX-RULES.md`, and `docs/ops/ai/CLAUDE-CODE-RULES.md` for product contracts. Startup does not authorize queue audit, implementation resume, GitHub mutation, or administrative reconciliation, regardless of product.
 
 ## Canonical references
 
@@ -335,6 +337,7 @@ When Product Authority says `run startup`, the active product identifies itself 
 | Operations and recovery policy | `docs/governance/OPERATIONS-AND-RECOVERY.md` |
 | Implementation authority evidence | `docs/reference/agents/implementation-authority-contract.md` |
 | Shared execution detail and product-startup framework | `docs/ops/ai/CORE-RULES.md` |
+| ChatGPT product-specific rules and startup contract | `docs/ops/ai/CHATGPT-RULES.md` |
 | Work product-specific rules and startup contract | `docs/ops/ai/WORK-RULES.md` |
 | Codex product-specific rules and startup contract | `docs/ops/ai/CODEX-RULES.md` |
 | Claude Code product-specific rules and startup contract | `docs/ops/ai/CLAUDE-CODE-RULES.md` |
