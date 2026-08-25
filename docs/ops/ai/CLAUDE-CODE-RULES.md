@@ -5,7 +5,7 @@ Authority Level: Agent-Specific
 Owns: Claude Code product identity, Claude Code startup contract, and Claude Code-specific operating detail
 Does Not Own: Shared agent law, design authority, agent team policy, or merge approval
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Related Issues: #3052, #3188, #3693
+Related Issues: #3052, #3188, #3693, #3696
 Last Reviewed: 2026-08-25
 ---
 
@@ -40,7 +40,7 @@ When Product Authority says `run startup` in Claude Code, perform the shared `PR
 2. Assigned durable roles.
 3. Runtime/environment.
 4. Orientation-only mode.
-5. Repository identity and current branch state.
+5. Repository identity, current branch, and working-tree state (clean/dirty).
 6. GitHub access.
 7. Required authority files read.
 8. Claude Code-specific rules loaded.
