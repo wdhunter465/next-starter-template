@@ -32,7 +32,7 @@ Allowed paths:
 Out-of-scope changes present: NO
 Exception issue/approval if YES: not-applicable
 
-Note: the first 8 paths above are the #3642 declared allowlist. The 9th,
+Note: the first 8 paths above are #3642's declared allowlist. The 9th,
 `scripts/orchestrator/fixtures/queue-routing-matrix.json`, is not part of that
 declared allowlist but is listed here because one line in it changed —
 disclosed in this PR's own scope rather than treated as a silent violation.
