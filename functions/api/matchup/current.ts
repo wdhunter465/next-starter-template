@@ -93,11 +93,13 @@ async function getRecentMatchupPhotoIds(db: any, limit = 8): Promise<Set<number>
 }
 
 async function fetchEligiblePhotos(db: any): Promise<EligiblePhoto[]> {
-  // Interim: allow 0 (unreviewed) until admin curation marks club photos as 1.
-  // Target: MATCHUP_ELIGIBILITY.APPROVED only — see docs/reference/platform/Backblaze_B2.md
+  // Public-display gate: only MATCHUP_ELIGIBILITY.APPROVED (=1) may render on
+  // the public site. `0` (unreviewed) and `-1` (excluded) are both refused —
+  // per the copyright-safety directive, an unlicensed/not-yet-reviewed photo
+  // must never appear, even temporarily. See docs/reference/platform/Backblaze_B2.md.
   const rows = await db
     .prepare(
-      `SELECT id, url, is_memorabilia, is_matchup_eligible, description, title FROM photos WHERE url IS NOT NULL AND TRIM(url) != '' AND is_matchup_eligible >= 0 AND ${rightsClearedClause()};`,
+      `SELECT id, url, is_memorabilia, is_matchup_eligible, description, title FROM photos WHERE url IS NOT NULL AND TRIM(url) != '' AND is_matchup_eligible = ${MATCHUP_ELIGIBILITY.APPROVED} AND ${rightsClearedClause()};`,
     )
     .all();
 
@@ -107,7 +109,7 @@ async function fetchEligiblePhotos(db: any): Promise<EligiblePhoto[]> {
       Number(row.id) > 0 &&
       typeof row.url === "string" &&
       row.url.trim().length > 0 &&
-      Number(row.is_matchup_eligible) >= 0,
+      Number(row.is_matchup_eligible) === MATCHUP_ELIGIBILITY.APPROVED,
   );
 }
 
@@ -120,7 +122,7 @@ async function isPhotoMatchupEligible(db: any, photoId: number): Promise<boolean
     .first();
   if (!row) return false;
   return (
-    Number(row.is_matchup_eligible) >= 0 &&
+    Number(row.is_matchup_eligible) === MATCHUP_ELIGIBILITY.APPROVED &&
     Number(row.rights_hold) === 0 &&
     Number(row.publication_eligible) === 1
   );

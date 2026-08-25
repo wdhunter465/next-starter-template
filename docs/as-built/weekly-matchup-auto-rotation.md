@@ -30,7 +30,7 @@ On each request, the API:
 
 1. Computes the current Monday `week_start` (`YYYY-MM-DD`) with a Monday-inclusive expression: `date('now','-6 days','weekday 1')`.
 2. For an existing **active** `weekly_matchups` row for that week:
-   - both photos must resolve and remain eligible (`is_matchup_eligible >= 0`);
+   - both photos must resolve and remain eligible (`is_matchup_eligible = 1`, the copyright-safety public-display gate — see `docs/reference/platform/Backblaze_B2.md`);
    - if either photo fails to resolve or is no longer eligible (e.g. retired by the daily B2 deletion-reconcile job below), the API **self-heals**: it falls through to the pair-replacement logic in step 3, which selects a fresh eligible pair and clears that week's votes. This is deliberate — a permanently-excluded photo should not keep blocking the public matchup forever. #3030: this mutation previously had **no audit trail**; it now emits a `matchup_repair_audit` log line with `trigger: "current_get_eligibility"` (before/after pair ids, which slot forced it, `mutated`/`votes_cleared`) before returning;
    - otherwise both object URLs are probed (HEAD, then ranged GET) before return;
    - if either probe fails, the API **does not** mutate the pair (#3028). It returns the existing pair, sets `mutation_blocked`, and emits a structured `matchup_repair_audit` log line with `trigger: "current_get_probe"`.
@@ -40,7 +40,7 @@ On each request, the API:
    - selects two eligible photos from `photos`;
    - prefers non-memorabilia rows;
    - excludes photo IDs used in the last eight matchups when enough alternatives exist;
-   - skips rows where `is_matchup_eligible < 0`;
+   - only selects rows where `is_matchup_eligible = 1` (both `0` unreviewed and `-1` excluded are refused);
    - inserts/updates an active row for the current week (handles `UNIQUE` race by re-read);
    - clears that week's votes when the photo pair changes under an **authorized** path;
    - returns the two-photo payload.

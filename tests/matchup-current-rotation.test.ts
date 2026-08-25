@@ -171,7 +171,7 @@ function makeRotationDb(options: {
       return {
         results: photos.filter(
           (row) =>
-            row.is_matchup_eligible >= 0 &&
+            row.is_matchup_eligible === 1 &&
             Number((row as { publication_eligible?: number }).publication_eligible ?? 0) === 1 &&
             Number((row as { rights_hold?: number }).rights_hold ?? 1) === 0,
         ),
@@ -453,9 +453,9 @@ describe('public matchup current rotation', () => {
         },
       ],
       photos: [
-        { id: 21, url: '/photos/21.jpg', is_memorabilia: 0, rights_hold: 0, publication_eligible: 1 },
-        { id: 22, url: '/photos/22.jpg', is_memorabilia: 0, rights_hold: 0, publication_eligible: 1 },
-        { id: 23, url: '/photos/23.jpg', is_memorabilia: 0, rights_hold: 0, publication_eligible: 1 },
+        { id: 21, url: '/photos/21.jpg', is_memorabilia: 0, is_matchup_eligible: 1, rights_hold: 0, publication_eligible: 1 },
+        { id: 22, url: '/photos/22.jpg', is_memorabilia: 0, is_matchup_eligible: 1, rights_hold: 0, publication_eligible: 1 },
+        { id: 23, url: '/photos/23.jpg', is_memorabilia: 0, is_matchup_eligible: 1, rights_hold: 0, publication_eligible: 1 },
       ],
     });
 
@@ -486,9 +486,9 @@ describe('public matchup current rotation', () => {
     const { db, matchups, weekStart } = makeRotationDb({
       simulateInsertRace: true,
       photos: [
-        { id: 31, url: '/photos/31.jpg', is_memorabilia: 0, rights_hold: 0, publication_eligible: 1 },
-        { id: 32, url: '/photos/32.jpg', is_memorabilia: 0, rights_hold: 0, publication_eligible: 1 },
-        { id: 33, url: '/photos/33.jpg', is_memorabilia: 0, rights_hold: 0, publication_eligible: 1 },
+        { id: 31, url: '/photos/31.jpg', is_memorabilia: 0, is_matchup_eligible: 1, rights_hold: 0, publication_eligible: 1 },
+        { id: 32, url: '/photos/32.jpg', is_memorabilia: 0, is_matchup_eligible: 1, rights_hold: 0, publication_eligible: 1 },
+        { id: 33, url: '/photos/33.jpg', is_memorabilia: 0, is_matchup_eligible: 1, rights_hold: 0, publication_eligible: 1 },
       ],
     });
 
@@ -544,8 +544,8 @@ describe('public matchup current rotation', () => {
   it('returns exactly two normalized photo URLs when a new matchup is created', async () => {
     const { db, weekStart } = makeRotationDb({
       photos: [
-        { id: 61, url: '/photos/61.jpg', is_memorabilia: 0, rights_hold: 0, publication_eligible: 1 },
-        { id: 62, url: '/photos/62.jpg', is_memorabilia: 0, rights_hold: 0, publication_eligible: 1 },
+        { id: 61, url: '/photos/61.jpg', is_memorabilia: 0, is_matchup_eligible: 1, rights_hold: 0, publication_eligible: 1 },
+        { id: 62, url: '/photos/62.jpg', is_memorabilia: 0, is_matchup_eligible: 1, rights_hold: 0, publication_eligible: 1 },
       ],
     });
 
@@ -587,10 +587,10 @@ describe('public matchup current rotation', () => {
         { week_start: currentWeek, choice: 'b', source_hash: 'hash-b' },
       ],
       photos: [
-        { id: 254, url: '/photos/254.jpg', is_memorabilia: 0, is_matchup_eligible: 0, rights_hold: 0, publication_eligible: 1 },
+        { id: 254, url: '/photos/254.jpg', is_memorabilia: 0, is_matchup_eligible: 1, rights_hold: 0, publication_eligible: 1 },
         { id: 348, url: '/photos/IMG_4026.jpeg', is_memorabilia: 0, is_matchup_eligible: -1, rights_hold: 0, publication_eligible: 1 },
-        { id: 347, url: '/photos/347.jpg', is_memorabilia: 0, is_matchup_eligible: 0, rights_hold: 0, publication_eligible: 1 },
-        { id: 346, url: '/photos/346.jpg', is_memorabilia: 0, is_matchup_eligible: 0, rights_hold: 0, publication_eligible: 1 },
+        { id: 347, url: '/photos/347.jpg', is_memorabilia: 0, is_matchup_eligible: 1, rights_hold: 0, publication_eligible: 1 },
+        { id: 346, url: '/photos/346.jpg', is_memorabilia: 0, is_matchup_eligible: 1, rights_hold: 0, publication_eligible: 1 },
       ],
     });
 

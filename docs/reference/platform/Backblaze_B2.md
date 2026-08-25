@@ -100,11 +100,14 @@ Rules:
 - B2 → D1 sync sets `is_matchup_eligible = 0` for newly ingested rows unless metadata overrides it.
 - Admins promote suitable club photos to `1` and demote unsuitable rows to `-1` via `/admin/d1-test/` (curation editing deferred to an upcoming PMO program; inspect-only today).
 - New rows are never blank: the column is `INTEGER NOT NULL DEFAULT 0`.
-- Weekly Photo Matchup selection must use only rows where `is_matchup_eligible = 1` once curation is complete.
+- **Weekly Photo Matchup selection uses only rows where `is_matchup_eligible = 1` — enforced as a literal value, not a range.** `0` (unreviewed) and `-1` (excluded) are both refused. This is a copyright-safety requirement: an unlicensed or not-yet-reviewed photo must never appear on the public site, even temporarily. See `functions/api/matchup/current.ts` and `scripts/ci/matchup_pair_monitor.mjs` (the two code paths that select/write photos into a live `weekly_matchups` row).
+- Operational consequence of the rule above: until an admin has promoted at least two photos to `1`, the Weekly Photo Matchup has no eligible pair and fails closed (`items: []`) rather than showing an unreviewed photo. This is intended behavior, not a bug.
 - After D1 recovery, rows whose URL/filename no longer match pre-failure records reset to `0` until re-reviewed (see recovery doctrine in ops docs).
 - URL text in D1 must stay aligned with the B2 object key/path for migrations and eligibility rules to reapply correctly.
 
-Current implementation note: matchup rotation may temporarily treat `0` as eligible while the photo catalog is being curated. Tighten to `= 1` only after admin curation marks approved club photos.
+**Distinct from the copyright gate:** `is_matchup_eligible` governs curation/suitability for the matchup rotation specifically (e.g. an image that clips badly in the matchup frame). The actual copyright/rights-clearance gate is `rights_hold = 0 AND publication_eligible = 1` (`functions/_lib/rights-hold.ts`'s `rightsClearedClause`), which every public/member-facing read already requires independently and which defaults every new row to closed (`rights_hold` defaults to `1`, `publication_eligible` defaults to `0`). `is_matchup_eligible` is an additional, narrower layer on top of that gate for the matchup UI, not a substitute for it.
+
+**Note on `scripts/b2_d1_deletion_reconcile.sh`'s use of `is_matchup_eligible >= 0`:** that is a different, correct use of the column — it means "not yet retired" (i.e. `0` or `1`, as opposed to `-1` excluded), used to decide which rows are still active enough to check against the live B2 bucket for the daily retirement sweep. It is not a display gate and should not be tightened to `= 1`; only the two code paths that actually select photos for public display (linked above) enforce the literal `= 1` requirement.
 
 **Scope note:** this `-1`/`0`/`1` model is specific to the legacy `photos`
 table and the daily B2 → D1 sync described below, which only covers
