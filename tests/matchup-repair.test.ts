@@ -105,7 +105,7 @@ function makeRepairDb(options: {
       return {
         results: photos.filter(
           (row) =>
-            row.is_matchup_eligible >= 0 &&
+            row.is_matchup_eligible === 1 &&
             Number((row as { publication_eligible?: number }).publication_eligible ?? 0) === 1 &&
             Number((row as { rights_hold?: number }).rights_hold ?? 1) === 0,
         ),
