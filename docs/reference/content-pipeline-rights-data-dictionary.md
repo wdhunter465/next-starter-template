@@ -31,11 +31,17 @@ it the same as updating a test for changed behavior.
 
 **If a table is added to, removed from, or renamed within this photo-library
 pipeline**, also
-review `scripts/B2_D1_SYNC_README.md` — the daily B2 → D1 reconciliation job
-currently only covers the legacy `photos` table and needs to be extended (or
-a parallel reconciliation added) any time the set of B2-backed photo tables
-changes, so orphaned/missing-object rows keep getting caught in every table
-that needs it.
+review `scripts/B2_D1_SYNC_README.md` — the daily B2 → D1
+deletion-reconciliation job (`scripts/b2_d1_deletion_reconcile.sh`) covers
+both the legacy `photos` table and, as of #3714 phase 2b, `content_items`/
+`media_assets` (soft-delete via `content_items.deleted_at`, not the `photos`
+`is_matchup_eligible` flag). It needs to be extended (or a parallel
+reconciliation added) any time the set of B2-backed photo tables changes,
+so orphaned/missing-object rows keep getting caught in every table that
+needs it. The *additive insert* side of the sync
+(`scripts/b2_d1_incremental_sync.sh`) still only writes to `photos` — new
+`content_items`/`media_assets` rows are created by the content-pipeline
+ingest paths instead.
 
 Every column below is tagged with its provenance:
 

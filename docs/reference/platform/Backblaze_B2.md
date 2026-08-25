@@ -110,12 +110,15 @@ Rules:
 **Note on `scripts/b2_d1_deletion_reconcile.sh`'s use of `is_matchup_eligible >= 0`:** that is a different, correct use of the column — it means "not yet retired" (i.e. `0` or `1`, as opposed to `-1` excluded), used to decide which rows are still active enough to check against the live B2 bucket for the daily retirement sweep. It is not a display gate and should not be tightened to `= 1`; only the two code paths that actually select photos for public display (linked above) enforce the literal `= 1` requirement.
 
 **Scope note:** this `-1`/`0`/`1` model is specific to the legacy `photos`
-table and the daily B2 → D1 sync described below, which only covers
-`photos`. The newer #3551/#3552 content pipeline tables (`content_items`,
-`media_assets`, `rights_evidence`) are a separate table family, not
-currently covered by that sync, and don't reuse this flag — `content_items`
-already has its own soft-delete columns (`deleted_at`, `retention_reason`,
-`purge_eligible_at`) suited to that pipeline instead. See
+table. The daily B2 → D1 *additive insert* sync
+(`scripts/b2_d1_incremental_sync.sh`) only ever writes to `photos`. The
+daily *deletion-reconciliation* sweep (`scripts/b2_d1_deletion_reconcile.sh`)
+covers both table families as of #3714 phase 2b: it still retires `photos`
+rows via this `-1`/`0`/`1` flag, and separately soft-deletes `content_items`
+rows whose linked `media_assets.b2_key` is missing from B2 — but that side
+does **not** reuse this flag. `content_items` has its own soft-delete
+columns (`deleted_at`, `retention_reason`, `purge_eligible_at`) suited to
+that pipeline instead. See
 `docs/reference/content-pipeline-rights-data-dictionary.md` for that
 pipeline's schema and `scripts/B2_D1_SYNC_README.md` for the sync job's
 current scope and the requirement to update it if a photo-library table is

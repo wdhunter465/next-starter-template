@@ -144,9 +144,9 @@ extract_d1_rows() {
 }
 
 emit_github_outputs() {
-  local retired="$1" repaired="$2" sample="$3"
+  local retired="$1" repaired="$2" sample="$3" media_retired="${4:-0}"
   local has_findings="false"
-  if [[ "$retired" -gt 0 || "$repaired" -gt 0 ]]; then
+  if [[ "$retired" -gt 0 || "$repaired" -gt 0 || "$media_retired" -gt 0 ]]; then
     has_findings="true"
   fi
   if [[ -n "${GITHUB_OUTPUT:-}" ]]; then
@@ -155,9 +155,10 @@ emit_github_outputs() {
       echo "repaired_matchups=${repaired}"
       echo "has_findings=${has_findings}"
       echo "stale_key_sample=${sample}"
+      echo "media_assets_retired_count=${media_retired}"
     } >> "$GITHUB_OUTPUT"
   fi
-  log "Outputs: retired_count=${retired} repaired_matchups=${repaired} has_findings=${has_findings}"
+  log "Outputs: retired_count=${retired} repaired_matchups=${repaired} media_assets_retired_count=${media_retired} has_findings=${has_findings}"
 }
 
 pick_eligible_photo_id() {
@@ -365,6 +366,86 @@ SQL_HEADER
 fi
 
 # ----------------------------------------------------------------------------
+# #3714 phase 2b: reconcile media_assets/content_items (the newer #3551/#3552
+# pipeline) against the SAME B2 listing already fetched above -- no extra B2
+# API calls. Soft-delete only, via content_items' own deleted_at/
+# retention_reason columns (migration 0042), built for exactly this. Never
+# touches media_assets itself: it deliberately carries no status column (see
+# docs/reference/content-pipeline-rights-data-dictionary.md), so nothing
+# renders a media_assets row directly -- soft-deleting the linked
+# content_items row is what actually removes it from any query that filters
+# WHERE deleted_at IS NULL.
+# ----------------------------------------------------------------------------
+log "Checking for media_assets/content_items tables before phase 2b reconciliation..."
+MEDIA_TABLE_CHECK="$(wrangler_exec command "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('media_assets','content_items');")" || MEDIA_TABLE_CHECK=""
+MEDIA_TABLES_PRESENT="$(echo "$MEDIA_TABLE_CHECK" | extract_d1_rows name 2>/dev/null | jq 'length' 2>/dev/null || echo 0)"
+
+MEDIA_STALE_COUNT=0
+if [[ "${MEDIA_TABLES_PRESENT:-0}" -lt 2 ]]; then
+  log "media_assets/content_items not present in this database -- skipping phase 2b reconciliation."
+else
+  RAW_B2_KEYS_FILE="$WORKDIR/raw_b2_keys.txt"
+  jq -r '.objects[].external_id' "$OBJECTS_FILE" | LC_ALL=C sort -u > "$RAW_B2_KEYS_FILE"
+
+  log "Querying D1 for media_assets.b2_key..."
+  MEDIA_D1_OUT="$(wrangler_exec command "SELECT b2_key AS k FROM media_assets WHERE b2_key IS NOT NULL AND TRIM(b2_key) != '';")" || {
+    log "ERROR: Failed SELECT media_assets.b2_key"
+    log "$MEDIA_D1_OUT"
+    exit 3
+  }
+
+  MEDIA_EXISTING_KEYS_FILE="$WORKDIR/media_existing_keys.txt"
+  : > "$MEDIA_EXISTING_KEYS_FILE"
+  if echo "$MEDIA_D1_OUT" | jq -e '.' >/dev/null 2>&1; then
+    echo "$MEDIA_D1_OUT" | jq -r '
+      [.. | arrays?] as $arrs
+      | ($arrs | map(select((.[0]?|type)=="object" and (.[0]?|has("k"))))) as $cands
+      | ($cands[0] // [])
+      | .[]?
+      | .k? // empty
+    ' 2>/dev/null >> "$MEDIA_EXISTING_KEYS_FILE" || true
+  fi
+  LC_ALL=C sort -u "$MEDIA_EXISTING_KEYS_FILE" | grep -v '^$' > "$MEDIA_EXISTING_KEYS_FILE.sorted" || true
+  mv "$MEDIA_EXISTING_KEYS_FILE.sorted" "$MEDIA_EXISTING_KEYS_FILE" 2>/dev/null || true
+  MEDIA_EXISTING_COUNT="$(wc -l < "$MEDIA_EXISTING_KEYS_FILE" | tr -d ' ')"
+  log "media_assets candidate key count: $MEDIA_EXISTING_COUNT"
+
+  MEDIA_STALE_KEYS_FILE="$WORKDIR/media_stale_keys.txt"
+  comm -23 "$MEDIA_EXISTING_KEYS_FILE" "$RAW_B2_KEYS_FILE" > "$MEDIA_STALE_KEYS_FILE" || true
+  MEDIA_STALE_COUNT="$(wc -l < "$MEDIA_STALE_KEYS_FILE" | tr -d ' ')"
+  log "media_assets stale keys (missing from B2): $MEDIA_STALE_COUNT"
+
+  if [[ "$MEDIA_STALE_COUNT" -eq 0 ]]; then
+    log "No stale media_assets-linked content_items rows to reconcile."
+  else
+    MEDIA_NOTE_BASE="b2_object_missing_during_reconciliation_phase2b"
+    MEDIA_SQL_FILE="$WORKDIR/media_retire.sql"
+    : > "$MEDIA_SQL_FILE"
+    while IFS= read -r stale_key; do
+      [[ -z "$stale_key" ]] && continue
+      esc_key="$(sql_escape "$stale_key")"
+      printf "UPDATE content_items SET deleted_at = strftime('%%Y-%%m-%%dT%%H:%%M:%%fZ','now'), retention_reason = '%s: key=%s' WHERE media_asset_id = 'b2://%s' AND deleted_at IS NULL;\n" \
+        "$MEDIA_NOTE_BASE" "$esc_key" "$esc_key" >> "$MEDIA_SQL_FILE"
+    done < "$MEDIA_STALE_KEYS_FILE"
+
+    log "Stale media_assets key sample (up to 20):"
+    head -n 20 "$MEDIA_STALE_KEYS_FILE" | while IFS= read -r k; do log "  - $k"; done
+
+    if [[ "$DRY_RUN" == "1" ]]; then
+      log "DRY_RUN=1 -- printing media_assets/content_items retire SQL."
+      cat "$MEDIA_SQL_FILE"
+    else
+      OUT="$(wrangler_exec file "$MEDIA_SQL_FILE")" || {
+        log "ERROR: media_assets/content_items reconciliation batch failed"
+        log "$OUT"
+        exit 4
+      }
+    fi
+  fi
+  log "Phase 2b summary: media_assets_candidates=$MEDIA_EXISTING_COUNT media_assets_stale=$MEDIA_STALE_COUNT content_items_retired=$MEDIA_STALE_COUNT"
+fi
+
+# ----------------------------------------------------------------------------
 # Repair active matchups that still reference excluded photos (#2519 design)
 # ----------------------------------------------------------------------------
 log "Scanning active weekly_matchups for excluded photo references..."
@@ -471,10 +552,10 @@ if [[ "$MATCHUP_COUNT" -gt 0 ]]; then
   done < <(echo "$MATCHUP_ROWS" | jq -c '.[]')
 fi
 
-emit_github_outputs "$STALE_COUNT" "$REPAIRED_COUNT" "${STALE_SAMPLE}"
+emit_github_outputs "$STALE_COUNT" "$REPAIRED_COUNT" "${STALE_SAMPLE}" "$MEDIA_STALE_COUNT"
 
 log "Deletion reconciliation completed successfully"
-log "Summary: total_b2=$TOTAL_OBJECTS candidates=$EXISTING_COUNT retired_attempted=$STALE_COUNT batches=$TOTAL_BATCHES repaired_matchups=$REPAIRED_COUNT unrepaired_matchups=$UNREPAIRED_COUNT key_mode=$KEY_MODE"
+log "Summary: total_b2=$TOTAL_OBJECTS candidates=$EXISTING_COUNT retired_attempted=$STALE_COUNT batches=$TOTAL_BATCHES repaired_matchups=$REPAIRED_COUNT unrepaired_matchups=$UNREPAIRED_COUNT key_mode=$KEY_MODE content_items_retired=$MEDIA_STALE_COUNT"
 if [[ -s "$REPAIR_LOG_FILE" ]]; then
   log "Repair evidence:"
   while IFS= read -r line; do log "  $line"; done < "$REPAIR_LOG_FILE"
