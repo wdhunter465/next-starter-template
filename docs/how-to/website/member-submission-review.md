@@ -5,8 +5,8 @@ Authority Level: Operational Procedure
 Owns: Member submission review procedure within the LGFC content candidate pipeline
 Does Not Own: Runtime admin UI, D1 migrations, legal policy decisions, or autonomous publication
 Canonical Reference: /docs/reference/content/member-submission-content-model.md
-Related issues: #2273, #2277, #2275, #3552, #3553, #3597, #3598
-Last Reviewed: 2026-08-18
+Related issues: #2273, #2277, #2275, #3552, #3553, #3597, #3598, #3699
+Last Reviewed: 2026-08-25
 ---
 
 # Member Submission Review
@@ -15,7 +15,7 @@ Last Reviewed: 2026-08-18
 
 Review member-submitted text stories and uploaded photo candidates before they become internal reference, publication candidates, or published gallery inventory.
 
-Member submissions use the candidate model with `input_stream = member_submission`. All submissions (including binary photo uploads) remain private and held (`rights_hold = 1`, `consent_status = pending`) until every required review gate and rights evidence reconciliation pass.
+Member submissions use the candidate model with `input_stream = member_submission`. Intake rights state depends on `rights_choice`: `member_owns_full_grant` records grant evidence and clears `rights_hold` immediately, while `external_source_needs_evaluation` remains private and held (`rights_hold = 1`, `consent_status = pending`) until the required admin rights review and reconciliation pass.
 
 ## Scope
 
@@ -24,8 +24,8 @@ This how-to covers:
 - Intake verification for member text stories and uploaded photo binaries;
 - Verification of member legal gates (`rights_choice`) and derived rights statements;
 - Inspection of B2-stored assets (`LGFC_MEMBER_` sub-prefix);
-- Recording formal rights evidence conclusions in `rights_evidence`;
-- Executing rights evidence reconciliation (`scripts/ops/reconcile-photos-rights-from-media-assets.mjs` #3598) to clear `rights_hold` and surface approved photos;
+- Recording formal rights evidence conclusions when admin evaluation is required;
+- Executing rights evidence reconciliation (`scripts/ops/reconcile-photos-rights-from-media-assets.mjs` #3598) for externally sourced submissions that require clearance;
 - Privacy, consent, and disposition outcomes.
 
 Out of scope: runtime upload implementation, B2 infrastructure setup, D1 migrations.
@@ -45,14 +45,14 @@ Related: [Review a content submission](./review-content-submission.md) for opera
 
 ## Steps
 
-1. Open the pending member candidate, `member_submissions` record, or linked media asset.
+1. Open the member candidate, `member_submissions` record, or linked media asset.
 2. Verify submitter identity and contact from session-derived records.
-3. Inspect submitter self-attestation (`ownership_statement`, `permission_statement`, `credit_preference`).
+3. Inspect submitter self-attestation (`ownership_statement`, `permission_statement`, `credit_preference`) and the recorded `rights_choice`.
 4. For photo uploads, inspect the B2 file object (`LGFC_MEMBER_` prefix) and verify media quality and content appropriateness.
 5. Perform privacy and living-person review.
-6. Record formal admin conclusion in `rights_evidence` (e.g., `cleared_public`, `cleared_member_only`, or `rejected`).
-7. Execute rights evidence reconciliation (#3598) to propagate approved conclusions into `media_assets` (`rights_hold = 0`) and `photos`.
-8. Confirm approved photos appear in member gallery surfaces while rejected/held items remain private.
+6. For `external_source_needs_evaluation`, record the formal admin conclusion in `rights_evidence` (for example `cleared_public`, `cleared_member_only`, or `rejected`). `member_owns_full_grant` already records its grant evidence at intake and does not require a separate rights-clearance review before sync.
+7. For an externally sourced submission that is cleared, execute rights evidence reconciliation (#3598) to propagate the conclusion into `media_assets` (`rights_hold = 0`) and `photos`.
+8. Confirm eligible cleared photos appear on the intended member/public surfaces while rejected or held items remain private.
 
 ## Procedure
 
@@ -62,7 +62,7 @@ Confirm:
 
 - `submitter_name` and `submitter_contact` match authenticated session data;
 - `rights_choice` is recorded (`member_owns_full_grant` or `external_source_needs_evaluation`);
-- Derived `ownership_statement` and `permission_statement` provide clear legal basis for LGFC usage;
+- Derived `ownership_statement` and `permission_statement` provide the expected legal basis for the selected path;
 - `credit_preference` is documented (`public_credit`, `anonymous`, etc.).
 
 | Check | Action if failed |
@@ -89,30 +89,34 @@ For uploaded photo binaries stored under `LGFC_MEMBER_` prefixes:
 | `minors` | Escalate to Product/Legal Authority; default reject for public display |
 | `sensitive` | Redact or mark `private_internal_only` |
 
-### 4. Record rights evidence conclusion
+### 4. Record rights evidence conclusion when evaluation is required
 
-Admin review conclusions must be written to `rights_evidence`:
+For `external_source_needs_evaluation`, admin review conclusions must be written to `rights_evidence`:
 
 - Insert `rights_evidence` row specifying `media_asset_id` or `content_item_id`;
 - Set `conclusion` to `cleared_public`, `cleared_member_only`, `permission_needed`, or `rejected`;
 - Record reviewer identity, timestamp, and verification rationale.
 
+`member_owns_full_grant` already records the grant evidence conclusion during intake; do not create a redundant admin clearance requirement solely because the submission is member-originated.
+
 ### 5. Execute rights evidence reconciliation (#3598)
 
-Once `rights_evidence` is recorded:
+For an externally sourced submission after a cleared `rights_evidence` conclusion is recorded:
 
 - Trigger/run the canonical rights evidence reconciliation handler (`scripts/ops/reconcile-photos-rights-from-media-assets.mjs` #3598);
 - Reconciliation verifies that `rights_evidence.conclusion` is cleared;
 - Updates `media_assets.rights_hold` from `1` to `0`;
-- Updates corresponding `photos` table row to make the photo accessible on member gallery / public surfaces.
+- Updates corresponding `photos` table row to make the photo accessible on eligible member/public surfaces.
 
 ## Verification
 
-1. Inspect pending test member submission `lgfc-gehrig-2026-001`.
-2. Confirm initial state is `rights_hold = 1` and `consent_status = pending`.
-3. Record a test cleared conclusion in `rights_evidence`.
-4. Run rights evidence reconciliation (#3598); confirm `media_assets.rights_hold` changes to `0`.
-5. Verify photo becomes queryable on member photo routes (`/fanclub/photo`).
+Verify both intake paths rather than assuming a single initial state:
+
+1. Submit or inspect a test `external_source_needs_evaluation` member photo and confirm initial `rights_hold = 1` and `consent_status = pending`.
+2. Record a test cleared conclusion in `rights_evidence`.
+3. Run rights evidence reconciliation (#3598); confirm `media_assets.rights_hold` changes to `0`.
+4. Separately submit or inspect a `member_owns_full_grant` photo and confirm intake records grant evidence and begins with `rights_hold = 0` without a separate rights-clearance step.
+5. Verify only eligible cleared photos become queryable on the intended member/public photo routes.
 
 ## Related documents
 
