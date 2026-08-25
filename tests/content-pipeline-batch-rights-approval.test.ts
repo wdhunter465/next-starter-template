@@ -148,6 +148,38 @@ describe('buildBatchRightsApprovalSql against a real D1 schema (#3552)', () => {
     }
   });
 
+  it('populates rights_holder and repository_or_collection, and stores the raw license string as evidence_text (#3552 phase 3)', () => {
+    const db = new DatabaseSync(':memory:');
+    applyRepoMigrations(db);
+    importCandidatesAndRunApproval(db);
+
+    // 511's license note has artist "University Archives—Columbiana Library,
+    // Columbia University." and no usage_terms, so evidence_text should fall
+    // back to the raw license_short_name ("Public domain"), not a
+    // synthesized sentence.
+    const row511 = db
+      .prepare(
+        `SELECT evidence_text, rights_holder, repository_or_collection
+         FROM rights_evidence
+         WHERE content_item_id = (SELECT id FROM content_items WHERE candidate_id = ?)`,
+      )
+      .get('lgfc-gehrig-2026-511') as Record<string, unknown>;
+
+    expect(row511.evidence_text).toBe('Public domain');
+    expect(row511.rights_holder).toBe('University Archives—Columbiana Library, Columbia University.');
+    expect(row511.repository_or_collection).toBe('Wikimedia Commons');
+
+    // 514's license note has artist: null -- rights_holder must stay NULL,
+    // not coerce to the string "null" or an empty string.
+    const row514 = db
+      .prepare(
+        `SELECT rights_holder FROM rights_evidence
+         WHERE content_item_id = (SELECT id FROM content_items WHERE candidate_id = ?)`,
+      )
+      .get('lgfc-gehrig-2026-514') as Record<string, unknown>;
+    expect(row514.rights_holder).toBeNull();
+  });
+
   it('getCurrentConclusionForCandidate-style query returns the recorded conclusion (rights_evidence is queryable per #3567 ingestion gate)', () => {
     const db = new DatabaseSync(':memory:');
     applyRepoMigrations(db);
