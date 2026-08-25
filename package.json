@@ -69,8 +69,8 @@
     "lighthouse:baseline": "lhci collect --staticDistDir=out --url=/ --url=/search/ --url=/join/ --url=/faq/ --url=/about/ --numberOfRuns=1"
   },
   "dependencies": {
+    "@cf-wasm/photon": "^0.4.0",
     "@pinecone-database/pinecone": "^6.1.3",
-    "jimp": "^1.6.1",
     "next": "^15.5.8",
     "next-elfsight-widget": "^1.1.1",
     "react": "^19.0.0",

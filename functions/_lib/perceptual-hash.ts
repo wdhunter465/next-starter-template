@@ -12,7 +12,22 @@
 // the same photo. See content-pipeline-duplicate-detection.ts, which is
 // what actually decides what a close hash means.
 
-import { Jimp } from 'jimp';
+// jimp was tried first but is unusable here: its package.json "exports"
+// map has a "browser" condition pointing at an empty stub
+// (`export {};  // A stub. The real build is done by rollup.`), and
+// Cloudflare's Pages Functions bundler (`wrangler pages functions build`,
+// confirmed locally against the real bundler, not just a generic esbuild
+// invocation) resolves that condition -- breaking `import { Jimp } from
+// 'jimp'` with "No matching export ... for import Jimp" at deploy time.
+// @cf-wasm/photon is a Rust/WASM image library purpose-built for Workers:
+// its exports map has no "browser" stub (its "default" condition itself
+// points at the real workerd build), and its `.wasm` import is handled by
+// Wrangler's built-in Wasm module loader. The bare `@cf-wasm/photon`
+// specifier is used (rather than hardcoding the `/workerd` subpath) so it
+// also resolves to the `/node` build's Node-safe wasm loading under
+// Vitest, which -- unlike Wrangler -- has no loader for a raw `.wasm` ES
+// module import.
+import { PhotonImage, SamplingFilter, grayscale, resize } from '@cf-wasm/photon';
 
 // 9x8 downscale -> 8 horizontal comparisons per row x 8 rows = 64 bits,
 // encoded as 16 lowercase hex characters. Standard dHash dimensions.
@@ -25,18 +40,20 @@ const BIG_ZERO = BigInt(0);
 const BIG_ONE = BigInt(1);
 
 export async function computePerceptualHash(bytes: Uint8Array): Promise<string> {
-  const image = await Jimp.read(Buffer.from(bytes));
-  image.resize({ w: HASH_WIDTH, h: HASH_HEIGHT }).greyscale();
+  const decoded = PhotonImage.new_from_byteslice(bytes);
+  const resized = resize(decoded, HASH_WIDTH, HASH_HEIGHT, SamplingFilter.Nearest);
+  decoded.free();
+  grayscale(resized);
+  // Raw pixels are row-major RGBA, 4 bytes/pixel; grayscale() makes R/G/B
+  // identical, so the R channel alone is the pixel's brightness.
+  const pixels = resized.get_raw_pixels();
+  resized.free();
 
   let hash = BIG_ZERO;
   for (let y = 0; y < HASH_HEIGHT; y += 1) {
     for (let x = 0; x < HASH_WIDTH - 1; x += 1) {
-      const left = image.getPixelColor(x, y);
-      const right = image.getPixelColor(x + 1, y);
-      // getPixelColor returns a packed 0xRRGGBBAA int; greyscale() makes
-      // R/G/B identical, so the top byte alone is the pixel's brightness.
-      const leftBrightness = (left >>> 24) & 0xff;
-      const rightBrightness = (right >>> 24) & 0xff;
+      const leftBrightness = pixels[(y * HASH_WIDTH + x) * 4];
+      const rightBrightness = pixels[(y * HASH_WIDTH + x + 1) * 4];
       hash = (hash << BIG_ONE) | (leftBrightness < rightBrightness ? BIG_ONE : BIG_ZERO);
     }
   }

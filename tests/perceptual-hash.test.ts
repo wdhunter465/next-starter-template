@@ -1,23 +1,39 @@
-import { Jimp } from 'jimp';
+import { PhotonImage } from '@cf-wasm/photon';
 import { describe, expect, it } from 'vitest';
 
 import { computePerceptualHash, hammingDistanceHex } from '../functions/_lib/perceptual-hash';
 
+function pngFromRawRgba(width: number, height: number, pixels: Uint8Array): Uint8Array {
+  const image = new PhotonImage(pixels, width, height);
+  const bytes = image.get_bytes();
+  image.free();
+  return bytes;
+}
+
 async function makeGradientPng(width: number, height: number): Promise<Uint8Array> {
-  const image = new Jimp({ width, height, color: 0x000000ff });
+  const pixels = new Uint8Array(width * height * 4);
   for (let y = 0; y < height; y += 1) {
     for (let x = 0; x < width; x += 1) {
       const value = Math.round((x / (width - 1)) * 255);
-      image.setPixelColor(((value << 24) | (value << 16) | (value << 8) | 0xff) >>> 0, x, y);
+      const offset = (y * width + x) * 4;
+      pixels[offset] = value;
+      pixels[offset + 1] = value;
+      pixels[offset + 2] = value;
+      pixels[offset + 3] = 255;
     }
   }
-  return image.getBuffer('image/png');
+  return pngFromRawRgba(width, height, pixels);
 }
 
 async function makeSolidPng(width: number, height: number, grey: number): Promise<Uint8Array> {
-  const color = ((grey << 24) | (grey << 16) | (grey << 8) | 0xff) >>> 0;
-  const image = new Jimp({ width, height, color });
-  return image.getBuffer('image/png');
+  const pixels = new Uint8Array(width * height * 4);
+  for (let i = 0; i < width * height; i += 1) {
+    pixels[i * 4] = grey;
+    pixels[i * 4 + 1] = grey;
+    pixels[i * 4 + 2] = grey;
+    pixels[i * 4 + 3] = 255;
+  }
+  return pngFromRawRgba(width, height, pixels);
 }
 
 describe('computePerceptualHash / hammingDistanceHex (#3552 phase 4)', () => {
