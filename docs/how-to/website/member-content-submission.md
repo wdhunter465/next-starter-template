@@ -26,9 +26,9 @@ This how-to covers:
 - `/fanclub/submit` member route and session authentication;
 - Text submission intake via `POST /api/library/submit` and `POST /api/library/content-pipeline/submit`;
 - Member photo upload intake via `POST /api/fanclub/photos/upload` (Path C);
-- Mandatory rights attestation (`attest_owns_rights`), ownership statements, and credit preferences;
+- Mandatory legal gate `rights_choice` (`member_owns_full_grant` | `external_source_needs_evaluation`), submitter attribution, and credit preferences;
 - Server-side binary ingest validation and B2 key prefixing (`LGFC_MEMBER_`);
-- Conservative default state enforcement (`rights_hold = 1` and `consent_status = pending`).
+- Rights hold state rules (`rights_hold = 0` for immediate `member_owns_full_grant`; `rights_hold = 1` and `consent_status = pending` for `external_source_needs_evaluation`).
 
 Out of scope:
 
@@ -39,11 +39,11 @@ Out of scope:
 ## Current known truth
 
 - Authenticated members can submit text stories and upload binary photo assets (Path C).
-- `POST /api/fanclub/photos/upload` enforces a strict legal gate: `attest_owns_rights` must be `true`. Submissions missing rights attestation are failed closed immediately (HTTP 400) before any file or B2 operation.
-- Member photo uploads require `submitter_name`, `ownership_statement`, `permission_statement`, and `credit_preference`.
+- `POST /api/fanclub/photos/upload` enforces a strict legal gate: `rights_choice` must be `member_owns_full_grant` or `external_source_needs_evaluation`. Submissions missing or invalid `rights_choice` (or missing `source_url` when `external_source_needs_evaluation` is selected) fail closed immediately (HTTP 400) before any file or B2 operation.
+- Member photo uploads require `submitter_name` and `credit_preference`. Request fields do not collect `ownership_statement` or `permission_statement`; those strings are derived in `functions/_lib/member-photo-submission-repository.ts` based on `rights_choice`.
 - File uploads are validated server-side for content-type allowlist, magic-byte signatures, and size limits before writing to Backblaze B2.
 - Uploaded assets are written to B2 under the `LGFC_MEMBER_` key sub-prefix to visually distinguish member contributions from admin-curated assets.
-- Ingested member photos always default to `rights_hold = 1` in `media_assets` and `consent_status = 'pending'` in `member_submissions`. Self-attestation is captured as evidence but does not publish the asset until an admin records a rights evidence conclusion and reconciliation runs (#3598).
+- `member_owns_full_grant` sets `rights_hold = 0` immediately and records a full grant evidence conclusion; `external_source_needs_evaluation` sets `rights_hold = 1` in `media_assets` and `consent_status = 'pending'` in `member_submissions` until an admin records a rights evidence conclusion and reconciliation runs (`scripts/ops/reconcile-photos-rights-from-media-assets.mjs` #3598).
 
 ## Intended final state
 
@@ -54,11 +54,11 @@ Out of scope:
 
 1. Confirm the member has an active Fan Club session (`requireMember`).
 2. For text submissions, open `/fanclub/submit` and fill required story fields (`name`, `title`, `content`) along with source/credit details.
-3. For photo uploads, attach the image file and complete required rights attestation fields:
-   - Check required `attest_owns_rights` checkbox;
-   - Provide `submitter_name`, `ownership_statement`, `permission_statement`, and `credit_preference`.
+3. For photo uploads, attach the image file and complete required fields:
+   - Select `rights_choice` (`member_owns_full_grant` or `external_source_needs_evaluation` with `source_url`);
+   - Provide `submitter_name` and `credit_preference`.
 4. Submit the form and verify success response with assigned candidate or submission identifier.
-5. Verify the submission enters the candidate intake queue with conservative defaults (`rights_hold = 1`, `consent_status = pending`).
+5. Verify the submission rights hold state (`rights_hold = 0` for `member_owns_full_grant`; `rights_hold = 1` for `external_source_needs_evaluation`).
 
 ## Procedure
 
@@ -72,6 +72,7 @@ Required JSON payload for `POST /api/library/submit` and `POST /api/library/cont
 
 | Field | Required | Notes |
 | --- | --- | --- |
+| `submission_type` | yes | Required on `content-pipeline/submit` (`story`, `photo`, `memorabilia`, etc.) |
 | `name` / `submitter_name` | yes | Display name for attribution |
 | `title` | yes | Submission title |
 | `content` / `summary` | yes | Story or note body |
@@ -85,25 +86,24 @@ Required JSON payload for `POST /api/library/submit` and `POST /api/library/cont
 
 For binary photo uploads to `POST /api/fanclub/photos/upload`:
 
-1. **Rights Attestation Gate:** The request body/form-data MUST include `attest_owns_rights = true`. If omitted or false, the backend rejects the request immediately with status 400.
-2. **Metadata Validation:** `submitter_name`, `ownership_statement`, `permission_statement`, and `credit_preference` must all be populated.
+1. **Rights Choice Legal Gate:** Request body/form-data MUST include `rights_choice` (`member_owns_full_grant` or `external_source_needs_evaluation`). If omitted, invalid, or missing `source_url` when `external_source_needs_evaluation` is selected, the backend rejects the request immediately with status 400.
+2. **Metadata Validation:** `submitter_name` and `credit_preference` must be populated. Photo uploads do not collect `ownership_statement` or `permission_statement` request fields; statements are derived in `functions/_lib/member-photo-submission-repository.ts` from `rights_choice`.
 3. **File Ingest Validation:** Server inspects file magic bytes, MIME type (JPEG, PNG, WebP), and file size against safety thresholds.
 4. **B2 Storage:** Validated binary files are saved in B2 under `LGFC_MEMBER_<uuid>_<filename>`.
-5. **D1 Record Creation:** `content_items` (stream `member_submission`), `submitters`, `member_submissions` (`consent_status = 'pending'`), and `media_assets` (`rights_hold = 1`) records are created atomically.
+5. **D1 Record Creation:** `content_items` (stream `member_submission`), `submitters`, `member_submissions`, and `media_assets` records are created atomically. If `rights_choice` is `member_owns_full_grant`, `rights_hold = 0` is set immediately and `rights_evidence` records `lgfc_member_owned_item_photo`. If `external_source_needs_evaluation`, `rights_hold = 1` is set with `consent_status = pending`.
 
-### Conservative default states
+### Rights hold and review rules
 
-- **Self-attestation captured, never self-granted:** Member self-attestation is recorded as legal evidence (`ownership_statement`, `permission_statement`).
-- **Default Hold:** Assets are stored with `rights_hold = 1` and `publication_status = 'not_ready'`.
-- **Admin Review Required:** An admin must review the submission, record a formal rights evidence conclusion, and execute reconciliation (#3598) before the photo can appear on public or member gallery surfaces.
+- **Member Owns Full Grant (`member_owns_full_grant`):** Sets `rights_hold = 0` immediately and records `lgfc_member_owned_item_photo` evidence. Does not require a separate admin review step before syncing to site.
+- **External Source (`external_source_needs_evaluation`):** Stored with `rights_hold = 1` and `consent_status = 'pending'`. An admin must review the submission, record a formal rights evidence conclusion, and run reconciliation (`scripts/ops/reconcile-photos-rights-from-media-assets.mjs` #3598) before the photo can clear rights hold.
 
 ## Verification
 
 1. Submit test content as an authenticated member test account.
-2. Attempt photo upload without `attest_owns_rights` checked; confirm HTTP 400 rejection.
-3. Submit photo upload with valid file and checked rights attestation; confirm HTTP 200/201 response.
-4. Verify created `media_assets` record has `rights_hold = 1` and B2 key uses `LGFC_MEMBER_` sub-prefix.
-5. Confirm public gallery and library routes do not show the unapproved upload.
+2. Attempt photo upload without `rights_choice`; confirm HTTP 400 rejection.
+3. Submit photo upload with valid file, `rights_choice = member_owns_full_grant`, `submitter_name`, and `credit_preference`; confirm HTTP 200 response and `rights_hold = 0`.
+4. Confirm `external_source_needs_evaluation` photo upload sets `rights_hold = 1` and B2 key uses `LGFC_MEMBER_` sub-prefix.
+5. Confirm public gallery and library routes do not show unapproved held uploads (`rights_hold = 1`).
 
 ## Related Documents
 
