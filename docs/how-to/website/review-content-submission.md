@@ -23,7 +23,7 @@ This how-to covers:
 
 - Objective triage review for text stories and member photo uploads;
 - Manual factual and editorial review;
-- Reviewing member rights attestation statements (`ownership_statement`, `permission_statement`, `credit_preference`);
+- Reviewing member legal gates (`rights_choice`) and derived rights statements (`ownership_statement`, `permission_statement`, `credit_preference`);
 - Canonical, alternate, merge, and rejection decisions;
 - Media/source review and recording rights evidence conclusions;
 - Running rights evidence reconciliation (#3598) for approved photos;
@@ -35,9 +35,9 @@ Unified workflow reference: `docs/reference/website/unified-content-workflow.md`
 ## Current known truth
 
 - Submission review covers text submissions (`submission_queue`, `POST /api/library/submit`) and binary photo uploads (`POST /api/fanclub/photos/upload`).
-- Member photo uploads require explicit rights attestation (`attest_owns_rights = true`) captured at intake.
-- Uploaded media assets default to `rights_hold = 1` in `media_assets` and `consent_status = 'pending'` in `member_submissions`.
-- Editor or admin approval requires recording a formal rights evidence conclusion in `rights_evidence` and running rights evidence reconciliation (#3598) to clear `rights_hold` and update `photos`.
+- Member photo uploads require explicit legal gate `rights_choice` (`member_owns_full_grant` or `external_source_needs_evaluation`) captured at intake.
+- `member_owns_full_grant` uploads set `rights_hold = 0` immediately. `external_source_needs_evaluation` uploads default to `rights_hold = 1` in `media_assets` and `consent_status = 'pending'` in `member_submissions`.
+- Editor or admin approval for externally-sourced uploads requires recording a formal rights evidence conclusion in `rights_evidence` and running rights evidence reconciliation (`scripts/ops/reconcile-photos-rights-from-media-assets.mjs` #3598) to clear `rights_hold` and update `photos`.
 - Rejected or held submissions remain excluded from public search, homepage rotation, fanclub gallery, and archive surfaces.
 
 ## Intended final state
@@ -48,7 +48,7 @@ Unified workflow reference: `docs/reference/website/unified-content-workflow.md`
 
 1. Open the pending or triaged queue item or member submission.
 2. Review objective triage flags without treating them as factual decisions.
-3. Check source, attribution, credit line, and submitter rights statements (`attest_owns_rights`, `ownership_statement`, `permission_statement`).
+3. Check source, attribution, credit line, `rights_choice`, and derived submitter rights statements (`ownership_statement`, `permission_statement`).
 4. Search existing inventory for duplicates or matching tags.
 5. Decide whether the submission should become a new canonical story, alternate perspective, merge/update, photo gallery asset, rejection, or retention hold.
 6. For approved media assets, record the formal rights evidence conclusion in `rights_evidence`.
@@ -91,7 +91,7 @@ Check whether the submission includes:
 - `source_url` or durable offline reference when available;
 - `credit_line` or `credit_preference`;
 - `ownership_statement` and `permission_statement` for member contributions;
-- `attest_owns_rights = true` for photo uploads.
+- `rights_choice` (`member_owns_full_grant` or `external_source_needs_evaluation`) for photo uploads.
 
 If attribution or rights attestation is incomplete but the submission may be useful, keep the item in review or request follow-up rather than publishing.
 
@@ -125,9 +125,9 @@ For media submissions and photo uploads (Path C):
 
 - verify media source and credit;
 - confirm B2 asset key (`LGFC_MEMBER_` prefix for member uploads);
-- verify `attest_owns_rights` and ownership/permission statements;
-- record a cleared decision in `rights_evidence`;
-- execute rights evidence reconciliation (#3598) to clear `rights_hold = 0` on `media_assets` and update `photos` for live display.
+- verify `rights_choice` and derived ownership/permission statements;
+- record a cleared decision in `rights_evidence` for externally-sourced candidates;
+- execute rights evidence reconciliation (`scripts/ops/reconcile-photos-rights-from-media-assets.mjs` #3598) to clear `rights_hold = 0` on `media_assets` and update `photos` for live display.
 
 ### 7. Record decision notes
 
@@ -148,7 +148,7 @@ Approved queue items may:
 - create a new `content_inventory` row;
 - create an alternate-perspective row under an existing tag;
 - update or merge into an existing row;
-- clear photo rights via `rights_evidence` and reconciliation (#3598).
+- clear photo rights via `rights_evidence` and reconciliation (`scripts/ops/reconcile-photos-rights-from-media-assets.mjs` #3598).
 
 Rejected queue items remain excluded from public search, homepage rotation, archive, Fan Club library/gallery, and related content.
 
@@ -175,4 +175,4 @@ The purge process must not delete approved inventory records or published media.
 
 ## Closeout Criteria
 
-A reviewed submission is closed when the manual decision is recorded, useful content has been converted or merged, photo rights conclusions are recorded and reconciled (#3598), rejected content is isolated from public surfaces, and purge or retention metadata is complete.
+A reviewed submission is closed when the manual decision is recorded, useful content has been converted or merged, photo rights conclusions are recorded and reconciled (`scripts/ops/reconcile-photos-rights-from-media-assets.mjs` #3598), rejected content is isolated from public surfaces, and purge or retention metadata is complete.

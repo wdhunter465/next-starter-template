@@ -22,10 +22,10 @@ Member submissions use the candidate model with `input_stream = member_submissio
 This how-to covers:
 
 - Intake verification for member text stories and uploaded photo binaries;
-- Verification of member self-attestations (`attest_owns_rights`, `ownership_statement`, `permission_statement`);
+- Verification of member legal gates (`rights_choice`) and derived rights statements;
 - Inspection of B2-stored assets (`LGFC_MEMBER_` sub-prefix);
 - Recording formal rights evidence conclusions in `rights_evidence`;
-- Executing rights evidence reconciliation (#3598) to clear `rights_hold` and surface approved photos;
+- Executing rights evidence reconciliation (`scripts/ops/reconcile-photos-rights-from-media-assets.mjs` #3598) to clear `rights_hold` and surface approved photos;
 - Privacy, consent, and disposition outcomes.
 
 Out of scope: runtime upload implementation, B2 infrastructure setup, D1 migrations.
@@ -34,11 +34,10 @@ Related: [Review a content submission](./review-content-submission.md) for opera
 
 ## Current known truth
 
-- Member photo uploads (Path C) arrive with captured self-attestation (`attest_owns_rights = true`, `ownership_statement`, `permission_statement`, `credit_preference`) and are stored in B2 under `LGFC_MEMBER_` key prefixes.
-- Member photo assets enter `media_assets` with default `rights_hold = 1` and `member_submissions.consent_status = 'pending'`.
-- Member self-attestation is necessary legal evidence but is NEVER sufficient to publish an asset automatically.
-- To publish an asset, an admin must inspect the upload, verify rights and consent, and write a formal conclusion record into `rights_evidence`.
-- Running rights evidence reconciliation (#3598) evaluates the `rights_evidence` records and updates cleared `media_assets` (`rights_hold = 0`) and `photos` records for live display.
+- Member photo uploads (Path C) arrive with `rights_choice` (`member_owns_full_grant` or `external_source_needs_evaluation`) and `credit_preference`, stored in B2 under `LGFC_MEMBER_` key prefixes.
+- `member_owns_full_grant` uploads set `rights_hold = 0` immediately and record full grant evidence conclusions. `external_source_needs_evaluation` uploads enter `media_assets` with `rights_hold = 1` and `member_submissions.consent_status = 'pending'`.
+- Submissions selecting `external_source_needs_evaluation` require an admin to inspect the upload, evaluate the provided `source_url`, and write a formal conclusion record into `rights_evidence`.
+- Running rights evidence reconciliation (`scripts/ops/reconcile-photos-rights-from-media-assets.mjs` #3598) evaluates `rights_evidence` records and updates cleared `media_assets` (`rights_hold = 0`) and `photos` records for live display.
 
 ## Intended final state
 
@@ -62,15 +61,15 @@ Related: [Review a content submission](./review-content-submission.md) for opera
 Confirm:
 
 - `submitter_name` and `submitter_contact` match authenticated session data;
-- `attest_owns_rights` was recorded as `true` at endpoint intake;
-- `ownership_statement` and `permission_statement` provide clear legal basis for LGFC usage;
+- `rights_choice` is recorded (`member_owns_full_grant` or `external_source_needs_evaluation`);
+- Derived `ownership_statement` and `permission_statement` provide clear legal basis for LGFC usage;
 - `credit_preference` is documented (`public_credit`, `anonymous`, etc.).
 
 | Check | Action if failed |
 | --- | --- |
 | `ownership_statement` missing or ambiguous | Set `admin_followup_required = true`; defer review |
 | `permission_statement` denies or restricts usage | Mark `consent_status = denied` / set candidate state to `rejected` |
-| `attest_owns_rights` missing or false | Invalid intake; reject or purge candidate |
+| `rights_choice` missing or invalid | Invalid intake; reject or purge candidate |
 
 ### 2. Media asset inspection (Path C uploads)
 
@@ -102,7 +101,7 @@ Admin review conclusions must be written to `rights_evidence`:
 
 Once `rights_evidence` is recorded:
 
-- Trigger/run the rights evidence reconciliation handler (`scripts/reconcile-photos-rights.ts` or pipeline reconciliation trigger);
+- Trigger/run the canonical rights evidence reconciliation handler (`scripts/ops/reconcile-photos-rights-from-media-assets.mjs` #3598);
 - Reconciliation verifies that `rights_evidence.conclusion` is cleared;
 - Updates `media_assets.rights_hold` from `1` to `0`;
 - Updates corresponding `photos` table row to make the photo accessible on member gallery / public surfaces.
