@@ -282,4 +282,97 @@ describe('content pipeline migration schema (#2288)', () => {
     expect(firstCount.count).toBe(1);
     expect(secondCount.count).toBe(1);
   });
+
+  it('skips inserting a new content_items row when source_url duplicates a different candidate (#3712 phase 1)', () => {
+    const db = new DatabaseSync(':memory:');
+    applyRepoMigrations(db);
+
+    const firstRegistry = minimalRegistry([
+      minimalCandidate({
+        candidate_id: 'lgfc-gehrig-2026-501',
+        source_url: 'https://commons.wikimedia.org/wiki/File:GehrigCU.jpg',
+      }),
+    ]);
+    for (const statement of buildCandidateImportPlan(firstRegistry).statements) {
+      db.exec(statement.sql);
+    }
+
+    // A later search rediscovers the identical photo under a fresh
+    // candidate_id (a new sequence number, same real-world source_url).
+    const secondRegistry = minimalRegistry([
+      minimalCandidate({
+        candidate_id: 'lgfc-gehrig-2026-777',
+        source_url: 'https://commons.wikimedia.org/wiki/File:GehrigCU.jpg',
+      }),
+    ]);
+    for (const statement of buildCandidateImportPlan(secondRegistry).statements) {
+      db.exec(statement.sql);
+    }
+
+    const total = db.prepare('SELECT COUNT(*) AS count FROM content_items').get() as {
+      count: number;
+    };
+    const duplicateRow = db
+      .prepare('SELECT COUNT(*) AS count FROM content_items WHERE candidate_id = ?')
+      .get('lgfc-gehrig-2026-777') as { count: number };
+    const originalRow = db
+      .prepare('SELECT COUNT(*) AS count FROM content_items WHERE candidate_id = ?')
+      .get('lgfc-gehrig-2026-501') as { count: number };
+
+    expect(total.count).toBe(1);
+    expect(originalRow.count).toBe(1);
+    expect(duplicateRow.count).toBe(0);
+  });
+
+  it('does not block re-importing the same candidate_id against its own source_url (#3712 phase 1)', () => {
+    const db = new DatabaseSync(':memory:');
+    applyRepoMigrations(db);
+
+    const registry = minimalRegistry([
+      minimalCandidate({
+        candidate_id: 'lgfc-gehrig-2026-501',
+        source_url: 'https://commons.wikimedia.org/wiki/File:GehrigCU.jpg',
+        title: 'Original title',
+      }),
+    ]);
+    for (const statement of buildCandidateImportPlan(registry).statements) {
+      db.exec(statement.sql);
+    }
+
+    const updatedRegistry = minimalRegistry([
+      minimalCandidate({
+        candidate_id: 'lgfc-gehrig-2026-501',
+        source_url: 'https://commons.wikimedia.org/wiki/File:GehrigCU.jpg',
+        title: 'Updated title',
+      }),
+    ]);
+    for (const statement of buildCandidateImportPlan(updatedRegistry).statements) {
+      db.exec(statement.sql);
+    }
+
+    const row = db
+      .prepare('SELECT title FROM content_items WHERE candidate_id = ?')
+      .get('lgfc-gehrig-2026-501') as { title: string };
+
+    expect(row.title).toBe('Updated title');
+  });
+
+  it('does not dedupe candidates with no source_url', () => {
+    const db = new DatabaseSync(':memory:');
+    applyRepoMigrations(db);
+
+    const registry = minimalRegistry([
+      minimalCandidate({ candidate_id: 'lgfc-gehrig-2026-601' }),
+      minimalCandidate({ candidate_id: 'lgfc-gehrig-2026-602' }),
+    ]);
+    for (const statement of buildCandidateImportPlan(registry).statements) {
+      db.exec(statement.sql);
+    }
+
+    const total = db.prepare('SELECT COUNT(*) AS count FROM content_items').get() as {
+      count: number;
+    };
+
+    expect(total.count).toBe(2);
+  });
 });
