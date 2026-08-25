@@ -5,7 +5,7 @@ import {
   reportReconcileFindings,
 } from '../scripts/ci/ops_reconcile_findings.mjs';
 
-describe('OPS B2/D1 reconcile findings body (#3714 phase 2b)', () => {
+describe('OPS B2/D1 reconcile findings body (#3718 phase 2b)', () => {
   it('includes the media_assets/content_items retired count alongside photos counts', () => {
     const body = buildReconcileFindingsBody({
       workflowName: 'OPS — B2 D1 Daily Sync',
@@ -28,7 +28,7 @@ describe('OPS B2/D1 reconcile findings body (#3714 phase 2b)', () => {
   });
 });
 
-describe('reportReconcileFindings hasFindings gate (#3714 phase 2b)', () => {
+describe('reportReconcileFindings hasFindings gate (#3718 phase 2b)', () => {
   afterEach(() => {
     vi.unstubAllGlobals();
   });
