@@ -16,6 +16,12 @@ export type CommitIngestedMediaInput = {
   etag?: string | null;
   reviewer: string;
   conclusion: string;
+  // #3552 phase 4: the caller computes this (see perceptual-hash.ts) since
+  // hashing needs the actual decoded image, which this function never
+  // touches -- it only ever receives already-fetched bytes' metadata.
+  // Optional so existing callers/tests that don't care about cross-source
+  // dedupe keep working unchanged.
+  perceptualHash?: string | null;
 };
 
 export type CommitIngestedMediaResult = {
@@ -36,9 +42,9 @@ export async function commitIngestedMedia(
   const insertResult = await db
     .prepare(
       `INSERT OR IGNORE INTO media_assets (
-        media_uid, b2_key, b2_file_id, size, etag,
+        media_uid, b2_key, b2_file_id, size, etag, perceptual_hash,
         rights_hold, rights_hold_reason, rights_hold_set_at
-      ) VALUES (?, ?, ?, ?, ?, 0, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'))`,
+      ) VALUES (?, ?, ?, ?, ?, ?, 0, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'))`,
     )
     .bind(
       input.mediaUid,
@@ -46,6 +52,7 @@ export async function commitIngestedMedia(
       input.b2FileId ?? null,
       input.size,
       input.etag ?? null,
+      input.perceptualHash ?? null,
       `rights_evidence_conclusion:${input.conclusion} reviewer:${input.reviewer}`,
     )
     .run();
@@ -64,7 +71,7 @@ export async function commitIngestedMedia(
   let effectiveB2Key = input.b2Key;
   if (alreadyExisted) {
     const existing = await db
-      .prepare(`SELECT b2_key FROM media_assets WHERE media_uid = ? LIMIT 1`)
+      .prepare(`SELECT b2_key, perceptual_hash FROM media_assets WHERE media_uid = ? LIMIT 1`)
       .bind(input.mediaUid)
       .first();
     // media_assets.b2_key is NOT NULL -- an INSERT OR IGNORE dedup hit means
@@ -77,6 +84,20 @@ export async function commitIngestedMedia(
       );
     }
     effectiveB2Key = existing.b2_key as string;
+
+    // #3552 phase 4: INSERT OR IGNORE silently drops this call's
+    // perceptualHash on a dedup hit, since the row already exists. If the
+    // existing row predates phase 4 (perceptual_hash still NULL) and this
+    // caller computed a hash, backfill it opportunistically here instead of
+    // leaving the row unhashed until the separate one-time backfill script
+    // runs -- the hash is for these exact bytes either way (media_uid dedup
+    // hits only occur on byte-identical content).
+    if (input.perceptualHash && !existing.perceptual_hash) {
+      await db
+        .prepare(`UPDATE media_assets SET perceptual_hash = ? WHERE media_uid = ?`)
+        .bind(input.perceptualHash, input.mediaUid)
+        .run();
+    }
   }
 
   await updateCandidateMediaReferences(

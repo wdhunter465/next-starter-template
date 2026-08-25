@@ -114,8 +114,49 @@ ON CONFLICT(candidate_id) DO UPDATE SET ...;
 - This is scoped to `source_url` exact match only — deliberately narrower
   than a fuzzy/perceptual match. Cross-source duplicates (the same photo
   found on two different platforms, therefore two different URLs) are not
-  caught by this guard; that is the separate, larger perceptual-hash
-  dedupe work (see the phased plan this document was built alongside).
+  caught by this guard; that is the separate perceptual-hash dedupe
+  described next.
+
+### Cross-source perceptual-hash dedupe (implemented — #3552 phase 4)
+
+The source-URL guard above cannot catch the same real-world photo found on
+two different platforms: two different `source_url`s, two different
+downloaded byte streams (different compression/crop/resolution), therefore
+two different `media_uid` content hashes too — exact-hash dedup
+(`media-ingest-repository.ts`) has nothing to match on. A perceptual hash
+(a 64-bit "dHash", `functions/_lib/perceptual-hash.ts`) closes that gap: it
+compares the *decoded, downscaled* image rather than raw bytes, so it is
+robust to those differences.
+
+This is a similarity **signal for a human reviewer, never an automatic
+reject or merge** — two genuinely different photos (e.g. two similar
+action shots) can legitimately land within the same Hamming-distance
+threshold as two copies of the same photo.
+`content-pipeline-duplicate-detection.ts`'s `findNearDuplicateMediaAssets`
+compares a newly-ingested photo's hash against every other `media_assets`
+row within `NEAR_DUPLICATE_HAMMING_THRESHOLD` (10 of 64 bits) and, as the
+tiebreaker a reviewer actually needs, also compares the candidate's source
+filename against the matched row's — a matching filename is a much
+stronger duplicate signal than a close hash alone; a differing filename
+means the match is ambiguous and needs a human look, not an auto-decision.
+Every match (regardless of filename verdict) is recorded via
+`flagCandidateAsNearDuplicate`: `content_items.duplicate_of` is set to the
+closest match's `candidate_id`, `review_priority` is bumped to `high`, and
+a `moderation_events` row (`event_type = 'duplicate_flagged'`) records the
+full match list with distances and filename verdicts — ingestion itself is
+never blocked by a hash match.
+
+Both live ingestion paths (the admin HTTP endpoint and the CLI batch
+script) compute the hash from already-fetched bytes and run this check;
+`scripts/content-pipeline/backfill-media-perceptual-hashes.mjs` is a
+one-time, safely-re-runnable backfill for `media_assets` rows ingested
+before this phase existed (downloads each object from B2's public URL,
+hashes it, and runs the same check).
+
+**`media_assets.perceptual_hash`** (migration 0060): `TEXT`, nullable —
+System (derived). Best-effort: a hash-computation failure (corrupt/unusual
+image) never blocks an otherwise-valid, rights-cleared ingestion; the row
+is simply left with a `NULL` hash until backfilled or re-ingested.
 
 ### B2 key convention (implemented — #3716 phase 2a)
 
