@@ -102,6 +102,37 @@ if ! grep -q "repaired_matchups=" "$RECONCILE_SCRIPT"; then
 fi
 echo "  ✓ PASSED"
 
+echo "Test 10: Phase 2b (media_assets/content_items) reconciliation (#3714)..."
+if ! grep -q "phase 2b reconciliation" "$RECONCILE_SCRIPT"; then
+  echo "  ✗ FAILED: Script should reconcile media_assets/content_items (phase 2b)"
+  exit 1
+fi
+if ! grep -q "SELECT b2_key AS k FROM media_assets" "$RECONCILE_SCRIPT"; then
+  echo "  ✗ FAILED: Script should query media_assets.b2_key"
+  exit 1
+fi
+if grep -qE 'DELETE[[:space:]]+FROM[[:space:]]+(content_items|media_assets)' "$RECONCILE_SCRIPT"; then
+  echo "  ✗ FAILED: Script must not hard-delete content_items or media_assets rows"
+  exit 1
+fi
+if ! grep -q "UPDATE content_items SET deleted_at" "$RECONCILE_SCRIPT"; then
+  echo "  ✗ FAILED: Script should soft-delete content_items via deleted_at, not a new status flag"
+  exit 1
+fi
+if ! grep -q "media_assets/content_items not present in this database" "$RECONCILE_SCRIPT"; then
+  echo "  ✗ FAILED: Script should skip gracefully when the newer pipeline tables are absent"
+  exit 1
+fi
+if ! grep -q "jq -r '.objects\[\].external_id' \"\$OBJECTS_FILE\"" "$RECONCILE_SCRIPT"; then
+  echo "  ✗ FAILED: Script should reuse the already-fetched B2 listing (\$OBJECTS_FILE), not make a second B2 API call"
+  exit 1
+fi
+if ! grep -q "media_assets_retired_count=" "$RECONCILE_SCRIPT"; then
+  echo "  ✗ FAILED: Script should emit media_assets_retired_count to GITHUB_OUTPUT"
+  exit 1
+fi
+echo "  ✓ PASSED"
+
 echo ""
 echo "============================================"
 echo "All tests PASSED ✓"

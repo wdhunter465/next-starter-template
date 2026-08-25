@@ -15,6 +15,7 @@ export function buildReconcileFindingsBody({
   commitSha = '',
   retiredCount = '0',
   repairedMatchups = '0',
+  mediaRetiredCount = '0',
   staleKeySample = '',
   details = '',
 } = {}) {
@@ -37,6 +38,7 @@ export function buildReconcileFindingsBody({
     `- Commit: ${commitSha || 'unknown'}`,
     `- Soft-retired photo rows: ${retiredCount}`,
     `- Active matchups repaired (votes cleared on pair change): ${repairedMatchups}`,
+    `- Soft-retired content_items rows (media_assets missing from B2): ${mediaRetiredCount}`,
   ];
 
   if (sample.length) {
@@ -70,11 +72,15 @@ export async function reportReconcileFindings(options = {}) {
   const repairedMatchups = String(
     options.repairedMatchups ?? process.env.OPS_FINDINGS_REPAIRED_MATCHUPS ?? '0',
   );
+  const mediaRetiredCount = String(
+    options.mediaRetiredCount ?? process.env.OPS_FINDINGS_MEDIA_RETIRED_COUNT ?? '0',
+  );
   const hasFindings =
     options.hasFindings === true ||
     process.env.OPS_FINDINGS_HAS_FINDINGS === 'true' ||
     Number(retiredCount) > 0 ||
-    Number(repairedMatchups) > 0;
+    Number(repairedMatchups) > 0 ||
+    Number(mediaRetiredCount) > 0;
 
   if (!hasFindings) {
     return { action: 'skipped', issue: null, reason: 'no_actionable_findings' };
@@ -87,6 +93,7 @@ export async function reportReconcileFindings(options = {}) {
     commitSha: options.commitSha || process.env.GITHUB_SHA || '',
     retiredCount,
     repairedMatchups,
+    mediaRetiredCount,
     staleKeySample: options.staleKeySample || process.env.OPS_FINDINGS_STALE_KEY_SAMPLE || '',
     details: options.details || process.env.OPS_FINDINGS_DETAILS || '',
   });
