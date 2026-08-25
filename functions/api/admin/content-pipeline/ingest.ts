@@ -141,7 +141,7 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     const checksum = await sha256Hex(bytes);
     const mediaUid = `sha256_${checksum.slice(0, 40)}`;
     const extension = INGEST_CONTENT_TYPE_EXTENSIONS[normalizedContentType] ?? 'bin';
-    // #3714 phase 2: the key embeds candidate.id (content_items.id, a real
+    // #3716 phase 2a: the key embeds candidate.id (content_items.id, a real
     // D1 autoincrement -- guaranteed unique regardless of what bytes this
     // candidate resolves to), not the content checksum alone. Two different
     // candidates that happen to resolve to identical bytes now compute

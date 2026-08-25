@@ -17,7 +17,7 @@ export function buildNewIntakeKey(suffix: string): string {
   return trimmed.startsWith(NEW_INTAKE_KEY_PREFIX) ? trimmed : `${NEW_INTAKE_KEY_PREFIX}${trimmed}`;
 }
 
-// #3714 phase 2: strips a source filename down to characters safe in a B2
+// #3716 phase 2a: strips a source filename down to characters safe in a B2
 // object key, so buildReadableIntakeKey below produces a human-legible key
 // straight from a bucket listing (e.g. `LGFC_42_GehrigCU.jpg`) instead of a
 // bare content hash. Wikimedia Commons titles are prefixed "File:" -- that's
@@ -36,7 +36,7 @@ export function sanitizeSourceFilenameForKey(rawFilename: string): string {
   return name || "file";
 }
 
-// #3714 phase 2: the B2 key convention agreed with Product Authority --
+// #3716 phase 2a: the B2 key convention agreed with Product Authority --
 // `LGFC_<content_items.id>_<sanitized-source-filename>.<ext>`. Uniqueness is
 // guaranteed by content_items.id (a real D1 autoincrement), not by the
 // discovery-run's ephemeral candidate_id sequence number (confirmed unsafe:

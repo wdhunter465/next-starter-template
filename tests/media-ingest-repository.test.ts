@@ -85,7 +85,7 @@ function freshDb() {
   return { sqlite, db: wrapSqliteAsD1(sqlite) };
 }
 
-describe('commitIngestedMedia dedup-linking correctness (#3714 phase 2)', () => {
+describe('commitIngestedMedia dedup-linking correctness (#3716 phase 2a)', () => {
   it('links a new mediaUid using its own b2Key on first ingest', async () => {
     const { sqlite, db } = freshDb();
     await upsertCandidate(db, minimalCandidate());
@@ -167,5 +167,51 @@ describe('commitIngestedMedia dedup-linking correctness (#3714 phase 2)', () => 
       .prepare('SELECT b2_key FROM media_assets WHERE media_uid = ?')
       .get('sha256_identical_bytes') as { b2_key: string };
     expect(mediaAssetRow.b2_key).toBe('LGFC_1_GehrigCU.jpg');
+  });
+
+  it('fails closed instead of trusting the caller-supplied b2Key when the existing row cannot be read back on a dedup hit', async () => {
+    const { db } = freshDb();
+    await upsertCandidate(db, minimalCandidate({ candidate_id: 'lgfc-gehrig-2026-501' }));
+    await upsertCandidate(
+      db,
+      minimalCandidate({ candidate_id: 'lgfc-gehrig-2026-502', title: 'File:GehrigCU (duplicate upload).jpg' }),
+    );
+
+    await commitIngestedMedia(db, {
+      candidateId: 1,
+      candidateExternalId: 'lgfc-gehrig-2026-501',
+      mediaUid: 'sha256_identical_bytes',
+      b2Key: 'LGFC_1_GehrigCU.jpg',
+      size: 100,
+      etag: null,
+      reviewer: 'Bill Hunter',
+      conclusion: 'public_domain_confirmed',
+    });
+
+    // Simulate the SELECT-back-on-dedup-hit failing to find the row (e.g. a
+    // read-replica lag or driver bug) by stubbing just that one query to
+    // return null while every other query still hits the real database.
+    const flakyDb = {
+      prepare(sql: string) {
+        const real = db.prepare(sql);
+        if (sql.includes('SELECT b2_key FROM media_assets')) {
+          return { bind: () => ({ async first() { return null; } }) };
+        }
+        return real;
+      },
+    };
+
+    await expect(
+      commitIngestedMedia(flakyDb, {
+        candidateId: 2,
+        candidateExternalId: 'lgfc-gehrig-2026-502',
+        mediaUid: 'sha256_identical_bytes',
+        b2Key: 'LGFC_2_GehrigCU_duplicate_upload.jpg',
+        size: 100,
+        etag: null,
+        reviewer: 'Bill Hunter',
+        conclusion: 'public_domain_confirmed',
+      }),
+    ).rejects.toThrow(/b2_key could not be read back/);
   });
 });

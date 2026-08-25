@@ -6,7 +6,7 @@ import {
   sanitizeSourceFilenameForKey,
 } from '../functions/_lib/content-pipeline-media-key';
 
-describe('sanitizeSourceFilenameForKey (#3714 phase 2)', () => {
+describe('sanitizeSourceFilenameForKey (#3716 phase 2a)', () => {
   it('strips a leading Wikimedia "File:" prefix', () => {
     expect(sanitizeSourceFilenameForKey('File:GehrigCU.jpg')).toBe('GehrigCU');
   });
@@ -41,7 +41,7 @@ describe('sanitizeSourceFilenameForKey (#3714 phase 2)', () => {
   });
 });
 
-describe('buildReadableIntakeKey (#3714 phase 2)', () => {
+describe('buildReadableIntakeKey (#3716 phase 2a)', () => {
   it('builds LGFC_<content_items.id>_<sanitized-filename>.<ext>', () => {
     expect(buildReadableIntakeKey(42, 'File:GehrigCU.jpg', 'jpg')).toBe(
       `${NEW_INTAKE_KEY_PREFIX}42_GehrigCU.jpg`,

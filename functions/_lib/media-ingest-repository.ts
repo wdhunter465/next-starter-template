@@ -52,7 +52,7 @@ export async function commitIngestedMedia(
 
   const alreadyExisted = Number((insertResult as { meta?: { changes?: number } })?.meta?.changes ?? 0) === 0;
 
-  // #3714 phase 2: the B2 key is no longer a pure function of content bytes
+  // #3716 phase 2a: the B2 key is no longer a pure function of content bytes
   // (it now embeds content_items.id, see content-pipeline-media-key.ts), so
   // two different candidates resolving to identical bytes compute two
   // DIFFERENT keys. On a dedup hit (alreadyExisted), input.b2Key is this
@@ -67,9 +67,16 @@ export async function commitIngestedMedia(
       .prepare(`SELECT b2_key FROM media_assets WHERE media_uid = ? LIMIT 1`)
       .bind(input.mediaUid)
       .first();
-    if (existing?.b2_key) {
-      effectiveB2Key = existing.b2_key as string;
+    // media_assets.b2_key is NOT NULL -- an INSERT OR IGNORE dedup hit means
+    // a row for this mediaUid was already committed, so failing to read its
+    // b2_key back is a real invariant violation, not a case to paper over by
+    // silently trusting the caller's never-written key.
+    if (!existing?.b2_key) {
+      throw new Error(
+        `commitIngestedMedia: media_assets row for media_uid ${input.mediaUid} reported alreadyExisted but its b2_key could not be read back`,
+      );
     }
+    effectiveB2Key = existing.b2_key as string;
   }
 
   await updateCandidateMediaReferences(

@@ -111,7 +111,7 @@ ON CONFLICT(candidate_id) DO UPDATE SET ...;
   caught by this guard; that is the separate, larger perceptual-hash
   dedupe work (see the phased plan this document was built alongside).
 
-### B2 key convention (implemented — #3714 phase 2)
+### B2 key convention (implemented — #3716 phase 2a)
 
 ```
 LGFC_<content_items.id>_<sanitized-source-filename>.<ext>
