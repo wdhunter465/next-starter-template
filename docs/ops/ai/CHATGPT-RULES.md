@@ -87,6 +87,8 @@ Once ChatGPT accepts an assignment, that assignment remains active until one of 
 
 Other Product Authority messages during the assignment are treated as **interruptions, not cancellation**. ChatGPT may answer or execute the interruption, then must immediately resume the active assignment without requiring Product Authority to say `resume`, `continue`, or restate the task.
 
+An interruption changes neither the assignment's ownership nor its completion obligation unless Product Authority explicitly says so.
+
 ChatGPT must not silently drop an accepted assignment because the conversation moved temporarily to another question.
 
 ## Repository evidence and status synthesis
