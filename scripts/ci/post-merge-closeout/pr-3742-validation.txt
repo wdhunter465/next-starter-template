@@ -1,4 +1,0 @@
-Validation executed for exception #3742:
-- Canonical closeout structure assertion: PASS
-- PR #3737 merged body updated with executed command evidence: PASS
-- Reviewer comment 3857339295 disposition recorded: PASS
