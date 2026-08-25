@@ -150,6 +150,28 @@ async function buildInventory(db) {
     console.error(`Wikimedia cross-check query failed (non-fatal): ${err.message}`);
   }
 
+  // Cross-check only: precise, by-exact-candidate_id check for the 10
+  // approved Wikimedia batch (#3580, candidates 511-520) -- confirms
+  // whether record-batch-rights-approval.mjs's evidence-recording step
+  // actually persisted a conclusion for each, independent of the looser
+  // text-match wikimedia_cross_check above (which came back empty and
+  // needs an unambiguous, non-heuristic answer).
+  let wikimediaApprovedBatchDetail = [];
+  try {
+    wikimediaApprovedBatchDetail = await listRows(
+      db,
+      `SELECT ci.candidate_id AS candidate_id, ci.id AS content_item_id,
+              ci.curator_decision, ci.rights_status AS content_item_rights_status,
+              re.id AS rights_evidence_id, re.conclusion, re.evidence_type
+       FROM content_items ci
+       LEFT JOIN rights_evidence re ON re.content_item_id = ci.id AND re.conclusion IS NOT NULL
+       WHERE ci.candidate_id BETWEEN 'lgfc-gehrig-2026-511' AND 'lgfc-gehrig-2026-520'
+       ORDER BY ci.candidate_id, re.id`,
+    );
+  } catch (err) {
+    console.error(`Wikimedia approved-batch detail query failed (non-fatal): ${err.message}`);
+  }
+
   // Cross-check only: confirms whether the LOC-sourced public-domain photo
   // group already has real per-item rights_evidence recorded from when it
   // was originally discovered, rather than assuming it needs a fresh
@@ -222,6 +244,10 @@ async function buildInventory(db) {
       note: 'content_items rows with real per-item rights_evidence referencing wikimedia -- NOT photos/media_assets rows, out of scope for this table, listed only to confirm no overlap.',
       content_item_ids: wikimediaContentItemIds,
     },
+    wikimedia_approved_batch_detail: {
+      note: "Exact-candidate_id check for the 10 approved Wikimedia batch (#3580, lgfc-gehrig-2026-511..520): one row per content_items/rights_evidence match. A candidate_id with no rights_evidence_id means no conclusion was ever recorded for it.",
+      rows: wikimediaApprovedBatchDetail,
+    },
     loc_public_domain_cross_check: {
       note: "content_items rows with real per-item rights_evidence recording evidence_type='loc_statement' and conclusion='public_domain_confirmed' -- confirms whether the LOC public-domain photo group already has its determination recorded, so it is not re-flagged as needing verification.",
       content_item_ids: locPublicDomainContentItemIds,
@@ -248,6 +274,8 @@ function printReport(label, inventory) {
     );
   }
   console.log(`wikimedia cross-check (content_items, informational only): ${inventory.wikimedia_cross_check.content_item_ids.length} row(s)`);
+  const withEvidence = inventory.wikimedia_approved_batch_detail.rows.filter((r) => r.rights_evidence_id != null).length;
+  console.log(`wikimedia approved batch (511-520): ${inventory.wikimedia_approved_batch_detail.rows.length} content_items row(s) found, ${withEvidence} with a recorded conclusion`);
   console.log(`LOC public-domain cross-check (content_items, informational only): ${inventory.loc_public_domain_cross_check.content_item_ids.length} row(s) already have recorded evidence`);
 }
 
