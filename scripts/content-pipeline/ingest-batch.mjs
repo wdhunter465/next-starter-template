@@ -54,7 +54,7 @@ const {
   validateIngestSize,
   validateIngestSourceUrl,
 } = await import('../../functions/_lib/b2-ingest-validation.ts');
-const { buildNewIntakeKey } = await import('../../functions/_lib/content-pipeline-media-key.ts');
+const { buildReadableIntakeKey } = await import('../../functions/_lib/content-pipeline-media-key.ts');
 const { getCandidateByCandidateId } = await import('../../functions/_lib/content-pipeline-candidate-repository.ts');
 const { commitIngestedMedia } = await import('../../functions/_lib/media-ingest-repository.ts');
 const { getCurrentConclusionForCandidate } = await import('../../functions/_lib/rights-evidence-repository.ts');
@@ -195,7 +195,7 @@ async function ingestOne(db, candidate, approvedDomains, dryRun) {
   const checksum = await sha256Hex(bytes);
   const mediaUid = `sha256_${checksum.slice(0, 40)}`;
   const extension = INGEST_CONTENT_TYPE_EXTENSIONS[normalizedContentType] ?? 'bin';
-  const b2Key = buildNewIntakeKey(`${mediaUid}.${extension}`);
+  const b2Key = buildReadableIntakeKey(stored.id, stored.title, extension);
 
   console.log(
     `${candidateId}: resolved ${sourceFetchUrl} -> ${normalizedContentType}, ${bytes.byteLength} bytes, media_uid=${mediaUid}, b2_key=${b2Key}`,

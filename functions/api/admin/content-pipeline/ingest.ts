@@ -18,7 +18,7 @@ import {
   validateIngestSize,
   validateIngestSourceUrl,
 } from '../../../_lib/b2-ingest-validation';
-import { buildNewIntakeKey } from '../../../_lib/content-pipeline-media-key';
+import { buildReadableIntakeKey } from '../../../_lib/content-pipeline-media-key';
 import {
   getCandidateByCandidateId,
   requireContentPipelineCandidateTables,
@@ -141,13 +141,17 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     const checksum = await sha256Hex(bytes);
     const mediaUid = `sha256_${checksum.slice(0, 40)}`;
     const extension = INGEST_CONTENT_TYPE_EXTENSIONS[normalizedContentType] ?? 'bin';
-    // Keyed by content checksum only (not candidate_id): two candidates that
-    // happen to resolve to identical bytes must land on the same B2 object,
-    // matching media_assets.media_uid's global uniqueness. Keying by
-    // candidate_id as well would let a second candidate's ingest skip the B2
-    // write (media_uid already exists) while still linking to a key that
-    // was never actually written for it.
-    const b2Key = buildNewIntakeKey(`${mediaUid}.${extension}`);
+    // #3714 phase 2: the key embeds candidate.id (content_items.id, a real
+    // D1 autoincrement -- guaranteed unique regardless of what bytes this
+    // candidate resolves to), not the content checksum alone. Two different
+    // candidates that happen to resolve to identical bytes now compute
+    // DIFFERENT keys here; that's fine because commitIngestedMedia (called
+    // below) detects the media_uid dedup hit and links against the
+    // EXISTING row's real, already-written b2_key rather than trusting this
+    // one -- so a second candidate's skipped B2 write never gets linked to
+    // a key that was never actually written for it. See
+    // media-ingest-repository.ts and content-pipeline-media-key.ts.
+    const b2Key = buildReadableIntakeKey(candidate.id, candidate.title, extension);
 
     let etag: string | null = null;
     const alreadyInB2 = await d1.db

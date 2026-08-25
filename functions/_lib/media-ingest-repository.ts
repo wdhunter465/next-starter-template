@@ -52,12 +52,32 @@ export async function commitIngestedMedia(
 
   const alreadyExisted = Number((insertResult as { meta?: { changes?: number } })?.meta?.changes ?? 0) === 0;
 
+  // #3714 phase 2: the B2 key is no longer a pure function of content bytes
+  // (it now embeds content_items.id, see content-pipeline-media-key.ts), so
+  // two different candidates resolving to identical bytes compute two
+  // DIFFERENT keys. On a dedup hit (alreadyExisted), input.b2Key is this
+  // caller's own freshly-computed key -- not necessarily what was actually
+  // written to B2 by whichever candidate ingested these bytes first. Link
+  // against the existing row's real, already-correct b2_key instead, or a
+  // content_item could end up pointing at a B2 object that was never
+  // written.
+  let effectiveB2Key = input.b2Key;
+  if (alreadyExisted) {
+    const existing = await db
+      .prepare(`SELECT b2_key FROM media_assets WHERE media_uid = ? LIMIT 1`)
+      .bind(input.mediaUid)
+      .first();
+    if (existing?.b2_key) {
+      effectiveB2Key = existing.b2_key as string;
+    }
+  }
+
   await updateCandidateMediaReferences(
     db,
     input.candidateExternalId,
-    { media_asset_id: `b2://${input.b2Key}` },
+    { media_asset_id: `b2://${effectiveB2Key}` },
     { actor: input.reviewer, notes: `#3552 ingestion: linked media_uid ${input.mediaUid}` },
   );
 
-  return { mediaUid: input.mediaUid, b2Key: input.b2Key, alreadyExisted };
+  return { mediaUid: input.mediaUid, b2Key: effectiveB2Key, alreadyExisted };
 }
