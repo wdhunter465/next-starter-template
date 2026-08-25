@@ -6,10 +6,21 @@ The `b2_d1_incremental_sync.sh` script provides a **daily, idempotent** synchron
 
 ## Scope: which tables this covers
 
-**Today this sync (and `b2_d1_deletion_reconcile.sh`) only knows about the
-legacy `photos` table.** It has no awareness of the newer #3551/#3552 content
-pipeline tables (`content_items`, `rights_evidence`, `media_assets`) even
-though those tables also track photos backed by B2 objects.
+**`b2_d1_incremental_sync.sh` (the additive insert side) only knows about
+the legacy `photos` table.** It has no awareness of the newer #3551/#3552
+content pipeline tables (`content_items`, `rights_evidence`, `media_assets`)
+even though those tables also track photos backed by B2 objects — new B2
+objects belonging to the newer pipeline are ingested by the content-pipeline
+ingest paths (`scripts/content-pipeline/ingest-batch.mjs`, the admin ingest
+endpoint), not by this script.
+
+**`b2_d1_deletion_reconcile.sh` (the deletion-reconciliation side) covers
+both models as of #3718 phase 2b:** it soft-retires `photos` rows
+(`is_matchup_eligible = -1`) *and* soft-deletes `content_items` rows whose
+linked `media_assets.b2_key` is missing from B2 (via `deleted_at` /
+`retention_reason`), reusing the same B2 listing for both. It skips the
+`content_items`/`media_assets` reconciliation gracefully when those tables
+are absent from the target database (e.g. `lgfc-litedev`).
 
 **Maintenance requirement: if a table that stores photo-library rows backed
 by B2 objects is ever added, removed, or renamed — in either the legacy
