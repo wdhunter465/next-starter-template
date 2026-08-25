@@ -1,6 +1,6 @@
 {
-  "triggered_at": "2026-08-25T13:15:00Z",
-  "description": "Pending closeout reruns: residual batch failures and PR #3701 (#3658) closeout remediation for #3703",
+  "triggered_at": "2026-08-25T21:15:00Z",
+  "description": "Pending closeout reruns: residual batch failures plus PR #3737 / exception #3742 remediation",
   "targets": [
     {
       "pr": 1809,
@@ -65,6 +65,13 @@
       "merge_sha": "e920e3b08ec20b423a4d5bf28969ebc6d5210ad5",
       "source_issue": 3658,
       "remediation_exception": 3703
+    },
+    {
+      "pr": 3737,
+      "body_file": "scripts/ci/post-merge-closeout/pr-3737-body.md",
+      "merge_sha": "9337fd75ccb61eb1eb19bf00fac21907e41a52fc",
+      "source_issue": 3699,
+      "remediation_exception": 3742
     }
   ]
 }
