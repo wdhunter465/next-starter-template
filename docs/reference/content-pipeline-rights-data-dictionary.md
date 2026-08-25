@@ -201,10 +201,11 @@ row, via the shared `deriveCommonsProvenance()` helper in
 the source's raw license string directly (Commons' `UsageTerms` extmetadata
 field when present, otherwise the license template name itself) rather than
 a synthesized sentence. The 10 rows written before this fix by the
-pre-#3552-phase-3 writer were backfilled the same way via
+pre-#3552-phase-3 writer need the same correction applied; run
 `scripts/content-pipeline/backfill-rights-evidence-provenance.mjs`
-(idempotent — guarded by `WHERE rights_holder IS NULL`, so it never
-overwrites a row a human has since edited).
+against them (idempotent — guarded by `WHERE rights_holder IS NULL`, so
+it never overwrites a row a human has since edited, and is safe to
+re-run). See #3728 for that Production execution's tracking status.
 
 ## `media_assets` (migration 0010)
 
