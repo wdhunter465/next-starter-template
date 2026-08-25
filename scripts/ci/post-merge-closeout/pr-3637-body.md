@@ -46,7 +46,7 @@ feature-lane child issue opened yet, CI-002 apply-mode decision).
 ## Verification
 
 Local verification:
-- Command: `DOCS_HEADER_FILE_LIST= bash scripts/ci/docs_check_headers.sh`
+- Command: `printf '%s\n' docs/ops/reports/content-collection-phase1-post-closeout-status-review.md docs/ops/implementation-plans/content-collection/package-index.md docs/ops/implementation-plans/content-collection/phase1-launch-prep.md > /tmp/pr-3637-docs.txt && DOCS_HEADER_FILE_LIST=/tmp/pr-3637-docs.txt bash scripts/ci/docs_check_headers.sh`
   Result: PASS
 - Command: `node scripts/ci/diataxis_folder_audit.mjs`
   Result: PASS
@@ -72,8 +72,8 @@ Follow-up issue if required: not-applicable
 
 ## REVIEWER RESPONSE ACCOUNTING
 
-- review-comment:3835745090 — accepted — Evidence cell used a bare domain without URL scheme; fixed to explicit https:// links consistent with other docs — thread state: resolved outdated
-- review-comment:3835745099 — accepted — hard-coded "2,249 commits ahead" would drift; replaced with stable divergence phrasing in commit c9569173 — thread state: resolved outdated
+- review-comment:3835745090 — accepted — Evidence cell used a bare domain without URL scheme; fixed to explicit https:// links consistent with other docs — thread state: outdated
+- review-comment:3835745099 — accepted — hard-coded "2,249 commits ahead" would drift; replaced with stable divergence phrasing in commit c9569173 — thread state: outdated
 
 ## Post-merge remediation record
 
