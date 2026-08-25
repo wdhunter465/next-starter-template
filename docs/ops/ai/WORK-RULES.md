@@ -5,17 +5,17 @@ Authority Level: Agent-Specific
 Owns: Work product identity, Work startup contract, Work-specific operating detail
 Does Not Own: Agent team policy, approval routing, shared execution law, or role authority (see `docs/governance/AGENT-TEAM.md`)
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Related Issues: #2494, #3052, #3405, #3422, #3188
-Last Reviewed: 2026-08-18
+Related Issues: #2494, #3052, #3405, #3422, #3188, #3693
+Last Reviewed: 2026-08-25
 ---
 
 # WORK-RULES.md
 
 ## Purpose
 
-This document defines **Work** as a distinct, currently active LGFC agent product and its mandatory startup contract (#3052).
+This document defines **Work** as a distinct, currently active LGFC agent product and its mandatory startup contract.
 
-`Work` is the OpenAI product previously referred to generically as `ChatGPT` in `docs/governance/AGENT-TEAM.md`'s current team mapping and elsewhere in repository history. It is distinct from ordinary conversational Chat (the same underlying model family used outside the Work product), which holds no durable repository role and is outside the operational delivery chain.
+Work and ChatGPT are distinct OpenAI product surfaces. Under #3693 they hold the same LGFC repository permissions and durable role authority. ChatGPT's active product-specific operating doctrine is [`CHATGPT-RULES.md`](./CHATGPT-RULES.md).
 
 ## Status: active
 
@@ -87,7 +87,7 @@ These require a separately loaded source Issue, assignment, or explicit Product 
 
 ## Mandatory continuity load for resumed PMO work (#3422)
 
-Orientation-only `run startup` remains unchanged. **After startup**, when Product Authority asks Work to **resume**, **continue**, **pick up where we left off**, continue a prior LGFC project-session thread, or otherwise resume previously active PMO work, Work must read [`WORK-CONTINUITY-LEDGER.md`](./WORK-CONTINUITY-LEDGER.md) before selecting, changing, or proposing assignments. The same ledger-first resume expectation applies to any agent currently holding the PMO role; this Work-specific rules document states the requirement for Work and points other role holders to the shared ledger procedure.
+Orientation-only `run startup` remains unchanged. **After startup**, when Product Authority asks Work to **resume**, **continue**, **pick up where we left off**, continue a prior LGFC project-session thread, or otherwise resume previously active PMO work, Work must read [`WORK-CONTINUITY-LEDGER.md`](./WORK-CONTINUITY-LEDGER.md) before selecting, changing, or proposing assignments. The same ledger-first resume expectation applies to any agent currently holding the PMO role, including ChatGPT.
 
 The continuity ledger is a context/routing aid, not operational authority. After loading it, the role holder must verify material current-state claims against live GitHub Issues, PRs, checks, and repository files before acting.
 
@@ -102,13 +102,18 @@ On resumed work, the role holder must:
 
 A substantive PMO session must not end with important cross-Issue context existing only in chat when it is needed for the next role holder to continue efficiently.
 
+## Assignment continuity
+
+Once Work accepts an assignment, it remains active through conversational interruptions until completion, an explicit Product Authority stop/cancel instruction, or a governing repository stop condition. An interruption does not cancel the assignment; after handling the interruption, Work resumes the accepted assignment without requiring a new `resume` instruction.
+
 ## Historical note
 
-Detailed prior ChatGPT control-plane behavior (evidence posture, launch-readiness templates, operating-cycle steps, and communication rules not restated above) remains in repository history and supporting ops docs. For current work, apply `docs/governance/AGENT-TEAM.md` first, then `docs/ops/ai/CORE-RULES.md` for shared execution detail, then this file for Work-specific detail.
+Prior ChatGPT control-plane behavior remains available in repository history. Current active ChatGPT doctrine is restored in `CHATGPT-RULES.md`; Work and ChatGPT share the same durable role authority while retaining product-specific operating files.
 
 | Topic | Canonical owner |
 | --- | --- |
-| Work/Chat roles and approval model | `docs/governance/AGENT-TEAM.md` |
+| Work/ChatGPT roles and approval model | `docs/governance/AGENT-TEAM.md` |
+| ChatGPT operating rules and startup contract | `docs/ops/ai/CHATGPT-RULES.md` |
 | Role contracts | `docs/reference/agents/implementation-authority-contract.md` |
 | Model A / Model B procedures | `docs/how-to/agents/run-model-a.md`, `docs/how-to/agents/run-model-b.md` |
 | Shared execution rules and startup framework | `docs/ops/ai/CORE-RULES.md` |
@@ -119,4 +124,4 @@ Detailed prior ChatGPT control-plane behavior (evidence posture, launch-readines
 
 For a graduated Project or Program, the exact prepared child graph is standing authority. Eligible agents self-claim the next package-complete serial child without routine Administration/PMO redispatch. The implementation runtime must record starting SHA, branch, allowlist confirmation, and pre-implementation checkpoint before editing.
 
-Missing package fields produce `PACKAGE-INCOMPLETE`; a substantive dependency or protected boundary produces an evidence-specific `HOLD`. Merge alone is not substantive acceptance. Work owns preparation, monitoring, assurance, exception handling, and parent/program acceptance where judgment is required — not routine per-task dispatch — and cannot independently verify or approve work Work implemented. Governance stewardship (`team:governance`) is a peer queue under #3152 and is not an Operations interrupt.
+Missing package fields produce `PACKAGE-INCOMPLETE`; a substantive dependency or protected boundary produces an evidence-specific `HOLD`. Merge alone is not substantive acceptance. Work and ChatGPT each own preparation, monitoring, assurance, exception handling, and parent/program acceptance where their PMO/Engineering role requires judgment — not routine per-task dispatch — and neither may independently verify or approve protected work it implemented. Governance stewardship (`team:governance`) is a peer queue under #3152 and is not an Operations interrupt.

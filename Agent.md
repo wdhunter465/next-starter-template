@@ -5,8 +5,8 @@ Authority Level: Navigation
 Owns: Read order, authority routing, lane/profile identification, execution entry point
 Does Not Own: Role policy, execution rules, design authority, communication policy, delivery policy, or governance decisions
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2640, #2641, #2686, #2690, #3052, #3138, #3142
-Last Reviewed: 2026-08-08
+Related Issues: #2640, #2641, #2686, #2690, #3052, #3138, #3142, #3693
+Last Reviewed: 2026-08-25
 ---
 
 # Agent.md
@@ -50,7 +50,8 @@ Before repository work—including exploration, design, Sandbox, implementation,
 4. `docs/ops/ai/SHARED-AGENT-RULES.md`
 5. `docs/ops/ai/CORE-RULES.md`
 6. Applicable tool-specific pointer:
-   - `docs/ops/ai/WORK-RULES.md` (current name for the product formerly referenced as `docs/ops/ai/CHATGPT-RULES.md`, retained as a superseded pointer)
+   - `docs/ops/ai/CHATGPT-RULES.md`
+   - `docs/ops/ai/WORK-RULES.md`
    - `docs/ops/ai/CURSOR-RULES.md`
    - `docs/ops/ai/CODEX-RULES.md`
    - `docs/ops/ai/CLAUDE-CODE-RULES.md`
@@ -162,13 +163,14 @@ Administration & Communications spans all steps.
 
 ## Startup orientation
 
-When Product Authority says `run startup`, the literal command resolves according to the active product — Product Authority does not need to say `run Work startup` or `run Codex startup`. Each recognized product identifies itself and performs its own product-specific orientation-only startup, then stops:
+When Product Authority says `run startup`, the literal command resolves according to the active product. Each recognized product identifies itself and performs its own product-specific orientation-only startup, then stops:
 
+- ChatGPT: `docs/ops/ai/CHATGPT-RULES.md`
 - Work: `docs/ops/ai/WORK-RULES.md`
-- Codex: `docs/ops/ai/CODEX-RULES.md` (orientation only; grants no implementation authority; after startup, a separately loaded source Issue may provide bounded Codex authority when Product Authority explicitly authorizes it — #3142)
+- Codex: `docs/ops/ai/CODEX-RULES.md` (orientation only; implementation authority remains separately governed)
 - Claude Code: `docs/ops/ai/CLAUDE-CODE-RULES.md`
 - Cursor: existing bootstrap, unchanged (`AGENTS.md` for Cloud, `.cursor/rules/*.mdc` for Local)
-- Ordinary Chat or Claude (conversational): no product-specific startup contract; state plainly that the product is outside the operational delivery chain
+- Claude (conversational): no product-specific startup contract; outside the operational delivery chain unless bounded collaboration is authorized
 
 Shared skeleton, session-boundary rules, and the full list of what startup must never authorize: `docs/ops/ai/CORE-RULES.md`, "PRODUCT STARTUP FRAMEWORK." Current product/role inventory: `docs/governance/AGENT-TEAM.md`.
 
@@ -238,9 +240,8 @@ Routine bounded correction, deterministic administrative reconciliation, and non
 
 Legacy person-specific or serialized instructions must not be cited when they conflict with these canonical sources.
 
-
 ## Continuous serial implementation (#3055 / #3145)
 
 For a graduated project, the exact prepared child graph is standing authority. Eligible agents self-claim the next package-complete serial child without a repeat Administration/PMO dispatch. Standalone `team:governance` stewardship Issues are claimed separately from the project child graph. The implementation runtime must record starting SHA, branch, allowlist confirmation, and pre-implementation checkpoint before editing.
 
-Missing package fields produce `PACKAGE-INCOMPLETE`; a substantive dependency or protected boundary produces an evidence-specific `HOLD`. Merge alone is not substantive acceptance. WORK owns preparation, monitoring, assurance, and exception handling where judgment is required — not routine per-task successor release — and cannot independently verify or approve work WORK implemented.
+Missing package fields produce `PACKAGE-INCOMPLETE`; a substantive dependency or protected boundary produces an evidence-specific `HOLD`. Merge alone is not substantive acceptance. ChatGPT/Work owns preparation, monitoring, assurance, and exception handling where judgment is required — not routine per-task successor release — and neither may independently verify or approve protected work it implemented.
