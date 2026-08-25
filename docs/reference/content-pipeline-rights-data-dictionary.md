@@ -117,13 +117,17 @@ ON CONFLICT(candidate_id) DO UPDATE SET ...;
   caught by this guard; that is the separate, larger perceptual-hash
   dedupe work (see the phased plan this document was built alongside).
 
-### B2 key convention (PROPOSED)
+### B2 key convention (implemented — #3716 phase 2a)
 
 ```
 LGFC_<content_items.id>_<sanitized-source-filename>.<ext>
 ```
 
-Example: `LGFC_42_GehrigCU.jpg`.
+Example: `LGFC_42_GehrigCU.jpg`. Built by
+`buildReadableIntakeKey()`/`sanitizeSourceFilenameForKey()` in
+`content-pipeline-media-key.ts`, called from both ingest paths
+(`ingest-batch.mjs` and the admin `POST /api/admin/content-pipeline/ingest`
+endpoint).
 
 - Uniqueness is guaranteed by `content_items.id` (a real D1 autoincrement), not
   by any locally-computed sequence number — so two files can never collide or
@@ -135,6 +139,14 @@ Example: `LGFC_42_GehrigCU.jpg`.
 - `media_uid` (the SHA-256 hash) continues to exist as a separate column purely
   for duplicate-upload detection — it is not the B2 key and this change does
   not remove that safety check.
+- Because the key is no longer a pure function of content bytes, a second
+  candidate resolving to identical bytes as an already-ingested one computes
+  a *different* key than what was actually written to B2.
+  `commitIngestedMedia()` (`media-ingest-repository.ts`) handles this: on a
+  `media_uid` dedup hit, it links against the **existing** row's real
+  `b2_key`, not the new caller's freshly-computed one — otherwise a
+  `content_items` row could end up pointing at a B2 object that was never
+  written.
 
 ## `content_items` (migration 0042, widened 0057/0059)
 
