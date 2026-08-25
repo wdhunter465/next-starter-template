@@ -2,8 +2,8 @@ name: GATE — Reviewer Response Completion
 
 on:
   pull_request:
-    # A: code-green on every push; review-closed is merge-readiness.
-    # C: re-run when PR body (disposition section) is edited.
+    # Keep push/open/reopen advisory so asynchronous reviewers cannot deadlock
+    # ordinary implementation. Merge-readiness events remain enforcing.
     types: [opened, synchronize, reopened, ready_for_review, edited]
   pull_request_review:
     types: [submitted, dismissed]
@@ -33,9 +33,6 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           EVENT_ACTION: ${{ github.event.action }}
         run: |
-          # A + B: On pure push/open/reopen, run advisory so async bots cannot
-          # deadlock the gate. Enforce on review lifecycle events, ready_for_review,
-          # body edits (disposition updates), and manual dispatch.
           ENFORCE="false"
           case "${EVENT_NAME}" in
             pull_request_review|pull_request_review_comment|workflow_dispatch)
@@ -61,6 +58,17 @@ jobs:
           echo "enforce_failure=${ENFORCE}" >> "${GITHUB_OUTPUT}"
           echo "Reviewer lifecycle posture: event=${EVENT_NAME} action=${EVENT_ACTION:-n/a} enforce=${ENFORCE}"
 
+      - name: Scaffold reviewer response accounting
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
+          # The runner itself independently refuses forks/closed PRs. A neutral
+          # event value lets this pull_request workflow reuse the existing repair
+          # engine without weakening its same-repository safety boundary.
+          GITHUB_EVENT_NAME: ""
+        run: node scripts/ci/run_pr_body_auto_repair.mjs
+
       - name: Reviewer lifecycle disposition audit
         id: reviewer_lifecycle
         env:
@@ -68,11 +76,22 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
           GITHUB_EVENT_NAME: ${{ github.event_name }}
-          # #3281: event-conditional enforcement (A). No longer hard-fail every synchronize.
+          # #3281: do not hard-fail every synchronize while async reviewers are
+          # still arriving. Enforcing events below are merge-readiness checks.
           ENFORCE_FAILURE: ${{ steps.posture.outputs.enforce_failure }}
           REVIEWER_LIFECYCLE_RESULT_JSON: ${{ runner.temp }}/reviewer_lifecycle_result.json
           REVIEWER_LIFECYCLE_RESULT_MD: ${{ runner.temp }}/reviewer_lifecycle_result.md
         run: node scripts/ci/reviewer_lifecycle_gate.mjs
+
+      - name: Hand blocked PR back to preparer
+        if: always()
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
+          ENFORCE_FAILURE: ${{ steps.posture.outputs.enforce_failure }}
+          REVIEWER_LIFECYCLE_RESULT_JSON: ${{ runner.temp }}/reviewer_lifecycle_result.json
+        run: node scripts/ci/reviewer_preparer_handback.mjs
 
       - name: Upload reviewer lifecycle artifact
         if: always()
