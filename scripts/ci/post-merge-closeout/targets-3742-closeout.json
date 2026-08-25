@@ -1,0 +1,10 @@
+{
+  "targets": [
+    {
+      "pr": 3737,
+      "sourceIssue": 3699,
+      "exceptionIssue": 3742,
+      "bodyFile": "scripts/ci/post-merge-closeout/pr-3737-body.md"
+    }
+  ]
+}
