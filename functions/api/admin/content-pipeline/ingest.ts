@@ -23,7 +23,12 @@ import {
   getCandidateByCandidateId,
   requireContentPipelineCandidateTables,
 } from '../../../_lib/content-pipeline-candidate-repository';
+import {
+  findNearDuplicateMediaAssets,
+  flagCandidateAsNearDuplicate,
+} from '../../../_lib/content-pipeline-duplicate-detection';
 import { commitIngestedMedia } from '../../../_lib/media-ingest-repository';
+import { computePerceptualHash } from '../../../_lib/perceptual-hash';
 import { getCurrentConclusionForCandidate, requireRightsEvidenceTables } from '../../../_lib/rights-evidence-repository';
 import { requireAdmin } from '../../../_lib/auth';
 import { jsonResponse, requireD1, requireTables } from '../../../_lib/d1';
@@ -153,6 +158,18 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     // media-ingest-repository.ts and content-pipeline-media-key.ts.
     const b2Key = buildReadableIntakeKey(candidate.id, candidate.title, extension);
 
+    // #3552 phase 4: a cross-source duplicate has different bytes (and
+    // therefore a different mediaUid) but a visually near-identical decoded
+    // image -- perceptual hash is the only signal that can catch it. This
+    // is best-effort: a decode failure (corrupt/unusual image) must never
+    // block a rights-cleared, already-validated ingestion.
+    let perceptualHash: string | null = null;
+    try {
+      perceptualHash = await computePerceptualHash(bytes);
+    } catch (err: any) {
+      console.error('perceptual hash computation failed, proceeding without it:', String(err?.message || err));
+    }
+
     let etag: string | null = null;
     const alreadyInB2 = await d1.db
       .prepare('SELECT media_uid FROM media_assets WHERE media_uid = ? LIMIT 1')
@@ -176,12 +193,27 @@ export const onRequestPost = async (context: any): Promise<Response> => {
       etag,
       reviewer: conclusion.reviewer ?? 'unknown',
       conclusion: conclusion.conclusion ?? 'unknown',
+      perceptualHash,
     });
+
+    let nearDuplicateCount = 0;
+    if (perceptualHash) {
+      const matches = await findNearDuplicateMediaAssets(d1.db, {
+        perceptualHash,
+        sourceFilename: candidate.title,
+        excludeMediaUid: mediaUid,
+      });
+      if (matches.length > 0) {
+        await flagCandidateAsNearDuplicate(d1.db, candidateId, matches);
+        nearDuplicateCount = matches.length;
+      }
+    }
 
     return jsonResponse(
       {
         ok: true,
         candidate_id: candidateId,
+        near_duplicate_candidates_flagged: nearDuplicateCount,
         media_uid: result.mediaUid,
         b2_key: result.b2Key,
         content_type: normalizedContentType,

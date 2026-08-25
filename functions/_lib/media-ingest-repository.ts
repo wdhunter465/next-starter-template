@@ -16,6 +16,12 @@ export type CommitIngestedMediaInput = {
   etag?: string | null;
   reviewer: string;
   conclusion: string;
+  // #3552 phase 4: the caller computes this (see perceptual-hash.ts) since
+  // hashing needs the actual decoded image, which this function never
+  // touches -- it only ever receives already-fetched bytes' metadata.
+  // Optional so existing callers/tests that don't care about cross-source
+  // dedupe keep working unchanged.
+  perceptualHash?: string | null;
 };
 
 export type CommitIngestedMediaResult = {
@@ -36,9 +42,9 @@ export async function commitIngestedMedia(
   const insertResult = await db
     .prepare(
       `INSERT OR IGNORE INTO media_assets (
-        media_uid, b2_key, b2_file_id, size, etag,
+        media_uid, b2_key, b2_file_id, size, etag, perceptual_hash,
         rights_hold, rights_hold_reason, rights_hold_set_at
-      ) VALUES (?, ?, ?, ?, ?, 0, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'))`,
+      ) VALUES (?, ?, ?, ?, ?, ?, 0, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'))`,
     )
     .bind(
       input.mediaUid,
@@ -46,6 +52,7 @@ export async function commitIngestedMedia(
       input.b2FileId ?? null,
       input.size,
       input.etag ?? null,
+      input.perceptualHash ?? null,
       `rights_evidence_conclusion:${input.conclusion} reviewer:${input.reviewer}`,
     )
     .run();

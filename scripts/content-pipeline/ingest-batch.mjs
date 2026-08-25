@@ -56,7 +56,12 @@ const {
 } = await import('../../functions/_lib/b2-ingest-validation.ts');
 const { buildReadableIntakeKey } = await import('../../functions/_lib/content-pipeline-media-key.ts');
 const { getCandidateByCandidateId } = await import('../../functions/_lib/content-pipeline-candidate-repository.ts');
+const {
+  findNearDuplicateMediaAssets,
+  flagCandidateAsNearDuplicate,
+} = await import('../../functions/_lib/content-pipeline-duplicate-detection.ts');
 const { commitIngestedMedia } = await import('../../functions/_lib/media-ingest-repository.ts');
+const { computePerceptualHash } = await import('../../functions/_lib/perceptual-hash.ts');
 const { getCurrentConclusionForCandidate } = await import('../../functions/_lib/rights-evidence-repository.ts');
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -211,6 +216,16 @@ async function ingestOne(db, candidate, approvedDomains, dryRun) {
     throw new Error(`${candidateId}: B2 not configured (${b2Check.response.status})`);
   }
 
+  // #3552 phase 4: best-effort cross-source duplicate signal -- a decode
+  // failure must never block an otherwise-valid, rights-cleared ingestion.
+  let perceptualHash = null;
+  try {
+    perceptualHash = await computePerceptualHash(bytes);
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    console.error(`${candidateId}: perceptual hash computation failed, proceeding without it: ${message}`);
+  }
+
   let etag = null;
   const alreadyInB2 = await db.prepare('SELECT media_uid FROM media_assets WHERE media_uid = ? LIMIT 1').bind(mediaUid).first();
   if (!alreadyInB2) {
@@ -227,7 +242,24 @@ async function ingestOne(db, candidate, approvedDomains, dryRun) {
     etag,
     reviewer: conclusion.reviewer ?? 'unknown',
     conclusion: conclusion.conclusion ?? 'unknown',
+    perceptualHash,
   });
+
+  if (perceptualHash) {
+    const matches = await findNearDuplicateMediaAssets(db, {
+      perceptualHash,
+      sourceFilename: stored.title,
+      excludeMediaUid: mediaUid,
+    });
+    if (matches.length > 0) {
+      await flagCandidateAsNearDuplicate(db, candidateId, matches);
+      console.log(
+        `${candidateId}: flagged ${matches.length} near-duplicate candidate(s) for admin review: ${matches
+          .map((m) => `${m.matchedCandidateId} (distance=${m.distance})`)
+          .join(', ')}`,
+      );
+    }
+  }
 
   console.log(`${candidateId}: ingested (already_existed=${result.alreadyExisted})`);
   return { candidateId, mediaUid: result.mediaUid, b2Key: result.b2Key, alreadyExisted: result.alreadyExisted };
