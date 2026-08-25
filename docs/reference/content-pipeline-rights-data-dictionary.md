@@ -29,7 +29,8 @@ A migration PR touching any of these tables is not complete until this file
 reflects the change. This is a process requirement, not a suggestion — treat
 it the same as updating a test for changed behavior.
 
-**If a table is added to or removed from this photo-library pipeline**, also
+**If a table is added to, removed from, or renamed within this photo-library
+pipeline**, also
 review `scripts/B2_D1_SYNC_README.md` — the daily B2 → D1 reconciliation job
 currently only covers the legacy `photos` table and needs to be extended (or
 a parallel reconciliation added) any time the set of B2-backed photo tables

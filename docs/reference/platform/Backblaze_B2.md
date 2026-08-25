@@ -116,7 +116,7 @@ already has its own soft-delete columns (`deleted_at`, `retention_reason`,
 `docs/reference/content-pipeline-rights-data-dictionary.md` for that
 pipeline's schema and `scripts/B2_D1_SYNC_README.md` for the sync job's
 current scope and the requirement to update it if a photo-library table is
-ever added or removed.
+ever added, removed, or renamed.
 
 ---
 
