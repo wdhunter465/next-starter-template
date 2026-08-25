@@ -7,15 +7,26 @@
 // vocabulary via mapLicenseToConclusion, which refuses to guess for
 // anything it doesn't recognize.
 
-import { mapConclusionToRightsStatus, mapLicenseToConclusion } from './content-pipeline-license-conclusion-mapping';
+import {
+  deriveCommonsProvenance,
+  mapConclusionToRightsStatus,
+  mapLicenseToConclusion,
+} from './content-pipeline-license-conclusion-mapping';
 
 export type LicenseNote = {
   candidate_id: string;
   license_short_name: string | null;
   license_url?: string | null;
+  usage_terms?: string | null;
   artist?: string | null;
   [key: string]: unknown;
 };
+
+// This writer is Commons-specific (evidence_type is hardcoded to
+// 'commons_license' below); repository_or_collection records that fact on
+// every row it writes rather than leaving it for a reader to infer from
+// evidence_type's fixed vocabulary.
+const REPOSITORY_OR_COLLECTION = 'Wikimedia Commons';
 
 export type CandidateForApproval = {
   candidate_id: string;
@@ -50,13 +61,7 @@ export function buildBatchRightsApprovalRow(
 
   const conclusion = mapLicenseToConclusion(licenseNote.license_short_name);
   const rightsStatus = mapConclusionToRightsStatus(conclusion);
-
-  const evidenceText = [
-    `${licenseNote.license_short_name} per Wikimedia Commons file page (as found at discovery, ${
-      candidate.source_metadata?.date_accessed ?? 'unknown date'
-    }).`,
-    `Asserted creator: ${licenseNote.artist || 'unknown'}.`,
-  ].join(' ');
+  const { evidenceText, rightsHolder } = deriveCommonsProvenance(licenseNote);
 
   const rationale =
     conclusion === 'permission_granted'
@@ -65,9 +70,11 @@ export function buildBatchRightsApprovalRow(
 
   const evidenceInsert = `INSERT INTO rights_evidence (
   content_item_id, evidence_type, evidence_text, evidence_url, evidence_metadata,
+  rights_holder, repository_or_collection,
   reviewer, conclusion, conclusion_rationale
 )
 SELECT id, 'commons_license', ${sqlString(evidenceText)}, ${sqlString(licenseNote.license_url)}, ${sqlJson(licenseNote)},
+  ${sqlString(rightsHolder)}, ${sqlString(REPOSITORY_OR_COLLECTION)},
   ${sqlString(reviewer)}, ${sqlString(conclusion)}, ${sqlString(rationale)}
 FROM content_items WHERE candidate_id = ${sqlString(candidate.candidate_id)};`;
 

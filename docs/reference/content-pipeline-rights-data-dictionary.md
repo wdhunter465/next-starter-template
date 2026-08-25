@@ -185,19 +185,26 @@ proposal; see `lgfc-content-schema-reference.md` for the full existing set.)*
 | `evidence_url` | Source-derived | Link to the specific page/API response the evidence came from. |
 | `evidence_text` | Source-derived (raw) | The source's own rights/license text, preserved as found. **Not** a paraphrase or synthesized sentence — raw field values only (see Maintenance note below). |
 | `evidence_metadata` | Source-derived (raw) | Full raw scraped object (license fields, restrictions, usage terms) not already broken into their own columns. |
-| `rights_holder` | Source-derived | The asserted creator/rights holder (e.g. "New York Daily News"). Currently defined in schema but unpopulated by the batch-approval writer — to be fixed. |
-| `repository_or_collection` | Source-derived | Which platform/collection this came from (e.g. "Wikimedia Commons"). Same current gap as `rights_holder`. |
+| `rights_holder` | Source-derived | The asserted creator/rights holder (e.g. "New York Daily News"), taken directly from the source's own artist/creator field. |
+| `repository_or_collection` | Source-derived | Which platform/collection this came from (e.g. "Wikimedia Commons"). |
 | `conclusion` | LGFC-derived | LGFC's classification of the evidence into `public_domain_confirmed` / `permission_granted` / `lgfc_member_owned_item_photo`. NULL until a human (or an applied translation rule, see below) sets it — nothing sets this automatically today. |
 | `conclusion_rationale` | LGFC-derived | Plain-English explanation of what the conclusion means for LGFC's use of the item. |
 | `reviewer` | LGFC-derived | Who is responsible for the conclusion (a person, or the translation-rule reference once PROPOSED table exists). |
 | `channel` | LGFC-derived | Which use case this conclusion covers (website, social, newsletter, ...) — a conclusion for one channel never authorizes another. |
 
-**Fix needed (not a schema change):** the current batch-approval writer leaves
-`rights_holder` and `repository_or_collection` NULL even though the source
-data it already has (the license note's `artist`/source fields) is sufficient
-to populate them. `evidence_text` should store the source's raw license
-string directly rather than a synthesized sentence built from
-`evidence_metadata` — same fact, one place.
+**Fixed (#3552 phase 3):** the batch-approval writer
+(`content-pipeline-batch-rights-approval.ts`) now populates `rights_holder`
+(from the license note's `artist` field) and `repository_or_collection`
+(`"Wikimedia Commons"`, since this writer is Commons-specific) on every new
+row, via the shared `deriveCommonsProvenance()` helper in
+`content-pipeline-license-conclusion-mapping.ts`. `evidence_text` now stores
+the source's raw license string directly (Commons' `UsageTerms` extmetadata
+field when present, otherwise the license template name itself) rather than
+a synthesized sentence. The 10 rows written before this fix by the
+pre-#3552-phase-3 writer were backfilled the same way via
+`scripts/content-pipeline/backfill-rights-evidence-provenance.mjs`
+(idempotent — guarded by `WHERE rights_holder IS NULL`, so it never
+overwrites a row a human has since edited).
 
 ## `media_assets` (migration 0010)
 

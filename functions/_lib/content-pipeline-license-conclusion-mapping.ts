@@ -9,6 +9,32 @@
 
 import type { RightsEvidenceConclusion } from './rights-evidence-repository';
 
+export type CommonsLicenseNote = {
+  license_short_name: string | null;
+  usage_terms?: string | null;
+  artist?: string | null;
+  [key: string]: unknown;
+};
+
+export type CommonsProvenance = {
+  evidenceText: string;
+  rightsHolder: string | null;
+};
+
+// Raw source text only -- Commons' extmetadata UsageTerms field when
+// present, otherwise the license template name itself (LicenseShortName).
+// Both are the source's own words, not an LGFC-synthesized sentence; see
+// docs/reference/content-pipeline-rights-data-dictionary.md's "Fix needed"
+// note on evidence_text. Shared by the batch-approval writer and its
+// one-time backfill counterpart so the two can never derive different
+// values for the same license note.
+export function deriveCommonsProvenance(licenseNote: CommonsLicenseNote): CommonsProvenance {
+  const rawUsageTerms = typeof licenseNote.usage_terms === 'string' ? licenseNote.usage_terms.trim() : '';
+  const evidenceText = rawUsageTerms || String(licenseNote.license_short_name ?? '').trim();
+  const rightsHolder = licenseNote.artist?.trim() || null;
+  return { evidenceText, rightsHolder };
+}
+
 export function mapLicenseToConclusion(licenseShortName: string | null | undefined): RightsEvidenceConclusion {
   const normalized = String(licenseShortName ?? '').trim().toLowerCase();
 
