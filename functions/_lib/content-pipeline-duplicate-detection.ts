@@ -46,17 +46,33 @@ export async function findNearDuplicateMediaAssets(
   const rows = (existing.results ?? []) as Array<{ media_uid: string; b2_key: string; perceptual_hash: string }>;
   const candidateNormalizedFilename = sanitizeSourceFilenameForKey(input.sourceFilename);
 
-  const matches: NearDuplicateMatch[] = [];
-  for (const row of rows) {
-    const distance = hammingDistanceHex(input.perceptualHash, row.perceptual_hash);
-    if (distance > maxDistance) continue;
+  // Compute distances in-memory first, so the (usually far more expensive)
+  // content_items lookup only ever runs for rows that actually matter --
+  // and runs once, not once per matching row (avoiding an N+1 query
+  // pattern that would scale poorly as media_assets grows).
+  const withinThreshold = rows
+    .map((row) => ({ row, distance: hammingDistanceHex(input.perceptualHash, row.perceptual_hash) }))
+    .filter(({ distance }) => distance <= maxDistance);
 
-    const contentItem = await db
-      .prepare(
-        `SELECT id, candidate_id, title FROM content_items WHERE media_asset_id = ? LIMIT 1`,
-      )
-      .bind(`b2://${row.b2_key}`)
-      .first();
+  if (withinThreshold.length === 0) {
+    return [];
+  }
+
+  const mediaAssetIds = withinThreshold.map(({ row }) => `b2://${row.b2_key}`);
+  const placeholders = mediaAssetIds.map(() => '?').join(', ');
+  const contentItemsResult = await db
+    .prepare(`SELECT id, candidate_id, title, media_asset_id FROM content_items WHERE media_asset_id IN (${placeholders})`)
+    .bind(...mediaAssetIds)
+    .all();
+  const contentItemsByMediaAssetId = new Map(
+    ((contentItemsResult.results ?? []) as Array<{ id: number; candidate_id: string; title: string | null; media_asset_id: string }>).map(
+      (item) => [item.media_asset_id, item],
+    ),
+  );
+
+  const matches: NearDuplicateMatch[] = [];
+  for (const { row, distance } of withinThreshold) {
+    const contentItem = contentItemsByMediaAssetId.get(`b2://${row.b2_key}`);
     if (!contentItem) continue; // media_assets row not (yet) linked to any content_items row
 
     const matchedNormalizedFilename = sanitizeSourceFilenameForKey(String(contentItem.title ?? ''));

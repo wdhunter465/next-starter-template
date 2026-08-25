@@ -169,6 +169,87 @@ describe('commitIngestedMedia dedup-linking correctness (#3716 phase 2a)', () =>
     expect(mediaAssetRow.b2_key).toBe('LGFC_1_GehrigCU.jpg');
   });
 
+  it('opportunistically backfills perceptual_hash on a dedup hit when the existing row predates it (#3552 phase 4)', async () => {
+    const { sqlite, db } = freshDb();
+    await upsertCandidate(db, minimalCandidate({ candidate_id: 'lgfc-gehrig-2026-501' }));
+    await upsertCandidate(
+      db,
+      minimalCandidate({ candidate_id: 'lgfc-gehrig-2026-502', title: 'File:GehrigCU (duplicate upload).jpg' }),
+    );
+
+    // First candidate ingests without a computed hash (as if written before
+    // phase 4 existed) -- media_assets.perceptual_hash stays NULL.
+    await commitIngestedMedia(db, {
+      candidateId: 1,
+      candidateExternalId: 'lgfc-gehrig-2026-501',
+      mediaUid: 'sha256_identical_bytes',
+      b2Key: 'LGFC_1_GehrigCU.jpg',
+      size: 100,
+      etag: null,
+      reviewer: 'Bill Hunter',
+      conclusion: 'public_domain_confirmed',
+    });
+
+    // A second candidate resolves to the SAME bytes (media_uid dedup hit)
+    // and DID compute a hash -- INSERT OR IGNORE alone would silently drop
+    // it since the row already exists; commitIngestedMedia must backfill it.
+    const second = await commitIngestedMedia(db, {
+      candidateId: 2,
+      candidateExternalId: 'lgfc-gehrig-2026-502',
+      mediaUid: 'sha256_identical_bytes',
+      b2Key: 'LGFC_2_GehrigCU_duplicate_upload.jpg',
+      size: 100,
+      etag: null,
+      reviewer: 'Bill Hunter',
+      conclusion: 'public_domain_confirmed',
+      perceptualHash: 'abcdef0123456789',
+    });
+    expect(second.alreadyExisted).toBe(true);
+
+    const mediaAssetRow = sqlite
+      .prepare('SELECT perceptual_hash FROM media_assets WHERE media_uid = ?')
+      .get('sha256_identical_bytes') as { perceptual_hash: string };
+    expect(mediaAssetRow.perceptual_hash).toBe('abcdef0123456789');
+  });
+
+  it('never overwrites an already-hashed row on a dedup hit, even if the new caller computed a different hash', async () => {
+    const { sqlite, db } = freshDb();
+    await upsertCandidate(db, minimalCandidate({ candidate_id: 'lgfc-gehrig-2026-501' }));
+    await upsertCandidate(
+      db,
+      minimalCandidate({ candidate_id: 'lgfc-gehrig-2026-502', title: 'File:GehrigCU (duplicate upload).jpg' }),
+    );
+
+    await commitIngestedMedia(db, {
+      candidateId: 1,
+      candidateExternalId: 'lgfc-gehrig-2026-501',
+      mediaUid: 'sha256_identical_bytes',
+      b2Key: 'LGFC_1_GehrigCU.jpg',
+      size: 100,
+      etag: null,
+      reviewer: 'Bill Hunter',
+      conclusion: 'public_domain_confirmed',
+      perceptualHash: '0000000000000000',
+    });
+
+    await commitIngestedMedia(db, {
+      candidateId: 2,
+      candidateExternalId: 'lgfc-gehrig-2026-502',
+      mediaUid: 'sha256_identical_bytes',
+      b2Key: 'LGFC_2_GehrigCU_duplicate_upload.jpg',
+      size: 100,
+      etag: null,
+      reviewer: 'Bill Hunter',
+      conclusion: 'public_domain_confirmed',
+      perceptualHash: 'ffffffffffffffff',
+    });
+
+    const mediaAssetRow = sqlite
+      .prepare('SELECT perceptual_hash FROM media_assets WHERE media_uid = ?')
+      .get('sha256_identical_bytes') as { perceptual_hash: string };
+    expect(mediaAssetRow.perceptual_hash).toBe('0000000000000000');
+  });
+
   it('fails closed instead of trusting the caller-supplied b2Key when the existing row cannot be read back on a dedup hit', async () => {
     const { db } = freshDb();
     await upsertCandidate(db, minimalCandidate({ candidate_id: 'lgfc-gehrig-2026-501' }));
@@ -194,7 +275,7 @@ describe('commitIngestedMedia dedup-linking correctness (#3716 phase 2a)', () =>
     const flakyDb = {
       prepare(sql: string) {
         const real = db.prepare(sql);
-        if (sql.includes('SELECT b2_key FROM media_assets')) {
+        if (sql.includes('SELECT b2_key, perceptual_hash FROM media_assets')) {
           return { bind: () => ({ async first() { return null; } }) };
         }
         return real;
