@@ -147,6 +147,7 @@ Reviewer items:
 - review-comment:3442444080 — acknowledged — Copilot advisory on doc style; no blocking defect for reconciliation deliverable — thread state: outdated
 - review-comment:3442448490 — acknowledged — Codex connector informational review; no actionable code defect — thread state: outdated
 - review-comment:3442448492 — acknowledged — Codex connector informational review; no actionable code defect — thread state: outdated
+- review-comment:3442829518 — accepted — parser-unsafe parent preservation language removed from this closeout artifact so terminal-state evaluation applies only to accepted source issue #1725 — thread state: outdated
 
 ## PR GATE READINESS CHECKLIST
 - [x] Live PR check panel inspected
@@ -162,8 +163,8 @@ Reviewer items:
 - [x] Post-merge closeout body remediation applied (removed CI auto-repair BLOCKED scaffold)
 
 ## POST-MERGE ISSUE DISPOSITION
-- Source issue **#1719** remains **open** with `status:active`; **do not close** #1719
-- Task issue **#1725** closes on successful post-merge validator replay
+- Accepted source issue for this closeout: **#1725** — close on successful validator replay.
+- Parent-program lifecycle state is outside this source-issue closeout decision and must not alter #1725 terminal-state evaluation.
 
 ## ACCEPTANCE CRITERIA
 - [x] Required source issue #1725 exists, is open, same-repository, non-PR
