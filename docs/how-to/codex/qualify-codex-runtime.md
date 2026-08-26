@@ -168,6 +168,8 @@ Run date: 2026-08-26
 Runtime: Codex in the repository workspace sandbox
 Branch: `codex/3758-runtime-qualification-20260826t1748`
 
+Evidence records:
+
 ### Repository identity and synchronization
 
 - Capability: Repository identity and synchronization
