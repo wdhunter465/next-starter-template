@@ -192,10 +192,12 @@ Branch: `codex/3758-runtime-qualification-20260826t1748`
 - Pushed the branch and established upstream tracking.
 - Git emitted a sandbox credential-store lock warning, but the authenticated remote push completed successfully.
 
-### PR creation and update — PENDING AT FIRST EVIDENCE COMMIT
+### PR creation and update — PASS
 
-- This evidence commit is intentionally recorded before PR creation.
-- The PR number and same-PR update proof are added in the required second evidence commit after the PR exists.
+- Created PR #3783 from `codex/3758-runtime-qualification-20260826t1748` to `main` through the authenticated GitHub REST API.
+- First evidence head: `95991d2f408fd81bc83607b776846bff15f91ed5`.
+- This second evidence commit was pushed to the same branch and updated PR #3783 without opening another PR.
+- PR state at creation: open and ready for review (not Draft). Merge and approval remain outside Codex authority.
 
 ### Local validation — PASS AFTER ENVIRONMENTAL CACHE REMEDIATION
 
@@ -220,4 +222,4 @@ Branch: `codex/3758-runtime-qualification-20260826t1748`
 
 ### Overall result — FAIL PENDING RERUN
 
-Repository access, permissions, branch push, REST evidence visibility, local validation, and repository skill loading are operational. The qualification remains fail-closed until fresh-session startup succeeds and the PR create/update evidence below is completed.
+Repository access, permissions, branch push, PR create/update, REST evidence visibility, local validation, and repository skill loading are operational. The qualification remains fail-closed until fresh-session startup succeeds.
