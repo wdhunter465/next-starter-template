@@ -81,9 +81,11 @@ gh pr create --repo wdhunter465/next-starter-template --base main --head codex/<
 
 Use `.github/pull_request_template.md` — fill every required field. Record the PR number and URL.
 
+Before reporting this PR as ready for review, confirm its actual GitHub state per `docs/governance/PR_READY_FOR_REVIEW_HANDOFF.md`: move it out of Draft using **Ready for review**, or record the explicit blocker if it must stay Draft. Report the literal state: `GitHub PR state: draft / ready for review / merged / blocked with documented reason`.
+
 ### 7. Satisfy deterministic CI and repository gates
 
-Record which checks ran, their names, and their conclusions. If GitHub Actions is degraded (check `githubstatus.com` first), note that explicitly rather than treating a stuck check as a Codex-integration defect — see `docs/how-to/codex/qualify-codex-runtime.md`'s "If something fails" section for the general principle: distinguish real defects from external platform issues before concluding Codex integration is broken.
+Record which checks ran, their names, and their conclusions. If GitHub Actions is degraded (check `githubstatus.com` first), note that explicitly rather than treating a stuck check as a Codex-integration defect: a check stuck or failing identically on an unrelated, unmodified path, or a check red on the base branch too, is an external platform issue, not a Codex-integration defect — do not conclude Codex integration is broken from that alone.
 
 ### 8. Repair own PR when CI/reviewer findings require changes
 
@@ -91,7 +93,7 @@ If any check fails or a reviewer requests changes, push a fix commit to the same
 
 ### 9. Hand off for independent review/approval
 
-Confirm the PR is NOT self-approved or self-merged by Codex. Record who/what performed the independent review and its disposition.
+Confirm the PR is NOT self-approved or self-merged by Codex, and confirm it is not left in Draft state per the check in step 6. Record who/what performed the independent review and its disposition.
 
 ### 10. Remain separated from self-approval/self-merge
 
