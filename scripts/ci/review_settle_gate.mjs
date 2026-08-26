@@ -12,6 +12,7 @@
  *   recent trusted activity on the current head (default 90s, max 120s).
  * - Quiet period resets when newer trusted activity is observed.
  * - Does not replace reviewer_lifecycle_gate disposition enforcement.
+ * - CI re-run nudge: keep PR-context gates attached to current head.
  */
 
 export const DEFAULT_SETTLE_MS = 90_000;
