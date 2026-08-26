@@ -1,22 +1,25 @@
 #!/usr/bin/env node
 
 import fs from 'node:fs';
+import { assessModelCPaths } from './model_c_path_gate.mjs';
 
-export const DELIVERY_MODELS = ['A', 'B-child', 'B-promotion', 'emergency-recovery'];
+export const DELIVERY_MODELS = ['A', 'B-child', 'B-promotion', 'C', 'emergency-recovery'];
 export const WORK_SIZES = ['medium-provisional', 'small', 'medium', 'large'];
-export const CHANGE_MODES = ['project', 'routine-ops', 'planned-migration', 'emergency'];
-export const TARGET_ENVIRONMENTS = ['component', 'preview', 'production', 'recovery'];
+export const CHANGE_MODES = ['project', 'routine-ops', 'planned-migration', 'emergency', 'documentation'];
+export const TARGET_ENVIRONMENTS = ['component', 'preview', 'production', 'recovery', 'docs'];
 export const APPROVAL_PROFILES = [
   'component-auto-integration',
   'work-bill-production',
   'protected-change-review',
   'emergency-approval',
+  'documentation-review',
 ];
 export const GATE_PROFILES = [
   'component-child',
   'production-candidate',
   'component-promotion',
   'emergency-recovery',
+  'documentation',
 ];
 export const ROLLBACK_PROFILES = ['one-step', 'multi-step', 'emergency-stabilization'];
 
@@ -190,11 +193,13 @@ export function classifyDeliveryProfile({
   headRef = '',
   body = '',
   changedFiles = undefined,
+  renames = [],
 } = {}) {
   const metadata = parseDeliveryMetadata(body);
   const errors = [];
   const hasChangedFileEvidence = Array.isArray(changedFiles);
-  const protectedChange = hasChangedFileEvidence && changedFiles.some(isProtectedPath);
+  const hasNonEmptyChangedFiles = hasChangedFileEvidence && changedFiles.length > 0;
+  const protectedChange = hasNonEmptyChangedFiles && changedFiles.some(isProtectedPath);
 
   for (const field of REQUIRED_FIELDS) {
     if (!metadata[field]) {
@@ -307,6 +312,51 @@ export function classifyDeliveryProfile({
     validateComponentMasterIssue(errors, componentMaster);
   }
 
+  if (metadata.deliveryModel === 'C') {
+    // Empty arrays are not evidence — fail closed if collection failed.
+    if (!hasNonEmptyChangedFiles) {
+      errors.push(deliveryError(
+        'missing_changed_files_evidence',
+        'Changed-file evidence is required for Model C path boundary checks (missing or empty list fails closed).',
+      ));
+    }
+    if (!['documentation', 'routine-ops'].includes(metadata.changeMode)) {
+      errors.push(deliveryError(
+        'invalid_changeMode',
+        'Change mode must be documentation or routine-ops for Model C PRs.',
+        { value: metadata.changeMode },
+      ));
+    }
+    if (!['docs', 'production'].includes(metadata.targetEnvironment)) {
+      errors.push(deliveryError(
+        'invalid_targetEnvironment',
+        'Target environment must be docs or production for Model C PRs.',
+        { value: metadata.targetEnvironment },
+      ));
+    }
+    pushExpectedError(errors, 'gateProfile', metadata.gateProfile, 'documentation');
+    pushExpectedError(errors, 'rollbackProfile', metadata.rollbackProfile, 'one-step');
+    const expectedApproval = protectedChange ? 'protected-change-review' : 'documentation-review';
+    pushExpectedError(errors, 'approvalProfile', metadata.approvalProfile, expectedApproval);
+    if (baseRef !== 'main') {
+      errors.push(deliveryError('invalid_baseRef', 'Model C PRs must target main.', {
+        expected: 'main',
+        value: baseRef,
+      }));
+    }
+    rejectComponentMetadataForNonModelB(errors, componentBranch, componentMaster, 'Model C');
+    if (hasNonEmptyChangedFiles) {
+      const pathResult = assessModelCPaths({ changedFiles, renames });
+      for (const pathError of pathResult.errors) {
+        errors.push(deliveryError(pathError.code, pathError.message, {
+          path: pathError.path,
+          from: pathError.from,
+          to: pathError.to,
+        }));
+      }
+    }
+  }
+
   if (metadata.deliveryModel === 'emergency-recovery') {
     pushExpectedError(errors, 'changeMode', metadata.changeMode, 'emergency');
     pushExpectedError(errors, 'targetEnvironment', metadata.targetEnvironment, 'recovery');
@@ -365,7 +415,7 @@ export function runCli(env = process.env) {
   let changedFiles = undefined;
   if (env.CHANGED_FILES_FILE) {
     if (!fs.existsSync(env.CHANGED_FILES_FILE)) {
-      if (metadata.deliveryModel === 'B-child') {
+      if (metadata.deliveryModel === 'B-child' || metadata.deliveryModel === 'C') {
         const result = {
           deliveryModel: metadata.deliveryModel,
           size: metadata.size,
@@ -380,7 +430,7 @@ export function runCli(env = process.env) {
           errors: [
             deliveryError(
               'missing_changed_files_file',
-              'CHANGED_FILES_FILE is required and must point to an existing file for Model B child PRs.',
+              'CHANGED_FILES_FILE is required and must point to an existing file for Model B child and Model C PRs.',
             ),
           ],
         };
