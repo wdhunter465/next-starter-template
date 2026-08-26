@@ -91,27 +91,30 @@ export function isModelCProhibitedPath(filePath) {
 }
 
 /**
- * @param {{ changedFiles?: string[], renames?: Array<{ from: string, to: string }> }} input
- * @returns {{
- *   ok: boolean,
- *   errors: Array<{ code: string, message: string, path?: string, from?: string, to?: string }>,
- *   allowed: string[],
- *   prohibited: string[],
- * }}
+ * @param {{ changedFiles?: string[] | null, renames?: Array<{ from: string, to: string }> }} input
  */
 export function assessModelCPaths({
-  changedFiles = [],
+  changedFiles,
   renames = [],
 } = {}) {
   const errors = [];
   const allowed = [];
   const prohibited = [];
-  const files = Array.isArray(changedFiles) ? changedFiles.map(normalizePath).filter(Boolean) : [];
 
-  if (!Array.isArray(changedFiles)) {
+  // Fail closed: missing or empty changed-file evidence is not valid Model C proof.
+  if (!Array.isArray(changedFiles) || changedFiles.length === 0) {
     errors.push({
       code: 'missing_changed_files_evidence',
-      message: 'Changed-file evidence is required for Model C path boundary checks.',
+      message: 'Changed-file evidence is required for Model C path boundary checks (missing or empty list fails closed).',
+    });
+    return { ok: false, errors, allowed, prohibited };
+  }
+
+  const files = changedFiles.map(normalizePath).filter(Boolean);
+  if (files.length === 0) {
+    errors.push({
+      code: 'missing_changed_files_evidence',
+      message: 'Changed-file evidence is required for Model C path boundary checks (empty after normalize fails closed).',
     });
     return { ok: false, errors, allowed, prohibited };
   }
@@ -133,7 +136,6 @@ export function assessModelCPaths({
     const from = normalizePath(rename.from);
     const to = normalizePath(rename.to);
     if (!from || !to) continue;
-    // Cross-boundary: destination prohibited or not allowlisted fails even if source was docs.
     if (isModelCProhibitedPath(to) || !isModelCAllowlistedPath(to)) {
       errors.push({
         code: 'model_c_cross_boundary_move',
