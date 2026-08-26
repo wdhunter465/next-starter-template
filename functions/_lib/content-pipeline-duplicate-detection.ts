@@ -13,6 +13,7 @@
 // reviewer needs (a matching filename is a much stronger signal than a
 // close hash alone).
 
+import { buildMultiFieldModerationEvent, createModerationEventStatement } from './content-pipeline-candidate-repository';
 import { sanitizeSourceFilenameForKey } from './content-pipeline-media-key';
 import { hammingDistanceHex } from './perceptual-hash';
 
@@ -149,6 +150,45 @@ export async function flagCandidateAsNearDuplicate(
     )
     .bind(candidateId)
     .run();
+}
+
+// The human-reviewed counterpart to flagCandidateAsNearDuplicate: once an
+// admin has decided (via the filed issue) that a flagged candidate is NOT
+// being merged/purged -- it's being kept as-is, and the OTHER side of the
+// pair is the one being removed (typically via softDeleteCandidate) --
+// this clears the flag on the kept row so it stops showing up as a pending
+// duplicate. Uses the same 'review_state_change' event type upsertCandidate
+// already uses when duplicate_of is cleared, for consistency.
+export async function resolveNearDuplicateFlag(
+  db: any,
+  candidateId: string,
+  options: { actor: string; notes: string },
+): Promise<void> {
+  const existing = await db
+    .prepare(`SELECT id, duplicate_of, review_priority FROM content_items WHERE candidate_id = ?`)
+    .bind(candidateId)
+    .first();
+  if (!existing) return;
+
+  await db
+    .prepare(
+      `UPDATE content_items
+       SET duplicate_of = NULL, review_priority = 'normal', updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')
+       WHERE candidate_id = ?`,
+    )
+    .bind(candidateId)
+    .run();
+
+  await createModerationEventStatement(
+    db,
+    buildMultiFieldModerationEvent(
+      Number(existing.id),
+      'review_state_change',
+      { duplicate_of: existing.duplicate_of, review_priority: existing.review_priority },
+      { duplicate_of: null, review_priority: 'normal' },
+      options,
+    ),
+  ).run();
 }
 
 export type NearDuplicateIssueContent = {

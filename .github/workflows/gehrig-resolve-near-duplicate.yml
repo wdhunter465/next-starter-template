@@ -1,0 +1,122 @@
+name: Gehrig Resolve Near-Duplicate Flag
+
+# Operator-triggered production write path for resolving a near-duplicate
+# flag raised by the perceptual-hash backfill (#3740) once a human has
+# reviewed the auto-filed issue and decided which content_items row to
+# keep. Writes to Production D1 (content_items, moderation_events) only --
+# no B2 access needed. Nothing is hard-deleted: the removed candidate is
+# soft-deleted (deleted_at/retention_reason), keeping content_items and
+# moderation_events fully auditable.
+#
+# Generic and reusable across issues -- keep_candidate_id, remove_candidate_id,
+# and issue_number are all operator-supplied inputs, not hardcoded to any
+# one flag.
+#
+# Runs the script's own --dry-run first so the operator can review the
+# current state of both candidates in this run's log before the real
+# (non-dry-run) apply immediately after.
+
+on:
+  workflow_dispatch:
+    inputs:
+      keep_candidate_id:
+        description: 'candidate_id to keep as canonical (its duplicate flag is cleared)'
+        required: true
+        type: string
+      remove_candidate_id:
+        description: 'candidate_id to soft-delete as the confirmed duplicate'
+        required: true
+        type: string
+      issue_number:
+        description: 'GitHub issue number documenting the human decision (e.g. 3760)'
+        required: true
+        type: string
+      confirm_write:
+        description: 'Type "confirm" to run this workflow at all (it writes to Production D1 when confirm_write matches)'
+        required: true
+        type: string
+
+concurrency:
+  group: gehrig-resolve-near-duplicate
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  resolve:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require explicit confirmation
+        env:
+          CONFIRM_WRITE: ${{ github.event.inputs.confirm_write }}
+        run: |
+          if [ "$CONFIRM_WRITE" != "confirm" ]; then
+            echo "confirm_write must be exactly 'confirm' -- refusing to write to Production D1."
+            exit 1
+          fi
+
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify Cloudflare D1 credentials
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DATABASE_NAME: lgfc_lite
+        run: node scripts/ci/verify_cloudflare_d1_auth.mjs
+
+      - name: Dry run -- review current state of both candidates
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          node --experimental-strip-types scripts/content-pipeline/resolve-near-duplicate.mjs \
+            --keep "${{ github.event.inputs.keep_candidate_id }}" \
+            --remove "${{ github.event.inputs.remove_candidate_id }}" \
+            --issue "${{ github.event.inputs.issue_number }}" \
+            --database lgfc_lite --remote --dry-run
+
+      - name: Apply the resolution for real
+        id: resolve
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          node --experimental-strip-types scripts/content-pipeline/resolve-near-duplicate.mjs \
+            --keep "${{ github.event.inputs.keep_candidate_id }}" \
+            --remove "${{ github.event.inputs.remove_candidate_id }}" \
+            --issue "${{ github.event.inputs.issue_number }}" \
+            --database lgfc_lite --remote
+
+      - name: Write step summary
+        if: always()
+        run: |
+          {
+            echo "## Gehrig Resolve Near-Duplicate Flag"
+            echo ""
+            echo "Keep: ${{ github.event.inputs.keep_candidate_id }}"
+            echo "Remove: ${{ github.event.inputs.remove_candidate_id }}"
+            echo "Issue: #${{ github.event.inputs.issue_number }}"
+            echo ""
+            echo "Apply step outcome: ${{ steps.resolve.outcome }}"
+            echo ""
+            if [ "${{ steps.resolve.outcome }}" = "success" ]; then
+              echo "Cleared the duplicate flag on the kept candidate and soft-deleted the"
+              echo "removed one (nothing hard-deleted -- content_items stays auditable)."
+              echo ""
+              echo "Next: close #${{ github.event.inputs.issue_number }}."
+            else
+              echo "The apply step did not complete successfully -- no confirmation that"
+              echo "the resolution was applied. Check the job log above before assuming"
+              echo "anything changed in Production D1."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
