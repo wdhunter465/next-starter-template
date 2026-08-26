@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Repository work-queue classification, queue precedence, team-assignment and priority namespaces, team vs agent claim lifecycle, ordered Active and Pipeline priority, Project Graduation, queue-state transitions, universal agent collaboration, and collaboration interaction with pull requests
 Does Not Own: Product outcome, final priority decisions, project design, implementation methods, recovery strategy, PR approval decisions, Production authorization, dashboard runtime implementation, or label-migration execution
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2695, #2699, #3055, #3113, #3145, #3152, #3240, #3134, #3188, #3597, #3629, #3642
-Last Reviewed: 2026-08-23
+Related Issues: #2695, #2699, #3055, #3113, #3145, #3152, #3240, #3134, #3188, #3597, #3629, #3642, #3755, #3774
+Last Reviewed: 2026-08-26
 ---
 
 # Work Queues and Collaboration
@@ -454,7 +454,7 @@ After verified integration, WORK records `ACCEPT`, bounded correction via `REMED
 
 While a predecessor is in review or verification, WORK prepares the successor package so implementer idle time does not occur after deterministic completion. A missing package is `PACKAGE-INCOMPLETE`, not an implementation assignment and not a generic dependency block. A wake event, label, or dispatcher message transports existing authority; it does not recreate it.
 
-Product-authorized agent routing is preserved: each claimed task has exactly one implementation executor (Cursor Local or Claude Code per Team eligibility in `docs/governance/AGENT-TEAM.md`). PMO sequencing does not invent unprepared tasks or bypass the parent graph.
+Product-authorized agent routing is preserved: each claimed task has exactly one implementation executor, per Team eligibility in `docs/governance/AGENT-TEAM.md`. PMO sequencing does not invent unprepared tasks or bypass the parent graph.
 
 Parallel execution is permitted only when the project master explicitly authorizes it and records disjoint writable scopes, collision safety, dependency independence, and separate review/closeout evidence.
 

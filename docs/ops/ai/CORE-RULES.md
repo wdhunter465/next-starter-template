@@ -5,7 +5,7 @@ Authority Level: Core
 Owns: Shared execution rules, enforcement model, PR discipline, stop conditions, shared product-startup framework
 Does Not Own: Design authority, platform configuration, tracker content
 Canonical Reference: /docs/ops/ai/SHARED-AGENT-RULES.md
-Related Issues: #3055, #3113, #3117, #3138, #3142, #3188, #3605, #3611, #3693, #3755, #3756
+Related Issues: #3055, #3113, #3117, #3138, #3142, #3188, #3605, #3611, #3693, #3755, #3756, #3774
 Last Reviewed: 2026-08-26
 ---
 
@@ -328,7 +328,7 @@ LGFC implementation routing is defined in [`LGFC-AI-TEAM-OPERATING-MODEL.md`](./
 
 All LGFC implementation tasks (website, repository, ops, CI, and docs implementation):
 
-1. **Cursor Local** and **Claude Code** = co-equal active LGFC standing implementation executors, each assigned bounded work through its own source Issue; neither is sole executor as of the 2026-08 multi-agent parallel-operation decision (#3052). A single task is assigned to exactly one executor; parallel operation means concurrent, non-overlapping assignments, not shared ownership of the same Issue.
+1. **Cursor Local** and **Claude Code** = co-equal active LGFC standing implementation executors relative to each other, each assigned bounded work through its own source Issue; neither is sole executor as of the 2026-08 multi-agent parallel-operation decision (#3052). A single task is assigned to exactly one executor; parallel operation means concurrent, non-overlapping assignments, not shared ownership of the same Issue. This item does not make Cursor Local/Claude Code the exhaustive set of standing executors — see item 3 for Codex.
    - **Cursor Local** is a normal standing executor for `team:operations`, `team:pmo`, and `team:governance` work, and is **not** a normal `team:engineering` executor.
    - **Claude Code** is a normal standing executor for `team:pmo` and `team:engineering` work (and Governance when explicitly assigned). Claude is **not** a normal Operations executor; Claude may join a bounded Operations Issue only when explicitly escalated for additional engineering support. Escalation does not create a Tier-2 Operations Team and does not change Team ownership (`#3152` four-Team topology: Operations, Governance, PMO, Engineering).
 2. **ChatGPT and Work** = co-equal PMO / Engineering, PR Approver / Engineering, Administration & Communications, and Day-2 Operations coordination products; neither performs routine scoped file implementation unless the source Issue explicitly assigns it. See [`CHATGPT-RULES.md`](./CHATGPT-RULES.md), [`WORK-RULES.md`](./WORK-RULES.md), and `#3693`.
