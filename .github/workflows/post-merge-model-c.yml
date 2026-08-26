@@ -31,21 +31,27 @@ jobs:
         id: meta
         env:
           GH_TOKEN: ${{ github.token }}
+          EVENT_NAME: ${{ github.event_name }}
+          PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
+          PULL_REQUEST_BODY: ${{ github.event.pull_request.body }}
+          PULL_REQUEST_MERGED: ${{ github.event.pull_request.merged }}
+          PULL_REQUEST_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PULL_REQUEST_MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+          DISPATCH_PR_NUMBER: ${{ inputs.pr_number }}
         run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            PR_NUMBER="${{ github.event.pull_request.number }}"
-            BODY="${{ github.event.pull_request.body }}"
-            MERGED="${{ github.event.pull_request.merged }}"
-            BASE_SHA="${{ github.event.pull_request.base.sha }}"
-            HEAD_SHA="${{ github.event.pull_request.merge_commit_sha }}"
+          if [ "$EVENT_NAME" = "pull_request" ]; then
+            PR_NUMBER="$PULL_REQUEST_NUMBER"
+            printf '%s\n' "$PULL_REQUEST_BODY" > "$RUNNER_TEMP/pr_body.md"
+            MERGED="$PULL_REQUEST_MERGED"
+            BASE_SHA="$PULL_REQUEST_BASE_SHA"
+            HEAD_SHA="$PULL_REQUEST_MERGE_SHA"
           else
-            PR_NUMBER="${{ inputs.pr_number }}"
-            BODY=$(gh pr view "$PR_NUMBER" --json body -q .body)
+            PR_NUMBER="$DISPATCH_PR_NUMBER"
+            gh pr view "$PR_NUMBER" --json body -q .body > "$RUNNER_TEMP/pr_body.md"
             MERGED=$(gh pr view "$PR_NUMBER" --json merged -q .merged)
             BASE_SHA=$(gh pr view "$PR_NUMBER" --json baseRefOid -q .baseRefOid)
             HEAD_SHA=$(gh pr view "$PR_NUMBER" --json mergeCommit -q .mergeCommit.oid)
           fi
-          printf '%s\n' "$BODY" > "$RUNNER_TEMP/pr_body.md"
           if grep -qiE '^[[:space:]]*(-[[:space:]]*)?Delivery model:[[:space:]]*C[[:space:]]*$' "$RUNNER_TEMP/pr_body.md"; then
             echo "is_model_c=true" >> "$GITHUB_OUTPUT"
           else
