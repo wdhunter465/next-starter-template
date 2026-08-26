@@ -32,43 +32,43 @@
       "allowedAgents": ["cursor", "ChatGPT", "codex", "copilot"],
       "priorityOrder": ["cursor", "ChatGPT"],
       "prIntents": ["infra", "platform", "change-ops"],
-      "quarantinedAgents": ["codex", "copilot"],
-      "note": "Codex/Copilot remain allowed only for explicit remapping/quarantine decisions; they are not active defaults."
+      "quarantinedAgents": ["copilot"],
+      "note": "Codex is a standing LGFC Implementation / Operations agent (#3755); it is eligible for this task type when explicitly assigned, though not a default. Copilot remains allowed only for explicit remapping/quarantine decisions."
     },
     "website": {
       "defaultAgent": "cursor",
       "allowedAgents": ["cursor", "ChatGPT", "codex", "copilot"],
       "priorityOrder": ["cursor", "ChatGPT"],
       "prIntents": ["feature"],
-      "quarantinedAgents": ["codex", "copilot"]
+      "quarantinedAgents": ["copilot"]
     },
     "governance": {
       "defaultAgent": "ChatGPT",
       "allowedAgents": ["ChatGPT", "cursor", "codex", "copilot"],
       "priorityOrder": ["ChatGPT", "cursor"],
       "prIntents": ["infra", "change-ops"],
-      "quarantinedAgents": ["codex", "copilot"]
+      "quarantinedAgents": ["copilot"]
     },
     "docs": {
       "defaultAgent": "ChatGPT",
       "allowedAgents": ["ChatGPT", "cursor", "codex", "copilot"],
       "priorityOrder": ["ChatGPT", "cursor"],
       "prIntents": ["docs-only"],
-      "quarantinedAgents": ["codex", "copilot"]
+      "quarantinedAgents": ["copilot"]
     },
     "recovery": {
       "defaultAgent": "ChatGPT",
       "allowedAgents": ["ChatGPT", "cursor", "codex", "copilot"],
       "priorityOrder": ["ChatGPT", "cursor"],
       "prIntents": ["recovery"],
-      "quarantinedAgents": ["codex", "copilot"]
+      "quarantinedAgents": ["copilot"]
     },
     "ci": {
       "defaultAgent": "cursor",
       "allowedAgents": ["cursor", "ChatGPT", "codex", "copilot"],
       "priorityOrder": ["cursor", "ChatGPT"],
       "prIntents": ["infra", "change-ops"],
-      "quarantinedAgents": ["codex", "copilot"]
+      "quarantinedAgents": ["copilot"]
     }
   },
   "labelDerivation": {
