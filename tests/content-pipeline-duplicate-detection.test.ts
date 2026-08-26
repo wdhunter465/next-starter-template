@@ -4,7 +4,7 @@ import { DatabaseSync, type SQLInputValue } from 'node:sqlite';
 import { describe, expect, it } from 'vitest';
 
 import { commitIngestedMedia } from '../functions/_lib/media-ingest-repository';
-import { upsertCandidate } from '../functions/_lib/content-pipeline-candidate-repository';
+import { softDeleteCandidate, upsertCandidate } from '../functions/_lib/content-pipeline-candidate-repository';
 import type { CandidateRecord } from '../functions/_lib/content-pipeline-candidate-import';
 import {
   buildNearDuplicateIssueContent,
@@ -409,5 +409,53 @@ describe('resolveNearDuplicateFlag (#3760)', () => {
     await expect(
       resolveNearDuplicateFlag(db, 'lgfc-gehrig-2026-does-not-exist', { actor: 'wdhunter465', notes: 'n/a' }),
     ).resolves.toBeUndefined();
+  });
+
+  it('is a no-op (writes no additional moderation event) when the candidate is already resolved', async () => {
+    const { sqlite, db } = freshDb();
+    // upsertCandidate itself already writes a 'review_state_change'
+    // "candidate registry create" moderation event for this content_item,
+    // so the baseline count is 1, not 0.
+    await upsertCandidate(db, minimalCandidate({ candidate_id: 'lgfc-gehrig-2026-501' }));
+
+    const countEvents = () =>
+      (
+        sqlite
+          .prepare(
+            `SELECT COUNT(*) AS count FROM moderation_events
+             WHERE content_item_id = (SELECT id FROM content_items WHERE candidate_id = ?)
+               AND event_type = 'review_state_change'`,
+          )
+          .get('lgfc-gehrig-2026-501') as { count: number }
+      ).count;
+
+    const before = countEvents();
+    await resolveNearDuplicateFlag(db, 'lgfc-gehrig-2026-501', { actor: 'wdhunter465', notes: 'already normal' });
+    expect(countEvents()).toBe(before);
+  });
+
+  it('does not resolve a soft-deleted candidate', async () => {
+    const { sqlite, db } = freshDb();
+    await upsertCandidate(db, minimalCandidate({ candidate_id: 'lgfc-gehrig-2026-500' }));
+    await upsertCandidate(db, minimalCandidate({ candidate_id: 'lgfc-gehrig-2026-501' }));
+    await flagCandidateAsNearDuplicate(db, 'lgfc-gehrig-2026-501', [
+      {
+        matchedCandidateId: 'lgfc-gehrig-2026-500',
+        matchedContentItemId: 1,
+        matchedTitle: null,
+        matchedSourceUrl: null,
+        distance: 1,
+        filenameMatches: false,
+      },
+    ]);
+    await softDeleteCandidate(db, 'lgfc-gehrig-2026-501', { retention_reason: 'test soft delete' });
+
+    await resolveNearDuplicateFlag(db, 'lgfc-gehrig-2026-501', { actor: 'wdhunter465', notes: 'should not apply' });
+
+    const row = sqlite
+      .prepare('SELECT duplicate_of, review_priority FROM content_items WHERE candidate_id = ?')
+      .get('lgfc-gehrig-2026-501') as { duplicate_of: string | null; review_priority: string };
+    expect(row.duplicate_of).toBe('lgfc-gehrig-2026-500');
+    expect(row.review_priority).toBe('high');
   });
 });

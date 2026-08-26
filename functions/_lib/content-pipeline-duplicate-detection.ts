@@ -165,16 +165,22 @@ export async function resolveNearDuplicateFlag(
   options: { actor: string; notes: string },
 ): Promise<void> {
   const existing = await db
-    .prepare(`SELECT id, duplicate_of, review_priority FROM content_items WHERE candidate_id = ?`)
+    .prepare(
+      `SELECT id, duplicate_of, review_priority FROM content_items WHERE candidate_id = ? AND deleted_at IS NULL`,
+    )
     .bind(candidateId)
     .first();
   if (!existing) return;
+
+  // Already resolved (or never flagged) -- skip the write so the moderation
+  // log doesn't gain a misleading "changed" entry for a no-op.
+  if (existing.duplicate_of === null && existing.review_priority === 'normal') return;
 
   await db
     .prepare(
       `UPDATE content_items
        SET duplicate_of = NULL, review_priority = 'normal', updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')
-       WHERE candidate_id = ?`,
+       WHERE candidate_id = ? AND deleted_at IS NULL`,
     )
     .bind(candidateId)
     .run();
