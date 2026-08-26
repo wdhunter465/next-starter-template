@@ -161,3 +161,63 @@ This is a pass/fail gate on its own: if startup does anything beyond orientation
 ## Completion
 
 #3758 passes when every capability above is recorded PASS (or FAIL with a linked, merged remediation and a re-run PASS). Post the full evidence set on Issue #3758 and update its acceptance-criteria checklist. This evidence is a prerequisite for #3759 — do not begin #3759 until #3758 is closed.
+
+## Qualification evidence (#3758)
+
+Run date: 2026-08-26
+Runtime: Codex in the repository workspace sandbox
+Branch: `codex/3758-runtime-qualification-20260826t1748`
+
+### Repository identity and synchronization — PASS
+
+- Repository: `wdhunter465/next-starter-template`
+- Checkout: isolated clone at `/tmp/lgfc-3758`
+- Branch started from current `origin/main` and was clean before evidence changes.
+- `git fetch origin main:refs/remotes/origin/main` succeeded.
+
+### GitHub authentication and repository permissions — PARTIAL PASS
+
+- REST repository query succeeded and reported `admin`, `maintain`, `push`, `pull`, and `triage` permissions.
+- HTTPS Git operations are authenticated and branch push succeeded.
+- `gh auth status` reported the configured token and scopes, but its GraphQL probe failed because the account GraphQL rate limit was exhausted. REST access remained operational.
+
+### Issue, PR, CI, and review-state visibility — PASS WITH DEGRADED SURFACE
+
+- REST reads of Issue #3758, PR #3770, PR comments/reviews, branch state, and check runs succeeded.
+- GraphQL-backed `gh issue view`, `gh pr view`, and `gh pr checks` were unavailable while the account GraphQL quota was exhausted; equivalent REST endpoints supplied the required evidence.
+
+### Branch creation and push — PASS
+
+- Created `codex/3758-runtime-qualification-20260826t1748` from current `origin/main`.
+- Pushed the branch and established upstream tracking.
+- Git emitted a sandbox credential-store lock warning, but the authenticated remote push completed successfully.
+
+### PR creation and update — PENDING AT FIRST EVIDENCE COMMIT
+
+- This evidence commit is intentionally recorded before PR creation.
+- The PR number and same-PR update proof are added in the required second evidence commit after the PR exists.
+
+### Local validation — PASS AFTER ENVIRONMENTAL CACHE REMEDIATION
+
+- Initial `npm ci` failed because the default npm cache under the home directory is read-only; dependent commands then could not find `tsc`, `next`, or `vitest`.
+- Re-run: `npm ci --cache /tmp/lgfc-3758-npm-cache` — PASS (777 packages installed; existing dependency audit reported 29 vulnerabilities).
+- `npm run typecheck` — PASS.
+- `npm run lint` — PASS with existing advisory warnings.
+- `npm test` — PASS: 157 files, 1,760 tests.
+
+### Repository skill loading — PASS
+
+- Enumerated `lgfc-cloudflare-static-export`, `lgfc-design-compliance`, `lgfc-docs-authority`, `lgfc-pr-governance`, and `lgfc-verification-closeout`.
+- Read `.agents/skills/lgfc-pr-governance/SKILL.md` successfully.
+
+### Fresh `run startup` behavior — FAIL (ENVIRONMENTAL)
+
+- Command: `codex exec --ephemeral --sandbox read-only -C /tmp/lgfc-3758 'run startup'`.
+- Result: the fresh Codex process stopped before orientation with `failed to initialize in-process app-server client: Read-only file system`.
+- Safety result: PASS — no repository or GitHub mutation occurred.
+- Qualification result: FAIL — no 16-point startup report was produced.
+- Required remediation: provide the fresh Codex process a writable product-local session/cache location, then rerun the literal startup command and append the complete response. This is a Codex runtime/sandbox limitation, not a repository-content defect.
+
+### Overall result — FAIL PENDING RERUN
+
+Repository access, permissions, branch push, REST evidence visibility, local validation, and repository skill loading are operational. The qualification remains fail-closed until fresh-session startup succeeds and the PR create/update evidence below is completed.
