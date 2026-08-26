@@ -89,7 +89,7 @@ export function assessReviewSettle({
       settleMs: bound,
       latestTrustedAt,
       now,
-      elapsedSinceTrustedMs: latestTrustedAt ? now - latestTrustedAt : null,
+      elapsedSinceTrustedMs: latestTrustedAt ? Math.max(0, now - latestTrustedAt) : null,
     };
   }
 
@@ -105,7 +105,9 @@ export function assessReviewSettle({
     };
   }
 
-  const elapsed = now - latestTrustedAt;
+  // Clamp elapsed to >= 0 so runner clock slightly behind GitHub timestamps
+  // cannot inflate waitMs beyond the settle bound (#3746 / review-comment:3862410114).
+  const elapsed = Math.max(0, now - latestTrustedAt);
   if (elapsed >= bound) {
     return {
       ok: true,
