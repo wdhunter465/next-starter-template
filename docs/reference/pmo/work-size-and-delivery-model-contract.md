@@ -11,13 +11,13 @@ Last Reviewed: 2026-08-26
 
 # Work Size and Delivery Model Contract
 
-This reference defines the evidence contract PMO uses before writing stable delivery metadata. Values align with `scripts/ci/delivery_profile.mjs` from issue #2485 and Model C policy from #3752.
+This reference defines the evidence contract PMO uses before writing stable delivery metadata. Model A/B values align with the current `scripts/ci/delivery_profile.mjs` implementation from issue #2485. **Model C rows, the `documentationOnlyApprovedSurfaces` flag, and Model C path-boundary checks are the target contract defined by #3752**; runtime enforcement lands under companion issue **#3753** and must not be assumed present on `main` until that work merges.
 
 ## Evidence flags
 
 | Flag | Meaning |
 | --- | --- |
-| `documentationOnlyApprovedSurfaces` | Every intended write path is inside Model C approved documentation namespaces; no executable/coding/runtime path in scope |
+| `documentationOnlyApprovedSurfaces` | Every intended write path is inside Model C approved documentation namespaces; no executable/coding/runtime path in scope (target flag for #3753) |
 | `singleReviewablePr` | Complete solution fits one independently reviewable PR |
 | `oneStepRollback` | Rollback is one controlled action |
 | `fullPreviewTestable` | Full behavior can be validated before production |
@@ -36,11 +36,11 @@ This reference defines the evidence contract PMO uses before writing stable deli
 
 1. **Intake:** `size = medium-provisional`
 2. **Emergency:** if `emergencyCondition` or `fullOutageOrUnsafeProduction` → route `emergency-recovery` (exit tree)
-3. **Model C:** if `documentationOnlyApprovedSurfaces` is true and no executable path is in scope → `deliveryModel = C`, size typically `small` or `medium` by review scope; exit tree for model selection
-4. **Large:** if any Large flag is true → `size = large`, `deliveryModel = B-child` or `B-promotion` per release shape
+3. **Model C eligibility:** if `documentationOnlyApprovedSurfaces` is true and no executable path is in scope → `deliveryModel = C`, then continue to steps 4–6 for **deterministic** size using the same Large/Small/Medium flags (do not invent a separate size heuristic)
+4. **Large:** if any Large flag is true → `size = large`; for Model C keep `deliveryModel = C` (docs-only Large is still Model C); for executable work use `B-child` or `B-promotion` per release shape
 5. **Small:** if all Small required flags are true and no Large flag is true → `size = small`
 6. **Medium:** otherwise → `size = medium`
-7. **Model A/B (executable Medium only):** Model A only when all five Medium Model A conditions are true; otherwise Model B
+7. **Model A/B (executable Medium only):** Model A only when all five Medium Model A conditions are true; otherwise Model B. Skip when Model C was selected in step 3.
 
 ## Decision matrix
 
@@ -71,4 +71,4 @@ This reference defines the evidence contract PMO uses before writing stable deli
 
 ## Executable fixture
 
-`tests/support/pmo_work_classification.mjs` implements this matrix for automated regression. The table above remains the human review authority when the fixture and table disagree; fix the fixture before merge. Model C rows are added under issue #3753 implementation work when CI enums are extended.
+`tests/support/pmo_work_classification.mjs` implements the **Model A/B** matrix rows for automated regression today. The table above remains the human review authority when the fixture and table disagree; fix the fixture before merge. **Model C matrix rows are not yet covered by the executable fixture**; automated Model C coverage is owned by issue **#3753** when CI enums and fixtures are extended.
