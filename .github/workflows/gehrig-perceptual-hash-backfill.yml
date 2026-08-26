@@ -96,6 +96,8 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           FLAGS_FILE: ${{ runner.temp }}/near-duplicate-flags.json
         run: |
+          set -euo pipefail
+
           if [ ! -s "$FLAGS_FILE" ]; then
             echo "No near-duplicate flags this run -- nothing to file."
             exit 0
@@ -105,13 +107,29 @@ jobs:
           echo "Filing $count near-duplicate issue(s)..."
 
           body_file="$(mktemp)"
-          jq -c '.[]' "$FLAGS_FILE" | while IFS= read -r pair; do
+          failed=0
+          # Process substitution (not a pipe into `while`) so the loop runs in
+          # THIS shell, not a subshell -- otherwise `failed` set below would be
+          # invisible outside the loop and a `gh issue create` failure could
+          # never fail the step (a real bug this fixes: the previous
+          # `jq ... | while ...` form always exited with `rm -f`'s status,
+          # i.e. success, regardless of whether any issue actually got filed).
+          while IFS= read -r pair; do
             title=$(echo "$pair" | jq -r '.title')
             echo "$pair" | jq -r '.body' > "$body_file"
-            url=$(gh issue create --title "$title" --body-file "$body_file" --repo "${{ github.repository }}")
-            echo "Filed: $url"
-          done
+            if url=$(gh issue create --title "$title" --body-file "$body_file" --repo "${{ github.repository }}"); then
+              echo "Filed: $url"
+            else
+              echo "::error::Failed to file near-duplicate issue for: $title"
+              failed=1
+            fi
+          done < <(jq -c '.[]' "$FLAGS_FILE")
           rm -f "$body_file"
+
+          if [ "$failed" -ne 0 ]; then
+            echo "One or more near-duplicate issues failed to file -- see errors above."
+            exit 1
+          fi
 
       - name: Write step summary
         if: always()
