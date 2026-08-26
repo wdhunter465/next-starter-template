@@ -2,21 +2,22 @@
 Doc Type: Reference
 Audience: Human + AI
 Authority Level: Controlled
-Owns: Objective sizing criteria, Medium Model A/B evidence flags, decision-matrix examples, and mapping to delivery-profile stable metadata
+Owns: Objective sizing criteria, Medium Model A/B evidence flags, Model C documentation-only selection, decision-matrix examples, and mapping to delivery-profile stable metadata
 Does Not Own: PMO launch authorization, workflow behavior, or merge approval
 Canonical Reference: /docs/governance/PMO-PORTFOLIO.md
-Related Issues: #2487
-Last Reviewed: 2026-07-13
+Related Issues: #2487, #3752
+Last Reviewed: 2026-08-26
 ---
 
 # Work Size and Delivery Model Contract
 
-This reference defines the evidence contract PMO uses before writing stable delivery metadata. Values align with `scripts/ci/delivery_profile.mjs` from issue #2485.
+This reference defines the evidence contract PMO uses before writing stable delivery metadata. Model A/B values align with the current `scripts/ci/delivery_profile.mjs` implementation from issue #2485. **Model C rows, the `documentationOnlyApprovedSurfaces` flag, and Model C path-boundary checks are the target contract defined by #3752**; runtime enforcement lands under companion issue **#3753** and must not be assumed present on `main` until that work merges.
 
 ## Evidence flags
 
 | Flag | Meaning |
 | --- | --- |
+| `documentationOnlyApprovedSurfaces` | Every intended write path is inside Model C approved documentation namespaces; no executable/coding/runtime path in scope (target flag for #3753) |
 | `singleReviewablePr` | Complete solution fits one independently reviewable PR |
 | `oneStepRollback` | Rollback is one controlled action |
 | `fullPreviewTestable` | Full behavior can be validated before production |
@@ -35,16 +36,21 @@ This reference defines the evidence contract PMO uses before writing stable deli
 
 1. **Intake:** `size = medium-provisional`
 2. **Emergency:** if `emergencyCondition` or `fullOutageOrUnsafeProduction` → route `emergency-recovery` (exit tree)
-3. **Large:** if any Large flag is true → `size = large`, `deliveryModel = B-child` or `B-promotion` per release shape
-4. **Small:** if all Small required flags are true and no Large flag is true → `size = small`
-5. **Medium:** otherwise → `size = medium`
-6. **Model A/B (Medium only):** Model A only when all five Medium Model A conditions are true; otherwise Model B
+3. **Model C eligibility:** if `documentationOnlyApprovedSurfaces` is true and no executable path is in scope → `deliveryModel = C`, then continue to steps 4–6 for **deterministic** size using the same Large/Small/Medium flags (do not invent a separate size heuristic)
+4. **Large:** if any Large flag is true → `size = large`; for Model C keep `deliveryModel = C` (docs-only Large is still Model C); for executable work use `B-child` or `B-promotion` per release shape
+5. **Small:** if all Small required flags are true and no Large flag is true → `size = small`
+6. **Medium:** otherwise → `size = medium`
+7. **Model A/B (executable Medium only):** Model A only when all five Medium Model A conditions are true; otherwise Model B. Skip when Model C was selected in step 3.
 
 ## Decision matrix
 
 | Example | Provisional | Final size | Change mode | Delivery model | Approval profile | Rollback profile | Decisive evidence |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Typo or bounded content correction | medium-provisional | small | routine-ops | A | chat-bill-production | one-step | Single PR, preview-testable, one-step rollback, no protected boundary |
+| Typo in how-to under `docs/how-to/**` | medium-provisional | small | documentation | C | documentation-review | one-step | Docs-only approved surface; no executable path |
+| Governance domain-policy clarification under `docs/governance/**` | medium-provisional | medium | documentation | C | protected-change-review | one-step | Docs-only; constitutional/domain-policy review intensity |
+| README root documentation-only edit | medium-provisional | small | documentation | C | documentation-review | one-step | Exceptional root documentation surface; content-only |
+| Add `README.md` inside `functions/**` | medium-provisional | small | routine-ops | A | chat-bill-production | one-step | Coding/runtime path — **not** Model C |
+| Typo or bounded content correction in application UI copy (code path) | medium-provisional | small | routine-ops | A | chat-bill-production | one-step | Single PR, executable surface |
 | Routine dependency patch | medium-provisional | small | routine-ops | A | chat-bill-production | one-step | One reviewable PR, no architecture change, patch rollback |
 | Club Homepage newspaper feature | medium-provisional | medium | project | B-child | component-auto-integration | multi-step | Multiple UI surfaces and protected layout boundaries require component integration |
 | Content Collection Phase 1 | medium-provisional | medium | project | B-child | component-auto-integration | multi-step | Multi-step feature boundary; preview-testable only across child sequence |
@@ -58,10 +64,11 @@ This reference defines the evidence contract PMO uses before writing stable deli
 ## Invariants
 
 - Identical evidence must always produce identical classification.
-- No example may map to both Model A and Model B.
-- Emergency examples must not be reclassified through Medium Model A/B logic.
+- No example may map to both Model A and Model B for the same release unit.
+- No example may map to Model C when any executable or coding/runtime path is in scope.
+- Emergency examples must not be reclassified through Medium Model A/B or Model C logic.
 - Stable metadata recorded on issues and PRs must match the matrix outcome for the cited evidence.
 
 ## Executable fixture
 
-`tests/support/pmo_work_classification.mjs` implements this matrix for automated regression. The table above remains the human review authority when the fixture and table disagree; fix the fixture before merge.
+`tests/support/pmo_work_classification.mjs` implements the **Model A/B** matrix rows for automated regression today. The table above remains the human review authority when the fixture and table disagree; fix the fixture before merge. **Model C matrix rows are not yet covered by the executable fixture**; automated Model C coverage is owned by issue **#3753** when CI enums and fixtures are extended.
