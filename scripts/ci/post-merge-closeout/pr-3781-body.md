@@ -35,7 +35,8 @@ Result summary: PASS
 - [x] No product/runtime behavior is changed by this evidence artifact.
 
 ## REVIEWER RESPONSE ACCOUNTING
-- review-comment:3442829518 — accepted — parser-unsafe source-disposition wording corrected by PR #3781; thread state: outdated
+- review-comment:3442829518 — accepted — parser-unsafe source-disposition wording corrected by PR #3781 — thread state: outdated
+- review-comment:3865587932 — accepted — reviewer-disposition delimiter normalized to canonical em-dash format — thread state: outdated
 
 ## POST-MERGE CLOSEOUT CHECKLIST
 - [x] PR #3781 merged state verified.
