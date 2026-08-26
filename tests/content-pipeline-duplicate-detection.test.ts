@@ -4,13 +4,14 @@ import { DatabaseSync, type SQLInputValue } from 'node:sqlite';
 import { describe, expect, it } from 'vitest';
 
 import { commitIngestedMedia } from '../functions/_lib/media-ingest-repository';
-import { upsertCandidate } from '../functions/_lib/content-pipeline-candidate-repository';
+import { softDeleteCandidate, upsertCandidate } from '../functions/_lib/content-pipeline-candidate-repository';
 import type { CandidateRecord } from '../functions/_lib/content-pipeline-candidate-import';
 import {
   buildNearDuplicateIssueContent,
   findNearDuplicateMediaAssets,
   flagCandidateAsNearDuplicate,
   NEAR_DUPLICATE_HAMMING_THRESHOLD,
+  resolveNearDuplicateFlag,
 } from '../functions/_lib/content-pipeline-duplicate-detection';
 
 function applyRepoMigrations(db: DatabaseSync) {
@@ -359,5 +360,102 @@ describe('flagCandidateAsNearDuplicate (#3552 phase 4)', () => {
       .get('lgfc-gehrig-2026-501') as { duplicate_of: string | null; review_priority: string };
     expect(row.duplicate_of).toBeNull();
     expect(row.review_priority).toBe('normal');
+  });
+});
+
+describe('resolveNearDuplicateFlag (#3760)', () => {
+  it('clears duplicate_of and review_priority, and records a review_state_change moderation event', async () => {
+    const { sqlite, db } = freshDb();
+    await upsertCandidate(db, minimalCandidate({ candidate_id: 'lgfc-gehrig-2026-500' }));
+    await upsertCandidate(db, minimalCandidate({ candidate_id: 'lgfc-gehrig-2026-501' }));
+    await flagCandidateAsNearDuplicate(db, 'lgfc-gehrig-2026-501', [
+      {
+        matchedCandidateId: 'lgfc-gehrig-2026-500',
+        matchedContentItemId: 1,
+        matchedTitle: 'File:GehrigCU.jpg',
+        matchedSourceUrl: 'https://example.com/500',
+        distance: 3,
+        filenameMatches: true,
+      },
+    ]);
+
+    await resolveNearDuplicateFlag(db, 'lgfc-gehrig-2026-501', {
+      actor: 'wdhunter465',
+      notes: 'Kept per #3760 -- lgfc-gehrig-2026-500 is the duplicate being removed.',
+    });
+
+    const row = sqlite
+      .prepare('SELECT duplicate_of, review_priority FROM content_items WHERE candidate_id = ?')
+      .get('lgfc-gehrig-2026-501') as { duplicate_of: string | null; review_priority: string };
+    expect(row.duplicate_of).toBeNull();
+    expect(row.review_priority).toBe('normal');
+
+    const event = sqlite
+      .prepare(
+        `SELECT event_type, actor, from_state, to_state, notes FROM moderation_events
+         WHERE content_item_id = (SELECT id FROM content_items WHERE candidate_id = ?)
+           AND event_type = 'review_state_change'
+         ORDER BY id DESC LIMIT 1`,
+      )
+      .get('lgfc-gehrig-2026-501') as { event_type: string; actor: string; from_state: string; to_state: string; notes: string };
+    expect(event.actor).toBe('wdhunter465');
+    expect(JSON.parse(event.from_state)).toEqual({ duplicate_of: 'lgfc-gehrig-2026-500', review_priority: 'high' });
+    expect(JSON.parse(event.to_state)).toEqual({ duplicate_of: null, review_priority: 'normal' });
+    expect(event.notes).toContain('#3760');
+  });
+
+  it('is a no-op when the candidate does not exist', async () => {
+    const { db } = freshDb();
+    await expect(
+      resolveNearDuplicateFlag(db, 'lgfc-gehrig-2026-does-not-exist', { actor: 'wdhunter465', notes: 'n/a' }),
+    ).resolves.toBeUndefined();
+  });
+
+  it('is a no-op (writes no additional moderation event) when the candidate is already resolved', async () => {
+    const { sqlite, db } = freshDb();
+    // upsertCandidate itself already writes a 'review_state_change'
+    // "candidate registry create" moderation event for this content_item,
+    // so the baseline count is 1, not 0.
+    await upsertCandidate(db, minimalCandidate({ candidate_id: 'lgfc-gehrig-2026-501' }));
+
+    const countEvents = () =>
+      (
+        sqlite
+          .prepare(
+            `SELECT COUNT(*) AS count FROM moderation_events
+             WHERE content_item_id = (SELECT id FROM content_items WHERE candidate_id = ?)
+               AND event_type = 'review_state_change'`,
+          )
+          .get('lgfc-gehrig-2026-501') as { count: number }
+      ).count;
+
+    const before = countEvents();
+    await resolveNearDuplicateFlag(db, 'lgfc-gehrig-2026-501', { actor: 'wdhunter465', notes: 'already normal' });
+    expect(countEvents()).toBe(before);
+  });
+
+  it('does not resolve a soft-deleted candidate', async () => {
+    const { sqlite, db } = freshDb();
+    await upsertCandidate(db, minimalCandidate({ candidate_id: 'lgfc-gehrig-2026-500' }));
+    await upsertCandidate(db, minimalCandidate({ candidate_id: 'lgfc-gehrig-2026-501' }));
+    await flagCandidateAsNearDuplicate(db, 'lgfc-gehrig-2026-501', [
+      {
+        matchedCandidateId: 'lgfc-gehrig-2026-500',
+        matchedContentItemId: 1,
+        matchedTitle: null,
+        matchedSourceUrl: null,
+        distance: 1,
+        filenameMatches: false,
+      },
+    ]);
+    await softDeleteCandidate(db, 'lgfc-gehrig-2026-501', { retention_reason: 'test soft delete' });
+
+    await resolveNearDuplicateFlag(db, 'lgfc-gehrig-2026-501', { actor: 'wdhunter465', notes: 'should not apply' });
+
+    const row = sqlite
+      .prepare('SELECT duplicate_of, review_priority FROM content_items WHERE candidate_id = ?')
+      .get('lgfc-gehrig-2026-501') as { duplicate_of: string | null; review_priority: string };
+    expect(row.duplicate_of).toBe('lgfc-gehrig-2026-500');
+    expect(row.review_priority).toBe('high');
   });
 });
