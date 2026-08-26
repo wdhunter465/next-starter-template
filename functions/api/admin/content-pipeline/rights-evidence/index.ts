@@ -10,6 +10,7 @@ import {
   RIGHTS_EVIDENCE_CHANNELS,
   getCurrentConclusionForCandidate,
   getCurrentConclusionForCandidateChannel,
+  getCurrentUsageDecisionForCandidate,
   listRightsEvidenceForCandidate,
   recordGovernedRightsEvidence,
   requireRightsEvidenceTables,
@@ -68,10 +69,11 @@ export const onRequestGet = async (context: any): Promise<Response> => {
       return jsonResponse({ ok: false, error: 'Candidate not found.' }, 404);
     }
 
-    const [evidence, currentConclusion, currentConclusionByChannel] = await Promise.all([
+    const [evidence, currentConclusion, currentConclusionByChannel, currentUsageDecision] = await Promise.all([
       listRightsEvidenceForCandidate(d1.db, candidate.id),
       getCurrentConclusionForCandidate(d1.db, candidate.id),
       resolveCurrentConclusionByChannel(d1.db, candidate.id),
+      getCurrentUsageDecisionForCandidate(d1.db, candidate.id),
     ]);
 
     return jsonResponse(
@@ -83,6 +85,10 @@ export const onRequestGet = async (context: any): Promise<Response> => {
         // status (#3551's 2026-08-18 channel-scoping directive).
         current_conclusion: currentConclusion,
         current_conclusion_by_channel: currentConclusionByChannel,
+        // #3552 phase 5 (#3748): the most recent permit/deny/hold row,
+        // across all evidence for this candidate -- null only when no
+        // evidence has been recorded at all yet.
+        current_usage_decision: currentUsageDecision,
         evidence,
       },
       200,

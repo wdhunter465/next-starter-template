@@ -180,6 +180,125 @@ describe('buildBatchRightsApprovalSql against a real D1 schema (#3552)', () => {
     expect(row514.rights_holder).toBeNull();
   });
 
+  it('populates source_filename from content_items.title and tagging_requirements for a CC BY item, null for public domain (#3552 phase 5 / #3748)', () => {
+    const db = new DatabaseSync(':memory:');
+    applyRepoMigrations(db);
+    importCandidatesAndRunApproval(db);
+
+    // 513 is the CC BY 1.0 item -- attribution required. source_filename
+    // must match content_items.title exactly, whatever that title is.
+    const row513 = db
+      .prepare(
+        `SELECT re.source_filename, re.tagging_requirements, re.usage_decision, ci.title
+         FROM rights_evidence re JOIN content_items ci ON ci.id = re.content_item_id
+         WHERE ci.candidate_id = ?`,
+      )
+      .get('lgfc-gehrig-2026-513') as Record<string, unknown>;
+    expect(row513.source_filename).toBe(row513.title);
+    expect(row513.tagging_requirements).toMatch(/^Attribution required/);
+    expect(row513.usage_decision).toBe('permit');
+
+    // 511 is public domain -- no attribution condition.
+    const row511 = db
+      .prepare(
+        `SELECT tagging_requirements, usage_decision
+         FROM rights_evidence WHERE content_item_id = (SELECT id FROM content_items WHERE candidate_id = ?)`,
+      )
+      .get('lgfc-gehrig-2026-511') as Record<string, unknown>;
+    expect(row511.tagging_requirements).toBeNull();
+    expect(row511.usage_decision).toBe('permit');
+  });
+
+  it('queues an unrecognized license as usage_decision=hold instead of aborting the whole batch (#3552 phase 5 / #3748)', () => {
+    const db = new DatabaseSync(':memory:');
+    applyRepoMigrations(db);
+
+    const registry = {
+      schema_version: '1',
+      registry_class: 'fixture',
+      candidates: [
+        {
+          candidate_id: 'lgfc-gehrig-2026-999',
+          input_stream: 'scheduled_discovery',
+          title: 'File:Mystery.jpg',
+          source_name: 'Wikimedia Commons',
+          source_type: 'archive',
+          source_domain: 'commons.wikimedia.org',
+          source_url: 'https://commons.wikimedia.org/wiki/File:Mystery.jpg',
+          content_type: 'photo',
+          summary: 'Test summary',
+          rights_status: 'unknown',
+          source_trust_status: 'trusted',
+          relevance_status: 'relevant',
+          review_status: 'pending_review',
+          publication_status: 'not_ready',
+          privacy_flag: 'none',
+          privacy_review_status: 'not_applicable',
+          review_priority: 'normal',
+          created_at: '2026-08-17T21:00:00.000Z',
+          updated_at: '2026-08-17T21:00:00.000Z',
+        },
+      ],
+    };
+
+    const validation = validateCandidateRegistry(registry);
+    expect(validation.ok).toBe(true);
+    const plan = buildCandidateImportPlan(registry as never);
+    db.exec(buildImportSqlBatch(plan));
+
+    const licenseNotesByCandidateId = new Map([
+      [
+        'lgfc-gehrig-2026-999',
+        {
+          candidate_id: 'lgfc-gehrig-2026-999',
+          license_short_name: 'All rights reserved',
+          license_url: null,
+          usage_terms: null,
+          artist: 'Someone',
+        },
+      ],
+    ]);
+
+    expect(() =>
+      buildBatchRightsApprovalSql(
+        registry.candidates as never,
+        licenseNotesByCandidateId as Map<string, never>,
+        'Bill Hunter',
+        '2026-08-17T21:30:00.000Z',
+      ),
+    ).not.toThrow();
+
+    const { rows, sqlBatch } = buildBatchRightsApprovalSql(
+      registry.candidates as never,
+      licenseNotesByCandidateId as Map<string, never>,
+      'Bill Hunter',
+      '2026-08-17T21:30:00.000Z',
+    );
+    expect(rows).toHaveLength(1);
+    expect(rows[0].usageDecision).toBe('hold');
+    expect(rows[0].conclusion).toBeNull();
+    expect(rows[0].decisionUpdate).toBe('');
+
+    db.exec(sqlBatch);
+
+    const evidenceRow = db
+      .prepare(
+        `SELECT conclusion, usage_decision, source_filename FROM rights_evidence
+         WHERE content_item_id = (SELECT id FROM content_items WHERE candidate_id = ?)`,
+      )
+      .get('lgfc-gehrig-2026-999') as Record<string, unknown>;
+    expect(evidenceRow.conclusion).toBeNull();
+    expect(evidenceRow.usage_decision).toBe('hold');
+    expect(evidenceRow.source_filename).toBe('File:Mystery.jpg');
+
+    // Never marked approved -- curator_decision stays at its untouched
+    // default rather than being flipped to 'approved'.
+    const contentItemRow = db
+      .prepare('SELECT curator_decision FROM content_items WHERE candidate_id = ?')
+      .get('lgfc-gehrig-2026-999') as Record<string, unknown>;
+    expect(contentItemRow.curator_decision).not.toBe('approved');
+  });
+
   it('getCurrentConclusionForCandidate-style query returns the recorded conclusion (rights_evidence is queryable per #3567 ingestion gate)', () => {
     const db = new DatabaseSync(':memory:');
     applyRepoMigrations(db);

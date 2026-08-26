@@ -4,13 +4,17 @@
 // decides *whether* an item is approved -- that determination (and the
 // reviewer identity) is supplied by the caller. It only classifies each
 // item's license template into the fixed rights_evidence.conclusion
-// vocabulary via mapLicenseToConclusion, which refuses to guess for
-// anything it doesn't recognize.
+// vocabulary via resolveCommonsUsageDecision, which never guesses for
+// anything it doesn't recognize -- an unrecognized item is queued as
+// usage_decision='hold' (#3552 phase 5 / #3748) rather than aborting the
+// whole batch the way the underlying mapLicenseToConclusion still does for
+// callers that want that stricter behavior.
 
 import {
   deriveCommonsProvenance,
+  deriveTaggingRequirements,
   mapConclusionToRightsStatus,
-  mapLicenseToConclusion,
+  resolveCommonsUsageDecision,
 } from './content-pipeline-license-conclusion-mapping';
 
 export type LicenseNote = {
@@ -35,8 +39,13 @@ export type CandidateForApproval = {
 
 export type BatchRightsApprovalRow = {
   candidateId: string;
-  conclusion: string;
+  usageDecision: string;
+  // null when usageDecision is 'hold' -- #3552 phase 5 (#3748), no
+  // conclusion is recorded until a human resolves the hold.
+  conclusion: string | null;
   evidenceInsert: string;
+  // '' when usageDecision is 'hold' -- nothing to run, curator_decision
+  // stays whatever it already was rather than being marked approved.
   decisionUpdate: string;
 };
 
@@ -59,35 +68,46 @@ export function buildBatchRightsApprovalRow(
     throw new Error(`No license note found for candidate_id ${candidate.candidate_id}`);
   }
 
-  const conclusion = mapLicenseToConclusion(licenseNote.license_short_name);
-  const rightsStatus = mapConclusionToRightsStatus(conclusion);
+  const { usageDecision, conclusion } = resolveCommonsUsageDecision(licenseNote.license_short_name);
   const { evidenceText, rightsHolder } = deriveCommonsProvenance(licenseNote);
+  const taggingRequirements = deriveTaggingRequirements(licenseNote.license_short_name, licenseNote.artist);
 
   const rationale =
     conclusion === 'permission_granted'
       ? `${reviewer} reviewed Wikimedia Commons' own license/attribution/caption data for this item and approved it for use on the LGFC website. License is a conditioned grant (attribution required) rather than an unconditional public-domain claim; credit_line carries the required attribution.`
-      : `${reviewer} reviewed Wikimedia Commons' own license/attribution/caption data for this item and approved it for use on the LGFC website.`;
+      : conclusion === 'public_domain_confirmed'
+        ? `${reviewer} reviewed Wikimedia Commons' own license/attribution/caption data for this item and approved it for use on the LGFC website.`
+        : // usageDecision === 'hold': license text wasn't recognized -- captured
+          // as evidence for a human to resolve, not guessed at.
+          `${reviewer}'s batch review did not recognize this item's license template ("${licenseNote.license_short_name}") against the known Commons vocabulary -- held for individual review rather than guessed at.`;
 
   const evidenceInsert = `INSERT INTO rights_evidence (
   content_item_id, evidence_type, evidence_text, evidence_url, evidence_metadata,
   rights_holder, repository_or_collection,
-  reviewer, conclusion, conclusion_rationale
+  reviewer, conclusion, conclusion_rationale,
+  source_filename, tagging_requirements, usage_decision
 )
 SELECT id, 'commons_license', ${sqlString(evidenceText)}, ${sqlString(licenseNote.license_url)}, ${sqlJson(licenseNote)},
   ${sqlString(rightsHolder)}, ${sqlString(REPOSITORY_OR_COLLECTION)},
-  ${sqlString(reviewer)}, ${sqlString(conclusion)}, ${sqlString(rationale)}
+  ${sqlString(reviewer)}, ${sqlString(conclusion)}, ${sqlString(rationale)},
+  title, ${sqlString(taggingRequirements)}, ${sqlString(usageDecision)}
 FROM content_items WHERE candidate_id = ${sqlString(candidate.candidate_id)};`;
 
-  const decisionUpdate = `UPDATE content_items
+  // A 'hold' item is never marked approved -- leave curator_decision alone
+  // for a human to act on once the hold is resolved.
+  const decisionUpdate =
+    usageDecision === 'hold'
+      ? ''
+      : `UPDATE content_items
 SET curator_decision = 'approved',
     curator_decision_by = ${sqlString(reviewer)},
     curator_decision_at = ${sqlString(nowIso)},
     curator_decision_notes = ${sqlString('Approved after reviewing real Wikimedia Commons license/caption/credit data for this item.')},
-    rights_status = ${sqlString(rightsStatus)},
+    rights_status = ${sqlString(mapConclusionToRightsStatus(conclusion!))},
     updated_at = ${sqlString(nowIso)}
 WHERE candidate_id = ${sqlString(candidate.candidate_id)};`;
 
-  return { candidateId: candidate.candidate_id, conclusion, evidenceInsert, decisionUpdate };
+  return { candidateId: candidate.candidate_id, usageDecision, conclusion, evidenceInsert, decisionUpdate };
 }
 
 export function buildBatchRightsApprovalSql(
@@ -99,6 +119,8 @@ export function buildBatchRightsApprovalSql(
   const rows = candidates.map((candidate) =>
     buildBatchRightsApprovalRow(candidate, licenseNotesByCandidateId.get(candidate.candidate_id), reviewer, nowIso),
   );
-  const sqlBatch = rows.map((row) => `${row.evidenceInsert}\n${row.decisionUpdate}`).join('\n\n');
+  const sqlBatch = rows
+    .map((row) => (row.decisionUpdate ? `${row.evidenceInsert}\n${row.decisionUpdate}` : row.evidenceInsert))
+    .join('\n\n');
   return { rows, sqlBatch };
 }
