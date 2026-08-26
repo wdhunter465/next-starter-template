@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: PMO intake, work sizing, delivery-model selection, Sandbox authorization, Pipeline preparation direction, Project Graduation, launch authorization, portfolio inventory, and authoritative priority decisions
 Does Not Own: Queue-label mechanics, Development execution, Promotion Candidate execution, CI implementation, Administration & Communications mutation procedure, Day-2 recovery strategy, or Production approval
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2477, #2487, #2640, #2641, #2695, #2699, #3055, #3113, #3597, #3666, #3669, #3670
-Last Reviewed: 2026-08-18
+Related Issues: #2477, #2487, #2640, #2641, #2695, #2699, #3055, #3113, #3597, #3666, #3669, #3670, #3752
+Last Reviewed: 2026-08-26
 ---
 
 # PMO Portfolio
@@ -149,13 +149,17 @@ Medium is everything not objectively Small or Large.
 
 ## Delivery-model selection
 
-Select Model A only when the complete solution fits one reviewable PR, can become a complete Promotion Candidate before merge, and has one-step rollback.
+Select **Model C** when the complete solution is documentation-only: every intended write path lies inside the approved Model C documentation namespaces defined in `docs/governance/DELIVERY-AND-RELEASE.md`, and no executable, CI, test, migration, deployment, configuration, dependency-manifest, or coding/runtime path is in scope.
 
-Any failed condition selects Model B.
+Select Model A only when the complete solution is **not** Model C-eligible, fits one reviewable PR, can become a complete Promotion Candidate before merge, and has one-step rollback.
+
+Any failed Model A condition for executable work selects Model B.
 
 Model B is the default for remote component-branch implementation, multiple Development increments, or work needing integrated Promotion Candidate qualification.
 
-No work may use both Model A and Model B for the same release unit.
+No work may use both Model A and Model B for the same release unit. No work may claim Model C for the same path writes as Model A or Model B; split documentation surfaces (Model C) from executable or coding-folder destinations (Model A/B).
+
+Documentation required inside a coding/runtime folder is never Model C at the destination path—route through Model A or B (optionally after Model C authored the content on an approved documentation surface).
 
 ## Promotion-profile planning
 
@@ -172,6 +176,8 @@ For Model B:
 - child tasks execute in Development;
 - integrated component state becomes the Promotion Candidate;
 - Production is a separate controlled promotion.
+
+For Model C, the documentation gate profile applies; code Promotion Candidate qualification and Production deployment smoke are not required solely for documentation-only merges.
 
 Development cannot promote directly to Production.
 
@@ -219,7 +225,7 @@ Ordinary predecessor or advisory conditions are not queue-wide `HOLD` or `BLOCKE
 ### Examples
 
 - **Advisory-dependent work:** Pipeline preparation notes a dependency on external design review. Bounded repository documentation may proceed; only the step consuming unapproved design waits.
-- **Docs/evidence increment:** A child delivers governance docs now and defers Production promotion until protected review completes.
+- **Docs/evidence increment:** A child delivers governance docs now and defers Production promotion until protected review completes. Pure documentation surfaces may use Model C; coding-folder destinations remain Model A/B.
 - **Serial child chain:** Standing Project Graduation authority carries the prepared graph; eligible agents self-claim each package-complete successor after deterministic predecessor completion without routine PMO redispatch (#3055 / #3145).
 - **Production-only gate:** Development increments merge under standing authority; only the Production promotion action requires `PRODUCTION GO`.
 
@@ -332,4 +338,5 @@ This policy supersedes lower-level PMO instructions where they:
 - require additional risk-based elevation before a qualifying numbered Operations Issue interrupts normal work;
 - use queue-wide `HOLD` or `BLOCKED` for ordinary predecessor or advisory conditions;
 - freeze an entire project because one final step requires a protected stop;
-- delay successor release after verified integration when the successor package is complete.
+- delay successor release after verified integration when the successor package is complete;
+- force pure documentation-only work through Model A/B solely because documentation files change when Model C eligibility is met.
