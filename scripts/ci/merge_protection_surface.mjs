@@ -19,6 +19,13 @@ export const MERGE_PROTECTION_SURFACE = [
     required: true,
     notes: 'Deterministic secret exposure blocker.',
   },
+  {
+    file: 'reviewer-response-completion.yml',
+    workflowName: 'GATE — Reviewer Response Completion',
+    jobIds: ['reviewer-response-completion'],
+    required: true,
+    notes: '#3746: Required so late trusted review events re-pending merge eligibility before enforcement completes.',
+  },
 ];
 
 /** @type {Array<{ file: string; workflowName: string; jobIds: string[]; notes?: string }>} */
@@ -34,12 +41,6 @@ export const ADVISORY_PR_PROCESS_WORKFLOWS = [
     workflowName: 'GATE — Diff Scope',
     jobIds: ['diff-scope'],
     notes: 'Advisory allowed-path diff validation.',
-  },
-  {
-    file: 'reviewer-response-completion.yml',
-    workflowName: 'GATE — Reviewer Response Completion',
-    jobIds: ['reviewer-response-completion'],
-    notes: 'Advisory GitHub-native reviewer lifecycle validation.',
   },
 ];
 
@@ -256,6 +257,13 @@ export function renderBranchProtectionChecklist() {
     '- `drift` — advisory/marker unless explicitly reclassified',
     '',
     'OPS runtime and post-merge workflows must not be required status checks.',
+    '',
+    '## #3746 late-review race note',
+    '',
+    'After promoting `reviewer-response-completion`, ensure branch protection / Rulesets',
+    'list that check name as required. New trusted review events re-run the check for the',
+    'current head SHA; while pending or failed, merge is blocked. Same-PR preparer handback',
+    'remains the remediation path.',
   );
 
   return `${lines.join('\n')}\n`;
