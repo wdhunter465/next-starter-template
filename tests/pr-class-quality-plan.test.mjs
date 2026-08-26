@@ -13,7 +13,7 @@ function bodyFor(prClass, deliveryOverrides = {}) {
     deliveryModel: 'A',
     changeMode: 'project',
     targetEnvironment: 'production',
-    approvalProfile: 'chat-bill-production',
+    approvalProfile: 'work-bill-production',
     gateProfile: 'production-candidate',
     rollbackProfile: 'one-step',
     componentBranch: 'not-applicable',
@@ -103,12 +103,13 @@ describe('PR class quality plan', () => {
 
 describe('delivery-profile quality routing', () => {
   it('exports stable delivery minimum profiles', () => {
-    expect(Object.keys(DELIVERY_QUALITY_MINIMUMS)).toEqual([
-      'production-candidate',
+    expect(Object.keys(DELIVERY_QUALITY_MINIMUMS).sort()).toEqual([
       'component-child',
       'component-promotion',
+      'documentation',
       'emergency-recovery',
-    ]);
+      'production-candidate',
+    ].sort());
   });
 
   it('requires full production build for Model A code paths', () => {
@@ -185,7 +186,7 @@ describe('delivery-profile quality routing', () => {
     const body = bodyFor('release', {
       deliveryModel: 'B-promotion',
       targetEnvironment: 'production',
-      approvalProfile: 'chat-bill-production',
+      approvalProfile: 'work-bill-production',
       gateProfile: 'component-promotion',
       rollbackProfile: 'multi-step',
       componentBranch: 'component/delivery-system-v1',
@@ -225,7 +226,7 @@ describe('delivery-profile quality routing', () => {
   });
 
   it('preserves PR class routing when delivery profile is invalid', () => {
-    const body = bodyFor('ci', { deliveryModel: 'Model C' });
+    const body = bodyFor('ci', { deliveryModel: 'Model X' });
     const plan = determineQualityPlan({
       body,
       deliveryProfile: classify(body, { baseRef: 'component/delivery-system-v1' }),

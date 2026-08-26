@@ -22,12 +22,13 @@ Do not begin unrelated implementation while running this qualification. This pro
 Read, in order (per `docs/ops/ai/CODEX-RULES.md`'s mandatory documentation chain):
 
 1. `Agent.md`
-2. `docs/governance/AGENT-TEAM.md`
-3. `docs/ops/ai/SHARED-AGENT-RULES.md`
-4. `docs/ops/ai/CORE-RULES.md`
-5. `docs/ops/ai/CODEX-RULES.md`
-6. This file
-7. Issue #3758 itself
+2. `docs/governance/REPOSITORY-AUTHORITY.md`
+3. `docs/governance/AGENT-TEAM.md`
+4. `docs/ops/ai/SHARED-AGENT-RULES.md`
+5. `docs/ops/ai/CORE-RULES.md`
+6. `docs/ops/ai/CODEX-RULES.md`
+7. This file
+8. Issue #3758 itself
 
 ## Evidence format
 
@@ -86,35 +87,49 @@ Expect: check names and states (success/failure/pending) are visible. If no PR i
 
 ### 5. Branch creation and push
 
+Pick a branch name unique to this run (append the date or a short run ID) so a rerun or a second qualification pass never collides with a leftover branch:
+
 ```bash
-git checkout -b codex/3758-runtime-qualification origin/main
-git push -u origin codex/3758-runtime-qualification
+BRANCH="codex/3758-runtime-qualification-$(date +%Y%m%d%H%M%S)"
+git checkout -b "$BRANCH" origin/main
+git push -u origin "$BRANCH"
 ```
 
-Expect: branch created from current `main`; push succeeds without requiring elevated permissions beyond what step 2 already confirmed.
+Expect: branch created from current `main`; push succeeds without requiring elevated permissions beyond what step 2 already confirmed. Record the actual branch name you used — later commands in this procedure assume `$BRANCH` is still set in your shell.
 
-### 6. PR creation/update capability
+### 6. PR creation and update capability
 
-Make a trivial, reversible change inside this qualification's own scope (for example, appending your evidence block to this file under a `## Qualification evidence (#3758)` heading you add), then:
+Issue #3758 requires demonstrating both create *and* update. Make a trivial, reversible change inside this qualification's own scope (for example, appending your evidence block to this file under a `## Qualification evidence (#3758)` heading you add), then:
 
 ```bash
 git add docs/how-to/codex/qualify-codex-runtime.md
 git commit -m "docs(#3758): record runtime qualification evidence"
 git push
-gh pr create --repo wdhunter465/next-starter-template --base main --head codex/3758-runtime-qualification --title "docs(#3758): Codex runtime qualification evidence" --body "See Issue #3758."
+gh pr create --repo wdhunter465/next-starter-template --base main --head "$BRANCH" --title "docs(#3758): Codex runtime qualification evidence" --body "See Issue #3758."
 ```
 
-Expect: PR opens successfully. This also produces a live PR for steps 4 (retroactively) and 7.
+Then demonstrate update — push a second commit (for example, filling in a result you couldn't record until the PR existed) and confirm it appears on the same PR:
+
+```bash
+git add docs/how-to/codex/qualify-codex-runtime.md
+git commit -m "docs(#3758): update runtime qualification evidence"
+git push
+gh pr view --repo wdhunter465/next-starter-template "$BRANCH" --json commits
+```
+
+Expect: PR opens successfully in the create step, and the second push updates the same PR (visible as an additional commit, not a new PR). This also produces a live PR for steps 4 (retroactively) and 7.
+
+Before reporting this PR as ready for review, confirm its actual GitHub state per `docs/governance/PR_READY_FOR_REVIEW_HANDOFF.md`: move it out of Draft using **Ready for review**, or record the explicit blocker if it must stay Draft. Report the literal state: `GitHub PR state: draft / ready for review / merged / blocked with documented reason`.
 
 ### 7. Local validation commands
 
-Run the repository's standard local checks (same ones every implementer runs before marking a PR ready — see `docs/ops/ai/CORE-RULES.md`):
+`docs/ops/ai/CORE-RULES.md` requires running task-relevant local checks before marking a PR ready — it does not mandate one fixed command set. For this qualification, use the repository's own `package.json` scripts as the baseline:
 
 ```bash
-npm ci
-npx tsc --noEmit
+npm_config_cache="${TMPDIR:-/tmp}/lgfc-npm-cache" npm ci
+npm run typecheck
 npm run lint
-npx vitest run
+npm test
 ```
 
 Expect: all four complete (PASS or a clearly attributable pre-existing failure unrelated to this qualification — do not fix unrelated failures here, just note them).
@@ -132,7 +147,7 @@ Confirm you can read at least the `lgfc-pr-governance` skill (the one every PR-o
 
 In a **fresh** Codex session (new context, no prior chat memory of this qualification), issue the literal command `run startup` and record the complete response. It must:
 
-- follow `docs/ops/ai/CODEX-RULES.md`'s 16-point startup report exactly (Product, standing roster state, runtime/environment, orientation-only mode, repo identity, branch/working-tree state, GitHub access, authority files read, Codex-specific rules loaded, supplied source Issue if any, assignment/claim state, bounded scope if loaded, no-source-Issue statement if not loaded, operational-hold state, safe operating decision, stop point);
+- follow the exact, current startup report defined in `docs/ops/ai/CODEX-RULES.md`'s "Codex startup contract" section — read that section directly rather than relying on any paraphrase, including this one, which can drift out of sync as `CODEX-RULES.md` evolves;
 - **stop** without beginning implementation, self-selecting work, editing files, or mutating any Issue/PR, unless a source Issue was separately supplied and grants that scope.
 
 This is a pass/fail gate on its own: if startup does anything beyond orientation, or omits required report elements, mark this capability FAIL and describe exactly what happened.
@@ -146,3 +161,98 @@ This is a pass/fail gate on its own: if startup does anything beyond orientation
 ## Completion
 
 #3758 passes when every capability above is recorded PASS (or FAIL with a linked, merged remediation and a re-run PASS). Post the full evidence set on Issue #3758 and update its acceptance-criteria checklist. This evidence is a prerequisite for #3759 — do not begin #3759 until #3758 is closed.
+
+## Recorded qualification evidence (#3758)
+
+Qualification run date: 2026-08-26
+Qualification runtime: Codex in the repository workspace sandbox
+Qualification branch: `codex/3758-runtime-qualification-20260826t1748`
+
+Evidence records:
+
+### Repository identity and synchronization
+
+- Capability: Repository identity and synchronization
+- Command(s) run: `pwd`; `git rev-parse --show-toplevel`; `git remote get-url origin`; `git status -sb`; `git fetch origin main:refs/remotes/origin/main`; `git log -1 --format='%H %s' origin/main`
+- Result: PASS
+- Evidence: Repository resolved to `wdhunter465/next-starter-template`; isolated checkout was `/tmp/lgfc-3758`; the branch started from current `origin/main` and was clean before evidence changes; fetch succeeded.
+- Remediation (if FAIL): not applicable
+
+### GitHub authentication and repository permissions
+
+- Capability: GitHub authentication and repository permissions
+- Command(s) run: `gh auth status`; `gh api repos/wdhunter465/next-starter-template --jq '{full_name,permissions,default_branch}'`
+- Result: PASS with degraded GraphQL probe
+- Evidence: REST reported `admin`, `maintain`, `push`, `pull`, and `triage` permissions; HTTPS branch push succeeded. `gh auth status` identified the configured token and scopes, but its GraphQL probe reported the exhausted account rate limit.
+- Remediation (if FAIL): use REST while the GraphQL quota is exhausted; rerun the GraphQL probe after quota recovery.
+
+### Issue, PR, CI, and review-state visibility
+
+- Capability: Issue, PR, CI, and review-state visibility
+- Command(s) run: REST queries for Issue #3758, PR #3770, PR comments/reviews, branch state, and commit check runs.
+- Result: PASS with degraded GraphQL surface
+- Evidence: All required REST reads succeeded. GraphQL-backed `gh issue view`, `gh pr view`, and `gh pr checks` were unavailable while the account GraphQL quota was exhausted.
+- Remediation (if FAIL): use the equivalent REST endpoints during GraphQL degradation and rerun the native commands after quota recovery.
+
+### Branch creation and push
+
+- Capability: Branch creation and push
+- Command(s) run: `git checkout -b codex/3758-runtime-qualification-20260826t1748 origin/main`; `git push -u origin codex/3758-runtime-qualification-20260826t1748`
+- Result: PASS
+- Evidence: The unique branch was created from current `origin/main`, pushed, and configured with upstream tracking. Git emitted a sandbox credential-store lock warning, but the authenticated remote push completed.
+- Remediation (if FAIL): not applicable
+
+### PR creation and update
+
+- Capability: PR creation and update
+- Command(s) run: GitHub REST PR creation for branch `codex/3758-runtime-qualification-20260826t1748`; second evidence commit and `git push`; REST read of PR #3783.
+- Result: PASS
+- Evidence: PR #3783 was created against `main`; first evidence head was `95991d2f408fd81bc83607b776846bff15f91ed5`; the second commit updated the same PR; creation state was open and ready for review, not Draft.
+- Remediation (if FAIL): not applicable
+
+### Local validation
+
+- Capability: Repository-required local validation
+- Command(s) run: initial `npm ci`; remediated `npm ci --cache /tmp/lgfc-3758-npm-cache`; `npm run typecheck`; `npm run lint`; `npm test`
+- Result: PASS after environmental cache remediation
+- Evidence: The initial install failed because the home npm cache was read-only. The writable-cache rerun installed 777 packages; typecheck passed; lint passed with existing advisory warnings; 157 test files and 1,760 tests passed. The dependency audit reported 29 existing vulnerabilities.
+- Remediation (if FAIL): the runbook now supplies a writable cache through `npm_config_cache="${TMPDIR:-/tmp}/lgfc-npm-cache"`.
+
+### Repository skill loading
+
+- Capability: `.agents/skills/*` guidance loading
+- Command(s) run: `ls .agents/skills/`; `sed -n '1,20p' .agents/skills/lgfc-pr-governance/SKILL.md`
+- Result: PASS
+- Evidence: Enumerated `lgfc-cloudflare-static-export`, `lgfc-design-compliance`, `lgfc-docs-authority`, `lgfc-pr-governance`, and `lgfc-verification-closeout`; read the PR-governance skill successfully.
+- Remediation (if FAIL): not applicable
+
+### `run startup` behavior
+
+- Capability: Local Codex startup orientation
+- Command(s) run: A secondary diagnostic invoked `codex exec --ephemeral --sandbox read-only -C /tmp/lgfc-3758 'run startup'` from inside the already-managed session. The required acceptance test remains a genuinely fresh Codex terminal/session on the local Linux VM, with literal `run startup` as its first instruction and the complete response captured.
+- Result: PENDING / FAIL-CLOSED
+- Evidence: The nested diagnostic could not initialize its in-process app-server because the parent managed sandbox denied writes to the Codex product-state directory. The retrospective 16-point reconstruction below describes this session but is not accepted as the required fresh-session transcript.
+- Remediation (if FAIL): Open a genuinely new Codex terminal/session on the same Linux VM, issue literal `run startup` as the first instruction, and append the complete response here. Do not use a nested Codex process inside an already-managed read-only product sandbox as the host-runtime acceptance test.
+
+Retrospective startup reconstruction (context only; not acceptance evidence):
+
+1. Product: Codex.
+2. Standing roster state: Operations / Implementation first responder; assignable for other work under normal queue rules.
+3. Runtime and environment: local Codex installation in a Linux VM hosted on a Chromebook.
+4. Mode at startup: engineering orientation only.
+5. Repository and checkout: `wdhunter465/next-starter-template`; qualification work isolated in `/tmp/lgfc-3758`.
+6. Branch and working tree: assignment branch `codex/3758-runtime-qualification-20260826t1748`; clean before qualification evidence edits; branch repeatedly synchronized with `main` through the PR update-branch workflow.
+7. GitHub access: authenticated HTTPS Git plus REST Issue, PR, review, check, branch, label, and workflow access; administrative/push/pull permissions verified. GraphQL was temporarily rate-limited, with equivalent REST evidence used where available.
+8. Mandatory authority files read: `Agent.md`, `docs/governance/REPOSITORY-AUTHORITY.md`, `docs/governance/AGENT-TEAM.md`, `docs/ops/ai/SHARED-AGENT-RULES.md`, and `docs/ops/ai/CORE-RULES.md`.
+9. Codex-specific rules loaded: `docs/ops/ai/CODEX-RULES.md`, including the corrected standing-executor contract from #3756/#3774.
+10. Explicit source Issue: #3758.
+11. Assignment/claim state: separately assigned by Product Authority and labeled `agent:codex`.
+12. Bounded scope: Implementation / Operations qualification; allowed repository path `docs/how-to/codex/qualify-codex-runtime.md`; Model A / Promotion Candidate PR to `main`; acceptance criteria are the ten #3758 capability checks; independent approval and merge remain outside Codex authority; stop on missing authority, scope drift, protected-boundary conflict, or failed evidence.
+13. No-source-Issue state: not applicable because #3758 was separately loaded before implementation.
+14. Operational hold: no Production or repository-wide operational hold was supplied; GitHub platform degradation was recorded as evidence and handled through available REST surfaces.
+15. Safe operating decision: orientation alone granted no implementation authority; work began only after #3758 and its one-file scope were loaded.
+16. Stop point: startup orientation stopped before implementation; assignment execution followed as a separate phase.
+
+### Overall result — PENDING ONE REQUIRED RERUN
+
+Repository authentication, synchronization, Issue/PR/check/review visibility, branch creation and push, PR create/update, local validation, and repository skill loading are qualified. Startup behavior remains fail-closed until the literal fresh-session transcript is appended. No credential, review, merge, Production Go, or broader repository authority was expanded.
