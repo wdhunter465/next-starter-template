@@ -162,11 +162,11 @@ This is a pass/fail gate on its own: if startup does anything beyond orientation
 
 #3758 passes when every capability above is recorded PASS (or FAIL with a linked, merged remediation and a re-run PASS). Post the full evidence set on Issue #3758 and update its acceptance-criteria checklist. This evidence is a prerequisite for #3759 — do not begin #3759 until #3758 is closed.
 
-## Qualification evidence (#3758)
+## Recorded qualification evidence (#3758)
 
-Run date: 2026-08-26
-Runtime: Codex in the repository workspace sandbox
-Branch: `codex/3758-runtime-qualification-20260826t1748`
+Qualification run date: 2026-08-26
+Qualification runtime: Codex in the repository workspace sandbox
+Qualification branch: `codex/3758-runtime-qualification-20260826t1748`
 
 Evidence records:
 
