@@ -54,6 +54,21 @@ describe('review settle gate (#3746)', () => {
     expect(decision.waitMs).toBe(80_000);
   });
 
+  it('clamps negative elapsed under clock skew so waitMs stays within bound', () => {
+    const now = 1_000_000;
+    const decision = assessReviewSettle({
+      now,
+      // Trusted activity appears 5s in the future relative to runner clock.
+      latestTrustedAt: now + 5_000,
+      settleMs: 90_000,
+      lifecycleOk: true,
+    });
+    expect(decision.ok).toBe(false);
+    expect(decision.reason).toBe('quiet-period-active');
+    expect(decision.waitMs).toBe(90_000);
+    expect(decision.elapsedSinceTrustedMs).toBe(0);
+  });
+
   it('fails closed when lifecycle is blocking', () => {
     const decision = assessReviewSettle({
       now: 1_000_000,
