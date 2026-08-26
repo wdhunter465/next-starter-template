@@ -34,11 +34,12 @@ describe('merge protection surface inventory', () => {
     expect(RETIRED_MERGE_PROTECTION_WORKFLOWS).toContain('gate-zip-safety.yml');
   });
 
-  it('keeps deterministic merge blockers on the consolidated surface', () => {
+  it('keeps deterministic merge blockers on the consolidated surface including reviewer-response (#3746)', () => {
     const files = MERGE_PROTECTION_SURFACE.map((entry) => entry.file);
     expect(files).toEqual([
       'gate-quality.yml',
       'gitleaks.yml',
+      'reviewer-response-completion.yml',
     ]);
   });
 
@@ -59,10 +60,14 @@ describe('merge protection surface inventory', () => {
       'jobs:',
       '  gitleaks:',
     ].join('\n'));
+    fs.writeFileSync(path.join(root, '.github/workflows/reviewer-response-completion.yml'), [
+      'name: GATE — Reviewer Response Completion',
+      'jobs:',
+      '  reviewer-response-completion:',
+    ].join('\n'));
     for (const [file, name, jobId] of [
       ['gate-pr-hygiene.yml', 'GATE — PR Hygiene', 'pr-hygiene'],
       ['gate-diff-scope.yml', 'GATE — Diff Scope', 'diff-scope'],
-      ['reviewer-response-completion.yml', 'GATE — Reviewer Response Completion', 'reviewer-response-completion'],
       ['gate-drift.yml', 'GATE — Drift Control', 'drift-gate'],
       ['gate-branch-freshness.yml', 'GATE — Branch Freshness', 'branch-freshness'],
       ['docs-guardrails.yml', 'Docs Guardrails', 'docs_guardrails'],
@@ -91,10 +96,14 @@ describe('merge protection surface inventory', () => {
       'jobs:',
       '  gitleaks:',
     ].join('\n'));
+    fs.writeFileSync(path.join(root, '.github/workflows/reviewer-response-completion.yml'), [
+      'name: GATE — Reviewer Response Completion',
+      'jobs:',
+      '  reviewer-response-completion:',
+    ].join('\n'));
     for (const [file, name, jobId] of [
       ['gate-pr-hygiene.yml', 'GATE — PR Hygiene', 'pr-hygiene'],
       ['gate-diff-scope.yml', 'GATE — Diff Scope', 'diff-scope'],
-      ['reviewer-response-completion.yml', 'GATE — Reviewer Response Completion', 'reviewer-response-completion'],
       ['gate-drift.yml', 'GATE — Drift Control', 'drift-gate'],
       ['gate-branch-freshness.yml', 'GATE — Branch Freshness', 'branch-freshness'],
       ['docs-guardrails.yml', 'Docs Guardrails', 'docs_guardrails'],
@@ -117,12 +126,14 @@ describe('merge protection surface inventory', () => {
     expect(result.errors).toContain('Missing merge-protection workflow: gate-quality.yml');
   });
 
-  it('renders branch-protection checklist text', () => {
+  it('renders branch-protection checklist text including reviewer-response', () => {
     const checklist = renderBranchProtectionChecklist();
     expect(checklist).toContain('quality');
     expect(checklist).toContain('gitleaks');
+    expect(checklist).toContain('reviewer-response-completion');
     expect(checklist).toContain('pr-hygiene');
     expect(checklist).toContain('diff-scope');
     expect(checklist).toContain('check-no-zip-files');
+    expect(checklist).toContain('#3746');
   });
 });

@@ -15,10 +15,17 @@ on:
         description: Pull request number to audit
         required: true
 
+# #3746: cancel superseded runs for the same PR so the latest trusted-review
+# event owns the required check; prevents stale green from racing merge.
+concurrency:
+  group: reviewer-response-${{ github.event.pull_request.number || inputs.pr_number || github.run_id }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
   pull-requests: write
   issues: write
+  checks: write
 
 jobs:
   reviewer-response-completion:
@@ -82,6 +89,17 @@ jobs:
           REVIEWER_LIFECYCLE_RESULT_JSON: ${{ runner.temp }}/reviewer_lifecycle_result.json
           REVIEWER_LIFECYCLE_RESULT_MD: ${{ runner.temp }}/reviewer_lifecycle_result.md
         run: node scripts/ci/reviewer_lifecycle_gate.mjs
+
+      - name: Review settle quiet period (enforcing only)
+        if: steps.posture.outputs.enforce_failure == 'true' && success()
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
+          # Evidence-based bound from #3746 latency sample (90s; clamp 15–120s).
+          REVIEW_SETTLE_MS: "90000"
+          REVIEWER_LIFECYCLE_RESULT_JSON: ${{ runner.temp }}/reviewer_lifecycle_result.json
+        run: node scripts/ci/run_review_settle.mjs
 
       - name: Hand blocked PR back to preparer
         if: always()
