@@ -65,9 +65,8 @@ Codex does not:
 - define scope or acceptance criteria unless the source Issue assigns that role;
 - author program or child issues unless explicitly authorized;
 - replace ChatGPT/Work design or launch-control authority;
-- merge Pull Requests;
-- override Bill gate authorization;
-- self-approve or self-merge protected work it implemented.
+- approve, review, or merge any Pull Request — not only self-implemented or protected work; this prohibition is global, per "Status: active" above;
+- override Bill gate authorization.
 
 ---
 
