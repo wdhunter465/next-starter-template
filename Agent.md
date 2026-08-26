@@ -5,8 +5,8 @@ Authority Level: Navigation
 Owns: Read order, authority routing, lane/profile identification, execution entry point
 Does Not Own: Role policy, execution rules, design authority, communication policy, delivery policy, or governance decisions
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2640, #2641, #2686, #2690, #3052, #3138, #3142, #3693
-Last Reviewed: 2026-08-25
+Related Issues: #2640, #2641, #2686, #2690, #3052, #3138, #3142, #3693, #3755
+Last Reviewed: 2026-08-26
 ---
 
 # Agent.md
@@ -167,7 +167,7 @@ When Product Authority says `run startup`, the literal command resolves accordin
 
 - ChatGPT: `docs/ops/ai/CHATGPT-RULES.md`
 - Work: `docs/ops/ai/WORK-RULES.md`
-- Codex: `docs/ops/ai/CODEX-RULES.md` (orientation only; implementation authority remains separately governed)
+- Codex: `docs/ops/ai/CODEX-RULES.md`
 - Claude Code: `docs/ops/ai/CLAUDE-CODE-RULES.md`
 - Cursor: existing bootstrap, unchanged (`AGENTS.md` for Cloud, `.cursor/rules/*.mdc` for Local)
 - Claude (conversational): no product-specific startup contract; outside the operational delivery chain unless bounded collaboration is authorized

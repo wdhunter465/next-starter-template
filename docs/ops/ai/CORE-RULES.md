@@ -5,8 +5,8 @@ Authority Level: Core
 Owns: Shared execution rules, enforcement model, PR discipline, stop conditions, shared product-startup framework
 Does Not Own: Design authority, platform configuration, tracker content
 Canonical Reference: /docs/ops/ai/SHARED-AGENT-RULES.md
-Related Issues: #3055, #3113, #3117, #3138, #3142, #3188, #3605, #3611, #3693
-Last Reviewed: 2026-08-25
+Related Issues: #3055, #3113, #3117, #3138, #3142, #3188, #3605, #3611, #3693, #3755, #3756
+Last Reviewed: 2026-08-26
 ---
 
 # CORE-RULES.md
@@ -332,12 +332,12 @@ All LGFC implementation tasks (website, repository, ops, CI, and docs implementa
    - **Cursor Local** is a normal standing executor for `team:operations`, `team:pmo`, and `team:governance` work, and is **not** a normal `team:engineering` executor.
    - **Claude Code** is a normal standing executor for `team:pmo` and `team:engineering` work (and Governance when explicitly assigned). Claude is **not** a normal Operations executor; Claude may join a bounded Operations Issue only when explicitly escalated for additional engineering support. Escalation does not create a Tier-2 Operations Team and does not change Team ownership (`#3152` four-Team topology: Operations, Governance, PMO, Engineering).
 2. **ChatGPT and Work** = co-equal PMO / Engineering, PR Approver / Engineering, Administration & Communications, and Day-2 Operations coordination products; neither performs routine scoped file implementation unless the source Issue explicitly assigns it. See [`CHATGPT-RULES.md`](./CHATGPT-RULES.md), [`WORK-RULES.md`](./WORK-RULES.md), and `#3693`.
-3. **Codex** = selective-use executor only — **not** a standing LGFC implementation executor and receives no work by default. Product Authority may explicitly authorize Codex on a bounded source Issue; that authorization is sufficient and does **not** require global governance reactivation. Without that bounded authorization, Codex stops because **task-specific authority is missing**, not because Codex is categorically forbidden from repository work. Codex has a mandatory startup contract (orientation only); startup itself grants no implementation authority. See [`CODEX-RULES.md`](./CODEX-RULES.md) and `#3142`.
+3. **Codex** = standing LGFC Implementation / Operations executor and first responder for eligible `team:operations` Issues; Codex may also implement other repository work when explicitly assigned, subject to normal queue precedence and claim rules. Codex has a mandatory startup contract (orientation only); startup itself grants no implementation authority beyond an explicitly loaded source Issue and does not self-select work. See [`CODEX-RULES.md`](./CODEX-RULES.md) and `#3755`.
 4. All other agents, including **Claude** (conversational) and **Notion** (controlled-document workspace), = tertiary/support agents only by explicit bounded routing need; neither holds a durable repository role or GitHub mutation authority. See `docs/governance/AGENT-TEAM.md`.
 
-Prior documentation that listed Cursor as sole implementation executor, described Codex as repository-prohibited / globally disabled for all LGFC implementation, or required a separate “Codex reactivation” governance event before any bounded Product Authority assignment, is superseded for LGFC work by this section and `docs/governance/AGENT-TEAM.md`.
+Prior documentation that listed Cursor as sole implementation executor, described Codex as repository-prohibited / globally disabled for all LGFC implementation, or treated Codex as a selective-use-only executor requiring Product Authority task-by-task reactivation before it could act as a standing executor, is superseded for LGFC work by this section, `docs/governance/AGENT-TEAM.md`, and `#3755`.
 
-Routing priority controls assignment preference only. It does not override design authority, scope limits, PR discipline, separation-of-duty (an executor does not approve its own protected work), or merge approval. Selective Codex authorization does not alter normal standing routing priority for other work.
+Routing priority controls assignment preference only. It does not override design authority, scope limits, PR discipline, separation-of-duty (an executor does not approve its own protected work), or merge approval.
 
 ---
 

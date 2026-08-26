@@ -5,13 +5,17 @@ Authority Level: Controlled
 Owns: Codex automatic PR-review disablement policy for LGFC
 Does Not Own: ChatGPT/Codex GitHub App installation settings or general AI-agent assignment policy
 Canonical Reference: /docs/governance/PR_PROCESS.md
-Related issues: #2175, #2208
-Last Reviewed: 2026-07-04
+Related issues: #2175, #2208, #3755, #3756
+Last Reviewed: 2026-08-26
 ---
 
 # Codex PR Review Disablement
 
 This controlled reference supports `/docs/governance/PR_PROCESS.md`.
+
+## Scope
+
+This document controls only Codex's **automatic PR-reviewer-bot** behavior. It is fully independent of, and does not limit, Codex's standing Implementation / Operations eligibility defined in [`docs/governance/AGENT-TEAM.md`](../../governance/AGENT-TEAM.md) and [`docs/ops/ai/CODEX-RULES.md`](../../ops/ai/CODEX-RULES.md) (#3755). Codex being ineligible as an always-on automatic PR reviewer does not make Codex ineligible for implementation work.
 
 ## Decision
 
@@ -25,7 +29,7 @@ Automatic Codex PR review consumes credits/usage and can contribute to 5-hour ra
 
 Do not request, configure, or rely on Codex as a standing PR reviewer.
 
-Codex may still be used deliberately when Bill/ChatGPT assigns a specific task, but not as an always-on PR review bot.
+Codex remains a standing LGFC Implementation / Operations agent for assigned implementation work (see Scope above); it is only excluded from the always-on automatic PR review bot role.
 
 ## Access distinction
 
