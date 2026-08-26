@@ -4,16 +4,19 @@ Audience: Human + AI
 Authority Level: Controlled
 Owns: Shared delivery-profile metadata values, parser fields, classification invariants, protected path baseline, and CLI contract
 Does Not Own: Auto-integration enablement, branch protection settings, workflow behavior, or production promotion approval
-Canonical Reference: /docs/ops/implementation-plans/two-model-delivery-system/implementation-plan.md
-Last Reviewed: 2026-07-13
+Canonical Reference: /docs/governance/DELIVERY-AND-RELEASE.md
+Related Issues: #2485, #3752, #3753
+Last Reviewed: 2026-08-26
 ---
 
 # Delivery Profile Contract
 
 This reference defines the stable delivery-profile contract introduced by issue
-#2485 for Delivery System v1. The contract is intentionally metadata-only:
-existing workflow behavior, production authority, and auto-integration remain
-unchanged until later component-branch tasks explicitly consume this contract.
+#2485 for Delivery System v1, extended by #3752 for Model C documentation-only
+delivery. The contract is intentionally metadata-first: **runtime gate behavior for
+Model C is implemented under issue #3753** and must not invent broader write
+authority than `docs/governance/DELIVERY-AND-RELEASE.md`. Until #3753 merges,
+`scripts/ci/delivery_profile.mjs` on `main` implements Model A/B/emergency only.
 
 ## Stable PR metadata fields
 
@@ -43,6 +46,7 @@ common placeholder tokens such as `TBD` are treated as missing metadata.
 - `A`
 - `B-child`
 - `B-promotion`
+- `C` (target enum; runtime enforcement #3753)
 - `emergency-recovery`
 
 ### Work sizes
@@ -58,6 +62,7 @@ common placeholder tokens such as `TBD` are treated as missing metadata.
 - `routine-ops`
 - `planned-migration`
 - `emergency`
+- `documentation` (target for Model C; runtime #3753)
 
 ### Target environments
 
@@ -65,6 +70,7 @@ common placeholder tokens such as `TBD` are treated as missing metadata.
 - `preview`
 - `production`
 - `recovery`
+- `docs` (target for Model C; runtime #3753)
 
 ### Approval profiles
 
@@ -72,6 +78,7 @@ common placeholder tokens such as `TBD` are treated as missing metadata.
 - `chat-bill-production`
 - `protected-change-review`
 - `emergency-approval`
+- `documentation-review` (target for Model C; runtime #3753)
 
 ### Gate profiles
 
@@ -79,6 +86,7 @@ common placeholder tokens such as `TBD` are treated as missing metadata.
 - `production-candidate`
 - `component-promotion`
 - `emergency-recovery`
+- `documentation` (target for Model C; runtime #3753)
 
 ### Rollback profiles
 
@@ -149,6 +157,31 @@ eligible.
   same component/program master issue used by child PRs; it is not a branch name
   and must not be compared to `baseRef`
 
+### Model C (documentation-only) — target contract (#3752 / #3753)
+
+- Base branch: `main` (or an approved documentation-only integration branch that
+  merges only approved documentation surfaces to `main`)
+- Delivery model: `C`
+- Change mode: `documentation` (or `routine-ops` when limited to non-policy docs)
+- Target environment: `docs` or `production` when merging documentation surfaces to `main`
+- Gate profile: `documentation`
+- Rollback profile: `one-step`
+- Approval profile:
+  - `documentation-review` for non-constitutional, non-domain-policy documentation
+  - `protected-change-review` when changing Constitutional or Domain Policy
+    governance, DIATAXIS authority, or supersession of a canonical owner
+- Component branch / component master: empty or `not-applicable`
+- **Path allowlist (fail closed):** every changed path must be inside the Model C
+  namespaces in `docs/governance/DELIVERY-AND-RELEASE.md`
+- **Path prohibition:** any application-code, runtime, CI/workflow implementation,
+  test, migration, deployment, configuration, dependency-manifest, script, or other
+  executable namespace fails classification — enforcement is path-based, not
+  extension-based
+- **Cross-boundary moves:** rename/move/copy into a prohibited namespace fails
+- **Runtime ownership:** Issue **#3753** implements classification, path gate, quality
+  plan, and post-merge checks. Until that lands, declaring `Delivery model: C` on a
+  PR is policy-only and may not pass current CLI enum validation on `main`.
+
 ### Emergency recovery
 
 - Base branch: `main`
@@ -185,6 +218,11 @@ paths covering authentication, secrets, production bindings, deployment,
 destructive migrations, or governance enforcement must not be removed without
 Chat review.
 
+Model C may edit `docs/governance/**` when eligible, but those paths remain
+protected documentation changes requiring independent review. Model C must never
+treat protected **executable** paths (workflows, scripts/ci, migrations, auth) as
+allowlisted documentation surfaces.
+
 ## CLI contract
 
 Run:
@@ -199,9 +237,9 @@ The CLI reads:
 - `PR_BASE_REF` — PR base ref
 - `PR_HEAD_REF` — PR head ref
 - `CHANGED_FILES_FILE` — required newline-delimited changed-file list for Model B
-  child PRs; optional for other delivery models. Missing or unreadable changed-file
-  evidence for Model B child PRs fails closed instead of assuming
-  `protectedChange: false`.
+  child PRs. **After #3753**, the same file is required for Model C path-boundary
+  checks and missing/empty evidence fails closed. On current `main` (pre-#3753),
+  only Model B child enforces this fail-closed path.
 - `DELIVERY_PROFILE_RESULT_JSON` — optional JSON artifact output path
 
 The command exits `0` when classification succeeds, `1` when metadata or
