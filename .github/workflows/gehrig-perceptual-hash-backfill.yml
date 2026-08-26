@@ -91,12 +91,19 @@ jobs:
           {
             echo "## Gehrig Perceptual Hash Backfill (#3740)"
             echo ""
-            echo "Backfilled media_assets.perceptual_hash for every pre-phase-4 row, and"
-            echo "ran the near-duplicate check across the backfilled set."
-            echo ""
             echo "Apply step outcome: ${{ steps.backfill.outcome }}"
             echo ""
-            echo "Next: review this run's log for any 'flagged N near-duplicate"
-            echo "candidate(s)' lines and resolve them (per content_items.duplicate_of /"
-            echo "moderation_events), then close #3740."
+            if [ "${{ steps.backfill.outcome }}" = "success" ]; then
+              echo "Backfilled media_assets.perceptual_hash for every pre-phase-4 row, and"
+              echo "ran the near-duplicate check across the backfilled set."
+              echo ""
+              echo "Next: review this run's log for any 'flagged N near-duplicate"
+              echo "candidate(s)' lines and resolve them (per content_items.duplicate_of /"
+              echo "moderation_events), then close #3740."
+            else
+              echo "The apply step did not complete successfully -- no confirmation that"
+              echo "the backfill was applied. Check the job log above before assuming"
+              echo "anything changed in Production D1, and re-dispatch once the cause is"
+              echo "fixed (the script is idempotent, so re-running is safe)."
+            fi
           } >> "$GITHUB_STEP_SUMMARY"

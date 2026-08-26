@@ -89,11 +89,18 @@ jobs:
           {
             echo "## Gehrig Rights Evidence Provenance Backfill (#3728)"
             echo ""
-            echo "Backfilled rights_holder / repository_or_collection / evidence_text on"
-            echo "rights_evidence rows for the 10 candidates in"
-            echo "data/research/lou-gehrig-wikimedia-approved-batch-2026-08-17.json."
-            echo ""
             echo "Apply step outcome: ${{ steps.backfill.outcome }}"
             echo ""
-            echo "Next: spot-check the 10 rows, then close #3728."
+            if [ "${{ steps.backfill.outcome }}" = "success" ]; then
+              echo "Backfilled rights_holder / repository_or_collection / evidence_text on"
+              echo "rights_evidence rows for the 10 candidates in"
+              echo "data/research/lou-gehrig-wikimedia-approved-batch-2026-08-17.json."
+              echo ""
+              echo "Next: spot-check the 10 rows, then close #3728."
+            else
+              echo "The apply step did not complete successfully -- no confirmation that"
+              echo "the backfill was applied. Check the job log above before assuming"
+              echo "anything changed in Production D1, and re-dispatch once the cause is"
+              echo "fixed (the script is idempotent, so re-running is safe)."
+            fi
           } >> "$GITHUB_STEP_SUMMARY"
