@@ -229,12 +229,12 @@ Evidence records:
 ### `run startup` behavior
 
 - Capability: Local Codex startup orientation
-- Command(s) run: Product Authority started this local Codex repository session; the session loaded the mandatory bootstrap chain and then separately loaded the explicit #3758 assignment before implementation. A secondary diagnostic invoked `codex exec --ephemeral --sandbox read-only -C /tmp/lgfc-3758 'run startup'` from inside the already-managed session.
-- Result: PASS
-- Evidence: The actual runtime is a local Codex installation in a Linux VM hosted on a Chromebook. This session completed the repository bootstrap before repository work, reported every mandated file as read, did not self-select unrelated work, and began implementation only after Product Authority explicitly assigned Issue #3758. The current 16-point startup result is recorded below. The nested diagnostic failed because the parent managed sandbox denied writes to the local product-state directory; that topology is not the installed runtime being qualified and made no repository or GitHub mutation.
-- Remediation (if FAIL): not applicable. Do not use a nested Codex process inside an already-managed read-only product sandbox as the acceptance test for the host installation.
+- Command(s) run: A secondary diagnostic invoked `codex exec --ephemeral --sandbox read-only -C /tmp/lgfc-3758 'run startup'` from inside the already-managed session. The required acceptance test remains a genuinely fresh Codex terminal/session on the local Linux VM, with literal `run startup` as its first instruction and the complete response captured.
+- Result: PENDING / FAIL-CLOSED
+- Evidence: The nested diagnostic could not initialize its in-process app-server because the parent managed sandbox denied writes to the Codex product-state directory. The retrospective 16-point reconstruction below describes this session but is not accepted as the required fresh-session transcript.
+- Remediation (if FAIL): Open a genuinely new Codex terminal/session on the same Linux VM, issue literal `run startup` as the first instruction, and append the complete response here. Do not use a nested Codex process inside an already-managed read-only product sandbox as the host-runtime acceptance test.
 
-Startup report:
+Retrospective startup reconstruction (context only; not acceptance evidence):
 
 1. Product: Codex.
 2. Standing roster state: Operations / Implementation first responder; assignable for other work under normal queue rules.
@@ -253,6 +253,6 @@ Startup report:
 15. Safe operating decision: orientation alone granted no implementation authority; work began only after #3758 and its one-file scope were loaded.
 16. Stop point: startup orientation stopped before implementation; assignment execution followed as a separate phase.
 
-### Overall result — PASS
+### Overall result — PENDING ONE REQUIRED RERUN
 
-Repository authentication, synchronization, Issue/PR/check/review visibility, branch creation and push, PR create/update, local validation, repository skill loading, and startup behavior are qualified. No credential, review, merge, Production Go, or broader repository authority was expanded.
+Repository authentication, synchronization, Issue/PR/check/review visibility, branch creation and push, PR create/update, local validation, and repository skill loading are qualified. Startup behavior remains fail-closed until the literal fresh-session transcript is appended. No credential, review, merge, Production Go, or broader repository authority was expanded.
