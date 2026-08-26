@@ -1,0 +1,109 @@
+name: Gehrig Perceptual Hash Backfill (#3740, follow-up to #3739)
+
+# Operator-triggered production write path for #3552 phase 4's one-time
+# backfill: computes media_assets.perceptual_hash for every row ingested
+# before phase 4 added hash computation to the live ingest path, then runs
+# the same cross-source near-duplicate check the live ingest path runs
+# across the backfilled set. Writes to Production D1 (media_assets,
+# content_items, moderation_events on a near-duplicate flag) -- reads each
+# object from B2's PUBLIC url only, no B2 write credentials needed.
+#
+# The backfill script only ever touches rows still missing a hash
+# (`WHERE perceptual_hash IS NULL`), so this is idempotent and safe to
+# re-run.
+#
+# Runs the script's own --dry-run first so the operator can review the
+# computed hashes (and any near-duplicate flags) in this run's log before
+# the real (non-dry-run) apply immediately after, per #3740's acceptance
+# criteria. A near-duplicate flag raised by either run still needs an
+# admin decision afterward -- this workflow does not resolve those.
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_write:
+        description: 'Type "confirm" to run this workflow at all (it writes to Production D1 when confirm_write matches)'
+        required: true
+        type: string
+
+concurrency:
+  group: gehrig-perceptual-hash-backfill
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require explicit confirmation
+        env:
+          CONFIRM_WRITE: ${{ github.event.inputs.confirm_write }}
+        run: |
+          if [ "$CONFIRM_WRITE" != "confirm" ]; then
+            echo "confirm_write must be exactly 'confirm' -- refusing to write to Production D1."
+            exit 1
+          fi
+
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify Cloudflare D1 credentials
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DATABASE_NAME: lgfc_lite
+        run: node scripts/ci/verify_cloudflare_d1_auth.mjs
+
+      - name: Dry run -- review the hashes this backfill would compute
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          B2_ENDPOINT: ${{ secrets.B2_ENDPOINT }}
+          B2_BUCKET: ${{ secrets.B2_BUCKET }}
+        run: |
+          node --experimental-strip-types scripts/content-pipeline/backfill-media-perceptual-hashes.mjs \
+            --database lgfc_lite --remote --dry-run
+
+      - name: Apply the backfill for real
+        id: backfill
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          B2_ENDPOINT: ${{ secrets.B2_ENDPOINT }}
+          B2_BUCKET: ${{ secrets.B2_BUCKET }}
+        run: |
+          node --experimental-strip-types scripts/content-pipeline/backfill-media-perceptual-hashes.mjs \
+            --database lgfc_lite --remote
+
+      - name: Write step summary
+        if: always()
+        run: |
+          {
+            echo "## Gehrig Perceptual Hash Backfill (#3740)"
+            echo ""
+            echo "Apply step outcome: ${{ steps.backfill.outcome }}"
+            echo ""
+            if [ "${{ steps.backfill.outcome }}" = "success" ]; then
+              echo "Backfilled media_assets.perceptual_hash for every pre-phase-4 row, and"
+              echo "ran the near-duplicate check across the backfilled set."
+              echo ""
+              echo "Next: review this run's log for any 'flagged N near-duplicate"
+              echo "candidate(s)' lines and resolve them (per content_items.duplicate_of /"
+              echo "moderation_events), then close #3740."
+            else
+              echo "The apply step did not complete successfully -- no confirmation that"
+              echo "the backfill was applied. Check the job log above before assuming"
+              echo "anything changed in Production D1, and re-dispatch once the cause is"
+              echo "fixed (the script is idempotent, so re-running is safe)."
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
