@@ -1,0 +1,99 @@
+name: Gehrig Rights Evidence Provenance Backfill (#3728, follow-up to #3726)
+
+# Operator-triggered production write path for #3552 phase 3's one-time
+# backfill: populates rights_holder / repository_or_collection and
+# evidence_text on the 10 rights_evidence rows written by the pre-#3726 fix
+# batch-approval writer, using the same checked-in fixture the original
+# approval ran against (data/research/lou-gehrig-wikimedia-approved-batch-
+# 2026-08-17.json + its .license-notes.json). Writes to Production D1
+# (rights_evidence) only -- no B2 access needed.
+#
+# The backfill script's generated UPDATE statements are guarded by
+# `WHERE rights_holder IS NULL`, so this is idempotent: safe to re-run, and
+# it never overwrites a row a human has since edited.
+#
+# Runs the script's own --dry-run first so the operator can review the
+# printed SQL in this run's log before the real (non-dry-run) apply
+# immediately after, per #3728's acceptance criteria.
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_write:
+        description: 'Type "confirm" to run this workflow at all (it writes to Production D1 when confirm_write matches)'
+        required: true
+        type: string
+
+concurrency:
+  group: gehrig-rights-evidence-provenance-backfill
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  backfill:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require explicit confirmation
+        env:
+          CONFIRM_WRITE: ${{ github.event.inputs.confirm_write }}
+        run: |
+          if [ "$CONFIRM_WRITE" != "confirm" ]; then
+            echo "confirm_write must be exactly 'confirm' -- refusing to write to Production D1."
+            exit 1
+          fi
+
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify Cloudflare D1 credentials
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DATABASE_NAME: lgfc_lite
+        run: node scripts/ci/verify_cloudflare_d1_auth.mjs
+
+      - name: Dry run -- review the SQL this backfill would apply
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          node --experimental-strip-types scripts/content-pipeline/backfill-rights-evidence-provenance.mjs \
+            --candidates data/research/lou-gehrig-wikimedia-approved-batch-2026-08-17.json \
+            --license-notes data/research/lou-gehrig-wikimedia-approved-batch-2026-08-17.license-notes.json \
+            --database lgfc_lite --remote --dry-run
+
+      - name: Apply the backfill for real
+        id: backfill
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          node --experimental-strip-types scripts/content-pipeline/backfill-rights-evidence-provenance.mjs \
+            --candidates data/research/lou-gehrig-wikimedia-approved-batch-2026-08-17.json \
+            --license-notes data/research/lou-gehrig-wikimedia-approved-batch-2026-08-17.license-notes.json \
+            --database lgfc_lite --remote
+
+      - name: Write step summary
+        if: always()
+        run: |
+          {
+            echo "## Gehrig Rights Evidence Provenance Backfill (#3728)"
+            echo ""
+            echo "Backfilled rights_holder / repository_or_collection / evidence_text on"
+            echo "rights_evidence rows for the 10 candidates in"
+            echo "data/research/lou-gehrig-wikimedia-approved-batch-2026-08-17.json."
+            echo ""
+            echo "Apply step outcome: ${{ steps.backfill.outcome }}"
+            echo ""
+            echo "Next: spot-check the 10 rows, then close #3728."
+          } >> "$GITHUB_STEP_SUMMARY"
