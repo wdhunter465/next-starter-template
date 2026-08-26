@@ -1,0 +1,89 @@
+name: GATE — Model C Documentation
+
+on:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Optional PR number for dispatch context
+        required: false
+        type: string
+
+jobs:
+  model-c-path:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Collect changed files
+        if: github.event_name == 'pull_request'
+        env:
+          GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          GITHUB_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          git fetch --no-tags --depth=0 origin ${{ github.event.pull_request.base.ref }} || true
+          git diff --name-only "$GITHUB_BASE_SHA" "$GITHUB_HEAD_SHA" > "$RUNNER_TEMP/changed_files.txt"
+          cat "$RUNNER_TEMP/changed_files.txt"
+
+      - name: Write PR body
+        if: github.event_name == 'pull_request'
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: printf '%s\n' "$PR_BODY" > "$RUNNER_TEMP/pr_body.md"
+
+      - name: Detect Model C claim
+        if: github.event_name == 'pull_request'
+        id: model_c
+        env:
+          PR_BODY_FILE: ${{ runner.temp }}/pr_body.md
+        run: |
+          if grep -qiE '^[[:space:]]*(-[[:space:]]*)?Delivery model:[[:space:]]*C[[:space:]]*$' "$PR_BODY_FILE"; then
+            echo "is_model_c=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_model_c=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Model C path + delivery classification
+        if: github.event_name == 'pull_request' && steps.model_c.outputs.is_model_c == 'true'
+        env:
+          PR_BODY_FILE: ${{ runner.temp }}/pr_body.md
+          CHANGED_FILES_FILE: ${{ runner.temp }}/changed_files.txt
+          PR_BASE_REF: ${{ github.event.pull_request.base.ref }}
+          PR_HEAD_REF: ${{ github.event.pull_request.head.ref }}
+          DELIVERY_PROFILE_RESULT_JSON: ${{ runner.temp }}/delivery_profile.json
+          MODEL_C_PATH_RESULT_JSON: ${{ runner.temp }}/model_c_path.json
+        run: |
+          node scripts/ci/delivery_profile.mjs
+          node scripts/ci/model_c_path_gate.mjs
+
+      - name: DIATAXIS audit for Model C markdown
+        if: github.event_name == 'pull_request' && steps.model_c.outputs.is_model_c == 'true'
+        env:
+          DIATAXIS_CHANGED_FILES_FILE: ${{ runner.temp }}/changed_files.txt
+        run: |
+          # Filter to markdown under strict DIATAXIS knowledge folders only
+          grep -E '^(docs/tutorials|docs/how-to|docs/reference|docs/explanation)/' "$DIATAXIS_CHANGED_FILES_FILE" > "$RUNNER_TEMP/diataxis_files.txt" || true
+          if [ -s "$RUNNER_TEMP/diataxis_files.txt" ]; then
+            DIATAXIS_CHANGED_FILES_FILE="$RUNNER_TEMP/diataxis_files.txt" node scripts/ci/diataxis_folder_audit.mjs
+          else
+            echo "No strict DIATAXIS knowledge paths in this Model C PR; skipping structure audit."
+          fi
+
+      - name: Skip notice when not Model C
+        if: github.event_name == 'pull_request' && steps.model_c.outputs.is_model_c != 'true'
+        run: echo "PR does not claim Delivery model: C; Model C path gate skipped."
+
+      - name: Unit tests for Model C modules
+        run: |
+          npm ci
+          npm test -- tests/model-c-path-gate.test.mjs tests/model-c-delivery-profile.test.mjs tests/model-c-post-merge.test.mjs

@@ -1,0 +1,80 @@
+name: Post-Merge Model C Verification
+
+on:
+  pull_request:
+    types: [closed]
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: PR number to verify
+        required: true
+        type: string
+
+jobs:
+  model-c-post-merge:
+    if: github.event_name == 'workflow_dispatch' || (github.event.pull_request.merged == true)
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+      issues: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Resolve PR metadata
+        id: meta
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            PR_NUMBER="${{ github.event.pull_request.number }}"
+            BODY="${{ github.event.pull_request.body }}"
+            MERGED="${{ github.event.pull_request.merged }}"
+            BASE_SHA="${{ github.event.pull_request.base.sha }}"
+            HEAD_SHA="${{ github.event.pull_request.merge_commit_sha }}"
+          else
+            PR_NUMBER="${{ inputs.pr_number }}"
+            BODY=$(gh pr view "$PR_NUMBER" --json body -q .body)
+            MERGED=$(gh pr view "$PR_NUMBER" --json merged -q .merged)
+            BASE_SHA=$(gh pr view "$PR_NUMBER" --json baseRefOid -q .baseRefOid)
+            HEAD_SHA=$(gh pr view "$PR_NUMBER" --json mergeCommit -q .mergeCommit.oid)
+          fi
+          printf '%s\n' "$BODY" > "$RUNNER_TEMP/pr_body.md"
+          if grep -qiE '^[[:space:]]*(-[[:space:]]*)?Delivery model:[[:space:]]*C[[:space:]]*$' "$RUNNER_TEMP/pr_body.md"; then
+            echo "is_model_c=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "is_model_c=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
+          echo "merged=$MERGED" >> "$GITHUB_OUTPUT"
+          echo "base_sha=$BASE_SHA" >> "$GITHUB_OUTPUT"
+          echo "head_sha=$HEAD_SHA" >> "$GITHUB_OUTPUT"
+
+      - name: Collect merge paths
+        if: steps.meta.outputs.is_model_c == 'true'
+        run: |
+          if [ -n "${{ steps.meta.outputs.head_sha }}" ] && [ -n "${{ steps.meta.outputs.base_sha }}" ]; then
+            git fetch --no-tags --depth=0 origin main || true
+            git diff --name-only "${{ steps.meta.outputs.base_sha }}" "${{ steps.meta.outputs.head_sha }}" > "$RUNNER_TEMP/changed_files.txt" || true
+          else
+            echo "" > "$RUNNER_TEMP/changed_files.txt"
+          fi
+          cat "$RUNNER_TEMP/changed_files.txt" || true
+
+      - name: Lightweight Model C post-merge check
+        if: steps.meta.outputs.is_model_c == 'true'
+        env:
+          CHANGED_FILES_FILE: ${{ runner.temp }}/changed_files.txt
+          MODEL_C_PR_MERGED: ${{ steps.meta.outputs.merged }}
+          MODEL_C_SKIP_DIATAXIS: 'true'
+        run: node scripts/ci/model_c_post_merge.mjs
+
+      - name: Skip non-Model C merges
+        if: steps.meta.outputs.is_model_c != 'true'
+        run: echo "Merged PR did not claim Model C; post-merge Model C verification skipped."
