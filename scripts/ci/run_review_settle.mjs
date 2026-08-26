@@ -11,7 +11,6 @@ import fs from 'node:fs';
 import { pathToFileURL } from 'node:url';
 import {
   DEFAULT_SETTLE_MS,
-  assessReviewSettle,
   buildSettleReport,
   latestTrustedActivityAt,
   runReviewSettle,
@@ -44,7 +43,9 @@ async function request(path, token) {
   if (!response.ok) {
     throw new Error(`GET ${path} failed: ${response.status} ${bodyText || ''}`);
   }
-  return bodyText ? JSON.parse(bodyText) : null;
+  if (response.status === 204) return null;
+  // githubApiFetch returns bodyText=null on HTTP success; read the Response body.
+  return bodyText ? JSON.parse(bodyText) : response.json();
 }
 
 async function paginate(path, token) {
@@ -61,13 +62,17 @@ async function paginate(path, token) {
   return results;
 }
 
-function lifecycleStillOk(resultPath = '') {
-  if (!resultPath || !fs.existsSync(resultPath)) return true;
+/**
+ * Fail closed when lifecycle artifact is missing or unreadable.
+ * This step runs only after the lifecycle gate, so unknown status must not pass.
+ */
+export function lifecycleStillOk(resultPath = '') {
+  if (!resultPath || !fs.existsSync(resultPath)) return false;
   try {
     const artifact = JSON.parse(fs.readFileSync(resultPath, 'utf8'));
     return Boolean(artifact.ok);
   } catch {
-    return true;
+    return false;
   }
 }
 
@@ -102,7 +107,7 @@ async function main() {
   const [owner, repo] = repository.split('/');
   const lifecycleOk = lifecycleStillOk(resultPath);
   if (!lifecycleOk) {
-    console.error('Review settle skipped: lifecycle gate is not ok.');
+    console.error('Review settle skipped: lifecycle gate is not ok (missing/unreadable artifact or ok=false).');
     process.exitCode = 1;
     return;
   }
@@ -142,4 +147,4 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
   });
 }
 
-export { lifecycleStillOk, loadTrustedActivity };
+export { loadTrustedActivity };
