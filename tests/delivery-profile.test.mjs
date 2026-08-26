@@ -69,21 +69,23 @@ function classify(overrides = {}, options = {}) {
 
 describe('delivery profile contract constants', () => {
   it('exports stable delivery contract values', () => {
-    expect(DELIVERY_MODELS).toEqual(['A', 'B-child', 'B-promotion', 'emergency-recovery']);
+    expect(DELIVERY_MODELS).toEqual(['A', 'B-child', 'B-promotion', 'C', 'emergency-recovery']);
     expect(WORK_SIZES).toEqual(['medium-provisional', 'small', 'medium', 'large']);
-    expect(CHANGE_MODES).toEqual(['project', 'routine-ops', 'planned-migration', 'emergency']);
-    expect(TARGET_ENVIRONMENTS).toEqual(['component', 'preview', 'production', 'recovery']);
+    expect(CHANGE_MODES).toEqual(['project', 'routine-ops', 'planned-migration', 'emergency', 'documentation']);
+    expect(TARGET_ENVIRONMENTS).toEqual(['component', 'preview', 'production', 'recovery', 'docs']);
     expect(APPROVAL_PROFILES).toEqual([
       'component-auto-integration',
       'work-bill-production',
       'protected-change-review',
       'emergency-approval',
+      'documentation-review',
     ]);
     expect(GATE_PROFILES).toEqual([
       'component-child',
       'production-candidate',
       'component-promotion',
       'emergency-recovery',
+      'documentation',
     ]);
     expect(ROLLBACK_PROFILES).toEqual(['one-step', 'multi-step', 'emergency-stabilization']);
   });
@@ -347,11 +349,11 @@ describe('classifyDeliveryProfile', () => {
   });
 
   it('fails explicitly for invalid model values', () => {
-    const profile = classify({ deliveryModel: 'Model C' });
+    const profile = classify({ deliveryModel: 'Model X' });
 
     expect(profile.errors).toContainEqual(expect.objectContaining({
       code: 'invalid_deliveryModel',
-      value: 'Model C',
+      value: 'Model X',
     }));
   });
 
@@ -558,7 +560,7 @@ describe('delivery profile CLI', () => {
     const changedPath = 'delivery-profile-changed.test.txt';
     const resultPath = 'delivery-profile-result.test.json';
     fs.writeFileSync(bodyPath, metadataBody({
-      deliveryModel: 'Model C',
+      deliveryModel: 'Model X',
       targetEnvironment: 'component',
       approvalProfile: 'protected-change-review',
       gateProfile: 'component-child',

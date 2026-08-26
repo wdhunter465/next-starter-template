@@ -90,6 +90,13 @@ export const DELIVERY_QUALITY_MINIMUMS = {
     test: false,
     build: false,
   },
+  // Model C: deliberately lighter — no production build/test solely for documentation.
+  documentation: {
+    typecheck: false,
+    lint: false,
+    test: false,
+    build: false,
+  },
 };
 
 export function normalizePrClass(value = '') {
@@ -113,6 +120,16 @@ function applyDeliveryMinimums(plan, deliveryProfile = {}) {
   };
 
   if (!minimums) {
+    return merged;
+  }
+
+  // Model C documentation gate: do not escalate to code build/test via PR class defaults.
+  if (gateProfile === 'documentation' && deliveryProfile.deliveryModel === 'C') {
+    merged.typecheck = false;
+    merged.lint = false;
+    merged.test = false;
+    merged.build = false;
+    merged.reason = 'Model C documentation gate skips code build/test/typecheck/lint; path and DIATAXIS gates enforce docs boundary';
     return merged;
   }
 
