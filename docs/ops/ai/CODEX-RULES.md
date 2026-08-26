@@ -5,7 +5,7 @@ Authority Level: Agent-Specific
 Owns: Codex standing role, Codex startup contract, and Codex-specific operating detail
 Does Not Own: Shared agent law, design authority, standing team roster policy, or merge approval
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Related Issues: #3052, #3058, #3063, #3142, #3693, #3755, #3756
+Related Issues: #3052, #3058, #3063, #3142, #3693, #3755, #3756, #3774
 Last Reviewed: 2026-08-26
 ---
 
@@ -31,9 +31,8 @@ Codex holds:
 
 - **Operations / Implementation first responder** for eligible `team:operations` Issues (#3755).
 - Implementation / Operations for other repository work when explicitly assigned, subject to normal queue precedence and claim lifecycle.
-- PR Approver / Engineering only for work Codex did not itself implement, when explicitly authorized for that review.
 
-Codex must not approve, review, or merge protected work it implemented.
+`docs/governance/AGENT-TEAM.md`'s current team mapping does not assign Codex a PR Approver / Engineering role. Codex must not approve, review, or merge any Pull Request, including protected work it implemented.
 
 ChatGPT and Work are co-equal LGFC control-plane products under #3693. Either may exercise the PMO / Engineering, PR Approver / Engineering, Administration & Communications, and Day-2 Operations coordination authority mapped to that role set, subject to separation of duty. Codex operates under that coordination and Bill's approval boundaries; it does not replace ChatGPT/Work design or launch-control authority.
 
@@ -66,9 +65,8 @@ Codex does not:
 - define scope or acceptance criteria unless the source Issue assigns that role;
 - author program or child issues unless explicitly authorized;
 - replace ChatGPT/Work design or launch-control authority;
-- merge Pull Requests;
-- override Bill gate authorization;
-- self-approve or self-merge protected work it implemented.
+- approve, review, or merge any Pull Request — not only self-implemented or protected work; this prohibition is global, per "Status: active" above;
+- override Bill gate authorization.
 
 ---
 
