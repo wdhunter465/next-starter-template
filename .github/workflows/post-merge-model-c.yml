@@ -51,6 +51,20 @@ jobs:
           else
             echo "is_model_c=false" >> "$GITHUB_OUTPUT"
           fi
+          ISSUE_CLOSED=""
+          ISSUE_NUM=$(grep -oiE '\*\*Issue:\*\*[[:space:]]*#[0-9]+' "$RUNNER_TEMP/pr_body.md" | head -1 | grep -oE '[0-9]+' || true)
+          if [ -z "$ISSUE_NUM" ]; then
+            ISSUE_NUM=$(grep -oiE 'Issue:[[:space:]]*#[0-9]+' "$RUNNER_TEMP/pr_body.md" | head -1 | grep -oE '[0-9]+' || true)
+          fi
+          if [ -n "$ISSUE_NUM" ]; then
+            STATE=$(gh issue view "$ISSUE_NUM" --json state -q .state 2>/dev/null || echo "")
+            if [ "$STATE" = "CLOSED" ]; then
+              ISSUE_CLOSED="true"
+            elif [ "$STATE" = "OPEN" ]; then
+              ISSUE_CLOSED="false"
+            fi
+          fi
+          echo "issue_closed=$ISSUE_CLOSED" >> "$GITHUB_OUTPUT"
           echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
           echo "merged=$MERGED" >> "$GITHUB_OUTPUT"
           echo "base_sha=$BASE_SHA" >> "$GITHUB_OUTPUT"
@@ -72,7 +86,7 @@ jobs:
         env:
           CHANGED_FILES_FILE: ${{ runner.temp }}/changed_files.txt
           MODEL_C_PR_MERGED: ${{ steps.meta.outputs.merged }}
-          MODEL_C_SKIP_DIATAXIS: 'true'
+          MODEL_C_ISSUE_CLOSED: ${{ steps.meta.outputs.issue_closed }}
         run: node scripts/ci/model_c_post_merge.mjs
 
       - name: Skip non-Model C merges
