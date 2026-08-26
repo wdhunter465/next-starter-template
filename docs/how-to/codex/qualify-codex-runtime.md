@@ -22,12 +22,13 @@ Do not begin unrelated implementation while running this qualification. This pro
 Read, in order (per `docs/ops/ai/CODEX-RULES.md`'s mandatory documentation chain):
 
 1. `Agent.md`
-2. `docs/governance/AGENT-TEAM.md`
-3. `docs/ops/ai/SHARED-AGENT-RULES.md`
-4. `docs/ops/ai/CORE-RULES.md`
-5. `docs/ops/ai/CODEX-RULES.md`
-6. This file
-7. Issue #3758 itself
+2. `docs/governance/REPOSITORY-AUTHORITY.md`
+3. `docs/governance/AGENT-TEAM.md`
+4. `docs/ops/ai/SHARED-AGENT-RULES.md`
+5. `docs/ops/ai/CORE-RULES.md`
+6. `docs/ops/ai/CODEX-RULES.md`
+7. This file
+8. Issue #3758 itself
 
 ## Evidence format
 
@@ -86,35 +87,49 @@ Expect: check names and states (success/failure/pending) are visible. If no PR i
 
 ### 5. Branch creation and push
 
+Pick a branch name unique to this run (append the date or a short run ID) so a rerun or a second qualification pass never collides with a leftover branch:
+
 ```bash
-git checkout -b codex/3758-runtime-qualification origin/main
-git push -u origin codex/3758-runtime-qualification
+BRANCH="codex/3758-runtime-qualification-$(date +%Y%m%d%H%M)"
+git checkout -b "$BRANCH" origin/main
+git push -u origin "$BRANCH"
 ```
 
-Expect: branch created from current `main`; push succeeds without requiring elevated permissions beyond what step 2 already confirmed.
+Expect: branch created from current `main`; push succeeds without requiring elevated permissions beyond what step 2 already confirmed. Record the actual branch name you used — later commands in this procedure assume `$BRANCH` is still set in your shell.
 
-### 6. PR creation/update capability
+### 6. PR creation and update capability
 
-Make a trivial, reversible change inside this qualification's own scope (for example, appending your evidence block to this file under a `## Qualification evidence (#3758)` heading you add), then:
+Issue #3758 requires demonstrating both create *and* update. Make a trivial, reversible change inside this qualification's own scope (for example, appending your evidence block to this file under a `## Qualification evidence (#3758)` heading you add), then:
 
 ```bash
 git add docs/how-to/codex/qualify-codex-runtime.md
 git commit -m "docs(#3758): record runtime qualification evidence"
 git push
-gh pr create --repo wdhunter465/next-starter-template --base main --head codex/3758-runtime-qualification --title "docs(#3758): Codex runtime qualification evidence" --body "See Issue #3758."
+gh pr create --repo wdhunter465/next-starter-template --base main --head "$BRANCH" --title "docs(#3758): Codex runtime qualification evidence" --body "See Issue #3758."
 ```
 
-Expect: PR opens successfully. This also produces a live PR for steps 4 (retroactively) and 7.
+Then demonstrate update — push a second commit (for example, filling in a result you couldn't record until the PR existed) and confirm it appears on the same PR:
+
+```bash
+git add docs/how-to/codex/qualify-codex-runtime.md
+git commit -m "docs(#3758): update runtime qualification evidence"
+git push
+gh pr view --repo wdhunter465/next-starter-template "$BRANCH" --json commits
+```
+
+Expect: PR opens successfully in the create step, and the second push updates the same PR (visible as an additional commit, not a new PR). This also produces a live PR for steps 4 (retroactively) and 7.
+
+Before reporting this PR as ready for review, confirm its actual GitHub state per `docs/governance/PR_READY_FOR_REVIEW_HANDOFF.md`: move it out of Draft using **Ready for review**, or record the explicit blocker if it must stay Draft. Report the literal state: `GitHub PR state: draft / ready for review / merged / blocked with documented reason`.
 
 ### 7. Local validation commands
 
-Run the repository's standard local checks (same ones every implementer runs before marking a PR ready — see `docs/ops/ai/CORE-RULES.md`):
+`docs/ops/ai/CORE-RULES.md` requires running task-relevant local checks before marking a PR ready — it does not mandate one fixed command set. For this qualification, use the repository's own `package.json` scripts as the baseline:
 
 ```bash
 npm ci
-npx tsc --noEmit
+npm run typecheck
 npm run lint
-npx vitest run
+npm test
 ```
 
 Expect: all four complete (PASS or a clearly attributable pre-existing failure unrelated to this qualification — do not fix unrelated failures here, just note them).
@@ -132,7 +147,7 @@ Confirm you can read at least the `lgfc-pr-governance` skill (the one every PR-o
 
 In a **fresh** Codex session (new context, no prior chat memory of this qualification), issue the literal command `run startup` and record the complete response. It must:
 
-- follow `docs/ops/ai/CODEX-RULES.md`'s 16-point startup report exactly (Product, standing roster state, runtime/environment, orientation-only mode, repo identity, branch/working-tree state, GitHub access, authority files read, Codex-specific rules loaded, supplied source Issue if any, assignment/claim state, bounded scope if loaded, no-source-Issue statement if not loaded, operational-hold state, safe operating decision, stop point);
+- follow the exact, current startup report defined in `docs/ops/ai/CODEX-RULES.md`'s "Codex startup contract" section — read that section directly rather than relying on any paraphrase, including this one, which can drift out of sync as `CODEX-RULES.md` evolves;
 - **stop** without beginning implementation, self-selecting work, editing files, or mutating any Issue/PR, unless a source Issue was separately supplied and grants that scope.
 
 This is a pass/fail gate on its own: if startup does anything beyond orientation, or omits required report elements, mark this capability FAIL and describe exactly what happened.
