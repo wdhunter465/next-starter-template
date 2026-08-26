@@ -13,10 +13,13 @@ name: Gehrig Perceptual Hash Backfill (#3740, follow-up to #3739)
 # re-run.
 #
 # Runs the script's own --dry-run first so the operator can review the
-# computed hashes (and any near-duplicate flags) in this run's log before
-# the real (non-dry-run) apply immediately after, per #3740's acceptance
-# criteria. A near-duplicate flag raised by either run still needs an
-# admin decision afterward -- this workflow does not resolve those.
+# computed hashes (and any near-duplicate flags against already-hashed
+# history) in this run's log before the real (non-dry-run) apply
+# immediately after, per #3740's acceptance criteria. #3761: every
+# near-duplicate the real apply flags gets its own GitHub issue filed
+# automatically (both candidates' source URLs side by side) -- this
+# workflow still never resolves a flag itself, that's always a human
+# decision.
 
 on:
   workflow_dispatch:
@@ -32,6 +35,7 @@ concurrency:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   backfill:
@@ -81,9 +85,51 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           B2_ENDPOINT: ${{ secrets.B2_ENDPOINT }}
           B2_BUCKET: ${{ secrets.B2_BUCKET }}
+          NEAR_DUPLICATE_FLAGS_FILE: ${{ runner.temp }}/near-duplicate-flags.json
         run: |
           node --experimental-strip-types scripts/content-pipeline/backfill-media-perceptual-hashes.mjs \
             --database lgfc_lite --remote
+
+      - name: File GitHub issues for any near-duplicate flags
+        if: steps.backfill.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FLAGS_FILE: ${{ runner.temp }}/near-duplicate-flags.json
+        run: |
+          set -euo pipefail
+
+          if [ ! -s "$FLAGS_FILE" ]; then
+            echo "No near-duplicate flags this run -- nothing to file."
+            exit 0
+          fi
+
+          count=$(jq 'length' "$FLAGS_FILE")
+          echo "Filing $count near-duplicate issue(s)..."
+
+          body_file="$(mktemp)"
+          failed=0
+          # Process substitution (not a pipe into `while`) so the loop runs in
+          # THIS shell, not a subshell -- otherwise `failed` set below would be
+          # invisible outside the loop and a `gh issue create` failure could
+          # never fail the step (a real bug this fixes: the previous
+          # `jq ... | while ...` form always exited with `rm -f`'s status,
+          # i.e. success, regardless of whether any issue actually got filed).
+          while IFS= read -r pair; do
+            title=$(echo "$pair" | jq -r '.title')
+            echo "$pair" | jq -r '.body' > "$body_file"
+            if url=$(gh issue create --title "$title" --body-file "$body_file" --repo "${{ github.repository }}"); then
+              echo "Filed: $url"
+            else
+              echo "::error::Failed to file near-duplicate issue for: $title"
+              failed=1
+            fi
+          done < <(jq -c '.[]' "$FLAGS_FILE")
+          rm -f "$body_file"
+
+          if [ "$failed" -ne 0 ]; then
+            echo "One or more near-duplicate issues failed to file -- see errors above."
+            exit 1
+          fi
 
       - name: Write step summary
         if: always()
@@ -97,9 +143,9 @@ jobs:
               echo "Backfilled media_assets.perceptual_hash for every pre-phase-4 row, and"
               echo "ran the near-duplicate check across the backfilled set."
               echo ""
-              echo "Next: review this run's log for any 'flagged N near-duplicate"
-              echo "candidate(s)' lines and resolve them (per content_items.duplicate_of /"
-              echo "moderation_events), then close #3740."
+              echo "Next: any near-duplicate this run flagged got its own GitHub issue filed"
+              echo "automatically (see the 'File GitHub issues' step above for links) -- work"
+              echo "through those, then close #3740."
             else
               echo "The apply step did not complete successfully -- no confirmation that"
               echo "the backfill was applied. Check the job log above before assuming"

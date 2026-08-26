@@ -26,6 +26,7 @@ export type NearDuplicateMatch = {
   matchedCandidateId: string;
   matchedContentItemId: number;
   matchedTitle: string | null;
+  matchedSourceUrl: string | null;
   distance: number;
   filenameMatches: boolean;
 };
@@ -61,13 +62,21 @@ export async function findNearDuplicateMediaAssets(
   const mediaAssetIds = withinThreshold.map(({ row }) => `b2://${row.b2_key}`);
   const placeholders = mediaAssetIds.map(() => '?').join(', ');
   const contentItemsResult = await db
-    .prepare(`SELECT id, candidate_id, title, media_asset_id FROM content_items WHERE media_asset_id IN (${placeholders})`)
+    .prepare(
+      `SELECT id, candidate_id, title, source_url, media_asset_id FROM content_items WHERE media_asset_id IN (${placeholders})`,
+    )
     .bind(...mediaAssetIds)
     .all();
   const contentItemsByMediaAssetId = new Map(
-    ((contentItemsResult.results ?? []) as Array<{ id: number; candidate_id: string; title: string | null; media_asset_id: string }>).map(
-      (item) => [item.media_asset_id, item],
-    ),
+    (
+      (contentItemsResult.results ?? []) as Array<{
+        id: number;
+        candidate_id: string;
+        title: string | null;
+        source_url: string | null;
+        media_asset_id: string;
+      }>
+    ).map((item) => [item.media_asset_id, item]),
   );
 
   const matches: NearDuplicateMatch[] = [];
@@ -81,6 +90,7 @@ export async function findNearDuplicateMediaAssets(
       matchedCandidateId: String(contentItem.candidate_id),
       matchedContentItemId: Number(contentItem.id),
       matchedTitle: contentItem.title ? String(contentItem.title) : null,
+      matchedSourceUrl: contentItem.source_url ? String(contentItem.source_url) : null,
       distance,
       filenameMatches: matchedNormalizedFilename === candidateNormalizedFilename,
     });
@@ -102,7 +112,7 @@ export function buildNearDuplicateFlagNotes(matches: NearDuplicateMatch[]): stri
     const filenameNote = match.filenameMatches
       ? 'filename matches (strong duplicate signal)'
       : 'filename differs (may be a distinct photo -- verify before merging)';
-    return `candidate_id=${match.matchedCandidateId} distance=${match.distance}/64 title=${JSON.stringify(match.matchedTitle)} ${filenameNote}`;
+    return `candidate_id=${match.matchedCandidateId} distance=${match.distance}/64 title=${JSON.stringify(match.matchedTitle)} source_url=${match.matchedSourceUrl ?? 'unknown'} ${filenameNote}`;
   });
   return `Perceptual hash flagged ${matches.length} near-duplicate candidate(s):\n${lines.join('\n')}`;
 }
@@ -139,4 +149,48 @@ export async function flagCandidateAsNearDuplicate(
     )
     .bind(candidateId)
     .run();
+}
+
+export type NearDuplicateIssueContent = {
+  title: string;
+  body: string;
+};
+
+// #3761: a self-contained GitHub issue title/body for one flagged
+// candidate/match pair, built here (not in the CLI script or the workflow
+// YAML) so this string construction goes through the same escaping-safe JS
+// template-literal path as everything else in this module, rather than
+// being hand-assembled in bash where the markdown backticks below would
+// otherwise be a command-substitution hazard. The caller writes this
+// straight out for `gh issue create --body-file` to consume verbatim.
+export function buildNearDuplicateIssueContent(input: {
+  candidateId: string;
+  candidateSourceUrl: string | null;
+  matchedCandidateId: string;
+  matchedSourceUrl: string | null;
+  distance: number;
+}): NearDuplicateIssueContent {
+  const candidateUrl = input.candidateSourceUrl ?? 'unknown';
+  const matchedUrl = input.matchedSourceUrl ?? 'unknown';
+
+  const title = `Review near-duplicate flag: ${input.candidateId} vs ${input.matchedCandidateId}`;
+  const body = `## Near-duplicate flag from the perceptual-hash backfill
+
+\`content_items.candidate_id = '${input.candidateId}'\` was flagged as a likely duplicate of \`${input.matchedCandidateId}\` (Hamming distance ${input.distance}/64).
+
+| | Candidate | Source URL |
+|---|---|---|
+| Flagged | \`${input.candidateId}\` | ${candidateUrl} |
+| Suspected duplicate of | \`${input.matchedCandidateId}\` | ${matchedUrl} |
+
+## Action needed
+
+- [ ] Confirm whether these are the same photo.
+- [ ] If confirmed, decide which \`content_items\` row to keep as canonical and which to purge/merge.
+- [ ] Clear \`review_priority\` back to \`normal\` on whichever row is kept, once resolved.
+
+---
+_Filed automatically by the perceptual-hash backfill (#3761)._`;
+
+  return { title, body };
 }
