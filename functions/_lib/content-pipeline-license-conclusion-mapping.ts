@@ -7,7 +7,7 @@
 // template corresponds to. An unrecognized license template is refused
 // rather than guessed at, per #3551's core safety rule.
 
-import type { RightsEvidenceConclusion } from './rights-evidence-repository';
+import type { RightsEvidenceConclusion, RightsEvidenceUsageDecision } from './rights-evidence-repository';
 
 export type CommonsLicenseNote = {
   license_short_name: string | null;
@@ -54,6 +54,47 @@ export function mapLicenseToConclusion(licenseShortName: string | null | undefin
   throw new Error(
     `mapLicenseToConclusion: unrecognized license template "${licenseShortName}" -- refusing to guess a rights conclusion. Add explicit handling once the correct mapping is confirmed by a human.`,
   );
+}
+
+// #3552 phase 5 (#3748): what a Commons "CC BY" family license actually
+// requires of LGFC when it's used -- attribution to the named artist (per
+// Commons' own extmetadata), or to Commons itself when Commons has no
+// artist on record. Public-domain/CC0 items carry no such condition.
+export function deriveTaggingRequirements(
+  licenseShortName: string | null | undefined,
+  artist: string | null | undefined,
+): string | null {
+  const normalized = String(licenseShortName ?? '').trim().toLowerCase();
+  if (!normalized.startsWith('cc by')) {
+    return null;
+  }
+  const trimmedArtist = artist?.trim();
+  const creditedTo = trimmedArtist || 'Wikimedia Commons';
+  return `Attribution required per ${licenseShortName}: credit ${creditedTo}.`;
+}
+
+export type CommonsUsageDecisionResult = {
+  usageDecision: RightsEvidenceUsageDecision;
+  conclusion: RightsEvidenceConclusion | null;
+};
+
+// #3552 phase 5 (#3748): the non-throwing counterpart to
+// mapLicenseToConclusion, for callers (the batch-approval writer) that must
+// keep processing the rest of a batch when one item's license text isn't
+// recognized, rather than aborting on the first unmapped item. An
+// unrecognized license becomes usage_decision='hold' with no conclusion
+// recorded -- exactly the "queue it for review" behavior
+// mapLicenseToConclusion's doc comment calls out as the alternative to
+// throwing, and mapLicenseToConclusion itself is left unchanged (and still
+// throws) for any caller that legitimately wants that stricter behavior.
+export function resolveCommonsUsageDecision(
+  licenseShortName: string | null | undefined,
+): CommonsUsageDecisionResult {
+  try {
+    return { usageDecision: 'permit', conclusion: mapLicenseToConclusion(licenseShortName) };
+  } catch {
+    return { usageDecision: 'hold', conclusion: null };
+  }
 }
 
 // Best existing fit in content_items.rights_status's enum (migration 0042)

@@ -2,13 +2,13 @@
 Doc Type: Reference
 Audience: Human + AI
 Authority Level: Controlled
-Owns: Column-by-column definitions and provenance for content_items, rights_evidence,
-  media_assets, and the proposed rights_translation_rules table (#3551/#3552/#3658
-  content-pipeline rights lineage)
+Owns: Column-by-column definitions and provenance for content_items, rights_evidence
+  (including its per-photo usage_decision workflow), and media_assets
+  (#3551/#3552/#3658/#3748 content-pipeline rights lineage)
 Does Not Own: Publication-prep gating logic (content-pipeline-publication-prep.ts);
   legacy photos/media_assets quarantine remediation (#3658 itself)
 Canonical Reference: /docs/reference/lgfc-content-schema-reference.md
-Last Reviewed: 2026-08-25
+Last Reviewed: 2026-08-26
 ---
 
 # Content Pipeline Rights Data Dictionary
@@ -24,10 +24,10 @@ here, not a reconstruction from memory or code archaeology.
 
 **This document must be reviewed and updated as part of any pull request that
 adds, removes, or redefines the use of a column in `content_items`,
-`rights_evidence`, `media_assets`, or `rights_translation_rules` (once built).**
-A migration PR touching any of these tables is not complete until this file
-reflects the change. This is a process requirement, not a suggestion — treat
-it the same as updating a test for changed behavior.
+`rights_evidence`, or `media_assets`.** A migration PR touching any of these
+tables is not complete until this file reflects the change. This is a
+process requirement, not a suggestion — treat it the same as updating a test
+for changed behavior.
 
 **If a table is added to, removed from, or renamed within this photo-library
 pipeline**, also
@@ -216,21 +216,24 @@ endpoint).
 *(Review/publication/privacy-state columns omitted here — unchanged by this
 proposal; see `lgfc-content-schema-reference.md` for the full existing set.)*
 
-## `rights_evidence` (migration 0055, widened 0059)
+## `rights_evidence` (migration 0055, widened 0059, 0061)
 
 | Column | Provenance | Definition |
 |---|---|---|
 | `id` | System | Primary key. |
 | `content_item_id` | System | FK to the `content_items` row this evidence is about. |
 | `evidence_type` | LGFC-derived | Fixed vocabulary describing what kind of evidence this is (`commons_license`, `loc_statement`, ...). |
-| `evidence_url` | Source-derived | Link to the specific page/API response the evidence came from. |
+| `evidence_url` | Source-derived | Link to the specific page/API response the evidence came from — the photo's source URL. |
 | `evidence_text` | Source-derived (raw) | The source's own rights/license text, preserved as found. **Not** a paraphrase or synthesized sentence — raw field values only (see Maintenance note below). |
 | `evidence_metadata` | Source-derived (raw) | Full raw scraped object (license fields, restrictions, usage terms) not already broken into their own columns. |
+| `source_filename` | Source-derived | The filename as found from the source (e.g. Commons' `File:...` title). |
+| `tagging_requirements` | Source-derived (derived) | Attribution/credit text the source requires, when stated (e.g. a Commons CC BY license's attribution condition) — `NULL` when the source states no such requirement. |
 | `rights_holder` | Source-derived | The asserted creator/rights holder (e.g. "New York Daily News"), taken directly from the source's own artist/creator field. |
 | `repository_or_collection` | Source-derived | Which platform/collection this came from (e.g. "Wikimedia Commons"). |
-| `conclusion` | LGFC-derived | LGFC's classification of the evidence into `public_domain_confirmed` / `permission_granted` / `lgfc_member_owned_item_photo`. NULL until a human (or an applied translation rule, see below) sets it — nothing sets this automatically today. |
+| `usage_decision` | LGFC-derived | Per-photo triage: `permit` (copyright found allows public/free usage), `deny` (a photo was found but requires payment/written permission), or `hold` (unknown/unclear — the default for a newly-recorded row). See "Usage-decision workflow" below. |
+| `conclusion` | LGFC-derived | LGFC's classification of the evidence into `public_domain_confirmed` / `permission_granted` / `lgfc_member_owned_item_photo`. `NULL` until a human sets it (or `usage_decision` is `hold`/`deny`, which never carries a conclusion) — nothing sets this automatically today. |
 | `conclusion_rationale` | LGFC-derived | Plain-English explanation of what the conclusion means for LGFC's use of the item. |
-| `reviewer` | LGFC-derived | Who is responsible for the conclusion (a person, or the translation-rule reference once PROPOSED table exists). |
+| `reviewer` | LGFC-derived | Who is responsible for the conclusion. |
 | `channel` | LGFC-derived | Which use case this conclusion covers (website, social, newsletter, ...) — a conclusion for one channel never authorizes another. |
 
 **Fixed (#3552 phase 3):** the batch-approval writer
@@ -247,6 +250,33 @@ pre-#3552-phase-3 writer need the same correction applied; run
 against them (idempotent — guarded by `WHERE rights_holder IS NULL`, so
 it never overwrites a row a human has since edited, and is safe to
 re-run). See #3728 for that Production execution's tracking status.
+
+### Usage-decision workflow (implemented — #3552 phase 5 / #3748)
+
+Every `rights_evidence` row now carries its own `usage_decision`
+(`permit`/`deny`/`hold`), independent of `conclusion`. This is item-level,
+not a shared rule table keyed by license wording — each photo is resolved
+on its own. `hold` is the default: a row written with no recognized
+conclusion (e.g. `content-pipeline-license-conclusion-mapping.ts`'s
+`resolveCommonsUsageDecision` couldn't map the source's license text) is
+still persisted, with `source_filename`/`evidence_text`/`evidence_url`
+captured for whoever resolves it, rather than the ingest/batch-approval
+process aborting outright the way `mapLicenseToConclusion` throwing did
+before this existed.
+
+**Resolving a hold:** `rights_evidence` stays append-only (per the
+Maintenance note at the top of this document) — resolving a `hold` means
+recording a *new* row for the same `content_item_id` with
+`usage_decision = permit|deny` (and a `conclusion` when `permit`), not
+mutating the held row in place.
+`getCurrentUsageDecisionForCandidate()` in `rights-evidence-repository.ts`
+resolves the most recent row's `usage_decision` for a candidate, mirroring
+`getCurrentConclusionForCandidate()`'s pattern for `conclusion`.
+
+**Known limitation:** since this is per-photo, resolving one hold does not
+apply to any other photo, even one sharing identical source wording — a
+shared-rule table that propagates a resolution to every matching row was
+considered for this phase and explicitly not built (see #3748's scope).
 
 ## `media_assets` (migration 0010)
 
@@ -265,35 +295,18 @@ own — that all lives on `content_items`/`rights_evidence`, keyed via
 `content_items.media_asset_id`. Keeping it minimal avoids the exact
 one-fact-two-places problem this document is meant to prevent.
 
-## `rights_translation_rules` (PROPOSED — not yet in D1)
+## `rights_translation_rules` — not built (superseded by per-photo `usage_decision`)
 
-Formalizes the "resolve a hold once, apply to every matching row" workflow.
-Today, mapping a source's license text to a permit/deny conclusion is
-hardcoded in `content-pipeline-license-conclusion-mapping.ts` and *throws an
-error* on anything unrecognized rather than queuing it for review. This table
-replaces that hardcoded mapping with admin-editable, audited data.
-
-| Column | Provenance | Definition |
-|---|---|---|
-| `id` | System | Primary key. |
-| `source_platform` | LGFC-derived (keying) | Which source this rule applies to (e.g. `commons.wikimedia.org`). Rules are always scoped per platform — the same wording from two different sources is tracked as two independent rules, since identical phrasing may carry different actual verification weight. |
-| `source_text_raw` | Source-derived | The literal text as first seen from the source (e.g. `"CC BY 1.0"`). |
-| `source_text_normalized` | System (derived) | `source_text_raw`, lowercased and with spaces/hyphens/underscores collapsed, used as the actual match key. Exact-match only against this normalized form — no fuzzy/similarity matching. `"public_domain"`, `"public domain"`, and `"public-domain"` collapse to the same rule; `"CC BY"` and `"CC BY-NC"` do not. |
-| `decision` | LGFC-derived | `permit` / `deny` / `hold` (unresolved — the default for any newly-seen `source_text_normalized`). |
-| `decided_by` | LGFC-derived | Who ruled on this text. |
-| `decided_at` | LGFC-derived | When. |
-| `decision_rationale` | LGFC-derived | Why — what this wording means for LGFC's use. |
-
-**Propagation behavior:** when a `hold` row is updated to `permit`/`deny`,
-every `rights_evidence` row whose evidence was recorded against that same
-`(source_platform, source_text_normalized)` pair is updated to match, stamped
-with the same reviewer/timestamp. This is what lets an admin rule on a piece
-of source wording once instead of once per photo.
-
-**Known limitation:** this only helps sources with a small, repeating license
-vocabulary (Wikimedia-style). Library of Congress advisory text is close to
-unique per item — there's rarely a second row to match against — so LOC items
-will likely still need one-at-a-time human review regardless of this table.
+An earlier design for this phase proposed a separate rule table, keyed by
+normalized source license text, so resolving one rule would propagate to
+every `rights_evidence` row sharing that wording. That cross-item
+propagation was explicitly considered and **not built** for #3552 phase 5 —
+see "Usage-decision workflow" above for what was built instead: a
+`usage_decision` column directly on `rights_evidence`, resolved one photo at
+a time. No `rights_translation_rules` table exists in D1, and none is
+currently planned; if cross-item propagation becomes worth building later,
+scope it as its own follow-up rather than assuming this section still
+describes a pending TODO.
 
 ## Attribution model
 

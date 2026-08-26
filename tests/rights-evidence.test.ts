@@ -10,6 +10,7 @@ import {
   GovernedRightsEvidenceChannelRequiredError,
   getCurrentConclusionForCandidate,
   getCurrentConclusionForCandidateChannel,
+  getCurrentUsageDecisionForCandidate,
   listRightsEvidenceForCandidate,
   recordGovernedRightsEvidence,
   recordRightsEvidence,
@@ -233,6 +234,34 @@ describe('rights evidence request parsing (#3552)', () => {
     }
   });
 
+  it('rejects an invalid usage_decision value (#3552 phase 5 / #3748)', () => {
+    const result = parseRecordRightsEvidenceRequest({
+      candidate_id: 'lgfc-gehrig-2026-999',
+      evidence_type: 'commons_license',
+      usage_decision: 'maybe',
+    });
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).toContain('usage_decision');
+    }
+  });
+
+  it('accepts source_filename / tagging_requirements / usage_decision without a conclusion (#3552 phase 5 / #3748)', () => {
+    const result = parseRecordRightsEvidenceRequest({
+      candidate_id: 'lgfc-gehrig-2026-999',
+      evidence_type: 'commons_license',
+      evidence_text: 'All rights reserved',
+      source_filename: 'File:Mystery.jpg',
+      usage_decision: 'hold',
+    });
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.request.source_filename).toBe('File:Mystery.jpg');
+      expect(result.request.usage_decision).toBe('hold');
+      expect(result.request.conclusion).toBeUndefined();
+    }
+  });
+
   it('accepts rights_holder / repository_or_collection without a conclusion', () => {
     const result = parseRecordRightsEvidenceRequest({
       candidate_id: 'lgfc-gehrig-2026-999',
@@ -391,6 +420,36 @@ describe('rights evidence repository + admin API (#3552)', () => {
     expect(getBody.current_conclusion).toBeNull();
   });
 
+  it('records a hold via the admin API and reflects it in current_usage_decision (#3552 phase 5 / #3748)', async () => {
+    const sqlite = new DatabaseSync(':memory:');
+    applyRepoMigrations(sqlite);
+    seedAdminSession(sqlite);
+    const db = wrapSqliteAsD1(sqlite);
+    await upsertCandidate(db, minimalCandidate());
+
+    const postResponse = await rightsEvidencePost({
+      env: { DB: db },
+      request: adminPostRequest('/api/admin/content-pipeline/rights-evidence', {
+        candidate_id: 'lgfc-gehrig-2026-999',
+        evidence_type: 'commons_license',
+        evidence_text: 'All rights reserved',
+        source_filename: 'File:Mystery.jpg',
+        usage_decision: 'hold',
+      }),
+    });
+    expect(postResponse.status).toBe(201);
+    const postBody = await postResponse.json();
+    expect(postBody.evidence.usage_decision).toBe('hold');
+    expect(postBody.evidence.source_filename).toBe('File:Mystery.jpg');
+
+    const getResponse = await rightsEvidenceGet({
+      env: { DB: db },
+      request: adminGetRequest('/api/admin/content-pipeline/rights-evidence?candidate_id=lgfc-gehrig-2026-999'),
+    });
+    const getBody = await getResponse.json();
+    expect(getBody.current_usage_decision.usage_decision).toBe('hold');
+  });
+
   it('rejects an unknown source_domain', async () => {
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
@@ -408,6 +467,93 @@ describe('rights evidence repository + admin API (#3552)', () => {
     });
 
     expect(response.status).toBe(400);
+  });
+});
+
+describe('usage_decision / source_filename / tagging_requirements (#3552 phase 5 / #3748)', () => {
+  it('defaults usage_decision to hold when the caller does not supply one', async () => {
+    const sqlite = new DatabaseSync(':memory:');
+    applyRepoMigrations(sqlite);
+    const db = wrapSqliteAsD1(sqlite);
+    const candidate = await upsertCandidate(db, minimalCandidate());
+
+    const stored = await recordRightsEvidence(db, {
+      content_item_id: candidate.id,
+      evidence_type: 'commons_license',
+      evidence_text: 'All rights reserved',
+      source_filename: 'File:Mystery.jpg',
+    });
+
+    expect(stored.usage_decision).toBe('hold');
+    expect(stored.conclusion).toBeNull();
+    expect(stored.source_filename).toBe('File:Mystery.jpg');
+    expect(stored.tagging_requirements).toBeNull();
+  });
+
+  it('stores an explicit permit decision with tagging_requirements', async () => {
+    const sqlite = new DatabaseSync(':memory:');
+    applyRepoMigrations(sqlite);
+    const db = wrapSqliteAsD1(sqlite);
+    const candidate = await upsertCandidate(db, minimalCandidate());
+
+    const stored = await recordRightsEvidence(db, {
+      content_item_id: candidate.id,
+      evidence_type: 'commons_license',
+      evidence_text: 'CC BY 1.0',
+      source_filename: 'File:GehrigCU.jpg',
+      tagging_requirements: 'Attribution required per CC BY 1.0: credit Wikimedia Commons.',
+      usage_decision: 'permit',
+      reviewer: 'Bill',
+      conclusion: 'permission_granted',
+      conclusion_rationale: 'Conditioned grant, attribution required.',
+      channel: 'website',
+    });
+
+    expect(stored.usage_decision).toBe('permit');
+    expect(stored.tagging_requirements).toBe('Attribution required per CC BY 1.0: credit Wikimedia Commons.');
+  });
+
+  it('resolving a hold appends a new row rather than mutating the held one -- rights_evidence stays append-only', async () => {
+    const sqlite = new DatabaseSync(':memory:');
+    applyRepoMigrations(sqlite);
+    const db = wrapSqliteAsD1(sqlite);
+    const candidate = await upsertCandidate(db, minimalCandidate());
+
+    const held = await recordRightsEvidence(db, {
+      content_item_id: candidate.id,
+      evidence_type: 'commons_license',
+      evidence_text: 'Some unrecognized license text',
+      source_filename: 'File:Mystery.jpg',
+    });
+    expect(held.usage_decision).toBe('hold');
+
+    await recordRightsEvidence(db, {
+      content_item_id: candidate.id,
+      evidence_type: 'commons_license',
+      evidence_text: 'Some unrecognized license text',
+      source_filename: 'File:Mystery.jpg',
+      usage_decision: 'deny',
+      reviewer: 'Bill',
+    });
+
+    const trail = await listRightsEvidenceForCandidate(db, candidate.id);
+    expect(trail).toHaveLength(2);
+    // Most recent first -- the original hold row is untouched.
+    expect(trail[0].usage_decision).toBe('deny');
+    expect(trail[1].usage_decision).toBe('hold');
+    expect(trail[1].id).toBe(held.id);
+
+    const current = await getCurrentUsageDecisionForCandidate(db, candidate.id);
+    expect(current?.usage_decision).toBe('deny');
+  });
+
+  it('getCurrentUsageDecisionForCandidate returns null when there is no evidence at all yet', async () => {
+    const sqlite = new DatabaseSync(':memory:');
+    applyRepoMigrations(sqlite);
+    const db = wrapSqliteAsD1(sqlite);
+    const candidate = await upsertCandidate(db, minimalCandidate());
+
+    expect(await getCurrentUsageDecisionForCandidate(db, candidate.id)).toBeNull();
   });
 });
 

@@ -27,6 +27,13 @@ export const RIGHTS_EVIDENCE_CONCLUSIONS = [
 export type RightsEvidenceType = (typeof RIGHTS_EVIDENCE_TYPES)[number];
 export type RightsEvidenceConclusion = (typeof RIGHTS_EVIDENCE_CONCLUSIONS)[number];
 
+// #3552 phase 5 (#3748): per-photo triage, separate from `conclusion`.
+// 'hold' is the default for any row that has not been resolved yet --
+// see migration 0061's comment for why this exists as persisted data
+// rather than an absence of a conclusion.
+export const RIGHTS_EVIDENCE_USAGE_DECISIONS = ['permit', 'deny', 'hold'] as const;
+export type RightsEvidenceUsageDecision = (typeof RIGHTS_EVIDENCE_USAGE_DECISIONS)[number];
+
 // #3551's 2026-08-18 directive: rights conclusions are channel/use-specific,
 // not one blanket approval. A conclusion recorded for one channel never
 // silently authorizes another. See getCurrentConclusionForCandidateChannel
@@ -69,6 +76,9 @@ export type RightsEvidenceRow = {
   publication_established: number | null;
   us_publication_or_uraa_confirmed: number | null;
   publication_date_source: string | null;
+  source_filename: string | null;
+  tagging_requirements: string | null;
+  usage_decision: RightsEvidenceUsageDecision;
 };
 
 export type StoredRightsEvidence = Omit<RightsEvidenceRow, 'evidence_metadata'> & {
@@ -92,6 +102,12 @@ export type RightsEvidenceInput = {
   publication_established?: number | null;
   us_publication_or_uraa_confirmed?: number | null;
   publication_date_source?: string | null;
+  source_filename?: string | null;
+  tagging_requirements?: string | null;
+  // Defaults to 'hold' (matching the column's DB default) when omitted --
+  // an explicit 'permit'/'deny' always requires the caller to have actually
+  // made that determination, never inferred.
+  usage_decision?: RightsEvidenceUsageDecision;
 };
 
 export async function requireRightsEvidenceTables(db: unknown) {
@@ -150,8 +166,9 @@ export async function recordRightsEvidence(
         content_item_id, source_id, search_run_id, evidence_type, evidence_text,
         evidence_url, evidence_metadata, reviewer, conclusion, conclusion_rationale,
         channel, rights_holder, repository_or_collection, publication_established,
-        us_publication_or_uraa_confirmed, publication_date_source
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        us_publication_or_uraa_confirmed, publication_date_source,
+        source_filename, tagging_requirements, usage_decision
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       input.content_item_id,
@@ -170,6 +187,9 @@ export async function recordRightsEvidence(
       input.publication_established ?? null,
       input.us_publication_or_uraa_confirmed ?? null,
       input.publication_date_source ?? null,
+      input.source_filename ?? null,
+      input.tagging_requirements ?? null,
+      input.usage_decision ?? 'hold',
     )
     .run();
 
@@ -240,6 +260,28 @@ export async function getCurrentConclusionForCandidate(
     .prepare(
       `SELECT * FROM rights_evidence
        WHERE content_item_id = ? AND conclusion IS NOT NULL
+       ORDER BY recorded_at DESC, id DESC
+       LIMIT 1`,
+    )
+    .bind(contentItemId)
+    .first();
+
+  return row ? mapRightsEvidenceRow(row as RightsEvidenceRow) : null;
+}
+
+// #3552 phase 5 (#3748): the most recent usage_decision recorded for this
+// candidate, across all evidence rows. Every row carries a usage_decision
+// (default 'hold'), so unlike getCurrentConclusionForCandidate this never
+// returns null for a candidate with at least one evidence row -- a candidate
+// with none yet has no decision at all, which is distinct from 'hold'.
+export async function getCurrentUsageDecisionForCandidate(
+  db: any,
+  contentItemId: number,
+): Promise<StoredRightsEvidence | null> {
+  const row = await db
+    .prepare(
+      `SELECT * FROM rights_evidence
+       WHERE content_item_id = ?
        ORDER BY recorded_at DESC, id DESC
        LIMIT 1`,
     )

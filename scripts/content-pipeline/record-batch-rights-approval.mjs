@@ -144,7 +144,7 @@ function main() {
 
   console.log(`Prepared ${rows.length} rights_evidence + curator_decision row(s):`);
   for (const row of rows) {
-    console.log(`  - ${row.candidateId}: conclusion=${row.conclusion}`);
+    console.log(`  - ${row.candidateId}: usage_decision=${row.usageDecision} conclusion=${row.conclusion ?? '(none -- held for review)'}`);
   }
 
   if (options.dryRun) {

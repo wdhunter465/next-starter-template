@@ -5,10 +5,14 @@ import {
   RIGHTS_EVIDENCE_CHANNEL_SET,
   RIGHTS_EVIDENCE_CONCLUSION_SET,
   RIGHTS_EVIDENCE_TYPE_SET,
+  RIGHTS_EVIDENCE_USAGE_DECISIONS,
   type RightsEvidenceChannel,
   type RightsEvidenceConclusion,
   type RightsEvidenceType,
+  type RightsEvidenceUsageDecision,
 } from './rights-evidence-repository';
+
+const RIGHTS_EVIDENCE_USAGE_DECISION_SET = new Set<string>(RIGHTS_EVIDENCE_USAGE_DECISIONS);
 
 export { CANDIDATE_ID_PATTERN, CANDIDATE_ID_VALIDATION_MESSAGE };
 
@@ -18,6 +22,8 @@ const CONCLUSION_RATIONALE_MAX_LENGTH = 4000;
 const RIGHTS_HOLDER_MAX_LENGTH = 500;
 const REPOSITORY_OR_COLLECTION_MAX_LENGTH = 500;
 const PUBLICATION_DATE_SOURCE_MAX_LENGTH = 500;
+const SOURCE_FILENAME_MAX_LENGTH = 500;
+const TAGGING_REQUIREMENTS_MAX_LENGTH = 2000;
 
 export type RecordRightsEvidenceRequest = {
   candidate_id: string;
@@ -35,6 +41,9 @@ export type RecordRightsEvidenceRequest = {
   publication_established?: 0 | 1;
   us_publication_or_uraa_confirmed?: 0 | 1;
   publication_date_source?: string;
+  source_filename?: string;
+  tagging_requirements?: string;
+  usage_decision?: RightsEvidenceUsageDecision;
 };
 
 export type ParseRecordRightsEvidenceResult =
@@ -151,6 +160,21 @@ export function parseRecordRightsEvidenceRequest(body: unknown): ParseRecordRigh
     }
   }
 
+  // #3552 phase 5 (#3748): the per-photo permit/deny/hold triage flag.
+  // Omitted entirely means the repository's own default ('hold') applies --
+  // this parser never guesses a decision on the caller's behalf.
+  let usageDecision: RightsEvidenceUsageDecision | undefined;
+  if (record.usage_decision !== undefined && record.usage_decision !== null) {
+    const rawUsageDecision = asTrimmedString(record.usage_decision);
+    if (!rawUsageDecision || !RIGHTS_EVIDENCE_USAGE_DECISION_SET.has(rawUsageDecision)) {
+      return {
+        ok: false,
+        error: `usage_decision must be one of: ${[...RIGHTS_EVIDENCE_USAGE_DECISION_SET].join(', ')}.`,
+      };
+    }
+    usageDecision = rawUsageDecision as RightsEvidenceUsageDecision;
+  }
+
   let evidenceMetadata: Record<string, unknown> | undefined;
   if (record.evidence_metadata !== undefined && record.evidence_metadata !== null) {
     if (typeof record.evidence_metadata !== 'object' || Array.isArray(record.evidence_metadata)) {
@@ -175,6 +199,9 @@ export function parseRecordRightsEvidenceRequest(body: unknown): ParseRecordRigh
     publication_established: publicationEstablished,
     us_publication_or_uraa_confirmed: usPublicationOrUraaConfirmed,
     publication_date_source: publicationDateSource,
+    source_filename: asOptionalTrimmedString(record.source_filename, SOURCE_FILENAME_MAX_LENGTH),
+    tagging_requirements: asOptionalTrimmedString(record.tagging_requirements, TAGGING_REQUIREMENTS_MAX_LENGTH),
+    usage_decision: usageDecision,
   };
 
   return { ok: true, request };
