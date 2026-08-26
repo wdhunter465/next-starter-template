@@ -12,13 +12,31 @@
  *
  * Safe to re-run: only rows still missing a hash are touched.
  *
+ * #3761: in --dry-run mode, the near-duplicate check still runs (read-only)
+ * against whatever is ALREADY hashed in the database, so a dry run gives a
+ * real preview of matches against pre-existing hashed history. It cannot
+ * preview matches between two rows that are BOTH missing a hash within the
+ * same dry run, since neither one's hash is ever written during a dry run
+ * for the other to compare against -- that class of match only appears
+ * once the real (non-dry-run) apply actually persists hashes as it goes.
+ *
+ * If NEAR_DUPLICATE_FLAGS_FILE is set, every near-duplicate actually
+ * flagged during a real (non-dry-run) run is also written there as a JSON
+ * array of {candidateId, candidateSourceUrl, matchedCandidateId,
+ * matchedSourceUrl, distance, title, body} -- the caller (the GitHub
+ * Actions workflow) uses this to file one issue per flagged pair via `gh
+ * issue create`, so review is "open the issue, compare two links" instead
+ * of a manual D1 query session.
+ *
  * Usage:
  *   CLOUDFLARE_API_TOKEN=... CLOUDFLARE_ACCOUNT_ID=... \
  *   B2_ENDPOINT=... B2_BUCKET=... [PUBLIC_B2_BASE_URL=...] \
+ *   [NEAR_DUPLICATE_FLAGS_FILE=...] \
  *   node --experimental-strip-types scripts/content-pipeline/backfill-media-perceptual-hashes.mjs \
  *     [--database lgfc_lite] [--local|--remote] [--dry-run]
  */
 
+import fs from 'node:fs';
 import path from 'node:path';
 import { register } from 'node:module';
 import { fileURLToPath } from 'node:url';
@@ -43,6 +61,7 @@ const { makeWranglerD1 } = await import('../ci/wrangler-d1-adapter.mjs');
 const {
   findNearDuplicateMediaAssets,
   flagCandidateAsNearDuplicate,
+  buildNearDuplicateIssueContent,
 } = await import('../../functions/_lib/content-pipeline-duplicate-detection.ts');
 const { computePerceptualHash } = await import('../../functions/_lib/perceptual-hash.ts');
 
@@ -115,6 +134,7 @@ async function main() {
   let hashed = 0;
   let failed = 0;
   let flaggedTotal = 0;
+  const flaggedForIssues = [];
 
   for (const row of rows) {
     const objectUrl = `${publicBaseUrl}/${row.b2_key}`;
@@ -127,20 +147,17 @@ async function main() {
       const perceptualHash = await computePerceptualHash(bytes);
 
       console.log(`${row.media_uid} (${row.b2_key}): hash=${perceptualHash}`);
-
-      if (options.dryRun) {
-        hashed += 1;
-        continue;
-      }
-
-      await db
-        .prepare(`UPDATE media_assets SET perceptual_hash = ? WHERE media_uid = ?`)
-        .bind(perceptualHash, row.media_uid)
-        .run();
       hashed += 1;
 
+      if (!options.dryRun) {
+        await db
+          .prepare(`UPDATE media_assets SET perceptual_hash = ? WHERE media_uid = ?`)
+          .bind(perceptualHash, row.media_uid)
+          .run();
+      }
+
       const contentItem = await db
-        .prepare(`SELECT candidate_id, title FROM content_items WHERE media_asset_id = ? LIMIT 1`)
+        .prepare(`SELECT candidate_id, title, source_url FROM content_items WHERE media_asset_id = ? LIMIT 1`)
         .bind(`b2://${row.b2_key}`)
         .first();
       if (contentItem) {
@@ -150,13 +167,36 @@ async function main() {
           excludeMediaUid: row.media_uid,
         });
         if (matches.length > 0) {
-          await flagCandidateAsNearDuplicate(db, contentItem.candidate_id, matches);
+          if (!options.dryRun) {
+            await flagCandidateAsNearDuplicate(db, contentItem.candidate_id, matches);
+          }
           flaggedTotal += 1;
           console.log(
-            `  -> flagged ${matches.length} near-duplicate candidate(s) for admin review: ${matches
-              .map((m) => `${m.matchedCandidateId} (distance=${m.distance})`)
-              .join(', ')}`,
+            `  -> ${contentItem.candidate_id}: flagged ${matches.length} near-duplicate candidate(s)${
+              options.dryRun ? ' (dry run -- not written)' : ' for admin review'
+            }: ${matches.map((m) => `${m.matchedCandidateId} (distance=${m.distance})`).join(', ')}`,
           );
+
+          if (!options.dryRun) {
+            for (const match of matches) {
+              const { title, body } = buildNearDuplicateIssueContent({
+                candidateId: contentItem.candidate_id,
+                candidateSourceUrl: contentItem.source_url ?? null,
+                matchedCandidateId: match.matchedCandidateId,
+                matchedSourceUrl: match.matchedSourceUrl,
+                distance: match.distance,
+              });
+              flaggedForIssues.push({
+                candidateId: contentItem.candidate_id,
+                candidateSourceUrl: contentItem.source_url ?? null,
+                matchedCandidateId: match.matchedCandidateId,
+                matchedSourceUrl: match.matchedSourceUrl,
+                distance: match.distance,
+                title,
+                body,
+              });
+            }
+          }
         }
       }
     } catch (error) {
@@ -167,8 +207,14 @@ async function main() {
   }
 
   console.log(
-    `\n${hashed} hashed${options.dryRun ? ' (dry run -- no writes)' : ''}, ${failed} failed, ${flaggedTotal} candidate(s) newly flagged as near-duplicates, out of ${rows.length}.`,
+    `\n${hashed} hashed${options.dryRun ? ' (dry run -- no writes)' : ''}, ${failed} failed, ${flaggedTotal} candidate(s) ${options.dryRun ? 'that would be' : 'newly'} flagged as near-duplicates, out of ${rows.length}.`,
   );
+
+  if (process.env.NEAR_DUPLICATE_FLAGS_FILE && flaggedForIssues.length > 0) {
+    fs.writeFileSync(process.env.NEAR_DUPLICATE_FLAGS_FILE, JSON.stringify(flaggedForIssues, null, 2));
+    console.log(`Wrote ${flaggedForIssues.length} near-duplicate flag(s) to ${process.env.NEAR_DUPLICATE_FLAGS_FILE}`);
+  }
+
   if (failed > 0) {
     process.exitCode = 1;
   }

@@ -7,6 +7,7 @@ import { commitIngestedMedia } from '../functions/_lib/media-ingest-repository';
 import { upsertCandidate } from '../functions/_lib/content-pipeline-candidate-repository';
 import type { CandidateRecord } from '../functions/_lib/content-pipeline-candidate-import';
 import {
+  buildNearDuplicateIssueContent,
   findNearDuplicateMediaAssets,
   flagCandidateAsNearDuplicate,
   NEAR_DUPLICATE_HAMMING_THRESHOLD,
@@ -226,6 +227,78 @@ describe('findNearDuplicateMediaAssets (#3552 phase 4)', () => {
 
   it('the default threshold constant is exported and used when maxDistance is omitted', async () => {
     expect(NEAR_DUPLICATE_HAMMING_THRESHOLD).toBeGreaterThan(0);
+  });
+
+  it('carries the matched candidate source_url (#3761)', async () => {
+    const { db } = freshDb();
+    await seedIngestedCandidate(
+      db,
+      {
+        candidate_id: 'lgfc-gehrig-2026-501',
+        title: 'File:GehrigCU.jpg',
+        source_url: 'https://www.flickr.com/photos/8852778@N08/5930600189',
+      },
+      { candidateId: 1, mediaUid: 'sha256_aaaa', b2Key: 'LGFC_1_GehrigCU.jpg', perceptualHash: '0000000000000000' },
+    );
+
+    const matches = await findNearDuplicateMediaAssets(db, {
+      perceptualHash: '0000000000000007',
+      sourceFilename: 'File:GehrigCU.jpg',
+    });
+
+    expect(matches).toHaveLength(1);
+    expect(matches[0].matchedSourceUrl).toBe('https://www.flickr.com/photos/8852778@N08/5930600189');
+  });
+
+  it('reports matchedSourceUrl as null when the matched candidate has no source_url', async () => {
+    const { db } = freshDb();
+    await seedIngestedCandidate(
+      db,
+      { candidate_id: 'lgfc-gehrig-2026-501', title: 'File:GehrigCU.jpg' },
+      { candidateId: 1, mediaUid: 'sha256_aaaa', b2Key: 'LGFC_1_GehrigCU.jpg', perceptualHash: '0000000000000000' },
+    );
+
+    const matches = await findNearDuplicateMediaAssets(db, {
+      perceptualHash: '0000000000000007',
+      sourceFilename: 'File:GehrigCU.jpg',
+    });
+
+    expect(matches).toHaveLength(1);
+    expect(matches[0].matchedSourceUrl).toBeNull();
+  });
+});
+
+describe('buildNearDuplicateIssueContent (#3761)', () => {
+  it('builds a title naming both candidates and a body with both source URLs', () => {
+    const { title, body } = buildNearDuplicateIssueContent({
+      candidateId: 'lgfc-gehrig-2026-505',
+      candidateSourceUrl: 'https://www.flickr.com/photos/8852778@N08/5931156024',
+      matchedCandidateId: 'lgfc-gehrig-2026-519',
+      matchedSourceUrl: 'https://www.flickr.com/photos/8852778@N08/5930600189',
+      distance: 7,
+    });
+
+    expect(title).toContain('lgfc-gehrig-2026-505');
+    expect(title).toContain('lgfc-gehrig-2026-519');
+    expect(body).toContain('lgfc-gehrig-2026-505');
+    expect(body).toContain('lgfc-gehrig-2026-519');
+    expect(body).toContain('https://www.flickr.com/photos/8852778@N08/5931156024');
+    expect(body).toContain('https://www.flickr.com/photos/8852778@N08/5930600189');
+    expect(body).toContain('7/64');
+    expect(body).toContain('- [ ] Confirm whether these are the same photo.');
+  });
+
+  it('falls back to "unknown" for a missing source_url rather than "null"', () => {
+    const { body } = buildNearDuplicateIssueContent({
+      candidateId: 'lgfc-gehrig-2026-505',
+      candidateSourceUrl: null,
+      matchedCandidateId: 'lgfc-gehrig-2026-519',
+      matchedSourceUrl: null,
+      distance: 3,
+    });
+
+    expect(body).not.toContain('null');
+    expect(body).toContain('unknown');
   });
 });
 
