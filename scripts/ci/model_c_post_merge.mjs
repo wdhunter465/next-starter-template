@@ -2,24 +2,12 @@
 
 /**
  * Lightweight Model C post-merge verification (#3753)
- *
- * Confirms documentation-only merge outcomes without Production smoke.
  */
 
 import fs from 'node:fs';
-import { assessModelCPaths } from './model_c_path_gate.mjs';
+import { assessModelCPaths, isModelCRootException } from './model_c_path_gate.mjs';
 import { auditDiataxisFiles } from './diataxis_folder_audit.mjs';
 
-/**
- * @param {{
- *   changedFiles?: string[],
- *   renames?: Array<{ from: string, to: string }>,
- *   root?: string,
- *   issueClosed?: boolean | null,
- *   prMerged?: boolean | null,
- *   skipDiataxis?: boolean,
- * }} input
- */
 export function assessModelCPostMerge({
   changedFiles = [],
   renames = [],
@@ -39,14 +27,13 @@ export function assessModelCPostMerge({
     const markdown = (changedFiles || []).filter((f) => /\.md$/i.test(f));
     diataxisFindings = auditDiataxisFiles(markdown, { root });
     for (const finding of diataxisFindings) {
-      // Governance / templates / archive / root exceptions are outside strict DIATAXIS knowledge folders.
       if (finding.code === 'OUTSIDE_DIATAXIS_FOLDER') {
         const p = finding.file || '';
         if (
           p.startsWith('docs/governance/')
           || p.startsWith('docs/templates/')
           || p.startsWith('docs/archive/')
-          || p === 'README.md'
+          || isModelCRootException(p)
         ) {
           continue;
         }
@@ -66,7 +53,6 @@ export function assessModelCPostMerge({
     });
   }
 
-  // issueClosed is advisory when null; only fail when explicitly false after merge.
   if (prMerged === true && issueClosed === false) {
     errors.push({
       code: 'source_issue_open',

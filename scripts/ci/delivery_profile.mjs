@@ -198,7 +198,8 @@ export function classifyDeliveryProfile({
   const metadata = parseDeliveryMetadata(body);
   const errors = [];
   const hasChangedFileEvidence = Array.isArray(changedFiles);
-  const protectedChange = hasChangedFileEvidence && changedFiles.some(isProtectedPath);
+  const hasNonEmptyChangedFiles = hasChangedFileEvidence && changedFiles.length > 0;
+  const protectedChange = hasNonEmptyChangedFiles && changedFiles.some(isProtectedPath);
 
   for (const field of REQUIRED_FIELDS) {
     if (!metadata[field]) {
@@ -312,10 +313,11 @@ export function classifyDeliveryProfile({
   }
 
   if (metadata.deliveryModel === 'C') {
-    if (!hasChangedFileEvidence) {
+    // Empty arrays are not evidence — fail closed if collection failed.
+    if (!hasNonEmptyChangedFiles) {
       errors.push(deliveryError(
         'missing_changed_files_evidence',
-        'Changed-file evidence is required for Model C path boundary checks.',
+        'Changed-file evidence is required for Model C path boundary checks (missing or empty list fails closed).',
       ));
     }
     if (!['documentation', 'routine-ops'].includes(metadata.changeMode)) {
@@ -343,7 +345,7 @@ export function classifyDeliveryProfile({
       }));
     }
     rejectComponentMetadataForNonModelB(errors, componentBranch, componentMaster, 'Model C');
-    if (hasChangedFileEvidence) {
+    if (hasNonEmptyChangedFiles) {
       const pathResult = assessModelCPaths({ changedFiles, renames });
       for (const pathError of pathResult.errors) {
         errors.push(deliveryError(pathError.code, pathError.message, {
