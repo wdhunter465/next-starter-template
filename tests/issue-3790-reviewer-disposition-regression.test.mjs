@@ -23,19 +23,21 @@ const approvalRecommendedReview = {
 };
 
 describe('issue #3790 reviewer disposition regression', () => {
-  it('treats an approval-recommended trusted COMMENTED review with zero findings as non-actionable', () => {
+  it('treats an approval-recommended trusted COMMENTED review with zero findings as non-actionable in both audit phases', () => {
     expect(isActionableReviewSubmission(approvalRecommendedReview)).toBe(false);
 
-    const result = evaluateReviewerCommentDisposition({
-      body: '## REVIEWER RESPONSE ACCOUNTING\n- reviewed',
-      reviews: [approvalRecommendedReview],
-      headSha: 'head-sha',
-      auditPhase: 'post_merge',
-    });
+    for (const auditPhase of ['pre_merge', 'post_merge']) {
+      const result = evaluateReviewerCommentDisposition({
+        body: '## REVIEWER RESPONSE ACCOUNTING\n- reviewed',
+        reviews: [approvalRecommendedReview],
+        headSha: 'head-sha',
+        auditPhase,
+      });
 
-    expect(result.ok).toBe(true);
-    expect(result.undispositionedCount).toBe(0);
-    expect(result.failures).toEqual([]);
+      expect(result.ok).toBe(true);
+      expect(result.undispositionedCount).toBe(0);
+      expect(result.failures).toEqual([]);
+    }
   });
 
   it('does not create a post-merge exception for an outdated bot thread superseded by the same reviewer cleanly reviewing current head', () => {
