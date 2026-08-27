@@ -148,6 +148,7 @@
     { "method": "POST", "path": "/api/library/content-pipeline/submit", "handler": "functions/api/library/content-pipeline/submit.ts", "classification": "production-shared", "tables": ["content_items", "member_submissions", "submitters", "tags", "content_item_tags", "rights_evidence", "publication_candidates"] },
     { "method": "POST", "path": "/api/fanclub/photos/upload", "handler": "functions/api/fanclub/photos/upload.ts", "classification": "production-shared", "tables": ["content_items", "member_submissions", "submitters", "media_assets", "tags", "content_item_tags", "rights_evidence"] },
     { "method": "POST", "path": "/api/discussions/create", "handler": "functions/api/discussions/create.ts", "classification": "production-shared", "tables": ["discussions"] },
-    { "method": "POST", "path": "/api/admin/**", "handler": "functions/api/admin/**", "classification": "production-shared", "requiresAdminToken": true }
+    { "method": "POST", "path": "/api/admin/**", "handler": "functions/api/admin/**", "classification": "production-shared", "requiresAdminToken": true },
+    { "method": "POST", "path": "/api/chatterbox/**", "handler": "functions/api/chatterbox/**", "classification": "production-shared", "tables": ["chatterbox_rooms", "chatterbox_participants", "chatterbox_tasks", "chatterbox_claims", "chatterbox_events", "chatterbox_checkpoints", "chatterbox_pmo_actions"], "note": "Auth model: per-participant credential or CHATTERBOX_BRIDGE_TOKEN relay (functions/_lib/chatterbox-auth.ts), not the shared ADMIN_TOKEN model. Application usage remains Development-only during the #3415/#3794 prototype phase (migrations/0050_chatterbox_core.sql, 0062, 0063)." }
   ]
 }

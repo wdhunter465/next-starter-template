@@ -1,0 +1,191 @@
+name: OPS — Chatterbox Reconciliation Sweep (#3794)
+
+# #3794 Layer 4: the self-hosted substitute for a Cloudflare Durable
+# Object's Alarm API. Runs on a fixed schedule against this branch's own
+# Development deployment — never Production — and does two things:
+#
+#   1. Expires any chatterbox_pmo_actions row still PENDING past its own
+#      expires_at, posting a visible SYSTEM escalation event
+#      (functions/api/chatterbox/reconcile.ts, relay-authenticated, posts
+#      as the registered system_clerk participant).
+#   2. Cross-checks claimed-DONE CLOSE_ISSUE actions against GitHub's
+#      actual Issue state (scripts/ci/chatterbox_reconcile_github.mjs,
+#      read-only against GitHub, using the standard Actions GITHUB_TOKEN
+#      rather than binding a GitHub credential into Cloudflare Pages).
+#
+# A GitHub Actions `schedule` trigger only fires for workflows already on
+# the default branch — like workflow_dispatch (Jules #3579 JULES-4), the
+# schedule below is inert until this workflow is promoted to main. Before
+# that, use workflow_dispatch or push (scoped to this workflow's own path)
+# to exercise it manually against this branch's Development deployment.
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  push:
+    branches:
+      - chatterbox-3794-self-hosted-room-actor
+    paths:
+      - '.github/workflows/ops-chatterbox-reconciliation-sweep.yml'
+      - 'functions/api/chatterbox/reconcile.ts'
+      - 'scripts/ci/chatterbox_reconcile_github.mjs'
+  workflow_dispatch:
+    inputs:
+      target_branch:
+        description: 'Branch to resolve the live Development deployment for'
+        required: true
+        type: string
+        default: chatterbox-3794-self-hosted-room-actor
+      room_key:
+        description: 'Chatterbox room_key to sweep'
+        required: true
+        type: string
+        default: lgfc-website
+      clerk_participant_key:
+        description: 'Registered system_clerk participant_key to post the sweep as'
+        required: true
+        type: string
+        default: chatterbox-clerk
+
+concurrency:
+  group: ops-chatterbox-reconciliation-sweep
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Resolve target branch, room, and clerk participant
+        id: target
+        env:
+          DEFAULT_TARGET_BRANCH: chatterbox-3794-self-hosted-room-actor
+          DEFAULT_ROOM_KEY: lgfc-website
+          DEFAULT_CLERK_KEY: chatterbox-clerk
+          TARGET_BRANCH_INPUT: ${{ inputs.target_branch }}
+          ROOM_KEY_INPUT: ${{ inputs.room_key }}
+          CLERK_KEY_INPUT: ${{ inputs.clerk_participant_key }}
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            branch="$TARGET_BRANCH_INPUT"
+            room_key="$ROOM_KEY_INPUT"
+            clerk_key="$CLERK_KEY_INPUT"
+          elif [ "${{ github.event_name }}" = "schedule" ]; then
+            branch="$DEFAULT_TARGET_BRANCH"
+            room_key="$DEFAULT_ROOM_KEY"
+            clerk_key="$DEFAULT_CLERK_KEY"
+          else
+            branch="${{ github.ref_name }}"
+            room_key="$DEFAULT_ROOM_KEY"
+            clerk_key="$DEFAULT_CLERK_KEY"
+          fi
+
+          if [[ ! "$branch" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+            echo "FAIL-CLOSED: target_branch contains unexpected characters: $branch" >&2
+            exit 1
+          fi
+          if [[ ! "$room_key" =~ ^[A-Za-z0-9._-]+$ ]]; then
+            echo "FAIL-CLOSED: room_key contains unexpected characters: $room_key" >&2
+            exit 1
+          fi
+          if [[ ! "$clerk_key" =~ ^[A-Za-z0-9._-]+$ ]]; then
+            echo "FAIL-CLOSED: clerk_participant_key contains unexpected characters: $clerk_key" >&2
+            exit 1
+          fi
+
+          {
+            echo "branch=$branch"
+            echo "room_key=$room_key"
+            echo "clerk_key=$clerk_key"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Resolve live Development deployment URL
+        id: resolve_url
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CHATTERBOX_TARGET_BRANCH: ${{ steps.target.outputs.branch }}
+        run: |
+          set -euo pipefail
+          base_url=$(node scripts/ci/chatterbox_resolve_preview_url.mjs)
+          if [[ ! "$base_url" =~ ^https://[a-z0-9-]+\.next-starter-template-6yr\.pages\.dev$ ]]; then
+            echo "FAIL-CLOSED: resolved URL must be an https://*.next-starter-template-6yr.pages.dev host, got: $base_url" >&2
+            exit 1
+          fi
+          printf 'base_url=%s\n' "$base_url" >> "$GITHUB_OUTPUT"
+
+      - name: Expire overdue PENDING actions (internal half)
+        id: internal_sweep
+        env:
+          BASE_URL: ${{ steps.resolve_url.outputs.base_url }}
+          ROOM_KEY: ${{ steps.target.outputs.room_key }}
+          CLERK_KEY: ${{ steps.target.outputs.clerk_key }}
+          CHATTERBOX_BRIDGE_TOKEN: ${{ secrets.CHATTERBOX_BRIDGE_TOKEN }}
+        run: |
+          set -euo pipefail
+          payload=$(jq -n --arg room_key "$ROOM_KEY" --arg participant_key "$CLERK_KEY" '{room_key:$room_key, participant_key:$participant_key}')
+          status=$(curl -sS -o "$RUNNER_TEMP/reconcile_resp.json" -w '%{http_code}' \
+            -X POST "$BASE_URL/api/chatterbox/reconcile" \
+            -H "Authorization: Bearer $CHATTERBOX_BRIDGE_TOKEN" -H "Content-Type: application/json" \
+            -d "$payload")
+          echo "Reconcile response (HTTP $status):"
+          cat "$RUNNER_TEMP/reconcile_resp.json"
+          echo
+          if [[ "$status" != "200" ]]; then
+            echo "FAILED reconciliation sweep (HTTP $status)" >&2
+            exit 1
+          fi
+          expired_count=$(jq -r '.expired_count // 0' "$RUNNER_TEMP/reconcile_resp.json")
+          echo "expired_count=$expired_count" >> "$GITHUB_OUTPUT"
+
+      - name: GitHub cross-check for claimed-DONE actions (external half)
+        id: github_crosscheck
+        env:
+          CHATTERBOX_BASE_URL: ${{ steps.resolve_url.outputs.base_url }}
+          CHATTERBOX_ADMIN_TOKEN: ${{ secrets.CHATTERBOX_BRIDGE_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          CHATTERBOX_ROOM_KEY: ${{ steps.target.outputs.room_key }}
+          CHATTERBOX_CLERK_PARTICIPANT_KEY: ${{ steps.target.outputs.clerk_key }}
+        run: |
+          set -o pipefail
+          node scripts/ci/chatterbox_reconcile_github.mjs | tee "$RUNNER_TEMP/reconcile_github_output.txt"
+
+      - name: Record result on #3794 (only when something actually happened)
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXPIRED_COUNT: ${{ steps.internal_sweep.outputs.expired_count }}
+        run: |
+          mismatch_lines=""
+          if [ -f "$RUNNER_TEMP/reconcile_github_output.txt" ]; then
+            mismatch_lines=$(grep -c '^ - action #' "$RUNNER_TEMP/reconcile_github_output.txt" || true)
+          fi
+          mismatch_lines=${mismatch_lines:-0}
+
+          if [ "${EXPIRED_COUNT:-0}" = "0" ] && [ "$mismatch_lines" = "0" ]; then
+            echo "Nothing to report — no escalations, no mismatches. Skipping issue comment to avoid spamming #3794 every 30 minutes."
+            exit 0
+          fi
+
+          crosscheck_output=""
+          if [ -f "$RUNNER_TEMP/reconcile_github_output.txt" ]; then
+            crosscheck_output=$(cat "$RUNNER_TEMP/reconcile_github_output.txt")
+          fi
+
+          body="## Chatterbox reconciliation sweep — action needed\n\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n\nExpired/escalated PENDING actions: $EXPIRED_COUNT\nGitHub cross-check mismatches: $mismatch_lines\n\n\`\`\`\n$crosscheck_output\n\`\`\`"
+          gh issue comment 3794 --body "$(printf '%b' "$body")"

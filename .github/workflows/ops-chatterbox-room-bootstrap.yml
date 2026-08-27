@@ -1,0 +1,267 @@
+name: OPS — Chatterbox Room Bootstrap (#3794)
+
+# One-time (and re-runnable) setup of the live Chatterbox room and its
+# participants against this branch's Development Preview deployment, so the
+# LGFC Agentic Team's already-connected agents can check in against a real
+# room instead of only the dev-integration-check's throwaway namespaced test
+# rooms. Ported forward from the #3415 prototype's
+# ops-chatterbox-room-bootstrap.yml, switched to the new Bearer/relay auth
+# model (#3794 JULES-1): room/participant creation now requires the
+# CHATTERBOX_BRIDGE_TOKEN relay credential via `Authorization: Bearer`, not
+# the prototype's shared `x-admin-token`/ADMIN_TOKEN.
+#
+# This does not make any agent "talk" by itself — registering a participant
+# only makes room/check-in/events calls valid for that participant_key.
+# Each agent still has to call POST /api/chatterbox/check-in (and post its
+# own events) on its own schedule; this workflow only removes the "room and
+# participant rows don't exist yet" blocker.
+#
+# Idempotent: POST /api/chatterbox/room upserts by room_key (ensureRoom in
+# functions/_lib/chatterbox.ts re-reads on a unique-constraint race instead
+# of failing). POST /api/chatterbox/participants 409s on an
+# already-registered participant_key — this workflow treats that as
+# "already registered", not a failure, so re-running it (e.g. after editing
+# the default participant list) is always safe.
+#
+# Resolves the live Development deployment URL dynamically via
+# scripts/ci/chatterbox_resolve_preview_url.mjs (read-only Cloudflare Pages
+# API call) rather than a hardcoded alias — this branch's alias is not
+# established the way the prototype branch's was. Never targets Production.
+#
+# Optionally accepts a per-participant `credential` in participants_json —
+# its SHA-256 hash is stored server-side and never logged or echoed back;
+# a participant registered without one remains relay-only until it is given
+# its own credential and re-registered under a fresh participant_key (there
+# is no credential-update endpoint in this package).
+#
+# Triggered two ways, same rationale as chatterbox-dev-integration-check.yml:
+#   - push to this branch, scoped to this workflow's own path.
+#   - workflow_dispatch, usable once promoted to main.
+
+on:
+  push:
+    branches:
+      - chatterbox-3794-self-hosted-room-actor
+    paths:
+      - '.github/workflows/ops-chatterbox-room-bootstrap.yml'
+  workflow_dispatch:
+    inputs:
+      target_branch:
+        description: 'Branch to resolve the live Development deployment for'
+        required: true
+        type: string
+        default: chatterbox-3794-self-hosted-room-actor
+      room_key:
+        description: 'Chatterbox room_key to create/ensure'
+        required: true
+        type: string
+        default: lgfc-website
+      source_issue_ref:
+        description: 'source_issue_ref for the room'
+        required: true
+        type: string
+        default: wdhunter465/next-starter-template#3415
+      title:
+        description: 'Room title'
+        required: true
+        type: string
+        default: LGFC website program
+      participants_json:
+        description: 'JSON array of participants to register: participant_key, display_name, role_class, assigned_by, source_authority (capability_summary, credential optional)'
+        required: true
+        type: string
+        default: |
+          [
+            {"participant_key":"claude-code","display_name":"Claude Code","role_class":"implementation_agent","assigned_by":"Bill","source_authority":"issue:3415"},
+            {"participant_key":"cursor-local","display_name":"Cursor Local","role_class":"implementation_agent","assigned_by":"Bill","source_authority":"issue:3415"},
+            {"participant_key":"google-jules","display_name":"Google Jules","role_class":"implementation_agent","assigned_by":"Bill","source_authority":"issue:3415"},
+            {"participant_key":"grok","display_name":"Grok","role_class":"implementation_agent","assigned_by":"Bill","source_authority":"issue:3415"},
+            {"participant_key":"chat","display_name":"OpenAI ChatGPT","role_class":"pmo","assigned_by":"Bill","source_authority":"issue:3415#5279810214"},
+            {"participant_key":"wdhunter465","display_name":"Bill","role_class":"product_authority","assigned_by":"Bill","source_authority":"github-repo-owner:wdhunter465"},
+            {"participant_key":"chatterbox-clerk","display_name":"Chatterbox Clerk","role_class":"system_clerk","assigned_by":"Bill","source_authority":"issue:3794"}
+          ]
+
+concurrency:
+  group: ops-chatterbox-room-bootstrap
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  bootstrap:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Resolve room, participants, and target branch
+        id: target
+        env:
+          DEFAULT_ROOM_KEY: lgfc-website
+          DEFAULT_SOURCE_ISSUE_REF: wdhunter465/next-starter-template#3415
+          DEFAULT_TITLE: LGFC website program
+          DEFAULT_TARGET_BRANCH: chatterbox-3794-self-hosted-room-actor
+          ROOM_KEY_INPUT: ${{ inputs.room_key }}
+          SOURCE_ISSUE_REF_INPUT: ${{ inputs.source_issue_ref }}
+          TITLE_INPUT: ${{ inputs.title }}
+          TARGET_BRANCH_INPUT: ${{ inputs.target_branch }}
+          PARTICIPANTS_JSON_INPUT: ${{ inputs.participants_json }}
+        run: |
+          set -euo pipefail
+
+          default_participants='[
+            {"participant_key":"claude-code","display_name":"Claude Code","role_class":"implementation_agent","assigned_by":"Bill","source_authority":"issue:3415"},
+            {"participant_key":"cursor-local","display_name":"Cursor Local","role_class":"implementation_agent","assigned_by":"Bill","source_authority":"issue:3415"},
+            {"participant_key":"google-jules","display_name":"Google Jules","role_class":"implementation_agent","assigned_by":"Bill","source_authority":"issue:3415"},
+            {"participant_key":"grok","display_name":"Grok","role_class":"implementation_agent","assigned_by":"Bill","source_authority":"issue:3415"},
+            {"participant_key":"chat","display_name":"OpenAI ChatGPT","role_class":"pmo","assigned_by":"Bill","source_authority":"issue:3415#5279810214"},
+            {"participant_key":"wdhunter465","display_name":"Bill","role_class":"product_authority","assigned_by":"Bill","source_authority":"github-repo-owner:wdhunter465"},
+            {"participant_key":"chatterbox-clerk","display_name":"Chatterbox Clerk","role_class":"system_clerk","assigned_by":"Bill","source_authority":"issue:3794"}
+          ]'
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            room_key="$ROOM_KEY_INPUT"
+            source_issue_ref="$SOURCE_ISSUE_REF_INPUT"
+            title="$TITLE_INPUT"
+            branch="$TARGET_BRANCH_INPUT"
+            participants_json="$PARTICIPANTS_JSON_INPUT"
+          else
+            room_key="$DEFAULT_ROOM_KEY"
+            source_issue_ref="$DEFAULT_SOURCE_ISSUE_REF"
+            title="$DEFAULT_TITLE"
+            branch="${{ github.ref_name }}"
+            participants_json="$default_participants"
+          fi
+
+          if [[ ! "$branch" =~ ^[A-Za-z0-9._/-]+$ ]]; then
+            echo "FAIL-CLOSED: target_branch contains unexpected characters: $branch" >&2
+            exit 1
+          fi
+          if [[ ! "$room_key" =~ ^[A-Za-z0-9._-]+$ ]]; then
+            echo "FAIL-CLOSED: room_key contains unexpected characters: $room_key" >&2
+            exit 1
+          fi
+          if [[ "$title" == *$'\n'* || "$source_issue_ref" == *$'\n'* ]]; then
+            echo "FAIL-CLOSED: title/source_issue_ref must not contain newlines" >&2
+            exit 1
+          fi
+          # participant_key and role_class get interpolated directly into the
+          # markdown result table posted to #3794 and into log lines, so
+          # they're validated against a safe charset / the exact role_class
+          # allowlist enforced by the chatterbox_participants CHECK
+          # constraint — not just "is a string" (same hardening as the
+          # prototype branch's version, PR #3524).
+          if ! echo "$participants_json" | jq -e '
+                type == "array" and length > 0 and all(.[];
+                  (.participant_key|type=="string") and
+                  (.participant_key|test("^[A-Za-z0-9._-]+$")) and
+                  (.display_name|type=="string") and
+                  (.role_class|type=="string") and
+                  (.role_class as $r | ["product_authority","pmo","implementation_agent","engineering_validation","independent_verifier","preparation_research","system_clerk"] | index($r) != null) and
+                  (.assigned_by|type=="string") and
+                  (.source_authority|type=="string")
+                )' >/dev/null 2>&1; then
+            echo "FAIL-CLOSED: participants_json must be a non-empty JSON array of objects with participant_key (safe charset: A-Za-z0-9._-), display_name, role_class (one of the chatterbox_participants allowlist values), assigned_by, source_authority" >&2
+            exit 1
+          fi
+
+          {
+            echo "room_key=$room_key"
+            echo "source_issue_ref=$source_issue_ref"
+            echo "title=$title"
+            echo "branch=$branch"
+          } >> "$GITHUB_OUTPUT"
+
+          echo "$participants_json" > "$RUNNER_TEMP/participants.json"
+
+      - name: Resolve live Development deployment URL
+        id: resolve_url
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CHATTERBOX_TARGET_BRANCH: ${{ steps.target.outputs.branch }}
+        run: |
+          set -euo pipefail
+          base_url=$(node scripts/ci/chatterbox_resolve_preview_url.mjs)
+          if [[ ! "$base_url" =~ ^https://[a-z0-9-]+\.next-starter-template-6yr\.pages\.dev$ ]]; then
+            echo "FAIL-CLOSED: resolved URL must be an https://*.next-starter-template-6yr.pages.dev host, got: $base_url" >&2
+            exit 1
+          fi
+          printf 'base_url=%s\n' "$base_url" >> "$GITHUB_OUTPUT"
+
+      - name: Bootstrap room and participants
+        id: bootstrap
+        env:
+          BASE_URL: ${{ steps.resolve_url.outputs.base_url }}
+          ROOM_KEY: ${{ steps.target.outputs.room_key }}
+          SOURCE_ISSUE_REF: ${{ steps.target.outputs.source_issue_ref }}
+          TITLE: ${{ steps.target.outputs.title }}
+          CHATTERBOX_BRIDGE_TOKEN: ${{ secrets.CHATTERBOX_BRIDGE_TOKEN }}
+        run: |
+          set -euo pipefail
+
+          room_payload=$(jq -n \
+            --arg room_key "$ROOM_KEY" \
+            --arg source_issue_ref "$SOURCE_ISSUE_REF" \
+            --arg title "$TITLE" \
+            '{room_key:$room_key, source_issue_ref:$source_issue_ref, title:$title}')
+
+          room_status=$(curl -sS -o "$RUNNER_TEMP/room_resp.json" -w '%{http_code}' \
+            -X POST "$BASE_URL/api/chatterbox/room" \
+            -H "Authorization: Bearer $CHATTERBOX_BRIDGE_TOKEN" -H "Content-Type: application/json" \
+            -d "$room_payload")
+          echo "Room response (HTTP $room_status):"
+          cat "$RUNNER_TEMP/room_resp.json"
+          echo
+          if [[ "$room_status" != "200" && "$room_status" != "201" ]]; then
+            echo "FAILED to create/ensure room (HTTP $room_status)" >&2
+            exit 1
+          fi
+
+          rows="| participant_key | role_class | result |\n|---|---|---|\n"
+          while IFS= read -r p; do
+            pkey=$(jq -r '.participant_key' <<<"$p")
+            role=$(jq -r '.role_class' <<<"$p")
+            status=$(curl -sS -o "$RUNNER_TEMP/participant_resp.json" -w '%{http_code}' \
+              -X POST "$BASE_URL/api/chatterbox/participants" \
+              -H "Authorization: Bearer $CHATTERBOX_BRIDGE_TOKEN" -H "Content-Type: application/json" \
+              -d "$p")
+            body=$(cat "$RUNNER_TEMP/participant_resp.json")
+            echo "$pkey -> HTTP $status: $body"
+            if [[ "$status" == "201" ]]; then
+              result="registered"
+            elif [[ "$status" == "409" ]]; then
+              result="already registered"
+            else
+              echo "FAILED to register participant $pkey (HTTP $status)" >&2
+              exit 1
+            fi
+            rows="${rows}| \`$pkey\` | $role | $result |\n"
+          done < <(jq -c '.[]' "$RUNNER_TEMP/participants.json")
+
+          printf '%b' "$rows" > "$RUNNER_TEMP/participant_rows.md"
+
+      - name: Record result on #3794
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          ROOM_KEY: ${{ steps.target.outputs.room_key }}
+          BASE_URL: ${{ steps.resolve_url.outputs.base_url }}
+        run: |
+          if [ -f "$RUNNER_TEMP/participant_rows.md" ]; then
+            rows=$(cat "$RUNNER_TEMP/participant_rows.md")
+            body="## Chatterbox room bootstrap\n\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\nTrigger: ${{ github.event_name }}\nRoom: \`$ROOM_KEY\`\nBase URL: \`$BASE_URL\`\n\n$rows\n\nRegistration alone does not subscribe anyone to anything — each participant still needs to call \`POST /api/chatterbox/check-in\` itself (with its own credential, or via the bridge relay naming its participant_key) to actually read/join the room."
+          else
+            body="## Chatterbox room bootstrap — failed\n\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n\nSee workflow logs for the failing step. No Production access was attempted regardless of this outcome."
+          fi
+          gh issue comment 3794 --body "$(printf '%b' "$body")"
