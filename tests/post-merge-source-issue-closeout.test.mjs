@@ -166,6 +166,40 @@ describe('issue accounting formats', () => {
 			}).failures,
 		).toContainEqual(expect.objectContaining({ code: 'invalid_source_issue_reference' }));
 	});
+
+	it('regresses #3799/#3803 by distinguishing duplicate metadata from distinct source identities', () => {
+		const duplicate = sourceIssueAccounting('- **Issue:** #3795\n- Issue: #3795');
+
+		expect(duplicate.issueNumber).toBe('3795');
+		expect(duplicate.sourceIssueCandidates).toEqual(['#3795']);
+		expect(duplicate.failures).toContainEqual(expect.objectContaining({
+			code: 'duplicate_source_issue_metadata',
+		}));
+		expect(duplicate.failures).not.toContainEqual(expect.objectContaining({
+			code: 'multiple_source_issues',
+		}));
+		expect(resolveSourceIssueFromPr({
+			body: '- **Issue:** #3795\n- Issue: #3795',
+			title: 'fix(ci): source accounting',
+			headRefName: 'codex/3795-source-accounting',
+		})).toMatchObject({
+			issueNumber: '3795',
+			source: 'primary-body-line',
+			candidates: ['#3795'],
+			failures: [],
+		});
+	});
+
+	it('keeps canonical source identity distinct from contextual related Issues', () => {
+		expect(sourceIssueAccounting([
+			'- **Issue:** #3795',
+			'- Related Issues: #3758',
+		].join('\n'))).toMatchObject({
+			issueNumber: '3795',
+			issueNumbers: ['3795'],
+			failures: [],
+		});
+	});
 });
 
 describe('source issue closeout decision', () => {
