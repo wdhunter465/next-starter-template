@@ -116,16 +116,19 @@ export function isActionableTopLevelComment(body = '') {
   return ACTIONABLE_TOP_LEVEL_PATTERN.test(text);
 }
 
+export function isCleanReviewSubmission(review) {
+  if (!review || IGNORE_MARKER.test(review.body || '')) return false;
+  if (review.state === 'APPROVED') return true;
+  if (review.state !== 'COMMENTED') return false;
+  const body = String(review.body || '');
+  return APPROVAL_RECOMMENDED_REVIEW_PATTERN.test(body) && ZERO_REVIEW_COMMENTS_PATTERN.test(body);
+}
+
 export function isActionableReviewSubmission(review) {
   if (!review || IGNORE_MARKER.test(review.body || '')) return false;
   if (review.state === 'CHANGES_REQUESTED') return true;
-  if (review.state === 'COMMENTED') {
-    const body = String(review.body || '');
-    if (APPROVAL_RECOMMENDED_REVIEW_PATTERN.test(body) && ZERO_REVIEW_COMMENTS_PATTERN.test(body)) {
-      return false;
-    }
-    return isActionableTopLevelComment(body);
-  }
+  if (isCleanReviewSubmission(review)) return false;
+  if (review.state === 'COMMENTED') return isActionableTopLevelComment(review.body || '');
   return false;
 }
 
@@ -203,6 +206,14 @@ export function evaluateReviewerCommentDisposition({
   const outdatedWithoutDisposition = [];
   const lateFindings = [];
   const failures = [];
+  const currentHeadCleanReviewers = new Set(
+    reviews
+      .filter((review) => {
+        const user = review.user?.login || '';
+        return isTrustedReviewer(user) && review.commit_id === headSha && isCleanReviewSubmission(review);
+      })
+      .map((review) => review.user?.login || ''),
+  );
 
   for (const { threadId, comments, root } of collectInlineReviewThreads(reviewComments)) {
     const user = root.user?.login || '';
@@ -244,10 +255,11 @@ export function evaluateReviewerCommentDisposition({
     if (resolved) continue;
 
     // E: prior-SHA outdated bot threads that are not resolved do not block
-    // pre-merge by themselves. They remain trackable for post-merge reaudit.
-    // Blocking requires unresolved actionable threads on the current head (or
-    // human CHANGES_REQUESTED handled elsewhere in the lifecycle gate).
+    // pre-merge by themselves. If the same trusted reviewer has cleanly reviewed
+    // the current head, the old finding is deterministically superseded for
+    // post-merge closeout as well. Otherwise it remains trackable for reaudit.
     if (outdated) {
+      if (currentHeadCleanReviewers.has(user)) continue;
       if (!hasValidDisposition(disposition) && auditPhase === 'post_merge') {
         outdatedWithoutDisposition.push({
           commentId: String(threadId),
@@ -371,7 +383,7 @@ export function evaluateReviewerCommentDisposition({
   }
 
   // Outdated-without-disposition failures are retained for post-merge audit only
-  // (#3281 E). Pre-merge no longer deadlocks on prior-SHA bot threads.
+  // when they cannot be proven superseded by a clean same-reviewer current-head review.
   for (const item of outdatedWithoutDisposition) {
     failures.push({
       code: 'outdated_reviewer_thread_without_disposition',
