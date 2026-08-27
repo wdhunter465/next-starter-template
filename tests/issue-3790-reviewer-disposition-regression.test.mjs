@@ -37,4 +37,34 @@ describe('issue #3790 reviewer disposition regression', () => {
     expect(result.undispositionedCount).toBe(0);
     expect(result.failures).toEqual([]);
   });
+
+  it('does not create a post-merge exception for an outdated bot thread superseded by the same reviewer cleanly reviewing current head', () => {
+    const currentHeadReview = {
+      ...approvalRecommendedReview,
+      id: 5035009706,
+      commit_id: 'new-sha',
+      submitted_at: '2026-08-26T21:05:00Z',
+    };
+
+    const result = evaluateReviewerCommentDisposition({
+      body: '## REVIEWER RESPONSE ACCOUNTING\n- reviewed',
+      reviewComments: [{
+        id: 3853170861,
+        user: { login: 'copilot-pull-request-reviewer[bot]' },
+        commit_id: 'old-sha',
+        path: 'scripts/ci/example.mjs',
+        line: 20,
+        body: 'Please fix this prior-head issue.',
+        created_at: '2026-08-26T20:30:00Z',
+      }],
+      reviews: [currentHeadReview],
+      headSha: 'new-sha',
+      mergedAt: '2026-08-27T11:29:12Z',
+      auditPhase: 'post_merge',
+    });
+
+    expect(result.ok).toBe(true);
+    expect(result.outdatedWithoutDispositionCount).toBe(0);
+    expect(result.failures).toEqual([]);
+  });
 });
