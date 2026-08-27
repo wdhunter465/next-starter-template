@@ -16,7 +16,9 @@ const approvalRecommendedReview = {
     '',
     'This PR eliminates unsafe shell interpolation and prevents a security bug from being reintroduced.',
     '',
+    '- **Files reviewed:** 2/2 changed files',
     '- **Comments generated:** 0',
+    '- **Review effort level:** Lite',
   ].join('\n'),
 };
 
