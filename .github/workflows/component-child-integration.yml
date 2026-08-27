@@ -5,13 +5,15 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
     branches:
       - 'component/**'
-  # GitHub cannot branch-filter pull_request_review at trigger time, so the
-  # job-level guard below requires a component/** base before allocating a runner.
+  # Deterministic reevaluation when review state can materially change
+  # protected-change eligibility (#3151). GitHub does not support
+  # branch-filtering pull_request_review at the trigger level; non-component
+  # PRs proceed harmlessly through the same generic resolution path
+  # workflow_dispatch already uses, and are rejected downstream by the
+  # evaluator's own non_component_base check.
   pull_request_review:
     types: [submitted, edited, dismissed]
   # Deterministic settle reevaluation after required peer gates complete.
-  # workflow_run also cannot be branch-filtered at trigger time; the job-level
-  # guard requires the associated PR payload to target component/**.
   workflow_run:
     workflows:
       - 'GATE — Quality Checks'
@@ -34,17 +36,11 @@ jobs:
     runs-on: ubuntu-latest
     if: >
       github.event_name == 'workflow_dispatch' ||
-      (github.event_name == 'pull_request' &&
-       github.event.pull_request.draft == false &&
-       startsWith(github.event.pull_request.base.ref, 'component/')) ||
-      (github.event_name == 'pull_request_review' &&
-       github.event.pull_request.draft == false &&
-       startsWith(github.event.pull_request.base.ref, 'component/')) ||
+      (github.event_name == 'pull_request' && github.event.pull_request.draft == false) ||
+      (github.event_name == 'pull_request_review' && github.event.pull_request.draft == false) ||
       (github.event_name == 'workflow_run' &&
        github.event.workflow_run.conclusion != null &&
-       github.event.workflow_run.event == 'pull_request' &&
-       github.event.workflow_run.pull_requests[0].number != null &&
-       startsWith(github.event.workflow_run.pull_requests[0].base.ref, 'component/'))
+       github.event.workflow_run.event == 'pull_request')
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -61,6 +57,12 @@ jobs:
             echo "skip=false" >> "$GITHUB_OUTPUT"
           elif [ "${{ github.event_name }}" = "workflow_run" ]; then
             PR_NUMBER="$(jq -r '.workflow_run.pull_requests[0].number // empty' "$GITHUB_EVENT_PATH")"
+            if [ -z "$PR_NUMBER" ] || [ "$PR_NUMBER" = "null" ]; then
+              # Fallback: locate an open PR for the workflow head SHA targeting component/**
+              HEAD_SHA="$(jq -r '.workflow_run.head_sha // empty' "$GITHUB_EVENT_PATH")"
+              PR_NUMBER="$(gh api "repos/${GITHUB_REPOSITORY}/commits/${HEAD_SHA}/pulls" \
+                --jq '[.[] | select(.base.ref|test("^component/")) | .number][0] // empty')"
+            fi
             if [ -z "$PR_NUMBER" ] || [ "$PR_NUMBER" = "null" ]; then
               echo "No component child PR associated with this workflow_run; skipping."
               echo "skip=true" >> "$GITHUB_OUTPUT"
@@ -80,6 +82,9 @@ jobs:
             echo "number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
             echo "skip=false" >> "$GITHUB_OUTPUT"
           else
+            # pull_request (component/** only) and pull_request_review (no branch
+            # filter). Skip non-component bases so Model A / main PRs do not get a
+            # failing Component Integration Eligibility check (#3294).
             PR_NUMBER="${{ github.event.pull_request.number }}"
             BASE_REF="${{ github.event.pull_request.base.ref }}"
             case "$BASE_REF" in
