@@ -68,7 +68,11 @@ function readEnv(name, { required = true } = {}) {
 export async function main() {
   const apiToken = readEnv('CLOUDFLARE_API_TOKEN');
   const accountId = readEnv('CLOUDFLARE_ACCOUNT_ID');
-  const projectName = readEnv('CLOUDFLARE_PAGES_PROJECT', { required: false }) || 'next-starter-template-6yr';
+  // The Cloudflare Pages *project name* (this API's path parameter) is
+  // "next-starter-template" — the "-6yr" suffix only appears in the public
+  // pages.dev subdomain (docs/reference/platform/CLOUDFLARE.md), a distinct
+  // value from the project name. Defaulting to the subdomain here 404s.
+  const projectName = readEnv('CLOUDFLARE_PAGES_PROJECT', { required: false }) || 'next-starter-template';
   const branch = readEnv('CHATTERBOX_TARGET_BRANCH');
 
   if (!apiToken || !accountId || !branch) return null;
