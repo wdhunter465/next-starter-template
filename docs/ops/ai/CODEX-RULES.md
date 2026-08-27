@@ -5,8 +5,8 @@ Authority Level: Agent-Specific
 Owns: Codex standing role, Codex startup contract, and Codex-specific operating detail
 Does Not Own: Shared agent law, design authority, standing team roster policy, or merge approval
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Related Issues: #3052, #3058, #3063, #3142, #3693, #3755, #3756, #3774
-Last Reviewed: 2026-08-26
+Related Issues: #3052, #3058, #3063, #3142, #3693, #3755, #3756, #3774, #3795
+Last Reviewed: 2026-08-27
 ---
 
 # CODEX-RULES.md
@@ -92,6 +92,22 @@ When Product Authority says `run startup` in Codex, Codex performs the shared sk
 14. Operational-hold state limited to explicitly supplied work.
 15. Safe operating decision: stop before any implementation step unless a separately loaded source Issue already provides the bounded scope for that work.
 16. Stop point.
+
+### Authority freshness
+
+Before reporting that the startup authority stack is current, Codex must establish
+the checkout's authority identity against live `main`. A failed local fetch or an
+unrefreshable local ref is not evidence that checked-out authority files are
+current and must not be silently treated as a PASS.
+
+When local freshness cannot be established, Codex may use an available read-only
+live GitHub source to load the current authority files and must disclose that
+fallback and the compared identities in the startup report. If neither refreshed
+local authority nor a readable live authority source is available, startup reports
+the authority stack as stale or unverifiable and fails closed at orientation.
+
+This freshness check is orientation-only. It does not authorize queue inspection,
+repository or GitHub mutation, or implementation.
 
 Codex startup must not explore unrelated work, edit files, create branches, commit, push, open or modify a PR, mutate an Issue, or begin implementation. Startup and assignment loading remain separate phases.
 
