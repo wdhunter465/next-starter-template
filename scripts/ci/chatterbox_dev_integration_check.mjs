@@ -357,11 +357,12 @@ export async function runChatterboxDevIntegrationCheck({ baseUrl, bridgeToken, f
   });
 
   await step('pmo_action_ack_then_complete', async () => {
-    const ack = await client.post('/api/chatterbox/pmo-actions', { op: 'ack', id: pmoActionId, participant_key: pmoKey });
+    const ack = await client.post('/api/chatterbox/pmo-actions', { room_key: roomKey, op: 'ack', id: pmoActionId, participant_key: pmoKey });
     assertCheck('pmo_action_ack_then_complete', ack.status === 200, `ack expected 200, got ${ack.status}`);
     assertCheck('pmo_action_ack_then_complete', ack.json.pmo_action.status === 'ACKED', 'expected status ACKED after ack');
 
     const complete = await client.post('/api/chatterbox/pmo-actions', {
+      room_key: roomKey,
       op: 'complete',
       id: pmoActionId,
       participant_key: pmoKey,
@@ -383,7 +384,7 @@ export async function runChatterboxDevIntegrationCheck({ baseUrl, bridgeToken, f
     });
     const otherActionId = created.json.pmo_action.id;
 
-    const { status } = await client.post('/api/chatterbox/pmo-actions', { op: 'ack', id: otherActionId, participant_key: agentAKey });
+    const { status } = await client.post('/api/chatterbox/pmo-actions', { room_key: roomKey, op: 'ack', id: otherActionId, participant_key: agentAKey });
     assertCheck('pmo_action_ack_rejected_for_non_pmo_role', status === 403, `expected 403, got ${status}`);
   });
 

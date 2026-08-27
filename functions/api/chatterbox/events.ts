@@ -114,7 +114,7 @@ export const onRequestPost = async (context: any): Promise<Response> => {
   let targetParticipant: any = null;
   if (targetParticipantKey) {
     targetParticipant = await d1.db
-      .prepare('SELECT id, role_class FROM chatterbox_participants WHERE participant_key = ?')
+      .prepare('SELECT id, role_class FROM chatterbox_participants WHERE participant_key = ? AND revoked_at IS NULL')
       .bind(targetParticipantKey)
       .first();
     if (!targetParticipant) return json({ ok: false, error: `target_participant_key not found: ${targetParticipantKey}` }, 404);

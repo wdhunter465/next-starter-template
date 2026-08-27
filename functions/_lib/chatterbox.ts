@@ -120,8 +120,9 @@ export type ClaimCheckResult = { ok: true } | { ok: false; reason: string };
 /**
  * Pure precondition check for #3415's "claims must be atomic" requirement.
  * The actual atomicity guarantee is the database's partial unique index
- * (migration 0046); this function only rejects claim attempts that are
- * knowably invalid before ever reaching the database, so the caller can
+ * (migration 0050, idx_chatterbox_claims_active_task); this function only
+ * rejects claim attempts that are knowably invalid before ever reaching
+ * the database, so the caller can
  * fail fast with a specific reason instead of a generic conflict.
  */
 export function canClaim(task: ClaimCheckTask, taskStatesByKey: TaskStateByKey): ClaimCheckResult {

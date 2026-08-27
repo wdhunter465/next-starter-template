@@ -12,7 +12,9 @@
 // expires_at ascending (soonest first) so a scheduled-pull caller sees the
 // most urgent item first regardless of how the response is paginated.
 //
-// POST: `{ op: 'ack' | 'complete', id, participant_key?, reconciliation_note? }`.
+// POST: `{ room_key, op: 'ack' | 'complete', id, participant_key?, reconciliation_note? }`.
+// room_key scopes the lookup so a caller cannot ack/complete another room's
+// action merely by learning its numeric id (Copilot review finding, PR #3802).
 // Critically: reading a row via GET never changes its status — only this
 // explicit callback does, and only a pmo/product_authority-role participant
 // may call it. This is the actual fix for the historical failure this
@@ -78,17 +80,24 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     return json({ ok: false, error: 'invalid JSON body' }, 400);
   }
 
+  const roomKey = String(body?.room_key || '').trim();
   const op = String(body?.op || '').trim();
   const id = Number(body?.id);
   const participantKeyBody = body?.participant_key != null ? String(body.participant_key).trim() : null;
   const reconciliationNote = body?.reconciliation_note != null ? String(body.reconciliation_note) : null;
 
+  if (!roomKey) {
+    return json({ ok: false, error: 'room_key is required' }, 400);
+  }
   if (op !== 'ack' && op !== 'complete') {
     return json({ ok: false, error: "op must be 'ack' or 'complete'" }, 400);
   }
   if (!Number.isInteger(id) || id <= 0) {
     return json({ ok: false, error: 'id must be a positive integer' }, 400);
   }
+
+  const room = await d1.db.prepare('SELECT id FROM chatterbox_rooms WHERE room_key = ?').bind(roomKey).first();
+  if (!room) return json({ ok: false, error: 'room not found' }, 404);
 
   const acting = await resolveActingParticipant(d1.db, auth.caller, participantKeyBody);
   if (!acting.ok) return acting.response;
@@ -98,16 +107,22 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     return json({ ok: false, error: 'only pmo or product_authority participants may ack/complete a pmo action' }, 403);
   }
 
-  const action = await d1.db.prepare('SELECT * FROM chatterbox_pmo_actions WHERE id = ?').bind(id).first();
-  if (!action) return json({ ok: false, error: 'pmo action not found' }, 404);
+  // Scoped by room_id as well as id — an id alone is not enough to prevent
+  // a caller from acting on another room's action if it merely learns the
+  // numeric id (Copilot review finding, PR #3802).
+  const action = await d1.db
+    .prepare('SELECT * FROM chatterbox_pmo_actions WHERE id = ? AND room_id = ?')
+    .bind(id, room.id)
+    .first();
+  if (!action) return json({ ok: false, error: 'pmo action not found in this room' }, 404);
 
   if (op === 'ack') {
     if (action.status !== 'PENDING') {
       return json({ ok: false, error: `cannot ack an action in status ${action.status}` }, 409);
     }
     await d1.db
-      .prepare(`UPDATE chatterbox_pmo_actions SET status = 'ACKED', acked_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ?`)
-      .bind(id)
+      .prepare(`UPDATE chatterbox_pmo_actions SET status = 'ACKED', acked_at = strftime('%Y-%m-%dT%H:%M:%fZ','now') WHERE id = ? AND room_id = ?`)
+      .bind(id, room.id)
       .run();
   } else {
     if (action.status !== 'PENDING' && action.status !== 'ACKED') {
@@ -117,12 +132,12 @@ export const onRequestPost = async (context: any): Promise<Response> => {
       .prepare(
         `UPDATE chatterbox_pmo_actions
          SET status = 'DONE', completed_at = strftime('%Y-%m-%dT%H:%M:%fZ','now'), completed_by_participant_id = ?, reconciliation_note = ?
-         WHERE id = ?`,
+         WHERE id = ? AND room_id = ?`,
       )
-      .bind(participant.id, reconciliationNote, id)
+      .bind(participant.id, reconciliationNote, id, room.id)
       .run();
   }
 
-  const row = await d1.db.prepare('SELECT * FROM chatterbox_pmo_actions WHERE id = ?').bind(id).first();
+  const row = await d1.db.prepare('SELECT * FROM chatterbox_pmo_actions WHERE id = ? AND room_id = ?').bind(id, room.id).first();
   return json({ ok: true, pmo_action: row });
 };
