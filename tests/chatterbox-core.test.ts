@@ -135,6 +135,21 @@ describe('buildCatchUpDigest', () => {
     expect(digest.tail[digest.tail.length - 1].body).toBe('e30');
   });
 
+  it('does not count a previous check-in of the same participant as unread (live 401-fix regression)', () => {
+    // Reproduces the Development integration-check failure surfaced after
+    // fixing the Cloudflare Pages project-name 404: a participant's own
+    // prior CHECK_IN row (inserted by check-in.ts on every call) must not
+    // inflate the unreadCount reported to that participant's next check-in.
+    const events = [
+      event({ id: 1, event_type: 'CHECK_IN', body: 'CHECK-IN — clerk' }),
+      event({ id: 2, body: 'while away 1' }),
+      event({ id: 3, body: 'while away 2' }),
+    ];
+    const digest = buildCatchUpDigest({ events, participantId: 1, lastSeenEventId: 0 });
+    expect(digest.unreadCount).toBe(2);
+    expect(digest.tail.map((e) => e.id)).toEqual([2, 3]);
+  });
+
   it('surfaces a QUESTION targeted at the participant with no ANSWER as an open question', () => {
     const events = [
       event({ id: 1, event_type: 'QUESTION', target_participant_id: 1, body: 'q1' }),

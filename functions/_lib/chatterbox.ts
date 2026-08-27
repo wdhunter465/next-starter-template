@@ -177,7 +177,13 @@ export type BuildCatchUpDigestOptions = {
 export function buildCatchUpDigest(options: BuildCatchUpDigestOptions): CatchUpDigest {
   const tailLimit = options.tailLimit ?? 20;
   const pmoInstructionLimit = options.pmoInstructionLimit ?? 10;
-  const unread = options.events.filter((event) => event.id > options.lastSeenEventId);
+  // CHECK_IN/CHECK_OUT are presence markers, not content to catch up on —
+  // every check-in inserts its own CHECK_IN row (module comment above), so
+  // counting these would inflate unreadCount by one on every subsequent
+  // check-in for no informational gain.
+  const unread = options.events.filter(
+    (event) => event.id > options.lastSeenEventId && event.event_type !== 'CHECK_IN' && event.event_type !== 'CHECK_OUT',
+  );
 
   // Answered-ness is a property of the whole conversation, not just the
   // unread window — an old question answered long ago must not resurface as
