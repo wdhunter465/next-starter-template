@@ -55,15 +55,32 @@ git remote get-url origin
 git status -sb
 git fetch origin main --quiet
 git log -1 --format='%H %s' origin/main
+LIVE_MAIN_SHA=$(gh api repos/wdhunter465/next-starter-template/commits/main --jq .sha)
+LOCAL_MAIN_SHA=$(git rev-parse origin/main)
+test "$LOCAL_MAIN_SHA" = "$LIVE_MAIN_SHA"
 ```
 
 Expect: working tree resolves to a clone of `wdhunter465/next-starter-template`; `git status -sb` shows a clean tree (or explicitly note what's dirty and why); `fetch` succeeds; `origin/main` HEAD is readable.
 
-Also compare the authority identity used by startup with live GitHub `main`. If
-the local fetch or ref update fails, do not infer freshness from the cached ref or
-checked-out files. Use an available read-only live GitHub authority source and
-record both identities; if no current read is available, record FAIL because the
-authority stack is stale or unverifiable.
+The authority identity is the live GitHub `main` commit SHA and the commit SHA or
+explicitly named live source from which startup reads the authority files. If the
+local fetch or ref update fails, do not infer freshness from the cached ref or
+checked-out files. Record the failed command and both available SHA identities.
+
+When GitHub is readable but the local ref cannot be refreshed, load the required
+authority files directly from live `main` with the read-only Contents API,
+repeating the command for each required path:
+
+```bash
+authority_path=Agent.md
+gh api "repos/wdhunter465/next-starter-template/contents/${authority_path}?ref=main" \
+  --jq .content | base64 --decode
+```
+
+Record `LIVE_MAIN_SHA`, each live authority path read, and that the Contents API
+was the fallback source. If the live commit identity or required live authority
+content cannot be read, record FAIL because the authority stack is stale or
+unverifiable.
 
 ### 2. GitHub authentication and repository permissions
 
@@ -160,7 +177,8 @@ This is a pass/fail gate on its own: if startup does anything beyond orientation
 
 The fresh-session test must also exercise authority freshness:
 
-1. Verify the normal case where the checkout identity matches live `main`.
+1. Verify the normal case where the refreshed local `origin/main` SHA matches the
+   live GitHub `main` SHA and startup reads authority from that identity.
 2. Exercise or reproduce a stale/unrefreshable-local-checkout case without
    mutating the repository under test.
 3. Confirm startup does not report current-authority PASS from stale checked-out
@@ -171,8 +189,9 @@ The fresh-session test must also exercise authority freshness:
 5. Confirm startup fails closed as stale or unverifiable when neither refreshed
    local authority nor a readable live authority source is available.
 
-All freshness outcomes remain orientation-only and must preserve the existing
-16-point startup report and stop boundary.
+All freshness outcomes remain orientation-only. Record freshness and fallback
+evidence inside the applicable existing report items; do not add, remove, or
+renumber any of the 16 startup points, and preserve the stop boundary.
 
 ## If something fails
 

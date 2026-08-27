@@ -95,8 +95,9 @@ When Product Authority says `run startup` in Codex, Codex performs the shared sk
 
 ### Authority freshness
 
-Before reporting that the startup authority stack is current, Codex must establish
-the checkout's authority identity against live `main`. A failed local fetch or an
+Before reporting that the startup authority stack is current, Codex must compare
+the live GitHub `main` commit SHA with the commit SHA or explicitly named live
+source from which it reads the authority files. A failed local fetch or an
 unrefreshable local ref is not evidence that checked-out authority files are
 current and must not be silently treated as a PASS.
 
@@ -105,6 +106,9 @@ live GitHub source to load the current authority files and must disclose that
 fallback and the compared identities in the startup report. If neither refreshed
 local authority nor a readable live authority source is available, startup reports
 the authority stack as stale or unverifiable and fails closed at orientation.
+Freshness evidence and fallback disclosure must be included within the applicable
+existing report items; they must not add, remove, or renumber the 16 required
+startup points.
 
 This freshness check is orientation-only. It does not authorize queue inspection,
 repository or GitHub mutation, or implementation.
