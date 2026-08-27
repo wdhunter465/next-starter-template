@@ -5,8 +5,8 @@ Authority Level: Operational Authority
 Owns: Codex runtime/bootstrap qualification procedure and evidence format for #3758
 Does Not Own: Codex standing role or authority (`docs/ops/ai/CODEX-RULES.md`, `docs/governance/AGENT-TEAM.md`), CI/automation integration (#3757), end-to-end lifecycle qualification (#3759)
 Canonical Reference: /docs/ops/ai/CODEX-RULES.md
-Related Issues: #3755, #3758
-Last Reviewed: 2026-08-26
+Related Issues: #3755, #3758, #3795
+Last Reviewed: 2026-08-27
 ---
 
 # Qualify Codex runtime, startup, and GitHub repository access
@@ -55,9 +55,32 @@ git remote get-url origin
 git status -sb
 git fetch origin main --quiet
 git log -1 --format='%H %s' origin/main
+LIVE_MAIN_SHA=$(gh api repos/wdhunter465/next-starter-template/commits/main --jq .sha)
+LOCAL_MAIN_SHA=$(git rev-parse origin/main)
+test "$LOCAL_MAIN_SHA" = "$LIVE_MAIN_SHA"
 ```
 
 Expect: working tree resolves to a clone of `wdhunter465/next-starter-template`; `git status -sb` shows a clean tree (or explicitly note what's dirty and why); `fetch` succeeds; `origin/main` HEAD is readable.
+
+The authority identity is the live GitHub `main` commit SHA and the commit SHA or
+explicitly named live source from which startup reads the authority files. If the
+local fetch or ref update fails, do not infer freshness from the cached ref or
+checked-out files. Record the failed command and both available SHA identities.
+
+When GitHub is readable but the local ref cannot be refreshed, load the required
+authority files directly from live `main` with the read-only Contents API,
+repeating the command for each required path:
+
+```bash
+authority_path=Agent.md
+gh api "repos/wdhunter465/next-starter-template/contents/${authority_path}?ref=main" \
+  --jq .content | base64 --decode
+```
+
+Record `LIVE_MAIN_SHA`, each live authority path read, and that the Contents API
+was the fallback source. If the live commit identity or required live authority
+content cannot be read, record FAIL because the authority stack is stale or
+unverifiable.
 
 ### 2. GitHub authentication and repository permissions
 
@@ -151,6 +174,24 @@ In a **fresh** Codex session (new context, no prior chat memory of this qualific
 - **stop** without beginning implementation, self-selecting work, editing files, or mutating any Issue/PR, unless a source Issue was separately supplied and grants that scope.
 
 This is a pass/fail gate on its own: if startup does anything beyond orientation, or omits required report elements, mark this capability FAIL and describe exactly what happened.
+
+The fresh-session test must also exercise authority freshness:
+
+1. Verify the normal case where the refreshed local `origin/main` SHA matches the
+   live GitHub `main` SHA and startup reads authority from that identity.
+2. Exercise or reproduce a stale/unrefreshable-local-checkout case without
+   mutating the repository under test.
+3. Confirm startup does not report current-authority PASS from stale checked-out
+   files or an unrefreshed cached ref.
+4. Confirm an available read-only live GitHub authority source may establish
+   current authority when local refresh is unavailable, with the fallback and
+   compared identities disclosed.
+5. Confirm startup fails closed as stale or unverifiable when neither refreshed
+   local authority nor a readable live authority source is available.
+
+All freshness outcomes remain orientation-only. Record freshness and fallback
+evidence inside the applicable existing report items; do not add, remove, or
+renumber any of the 16 startup points, and preserve the stop boundary.
 
 ## If something fails
 
