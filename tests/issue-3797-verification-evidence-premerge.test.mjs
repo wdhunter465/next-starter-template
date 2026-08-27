@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { hardHygieneFailures } from '../scripts/ci/pr_hygiene_audit.mjs';
 
+// TDD RED checkpoint: production hygiene behavior is intentionally unchanged here.
 const baseBody = `# PR Summary
 
 - **Issue:** #3797
