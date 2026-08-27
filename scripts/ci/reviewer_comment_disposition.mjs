@@ -18,6 +18,9 @@ const ACTIONABLE_TOP_LEVEL_PATTERN =
   /(^|[^A-Za-z0-9])(P0|P1|P2|P3)([^A-Za-z0-9]|$)|high[- ]priority|request changes|requested changes|must fix|blocking|action required|please (fix|update|change|address)|security|bug\b/i;
 const NON_ACTIONABLE_TOP_LEVEL_PATTERN =
   /^(?:✅|looks good|no (?:issues|findings|actionable)|all checks passed|summary by cubic|written for commit)/i;
+const APPROVAL_RECOMMENDED_REVIEW_PATTERN =
+  /(?:^|\n)\s*#{0,6}\s*(?:🟢\s*)?approval recommended\b/i;
+const ZERO_REVIEW_COMMENTS_PATTERN = /comments generated:\*{0,2}\s*0\b/i;
 
 export const ACCEPTED_DISPOSITION_VERBS = new Set([
   'accepted',
@@ -116,7 +119,13 @@ export function isActionableTopLevelComment(body = '') {
 export function isActionableReviewSubmission(review) {
   if (!review || IGNORE_MARKER.test(review.body || '')) return false;
   if (review.state === 'CHANGES_REQUESTED') return true;
-  if (review.state === 'COMMENTED' && isActionableTopLevelComment(review.body || '')) return true;
+  if (review.state === 'COMMENTED') {
+    const body = String(review.body || '');
+    if (APPROVAL_RECOMMENDED_REVIEW_PATTERN.test(body) && ZERO_REVIEW_COMMENTS_PATTERN.test(body)) {
+      return false;
+    }
+    return isActionableTopLevelComment(body);
+  }
   return false;
 }
 
