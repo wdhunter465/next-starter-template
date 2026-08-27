@@ -119,6 +119,10 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CHATTERBOX_TARGET_BRANCH: ${{ steps.target.outputs.branch }}
+          # Push-only: closes the race where this step outruns Cloudflare's
+          # build of the just-pushed commit (see
+          # chatterbox_resolve_preview_url.mjs's module comment, #3794).
+          CHATTERBOX_TARGET_COMMIT_SHA: ${{ github.event_name == 'push' && github.sha || '' }}
         run: |
           set -euo pipefail
           base_url=$(node scripts/ci/chatterbox_resolve_preview_url.mjs)

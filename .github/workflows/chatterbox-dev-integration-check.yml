@@ -101,6 +101,13 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CHATTERBOX_TARGET_BRANCH: ${{ steps.target.outputs.branch }}
+          # Pinning to the triggering commit (push only — workflow_dispatch's
+          # checked-out ref isn't necessarily this branch's tip) closes a
+          # race where this step runs before Cloudflare finishes building
+          # the just-pushed commit and silently resolves the *previous*
+          # commit's already-built deployment instead (see
+          # chatterbox_resolve_preview_url.mjs's module comment).
+          CHATTERBOX_TARGET_COMMIT_SHA: ${{ github.event_name == 'push' && github.sha || '' }}
         run: |
           set -euo pipefail
           base_url=$(node scripts/ci/chatterbox_resolve_preview_url.mjs)
