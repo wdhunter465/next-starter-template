@@ -161,7 +161,7 @@ export function resolveSourceIssueFromPr(pr = {}, { repository = '' } = {}) {
 	}
 
 	const bodyAuthoritative = bodyAccounting.issueNumber
-		&& !bodyAccounting.failures.some((failure) => failure.code !== 'missing_source_issue');
+		&& !bodyAccounting.failures.some((failure) => failure.code !== 'duplicate_source_issue_metadata');
 	if (bodyAuthoritative) {
 		return {
 			issueNumber: bodyAccounting.issueNumber,
@@ -235,7 +235,7 @@ export function sourceIssueAccounting(body = '', { repository = '' } = {}) {
 
 	const issueNumbers = [...new Set(refs.map((ref) => ref.issueNumber))];
 	const sourceIssueCandidates = [
-		...refs.map((ref) => `#${ref.issueNumber}`),
+		...issueNumbers.map((issueNumber) => `#${issueNumber}`),
 		...invalidRefs.map((ref) => ref.ref),
 	];
 	const failures = [];
@@ -252,10 +252,16 @@ export function sourceIssueAccounting(body = '', { repository = '' } = {}) {
 			message: `Merged PR body contains invalid or external source issue reference(s): ${invalidRefs.map((ref) => ref.ref).join(', ')}`,
 		});
 	}
-	if (sourceIssueLines.length > 1 || refs.length > 1 || issueNumbers.length > 1) {
+	if (issueNumbers.length > 1) {
 		failures.push({
 			code: 'multiple_source_issues',
-			message: 'Merged PR body contains multiple source issue references; closeout requires exactly one same-repository source issue line.',
+			message: 'Merged PR body contains multiple distinct same-repository source issues; closeout requires one source issue identity.',
+		});
+	}
+	if (issueNumbers.length === 1 && (sourceIssueLines.length > 1 || refs.length > 1)) {
+		failures.push({
+			code: 'duplicate_source_issue_metadata',
+			message: `Merged PR body repeats source issue #${issueNumbers[0]} in canonical source metadata; keep exactly one canonical source issue reference.`,
 		});
 	}
 
@@ -266,7 +272,7 @@ export function sourceIssueAccounting(body = '', { repository = '' } = {}) {
 		issueNumbers,
 		sourceIssueCandidates,
 		failures,
-		issueNumber: failures.length === 0 && issueNumbers.length === 1 ? issueNumbers[0] : '',
+		issueNumber: issueNumbers.length === 1 && invalidRefs.length === 0 ? issueNumbers[0] : '',
 	};
 }
 
