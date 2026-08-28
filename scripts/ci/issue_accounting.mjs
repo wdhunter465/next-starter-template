@@ -255,13 +255,13 @@ export function sourceIssueAccounting(body = '', { repository = '' } = {}) {
 	if (issueNumbers.length > 1) {
 		failures.push({
 			code: 'multiple_source_issues',
-			message: 'Merged PR body contains multiple distinct same-repository source Issues; closeout requires one source Issue identity.',
+			message: 'Merged PR body contains multiple distinct same-repository source issues; closeout requires one source issue identity.',
 		});
 	}
 	if (issueNumbers.length === 1 && (sourceIssueLines.length > 1 || refs.length > 1)) {
 		failures.push({
 			code: 'duplicate_source_issue_metadata',
-			message: `Merged PR body repeats source Issue #${issueNumbers[0]} in canonical source metadata; keep exactly one source Issue line.`,
+			message: `Merged PR body repeats source issue #${issueNumbers[0]} in canonical source metadata; keep exactly one canonical source issue reference.`,
 		});
 	}
 

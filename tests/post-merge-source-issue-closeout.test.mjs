@@ -174,6 +174,7 @@ describe('issue accounting formats', () => {
 		expect(duplicate.sourceIssueCandidates).toEqual(['#3795']);
 		expect(duplicate.failures).toContainEqual(expect.objectContaining({
 			code: 'duplicate_source_issue_metadata',
+			message: 'Merged PR body repeats source issue #3795 in canonical source metadata; keep exactly one canonical source issue reference.',
 		}));
 		expect(duplicate.failures).not.toContainEqual(expect.objectContaining({
 			code: 'multiple_source_issues',
@@ -188,6 +189,12 @@ describe('issue accounting formats', () => {
 			candidates: ['#3795'],
 			failures: [],
 		});
+
+		const distinct = sourceIssueAccounting('- **Issue:** #3795\n- Issue: #3797');
+		expect(distinct.failures).toContainEqual(expect.objectContaining({
+			code: 'multiple_source_issues',
+			message: 'Merged PR body contains multiple distinct same-repository source issues; closeout requires one source issue identity.',
+		}));
 	});
 
 	it('keeps canonical source identity distinct from contextual related Issues', () => {
