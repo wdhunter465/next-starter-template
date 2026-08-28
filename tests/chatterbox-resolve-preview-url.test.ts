@@ -10,6 +10,7 @@ import {
   DeploymentBuildFailedError,
   findDeploymentForCommit,
   pollForPagesDeploymentUrl,
+  probeDeploymentReady,
   resolvePagesDeploymentUrl,
   selectLatestSuccessfulDeployment,
 } from '../scripts/ci/chatterbox_resolve_preview_url.mjs';
@@ -98,7 +99,34 @@ describe('resolvePagesDeploymentUrl (commit-pinned)', () => {
   });
 });
 
+describe('probeDeploymentReady', () => {
+  it('treats a real JSON response as ready', async () => {
+    const fetchFn = vi.fn().mockResolvedValue({
+      headers: { get: () => 'application/json; charset=utf-8' },
+    });
+    await expect(probeDeploymentReady('https://x.pages.dev', fetchFn)).resolves.toBe(true);
+  });
+
+  it('treats Cloudflare\'s own HTML placeholder page as not ready (live regression)', async () => {
+    // Reproduces the Development room-bootstrap failure: the Pages API
+    // reported the deployment as "success" but the edge network answered
+    // with Cloudflare's own "Nothing is here yet... check back later" HTML
+    // page (its own Ray ID, not our app), not the deployed Function.
+    const fetchFn = vi.fn().mockResolvedValue({
+      headers: { get: () => 'text/html; charset=UTF-8' },
+    });
+    await expect(probeDeploymentReady('https://x.pages.dev', fetchFn)).resolves.toBe(false);
+  });
+
+  it('treats a network error as not ready rather than throwing', async () => {
+    const fetchFn = vi.fn().mockRejectedValue(new Error('fetch failed'));
+    await expect(probeDeploymentReady('https://x.pages.dev', fetchFn)).resolves.toBe(false);
+  });
+});
+
 describe('pollForPagesDeploymentUrl', () => {
+  const alwaysReady = () => Promise.resolve(true);
+
   it('retries a not-yet-appeared deployment until it succeeds, without sleeping past the first success', async () => {
     const fetchFn = vi
       .fn()
@@ -117,7 +145,7 @@ describe('pollForPagesDeploymentUrl', () => {
 
     const url = await pollForPagesDeploymentUrl(
       { apiToken: 't', accountId: 'a', projectName: 'p', branch: 'my-branch', commitSha: 'sha-new', fetchFn },
-      { sleepFn, timeoutMs: 60_000 },
+      { sleepFn, timeoutMs: 60_000, isReadyFn: alwaysReady },
     );
 
     expect(url).toBe('https://caught-up.pages.dev');
@@ -137,7 +165,7 @@ describe('pollForPagesDeploymentUrl', () => {
     await expect(
       pollForPagesDeploymentUrl(
         { apiToken: 't', accountId: 'a', projectName: 'p', branch: 'my-branch', commitSha: 'sha-new', fetchFn },
-        { sleepFn, timeoutMs: 60_000 },
+        { sleepFn, timeoutMs: 60_000, isReadyFn: alwaysReady },
       ),
     ).rejects.toBeInstanceOf(DeploymentBuildFailedError);
     expect(sleepFn).not.toHaveBeenCalled();
@@ -157,8 +185,55 @@ describe('pollForPagesDeploymentUrl', () => {
     await expect(
       pollForPagesDeploymentUrl(
         { apiToken: 't', accountId: 'a', projectName: 'p', branch: 'my-branch', commitSha: 'sha-new', fetchFn },
-        { sleepFn, timeoutMs: 25_000, pollIntervalMs: 10_000, nowFn },
+        { sleepFn, timeoutMs: 25_000, pollIntervalMs: 10_000, nowFn, isReadyFn: alwaysReady },
       ),
     ).rejects.toThrow(/no successful Cloudflare Pages deployment found/);
+  });
+
+  it('keeps polling when the deployment resolves but is not yet actually serving requests (live regression)', async () => {
+    // Reproduces the room-bootstrap failure: the deployments API reports
+    // success on the very first check, but the edge network isn't routing
+    // to it yet. Must not return the URL until the readiness probe agrees.
+    const fetchFn = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        success: true,
+        result: [deployment({ url: 'https://not-yet-routed.pages.dev', deployment_trigger: { metadata: { branch: 'my-branch', commit_hash: 'sha-new' } } })],
+      }),
+    });
+    const sleepFn = vi.fn().mockResolvedValue(undefined);
+    const isReadyFn = vi.fn().mockResolvedValueOnce(false).mockResolvedValueOnce(false).mockResolvedValueOnce(true);
+
+    const url = await pollForPagesDeploymentUrl(
+      { apiToken: 't', accountId: 'a', projectName: 'p', branch: 'my-branch', commitSha: 'sha-new', fetchFn },
+      { sleepFn, timeoutMs: 60_000, isReadyFn },
+    );
+
+    expect(url).toBe('https://not-yet-routed.pages.dev');
+    expect(isReadyFn).toHaveBeenCalledTimes(3);
+    expect(sleepFn).toHaveBeenCalledTimes(2);
+  });
+
+  it('times out with a clear error if the deployment never starts serving real responses', async () => {
+    const fetchFn = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({
+        success: true,
+        result: [deployment({ url: 'https://stuck.pages.dev', deployment_trigger: { metadata: { branch: 'my-branch', commit_hash: 'sha-new' } } })],
+      }),
+    });
+    let now = 0;
+    const sleepFn = vi.fn().mockImplementation(async () => {
+      now += 10_000;
+    });
+    const nowFn = () => now;
+    const isReadyFn = vi.fn().mockResolvedValue(false);
+
+    await expect(
+      pollForPagesDeploymentUrl(
+        { apiToken: 't', accountId: 'a', projectName: 'p', branch: 'my-branch', commitSha: 'sha-new', fetchFn },
+        { sleepFn, timeoutMs: 25_000, pollIntervalMs: 10_000, nowFn, isReadyFn },
+      ),
+    ).rejects.toThrow(/never started serving real API responses/);
   });
 });

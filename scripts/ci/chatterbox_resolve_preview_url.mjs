@@ -23,6 +23,19 @@
 // deployment and polls (see pollForPagesDeploymentUrl) until it succeeds,
 // fails, or a timeout elapses, instead of ever falling back to an older
 // commit's deployment.
+//
+// Second live-fire regression, found immediately after the first fix
+// shipped: the Cloudflare Pages *API* marking a deployment "success" does
+// not mean Cloudflare's edge network is actually routing requests to it
+// yet — for a window after that, real HTTP requests to the resolved URL
+// got back Cloudflare's own "Nothing is here yet... check back later"
+// placeholder page (HTML, its own Ray ID) instead of reaching the deployed
+// Function at all. That page is a 404 like any real "not found" response,
+// so a caller that only checks the deployments API can hand back a URL
+// that then fails every real request for the next several seconds. This
+// module now probes the resolved URL itself (see probeDeploymentReady)
+// and keeps polling until it gets back a real JSON response from the
+// deployed app, not just an API-reported "success".
 
 import { pathToFileURL } from 'node:url';
 
@@ -98,11 +111,29 @@ const DEFAULT_POLL_INTERVAL_MS = 10_000;
 const DEFAULT_POLL_TIMEOUT_MS = 5 * 60 * 1000;
 
 /**
- * Retries resolvePagesDeploymentUrl until it resolves, a build failure is
- * detected (non-retryable — a new push is needed, not more waiting), or
- * timeoutMs elapses. Only meaningful when `options.commitSha` is set; with
- * no commitSha the first call either resolves or throws immediately, same
- * as before this existed.
+ * Pure-ish: is this resolved URL actually being served by the deployed app
+ * yet? Probes GET /api/chatterbox/room with no Authorization header, which
+ * functions/api/chatterbox/room.ts always answers with a JSON 401
+ * (`{ok:false,error:'missing bearer token'}`) regardless of room state —
+ * no credential or query param needed, so the probe has no side effects.
+ * Anything else (Cloudflare's own HTML placeholder page, a network error)
+ * means the edge network hasn't finished routing to this deployment yet.
+ */
+export async function probeDeploymentReady(url, fetchFn = fetch) {
+  try {
+    const response = await fetchFn(`${url}/api/chatterbox/room`);
+    const contentType = response.headers.get('content-type') || '';
+    return contentType.includes('json');
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Retries resolvePagesDeploymentUrl until it resolves AND the resolved URL
+ * actually responds with real app JSON (see probeDeploymentReady), a build
+ * failure is detected (non-retryable — a new push is needed, not more
+ * waiting), or timeoutMs elapses.
  */
 export async function pollForPagesDeploymentUrl(
   options,
@@ -111,16 +142,26 @@ export async function pollForPagesDeploymentUrl(
     timeoutMs = DEFAULT_POLL_TIMEOUT_MS,
     sleepFn = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
     nowFn = () => Date.now(),
+    isReadyFn = probeDeploymentReady,
   } = {},
 ) {
   const deadline = nowFn() + timeoutMs;
   for (;;) {
     try {
-      return await resolvePagesDeploymentUrl(options);
+      const url = await resolvePagesDeploymentUrl(options);
+      if (await isReadyFn(url, options.fetchFn)) return url;
     } catch (error) {
-      if (error instanceof DeploymentBuildFailedError || nowFn() >= deadline) throw error;
+      if (error instanceof DeploymentBuildFailedError) throw error;
+      if (nowFn() >= deadline) throw error;
       await sleepFn(pollIntervalMs);
+      continue;
     }
+    if (nowFn() >= deadline) {
+      throw new Error(
+        `Cloudflare Pages deployment for branch "${options.branch}"${options.commitSha ? ` at commit ${options.commitSha}` : ''} resolved but never started serving real API responses within the timeout (still getting Cloudflare's own placeholder page)`,
+      );
+    }
+    await sleepFn(pollIntervalMs);
   }
 }
 
