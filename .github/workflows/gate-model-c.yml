@@ -81,7 +81,7 @@ jobs:
 
       - name: Skip notice when not Model C
         if: github.event_name == 'pull_request' && steps.model_c.outputs.is_model_c != 'true'
-        run: echo "PR does not claim Delivery model: C; Model C path gate skipped."
+        run: 'echo "PR does not claim Delivery model: C; Model C path gate skipped."'
 
       - name: Unit tests for Model C modules
         run: |
