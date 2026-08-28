@@ -104,7 +104,7 @@ Acceptance criteria mapping (#3671):
 - review-comment:3844485858 — accepted — a `touchesProtectedPath` block now reports that disqualifier explicitly instead of unrelated fields — thread state: resolved
 - review-comment:3844485922 — accepted — non-object `evidence` (null, a string, an array) now fails closed instead of throwing — thread state: resolved
 - review-comment:3844485969 — accepted — `assertNoSelfApproval` now derives `permitted` and `reason` from the same strict boolean check — thread state: resolved
-- review-comment:5009029524 — accepted — Copilot's review submission summarized the three findings above; all three were corrected on the originating PR and are fully dispositioned here. — thread state: outdated
+- review-comment:5009029524 — accepted — Copilot’s review submission summarized the three findings above; all three were corrected on the originating PR and are fully dispositioned here. — thread state: outdated
 
 ## Rollback
 
