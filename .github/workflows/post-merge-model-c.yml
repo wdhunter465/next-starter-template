@@ -35,22 +35,16 @@ jobs:
           PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
           PULL_REQUEST_BODY: ${{ github.event.pull_request.body }}
           PULL_REQUEST_MERGED: ${{ github.event.pull_request.merged }}
-          PULL_REQUEST_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          PULL_REQUEST_MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
           DISPATCH_PR_NUMBER: ${{ inputs.pr_number }}
         run: |
           if [ "$EVENT_NAME" = "pull_request" ]; then
             PR_NUMBER="$PULL_REQUEST_NUMBER"
             printf '%s\n' "$PULL_REQUEST_BODY" > "$RUNNER_TEMP/pr_body.md"
             MERGED="$PULL_REQUEST_MERGED"
-            BASE_SHA="$PULL_REQUEST_BASE_SHA"
-            HEAD_SHA="$PULL_REQUEST_MERGE_SHA"
           else
             PR_NUMBER="$DISPATCH_PR_NUMBER"
             gh pr view "$PR_NUMBER" --json body -q .body > "$RUNNER_TEMP/pr_body.md"
             MERGED=$(gh pr view "$PR_NUMBER" --json merged -q .merged)
-            BASE_SHA=$(gh pr view "$PR_NUMBER" --json baseRefOid -q .baseRefOid)
-            HEAD_SHA=$(gh pr view "$PR_NUMBER" --json mergeCommit -q .mergeCommit.oid)
           fi
           if grep -qiE '^[[:space:]]*(-[[:space:]]*)?Delivery model:[[:space:]]*C[[:space:]]*$' "$RUNNER_TEMP/pr_body.md"; then
             echo "is_model_c=true" >> "$GITHUB_OUTPUT"
@@ -73,20 +67,29 @@ jobs:
           echo "issue_closed=$ISSUE_CLOSED" >> "$GITHUB_OUTPUT"
           echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
           echo "merged=$MERGED" >> "$GITHUB_OUTPUT"
-          echo "base_sha=$BASE_SHA" >> "$GITHUB_OUTPUT"
-          echo "head_sha=$HEAD_SHA" >> "$GITHUB_OUTPUT"
 
       - name: Collect merge paths
         if: steps.meta.outputs.is_model_c == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ steps.meta.outputs.pr_number }}
         run: |
-          if [ -n "${{ steps.meta.outputs.head_sha }}" ] && [ -n "${{ steps.meta.outputs.base_sha }}" ]; then
-            git fetch --no-tags --depth=0 origin main || true
-            git diff --name-only "${{ steps.meta.outputs.base_sha }}" "${{ steps.meta.outputs.head_sha }}" > "$RUNNER_TEMP/changed_files.txt" || true
-          else
-            echo "" > "$RUNNER_TEMP/changed_files.txt"
+          case "$PR_NUMBER" in
+            ''|*[!0-9]*)
+              echo "::error::Model C changed-file evidence requires a numeric PR number."
+              exit 1
+              ;;
+          esac
+          gh api --paginate \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "repos/${GITHUB_REPOSITORY}/pulls/$PR_NUMBER/files?per_page=100" \
+            --jq '.[].filename' > "$RUNNER_TEMP/changed_files.txt"
+          if ! test -s "$RUNNER_TEMP/changed_files.txt"; then
+            echo "::error::Model C changed-file evidence is unavailable for PR #$PR_NUMBER."
+            exit 1
           fi
-          cat "$RUNNER_TEMP/changed_files.txt" || true
-
+          cat "$RUNNER_TEMP/changed_files.txt"
       - name: Lightweight Model C post-merge check
         if: steps.meta.outputs.is_model_c == 'true'
         env:

@@ -97,6 +97,21 @@ describe('post-merge readiness gate', () => {
     }));
   });
 
+  it('blocks duplicate canonical source lines with precise pre-merge metadata hygiene', () => {
+    const result = evaluate({
+      pr: { body: compliantBody.replace('- **Issue:** #1544', '- **Issue:** #1544\n- Issue: #1544') },
+    });
+
+    expect(result.status).toBe('fail');
+    expect(result.source_issue).toBe('1544');
+    expect(result.source_issue_failures).toContainEqual(expect.objectContaining({
+      code: 'duplicate_source_issue_metadata',
+    }));
+    expect(result.source_issue_failures).not.toContainEqual(expect.objectContaining({
+      code: 'multiple_source_issues',
+    }));
+  });
+
   it('fails stale blocked status declarations before merge', () => {
     const result = evaluate({
       pr: { body: compliantBody.replace('## CHANGE SUMMARY', '## CHANGE SUMMARY\n- Status: BLOCKED\n') },
