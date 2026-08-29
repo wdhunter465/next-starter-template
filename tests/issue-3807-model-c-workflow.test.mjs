@@ -5,6 +5,8 @@ import { describe, expect, it } from 'vitest';
 const gateWorkflow = fs.readFileSync('.github/workflows/gate-model-c.yml', 'utf8');
 const postMergeWorkflow = fs.readFileSync('.github/workflows/post-merge-model-c.yml', 'utf8');
 
+// These workflow contracts keep API failures observable under fail-fast shells.
+
 function invalidPlainRunScalars(workflow) {
   return workflow
     .split(/\r?\n/)
