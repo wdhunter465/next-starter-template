@@ -23,6 +23,13 @@ describe('issue #3807 Model C workflow contracts', () => {
     expect(invalidPlainRunScalars(gateWorkflow)).toEqual([]);
   });
 
+  it('collects immutable PR file evidence before classification instead of relying on a shallow checkout', () => {
+    expect(gateWorkflow).toMatch(/gh api\b[\s\S]*pulls\/\$PR_NUMBER\/files/);
+    expect(gateWorkflow).toContain('test -s "$RUNNER_TEMP/changed_files.txt"');
+    expect(gateWorkflow).not.toContain('git fetch --no-tags --depth=0');
+    expect(gateWorkflow).not.toContain('git diff --name-only');
+  });
+
   it('collects immutable PR file evidence after merge instead of diffing a mutable base tip', () => {
     expect(postMergeWorkflow).toMatch(/gh api\b[\s\S]*pulls\/\$PR_NUMBER\/files/);
     expect(postMergeWorkflow).toContain('test -s "$RUNNER_TEMP/changed_files.txt"');
