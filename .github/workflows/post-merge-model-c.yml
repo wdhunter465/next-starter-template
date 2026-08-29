@@ -44,7 +44,7 @@ jobs:
           else
             PR_NUMBER="$DISPATCH_PR_NUMBER"
             gh pr view "$PR_NUMBER" --json body -q .body > "$RUNNER_TEMP/pr_body.md"
-            MERGED=$(gh pr view "$PR_NUMBER" --json merged -q .merged)
+            MERGED=$(gh pr view "$PR_NUMBER" --json state,mergedAt --jq 'if .state == "MERGED" and .mergedAt != null then "true" else "false" end')
           fi
           if grep -qiE '^[[:space:]]*(-[[:space:]]*)?Delivery model:[[:space:]]*C[[:space:]]*$' "$RUNNER_TEMP/pr_body.md"; then
             echo "is_model_c=true" >> "$GITHUB_OUTPUT"
