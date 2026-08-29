@@ -43,3 +43,34 @@ describe('model_c_post_merge', () => {
     expect(result.errors.some((e) => e.code === 'source_issue_open')).toBe(true);
   });
 });
+
+
+describe('model_c_post_merge changed-file evidence', () => {
+  it('fails closed when changed-file evidence is genuinely unavailable', () => {
+    const result = assessModelCPostMerge({
+      changedFiles: [],
+      prMerged: true,
+      issueClosed: true,
+      skipDiataxis: true,
+    });
+
+    expect(result.ok).toBe(false);
+    expect(result.errors).toContainEqual(expect.objectContaining({
+      code: 'missing_changed_files_evidence',
+    }));
+  });
+
+  it('fails closed when changed-file evidence normalizes to an empty list', () => {
+    const result = assessModelCPostMerge({
+      changedFiles: ['  ', '\n'],
+      prMerged: true,
+      issueClosed: true,
+      skipDiataxis: true,
+    });
+
+    expect(result.ok).toBe(false);
+    expect(result.errors).toContainEqual(expect.objectContaining({
+      code: 'missing_changed_files_evidence',
+    }));
+  });
+});
