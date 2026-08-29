@@ -39,6 +39,22 @@ Automatic post-merge source-issue validation and reconciliation has one owner:
 
 It runs for merged pull requests targeting `main`, invokes `scripts/ci/run_post_merge_closeout.mjs`, writes evidence artifacts, comments the result, and fails when current validation reports a blocking exception.
 
+Before invoking the closeout runner, the workflow invokes
+`scripts/ci/post_merge_stabilization.mjs`. The stabilization gate waits 60
+seconds, re-fetches the merged PR, proves that the event merge SHA is reachable
+from `main`, reads the required PR-head checks, and reads current review and
+review-thread state. If those surfaces are not yet terminal and readable, it
+retries every 15 seconds for at most 60 additional seconds. Normal validation
+therefore starts after about 60 seconds when GitHub state is settled and no
+later than about 120 seconds when bounded retries are exhausted.
+
+A merge-SHA mismatch is not eventual consistency: it fails immediately as
+`merge_sha_mismatch`. Other state that cannot be proven settled by the deadline
+produces one `post_merge_stabilization_timeout` result. In both cases the normal
+validator and remediation-family generation are skipped, preventing one
+unstable snapshot from cascading into speculative metadata, workflow, reviewer,
+or implementation exception families.
+
 ## Current workflows
 
 | Workflow | Role |
@@ -91,6 +107,31 @@ When current validation fails:
 
 Retirement of #1075 prevents obsolete CI phase issues from creating false orchestration pauses. It does not suppress legitimate current validation, security, or production failures.
 
+## July 1+ exception-family analysis (#3800)
+
+The July 1+ evidence in #3790, #3797, #3800, and the
+#3666/#3667/#3671 remediation lineages separates timing-sensitive observations
+from substantive defects:
+
+| Family | Stabilization effect | Controlling disposition |
+| --- | --- | --- |
+| PR `merged_at` or merge metadata not yet readable | Preventable when propagation completes inside the bounded window | Retry, then one stabilization timeout |
+| Merge SHA not yet visible from `main` | Preventable when branch visibility is delayed | Retry, then one stabilization timeout |
+| Required check/workflow visibility lag | Preventable when PR-head `quality` or `gitleaks` is queued, missing, or not yet terminal | Retry; later validation still handles a terminal failure |
+| Review or review-thread visibility lag | Preventable when the reviews or complete thread page cannot yet be read | Retry; later validation still handles genuine findings |
+| Issue/label state immediately after another workflow mutation | Partially timing-sensitive | The initial delay reduces overlap; the canonical closeout runner must still re-fetch and reconcile idempotently because the gate cannot infer the intended label decision |
+| Duplicate/stale exception creation after state self-heals | Not solved by timing alone | Existing canonical exception lookup and self-healing remain responsible; do not create a second automatic closeout owner |
+| Reviewer classification and disposition defects (140 `outdated_reviewer_thread_without_disposition`, 71 `undispositioned_reviewer_comment` occurrences recorded in #3790, with overlap) | Timing can prevent visibility races only | #3790/#3805 own canonical pre/post-merge classification; human changes-requested and unresolved findings remain fail-closed |
+| Verification evidence (`missing_verification_commands`, `verification_not_pass`, `verification_placeholder`; examples #3104, #3108, #3550, #3743, #3782, #3011, and #3286) | Not timing when reproduced from settled PR content | #3797 owns shift-left enforcement after the timing boundary is accepted; #3800 does not mask it |
+| Wrong or stale merge-SHA evidence | Never timing-classified | Immediate `merge_sha_mismatch`; correct the evidence source |
+| Stale source state after a terminal exception (#3666/#3683, #3667/#3682, #3671/#3685) | Delay can reduce races but cannot replace reconciliation | After terminal remediation, re-fetch and run the canonical closeout path; remove stale failure labels only when no substantive failure remains |
+| Security, Production, protected human decisions, ambiguous ownership, or unresolved implementation failure | Not suppressible | Remain explicit, actionable, and fail-closed |
+
+This boundary deliberately does not promise zero exception Issues. It suppresses
+only speculative families caused by an unproven GitHub snapshot. Deterministic
+pre-merge defects remain candidates for shift-left enforcement, while genuine
+post-merge failures continue through the single-owner remediation lifecycle.
+
 ## Pre-merge hygiene versus post-merge exception ownership
 
 Stable PR-body structure defects are owned before merge:
@@ -112,6 +153,7 @@ This issue does not promote `pr-hygiene` to a required branch-protection check.
 | Script | Role |
 | --- | --- |
 | `scripts/ci/run_post_merge_closeout.mjs` | Single automatic closeout runner |
+| `scripts/ci/post_merge_stabilization.mjs` | Bounded merge/main/check/review settlement gate before automatic closeout |
 | `scripts/ci/post_merge_validator.mjs` | Evidence aggregation and result contract |
 | `scripts/ci/post_merge_remediation_issue.mjs` | Bounded remediation issue handling |
 | `scripts/ci/post_merge_source_issue_closeout.mjs` | Source-issue closeout decisions and label reconciliation |
