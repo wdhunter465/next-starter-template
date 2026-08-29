@@ -28,7 +28,17 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Stabilize post-merge GitHub state
+        id: stabilization
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: node scripts/ci/post_merge_stabilization.mjs
+
       - name: Run automatic post-merge closeout
+        if: steps.stabilization.outputs.status == 'settled'
         id: closeout
         env:
           GITHUB_TOKEN: ${{ github.token }}
@@ -73,5 +83,7 @@ jobs:
         continue-on-error: true
 
       - name: Fail if validation failed
-        if: always() && steps.closeout.outputs.status == 'fail'
+        if: |
+          always() &&
+          (steps.stabilization.outputs.status == 'failed' || steps.closeout.outputs.status == 'fail')
         run: exit 1
