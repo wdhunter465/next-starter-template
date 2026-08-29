@@ -28,11 +28,24 @@ jobs:
       - name: Collect changed files
         if: github.event_name == 'pull_request'
         env:
-          GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          GITHUB_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          git fetch --no-tags --depth=0 origin ${{ github.event.pull_request.base.ref }} || true
-          git diff --name-only "$GITHUB_BASE_SHA" "$GITHUB_HEAD_SHA" > "$RUNNER_TEMP/changed_files.txt"
+          case "$PR_NUMBER" in
+            ''|*[!0-9]*)
+              echo "::error::Model C changed-file evidence requires a numeric PR number."
+              exit 1
+              ;;
+          esac
+          gh api --paginate \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2022-11-28" \
+            "repos/${GITHUB_REPOSITORY}/pulls/$PR_NUMBER/files?per_page=100" \
+            --jq '.[].filename' > "$RUNNER_TEMP/changed_files.txt"
+          if ! test -s "$RUNNER_TEMP/changed_files.txt"; then
+            echo "::error::Model C changed-file evidence is unavailable for PR #$PR_NUMBER."
+            exit 1
+          fi
           cat "$RUNNER_TEMP/changed_files.txt"
 
       - name: Write PR body
