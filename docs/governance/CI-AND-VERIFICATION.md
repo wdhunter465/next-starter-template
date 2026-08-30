@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Gate profiles, check classification, deterministic evidence, validation ownership, promotion verification criteria, failure routing, remediation boundaries, and post-merge verification ownership
 Does Not Own: Delivery Model A/B selection, agent approval routing, branch-protection UI settings, workflow YAML implementation, product/UX behavior, or platform isolation claims
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2689, #2686, #3668, #3671
-Last Reviewed: 2026-08-24
+Related Issues: #2689, #2686, #3668, #3671, #3807
+Last Reviewed: 2026-08-30
 ---
 
 # CI and Verification
@@ -154,6 +154,14 @@ Routine bounded correction is not a repository-wide stop. Material inability to 
 | Production runtime health after deploy | Day-2 Operations / Operations and Recovery domain |
 
 Supporting post-merge workflows must not race the same automatic mutation boundary as the single closeout owner.
+
+## Live verification records
+
+Bounded CI-repair Issues that require live (not unit-test-only) evidence record that evidence on the qualifying Issue rather than duplicating it here. This section indexes those records so the domain policy stays traceable to its own verification bar.
+
+| Issue | Subject | Live evidence recorded on |
+| --- | --- | --- |
+| #3807 | Model C pre-merge check attachment and post-merge changed-file evidence, exercised end-to-end by a real `Delivery model: C` PR | #3759 |
 
 ## Local validation
 
