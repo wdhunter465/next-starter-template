@@ -67,10 +67,12 @@ jobs:
         run: cat post-merge-result.md >> "$GITHUB_STEP_SUMMARY"
 
       - name: Comment result
-        if: always() && steps.closeout.outputs.pr_number != ''
+        if: |
+          always() &&
+          (steps.closeout.outputs.pr_number != '' || steps.stabilization.outputs.status == 'failed')
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh pr comment "${{ steps.closeout.outputs.pr_number }}" --body-file post-merge-result.md || true
+        run: gh pr comment "${{ steps.closeout.outputs.pr_number || steps.stabilization.outputs.pr_number }}" --body-file post-merge-result.md || true
 
       - name: Run post-merge reviewer audit
         if: always() && steps.closeout.outputs.pr_number != ''

@@ -4,7 +4,7 @@ import { pathToFileURL } from 'node:url';
 export const INITIAL_DELAY_MS = 60_000;
 export const RETRY_INTERVAL_MS = 15_000;
 export const MAX_RETRY_WINDOW_MS = 60_000;
-export const REQUIRED_CHECK_NAMES = ['quality', 'gitleaks'];
+export const REQUIRED_CHECK_NAMES = ['quality', 'gitleaks', 'pr-issue-accounting'];
 
 const delay = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
@@ -20,6 +20,15 @@ export function evaluatePostMergeSnapshot(snapshot = {}, { expectedMergeSha = ''
 			terminal: true,
 			classification: 'merge_sha_mismatch',
 			reasons: ['merge_sha_mismatch'],
+		};
+	}
+
+	if (snapshot.reviewThreadsPaginationOverflow) {
+		return {
+			settled: false,
+			terminal: true,
+			classification: 'review_thread_pagination_unsupported',
+			reasons: ['review_thread_pagination_unsupported'],
 		};
 	}
 
@@ -154,6 +163,7 @@ export async function loadGitHubPostMergeSnapshot({ token, repository, prNumber,
 		mainContainsMerge: compareResult.status === 'fulfilled' && ['ahead', 'identical'].includes(compareResult.value.status),
 		requiredChecks,
 		requiredChecksLoaded: checksResult.status === 'fulfilled' && requiredChecks.length === REQUIRED_CHECK_NAMES.length,
+		reviewThreadsPaginationOverflow: threads?.pageInfo?.hasNextPage === true,
 		reviewStateSettled:
 			reviewsResult.status === 'fulfilled' &&
 			Boolean(threads) &&

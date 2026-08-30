@@ -61,6 +61,20 @@ describe('post-merge stabilization evaluation', () => {
 			reasons: ['merge_sha_mismatch'],
 		});
 	});
+
+	it('fails a review-thread pagination overflow immediately instead of retrying until timeout', () => {
+		const result = evaluatePostMergeSnapshot(
+			settledSnapshot({ reviewThreadsPaginationOverflow: true, reviewStateSettled: false }),
+			{ expectedMergeSha: 'merge-sha' },
+		);
+
+		expect(result).toEqual({
+			settled: false,
+			terminal: true,
+			classification: 'review_thread_pagination_unsupported',
+			reasons: ['review_thread_pagination_unsupported'],
+		});
+	});
 });
 
 describe('post-merge stabilization retry window', () => {
@@ -142,6 +156,29 @@ describe('post-merge stabilization retry window', () => {
 			elapsedMs: 60_000,
 		});
 	});
+
+	it('does not retry a review-thread pagination overflow for the full window', async () => {
+		const sleep = vi.fn().mockResolvedValue(undefined);
+		const loadSnapshot = vi
+			.fn()
+			.mockResolvedValue(settledSnapshot({ reviewThreadsPaginationOverflow: true, reviewStateSettled: false }));
+
+		const result = await stabilizePostMergeState({
+			expectedMergeSha: 'merge-sha',
+			loadSnapshot,
+			sleep,
+		});
+
+		expect(sleep.mock.calls).toEqual([[60_000]]);
+		expect(loadSnapshot).toHaveBeenCalledTimes(1);
+		expect(result).toEqual({
+			status: 'failed',
+			classification: 'review_thread_pagination_unsupported',
+			reasons: ['review_thread_pagination_unsupported'],
+			attempts: 1,
+			elapsedMs: 60_000,
+		});
+	});
 });
 
 describe('GitHub stabilization snapshot', () => {
@@ -180,6 +217,7 @@ describe('GitHub stabilization snapshot', () => {
 						check_runs: [
 							{ name: 'quality', status: 'completed', conclusion: 'success' },
 							{ name: 'gitleaks', status: 'completed', conclusion: 'success' },
+							{ name: 'pr-issue-accounting', status: 'completed', conclusion: 'success' },
 						],
 					}),
 					{ status: 200 },
@@ -206,6 +244,69 @@ describe('GitHub stabilization snapshot', () => {
 				reviewStateSettled: true,
 			});
 			expect(requestedUrls).toContain('https://api.github.com/repos/owner/repo/commits/head-sha/check-runs?per_page=100');
+		} finally {
+			vi.unstubAllGlobals();
+		}
+	});
+
+	it('flags review-thread pagination overflow when the first page has more than 100 threads', async () => {
+		const fetch = vi.fn(async (url) => {
+			if (url === 'https://api.github.com/graphql') {
+				return new Response(
+					JSON.stringify({
+						data: {
+							repository: {
+								pullRequest: { reviewThreads: { pageInfo: { hasNextPage: true }, nodes: [] } },
+							},
+						},
+					}),
+					{ status: 200 },
+				);
+			}
+			if (String(url).endsWith('/pulls/3800')) {
+				return new Response(
+					JSON.stringify({
+						merged_at: '2026-08-29T12:00:00Z',
+						merge_commit_sha: 'merge-sha',
+						head: { sha: 'head-sha' },
+					}),
+					{ status: 200 },
+				);
+			}
+			if (String(url).includes('/compare/merge-sha...main')) {
+				return new Response(JSON.stringify({ status: 'ahead' }), { status: 200 });
+			}
+			if (String(url).includes('/commits/head-sha/check-runs')) {
+				return new Response(
+					JSON.stringify({
+						check_runs: [
+							{ name: 'quality', status: 'completed', conclusion: 'success' },
+							{ name: 'gitleaks', status: 'completed', conclusion: 'success' },
+							{ name: 'pr-issue-accounting', status: 'completed', conclusion: 'success' },
+						],
+					}),
+					{ status: 200 },
+				);
+			}
+			if (String(url).endsWith('/pulls/3800/reviews?per_page=100')) {
+				return new Response(JSON.stringify([]), { status: 200 });
+			}
+			return new Response(JSON.stringify({ message: 'unexpected URL' }), { status: 404 });
+		});
+		vi.stubGlobal('fetch', fetch);
+
+		try {
+			const snapshot = await loadGitHubPostMergeSnapshot({
+				token: 'token',
+				repository: 'owner/repo',
+				prNumber: 3800,
+				expectedMergeSha: 'merge-sha',
+			});
+
+			expect(snapshot).toMatchObject({
+				reviewThreadsPaginationOverflow: true,
+				reviewStateSettled: false,
+			});
 		} finally {
 			vi.unstubAllGlobals();
 		}
