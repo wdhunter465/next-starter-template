@@ -155,6 +155,14 @@ Routine bounded correction is not a repository-wide stop. Material inability to 
 
 Supporting post-merge workflows must not race the same automatic mutation boundary as the single closeout owner.
 
+## Live verification records
+
+Bounded CI-repair Issues that require live (not unit-test-only) evidence record that evidence on the qualifying Issue rather than duplicating it here. This section indexes those records so the domain policy stays traceable to its own verification bar.
+
+| Issue | Subject | Live evidence recorded on |
+| --- | --- | --- |
+| #3807 | Model C pre-merge check attachment and post-merge changed-file evidence, exercised end-to-end by a real `Delivery model: C` PR | #3759 |
+
 ## Local validation
 
 Local validation commands named by the source issue are part of the verification bar for Implementation / Operations before ready-for-review claims. Local pass does not replace required CI on the PR head. Known pre-existing failures outside the allowlist must be disclosed, not silently fixed.
