@@ -4,7 +4,16 @@ import { pathToFileURL } from 'node:url';
 export const INITIAL_DELAY_MS = 60_000;
 export const RETRY_INTERVAL_MS = 15_000;
 export const MAX_RETRY_WINDOW_MS = 60_000;
-export const REQUIRED_CHECK_NAMES = ['quality', 'gitleaks', 'pr-issue-accounting'];
+/**
+ * `pr-issue-accounting` (ops-pr-issue-accounting.yml) is deliberately excluded here:
+ * that workflow is `workflow_dispatch`-only ("manual-only while paused" per
+ * CI_GUARDRAILS_MAP.md) and never produces a check-run on a `pull_request`/`push`
+ * event. Requiring its presence made `requiredChecksLoaded` permanently false —
+ * every post-merge stabilization run times out at `post_merge_stabilization_timeout`
+ * regardless of how long it waits, because the check-run this list expects can never
+ * appear. Re-add it here only once that workflow is switched to an automatic trigger.
+ */
+export const REQUIRED_CHECK_NAMES = ['quality', 'gitleaks'];
 
 const delay = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 

@@ -117,7 +117,8 @@ from substantive defects:
 | --- | --- | --- |
 | PR `merged_at` or merge metadata not yet readable | Preventable when propagation completes inside the bounded window | Retry, then one stabilization timeout |
 | Merge SHA not yet visible from `main` | Preventable when branch visibility is delayed | Retry, then one stabilization timeout |
-| Required check/workflow visibility lag | Preventable when PR-head `quality`, `gitleaks`, or `pr-issue-accounting` is queued, missing, or not yet terminal | Retry; later validation still handles a terminal failure |
+| Required check/workflow visibility lag | Preventable when PR-head `quality` or `gitleaks` is queued, missing, or not yet terminal | Retry; later validation still handles a terminal failure |
+| A required-check name that never produces a live check-run (for example `pr-issue-accounting` while `ops-pr-issue-accounting.yml` stays `workflow_dispatch`-only) | Never timing-classified; no amount of retrying makes an automatically-triggered check-run appear for a manual-only workflow | Excluded from the required-check surface until the workflow gets an automatic trigger; see `.github/CI_GUARDRAILS_MAP.md` |
 | Review or review-thread visibility lag | Preventable when the reviews or the first page of review threads cannot yet be read | Retry; later validation still handles genuine findings |
 | Review-thread page count exceeds the first 100 threads | Never timing-classified; more threads will never make `hasNextPage` settle to `false` | Immediate `review_thread_pagination_unsupported`; not a candidate for retry |
 | Issue/label state immediately after another workflow mutation | Partially timing-sensitive | The initial delay reduces overlap; the canonical closeout runner must still re-fetch and reconcile idempotently because the gate cannot infer the intended label decision |
