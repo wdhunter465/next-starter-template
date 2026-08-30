@@ -54,4 +54,9 @@ describe('issue #3807 Model C workflow contracts', () => {
     expect(postMergeWorkflow).toContain('workflow_dispatch:');
     expect(postMergeWorkflow).toContain('model-c-post-merge:');
   });
+
+  it('uses a supported merge-state field for manual post-merge dispatch', () => {
+    expect(postMergeWorkflow).toContain('gh pr view "$PR_NUMBER" --json state,mergedAt --jq');
+    expect(postMergeWorkflow).not.toContain('--json merged -q .merged');
+  });
 });
