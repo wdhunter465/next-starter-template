@@ -65,13 +65,18 @@ Supporting post-merge and operational workflows must not independently claim the
 
 `post-merge-closeout.yml` applies the #3800 stabilization boundary before its
 normal validator runs: wait 60 seconds, re-fetch the merged PR, prove the event
-merge SHA is on `main`, and require the PR-head `quality`/`gitleaks`/
-`pr-issue-accounting` checks plus review/review-thread API state to be terminal
-and readable. Unsettled state is retried every 15 seconds for at most 60
-additional seconds. A timeout emits one `post_merge_stabilization_timeout`
-result and skips downstream validation; `merge_sha_mismatch` and a review-thread
-pagination overflow beyond the first 100 threads (`review_thread_pagination_unsupported`)
-are immediately fail-closed and are never retried as a timing condition.
+merge SHA is on `main`, and require the PR-head `quality`/`gitleaks` checks plus
+review/review-thread API state to be terminal and readable. `pr-issue-accounting`
+(`ops-pr-issue-accounting.yml`) is deliberately excluded from this required-check
+surface while that workflow stays `workflow_dispatch`-only/paused: it never
+produces a check-run on a `pull_request`/`push` event, so requiring its presence
+made settlement permanently unreachable rather than merely delayed. Re-add it
+once that workflow gets an automatic trigger. Unsettled state is retried every
+15 seconds for at most 60 additional seconds. A timeout emits one
+`post_merge_stabilization_timeout` result and skips downstream validation;
+`merge_sha_mismatch` and a review-thread pagination overflow beyond the first
+100 threads (`review_thread_pagination_unsupported`) are immediately fail-closed
+and are never retried as a timing condition.
 
 ## Removed legacy workflows
 
