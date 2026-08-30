@@ -223,6 +223,17 @@ describe('consolidated automatic closeout ownership', () => {
 		expect(closeoutScript).toContain('runSync({');
 		expect(closeoutScript).not.toContain("execFileSync('node', ['scripts/orchestrator/sync-pr-state.mjs']");
 	});
+
+	it('stabilizes merged GitHub state before invoking the closeout runner', () => {
+		const workflow = fs.readFileSync('.github/workflows/post-merge-closeout.yml', 'utf8');
+
+		const stabilizationIndex = workflow.indexOf('node scripts/ci/post_merge_stabilization.mjs');
+		const closeoutIndex = workflow.indexOf('node scripts/ci/run_post_merge_closeout.mjs');
+		expect(stabilizationIndex).toBeGreaterThan(-1);
+		expect(closeoutIndex).toBeGreaterThan(stabilizationIndex);
+		expect(workflow).toContain("if: steps.stabilization.outputs.status == 'settled'");
+		expect(workflow).toContain("steps.stabilization.outputs.status == 'failed'");
+	});
 });
 
 describe('post-merge closeout sync propagation', () => {
