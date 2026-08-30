@@ -1,10 +1,23 @@
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it, vi } from 'vitest';
 
 import {
 	evaluatePostMergeSnapshot,
 	loadGitHubPostMergeSnapshot,
+	REQUIRED_CHECK_NAMES,
 	stabilizePostMergeState,
 } from '../scripts/ci/post_merge_stabilization.mjs';
+
+const rootDir = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
+
+function workflowHasAutomaticTrigger(workflowRelativePath) {
+	const contents = fs.readFileSync(path.resolve(rootDir, workflowRelativePath), 'utf8');
+	const onBlockMatch = contents.match(/^on:\n([\s\S]*?)(?=\njobs:)/m);
+	const onBlock = onBlockMatch ? onBlockMatch[1] : contents;
+	return /^\s*(pull_request|pull_request_target|push):/m.test(onBlock);
+}
 
 function settledSnapshot(overrides = {}) {
 	return {
@@ -217,7 +230,6 @@ describe('GitHub stabilization snapshot', () => {
 						check_runs: [
 							{ name: 'quality', status: 'completed', conclusion: 'success' },
 							{ name: 'gitleaks', status: 'completed', conclusion: 'success' },
-							{ name: 'pr-issue-accounting', status: 'completed', conclusion: 'success' },
 						],
 					}),
 					{ status: 200 },
@@ -282,7 +294,6 @@ describe('GitHub stabilization snapshot', () => {
 						check_runs: [
 							{ name: 'quality', status: 'completed', conclusion: 'success' },
 							{ name: 'gitleaks', status: 'completed', conclusion: 'success' },
-							{ name: 'pr-issue-accounting', status: 'completed', conclusion: 'success' },
 						],
 					}),
 					{ status: 200 },
@@ -309,6 +320,22 @@ describe('GitHub stabilization snapshot', () => {
 			});
 		} finally {
 			vi.unstubAllGlobals();
+		}
+	});
+});
+
+describe('required check surface only names checks that can actually produce a check-run', () => {
+	it('excludes pr-issue-accounting while ops-pr-issue-accounting.yml stays workflow_dispatch-only', () => {
+		// A required-check name that never appears on a pull_request/push event makes
+		// requiredChecksLoaded permanently false, turning every stabilization run into a
+		// guaranteed post_merge_stabilization_timeout regardless of the retry window.
+		const hasAutomaticTrigger = workflowHasAutomaticTrigger('.github/workflows/ops-pr-issue-accounting.yml');
+
+		if (hasAutomaticTrigger) {
+			// The workflow now runs automatically, so it's safe (and expected) to require it again.
+			expect(REQUIRED_CHECK_NAMES).toContain('pr-issue-accounting');
+		} else {
+			expect(REQUIRED_CHECK_NAMES).not.toContain('pr-issue-accounting');
 		}
 	});
 });
