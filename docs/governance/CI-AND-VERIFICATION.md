@@ -161,7 +161,7 @@ Bounded CI-repair Issues that require live (not unit-test-only) evidence record 
 
 | Issue | Subject | Live evidence recorded on |
 | --- | --- | --- |
-| #3807 | Model C pre-merge check attachment and post-merge changed-file evidence, exercised end-to-end by a real `Delivery model: C` PR | #3759 |
+| #3807 | Model C pre-merge check attachment and post-merge changed-file evidence, exercised end-to-end by a real `Delivery model: C` PR | #3807 (the CI-repair Issue itself; #3759, the qualification blocker #3807 was opened to unblock, already closed PASS/complete via separate #3816/#3817 evidence, ahead of and independent of this repair's own remaining evidence) |
 
 ## Local validation
 
