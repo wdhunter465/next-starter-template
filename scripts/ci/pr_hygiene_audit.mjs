@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import fs from 'node:fs';
+import { verificationEvidenceFailures } from './post_merge_implementation_evidence.mjs';
 
 export const REQUIRED_TEMPLATE_SECTIONS = [
   'PR Summary',
@@ -209,6 +210,9 @@ export const HARD_HYGIENE_CODES = new Set([
   'allowlist_violation',
   'unchecked_acceptance_criterion',
   'forbidden_placeholder_token',
+  'missing_verification_commands',
+  'verification_not_pass',
+  'verification_placeholder',
 ]);
 
 const FORBIDDEN_PLACEHOLDER_PATTERN = /\b(TODO|TBD|placeholder)\b/i;
@@ -266,6 +270,8 @@ export function hardHygieneFailures({ body = '', changedFiles = [] } = {}) {
       message: 'PR body contains a forbidden placeholder token.',
     });
   }
+
+  failures.push(...verificationEvidenceFailures(body));
 
   return failures;
 }
