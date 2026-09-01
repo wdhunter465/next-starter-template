@@ -48,6 +48,8 @@ Every Pipeline parent has exactly one detailed stage:
 | 9 | Launch Packet Ready | `pmo:stage:launch-packet-ready` |
 | 10 | Graduation Candidate | `pmo:stage:graduation-candidate` |
 
+**Implementation status:** these labels are the canonical target contract, but they are not assumed to exist or be machine-enforced until the #3823 dashboard/label/CI migration is merged and verified. Until then, agents must not create or bulk-apply these labels merely because they appear in this reference. Existing legacy stage/priority labels remain compatibility data pending deterministic reconciliation.
+
 The dashboard summarizes those stages into six maturity bands and displays highest maturity first:
 
 | Dashboard order | Maturity band | Detailed stages |
@@ -103,6 +105,8 @@ Program 2:P1 -> Project 1:P1 -> Child 2:P2 -> Task:P4
 ```
 
 Lifecycle stage expresses maturity/readiness. Priority expresses execution order within the applicable parent scope.
+
+**Implementation status:** current tooling that still consumes `pmo:priority:<n>` or `pmo:pipeline-priority:<n>` must be treated as legacy compatibility behavior until #3823 migrates and verifies scoped hierarchical priority. Those labels do not override this policy, but this policy alone does not make the existing automation scope-aware.
 
 Dependencies may record true prerequisite, collision, or protected relationships, but they do not replace scoped priority ordering and must not flatten the hierarchy into one repository-global queue.
 
