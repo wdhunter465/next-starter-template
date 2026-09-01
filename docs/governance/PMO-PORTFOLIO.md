@@ -61,6 +61,8 @@ Pipeline preparation uses these 10 stages in order:
 9. **Launch Packet Ready**
 10. **Graduation Candidate**
 
+> **Migration status:** This 10-stage model is the controlling PMO policy, but the repository dashboard, label registry, CI, and operator procedures are not assumed to support the new stage/priority representation until the implementation work tracked by #3823 is merged and verified. Until that migration is complete, operators and agents must not invent or bulk-apply new `pmo:stage:*` or scoped-priority labels solely from this policy. Existing legacy labels remain implementation artifacts to be reconciled, not governing lifecycle definitions.
+
 The dashboard summarizes them into six maturity bands, displayed highest maturity first:
 
 6. Graduation Candidate
@@ -225,6 +227,8 @@ Likewise, priorities restart beneath Projects and child work units. A complete e
 
 Within a Project's current PMO stage, priority also defines the order of the work required to complete that stage.
 
+Existing `pmo:priority:<n>` and `pmo:pipeline-priority:<n>` automation must not be interpreted as proof that scoped hierarchy is already machine-supported. During #3823 migration, those legacy labels remain compatibility data until the dashboard/CI representation is updated and verified.
+
 ## Programs and dependencies
 
 Programs group related Projects. Priority presents the execution order within the Program/Project/task hierarchy.
@@ -305,14 +309,14 @@ Valid counted child work requires:
 - `pmo`;
 - `pmo:task`;
 - valid parent reference;
-- exactly one lifecycle state: open/current or closed/completed according to the repository contract.
+- exactly one task lifecycle label: `pmo:active` while open/current or `pmo:closed` when completed.
 
 Child priority is local to the Project/parent scope. It must not be interpreted as team-global or repository-global priority.
 
 Parent rollup:
 
 - Tasks = valid linked `pmo:task` children;
-- Completed = valid linked completed children;
+- Completed = valid linked children with `pmo:closed`;
 - percent complete = Completed / Tasks when Tasks > 0.
 
 Malformed records are data-quality exceptions, not a fourth lifecycle.
