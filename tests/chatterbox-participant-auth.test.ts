@@ -91,6 +91,17 @@ describe('requireChatterboxCaller', () => {
     if (result.ok) expect(result.caller.kind).toBe('relay');
   });
 
+  it('authenticates the bridge relay token even when the stored env value has trailing whitespace (#3845)', async () => {
+    const db = makeFakeDb([]);
+    const result = await requireChatterboxCaller(
+      request('bridge-secret'),
+      { CHATTERBOX_BRIDGE_PROD_TOKEN: 'bridge-secret\n' },
+      db,
+    );
+    expect(result.ok).toBe(true);
+    if (result.ok) expect(result.caller.kind).toBe('relay');
+  });
+
   it('authenticates a per-participant credential as exactly that participant', async () => {
     const hash = await hashCredential('alice-secret-token-0001');
     const db = makeFakeDb([
