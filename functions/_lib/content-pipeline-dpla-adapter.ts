@@ -37,7 +37,10 @@ export class DplaApiKeyMissingError extends Error {
 }
 
 export function requireDplaApiKey(env: Record<string, string | undefined> = process.env): string {
-  const apiKey = env[DPLA_API_KEY_ENV_VAR];
+  // Trim before checking -- a whitespace-only value (a common copy/paste or
+  // env-file mistake) is not a usable key and must fail fast here, not as a
+  // confusing downstream DPLA API rejection.
+  const apiKey = (env[DPLA_API_KEY_ENV_VAR] ?? "").trim();
   if (!apiKey) {
     throw new DplaApiKeyMissingError();
   }

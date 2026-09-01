@@ -19,6 +19,11 @@ describe('requireDplaApiKey (#3826)', () => {
   it('throws when the key is an empty string', () => {
     expect(() => requireDplaApiKey({ DPLA_API_KEY: '' })).toThrow(DplaApiKeyMissingError);
   });
+
+  it('throws when the key is whitespace-only, and trims a valid key', () => {
+    expect(() => requireDplaApiKey({ DPLA_API_KEY: '   ' })).toThrow(DplaApiKeyMissingError);
+    expect(requireDplaApiKey({ DPLA_API_KEY: '  test-key-123  ' })).toBe('test-key-123');
+  });
 });
 
 describe('buildDplaSearchUrl (#3826)', () => {

@@ -58,12 +58,18 @@ const SOURCE_DOMAINS = {
 };
 
 const DEFAULT_QUERY = 'Lou Gehrig';
-// DPLA is deliberately excluded from the default run: it's #3551's Tier 2
-// ("secondary discovery, uncertain density") source and requires a
-// registered DPLA_API_KEY, unlike the three keyless Tier 1/aggregator
-// sources below. Request it explicitly via --sources dpla or
-// --sources openverse,loc,wikimedia,dpla.
-const DEFAULT_SOURCES = ['openverse', 'loc', 'wikimedia'];
+// DPLA is #3551's Tier 2 ("secondary discovery, uncertain density") source
+// and, unlike the three keyless Tier 1/aggregator sources below, requires a
+// registered DPLA_API_KEY. It's included in the default run only when that
+// key is actually configured, so the script stays runnable without secrets
+// but doesn't require operators to remember --sources dpla once a key
+// exists. Force it off explicitly with --sources openverse,loc,wikimedia.
+const DEFAULT_SOURCES = [
+  'openverse',
+  'loc',
+  'wikimedia',
+  ...((process.env.DPLA_API_KEY ?? '').trim() ? ['dpla'] : []),
+];
 const DEFAULT_LIMIT = 20;
 const DEFAULT_OUT = 'data/research/lou-gehrig-content-candidates-external-discovery.json';
 const SEED_FILE = 'data/research/lou-gehrig-content-candidates.json';
@@ -73,7 +79,7 @@ function printUsage() {
   console.log(
     'Usage: node --experimental-strip-types scripts/content-pipeline/collect-gehrig-external-sources.mjs [--query "Lou Gehrig"] [--sources openverse,loc,wikimedia,dpla] [--limit 20] [--out <file>]',
   );
-  console.log('  --sources dpla requires the DPLA_API_KEY environment variable (not included by default).');
+  console.log('  DPLA requires the DPLA_API_KEY environment variable; it is included by default only when that key is set.');
 }
 
 function readFlagValue(argv, index, flagName) {
