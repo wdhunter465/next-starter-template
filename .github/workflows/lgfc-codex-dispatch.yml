@@ -77,11 +77,12 @@ jobs:
           ISSUE_EVENT: ${{ github.event.issue.number }}
           ISSUE_INPUT: ${{ inputs.issue_number }}
           PR_EVENT: ${{ github.event.pull_request.number }}
+          WORKFLOW_PR_EVENT: ${{ github.event.workflow_run.pull_requests[0].number }}
           RUN_ID: ${{ github.run_id }}
           DRY_RUN_INPUT: ${{ inputs.dry_run }}
         run: |
           set -euo pipefail
-          ISSUE="${ISSUE_EVENT:-${PR_EVENT:-${ISSUE_INPUT:-}}}"
+          ISSUE="${ISSUE_EVENT:-${PR_EVENT:-${WORKFLOW_PR_EVENT:-${ISSUE_INPUT:-}}}}"
           case "$ISSUE" in ''|*[!0-9]*) echo 'invalid issue identifier'; exit 1;; esac
           echo "issue=$ISSUE" >> "$GITHUB_OUTPUT"
           echo "delivery_id=wake-${RUN_ID}-${ISSUE}" >> "$GITHUB_OUTPUT"
