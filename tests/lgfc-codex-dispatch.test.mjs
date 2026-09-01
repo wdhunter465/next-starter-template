@@ -3,6 +3,7 @@ import {
 	buildCodexPrompt,
 	classifyDispatchEvent,
 	createDeliveryState,
+	isStaleDelivery,
 	validateDispatchIdentifiers,
 } from '../scripts/lgfc-codex-dispatch/dispatch.mjs';
 
@@ -63,5 +64,21 @@ describe('Codex dispatch security contract', () => {
 				}).deliver,
 			).toBe(true);
 		}
+	});
+
+	it('accepts pull-request identifiers for merged Codex-owned PR notifications', () => {
+		expect(() =>
+			validateDispatchIdentifiers({
+				repository: 'wdhunter465/next-starter-template',
+				issue: 3844,
+				event: 'pull_request',
+				deliveryId: 'wake-2',
+				runId: 2,
+			}),
+		).not.toThrow();
+	});
+
+	it('marks queued deliveries stale after the retry observation window', () => {
+		expect(isStaleDelivery({ queuedAt: new Date(Date.now() - 16 * 60 * 1000).toISOString() })).toBe(true);
 	});
 });
