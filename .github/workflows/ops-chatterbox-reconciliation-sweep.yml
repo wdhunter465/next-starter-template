@@ -34,13 +34,22 @@ on:
   # real room_key in the meantime.
   # schedule:
   #   - cron: '*/30 * * * *'
-  push:
-    branches:
-      - main
-    paths:
-      - '.github/workflows/ops-chatterbox-reconciliation-sweep.yml'
-      - 'functions/api/chatterbox/reconcile.ts'
-      - 'scripts/ci/chatterbox_reconcile_github.mjs'
+  #
+  # The push trigger below hits the exact same broken reconcile call and is
+  # disabled for the same reason: merging PR #4049 (which only killed the
+  # schedule above) still fired this push trigger against its own changed
+  # workflow file and failed with the identical HTTP 404 "room not found"
+  # (run #187, 2026-09-01T18:15Z) -- so any future push to main touching
+  # these paths will alert too, not just the 30-minute schedule. Disabled
+  # until the room-bootstrap/auth work in #3845 is resolved; re-enable both
+  # triggers together at that point. workflow_dispatch remains available.
+  # push:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - '.github/workflows/ops-chatterbox-reconciliation-sweep.yml'
+  #     - 'functions/api/chatterbox/reconcile.ts'
+  #     - 'scripts/ci/chatterbox_reconcile_github.mjs'
   workflow_dispatch:
     inputs:
       target_branch:
