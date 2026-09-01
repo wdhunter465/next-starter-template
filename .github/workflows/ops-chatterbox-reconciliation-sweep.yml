@@ -20,14 +20,20 @@ name: OPS — Chatterbox Reconciliation Sweep (#3794)
 # branch, which is what this file fixes.
 
 on:
-  # #3845: target branch reconciled to `main` (where the design has
-  # actually lived since before #3794 closed) and the schedule re-enabled.
-  # #3840 disabled this 2026-09-01 after 30+ consecutive failures caused by
-  # DEFAULT_TARGET_BRANCH pointing at chatterbox-3794-self-hosted-room-actor,
-  # a branch that stopped getting pushes when #3794 closed (2026-08-28) and
-  # so lost its Cloudflare Pages preview.
-  schedule:
-    - cron: '*/30 * * * *'
+  # #3845 fixed the target-branch problem #3840 disabled the schedule for
+  # (DEFAULT_TARGET_BRANCH pointing at a dead branch) and re-enabled the
+  # schedule on 2026-09-01. The URL now resolves correctly, but every
+  # scheduled run since has failed at the reconcile call itself:
+  # functions/api/chatterbox/reconcile.ts returns HTTP 404 "room not found"
+  # for the sweep's default room_key (lgfc-website) against the resolved
+  # Development Preview URL, every 30 minutes. Cause not yet root-caused
+  # here -- see #3845's open thread on the related room-bootstrap/auth
+  # failures. Disabling the schedule again (same as #3840) until that's
+  # resolved, via ops-chatterbox-room-bootstrap.yml or otherwise.
+  # workflow_dispatch is untouched for a manual run against an explicit,
+  # real room_key in the meantime.
+  # schedule:
+  #   - cron: '*/30 * * * *'
   push:
     branches:
       - main
