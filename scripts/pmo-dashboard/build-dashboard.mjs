@@ -30,16 +30,34 @@ const LIFECYCLE_FROM_LABEL = {
   'pmo:closed': 'closed'
 };
 const STAGE_ORDER = [
+  'pmo:stage:idea',
+  'pmo:stage:design-needed',
+  'pmo:stage:design-ready',
+  'pmo:stage:sandbox-testing',
+  'pmo:stage:sandbox-completed',
+  'pmo:stage:development-testing',
+  'pmo:stage:development-completed',
+  'pmo:stage:launch-packet-needed',
+  'pmo:stage:launch-packet-ready',
+  'pmo:stage:graduation-candidate',
   'pmo:stage:initial-idea',
   'pmo:stage:drafted-design',
-  'pmo:stage:pending-launch-packet',
-  'pmo:stage:graduation-candidate'
+  'pmo:stage:pending-launch-packet'
 ];
 const STAGE_DISPLAY = {
+  'pmo:stage:idea': 'Idea',
+  'pmo:stage:design-needed': 'Design Needed',
+  'pmo:stage:design-ready': 'Design Ready',
+  'pmo:stage:sandbox-testing': 'Sandbox Testing',
+  'pmo:stage:sandbox-completed': 'Sandbox Completed',
+  'pmo:stage:development-testing': 'Development Testing',
+  'pmo:stage:development-completed': 'Development Completed',
+  'pmo:stage:launch-packet-needed': 'Launch Packet Needed',
+  'pmo:stage:launch-packet-ready': 'Launch Packet Ready',
+  'pmo:stage:graduation-candidate': 'Graduation Candidate',
   'pmo:stage:initial-idea': 'Initial Idea',
   'pmo:stage:drafted-design': 'Drafted Design',
-  'pmo:stage:pending-launch-packet': 'Pending Launch Packet',
-  'pmo:stage:graduation-candidate': 'Graduation Candidate'
+  'pmo:stage:pending-launch-packet': 'Pending Launch Packet'
 };
 const PARENT_REF_PATTERN = /^\s*(?:[-*]\s*)?(?:Parent(?:\s+(?:program|project|issue))?)\s*:\s*#?(\d+)\b/im;
 

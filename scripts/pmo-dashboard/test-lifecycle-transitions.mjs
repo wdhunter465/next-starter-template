@@ -120,6 +120,32 @@ async function main() {
     assert(hit.row.priorityDisplay === '12', 'T3: unbounded Pipeline priority display');
   });
 
+  for (const [index, stage] of [
+    'idea',
+    'design-needed',
+    'design-ready',
+    'sandbox-testing',
+    'sandbox-completed',
+    'development-testing',
+    'development-completed',
+    'launch-packet-needed',
+    'launch-packet-ready',
+    'graduation-candidate'
+  ].entries()) {
+    const number = 9200 + index;
+    await withBuild([
+      issue({
+        number,
+        title: `PROJECT: Approved ${stage} stage fixture`,
+        labels: ['pmo', 'pmo:pipeline', 'team:pmo', 'pmo:pipeline-priority:1', `pmo:stage:${stage}`]
+      })
+    ], (data) => {
+      const hit = findView(data, number);
+      assert(hit?.view === 'pmoPipeline', `Approved stage ${stage}: Pipeline placement`);
+      assert(hit.row.pipelineStageLabel === `pmo:stage:${stage}`, `Approved stage ${stage}: stage label`);
+    });
+  }
+
   await withBuild([
     issue({
       number: 9104,
