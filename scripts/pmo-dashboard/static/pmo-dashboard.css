@@ -7,6 +7,7 @@
   --card: #ffffff;
   --link: #1d4ed8;
   --pill-bg: #e2e8f0;
+  --page-max: 1180px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -29,10 +30,16 @@ body {
   line-height: 1.45;
 }
 
-main {
-  max-width: 1400px;
+header {
+  padding: 2rem;
+  max-width: var(--page-max);
   margin: 0 auto;
-  padding: 1.5rem;
+}
+
+main {
+  max-width: var(--page-max);
+  margin: 0 auto;
+  padding: 0 2rem 3rem;
 }
 
 h1 {
@@ -41,7 +48,7 @@ h1 {
 
 .eyebrow {
   text-transform: uppercase;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.08em;
   font-size: 0.75rem;
   color: var(--link);
   font-weight: 700;
@@ -89,6 +96,7 @@ table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.9rem;
+  min-width: 980px;
 }
 
 th,
@@ -110,12 +118,13 @@ tr:last-child td {
 }
 
 .child-row td:first-child {
-  padding-left: 1.5rem;
+  padding-left: 2rem;
 }
 
 .row-prefix {
   color: var(--muted);
   margin-right: 0.25rem;
+  font-weight: 600;
 }
 
 a {
@@ -132,7 +141,16 @@ a:hover {
   margin-top: 0.25rem;
   padding: 0.1rem 0.45rem;
   border-radius: 999px;
+  border: 1px solid var(--border);
   background: var(--pill-bg);
   font-size: 0.75rem;
+  color: var(--muted);
+}
+
+.empty {
+  background: var(--card);
+  border: 1px dashed var(--border);
+  border-radius: 12px;
+  padding: 1rem;
   color: var(--muted);
 }
