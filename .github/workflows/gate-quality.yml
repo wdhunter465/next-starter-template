@@ -83,6 +83,10 @@ jobs:
         if: steps.quality_plan.outputs.run_lint == 'true'
         run: npm run lint
 
+      - name: Format check
+        if: steps.quality_plan.outputs.run_lint == 'true'
+        run: npm run format:check
+
       - name: Unit tests
         if: steps.quality_plan.outputs.run_test == 'true'
         run: npm test
