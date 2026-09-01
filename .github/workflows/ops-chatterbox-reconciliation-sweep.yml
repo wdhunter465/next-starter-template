@@ -23,14 +23,15 @@ on:
   # #3845 fixed the target-branch problem #3840 disabled the schedule for
   # (DEFAULT_TARGET_BRANCH pointing at a dead branch) and re-enabled the
   # schedule on 2026-09-01. The URL now resolves correctly, but every
-  # scheduled run since has failed at the reconcile call itself: the sweep's
-  # hardcoded default room_key (lgfc-website) has never been bootstrapped
-  # on this Development deployment, so functions/api/chatterbox/reconcile.ts
-  # returns HTTP 404 "room not found" every 30 minutes. Disabling the
-  # schedule again (same as #3840) until the room is actually provisioned
-  # via ops-chatterbox-room-bootstrap.yml or the default room_key is
-  # corrected. workflow_dispatch is untouched for a manual run against an
-  # explicit, real room_key in the meantime.
+  # scheduled run since has failed at the reconcile call itself:
+  # functions/api/chatterbox/reconcile.ts returns HTTP 404 "room not found"
+  # for the sweep's default room_key (lgfc-website) against the resolved
+  # Development Preview URL, every 30 minutes. Cause not yet root-caused
+  # here -- see #3845's open thread on the related room-bootstrap/auth
+  # failures. Disabling the schedule again (same as #3840) until that's
+  # resolved, via ops-chatterbox-room-bootstrap.yml or otherwise.
+  # workflow_dispatch is untouched for a manual run against an explicit,
+  # real room_key in the meantime.
   # schedule:
   #   - cron: '*/30 * * * *'
   push:
