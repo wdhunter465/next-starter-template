@@ -5,7 +5,8 @@ import { spawnSync } from 'node:child_process';
 
 export const REPOSITORY = 'wdhunter465/next-starter-template';
 const TRUSTED_ACTOR = 'wdhunter645';
-const TRUSTED_EVENTS = new Set(['issues', 'pull_request_review', 'workflow_run', 'workflow_dispatch']);
+const TRUSTED_EVENTS = new Set(['issues', 'pull_request_review', 'pull_request', 'workflow_run', 'workflow_dispatch']);
+export const STALE_AFTER_MS = 15 * 60 * 1000;
 
 export function classifyDispatchEvent({ repository, event, action = '', labelNames = [], actor = '' } = {}) {
 	if (repository !== REPOSITORY) return { deliver: false, reason: 'untrusted-repository-or-actor' };
@@ -36,6 +37,11 @@ export function buildCodexPrompt({ repository, issue }) {
 
 export function createDeliveryState({ deliveryId, issue, runId }) {
 	return { deliveryId, issue: Number(issue), runId: String(runId), status: 'queued', attempt: 0, queuedAt: new Date().toISOString() };
+}
+
+export function isStaleDelivery(state, now = Date.now()) {
+	const queuedAt = Date.parse(state?.queuedAt || '');
+	return Boolean(queuedAt && now - queuedAt >= STALE_AFTER_MS);
 }
 
 function parseArgs(argv) {
@@ -88,6 +94,7 @@ export function runDispatch(rawArgs, { env = process.env, runner = spawnSync } =
 			error: String(result.stderr || 'codex exec failed').slice(0, 500),
 			nextRetry: new Date(Date.now() + 60_000).toISOString(),
 		};
+		if (isStaleDelivery(state)) state = { ...state, status: 'stale', staleAt: new Date().toISOString() };
 		atomicWrite(queueFile, state);
 		return state;
 	}
