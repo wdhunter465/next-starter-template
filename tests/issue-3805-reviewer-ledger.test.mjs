@@ -12,7 +12,7 @@ describe('issue #3805 reviewer-ledger convergence', () => {
           commit_id: 'new-sha',
           state: 'COMMENTED',
           body: '## Approval recommended\nComments generated: 0',
-          submitted_at: '2026-06-01T00:00:00Z',
+          submitted_at: '2026-06-02T00:00:00Z',
         },
         {
           id: 2004,
@@ -20,10 +20,11 @@ describe('issue #3805 reviewer-ledger convergence', () => {
           commit_id: 'old-sha',
           state: 'COMMENTED',
           body: 'Please update this helper.',
-          submitted_at: '2026-06-02T00:00:00Z',
+          submitted_at: '2026-06-01T00:00:00Z',
         },
       ],
       headSha: 'new-sha',
+      mergedAt: '2026-06-03T00:00:00Z',
       auditPhase: 'post_merge',
     });
 
