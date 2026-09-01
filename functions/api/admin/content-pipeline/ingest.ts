@@ -27,7 +27,7 @@ import {
   findNearDuplicateMediaAssets,
   flagCandidateAsNearDuplicate,
 } from '../../../_lib/content-pipeline-duplicate-detection';
-import { commitIngestedMedia } from '../../../_lib/media-ingest-repository';
+import { commitIngestedMedia, MediaContentItemLinkError } from '../../../_lib/media-ingest-repository';
 import { computePerceptualHash } from '../../../_lib/perceptual-hash';
 import { getCurrentConclusionForCandidate, requireRightsEvidenceTables } from '../../../_lib/rights-evidence-repository';
 import { requireAdmin } from '../../../_lib/auth';
@@ -225,6 +225,23 @@ export const onRequestPost = async (context: any): Promise<Response> => {
       200,
     );
   } catch (err: any) {
+    if (err instanceof MediaContentItemLinkError) {
+      console.error('admin content-pipeline ingest error (recoverable link failure):', err);
+      return jsonResponse(
+        {
+          ok: false,
+          error: 'Media was stored but could not be linked to the candidate.',
+          recoverable: true,
+          retry_hint:
+            'Re-POST this exact same request. media_uid already exists in B2 and media_assets, so the retry ' +
+            'will not re-upload -- it will only re-attempt the content_items link.',
+          media_uid: err.mediaUid,
+          b2_key: err.b2Key,
+          candidate_id: err.candidateExternalId,
+        },
+        500,
+      );
+    }
     console.error('admin content-pipeline ingest error:', err);
     return jsonResponse({ ok: false, error: 'Ingestion failed.', detail: String(err?.message || err) }, 500);
   }

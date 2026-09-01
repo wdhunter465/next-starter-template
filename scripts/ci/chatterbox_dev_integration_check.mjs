@@ -20,7 +20,7 @@
 // Production — the base URL is always this branch's own Development
 // deployment.
 //
-// Uses the bridge/ops relay credential (CHATTERBOX_BRIDGE_TOKEN) for every
+// Uses the bridge/ops relay credential (CHATTERBOX_BRIDGE_PROD_TOKEN) for every
 // call — this script asserts a different participant_key per call the same
 // way the GitHub-comment bridge does, which is exactly the relay trust
 // model's intended use, not a workaround.
@@ -420,7 +420,7 @@ function readEnv(name) {
 
 export async function main() {
   const baseUrl = readEnv('CHATTERBOX_BASE_URL');
-  const bridgeToken = readEnv('CHATTERBOX_BRIDGE_TOKEN');
+  const bridgeToken = readEnv('CHATTERBOX_BRIDGE_PROD_TOKEN');
   if (!baseUrl || !bridgeToken) return null;
 
   try {

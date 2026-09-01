@@ -2,132 +2,236 @@
 Doc Type: Reference
 Audience: Human + AI
 Authority Level: Controlled
-Owns: Canonical PMO lifecycle states, Engineering qualification mapping, ordered priority representation, dashboard and routing invariants
+Owns: Canonical PMO lifecycle states, hierarchical priority representation, stage deliverables, handoff continuity, and dashboard/routing invariants
 Does Not Own: Product priority decisions, weekly meeting procedure, live GitHub label creation, or bulk Issue mutation
-Canonical Reference: /docs/governance/WORK-QUEUES-AND-COLLABORATION.md
-Related Issues: #3597, #2699, #2724, #3629, #3642, #3665
-Last Reviewed: 2026-08-23
+Canonical Reference: /docs/governance/PMO-PORTFOLIO.md
+Related Issues: #3597, #3823
+Last Reviewed: 2026-09-01
 ---
 
 # PMO Lifecycle and Priority Contract
 
 ## Purpose
 
-Record the machine-readable PMO lifecycle and ordered-priority representation used by governance, the PMO dashboard, and queue routing.
+Record the machine-readable PMO lifecycle, scoped priority hierarchy, durable handoff requirements, and dashboard representation used by PMO, Governance, agents, and reporting.
 
-Policy owners:
+## Portfolio lifecycle
 
-- queue and priority semantics: `docs/governance/WORK-QUEUES-AND-COLLABORATION.md`
-- portfolio and graduation decisions: `docs/governance/PMO-PORTFOLIO.md`
+The PMO dashboard has exactly three top-level portfolio lifecycle sections:
+
+1. **Active**
+2. **Pipeline**
+3. **Completed**
+
+`Incomplete` is not a PMO lifecycle state. Malformed or contradictory records are administrative/data-quality exceptions and must be reconciled separately.
 
 ## Engineering qualification
 
-Qualification Issues use `team:engineering` and do not carry `pmo:pipeline`.
+Engineering is the qualification gate immediately before Pipeline. Minimum qualification establishes the problem/current-state deficiency, why remediation is required, intended outcome, remediation objectives/design direction, material constraints/dependencies/risks/protected decisions, and useful candidate direction where available.
 
-Minimum qualification fields:
+Engineering does not complete the final detailed design, implementation plan, or launch packet.
 
-| Field | Meaning |
+## Pipeline detailed lifecycle
+
+Every Pipeline parent has exactly one detailed stage:
+
+| Order | Stage | Canonical label |
+| ---: | --- | --- |
+| 1 | Idea | `pmo:stage:idea` |
+| 2 | Design Needed | `pmo:stage:design-needed` |
+| 3 | Design Ready | `pmo:stage:design-ready` |
+| 4 | Sandbox Testing | `pmo:stage:sandbox-testing` |
+| 5 | Sandbox Completed | `pmo:stage:sandbox-completed` |
+| 6 | Development Testing | `pmo:stage:development-testing` |
+| 7 | Development Completed | `pmo:stage:development-completed` |
+| 8 | Launch Packet Needed | `pmo:stage:launch-packet-needed` |
+| 9 | Launch Packet Ready | `pmo:stage:launch-packet-ready` |
+| 10 | Graduation Candidate | `pmo:stage:graduation-candidate` |
+
+The dashboard summarizes those stages into six maturity bands and displays highest maturity first:
+
+| Dashboard order | Maturity band | Detailed stages |
+| ---: | --- | --- |
+| 6 | Graduation Candidate | Graduation Candidate |
+| 5 | Launch Packet | Launch Packet Needed; Launch Packet Ready |
+| 4 | Development | Development Testing; Development Completed |
+| 3 | Sandbox | Sandbox Testing; Sandbox Completed |
+| 2 | Design | Design Needed; Design Ready |
+| 1 | Idea | Idea |
+
+## Stage deliverables and exit criteria
+
+A project advances only when the current-stage deliverables are complete and durably recorded.
+
+| Stage | Required deliverable before advancement |
 | --- | --- |
-| Problem / current-state deficiency | What is wrong or missing |
-| Why remediation is required | Why the deficiency cannot remain |
-| Intended outcome | What success looks like |
-| Remediation objectives / design direction | What should be adopted |
-| Known constraints, dependencies, risks, protected decisions | Fail-closed boundaries already known |
-| Useful candidate direction | Optional commentary; not a complete design |
+| Idea | Problem/opportunity, intended outcome, initial solution direction, constraints, and Product intent are coherent. |
+| Design Needed | Idea accepted; design owner identified; discovery questions, dependencies, risks, and protected decisions recorded. |
+| Design Ready | Requirements, scope/non-goals, architecture/approach, acceptance criteria, dependencies, validation, and rollback are documented and reconciled. |
+| Sandbox Testing | Sandbox hypothesis/question, isolation boundary, exact experiment/test plan, evidence requirements, and success/failure criteria are recorded. Sandbox may be marked `NOT REQUIRED` with rationale. |
+| Sandbox Completed | Evidence recorded; concepts proven/rejected; findings reconciled; design is updated to 100% documented based on proven concepts. |
+| Development Testing | Development implementation package is defined; implementation/testing is underway or available; test matrix and evidence requirements are explicit. |
+| Development Completed | Development implementation is complete; as-built design is 100% documented; Development evidence is recorded; deviations are reconciled. |
+| Launch Packet Needed | Development basis accepted; remaining Production/promotion requirements, dependencies, rollback, monitoring, CI/CD, Operations handoff, and protected launch decisions are identified. |
+| Launch Packet Ready | Final design package is 100% complete, including as-built documentation, tests, rollback, deployment, monitoring/CI/CD, Operations handoff, child graph, and protected decisions. |
+| Graduation Candidate | Launch Packet independently checked; Go/No-Go recommendation recorded; implementation owner and first executable action identified; ready for PMO Graduation review. |
 
-Qualification does not include final detailed design, full implementation plan, or complete launch packet.
-
-Optional Engineering order labels remain `eng:priority:1` through `eng:priority:4` or `eng:priority:idea`. Those labels order qualification work only. They are not Pipeline or Active PMO positions.
-
-## Lifecycle states
-
-| Stage | Lifecycle label | Stage label | Team |
-| --- | --- | --- | --- |
-| Engineering qualification | none (`pmo:pipeline` absent) | none | `team:engineering` |
-| Initial Idea | `pmo:pipeline` | `pmo:stage:initial-idea` | `team:pmo` |
-| Drafted Design | `pmo:pipeline` | `pmo:stage:drafted-design` | `team:pmo` |
-| Pending Launch Packet | `pmo:pipeline` | `pmo:stage:pending-launch-packet` | `team:pmo` |
-| Graduation Candidate | `pmo:pipeline` | `pmo:stage:graduation-candidate` | `team:pmo` |
-| Active | `pmo:active` | none | `team:pmo` |
-| Closed | `pmo:closed` | none | historical team, not `team:operations` |
-
-Exactly one of `pmo:pipeline`, `pmo:active`, or `pmo:closed` appears on a PMO-tracked portfolio parent.
-
-## Stage entry, exit, authority, deliverables
-
-| Stage | Entry | Exit | Authority | Deliverables |
-| --- | --- | --- | --- | --- |
-| Engineering qualification | Proposed project or program needs a coherent problem | Minimum qualification fields present | PMO / Engineering | Problem statement and remediation objectives / design direction |
-| Initial Idea | Qualification complete; `team:engineering` removed | Design draft exists for feedback | PMO Pipeline | Accepted problem/objectives; assigned Pipeline priority |
-| Drafted Design | Design documented | Stakeholder feedback reconciled and design approved | PMO Pipeline with named reviewers | Design record plus reconciled feedback |
-| Pending Launch Packet | Design approved | Launch packet complete | PMO Pipeline | Linked children, implementation plan, sequence/dependencies, acceptance/validation, rollback/recovery, operational handoff, one intended implementation owner |
-| Graduation Candidate | Design and launch packet complete | Explicit Project Graduation Go | PMO meeting | Graduation package ready for review |
-| Active | Graduation Go; Active priority and one implementation owner recorded | Required implementation, acceptance, Production path where applicable, and closeout complete, or another explicit terminal disposition | Implementation / Operations under the launch packet; protected decisions unchanged | Active delivery through operational handoff |
-| Closed | Terminal disposition recorded | Not applicable | PMO plus required independent closeout | Durable evidence and required operational handoff |
-
-Pipeline work is not Active because design, Sandbox, or Development evidence exists.
-
-## Ordered priority
-
-| Queue | Label pattern | Meaning |
-| --- | --- | --- |
-| Active | `pmo:priority:<n>` where `<n>` is `[1-9][0-9]*` | Independent Active execution order |
-| Pipeline | `pmo:pipeline-priority:<n>` where `<n>` is `[1-9][0-9]*` | Independent Pipeline preparation order |
-
-Invariants:
-
-- Priority is work order, not severity and not a 1–4 capacity band.
-- `1` is the next/highest position in that lifecycle queue.
-- Pipeline and Active sequences are independent; the same integer is not a shared rank across queues.
-- Child tasks do not carry `pmo:priority:*`, `pmo:pipeline-priority:*`, `eng:priority:*`, or `team:*`.
-- `pmo:priority:none` is invalid.
-- Dashboard sort of Active and Pipeline views is numeric ascending on the lifecycle-specific priority display.
-
-## Dashboard mapping
-
-| View | Valid parent shape |
-| --- | --- |
-| Active | `pmo` + `pmo:active` + `team:pmo` + exactly one `pmo:priority:<n>` |
-| Pipeline | `pmo` + `pmo:pipeline` + `team:pmo` + exactly one `pmo:pipeline-priority:<n>` + exactly one canonical stage label |
-| Completed | `pmo` + `pmo:closed` |
-| Incomplete | any PMO-tracked parent that fails the contract |
-
-Engineering qualification Issues and standalone Operations/Governance Issues are not Pipeline or Active portfolio rows.
-
-## Routing mapping
-
-Default cross-queue precedence for automated/ambiguous selection (#3629;
-implemented in `scripts/orchestrator/queue-routing.mjs` `precedenceRank`):
-Operations(1) -> PMO Active(2) -> PMO Pipeline(3) -> Engineering qualification(4)
--> Governance stewardship(5). Operations and Governance interval/hold states are
-non-blocking and rank last (6) — they are excluded from `eligible` dispatch
-entirely.
-
-| Shape | Lane | Precedence | Authorizes Active implementation |
-| --- | --- | --- | --- |
-| numbered `ops:priority:*` | `operations` | 1 | no |
-| `pmo:active` child with valid Active parent | `pmo_active` | 2 | yes, when sequence and implementation authorization already exist |
-| `pmo:pipeline` + `team:pmo` + pipeline priority | `pmo_pipeline` | 3 | no |
-| `team:engineering` without `pmo:pipeline` | `engineering_qualification` | 4 | no |
-| `team:governance` + `gov:priority:*` | `governance` | 5 | no |
-| `ops:monitoring` / `ops:hold` | `operations` (interval) | 6, non-blocking | no |
-| `gov:review` / `gov:hold` | `governance` (interval) | 6, non-blocking | no |
-
-Project Graduation is the only Pipeline-to-Active transition. Graduation Candidate without Go remains preparation.
-
-## Legacy labels
-
-The following labels are non-canonical on Pipeline parents and fail closed until migrated:
+No `mostly done` stage transition is valid. The deterministic transition is:
 
 ```text
-team:engineering on pmo:pipeline
-eng:priority:* on pmo:pipeline
-pmo:stage:intake
-pmo:stage:discovery
-pmo:stage:definition
-pmo:stage:planning
-pmo:stage:prep
-pmo:stage:ready-for-launch
+current-stage deliverables complete
+  -> PMO records stage exit
+  -> stage label changes
+  -> next-stage missing deliverables become current work
 ```
 
-Migration mapping: `docs/ops/pmo/issue-3597-pmo-lifecycle-migration-plan.md`.
+## Priority invariant — hierarchical and scoped
+
+**Priority is execution order among sibling work items under the same immediate parent/container. Priority numbering restarts and may be reused under each Program, Project, child work unit, and applicable PMO stage. A priority number has no repository-wide ordering meaning.**
+
+Examples:
+
+- Program 1 may contain Project 1 at Priority 1.
+- Program 2 may independently contain Project 1 at Priority 1.
+- A Project may contain Child 1 at Priority 1 and Child 2 at Priority 2.
+- Each Child may independently contain Task priorities starting again at 1.
+
+A unique execution position is determined by the full hierarchy path, for example:
+
+```text
+Program 2:P1 -> Project 1:P1 -> Child 2:P2 -> Task:P4
+```
+
+Lifecycle stage expresses maturity/readiness. Priority expresses execution order within the applicable parent scope.
+
+Dependencies may record true prerequisite, collision, or protected relationships, but they do not replace scoped priority ordering and must not flatten the hierarchy into one repository-global queue.
+
+## Durable PMO Current State handoff contract
+
+Every Pipeline parent must contain or link to a durable PMO Current State record sufficient for a replacement agent to continue without chat history. It records:
+
+- Pipeline lifecycle stage;
+- full hierarchical priority path and priority within the immediate parent/current stage;
+- current preparation owner/agent;
+- objective;
+- completed deliverables;
+- authoritative design/evidence links;
+- outstanding current-stage deliverables;
+- dependencies;
+- protected decisions/HOLDs;
+- risks;
+- exact next action;
+- next-action owner;
+- stage exit criteria;
+- recommended next stage;
+- last reconciliation date.
+
+A replacement agent must be able to answer from the Issue/repository alone:
+
+1. What has been decided?
+2. What evidence exists?
+3. What remains unfinished?
+4. What is authorized next?
+5. What must be true to advance?
+
+## Active lifecycle after Graduation
+
+Graduation moves a Project from Pipeline to Active. A graduated Project remains Active through:
+
+1. Promotion Testing
+2. Promotion Approved / production-on-main
+3. Operations monitoring, CI/CD automation, and reporting setup
+4. Production Testing
+5. Production Accepted by Operations
+6. required PMO administrative closeout
+
+After Production Accepted and PMO closeout, the Project becomes Completed. Administrative residue does not normally move an Active Project back to Pipeline.
+
+## Parent and child accounting
+
+### Portfolio parent
+
+A PMO portfolio parent is a Program or Project record and is not `pmo:task`.
+
+Pipeline parent minimum shape:
+
+```text
+pmo
+pmo:pipeline
+team:pmo
+exactly one pmo:stage:*
+scoped priority represented in its parent/current-stage context
+```
+
+Active parent minimum shape:
+
+```text
+pmo
+pmo:active
+team:pmo
+scoped priority represented in its parent/program context
+```
+
+### Counted child
+
+A counted child has:
+
+```text
+pmo
+pmo:task
+valid parent reference
+exactly one lifecycle: pmo:active or pmo:closed
+```
+
+Child priority is local to its Project/parent and must not be interpreted as a repository-global or team-global rank.
+
+Parent rollup:
+
+- Tasks = valid `pmo:task` children.
+- Completed = valid children with `pmo:closed`.
+- Percent complete = Completed / Tasks when Tasks > 0.
+
+Malformed child records are data-quality exceptions; they are not a fourth portfolio lifecycle.
+
+## Project Graduation
+
+Project Graduation is the only normal Pipeline-to-Active transition. It requires:
+
+- complete Launch Packet;
+- truthful Graduation Candidate stage;
+- PMO review;
+- explicit Go;
+- Active hierarchical priority placement;
+- one start-to-finish implementation owner;
+- first executable task/action;
+- applicable authority and protected-stop evidence.
+
+Implementation Go authorizes Development execution against the approved package. It does not by itself authorize Production promotion.
+
+## Legacy migration
+
+The former four-stage Pipeline model is superseded:
+
+```text
+Initial Idea
+Drafted Design
+Pending Launch Packet
+Graduation Candidate
+```
+
+Existing open records using former stage labels must be reconciled from evidence into the new 10-stage model. Do not infer maturity merely to complete migration.
+
+Former global assumptions such as one repository-wide Pipeline priority or one repository-wide Active priority are also superseded. Priority is now interpreted through the item's immediate parent/container and full hierarchy path.
+
+## Dashboard invariants
+
+- Top-level lifecycle sections: Active, Pipeline, Completed only.
+- Pipeline display: six maturity bands, ordered 6 down to 1.
+- Detailed stage remains visible/available for each Pipeline parent.
+- Repeated priority numbers are valid when their parent scopes differ.
+- Dashboard ordering must preserve hierarchy rather than flattening repeated priorities into one global sequence.
+- Data-quality exceptions are surfaced separately from portfolio lifecycle.
+
+## Authority boundary
+
+Product Authority retains final business/product priority and protected decisions. PMO manages lifecycle readiness, durable project state, and authorized portfolio ordering. Governance resolves governing policy/assignment conflicts subject to Product Authority. Protected legal, privacy, security, credential, cost, destructive-data, Production, and separation-of-duty boundaries remain unchanged.

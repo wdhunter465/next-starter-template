@@ -1,0 +1,40 @@
+{
+	"schemaVersion": 1,
+	"repository": "wdhunter465/next-starter-template",
+	"scope": "repository",
+	"runner": {
+		"name": "lgfc-codex-chromebook",
+		"operatingSystem": "linux",
+		"distribution": "debian-12",
+		"architecture": "x64",
+		"serviceManager": "systemd",
+		"labels": ["self-hosted", "linux", "x64", "lgfc-codex"]
+	},
+	"security": {
+		"publicRepository": true,
+		"trustedEvents": ["issues:labeled", "pull_request_review:submitted", "pull_request:closed", "workflow_dispatch"],
+		"trustedRefs": ["refs/heads/main"],
+		"trustedActors": ["wdhunter645"],
+		"allowForkPullRequests": false,
+		"executeIssueOrCommentContent": false,
+		"allowProductionCredentials": false,
+		"allowPersistentGitCredentials": false,
+		"promptAuthority": "identifiers-only; Codex fetches live Issue authority after wake"
+	},
+	"dispatch": {
+		"enabled": true,
+		"workflow": ".github/workflows/lgfc-codex-dispatch.yml",
+		"wrapper": "scripts/lgfc-codex-dispatch/dispatch.mjs",
+		"requiredLabels": ["agent:codex", "handoff:ready"],
+		"mayClaimSerialLane": false,
+		"mayApproveOrMerge": false,
+		"prohibitYolo": true,
+		"prohibitForce": true
+	},
+	"operations": {
+		"workDirectory": "_work",
+		"preserveStateOnStop": true,
+		"requiredOutboundPort": 443,
+		"localQueuePath": "~/.lgfc-codex-dispatch"
+	}
+}
