@@ -144,13 +144,13 @@ jobs:
           BASE_URL: ${{ steps.resolve_url.outputs.base_url }}
           ROOM_KEY: ${{ steps.target.outputs.room_key }}
           CLERK_KEY: ${{ steps.target.outputs.clerk_key }}
-          CHATTERBOX_BRIDGE_TOKEN: ${{ secrets.CHATTERBOX_BRIDGE_TOKEN }}
+          CHATTERBOX_BRIDGE_PROD_TOKEN: ${{ secrets.CHATTERBOX_BRIDGE_PROD_TOKEN }}
         run: |
           set -euo pipefail
           payload=$(jq -n --arg room_key "$ROOM_KEY" --arg participant_key "$CLERK_KEY" '{room_key:$room_key, participant_key:$participant_key}')
           status=$(curl -sS -o "$RUNNER_TEMP/reconcile_resp.json" -w '%{http_code}' \
             -X POST "$BASE_URL/api/chatterbox/reconcile" \
-            -H "Authorization: Bearer $CHATTERBOX_BRIDGE_TOKEN" -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $CHATTERBOX_BRIDGE_PROD_TOKEN" -H "Content-Type: application/json" \
             -d "$payload")
           echo "Reconcile response (HTTP $status):"
           cat "$RUNNER_TEMP/reconcile_resp.json"
@@ -166,7 +166,7 @@ jobs:
         id: github_crosscheck
         env:
           CHATTERBOX_BASE_URL: ${{ steps.resolve_url.outputs.base_url }}
-          CHATTERBOX_ADMIN_TOKEN: ${{ secrets.CHATTERBOX_BRIDGE_TOKEN }}
+          CHATTERBOX_ADMIN_TOKEN: ${{ secrets.CHATTERBOX_BRIDGE_PROD_TOKEN }}
           GITHUB_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           CHATTERBOX_ROOM_KEY: ${{ steps.target.outputs.room_key }}

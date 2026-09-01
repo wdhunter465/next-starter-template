@@ -5,7 +5,7 @@
 //
 // GET requires any authenticated caller (a participant's own credential or
 // the relay). Room creation stays PMO/ops-operated: POST requires the
-// bridge/ops relay credential (CHATTERBOX_BRIDGE_TOKEN) specifically, not
+// bridge/ops relay credential (CHATTERBOX_BRIDGE_PROD_TOKEN) specifically, not
 // an individual participant's own credential (#3794 JULES-1 auth model).
 
 import { requireD1 } from '../../_lib/d1';

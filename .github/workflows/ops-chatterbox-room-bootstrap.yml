@@ -7,7 +7,7 @@ name: OPS — Chatterbox Room Bootstrap (#3794)
 # rooms. Ported forward from the #3415 prototype's
 # ops-chatterbox-room-bootstrap.yml, switched to the new Bearer/relay auth
 # model (#3794 JULES-1): room/participant creation now requires the
-# CHATTERBOX_BRIDGE_TOKEN relay credential via `Authorization: Bearer`, not
+# CHATTERBOX_BRIDGE_PROD_TOKEN relay credential via `Authorization: Bearer`, not
 # the prototype's shared `x-admin-token`/ADMIN_TOKEN.
 #
 # This does not make any agent "talk" by itself — registering a participant
@@ -210,7 +210,7 @@ jobs:
           ROOM_KEY: ${{ steps.target.outputs.room_key }}
           SOURCE_ISSUE_REF: ${{ steps.target.outputs.source_issue_ref }}
           TITLE: ${{ steps.target.outputs.title }}
-          CHATTERBOX_BRIDGE_TOKEN: ${{ secrets.CHATTERBOX_BRIDGE_TOKEN }}
+          CHATTERBOX_BRIDGE_PROD_TOKEN: ${{ secrets.CHATTERBOX_BRIDGE_PROD_TOKEN }}
         run: |
           set -euo pipefail
 
@@ -222,7 +222,7 @@ jobs:
 
           room_status=$(curl -sS -o "$RUNNER_TEMP/room_resp.json" -w '%{http_code}' \
             -X POST "$BASE_URL/api/chatterbox/room" \
-            -H "Authorization: Bearer $CHATTERBOX_BRIDGE_TOKEN" -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $CHATTERBOX_BRIDGE_PROD_TOKEN" -H "Content-Type: application/json" \
             -d "$room_payload")
           echo "Room response (HTTP $room_status):"
           cat "$RUNNER_TEMP/room_resp.json"
@@ -238,7 +238,7 @@ jobs:
             role=$(jq -r '.role_class' <<<"$p")
             status=$(curl -sS -o "$RUNNER_TEMP/participant_resp.json" -w '%{http_code}' \
               -X POST "$BASE_URL/api/chatterbox/participants" \
-              -H "Authorization: Bearer $CHATTERBOX_BRIDGE_TOKEN" -H "Content-Type: application/json" \
+              -H "Authorization: Bearer $CHATTERBOX_BRIDGE_PROD_TOKEN" -H "Content-Type: application/json" \
               -d "$p")
             body=$(cat "$RUNNER_TEMP/participant_resp.json")
             echo "$pkey -> HTTP $status: $body"

@@ -95,7 +95,7 @@ this package introduces a dedicated, narrower model
   participant. Asserting a different `participant_key` in the request body
   than the authenticated credential resolves to is rejected (`403`) rather
   than honored.
-- **Bridge/ops relay credential** (`CHATTERBOX_BRIDGE_TOKEN` env secret).
+- **Bridge/ops relay credential** (`CHATTERBOX_BRIDGE_PROD_TOKEN` env secret).
   Authenticates the GitHub-comment bridge's existing, already-documented
   self-declared trust model — the relay must still name an explicit
   `participant_key`, which is looked up and trusted as before. This same
