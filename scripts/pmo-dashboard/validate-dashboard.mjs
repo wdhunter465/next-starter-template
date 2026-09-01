@@ -9,16 +9,34 @@ const requiredViews = ['activePrograms', 'pmoPipeline', 'completedPrograms', 'in
 const validRowLifecycles = new Set(['active', 'pipeline', 'closed', 'incomplete']);
 const FORBIDDEN_INVENTORY_LIVE_STATE_FIELDS = ['expectedLifecycle', 'expectedPriority', 'expectedTeam'];
 const stageLabels = new Set([
+  'pmo:stage:idea',
+  'pmo:stage:design-needed',
+  'pmo:stage:design-ready',
+  'pmo:stage:sandbox-testing',
+  'pmo:stage:sandbox-completed',
+  'pmo:stage:development-testing',
+  'pmo:stage:development-completed',
+  'pmo:stage:launch-packet-needed',
+  'pmo:stage:launch-packet-ready',
+  'pmo:stage:graduation-candidate',
   'pmo:stage:initial-idea',
   'pmo:stage:drafted-design',
-  'pmo:stage:pending-launch-packet',
-  'pmo:stage:graduation-candidate'
+  'pmo:stage:pending-launch-packet'
 ]);
 const pmoActivePriorityRe = /^pmo:priority:[1-9]\d*$/;
 const pmoPipelinePriorityRe = /^pmo:pipeline-priority:[1-9]\d*$/;
 const allowedStatusByView = {
   activePrograms: new Set(['Active']),
   pmoPipeline: new Set([
+    'Idea',
+    'Design Needed',
+    'Design Ready',
+    'Sandbox Testing',
+    'Sandbox Completed',
+    'Development Testing',
+    'Development Completed',
+    'Launch Packet Needed',
+    'Launch Packet Ready',
     'Initial Idea',
     'Drafted Design',
     'Pending Launch Packet',
