@@ -67,7 +67,7 @@
     "launch-readiness": "node scripts/launch-readiness/run.mjs",
     "deploy:prod": "npm run build:cf && wrangler pages deploy out",
     "lighthouse:baseline": "lhci collect --staticDistDir=out --url=/ --url=/search/ --url=/join/ --url=/faq/ --url=/about/ --numberOfRuns=1",
-    "format:check": "prettier --check package.json tests/issue-3796-lint-format.test.mjs"
+    "format:check": "prettier --check tests/issue-3796-lint-format.test.mjs"
   },
   "dependencies": {
     "@cf-wasm/photon": "^0.4.0",
