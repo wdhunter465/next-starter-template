@@ -294,6 +294,7 @@ export function evaluateReviewerCommentDisposition({
 
   for (const review of latestReviews.values()) {
     if (!isActionableReviewSubmission(review)) continue;
+    const user = review.user?.login || '';
     const commentId = String(review.id);
     const disposition = dispositions.get(commentId);
     const resolved = isResolvedReviewText(review.body || '') && review.state !== 'CHANGES_REQUESTED';
@@ -302,6 +303,11 @@ export function evaluateReviewerCommentDisposition({
       auditPhase === 'pre_merge'
         ? isAfterTimestamp(createdAt, readyForReviewAt)
         : isAfterTimestamp(createdAt, mergedAt);
+
+    // A stale trusted review submission is superseded when that reviewer has
+    // already submitted a clean review on the current head. Keep genuinely
+    // late post-merge findings actionable even when their commit is outdated.
+    if (!isLate && isOutdatedComment(review, headSha) && currentHeadCleanReviewers.has(user)) continue;
 
     if (isLate) {
       lateFindings.push({
