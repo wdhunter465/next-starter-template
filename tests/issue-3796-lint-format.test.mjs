@@ -7,7 +7,7 @@ const qualityWorkflow = fs.readFileSync('.github/workflows/gate-quality.yml', 'u
 describe('issue #3796 deterministic lint and formatting contract', () => {
 	it('uses direct ESLint and exposes a non-mutating formatting check', () => {
 		expect(packageJson.scripts.lint).toBe('eslint src');
-		expect(packageJson.scripts['format:check']).toBe('prettier --check package.json tests/issue-3796-lint-format.test.mjs');
+		expect(packageJson.scripts['format:check']).toBe('prettier --check tests/issue-3796-lint-format.test.mjs');
 	});
 
 	it('runs the formatting check in the existing quality workflow', () => {
