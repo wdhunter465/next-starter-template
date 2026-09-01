@@ -41,8 +41,8 @@
     "postbuild": "cp _routes.json out/_routes.json && node scripts/postbuild-ai-review-routes.mjs",
     "build:cf": "npm run build",
     "start": "next start",
-    "lint": "next lint",
-    "lint:fix": "next lint --fix",
+    "lint": "eslint src",
+    "lint:fix": "eslint src --fix",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
@@ -66,7 +66,8 @@
     "launch-readiness:e2e": "LAUNCH_READINESS_E2E=1 playwright test tests/e2e/launch-readiness-public-routes.spec.ts tests/e2e/launch-readiness-fanclub-routes.spec.ts tests/e2e/homepage-sections.spec.ts tests/e2e/mobile-navigation.spec.ts",
     "launch-readiness": "node scripts/launch-readiness/run.mjs",
     "deploy:prod": "npm run build:cf && wrangler pages deploy out",
-    "lighthouse:baseline": "lhci collect --staticDistDir=out --url=/ --url=/search/ --url=/join/ --url=/faq/ --url=/about/ --numberOfRuns=1"
+    "lighthouse:baseline": "lhci collect --staticDistDir=out --url=/ --url=/search/ --url=/join/ --url=/faq/ --url=/about/ --numberOfRuns=1",
+    "format:check": "prettier --check tests/issue-3796-lint-format.test.mjs"
   },
   "dependencies": {
     "@cf-wasm/photon": "^0.4.0",
