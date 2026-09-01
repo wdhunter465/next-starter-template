@@ -44,6 +44,7 @@ import { fileURLToPath } from 'node:url';
 import { determineSearchRunTerminalStatus } from '../../functions/_lib/content-search-run-outcome.ts';
 import { extractPeopleTags, extractDateOrPeriod } from '../../functions/_lib/content-pipeline-discovery-text-signals.ts';
 import { withBoundedRetry } from '../../functions/_lib/bounded-retry.ts';
+import { buildDplaSearchUrl, mapDplaDocToCandidateFields, requireDplaApiKey } from '../../functions/_lib/content-pipeline-dpla-adapter.ts';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, '../..');
@@ -53,19 +54,32 @@ const SOURCE_DOMAINS = {
   openverse: 'openverse.org',
   loc: 'loc.gov',
   wikimedia: 'commons.wikimedia.org',
+  dpla: 'dp.la',
 };
 
 const DEFAULT_QUERY = 'Lou Gehrig';
-const DEFAULT_SOURCES = ['openverse', 'loc', 'wikimedia'];
+// DPLA is #3551's Tier 2 ("secondary discovery, uncertain density") source
+// and, unlike the three keyless Tier 1/aggregator sources below, requires a
+// registered DPLA_API_KEY. It's included in the default run only when that
+// key is actually configured, so the script stays runnable without secrets
+// but doesn't require operators to remember --sources dpla once a key
+// exists. Force it off explicitly with --sources openverse,loc,wikimedia.
+const DEFAULT_SOURCES = [
+  'openverse',
+  'loc',
+  'wikimedia',
+  ...((process.env.DPLA_API_KEY ?? '').trim() ? ['dpla'] : []),
+];
 const DEFAULT_LIMIT = 20;
 const DEFAULT_OUT = 'data/research/lou-gehrig-content-candidates-external-discovery.json';
 const SEED_FILE = 'data/research/lou-gehrig-content-candidates.json';
-const KNOWN_SOURCES = ['openverse', 'loc', 'wikimedia'];
+const KNOWN_SOURCES = ['openverse', 'loc', 'wikimedia', 'dpla'];
 
 function printUsage() {
   console.log(
-    'Usage: node --experimental-strip-types scripts/content-pipeline/collect-gehrig-external-sources.mjs [--query "Lou Gehrig"] [--sources openverse,loc,wikimedia] [--limit 20] [--out <file>]',
+    'Usage: node --experimental-strip-types scripts/content-pipeline/collect-gehrig-external-sources.mjs [--query "Lou Gehrig"] [--sources openverse,loc,wikimedia,dpla] [--limit 20] [--out <file>]',
   );
+  console.log('  DPLA requires the DPLA_API_KEY environment variable; it is included by default only when that key is set.');
 }
 
 function readFlagValue(argv, index, flagName) {
@@ -440,10 +454,22 @@ async function collectWikimediaCommons(query, limit, nextId, licenseNotesOut = [
   });
 }
 
+async function collectDpla(query, limit, nextId) {
+  // Fails fast rather than silently skipping the source when no key is
+  // configured -- matches #3551's fail-closed posture (see
+  // DplaApiKeyMissingError in content-pipeline-dpla-adapter.ts).
+  const apiKey = requireDplaApiKey();
+  const url = buildDplaSearchUrl(query, limit, apiKey);
+  const data = await fetchJson(url);
+  const docs = data.docs ?? [];
+  return docs.map((doc) => baseCandidate({ id: nextId(), ...mapDplaDocToCandidateFields(doc, query) }));
+}
+
 const COLLECTORS = {
   openverse: collectOpenverse,
   loc: collectLibraryOfCongress,
   wikimedia: collectWikimediaCommons,
+  dpla: collectDpla,
 };
 
 async function main() {
