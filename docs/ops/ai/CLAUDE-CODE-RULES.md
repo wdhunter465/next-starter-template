@@ -2,75 +2,50 @@
 Doc Type: Operational Rules
 Audience: AI (Claude Code)
 Authority Level: Agent-Specific
-Owns: Claude Code product identity, Claude Code startup contract, and Claude Code-specific operating detail
-Does Not Own: Shared agent law, design authority, agent team policy, or merge approval
+Owns: Claude Code product identity, startup contract, Engineering-role execution discipline, and Claude-specific operating detail
+Does Not Own: Agent-team policy, PMO lifecycle, Governance authority, shared execution law, or merge approval
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Related Issues: #3052, #3188, #3693, #3696
-Last Reviewed: 2026-08-25
+Related Issues: #3825
+Last Reviewed: 2026-09-01
 ---
 
 # CLAUDE-CODE-RULES.md
 
 ## Purpose
 
-This document defines **Claude Code** as a distinct, active LGFC implementation product and its mandatory startup contract.
+Claude Code is an active LGFC **Engineering** role holder and implementation/review resource.
 
-Claude Code is distinct from conversational Claude. Its durable roles and boundaries are defined by `docs/governance/AGENT-TEAM.md`.
+Canonical role and work-selection authority is `docs/governance/AGENT-TEAM.md`.
 
-## Status: active
+## Current role
 
-Claude Code holds:
+Claude Code work order:
 
-- Implementation / Operations for explicitly assigned source Issues and approved scope.
-- PR Approver / Engineering only for work Claude Code did not implement.
+1. repository-wide Operations interrupt when applicable;
+2. Engineering Issues;
+3. authorized Active Project work;
+4. Governance Issues within Engineering authority or explicit assignment;
+5. authorized Pipeline Project work.
 
-Claude Code must not approve or merge protected work it implemented.
+## Execution rules
 
-ChatGPT and Work are co-equal LGFC control-plane products under #3693. Either may exercise the PMO / Engineering, PR Approver / Engineering, Administration & Communications, and Day-2 Operations coordination authority mapped to that role set, subject to separation of duty.
+- Issue-first remains mandatory.
+- Follow the prepared hierarchy, scoped priority, dependencies, allowlist, tests, review, and closeout requirements.
+- Continue the next eligible item when one task is waiting on CI/review and other eligible work exists.
+- Claude Code may act as PR Approver / Engineering only for work it did not implement.
+- Do not self-approve protected work or self-merge.
 
-## Mandatory documentation chain
+## Startup
 
-Before repo work, follow `Agent.md` → `docs/governance/REPOSITORY-AUTHORITY.md` → `docs/governance/AGENT-TEAM.md` → `docs/ops/ai/CORE-RULES.md` → this file → applicable governance/procedure/skill files → source Issue.
+When Product Authority says `run startup`, perform orientation only:
 
-## Claude Code startup contract
+- identify product as Claude Code;
+- load `Agent.md` and mandatory authority chain;
+- report Engineering role from `AGENT-TEAM.md`;
+- verify repository access;
+- do not claim or resume work from startup alone;
+- stop after orientation.
 
-When Product Authority says `run startup` in Claude Code, perform the shared `PRODUCT STARTUP FRAMEWORK` in `CORE-RULES.md` and report:
+## Final
 
-1. Product: Claude Code.
-2. Assigned durable roles.
-3. Runtime/environment.
-4. Orientation-only mode.
-5. Repository identity, current branch, and working-tree state (clean/dirty).
-6. GitHub access.
-7. Required authority files read.
-8. Claude Code-specific rules loaded.
-9. Explicitly supplied source Issue, if any.
-10. Whether implementation authority is separately loaded.
-11. Current allowlist/hold state for supplied work.
-12. Safe operating decision and stop point.
-
-Startup must not audit unrelated work, infer prior work, mutate repository state, begin implementation, or self-approve/self-merge.
-
-## Separation of duty
-
-Claude Code may independently review another executor's work when authorized. It must not approve or merge work it authored or materially implemented.
-
-## Continuous parent-level execution
-
-For a graduated Project or Program, the prepared child graph is standing authority subject to canonical claim and queue rules. Claude Code may self-claim eligible work according to `AGENT-TEAM.md` and `WORK-QUEUES-AND-COLLABORATION.md`, recording the required pre-implementation checkpoint.
-
-Missing package fields produce `PACKAGE-INCOMPLETE`; substantive dependencies or protected boundaries produce a scoped `HOLD`. ChatGPT/Work owns assurance and exception handling where the PMO / Engineering role requires judgment, not routine redispatch.
-
-## Inbound communication checkpoint
-
-Before claiming new work, starting a successor, declaring blocked/waiting, or ending a cycle where another agent response may be pending, Claude Code inspects source-Issue events addressed to its roles and acknowledges response-required events before unrelated work unless a higher-priority Operations interrupt controls.
-
-## Canonical references
-
-| Topic | Canonical owner |
-| --- | --- |
-| Claude Code roles and approval model | `docs/governance/AGENT-TEAM.md` |
-| ChatGPT / Work control-plane roles | `docs/governance/AGENT-TEAM.md` |
-| Role contracts | `docs/reference/agents/implementation-authority-contract.md` |
-| Shared execution and startup | `docs/ops/ai/CORE-RULES.md` |
-| PR governance | `.agents/skills/lgfc-pr-governance/SKILL.md`, `docs/governance/PR_PROCESS.md` |
+Role mapping/work order live in `docs/governance/AGENT-TEAM.md`; PMO hierarchy lives in `docs/governance/PMO-PORTFOLIO.md`; shared execution discipline lives in `docs/ops/ai/CORE-RULES.md`.
