@@ -24,6 +24,13 @@ sudo ./svc.sh start
 
 Verify `/usr/bin/codex exec --help` and run `LGFC Codex Dispatch` manually with `confirmation=CODEX_DISPATCH` and `dry_run=true`. Inspect the queue record under `~/.lgfc-codex-dispatch` and the source Issue acknowledgment before enabling live invocation.
 
+## Steps
+
+1. Confirm the runner is online with labels `self-hosted`, `linux`, `x64`, and `lgfc-codex`.
+2. Run the dry-run dispatch and verify an acknowledgment queue record.
+3. Enable live dispatch only after Product Authority authorizes the host.
+4. Inspect `retryable-failure` and `stale` records when a wake is missed; retry only from a trusted event.
+
 ## Rollback
 
 Stop/uninstall only this runner service and disable the Codex workflow through a reviewed PR. Do not stop or edit the `lgfc-cursor` runner.
