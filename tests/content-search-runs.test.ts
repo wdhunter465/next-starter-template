@@ -482,7 +482,7 @@ describe('B2 write / D1 commit / rollback failure scenarios (#3552 audit AC #13,
     expect(contentItemRow.media_asset_id).toBeNull();
   });
 
-  it('failed D1 commit after a successful B2 write: the request does not silently succeed, but the B2-written object and its media_assets row are left without a content_items link (documented gap, not fixed here -- see comment)', async () => {
+  it('failed D1 commit after a successful B2 write: the request does not silently succeed, the B2-written object and its media_assets row are left without a content_items link, but the response now carries structured recovery detail (#3837)', async () => {
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
     seedAdminSession(sqlite);
@@ -525,23 +525,17 @@ describe('B2 write / D1 commit / rollback failure scenarios (#3552 audit AC #13,
     const body = await response.json();
     expect(body.ok).toBe(false);
 
-    // DOCUMENTED GAP (found by this test, not introduced by #3657, and NOT
-    // fixed here -- fixing it would mean wrapping the media_assets INSERT
-    // and the content_items UPDATE in one atomic D1 batch inside
-    // functions/_lib/media-ingest-repository.ts, which is outside #3657's
-    // allowlisted files; reported back to Bill per the package's explicit
-    // instruction rather than silently expanding scope):
-    //
-    // The B2 object was actually written, and media_assets recorded it, but
-    // content_items was never updated to point at it -- so a plain read of
-    // content_items shows no media, even though the bytes and the
-    // media_assets row genuinely exist. A later ingest retry with the same
-    // bytes would see `alreadyExisted: true` and still not repair the
-    // missing content_items link, because commitIngestedMedia's
-    // INSERT OR IGNORE only re-attempts the (already-failed) link step when
-    // it actually runs again -- which it does on every call, so a *retry*
-    // does self-heal here, but nothing about the first failed response
-    // guarantees a retry happens.
+    // #3837: the media_assets row is durable, true metadata about a real B2
+    // write and is deliberately NOT rolled back just because the
+    // content_items link step failed -- but the response must now say so
+    // explicitly, with enough detail that a caller/operator can act without
+    // reading source code, rather than a bare "Ingestion failed."
+    expect(body.recoverable).toBe(true);
+    expect(body.media_uid).toEqual(expect.any(String));
+    expect(body.b2_key).toEqual(expect.any(String));
+    expect(body.candidate_id).toBe('lgfc-gehrig-2026-999');
+    expect(body.retry_hint).toMatch(/re-post/i);
+
     const mediaCount = sqlite.prepare('SELECT COUNT(*) AS count FROM media_assets').get() as { count: number };
     expect(mediaCount.count).toBe(1); // the B2-written object's media_assets row was NOT rolled back
 
@@ -549,6 +543,73 @@ describe('B2 write / D1 commit / rollback failure scenarios (#3552 audit AC #13,
       .prepare('SELECT media_asset_id FROM content_items WHERE candidate_id = ?')
       .get('lgfc-gehrig-2026-999') as { media_asset_id: string | null };
     expect(contentItemRow.media_asset_id).toBeNull(); // the link itself was rolled back by the batch's own ROLLBACK
+  });
+
+  it('recovers from a failed D1 commit: retrying the exact same ingest request after the transient failure clears completes the content_items link without a re-upload (#3837)', async () => {
+    const sqlite = new DatabaseSync(':memory:');
+    applyRepoMigrations(sqlite);
+    seedAdminSession(sqlite);
+
+    const failingDb = wrapSqliteAsD1WithFailure(sqlite, (sql) => sql.includes('UPDATE content_items'));
+
+    const candidate = await upsertCandidate(failingDb, minimalIngestCandidate());
+    await recordRightsEvidence(failingDb, {
+      content_item_id: candidate.id,
+      evidence_type: 'loc_statement',
+      reviewer: 'Bill',
+      conclusion: 'public_domain_confirmed',
+      conclusion_rationale: 'LOC no known restrictions + pre-1931 publication.',
+      channel: 'website',
+    });
+
+    let b2PutCount = 0;
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async (input: RequestInfo | URL, init?: RequestInit) => {
+      const { url } = requestUrlAndMethod(input, init);
+      if (url.startsWith(B2_ENV.B2_ENDPOINT)) {
+        b2PutCount += 1;
+        return new Response(null, { status: 200, headers: { ETag: '"fake-etag"' } });
+      }
+      const sourceResponse = new Response(FAKE_JPEG_BYTES, { status: 200, headers: { 'Content-Type': 'image/jpeg' } });
+      return responseWithUrl(sourceResponse, url);
+    });
+
+    const ingestBody = {
+      candidate_id: 'lgfc-gehrig-2026-999',
+      source_fetch_url: 'https://loc.gov/item/example.jpg',
+    };
+
+    const firstAttempt = await ingestPost({
+      env: { DB: failingDb, ...B2_ENV },
+      request: adminIngestPostRequest(ingestBody),
+    });
+    expect(firstAttempt.status).toBeGreaterThanOrEqual(500);
+    expect((await firstAttempt.json()).recoverable).toBe(true);
+    expect(b2PutCount).toBe(1);
+
+    // Same underlying sqlite state, but this time the content_items UPDATE
+    // is allowed to run -- simulates the transient failure clearing before
+    // the caller's retry.
+    const healthyDb = wrapSqliteAsD1(sqlite);
+    const retry = await ingestPost({
+      env: { DB: healthyDb, ...B2_ENV },
+      request: adminIngestPostRequest(ingestBody),
+    });
+
+    expect(retry.status).toBe(200);
+    const retryBody = await retry.json();
+    expect(retryBody.ok).toBe(true);
+    expect(retryBody.already_ingested).toBe(true); // media_uid dedup hit -- no re-upload
+
+    // The retry did not re-PUT the object to B2.
+    expect(b2PutCount).toBe(1);
+
+    const mediaCount = sqlite.prepare('SELECT COUNT(*) AS count FROM media_assets').get() as { count: number };
+    expect(mediaCount.count).toBe(1); // still exactly one row, not duplicated
+
+    const contentItemRow = sqlite
+      .prepare('SELECT media_asset_id FROM content_items WHERE candidate_id = ?')
+      .get('lgfc-gehrig-2026-999') as { media_asset_id: string | null };
+    expect(contentItemRow.media_asset_id).toBe(`b2://${retryBody.b2_key}`); // the orphan is now linked
   });
 
   it('rollback: a search run that errors mid-completion is left running (not silently marked complete), so a later read cannot mistake it for success', async () => {

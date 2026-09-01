@@ -14,17 +14,29 @@ name: OPS — Chatterbox Reconciliation Sweep (#3794)
 #      rather than binding a GitHub credential into Cloudflare Pages).
 #
 # A GitHub Actions `schedule` trigger only fires for workflows already on
-# the default branch — like workflow_dispatch (Jules #3579 JULES-4), the
-# schedule below is inert until this workflow is promoted to main. Before
-# that, use workflow_dispatch or push (scoped to this workflow's own path)
-# to exercise it manually against this branch's Development deployment.
+# the default branch (Jules #3579 JULES-4) -- true here, this file lives on
+# main. #3845: the design itself has lived on main since before #3794
+# closed; only the *target* was still pointed at the throwaway build
+# branch, which is what this file fixes.
 
 on:
-  schedule:
-    - cron: '*/30 * * * *'
+  # #3845 fixed the target-branch problem #3840 disabled the schedule for
+  # (DEFAULT_TARGET_BRANCH pointing at a dead branch) and re-enabled the
+  # schedule on 2026-09-01. The URL now resolves correctly, but every
+  # scheduled run since has failed at the reconcile call itself:
+  # functions/api/chatterbox/reconcile.ts returns HTTP 404 "room not found"
+  # for the sweep's default room_key (lgfc-website) against the resolved
+  # Development Preview URL, every 30 minutes. Cause not yet root-caused
+  # here -- see #3845's open thread on the related room-bootstrap/auth
+  # failures. Disabling the schedule again (same as #3840) until that's
+  # resolved, via ops-chatterbox-room-bootstrap.yml or otherwise.
+  # workflow_dispatch is untouched for a manual run against an explicit,
+  # real room_key in the meantime.
+  # schedule:
+  #   - cron: '*/30 * * * *'
   push:
     branches:
-      - chatterbox-3794-self-hosted-room-actor
+      - main
     paths:
       - '.github/workflows/ops-chatterbox-reconciliation-sweep.yml'
       - 'functions/api/chatterbox/reconcile.ts'
@@ -35,7 +47,7 @@ on:
         description: 'Branch to resolve the live Development deployment for'
         required: true
         type: string
-        default: chatterbox-3794-self-hosted-room-actor
+        default: main
       room_key:
         description: 'Chatterbox room_key to sweep'
         required: true
@@ -73,7 +85,7 @@ jobs:
       - name: Resolve target branch, room, and clerk participant
         id: target
         env:
-          DEFAULT_TARGET_BRANCH: chatterbox-3794-self-hosted-room-actor
+          DEFAULT_TARGET_BRANCH: main
           DEFAULT_ROOM_KEY: lgfc-website
           DEFAULT_CLERK_KEY: chatterbox-clerk
           TARGET_BRANCH_INPUT: ${{ inputs.target_branch }}
@@ -138,13 +150,13 @@ jobs:
           BASE_URL: ${{ steps.resolve_url.outputs.base_url }}
           ROOM_KEY: ${{ steps.target.outputs.room_key }}
           CLERK_KEY: ${{ steps.target.outputs.clerk_key }}
-          CHATTERBOX_BRIDGE_TOKEN: ${{ secrets.CHATTERBOX_BRIDGE_TOKEN }}
+          CHATTERBOX_BRIDGE_PROD_TOKEN: ${{ secrets.CHATTERBOX_BRIDGE_PROD_TOKEN }}
         run: |
           set -euo pipefail
           payload=$(jq -n --arg room_key "$ROOM_KEY" --arg participant_key "$CLERK_KEY" '{room_key:$room_key, participant_key:$participant_key}')
           status=$(curl -sS -o "$RUNNER_TEMP/reconcile_resp.json" -w '%{http_code}' \
             -X POST "$BASE_URL/api/chatterbox/reconcile" \
-            -H "Authorization: Bearer $CHATTERBOX_BRIDGE_TOKEN" -H "Content-Type: application/json" \
+            -H "Authorization: Bearer $CHATTERBOX_BRIDGE_PROD_TOKEN" -H "Content-Type: application/json" \
             -d "$payload")
           echo "Reconcile response (HTTP $status):"
           cat "$RUNNER_TEMP/reconcile_resp.json"
@@ -160,7 +172,7 @@ jobs:
         id: github_crosscheck
         env:
           CHATTERBOX_BASE_URL: ${{ steps.resolve_url.outputs.base_url }}
-          CHATTERBOX_ADMIN_TOKEN: ${{ secrets.CHATTERBOX_BRIDGE_TOKEN }}
+          CHATTERBOX_ADMIN_TOKEN: ${{ secrets.CHATTERBOX_BRIDGE_PROD_TOKEN }}
           GITHUB_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           CHATTERBOX_ROOM_KEY: ${{ steps.target.outputs.room_key }}
@@ -169,7 +181,7 @@ jobs:
           set -o pipefail
           node scripts/ci/chatterbox_reconcile_github.mjs | tee "$RUNNER_TEMP/reconcile_github_output.txt"
 
-      - name: Record result on #3794 (only when something actually happened)
+      - name: Record result on #3845 (only when something actually happened)
         if: always()
         env:
           GH_TOKEN: ${{ github.token }}
@@ -182,7 +194,7 @@ jobs:
           mismatch_lines=${mismatch_lines:-0}
 
           if [ "${EXPIRED_COUNT:-0}" = "0" ] && [ "$mismatch_lines" = "0" ]; then
-            echo "Nothing to report — no escalations, no mismatches. Skipping issue comment to avoid spamming #3794 every 30 minutes."
+            echo "Nothing to report — no escalations, no mismatches. Skipping issue comment to avoid spamming #3845 every 30 minutes."
             exit 0
           fi
 
@@ -192,4 +204,4 @@ jobs:
           fi
 
           body="## Chatterbox reconciliation sweep — action needed\n\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n\nExpired/escalated PENDING actions: $EXPIRED_COUNT\nGitHub cross-check mismatches: $mismatch_lines\n\n\`\`\`\n$crosscheck_output\n\`\`\`"
-          gh issue comment 3794 --body "$(printf '%b' "$body")"
+          gh issue comment 3845 --body "$(printf '%b' "$body")"
