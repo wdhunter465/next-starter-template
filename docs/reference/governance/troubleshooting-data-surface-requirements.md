@@ -5,7 +5,8 @@ Authority Level: Canonical
 Owns: Full-data-surface troubleshooting requirements and PR lifecycle investigation doctrine
 Does Not Own: Individual workflow implementation details
 Canonical Reference: docs/reference/governance/troubleshooting-data-surface-requirements.md
-Last Reviewed: 2026-06-02
+Related Issues: #3829
+Last Reviewed: 2026-09-01
 ---
 
 # Troubleshooting Data Surface Requirements
@@ -144,6 +145,21 @@ Required checks:
 - Same-repository closing keywords such as `Closes #123`, `Fixes #123`, or `Resolves #123` are not accepted as source-issue accounting because GitHub closes those issues during merge before post-merge closeout can reconcile them.
 - The issue is same-repository, open, and not a PR at PR-open/update time.
 - After merge, the issue state is inspected and closed manually when automation does not close it.
+
+### Post-merge source-issue ambiguity from incidental body text
+
+Symptoms:
+- Pre-merge PR issue accounting passed (a single, correctly-formatted `- **Issue:** #123` line existed), but the post-merge closeout exception names several `multiple_source_issues` / `ambiguous_source_issue_candidates` failures against issue numbers that never appeared in the canonical accounting line.
+- The exception's candidate list matches other, unrelated issue numbers mentioned elsewhere in the PR body (e.g., background/context references, a "prior work" list, a "Source Files Used" bullet).
+
+Root cause: `scripts/ci/issue_accounting.mjs`'s `sourceIssueAccounting()` treats *any* body line matching `/^issue\b(?:\s*:)?\s*(.*)$/i` after stripping list/bold markup as a competing canonical source-issue declaration — not only the intended `- **Issue:** #123` line. A prose bullet that merely *starts* with the word "Issue" (colon optional, per the accepted colon-less `Issue #123` format above) is read the same way, and if it happens to mention more than one issue number, the post-merge resolver reports the whole set as ambiguous. `resolveSourceIssueFromPr()`'s per-line title/branch scanning has the same class of exposure for lines matching that pattern.
+
+Required checks / fix:
+- Do not start any PR body line — in any section — with the bare word "Issue" (case-insensitive) unless it is the single canonical `- **Issue:** #123` accounting line. Rephrase incidental references (e.g., "Issue #3551 (design source...)" -> "See #3551 for the design source...", or move the number off the start of the line).
+- For a remediation PR reopening a post-merge closeout exception's original source Issue, prefer the `<!-- orchestrator-source-issue: 123 -->` hidden marker at the top of the body — `resolveSourceIssueFromPr()` honors it ahead of all body/title/branch line-scanning, so it is immune to this failure mode regardless of what other issue numbers the body mentions.
+- This is a post-merge-only failure mode: it will not surface in pre-merge `GATE — PR Issue Accounting` (which only validates that one canonical line exists), so a clean pre-merge gate does not rule it out.
+
+Recorded from: #3829 (exception against merged PR #3828, source Issue #3826).
 
 ### Intent labeler
 
