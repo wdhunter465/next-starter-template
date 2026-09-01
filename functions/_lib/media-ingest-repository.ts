@@ -6,6 +6,33 @@
 
 import { updateCandidateMediaReferences } from './content-pipeline-candidate-repository';
 
+// #3837: the media_assets row committed just above this point is durable,
+// true metadata about a real B2 write -- it must never be rolled back just
+// because the content_items link step that follows fails. Callers need a
+// distinguishable error (not a generic throw) so they can tell an operator
+// exactly what already succeeded and that a plain retry of the same request
+// is safe -- commitIngestedMedia's own INSERT OR IGNORE dedup on media_uid
+// means a retry re-attempts only the missing link, never a re-upload.
+export class MediaContentItemLinkError extends Error {
+  readonly mediaUid: string;
+  readonly b2Key: string;
+  readonly candidateExternalId: string;
+  readonly cause: unknown;
+
+  constructor(input: { mediaUid: string; b2Key: string; candidateExternalId: string; cause: unknown }) {
+    super(
+      `commitIngestedMedia: media_assets row for media_uid ${input.mediaUid} (b2_key ${input.b2Key}) was ` +
+        `written, but linking content_items for candidate ${input.candidateExternalId} failed: ` +
+        `${input.cause instanceof Error ? input.cause.message : String(input.cause)}`,
+    );
+    this.name = 'MediaContentItemLinkError';
+    this.mediaUid = input.mediaUid;
+    this.b2Key = input.b2Key;
+    this.candidateExternalId = input.candidateExternalId;
+    this.cause = input.cause;
+  }
+}
+
 export type CommitIngestedMediaInput = {
   candidateId: number;
   candidateExternalId: string;
@@ -100,12 +127,21 @@ export async function commitIngestedMedia(
     }
   }
 
-  await updateCandidateMediaReferences(
-    db,
-    input.candidateExternalId,
-    { media_asset_id: `b2://${effectiveB2Key}` },
-    { actor: input.reviewer, notes: `#3552 ingestion: linked media_uid ${input.mediaUid}` },
-  );
+  try {
+    await updateCandidateMediaReferences(
+      db,
+      input.candidateExternalId,
+      { media_asset_id: `b2://${effectiveB2Key}` },
+      { actor: input.reviewer, notes: `#3552 ingestion: linked media_uid ${input.mediaUid}` },
+    );
+  } catch (cause) {
+    throw new MediaContentItemLinkError({
+      mediaUid: input.mediaUid,
+      b2Key: effectiveB2Key,
+      candidateExternalId: input.candidateExternalId,
+      cause,
+    });
+  }
 
   return { mediaUid: input.mediaUid, b2Key: effectiveB2Key, alreadyExisted };
 }
