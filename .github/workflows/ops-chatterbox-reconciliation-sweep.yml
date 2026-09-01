@@ -20,8 +20,16 @@ name: OPS — Chatterbox Reconciliation Sweep (#3794)
 # to exercise it manually against this branch's Development deployment.
 
 on:
-  schedule:
-    - cron: '*/30 * * * *'
+  # #3840: schedule disabled 2026-09-01. Every scheduled run since at least
+  # 2026-08-31T22:35Z failed at URL resolution -- its hardcoded default
+  # target branch (chatterbox-3794-self-hosted-room-actor) stopped getting
+  # pushes when #3794 closed (2026-08-28), so that branch's Cloudflare
+  # Pages preview no longer exists. Re-enable only once the target
+  # branch/room is reconciled to wherever the lgfc-website room actually
+  # lives now -- workflow_dispatch below still works for a manual run
+  # against an explicit target in the meantime.
+  # schedule:
+  #   - cron: '*/30 * * * *'
   push:
     branches:
       - chatterbox-3794-self-hosted-room-actor
