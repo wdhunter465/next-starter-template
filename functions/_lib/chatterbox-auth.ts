@@ -14,7 +14,7 @@
 //   chatterbox_participants.credential_hash, migration 0063) authenticates
 //   as exactly that participant. A caller holding this credential cannot
 //   act as anyone else.
-// - CHATTERBOX_BRIDGE_TOKEN (env secret) authenticates the GitHub-comment
+// - CHATTERBOX_BRIDGE_PROD_TOKEN (env secret) authenticates the GitHub-comment
 //   bridge's existing, already-documented relay model: the participant a
 //   command speaks as is self-declared in the request body, not inferred
 //   from this credential. This is a deliberately narrower, separately-keyed
@@ -52,7 +52,7 @@ export async function requireChatterboxCaller(request: Request, env: any, db: Db
     return { ok: false, response: json({ ok: false, error: 'missing bearer token' }, 401) };
   }
 
-  const bridgeToken = typeof env?.CHATTERBOX_BRIDGE_TOKEN === 'string' ? env.CHATTERBOX_BRIDGE_TOKEN : '';
+  const bridgeToken = typeof env?.CHATTERBOX_BRIDGE_PROD_TOKEN === 'string' ? env.CHATTERBOX_BRIDGE_PROD_TOKEN : '';
   if (bridgeToken && token === bridgeToken) {
     return { ok: true, caller: { kind: 'relay' } };
   }
