@@ -52,7 +52,11 @@ export async function requireChatterboxCaller(request: Request, env: any, db: Db
     return { ok: false, response: json({ ok: false, error: 'missing bearer token' }, 401) };
   }
 
-  const bridgeToken = typeof env?.CHATTERBOX_BRIDGE_PROD_TOKEN === 'string' ? env.CHATTERBOX_BRIDGE_PROD_TOKEN : '';
+  // .trim() matches extractBearerToken's own trim on the incoming token --
+  // a trailing newline/space picked up when a secret value is pasted into
+  // a dashboard input must not silently break this comparison on only one
+  // side (#3845).
+  const bridgeToken = typeof env?.CHATTERBOX_BRIDGE_PROD_TOKEN === 'string' ? env.CHATTERBOX_BRIDGE_PROD_TOKEN.trim() : '';
   if (bridgeToken && token === bridgeToken) {
     return { ok: true, caller: { kind: 'relay' } };
   }
