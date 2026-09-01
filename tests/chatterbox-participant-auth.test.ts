@@ -86,7 +86,7 @@ describe('requireChatterboxCaller', () => {
 
   it('authenticates the bridge relay token as kind "relay"', async () => {
     const db = makeFakeDb([]);
-    const result = await requireChatterboxCaller(request('bridge-secret'), { CHATTERBOX_BRIDGE_TOKEN: 'bridge-secret' }, db);
+    const result = await requireChatterboxCaller(request('bridge-secret'), { CHATTERBOX_BRIDGE_PROD_TOKEN: 'bridge-secret' }, db);
     expect(result.ok).toBe(true);
     if (result.ok) expect(result.caller.kind).toBe('relay');
   });
