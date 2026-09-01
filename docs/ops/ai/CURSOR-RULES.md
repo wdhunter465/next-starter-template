@@ -1,60 +1,44 @@
 ---
 Doc Type: Operational Rules
 Audience: AI (Cursor)
-Authority Level: Superseded
-Owns: Historical pointer only — Cursor implementation policy moved to governance
-Does Not Own: Agent team policy, runtime routing standard, or shared execution law
+Authority Level: Agent-Specific
+Owns: Cursor product identity, transition-aware role pointer, startup/bootstrap routing, and Cursor-specific execution discipline
+Does Not Own: Agent-team policy, final role transition decision, PMO lifecycle, shared execution law, or approval authority
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Related Issues: #2494, #2564, #3212, #3424, #3188, #3605, #3611
-Last Reviewed: 2026-08-18
+Related Issues: #3825
+Last Reviewed: 2026-09-01
 ---
 
 # CURSOR-RULES.md
 
-## Status
+## Purpose
 
-**Superseded for agent team and approval policy.** Cursor implementation authority, continuous execution boundaries, and no-self-approval rules now live in [`docs/governance/AGENT-TEAM.md`](../../governance/AGENT-TEAM.md).
+Cursor is an active LGFC implementation product. Its current role state is **Operations during transition**, with a Product Authority target state of **Engineering**.
 
-| Topic | Canonical owner |
-| --- | --- |
-| Cursor roles and stop conditions | `docs/governance/AGENT-TEAM.md` |
-| Role contracts and protected stops | `docs/reference/agents/implementation-authority-contract.md` |
-| Model A / Model B procedures | `docs/how-to/agents/run-model-a.md`, `docs/how-to/agents/run-model-b.md` |
-| Runtime routing | `docs/governance/standards/CURSOR-RUNTIME-ROUTING.md` |
-| Shared execution rules | `docs/ops/ai/CORE-RULES.md` |
-| Cursor handoff and wake | `docs/ops/ai/chatgpt-cursor-handoff-workflow.md`, `docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md` (primary); Cursor Local Bridge is decommissioned (`docs/reference/ci/cursor-local-bridge-contract.md`); `docs/how-to/cursor/github-poll-wake-loop.md` (retired archive) |
-| Cursor Local operator runbook | `docs/how-to/cursor/local-environment-and-agent-runbook.md` |
+The transition state and trigger are defined only in `docs/governance/AGENT-TEAM.md`. This file must not independently declare the transition complete.
 
-## Read order
+## Current transition behavior
 
-Before any repo work, follow the chain in [`Agent.md`](../../../Agent.md): `Agent.md` → [`AGENT-TEAM.md`](../../governance/AGENT-TEAM.md) → [`SHARED-AGENT-RULES.md`](./SHARED-AGENT-RULES.md) → [`CORE-RULES.md`](./CORE-RULES.md) → this pointer → applicable repo governance and skills.
+Until Product Authority records the transition:
 
-Cursor is the **sole LGFC implementation executor**. Cursor must not self-approve, merge its own assigned PRs, or treat routine Bill approval as required between implementation Go and PR review on Model B child work.
+1. Cursor remains eligible for Operations work;
+2. Operations work order is Operations Issues -> Active Projects -> Pipeline Projects;
+3. bounded Engineering participation may occur only when explicitly assigned/authorized;
+4. Cursor does not silently treat itself as a permanent dual-role member.
 
-## Historical note
+After Product Authority records the transition, `AGENT-TEAM.md` controls the new Engineering work order.
 
-Detailed Cursor-specific sections (pre-implementation package review steps, thread discipline, analysis-first rule, git/push boundaries, GitHub API budget discipline) remain in repository history until archived. For current work:
+## Execution rules
 
-- pre-implementation review → `docs/governance/AGENT-TEAM.md` launch-control requirements and `docs/templates/agent-assignment-template.md`
-- continuous execution without routine Bill stops → `docs/how-to/agents/run-model-b.md`
-- runtime selection → `docs/governance/standards/CURSOR-RUNTIME-ROUTING.md`
-- mandatory Git / branch / PR authority fields (working branch, base/target, create/commit/push/PR authorization, PR target and initial state, post-PR continuation, self-approval/self-merge/`main`-promotion prohibitions, and local-only vs branch/PR delivery class) → `docs/templates/agent-assignment-template.md` section 3 required-fields table and the Git/PR fields in the mandatory template block
+- Issue-first and branch/allowlist preflight remain mandatory.
+- Follow `CORE-RULES.md` and repository Cursor runtime-routing standards.
+- Continue eligible work at safe task boundaries; review/check waiting is not idle when another eligible task exists.
+- Do not self-approve protected work or self-merge.
 
-Binding runtime policy: [`docs/governance/standards/CURSOR-RUNTIME-ROUTING.md`](../../governance/standards/CURSOR-RUNTIME-ROUTING.md).
+## Startup/bootstrap
 
-Cursor must not treat narrative prose as Git or PR authority. If required Git/PR authority fields are missing from an implementation assignment, stop and request a complete assignment envelope.
+Cursor bootstrap still starts at `Agent.md` through the configured local/cloud router. Startup/orientation does not claim work by itself.
 
+## Final
 
-## Continuous parent-level execution (#3055 / #3145)
-
-For a graduated Project or Program, the exact prepared child graph is standing authority. Cursor self-claims the next eligible `team:operations` or `team:pmo` child one task at a time without routine Administration/PMO redispatch. Separately, Cursor also self-claims eligible standalone `team:governance` stewardship Issues (not project-child graph work). Record starting SHA, branch, allowlist confirmation, and pre-implementation checkpoint before editing.
-
-Missing package fields produce `PACKAGE-INCOMPLETE`; a substantive dependency or protected boundary produces an evidence-specific `HOLD`. Merge alone is not substantive acceptance. WORK owns assurance and exception handling, not routine per-task dispatch. Cursor is not a normal Engineering executor. Governance stewardship is a normal Cursor queue and is not an Operations interrupt.
-
-## Inbound communication checkpoint (#3188)
-
-Before claiming new work, starting a successor, declaring blocked or waiting, or ending a cycle where another agent may be pending, Cursor inspects source-Issue events addressed to Implementation / Operations. Acknowledge response-required events on that Issue before unrelated work, unless a numbered Operations interrupt has precedence. Do not ask Product Authority to relay routine messages when GitHub communication is available. Canonical detail: `docs/ops/ai/CORE-RULES.md`.
-
-## Assigned-queue continuation (#3605 / #3611)
-
-Pointer only. Binding assigned-queue continuation, including waiting-vs-executable selection while a packaged PR awaits review, lives in [`docs/ops/ai/CORE-RULES.md`](./CORE-RULES.md) (`ASSIGNED-QUEUE CONTINUATION`) and [`docs/governance/AGENT-TEAM.md`](../../governance/AGENT-TEAM.md). This file does not add independent idle or resume-queue policy.
+Canonical role/transition mapping lives in `docs/governance/AGENT-TEAM.md`. Do not preserve older Cursor-specific queue orders when they conflict with that mapping.
