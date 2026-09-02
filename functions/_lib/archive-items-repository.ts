@@ -241,7 +241,7 @@ export async function listArchiveItems(
        FROM archive_items ai
        JOIN content_items ci ON ci.id = ai.content_item_id
        ${where}
-       ORDER BY ai.updated_at DESC
+       ORDER BY ai.updated_at DESC, ai.id DESC
        LIMIT ? OFFSET ?`,
     )
     .bind(...params, limit, offset)
