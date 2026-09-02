@@ -5,7 +5,7 @@ Authority Level: Controlled
 Owns: As-built reconciliation of the content/rights runtime that predates #2073, and what #2073's later work packages (2-6) can reuse vs. must build new
 Does Not Own: Product/legal decisions for #2073's own acquisition/custody/donation model (owned by #4059); column-by-column schema (owned by /docs/reference/content-pipeline-rights-data-dictionary.md and the member-submission/content-pipeline-storage-model docs below); the #3551 pipeline's own operational detail (owned by /docs/ops/as-built/gehrig-content-collection-rights-pipeline-as-built-3826.md)
 Canonical Reference: /docs/ops/as-built/gehrig-content-collection-rights-pipeline-as-built-3826.md
-Related Issues: #2073, #3551, #3552, #3553, #3597, #3598, #3827, #4058, #4059
+Related Issues: #2073, #3551, #3552, #3553, #3597, #3598, #3827, #4058, #4059, #4060, #4061, #4062, #4063
 Last Reviewed: 2026-09-02
 ---
 
@@ -72,6 +72,17 @@ They are bridged, one-directionally, by a real, tested, currently-running mechan
 - Any concept of a donor/lender identity, contact record, or agreement distinct from a `rights_evidence` reviewer's own conclusion.
 - Acquisition outreach tracking (contacting a potential donor, following up, declining).
 - Physical storage/preservation-partner relationship tracking, if #4059 decides this needs to be more than D1 metadata.
+
+## #2073 Work Package issue chain
+
+For navigation -- each item links to and is blocked on the one before it:
+
+1. #4058 (this doc) -- as-built reconciliation. Ready to implement; not blocked.
+2. #4059 -- acquisition/custody/donation operating-model decisions. Blocked on Bill/Product Authority answering its six open questions.
+3. #4060 -- archive artifact metadata schema, candidate states, publication-eligibility rules, retention boundaries. Blocked on #4059.
+4. #4061 -- intake/validation domain behavior, migration(s), fixtures, tests. Blocked on #4060.
+5. #4062 -- admin/staging preview integration, audit/accessibility/security evidence. Blocked on #4061.
+6. #4063 -- operator runbooks, rollback/recovery, acceptance exercise, promotion-candidate qualification. Blocked on #4062.
 
 ## Non-goals
 
