@@ -38,10 +38,19 @@ function insertMediaAsset(
   ).run(mediaUid, b2Key, 1024, rightsHold, rightsHoldReason, rightsHoldSetAt);
 }
 
-function insertPhoto(db: DatabaseSync, { photoId, url }: { photoId: string; url: string }) {
+function insertPhoto(
+  db: DatabaseSync,
+  { photoId, url, isMatchupEligible }: { photoId: string; url: string; isMatchupEligible?: number },
+) {
+  if (isMatchupEligible === undefined) {
+    db.prepare(
+      "INSERT INTO photos (url, is_memorabilia, description, photo_id) VALUES (?, 0, '', ?)",
+    ).run(url, photoId);
+    return;
+  }
   db.prepare(
-    "INSERT INTO photos (url, is_memorabilia, description, photo_id) VALUES (?, 0, '', ?)",
-  ).run(url, photoId);
+    "INSERT INTO photos (url, is_memorabilia, description, photo_id, is_matchup_eligible) VALUES (?, 0, '', ?, ?)",
+  ).run(url, photoId, isMatchupEligible);
 }
 
 describe('RECONCILE_PHOTOS_RIGHTS_FROM_MEDIA_ASSETS_SQL (#3552/#3553)', () => {
@@ -86,6 +95,61 @@ describe('RECONCILE_PHOTOS_RIGHTS_FROM_MEDIA_ASSETS_SQL (#3552/#3553)', () => {
     // media_assets, not from when this reconciliation happened to run.
     expect(row.reviewed_at).toBe('2026-08-18T12:27:31.331Z');
     expect(row.rights_hold_set_at).toBe('2026-08-18T12:27:31.331Z');
+  });
+
+  it('also flips is_matchup_eligible so a content-collection rights approval reaches Weekly Matchup (#3551)', () => {
+    const db = new DatabaseSync(':memory:');
+    applyRepoMigrations(db);
+
+    insertMediaAsset(db, {
+      mediaUid: 'sha256_matchup',
+      b2Key: 'LGFC_sha256_matchup.jpg',
+      rightsHold: 0,
+      rightsHoldReason: 'rights_evidence_conclusion:public_domain_confirmed reviewer:Bill Hunter',
+      rightsHoldSetAt: '2026-08-18T12:27:31.331Z',
+    });
+    insertPhoto(db, {
+      photoId: 'LGFC_sha256_matchup.jpg',
+      url: 'https://example.com/LGFC_sha256_matchup.jpg',
+    });
+
+    db.exec(RECONCILE_PHOTOS_RIGHTS_FROM_MEDIA_ASSETS_SQL);
+
+    const row = db
+      .prepare('SELECT is_matchup_eligible FROM photos WHERE photo_id = ?')
+      .get('LGFC_sha256_matchup.jpg') as { is_matchup_eligible: number };
+
+    expect(row.is_matchup_eligible).toBe(1);
+  });
+
+  it('never overrides an explicit matchup exclusion (-1) with a rights reconciliation', () => {
+    const db = new DatabaseSync(':memory:');
+    applyRepoMigrations(db);
+
+    insertMediaAsset(db, {
+      mediaUid: 'sha256_excluded',
+      b2Key: 'LGFC_sha256_excluded.jpg',
+      rightsHold: 0,
+      rightsHoldReason: 'rights_evidence_conclusion:public_domain_confirmed reviewer:Bill Hunter',
+      rightsHoldSetAt: '2026-08-18T12:27:31.331Z',
+    });
+    // rights_hold defaults to 1 (migrations/0053), so this row is still
+    // picked up by the reconciliation's WHERE clause even though its
+    // matchup eligibility was separately, explicitly excluded.
+    insertPhoto(db, {
+      photoId: 'LGFC_sha256_excluded.jpg',
+      url: 'https://example.com/LGFC_sha256_excluded.jpg',
+      isMatchupEligible: -1,
+    });
+
+    db.exec(RECONCILE_PHOTOS_RIGHTS_FROM_MEDIA_ASSETS_SQL);
+
+    const row = db
+      .prepare('SELECT rights_hold, is_matchup_eligible FROM photos WHERE photo_id = ?')
+      .get('LGFC_sha256_excluded.jpg') as { rights_hold: number; is_matchup_eligible: number };
+
+    expect(row.rights_hold).toBe(0);
+    expect(row.is_matchup_eligible).toBe(-1);
   });
 
   it('does not throw when the same b2_key appears on more than one cleared media_assets row', () => {
