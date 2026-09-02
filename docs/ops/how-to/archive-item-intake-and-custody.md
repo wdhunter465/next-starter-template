@@ -102,17 +102,20 @@ available, a **Custody Controls** row. The state machine
 UI's `NEXT_STATES` map) is:
 
 ```
-offered → received → cataloged → stored → returned
-                                        ↘ deaccessioned
+offered → received → cataloged → stored
+                  ↘ returned  (from received, cataloged, or stored — loans only)
+                  ↘ deaccessioned  (from any non-terminal state)
 ```
 
 - `received`, `cataloged`, and `stored` are reachable only in that forward
   order.
-- `returned` is reachable from `received`, `cataloged`, or `stored` — use
-  it when a loaned item goes back to its owner. Setting `to_state =
-  'returned'` also stamps `loan_returned_at` automatically; it applies to
-  donations too if one is mistakenly returned, but the field is only
-  meaningful for loans.
+- `returned` is reachable from `received`, `cataloged`, or `stored` — not
+  only from `stored` — use it when a loaned item goes back to its owner.
+  Setting `to_state = 'returned'` also stamps `loan_returned_at`
+  automatically. The UI only offers `returned` for loans (`custody_type =
+  'loan'`); the server-side state machine doesn't distinguish by
+  `custody_type`, so a direct API call could still mark a donation
+  `returned`, but there's no operator-facing path to do that by accident.
 - `deaccessioned` is reachable from any non-terminal state — use it if an
   item is withdrawn from the collection (returned to a donor by mutual
   agreement, lost, damaged beyond use, etc.). Always add a **Note**

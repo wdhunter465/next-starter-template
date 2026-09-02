@@ -239,6 +239,26 @@ describe('listArchiveItems', () => {
     const received = await listArchiveItems(db, { custody_state: 'received' });
     expect(received.map((i) => i.id)).toEqual([loan.id]);
   });
+
+  it('orders deterministically even when updated_at ties (regression: ORDER BY updated_at alone is unstable)', async () => {
+    const db = freshDb();
+    const first = await createArchiveItem(db, { title: 'First', summary: 'x', item_type: 'other', custody_type: 'donation', actor: 'Bill' });
+    const second = await createArchiveItem(db, { title: 'Second', summary: 'x', item_type: 'other', custody_type: 'donation', actor: 'Bill' });
+    const third = await createArchiveItem(db, { title: 'Third', summary: 'x', item_type: 'other', custody_type: 'donation', actor: 'Bill' });
+
+    // Force every row to the exact same updated_at, simulating rows written
+    // within the same timestamp-resolution window.
+    await db.prepare("UPDATE archive_items SET updated_at = '2026-09-02T12:00:00.000Z'").run();
+
+    const runs = await Promise.all(Array.from({ length: 5 }, () => listArchiveItems(db)));
+    const orderings = runs.map((items) => items.map((i) => i.id));
+
+    // Every repeated call must return the exact same order (id DESC as the
+    // tiebreaker), not whatever order the ties happen to come back in.
+    for (const ordering of orderings) {
+      expect(ordering).toEqual([third.id, second.id, first.id]);
+    }
+  });
 });
 
 describe('rights_evidence donor_agreement integration', () => {

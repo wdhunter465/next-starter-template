@@ -241,7 +241,7 @@ export async function listArchiveItems(
        FROM archive_items ai
        JOIN content_items ci ON ci.id = ai.content_item_id
        ${where}
-       ORDER BY ai.updated_at DESC
+       ORDER BY ai.updated_at DESC, ai.id DESC
        LIMIT ? OFFSET ?`,
     )
     .bind(...params, limit, offset)
@@ -312,10 +312,13 @@ export async function listCustodyEvents(db: any, archiveItemId: number): Promise
 }
 
 // Admin-facing projection. Deliberately the ONLY function in this module
-// that decides what a caller sees -- donor_contact is always stripped here;
-// donor_name/credit_line stay admin-visible regardless of
+// that decides what a caller sees -- every field, including donor_contact,
+// stays visible here because this projection is only ever returned to a
+// requireAdmin-gated caller (see functions/api/admin/archive-items/*.ts).
+// donor_name/donor_contact/credit_line stay admin-visible regardless of
 // donor_consent_public_credit (that flag only gates a future PUBLIC
-// serializer, which does not exist yet -- #4062).
+// serializer, which does not exist yet -- #4062 -- and must strip
+// donor_contact entirely when it is built).
 export function serializeArchiveItemForAdmin(item: ArchiveItemWithCandidate) {
   return {
     id: item.id,

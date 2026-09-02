@@ -20,6 +20,12 @@ function parsePositiveInt(value: string | null, fallback: number): number {
   return Number.isFinite(n) && n > 0 ? n : fallback;
 }
 
+function parseNonNegativeInt(value: string | null, fallback: number): number {
+  if (!value) return fallback;
+  const n = Number.parseInt(value, 10);
+  return Number.isFinite(n) && n >= 0 ? n : fallback;
+}
+
 export const onRequestGet = async (context: any): Promise<Response> => {
   const { request, env } = context;
 
@@ -37,13 +43,13 @@ export const onRequestGet = async (context: any): Promise<Response> => {
     const custodyState = (url.searchParams.get('custody_state') || undefined) as ArchiveCustodyState | undefined;
     const custodyType = (url.searchParams.get('custody_type') || undefined) as ArchiveCustodyType | undefined;
     const limit = parsePositiveInt(url.searchParams.get('limit'), 50);
-    const offset = parsePositiveInt(url.searchParams.get('offset'), 1) - 1;
+    const offset = parseNonNegativeInt(url.searchParams.get('offset'), 0);
 
     const items = await listArchiveItems(d1.db, {
       custody_state: custodyState,
       custody_type: custodyType,
       limit,
-      offset: Math.max(offset, 0),
+      offset,
     });
 
     return jsonResponse({ ok: true, count: items.length, items: items.map(serializeArchiveItemForAdmin) }, 200);
