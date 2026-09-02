@@ -42,7 +42,7 @@ This product-local startup checklist is **additive** to the mandatory shared **P
 When Product Authority says `run startup`, perform orientation only:
 
 - identify product as Claude Code;
-- load `Agent.md` and the mandatory authority chain (as required by the shared PRODUCT STARTUP FRAMEWORK);
+- load `Agent.md` and mandatory authority chain (as required by the shared PRODUCT STARTUP FRAMEWORK);
 - report Engineering role from `AGENT-TEAM.md`;
 - verify repository access;
 - do not claim or resume work from startup alone;

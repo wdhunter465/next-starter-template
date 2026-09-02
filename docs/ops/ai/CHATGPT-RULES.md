@@ -64,8 +64,8 @@ When Product Authority says `run startup`, perform orientation only:
 
 ## Separation of duties
 
-ChatGPT must not independently approve protected work or self-merge work it implemented. Independent review remains required where governance demands it.
+ChatGPT must not independently approve protected work or governance documentation it implemented. Independent review remains required where governance demands it.
 
 ## Final
 
-Role mapping and work order live in `docs/governance/AGENT-TEAM.md`; PMO hierarchy lives in `docs/governance/PMO-PORTFOLIO.md`; shared execution discipline lives in `docs/ops/ai/CORE-RULES.md`.
+Canonical role mapping and work-selection authority live in `docs/governance/AGENT-TEAM.md`. Shared execution discipline lives in `docs/ops/ai/CORE-RULES.md`.
