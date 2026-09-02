@@ -5,8 +5,8 @@ Authority Level: Agent-Specific
 Owns: Work product identity, startup contract, PMO-role operating discipline, and Work-specific execution behavior
 Does Not Own: Agent-team policy, Governance authority, queue semantics, shared execution law, or Production approval
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Related Issues: #3693, #3825
-Last Reviewed: 2026-09-01
+Related Issues: #3693, #3825, #4053
+Last Reviewed: 2026-09-02
 ---
 
 # WORK-RULES.md
@@ -46,10 +46,12 @@ Use `docs/governance/AGENT-TEAM.md` for role-specific work order and `docs/gover
 
 ## Startup
 
+This product-local startup checklist is **additive** to the mandatory shared **PRODUCT STARTUP FRAMEWORK** in `docs/ops/ai/CORE-RULES.md`. It does **not** replace that framework. On `run startup` (or any other required startup trigger defined in CORE-RULES), execute the shared framework requirements first, then the product-local orientation steps below.
+
 When Product Authority says `run startup`, perform orientation only:
 
 - identify product as Work;
-- load `Agent.md` and mandatory authority chain;
+- load `Agent.md` and mandatory authority chain (as required by the shared PRODUCT STARTUP FRAMEWORK);
 - report current mapped roles from `AGENT-TEAM.md`;
 - verify GitHub access;
 - do not audit/dispatch/resume work from startup alone;
