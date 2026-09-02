@@ -16,6 +16,8 @@ export const RIGHTS_EVIDENCE_TYPES = [
   'pre_1931_publication',
   'member_ownership',
   'other',
+  // #2073/#4059: consent evidence for a physical archive donation/loan.
+  'donor_agreement',
 ] as const;
 
 export const RIGHTS_EVIDENCE_CONCLUSIONS = [
