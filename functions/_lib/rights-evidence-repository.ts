@@ -291,6 +291,106 @@ export async function getCurrentUsageDecisionForCandidate(
   return row ? mapRightsEvidenceRow(row as RightsEvidenceRow) : null;
 }
 
+export type HoldQueueEntry = {
+  content_item_id: number;
+  candidate_id: string;
+  title: string;
+  source_name: string | null;
+  source_url: string | null;
+  source_domain: string | null;
+  media_asset_id: string | null;
+  content_type: string | null;
+  latest_evidence: StoredRightsEvidence;
+};
+
+// #3827: the curator-facing hold queue. Per content item, resolves only its
+// single most recent rights_evidence row (matching getCurrentUsageDecision
+// ForCandidate's own "latest row wins" rule) and keeps items where that row
+// is still usage_decision = 'hold'. An item with zero evidence rows has no
+// decision at all yet and is correctly absent -- that is a different state
+// from 'hold', not a superset of it (see getCurrentUsageDecisionForCandidate
+// above). Ordered oldest-first so the longest-waiting items surface first.
+export async function listHoldQueue(
+  db: any,
+  options: { limit?: number; offset?: number } = {},
+): Promise<HoldQueueEntry[]> {
+  const limit = Math.min(Math.max(options.limit ?? 50, 1), 200);
+  const offset = Math.max(options.offset ?? 0, 0);
+
+  const result = await db
+    .prepare(
+      `SELECT
+         ci.id AS content_item_id,
+         ci.candidate_id,
+         ci.title,
+         ci.source_name,
+         ci.source_url,
+         ci.source_domain,
+         ci.media_asset_id,
+         ci.content_type,
+         re.*
+       FROM content_items ci
+       JOIN rights_evidence re ON re.id = (
+         SELECT re2.id FROM rights_evidence re2
+         WHERE re2.content_item_id = ci.id
+         ORDER BY re2.recorded_at DESC, re2.id DESC
+         LIMIT 1
+       )
+       WHERE re.usage_decision = 'hold' AND ci.deleted_at IS NULL
+       ORDER BY re.recorded_at ASC, re.id ASC
+       LIMIT ? OFFSET ?`,
+    )
+    .bind(limit, offset)
+    .all();
+
+  return ((result.results ?? []) as Array<RightsEvidenceRow & Omit<HoldQueueEntry, 'latest_evidence'>>).map((row) =>
+    ({
+      content_item_id: Number(row.content_item_id),
+      candidate_id: String(row.candidate_id),
+      title: String(row.title),
+      source_name: row.source_name ?? null,
+      source_url: row.source_url ?? null,
+      source_domain: row.source_domain ?? null,
+      media_asset_id: row.media_asset_id ?? null,
+      content_type: row.content_type ?? null,
+      // row also carries the ci.* columns selected alongside re.* above;
+      // pickRightsEvidenceRowFields keeps latest_evidence to exactly
+      // RightsEvidenceRow's own fields rather than that whole joined row.
+      latest_evidence: mapRightsEvidenceRow(pickRightsEvidenceRowFields(row)),
+    }),
+  );
+}
+
+// Picks exactly RightsEvidenceRow's own columns off a row that may carry
+// extra joined columns alongside them (see listHoldQueue above).
+function pickRightsEvidenceRowFields(row: RightsEvidenceRow): RightsEvidenceRow {
+  return {
+    id: row.id,
+    content_item_id: row.content_item_id,
+    source_id: row.source_id,
+    search_run_id: row.search_run_id,
+    evidence_type: row.evidence_type,
+    evidence_text: row.evidence_text,
+    evidence_url: row.evidence_url,
+    evidence_metadata: row.evidence_metadata,
+    reviewer: row.reviewer,
+    conclusion: row.conclusion,
+    conclusion_rationale: row.conclusion_rationale,
+    recorded_at: row.recorded_at,
+    created_at: row.created_at,
+    updated_at: row.updated_at,
+    channel: row.channel,
+    rights_holder: row.rights_holder,
+    repository_or_collection: row.repository_or_collection,
+    publication_established: row.publication_established,
+    us_publication_or_uraa_confirmed: row.us_publication_or_uraa_confirmed,
+    publication_date_source: row.publication_date_source,
+    source_filename: row.source_filename,
+    tagging_requirements: row.tagging_requirements,
+    usage_decision: row.usage_decision,
+  };
+}
+
 // Authoritative resolver for gating: the most recent conclusion recorded
 // specifically for this channel. A conclusion recorded for a different
 // channel never satisfies this -- #3551's 2026-08-18 directive that a

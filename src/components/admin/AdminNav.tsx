@@ -20,6 +20,7 @@ const items: Array<{ href: string; label: string }> = [
   { href: '/admin/worklist', label: 'Worklist' },
   { href: '/admin/member-operations', label: 'Member Operations' },
   { href: '/admin/media-assets', label: 'Media Assets' },
+  { href: '/admin/rights-review', label: 'Rights Review' },
   { href: '/admin/d1-test', label: 'D1 Inspect' },
 ];
 
