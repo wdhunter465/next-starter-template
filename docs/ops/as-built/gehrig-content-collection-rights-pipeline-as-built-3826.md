@@ -6,7 +6,7 @@ Owns: What the allowlisted Gehrig content-collection/discovery and rights-eviden
 Does Not Own: Product/legal decisions about the allowlist or rights policy (owned by #3551); column-by-column schema definitions (owned by /docs/reference/content-pipeline-rights-data-dictionary.md); curator-UI implementation (not yet built — see #3827)
 Canonical Reference: /docs/ops/pmo/lou-gehrig-content-collection-expansion-readiness.md
 Related Issues: #3551, #3552, #3657, #3658, #3748, #3826, #3827, #2073
-Last Reviewed: 2026-09-01
+Last Reviewed: 2026-09-02
 ---
 
 # Gehrig content-collection / rights-evidence pipeline — as-built
@@ -19,7 +19,7 @@ This records what the #3551-designed allowlisted content-collection and rights-e
 
 Covers: the six-source allowlist and which sources have working discovery code; the core safety rule and where it's enforced; the D1 schema surface (`sources`, `content_search_runs`, `content_items`, `rights_evidence`, `media_assets`); the admin API surface operators call; and the known operational gaps as of this writing.
 
-Does not cover: Product/legal authorization for the broader Phase 2 acquisition program (#2073, still on legal-review hold — out of scope for this pipeline entirely); the curator/rights-review admin UI (not built — API-only today, see "Known gaps" below and #3827).
+Does not cover: Product/legal authorization for the broader Phase 2 acquisition program (#2073 — active, no hold, per its 2026-09-02 current-authority update; out of scope for *this* pipeline's own allowlist regardless — see #2073's own work-package items 2+ and `/docs/reference/content/content-rights-runtime-as-built-2073.md`).
 
 ## Current known truth
 
@@ -68,15 +68,17 @@ None of the discovery code downloads or stores media bytes. Every discovered can
 - `POST /api/admin/content-pipeline/ingest` — approved-only transfer from source URL to B2 plus the D1 commit.
 - Batch approval: `functions/_lib/content-pipeline-batch-rights-approval.ts` + its CLI script, used for the Wikimedia Commons approved-batch workflow (`.github/workflows/gehrig-wikimedia-batch-approval.yml`).
 
-There is currently **no dedicated curator-facing UI** for working the `usage_decision = 'hold'` queue — today it's API-only. Tracked as a separate, deliberately-unimplemented scoping issue: **#3827** (needs a UX/product decision on route and reviewer workflow before it's built, not something to guess at).
+**Update, 2026-09-02:** a dedicated curator-facing UI for the `usage_decision = 'hold'` queue now exists — `src/app/admin/rights-review` (#3827), backed by a new read-only `GET /api/admin/content-pipeline/rights-evidence/queue` endpoint. It resolves items via the existing `POST /api/admin/content-pipeline/rights-evidence` (append-only, held row never mutated). See `/docs/reference/content/content-rights-runtime-as-built-2073.md` for the full admin-surface inventory.
 
 ## Known gaps
 
 - **DPLA collector is code-complete but not live-verified.** #3826 added `functions/_lib/content-pipeline-dpla-adapter.ts` and wired it into the discovery script, with unit tests against a hand-built fixture response. It has not been run against the real DPLA API in any environment that produced this doc — no `DPLA_API_KEY` was available, and this sandbox's network egress already blocks the other three source domains outright. Verify the response-shape assumptions on first live run.
-- **A failed D1 commit after a successful B2 write leaves an orphaned object.** `tests/content-search-runs.test.ts` ("B2 write / D1 commit / rollback failure scenarios") documents that this specific failure mode leaves the B2-written object and its `media_assets` row without a `content_items` link — the row stays non-publicly-resolvable (fails closed), but there's no automated reconciliation back to a clean state. Not fixed by #3826; needs its own tracked issue if it becomes a real operational problem.
 - **Production rollout of migrations 0059/0061 is unconfirmed.** Both are merged to `main`, but this and prior sessions working this lineage have had no Cloudflare credentials to confirm they've actually been applied against the Production D1 database (`lgfc_lite`). #3748 flagged the same gap for its own migration. Whoever holds Production credentials should confirm `wrangler d1 migrations list --env production` (or equivalent) shows both applied before relying on channel-scoping/usage_decision behavior in Production.
-- **Curator/rights-review admin UI does not exist.** See #3827 — scoped, not implemented, pending a product decision on workflow.
-- **#3551's own acceptance checklist has 4 of 15 items still open** as of the verification pass in the 2026-09-01 comment on #3551: the D1-commit-orphan gap above, one item needing a narrower USCO-specific check, one needing fuller item-by-item test-coverage confirmation against its exact wording, and this doc itself (which closes the "operator documentation" item once merged).
+
+**Resolved since this doc was first written** (kept here for history, not as open gaps):
+- ~~A failed D1 commit after a successful B2 write leaves an orphaned object.~~ Fixed by #3837/PR #3838 (merged): `commitIngestedMedia` now throws a typed, recoverable `MediaContentItemLinkError` and a retry of the same request completes the link — see #3551's 2026-09-01 12:27 UTC comment for the verification evidence.
+- ~~Curator/rights-review admin UI does not exist.~~ Built 2026-09-02, see the Update note above and #3827.
+- ~~#3551's own acceptance checklist has 4 of 15 items still open.~~ All 15 of 15 have direct evidence or an explicit recorded scope decision as of #3551's 2026-09-01 14:29 UTC comment. #3551, #3552, #3826, #3837, and #3827 are all closed/complete as of 2026-09-02.
 
 ## Non-goals
 
