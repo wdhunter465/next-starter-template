@@ -5,8 +5,8 @@ Authority Level: Agent-Specific
 Owns: Codex product identity, startup contract, Operations-role continuity behavior, and Codex-specific execution discipline
 Does Not Own: Agent-team policy, PMO lifecycle, Governance authority, shared execution law, or merge approval
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Related Issues: #3795, #3825
-Last Reviewed: 2026-09-01
+Related Issues: #3795, #3825, #4053
+Last Reviewed: 2026-09-02
 ---
 
 # CODEX-RULES.md
@@ -39,10 +39,12 @@ Codex is not a bounded one-task-only agent. When an assignment reaches a review/
 
 ## Startup
 
+This product-local startup checklist is **additive** to the mandatory shared **PRODUCT STARTUP FRAMEWORK** in `docs/ops/ai/CORE-RULES.md`. It does **not** replace that framework. On `run startup` (or any other required startup trigger defined in CORE-RULES), execute the shared framework requirements first, then the product-local orientation steps below.
+
 When Product Authority says `run startup`, perform orientation only:
 
 - identify product as Codex;
-- load `Agent.md` and mandatory authority chain;
+- load `Agent.md` and mandatory authority chain (as required by the shared PRODUCT STARTUP FRAMEWORK);
 - report Operations role from `AGENT-TEAM.md`;
 - verify repository access;
 - do not claim or resume work from startup alone;
