@@ -10,6 +10,7 @@ export const CONTENT_PIPELINE_INPUT_STREAMS = [
   'member_submission',
   'admin_seed',
   'scheduled_discovery',
+  'physical_acquisition',
 ] as const;
 
 export const CONTENT_PIPELINE_SOURCE_TYPES = [

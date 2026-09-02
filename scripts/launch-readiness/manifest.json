@@ -40,6 +40,7 @@
     "/admin/member-operations",
     "/admin/moderation",
     "/admin/rights-review",
+    "/admin/archive-items",
     "/admin/worklist",
     "/ai-review/admin",
     "/ai-review/fanclub",
