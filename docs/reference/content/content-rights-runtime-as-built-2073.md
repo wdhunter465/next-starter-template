@@ -23,7 +23,7 @@ This is documentation only. It makes no product or policy decision — those are
 
 Fully covered by `/docs/ops/as-built/gehrig-content-collection-rights-pipeline-as-built-3826.md` (as-built, current). Summary for #2073's purposes: this is LGFC's own **web-sourced discovery** pipeline — six allowlisted sources, metadata-only discovery, human-recorded channel-scoped rights conclusions, approved-only B2 ingestion. It has no concept of a donor, a physical object, custody, or a loan. `content_items.source_type`/`source_url` assume a URL-addressable web source; there is no field for "arrived in the mail" or "dropped off at a meeting."
 
-**As of this writing**, #3551 and its child issues (#3552, #3826, #3837, #3827) are all closed or complete: 15 of 15 original acceptance criteria have direct evidence (see #3551's 2026-09-01/09-02 comment lineage), and #3827 (curator hold-queue admin UI) shipped 2026-09-02 at `src/app/admin/rights-review`.
+**As of this writing**, #3551 and its child issues (#3552, #3826, #3837, #3827) are all closed or complete: 15 of 15 original acceptance criteria have direct evidence (see #3551's 2026-09-01/09-02 comment lineage), and #3827 (curator hold-queue admin UI) is implemented via PR #4057 at `src/app/admin/rights-review` (merged once that PR lands on `main`).
 
 ### 2. The legacy `photos` table and Weekly Matchup
 
@@ -51,7 +51,7 @@ They are bridged, one-directionally, by a real, tested, currently-running mechan
 | `/admin/editorial` | Member story/editorial submissions and the curated inventory that powers homepage/library sections | content-pipeline candidates, rights_evidence |
 | `/admin/moderation` | Abuse reports, "Ask a question" queue, FAQ moderation | content-pipeline anything |
 | `/admin/worklist` | Generic ops task tracker | content-pipeline anything |
-| `/admin/rights-review` (new, #3827, 2026-09-02) | Curator queue for `rights_evidence` rows on `usage_decision = 'hold'`; records permit/deny (+ optional full conclusion) as new append-only rows | candidate review beyond rights (relevance, privacy, editorial fit — see `/api/admin/content-pipeline/candidates/review.ts`, no dedicated UI yet either) |
+| `/admin/rights-review` (new, #3827, PR #4057) | Curator queue for `rights_evidence` rows on `usage_decision = 'hold'`; records permit/deny (+ optional full conclusion) as new append-only rows | candidate review beyond rights (relevance, privacy, editorial fit — see `/api/admin/content-pipeline/candidates/review.ts`, no dedicated UI yet either) |
 
 **For #2073**: none of these are archive-acquisition/custody/donation surfaces. Work package item 5 building a new admin route is genuinely new UI, not an extension of an existing one — but it should follow `/admin/rights-review`'s just-established pattern (a read-only queue endpoint + an append-only action endpoint, `requireAdmin`-gated, registered in both `AdminNav.tsx` and `scripts/launch-readiness/manifest.json`) rather than inventing a new admin-UI convention.
 

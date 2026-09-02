@@ -68,7 +68,7 @@ None of the discovery code downloads or stores media bytes. Every discovered can
 - `POST /api/admin/content-pipeline/ingest` — approved-only transfer from source URL to B2 plus the D1 commit.
 - Batch approval: `functions/_lib/content-pipeline-batch-rights-approval.ts` + its CLI script, used for the Wikimedia Commons approved-batch workflow (`.github/workflows/gehrig-wikimedia-batch-approval.yml`).
 
-**Update, 2026-09-02:** a dedicated curator-facing UI for the `usage_decision = 'hold'` queue now exists — `src/app/admin/rights-review` (#3827), backed by a new read-only `GET /api/admin/content-pipeline/rights-evidence/queue` endpoint. It resolves items via the existing `POST /api/admin/content-pipeline/rights-evidence` (append-only, held row never mutated). See `/docs/reference/content/content-rights-runtime-as-built-2073.md` for the full admin-surface inventory.
+**Update, 2026-09-02:** a dedicated curator-facing UI for the `usage_decision = 'hold'` queue is implemented via PR #4057 (#3827) — `src/app/admin/rights-review` once that PR lands on `main`, backed by a new read-only `GET /api/admin/content-pipeline/rights-evidence/queue` endpoint. It resolves items via the existing `POST /api/admin/content-pipeline/rights-evidence` (append-only, held row never mutated). See `/docs/reference/content/content-rights-runtime-as-built-2073.md` for the full admin-surface inventory.
 
 ## Known gaps
 
@@ -77,7 +77,7 @@ None of the discovery code downloads or stores media bytes. Every discovered can
 
 **Resolved since this doc was first written** (kept here for history, not as open gaps):
 - ~~A failed D1 commit after a successful B2 write leaves an orphaned object.~~ Fixed by #3837/PR #3838 (merged): `commitIngestedMedia` now throws a typed, recoverable `MediaContentItemLinkError` and a retry of the same request completes the link — see #3551's 2026-09-01 12:27 UTC comment for the verification evidence.
-- ~~Curator/rights-review admin UI does not exist.~~ Built 2026-09-02, see the Update note above and #3827.
+- ~~Curator/rights-review admin UI does not exist.~~ Implemented via PR #4057, 2026-09-02, see the Update note above and #3827.
 - ~~#3551's own acceptance checklist has 4 of 15 items still open.~~ All 15 of 15 have direct evidence or an explicit recorded scope decision as of #3551's 2026-09-01 14:29 UTC comment. #3551, #3552, #3826, #3837, and #3827 are all closed/complete as of 2026-09-02.
 
 ## Non-goals
