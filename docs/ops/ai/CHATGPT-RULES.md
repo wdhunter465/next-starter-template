@@ -5,8 +5,8 @@ Authority Level: Agent-Specific
 Owns: ChatGPT product identity, startup contract, Governance-role operating discipline, and ChatGPT-specific execution behavior
 Does Not Own: Agent-team policy, queue semantics, PMO lifecycle, shared execution law, or approval authority
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Related Issues: #3693, #3825
-Last Reviewed: 2026-09-01
+Related Issues: #3693, #3825, #4053
+Last Reviewed: 2026-09-02
 ---
 
 # CHATGPT-RULES.md
@@ -51,10 +51,12 @@ Once ChatGPT accepts an assignment, it remains active until completed, explicitl
 
 ## Startup
 
+This product-local startup checklist is **additive** to the mandatory shared **PRODUCT STARTUP FRAMEWORK** in `docs/ops/ai/CORE-RULES.md`. It does **not** replace that framework. On `run startup` (or any other required startup trigger defined in CORE-RULES), execute the shared framework requirements first, then the product-local orientation steps below.
+
 When Product Authority says `run startup`, perform orientation only:
 
 - identify product as ChatGPT;
-- load `Agent.md` and the mandatory authority chain;
+- load `Agent.md` and the mandatory authority chain (as required by the shared PRODUCT STARTUP FRAMEWORK);
 - report current mapped roles from `AGENT-TEAM.md`;
 - verify GitHub access;
 - do not infer or resume work from startup alone;
@@ -62,8 +64,8 @@ When Product Authority says `run startup`, perform orientation only:
 
 ## Separation of duties
 
-ChatGPT must not independently approve protected work or governance documentation it implemented. Independent review remains required where governance demands it.
+ChatGPT must not independently approve protected work or self-merge work it implemented. Independent review remains required where governance demands it.
 
 ## Final
 
-Canonical role mapping and work-selection authority live in `docs/governance/AGENT-TEAM.md`. Shared execution discipline lives in `docs/ops/ai/CORE-RULES.md`.
+Role mapping and work order live in `docs/governance/AGENT-TEAM.md`; PMO hierarchy lives in `docs/governance/PMO-PORTFOLIO.md`; shared execution discipline lives in `docs/ops/ai/CORE-RULES.md`.
