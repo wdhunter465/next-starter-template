@@ -16,6 +16,16 @@
 // Idempotent: only touches photos rows still held (rights_hold = 1) with a
 // matching cleared media_assets row, so re-running (e.g. on every daily
 // sync) is always safe and a no-op once a row has been reconciled.
+//
+// Also flips is_matchup_eligible to APPROVED (1) in the same statement
+// (#3551 "leverage the new D1 table to provide content to the weekly
+// matchups"): Weekly Matchup (functions/api/matchup/current.ts) reads
+// is_matchup_eligible, not rights_hold/publication_eligible directly, and
+// nothing else ever set it -- a content-collection rights approval landed
+// on `photos` but stayed permanently invisible to Weekly Matchup. Only
+// touches rows still at the unreviewed default (0); an explicit exclusion
+// (-1, e.g. migrations/0051, a #2519 broken-image purge) is never
+// overridden by a rights reconciliation.
 
 // media_assets.b2_key is indexed but NOT unique (migrations/0010_media_assets.sql),
 // so every correlated lookup below pins to a single deterministic row via
@@ -34,6 +44,7 @@ export const RECONCILE_PHOTOS_RIGHTS_FROM_MEDIA_ASSETS_SQL = `
 UPDATE photos
 SET rights_hold = 0,
     publication_eligible = 1,
+    is_matchup_eligible = CASE WHEN photos.is_matchup_eligible = 0 THEN 1 ELSE photos.is_matchup_eligible END,
     rights_status = 'permission_granted',
     reviewed_by = COALESCE(
       (SELECT TRIM(SUBSTR(ma.rights_hold_reason, INSTR(ma.rights_hold_reason, 'reviewer:') + 9))
