@@ -16,6 +16,12 @@ function parsePositiveInt(value: string | null, fallback: number): number {
   return Number.isFinite(n) && n > 0 ? n : fallback;
 }
 
+function parseNonNegativeInt(value: string | null, fallback: number): number {
+  if (!value) return fallback;
+  const n = Number.parseInt(value, 10);
+  return Number.isFinite(n) && n >= 0 ? n : fallback;
+}
+
 export const onRequestGet = async (context: any): Promise<Response> => {
   const { request, env } = context;
 
@@ -33,9 +39,9 @@ export const onRequestGet = async (context: any): Promise<Response> => {
   try {
     const url = new URL(request.url);
     const limit = parsePositiveInt(url.searchParams.get('limit'), 50);
-    const offset = parsePositiveInt(url.searchParams.get('offset'), 1) - 1;
+    const offset = parseNonNegativeInt(url.searchParams.get('offset'), 0);
 
-    const items = await listHoldQueue(d1.db, { limit, offset: Math.max(offset, 0) });
+    const items = await listHoldQueue(d1.db, { limit, offset });
 
     return jsonResponse({ ok: true, count: items.length, items }, 200);
   } catch (err: any) {

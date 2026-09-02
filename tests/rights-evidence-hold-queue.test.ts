@@ -161,7 +161,7 @@ describe('listHoldQueue (#3827)', () => {
     expect(queue).toHaveLength(0);
   });
 
-  it('orders oldest-first and only surfaces a "deny" candidate\'s prior hold row, not the resolution, if re-held later', async () => {
+  it('orders held candidates oldest-first by their latest evidence row', async () => {
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
     const db = wrapSqliteAsD1(sqlite);
@@ -190,6 +190,42 @@ describe('listHoldQueue (#3827)', () => {
 
     const queue = await listHoldQueue(db);
     expect(queue.map((q) => q.candidate_id)).toEqual(['lgfc-gehrig-2026-001', 'lgfc-gehrig-2026-002']);
+  });
+
+  it('surfaces a candidate again if a later row re-holds it after an earlier deny', async () => {
+    const sqlite = new DatabaseSync(':memory:');
+    applyRepoMigrations(sqlite);
+    const db = wrapSqliteAsD1(sqlite);
+
+    const candidate = await upsertCandidate(db, minimalCandidate());
+
+    await recordRightsEvidence(db, {
+      content_item_id: candidate.id,
+      evidence_type: 'commons_license',
+      evidence_text: 'Initial hold.',
+    });
+
+    // Denied -- should not appear in the queue.
+    await recordRightsEvidence(db, {
+      content_item_id: candidate.id,
+      evidence_type: 'other',
+      reviewer: 'Bill',
+      conclusion_rationale: 'License template did not actually apply to this crop -- denied.',
+      usage_decision: 'deny',
+    });
+    let queue = await listHoldQueue(db);
+    expect(queue).toHaveLength(0);
+
+    // New evidence reopens the question -- back on hold, not stuck denied
+    // forever, and the queue reads only the latest row, not the denial.
+    await recordRightsEvidence(db, {
+      content_item_id: candidate.id,
+      evidence_type: 'commons_license',
+      evidence_text: 'A different, higher-resolution source file was found for the same item.',
+    });
+    queue = await listHoldQueue(db);
+    expect(queue).toHaveLength(1);
+    expect(queue[0].latest_evidence.usage_decision).toBe('hold');
   });
 });
 

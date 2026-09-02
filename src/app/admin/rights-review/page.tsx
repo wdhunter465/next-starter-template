@@ -59,6 +59,29 @@ function asString(value: unknown): string | null {
   return typeof value === 'string' ? value : null;
 }
 
+// Guards against a stored source_url/evidence_url containing a javascript:
+// or other non-http(s) scheme from reaching an <a href> -- these values
+// come from discovery metadata and rights evidence, not user input typed
+// into this page, but are still external data by the time they render here.
+function safeHttpUrl(value: string): string | null {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === 'http:' || parsed.protocol === 'https:' ? value : null;
+  } catch {
+    return null;
+  }
+}
+
+function ExternalLink(props: { url: string }) {
+  const safe = safeHttpUrl(props.url);
+  if (!safe) return <span>{props.url}</span>;
+  return (
+    <a href={safe} target="_blank" rel="noopener noreferrer">
+      {safe}
+    </a>
+  );
+}
+
 function normalizeItem(raw: unknown): HoldQueueItem | null {
   if (!isRecord(raw)) return null;
   const contentItemId = raw.content_item_id;
@@ -252,10 +275,7 @@ function QueueCard(props: { item: HoldQueueItem; onResolved: () => void }) {
         {item.source_name ? <div>Source: {item.source_name}</div> : null}
         {item.source_url ? (
           <div>
-            Source URL:{' '}
-            <a href={item.source_url} target="_blank" rel="noreferrer">
-              {item.source_url}
-            </a>
+            Source URL: <ExternalLink url={item.source_url} />
           </div>
         ) : null}
         {item.media_asset_id ? <div>Media asset: {item.media_asset_id}</div> : null}
@@ -275,9 +295,7 @@ function QueueCard(props: { item: HoldQueueItem; onResolved: () => void }) {
         {evidence.evidence_text ? <div>{evidence.evidence_text}</div> : null}
         {evidence.evidence_url ? (
           <div>
-            <a href={evidence.evidence_url} target="_blank" rel="noreferrer">
-              {evidence.evidence_url}
-            </a>
+            <ExternalLink url={evidence.evidence_url} />
           </div>
         ) : null}
         <div style={{ opacity: 0.75 }}>Recorded: {new Date(evidence.recorded_at).toLocaleString()}</div>
