@@ -301,7 +301,13 @@ function CustodyControls(props: { item: ArchiveItem; onChanged: () => void }) {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState('');
 
-  const nextStates = NEXT_STATES[item.custody_state] ?? [];
+  // "returned" only applies to loans -- a donation is permanent, so don't
+  // offer it as a custody option for one (server-side state machine still
+  // allows it, matching #4059's intent that deaccessioned/returned both stay
+  // reachable in case an item is mistakenly returned to a donor).
+  const nextStates = (NEXT_STATES[item.custody_state] ?? []).filter(
+    (s) => s !== 'returned' || item.custody_type === 'loan',
+  );
 
   const advance = useCallback(async () => {
     if (!toState) {

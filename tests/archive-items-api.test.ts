@@ -151,6 +151,49 @@ describe('POST /api/admin/archive-items', () => {
     expect(getBody.count).toBe(1);
     expect(getBody.items[0].id).toBe(postBody.item.id);
   });
+
+  it('offset=N actually skips N rows (regression: offset used to be shifted by one)', async () => {
+    const db = freshAdminDb();
+
+    for (const title of ['First item', 'Second item', 'Third item']) {
+      await archiveItemsPost({
+        env: { DB: db },
+        request: adminPostRequest('/api/admin/archive-items', {
+          title,
+          summary: 'x',
+          item_type: 'document',
+          custody_type: 'donation',
+          actor: 'Bill',
+        }),
+      });
+    }
+
+    const allResponse = await archiveItemsGet({
+      env: { DB: db },
+      request: adminGetRequest('/api/admin/archive-items'),
+    });
+    const all = (await allResponse.json()).items as Array<{ id: number }>;
+    expect(all.length).toBe(3);
+
+    const offsetZero = await archiveItemsGet({
+      env: { DB: db },
+      request: adminGetRequest('/api/admin/archive-items?offset=0'),
+    });
+    expect((await offsetZero.json()).items).toEqual(all);
+
+    const offsetOne = await archiveItemsGet({
+      env: { DB: db },
+      request: adminGetRequest('/api/admin/archive-items?offset=1'),
+    });
+    const afterOffsetOne = (await offsetOne.json()).items as Array<{ id: number }>;
+    expect(afterOffsetOne).toEqual(all.slice(1));
+
+    const offsetTwo = await archiveItemsGet({
+      env: { DB: db },
+      request: adminGetRequest('/api/admin/archive-items?offset=2'),
+    });
+    expect((await offsetTwo.json()).items).toEqual(all.slice(2));
+  });
 });
 
 describe('POST /api/admin/archive-items/custody', () => {
