@@ -25,6 +25,31 @@ content rights triage) or `/admin/media-assets` (B2 object inventory) — see
 `content-rights-runtime-as-built-2073.md`'s admin surfaces table if you're
 unsure which admin page a given task belongs on.
 
+## Scope
+
+Covers: recording a new physical-item intake (donation or loan) and
+advancing it through custody state at `/admin/archive-items`, who is
+authorized to do it, and the common mistakes operators hit.
+
+Does not cover: the product/privacy/custody decisions this feature
+implements (owned by #4059, recorded on that issue); schema or migration
+detail (owned by `migrations/0065_archive_acquisition_core.sql` and
+`functions/_lib/archive-items-repository.ts`); what to do if this surface
+or its schema needs to be rolled back (owned by
+`docs/ops/how-to/archive-item-rollback-recovery.md`).
+
+## Current known truth
+
+`/admin/archive-items`, its two `requireAdmin`-gated API endpoints
+(`POST /api/admin/archive-items`, `POST /api/admin/archive-items/custody`),
+and migration 0065's `archive_items`/`archive_item_custody_events` tables
+are live on `main` and applied to both Development and Production D1 as of
+PR #4067 (merged 2026-09-02). The procedure below reflects that shipped
+behavior, not a design intent — every field, transition, and API response
+it describes is read directly from `archive-items-repository.ts`,
+`archive-items-admin.ts`, and `src/app/admin/archive-items/page.tsx` as
+they exist on `main` today.
+
 ## Who can do this
 
 `/admin/archive-items` and its two API endpoints

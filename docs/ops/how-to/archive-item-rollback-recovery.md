@@ -32,6 +32,35 @@ reversible in seconds, and loses no data. Only reach for the schema-level
 rollback in Recovery scenario 2 below, and only after reading its
 guardrails.
 
+## Scope
+
+Covers: three recovery scenarios for the physical archive-acquisition
+surfaces (code-only rollback, schema-level reversal, catastrophic
+D1 restore), the exercised reversal script's guardrails and how to run it,
+and this feature's promotion-candidate qualification checklist for
+Production.
+
+Does not cover: day-to-day intake/custody operation (owned by
+`docs/ops/how-to/archive-item-intake-and-custody.md`); this repository's
+general rollback strategy, which this document narrows rather than
+restates (owned by `docs/ops/rollback_MASTER.md`); D1 whole-database
+backup/restore mechanics themselves, only how this feature uses them
+(owned by the #3268 workflow series).
+
+## Current known truth
+
+Migration 0065 and the code it supports are live on `main`, applied to both
+Development and Production D1, as of PR #4067 (merged 2026-09-02). No
+schema-level rollback has ever been executed against a real database —
+`scripts/ops/rollback/0065_archive_acquisition_core_rollback.sql` is
+exercised only in-memory, by
+`tests/migration-0065-archive-acquisition-rollback.test.ts` (4/4 passing:
+one clean-reversal case, three guard-refusal cases). As of this writing no
+`archive_items` row, `physical_acquisition` `content_items` row, or
+`donor_agreement` `rights_evidence` row exists in Production yet, so the
+schema-level reversal's guard would still pass if it were ever needed — see
+Recovery scenario 2 before assuming that stays true.
+
 ## Recovery scenario 1: the admin UI or API is broken, but D1 is fine
 
 **Symptoms:** `/admin/archive-items` errors, a custody transition silently
