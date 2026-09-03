@@ -5,6 +5,7 @@ import AdminLink from '@/components/fanclub/AdminLink';
 import ArchivesTiles from '@/components/fanclub/ArchivesTiles';
 import ClubHomeArchiveSpotlight from '@/components/fanclub/ClubHomeArchiveSpotlight';
 import ClubHomeDeferredModule from '@/components/fanclub/ClubHomeDeferredModule';
+import ClubHomeEventsModule from '@/components/fanclub/ClubHomeEventsModule';
 import ClubHomeMasthead from '@/components/fanclub/ClubHomeMasthead';
 import ClubHomeMediaFeature from '@/components/fanclub/ClubHomeMediaFeature';
 import ClubHomeMemberPrompt from '@/components/fanclub/ClubHomeMemberPrompt';
@@ -70,11 +71,7 @@ export default function MemberHomePage() {
           />
         </div>
         <div className={clubHomeZoneClassName.events}>
-          <ClubHomeDeferredModule
-            ariaLabel="Events callout"
-            title="Events & Calendar"
-            reason="Upcoming Lou Gehrig Fan Club events will appear here when the calendar is connected."
-          />
+          <ClubHomeEventsModule />
         </div>
         <div className={clubHomeZoneClassName.recognition}>
           <ClubHomeDeferredModule
