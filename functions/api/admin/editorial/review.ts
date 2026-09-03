@@ -9,6 +9,7 @@ import {
   serializeLegacyMediaJson,
 } from "../../../_lib/content-inventory-media";
 import { jsonResponse, requireD1, requireTables } from "../../../_lib/d1";
+import { recordEditorialAudit } from "../../../_lib/editorial-audit";
 
 type ReviewBody = {
   submission_id?: unknown;
@@ -144,9 +145,7 @@ export const onRequestPost = async (context: any): Promise<Response> => {
       return jsonResponse({ ok: false, error: "Submission not found." }, 404);
     }
 
-    const nowRow = await d1.db
-      .prepare("SELECT datetime('now') AS now, datetime('now', '+90 days') AS purge_eligible_at")
-      .first();
+    const nowRow = await d1.db.prepare("SELECT datetime('now') AS now, datetime('now', '+90 days') AS purge_eligible_at").first();
     const now = String((nowRow as any)?.now || new Date().toISOString());
     const defaultPurgeEligibleAt = String((nowRow as any)?.purge_eligible_at || now);
     const reviewNotes = asString(body?.review_notes) || null;
@@ -170,6 +169,16 @@ export const onRequestPost = async (context: any): Promise<Response> => {
         .bind(triageFlags, duplicateCandidate, reviewNotes, now, reviewer, submissionId)
         .run();
 
+      await recordEditorialAudit(d1.db, {
+        action: "triage",
+        objectType: "submission",
+        objectId: submissionId,
+        actor: reviewer,
+        before: { status: currentStatus },
+        after: { status: "triaged" },
+        meta: { duplicate_candidate: duplicateCandidate },
+      });
+
       return jsonResponse({ ok: true, action: "triage", submission_id: submissionId }, 200);
     }
 
@@ -186,6 +195,15 @@ export const onRequestPost = async (context: any): Promise<Response> => {
         )
         .bind(reviewNotes, now, reviewer, submissionId)
         .run();
+
+      await recordEditorialAudit(d1.db, {
+        action: "start_review",
+        objectType: "submission",
+        objectId: submissionId,
+        actor: reviewer,
+        before: { status: currentStatus },
+        after: { status: "under_review" },
+      });
 
       return jsonResponse({ ok: true, action: "start_review", submission_id: submissionId }, 200);
     }
@@ -208,6 +226,15 @@ export const onRequestPost = async (context: any): Promise<Response> => {
         .bind(reviewNotes, reviewer, now, now, now, reviewer, submissionId)
         .run();
 
+      await recordEditorialAudit(d1.db, {
+        action: "purge",
+        objectType: "submission",
+        objectId: submissionId,
+        actor: reviewer,
+        before: { status: currentStatus },
+        after: { status: "purged" },
+      });
+
       return jsonResponse({ ok: true, action: "purge", submission_id: submissionId }, 200);
     }
 
@@ -217,9 +244,7 @@ export const onRequestPost = async (context: any): Promise<Response> => {
 
     if (action === "reject") {
       const retentionReason = asString(body?.retention_reason) || null;
-      const purgeEligibleAt = retentionReason
-        ? null
-        : normalizeOptionalDate(body?.purge_eligible_at) || defaultPurgeEligibleAt;
+      const purgeEligibleAt = retentionReason ? null : normalizeOptionalDate(body?.purge_eligible_at) || defaultPurgeEligibleAt;
 
       await d1.db
         .prepare(
@@ -244,6 +269,16 @@ export const onRequestPost = async (context: any): Promise<Response> => {
           submissionId,
         )
         .run();
+
+      await recordEditorialAudit(d1.db, {
+        action: "reject",
+        objectType: "submission",
+        objectId: submissionId,
+        actor: reviewer,
+        before: { status: currentStatus },
+        after: { status: "rejected" },
+        meta: { retention_reason: retentionReason, purge_eligible_at: purgeEligibleAt },
+      });
 
       return jsonResponse({ ok: true, action: "reject", submission_id: submissionId }, 200);
     }
@@ -270,10 +305,7 @@ export const onRequestPost = async (context: any): Promise<Response> => {
         `Merged submission #${submissionId} (${title || "untitled"}) into content_inventory #${targetInventoryId} by ${reviewer}.`,
       );
       const nextNotes = appendText((target as any).review_notes, mergeNote);
-      const nextSearchText = [String((target as any).search_text || ""), title, text]
-        .filter(Boolean)
-        .join(" ")
-        .trim();
+      const nextSearchText = [String((target as any).search_text || ""), title, text].filter(Boolean).join(" ").trim();
 
       await d1.db
         .prepare("UPDATE content_inventory SET review_notes = ?, search_text = ?, updated_at = ? WHERE id = ?")
@@ -290,10 +322,17 @@ export const onRequestPost = async (context: any): Promise<Response> => {
         .bind(mergeNote, duplicateCandidate || String(targetInventoryId), reviewer, now, now, now, reviewer, submissionId)
         .run();
 
-      return jsonResponse(
-        { ok: true, action: "merge", submission_id: submissionId, inventory_id: targetInventoryId },
-        200,
-      );
+      await recordEditorialAudit(d1.db, {
+        action: "merge",
+        objectType: "submission",
+        objectId: submissionId,
+        actor: reviewer,
+        before: { status: currentStatus },
+        after: { status: "merged" },
+        meta: { inventory_id: targetInventoryId },
+      });
+
+      return jsonResponse({ ok: true, action: "merge", submission_id: submissionId, inventory_id: targetInventoryId }, 200);
     }
 
     const title = String((submission as any).title || "").trim();
@@ -315,17 +354,7 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     const eventYear = asOptionalInt(body?.event_year);
     const rotationGroup = asString(body?.rotation_group) || null;
     const featureWeight = Math.max(1, asInt(body?.feature_weight, 1));
-    const searchText = [
-      title,
-      text,
-      summary,
-      tag,
-      perspectiveLabel,
-      sourceName,
-      creditLine,
-      eventDate,
-      eventYear,
-    ]
+    const searchText = [title, text, summary, tag, perspectiveLabel, sourceName, creditLine, eventDate, eventYear]
       .filter(Boolean)
       .join(" ");
 
@@ -334,10 +363,7 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     }
 
     if (canonical === 0 && !perspectiveLabel) {
-      return jsonResponse(
-        { ok: false, error: "Alternate-perspective records require perspective_label." },
-        400,
-      );
+      return jsonResponse({ ok: false, error: "Alternate-perspective records require perspective_label." }, 400);
     }
 
     const associationsResult = await buildAssociationsFromSubmission(
@@ -416,14 +442,19 @@ export const onRequestPost = async (context: any): Promise<Response> => {
 
       await d1.db
         .prepare("UPDATE content_inventory SET media = ?, search_text = ?, updated_at = ? WHERE id = ?")
-        .bind(
-          mediaJson,
-          [searchText, mediaSearchText].filter(Boolean).join(" ").trim(),
-          now,
-          inventoryId,
-        )
+        .bind(mediaJson, [searchText, mediaSearchText].filter(Boolean).join(" ").trim(), now, inventoryId)
         .run();
     }
+
+    await recordEditorialAudit(d1.db, {
+      action: "approve",
+      objectType: "submission",
+      objectId: submissionId,
+      actor: reviewer,
+      before: { status: currentStatus },
+      after: { status: "approved" },
+      meta: { inventory_id: inventoryId },
+    });
 
     return jsonResponse(
       {

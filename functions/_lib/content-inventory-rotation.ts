@@ -1,13 +1,16 @@
 // Deterministic editorial rotation scoring and selection for content_inventory.
 
-import { publishedInventoryWhere } from './content-inventory-public';
+import { publishedInventoryWhere } from "./content-inventory-public";
 
-export const HOMEPAGE_SPOTLIGHT_SECTION = 'homepage_spotlight';
-export const HOMEPAGE_DISCUSSIONS_SECTION = 'homepage_discussions';
-export const HOMEPAGE_MILESTONES_SECTION = 'homepage_milestones';
+export const HOMEPAGE_SPOTLIGHT_SECTION = "homepage_spotlight";
+export const HOMEPAGE_DISCUSSIONS_SECTION = "homepage_discussions";
+export const HOMEPAGE_MILESTONES_SECTION = "homepage_milestones";
 
 export const DEFAULT_RECENT_FEATURE_WINDOW_DAYS = 90;
 export const DEFAULT_EVENT_PROXIMITY_WINDOW_DAYS = 30;
+/** Hard recent-use exclusion window (#2663 / content-strategy.md). Soft 90-day penalty remains after this. */
+export const DEFAULT_HARD_COOLDOWN_DAYS = 14;
+const USAGE_COUNT_SCORE_PENALTY = 30;
 
 export type RotationRow = {
   id: number;
@@ -18,6 +21,7 @@ export type RotationRow = {
   event_year?: number | string | null;
   rotation_group?: string | null;
   last_featured?: string | null;
+  usage_count?: number | null;
   feature_weight?: number | null;
   allowed_sections?: string | null;
   status?: string | null;
@@ -32,6 +36,9 @@ export type RotationContext = {
   recentFeaturedGroupCounts?: Record<string, number>;
   recentFeatureWindowDays?: number;
   eventProximityWindowDays?: number;
+  hardCooldownDays?: number;
+  /** When true (default), if every candidate is in hard cooldown, fall back to the soft-penalty pool. */
+  relaxHardCooldownWhenEmpty?: boolean;
 };
 
 export type FetchRotationRankedOptions = {
@@ -44,22 +51,22 @@ export type FetchRotationRankedOptions = {
   recentFeaturedGroupCounts?: Record<string, number>;
 };
 
-function normalizeCanonical(value: RotationRow['canonical']): boolean {
+function normalizeCanonical(value: RotationRow["canonical"]): boolean {
   return Number(value) === 1 || value === true;
 }
 
-function normalizeTitle(value: RotationRow['title']): string {
-  return typeof value === 'string' ? value.trim().toLowerCase() : '';
+function normalizeTitle(value: RotationRow["title"]): string {
+  return typeof value === "string" ? value.trim().toLowerCase() : "";
 }
 
-function parseEventYear(value: RotationRow['event_year']): number | null {
-  if (value === null || value === undefined || String(value).trim() === '') return null;
+function parseEventYear(value: RotationRow["event_year"]): number | null {
+  if (value === null || value === undefined || String(value).trim() === "") return null;
   const parsed = Number(value);
   return Number.isFinite(parsed) ? Math.trunc(parsed) : null;
 }
 
 export function daysUntilAnniversary(eventDate: string, asOf: Date): number | null {
-  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(eventDate || '').trim());
+  const match = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(eventDate || "").trim());
   if (!match) return null;
 
   const month = Number(match[2]);
@@ -81,18 +88,14 @@ export function parseRotationTimestamp(value: unknown): number | null {
   if (value === null || value === undefined) return null;
   let dateStr = String(value).trim();
   if (!dateStr) return null;
-  if (dateStr.length === 19 && !dateStr.includes('T')) {
-    dateStr = `${dateStr.replace(' ', 'T')}Z`;
+  if (dateStr.length === 19 && !dateStr.includes("T")) {
+    dateStr = `${dateStr.replace(" ", "T")}Z`;
   }
   const parsed = Date.parse(dateStr);
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-export function computeRecentFeaturePenalty(
-  row: RotationRow,
-  asOf: Date,
-  windowDays = DEFAULT_RECENT_FEATURE_WINDOW_DAYS,
-): number {
+export function computeRecentFeaturePenalty(row: RotationRow, asOf: Date, windowDays = DEFAULT_RECENT_FEATURE_WINDOW_DAYS): number {
   const featuredAt = parseRotationTimestamp(row.last_featured);
   if (featuredAt === null) return 0;
 
@@ -101,13 +104,9 @@ export function computeRecentFeaturePenalty(
   return Math.round(120 * (1 - daysSince / windowDays));
 }
 
-export function computeEventProximityBoost(
-  row: RotationRow,
-  asOf: Date,
-  windowDays = DEFAULT_EVENT_PROXIMITY_WINDOW_DAYS,
-): number {
+export function computeEventProximityBoost(row: RotationRow, asOf: Date, windowDays = DEFAULT_EVENT_PROXIMITY_WINDOW_DAYS): number {
   let boost = 0;
-  const eventDate = typeof row.event_date === 'string' ? row.event_date.trim() : '';
+  const eventDate = typeof row.event_date === "string" ? row.event_date.trim() : "";
   if (eventDate) {
     const days = daysUntilAnniversary(eventDate, asOf);
     if (days !== null && days <= windowDays) {
@@ -126,13 +125,40 @@ export function computeEventProximityBoost(
   return boost;
 }
 
-export function computeRotationGroupPenalty(
-  row: RotationRow,
-  recentFeaturedGroupCounts?: Record<string, number>,
-): number {
-  const group = String(row.rotation_group || '').trim().toLowerCase();
+export function computeRotationGroupPenalty(row: RotationRow, recentFeaturedGroupCounts?: Record<string, number>): number {
+  const group = String(row.rotation_group || "")
+    .trim()
+    .toLowerCase();
   if (!group || !recentFeaturedGroupCounts?.[group]) return 0;
   return recentFeaturedGroupCounts[group] * 40;
+}
+
+export function normalizeUsageCount(value: RotationRow["usage_count"]): number {
+  const n = Number(value ?? 0);
+  return Number.isFinite(n) && n > 0 ? Math.trunc(n) : 0;
+}
+
+export function isWithinHardCooldown(row: RotationRow, asOf: Date, cooldownDays = DEFAULT_HARD_COOLDOWN_DAYS): boolean {
+  const featuredAt = parseRotationTimestamp(row.last_featured);
+  if (featuredAt === null) return false;
+  const daysSince = (asOf.getTime() - featuredAt) / 86_400_000;
+  // Fail closed on future timestamps (clock skew / bad data): treat as still cooling.
+  if (daysSince < 0) return true;
+  return daysSince < cooldownDays;
+}
+
+/**
+ * Apply hard recent-use exclusion. If every row is cooling down and relaxation is
+ * enabled, return the original pool so surfaces can still render (soft penalty remains).
+ */
+export function filterRotationFairnessPool<T extends RotationRow>(rows: T[], context: RotationContext = {}): T[] {
+  if (!rows.length) return rows;
+  const asOf = context.asOfDate ?? new Date();
+  const cooldownDays = context.hardCooldownDays ?? DEFAULT_HARD_COOLDOWN_DAYS;
+  const outsideCooldown = rows.filter((row) => !isWithinHardCooldown(row, asOf, cooldownDays));
+  if (outsideCooldown.length) return outsideCooldown;
+  if (context.relaxHardCooldownWhenEmpty === false) return [];
+  return rows;
 }
 
 export function computeRotationScore(row: RotationRow, context: RotationContext = {}): number {
@@ -145,6 +171,7 @@ export function computeRotationScore(row: RotationRow, context: RotationContext 
   score += computeEventProximityBoost(row, asOf, context.eventProximityWindowDays);
   score -= computeRecentFeaturePenalty(row, asOf, context.recentFeatureWindowDays);
   score -= computeRotationGroupPenalty(row, context.recentFeaturedGroupCounts);
+  score -= normalizeUsageCount(row.usage_count) * USAGE_COUNT_SCORE_PENALTY;
 
   if (!context.includeAlternates && !normalizeCanonical(row.canonical)) {
     score -= 200;
@@ -156,6 +183,10 @@ export function computeRotationScore(row: RotationRow, context: RotationContext 
 export function compareRotationRows(a: RotationRow, b: RotationRow, context: RotationContext = {}): number {
   const scoreDelta = computeRotationScore(b, context) - computeRotationScore(a, context);
   if (scoreDelta !== 0) return scoreDelta;
+
+  // Least-used preference after score (contract: prefer least-used eligible row).
+  const usageDelta = normalizeUsageCount(a.usage_count) - normalizeUsageCount(b.usage_count);
+  if (usageDelta !== 0) return usageDelta;
 
   const canonicalDelta = Number(normalizeCanonical(b.canonical)) - Number(normalizeCanonical(a.canonical));
   if (canonicalDelta !== 0) return canonicalDelta;
@@ -178,20 +209,24 @@ export function sortRotationRows<T extends RotationRow>(rows: T[], context: Rota
 }
 
 export function isRotationEligibleRow(row: RotationRow, sectionKey: string): boolean {
-  if (row.status !== 'published') return false;
-  if (!String(row.allowed_sections || '').toLowerCase().includes(sectionKey.toLowerCase())) return false;
-  if (!String(row.source_name || '').trim()) return false;
-  if (!String(row.credit_line || '').trim()) return false;
+  if (row.status !== "published") return false;
+  if (
+    !String(row.allowed_sections || "")
+      .toLowerCase()
+      .includes(sectionKey.toLowerCase())
+  )
+    return false;
+  if (!String(row.source_name || "").trim()) return false;
+  if (!String(row.credit_line || "").trim()) return false;
   return true;
 }
 
-export async function fetchRotationEligibleRows(
-  db: any,
-  options: { sectionKey: string; q?: string },
-): Promise<RotationRow[]> {
+export async function fetchRotationEligibleRows(db: any, options: { sectionKey: string; q?: string }): Promise<RotationRow[]> {
   const whereParts = [publishedInventoryWhere(options.sectionKey)];
   const args: unknown[] = [];
-  const q = String(options.q || '').trim().toLowerCase();
+  const q = String(options.q || "")
+    .trim()
+    .toLowerCase();
 
   if (q) {
     whereParts.push(
@@ -201,12 +236,12 @@ export async function fetchRotationEligibleRows(
     args.push(like, like, like, like, like, like, like, like);
   }
 
-  const whereSql = `WHERE ${whereParts.join(' AND ')}`;
+  const whereSql = `WHERE ${whereParts.join(" AND ")}`;
   const rows = await db
     .prepare(
       `SELECT id, title, text, summary, credit_line, source_name, source_url, tag, event_date, event_year,
-              rotation_group, last_featured, feature_weight, canonical, priority, allowed_sections,
-              status, updated_at
+              rotation_group, last_featured, usage_count, feature_weight, canonical, priority,
+              allowed_sections, status, updated_at
        FROM content_inventory
        ${whereSql}`,
     )
@@ -232,6 +267,9 @@ export async function fetchRotationRankedInventory<T extends RotationRow>(
     sectionKey: options.sectionKey,
     q: options.q,
   })) as T[];
+  // Hard-cooldown fairness (P1-03 / #3393) is Club Home-specific and applied directly by
+  // content-inventory-club-home.ts's pickLeadStory/pickRailStories/pickArchiveSpotlight.
+  // Other sections (library, homepage_*) keep the pre-existing soft-penalty-only ranking.
   const ranked = sortRotationRows(eligible, context);
   return {
     items: ranked.slice(offset, offset + limit),
@@ -250,11 +288,89 @@ export async function recordRotationFeature(
   await db
     .prepare(
       `UPDATE content_inventory
-          SET last_featured = ?, updated_at = ?
+          SET last_featured = ?,
+              usage_count = COALESCE(usage_count, 0) + 1,
+              updated_at = ?
         WHERE id = ? AND status = 'published'`,
     )
     .bind(timestamp, timestamp, storyId)
     .run();
 
   return { ok: true, id: storyId, last_featured: timestamp };
+}
+
+export const CLUB_HOME_PLACEMENT_ZONES = {
+  leadStory: "lead-story",
+  storyRail: "story-rail",
+  archiveSpotlight: "archive-spotlight",
+  mediaFeature: "media-feature",
+} as const;
+
+export type ClubHomePlacementZone = (typeof CLUB_HOME_PLACEMENT_ZONES)[keyof typeof CLUB_HOME_PLACEMENT_ZONES];
+
+export type PlacementHistoryRecord = {
+  story_id: number;
+  zone_id: ClubHomePlacementZone | string;
+  section_key?: string;
+  placed_at?: string;
+  selection_mode?: "automatic" | "pinned" | string;
+  edition_id?: number | null;
+  media_rendition?: string | null;
+  feature_size?: string | null;
+};
+
+/**
+ * Persist Club Home (or other section) placement events.
+ * Fail-open: storage errors are returned without throwing so callers keep serving content.
+ */
+export async function recordPlacementHistory(
+  db: any,
+  placements: PlacementHistoryRecord[],
+): Promise<{ ok: boolean; recorded: number; error?: string }> {
+  if (!Array.isArray(placements) || !placements.length) {
+    return { ok: true, recorded: 0 };
+  }
+
+  try {
+    const nowRow = await db.prepare("SELECT datetime('now') AS now").first();
+    const now = String((nowRow as { now?: string } | null)?.now || new Date().toISOString());
+    let recorded = 0;
+
+    for (const placement of placements) {
+      const storyId = Number(placement.story_id);
+      const zoneId = String(placement.zone_id || "").trim();
+      if (!Number.isFinite(storyId) || storyId <= 0 || !zoneId) continue;
+
+      const placedAt = String(placement.placed_at || now);
+      const sectionKey = String(placement.section_key || "club_home").trim() || "club_home";
+      const selectionMode = String(placement.selection_mode || "automatic").trim() || "automatic";
+
+      await db
+        .prepare(
+          `INSERT INTO content_inventory_placement_history
+            (story_id, zone_id, section_key, placed_at, selection_mode, edition_id,
+             media_rendition, feature_size, created_at)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        )
+        .bind(
+          Math.trunc(storyId),
+          zoneId,
+          sectionKey,
+          placedAt,
+          selectionMode,
+          placement.edition_id ?? null,
+          placement.media_rendition ?? null,
+          placement.feature_size ?? null,
+          now,
+        )
+        .run();
+      recorded += 1;
+    }
+
+    return { ok: true, recorded };
+  } catch (err: any) {
+    const message = String(err?.message || err || "Placement history write failed.");
+    console.error("content inventory placement history error:", err);
+    return { ok: false, recorded: 0, error: message };
+  }
 }

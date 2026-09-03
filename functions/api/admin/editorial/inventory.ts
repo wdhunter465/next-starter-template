@@ -3,6 +3,7 @@
 
 import { requireAdmin } from "../../../_lib/auth";
 import { jsonResponse, requireD1, requireTables } from "../../../_lib/d1";
+import { recordEditorialAudit } from "../../../_lib/editorial-audit";
 
 const STORY_TYPES = new Set(["primary", "secondary", "brief"]);
 const ALLOWED_SECTION_KEYS = new Set([
@@ -82,7 +83,10 @@ function normalizeAllowedSections(value: unknown): { ok: true; value: string } |
         const parsed = JSON.parse(trimmed);
         sections = Array.isArray(parsed) ? parsed.map((entry) => asString(entry)).filter(Boolean) : [];
       } catch {
-        sections = trimmed.split(",").map((entry) => entry.trim()).filter(Boolean);
+        sections = trimmed
+          .split(",")
+          .map((entry) => entry.trim())
+          .filter(Boolean);
       }
     }
   }
@@ -195,10 +199,7 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     }
 
     if (fields.canonical === 0 && !fields.perspectiveLabel) {
-      return jsonResponse(
-        { ok: false, error: "Alternate-perspective records require perspective_label." },
-        400,
-      );
+      return jsonResponse({ ok: false, error: "Alternate-perspective records require perspective_label." }, 400);
     }
 
     const searchText = buildSearchText({
@@ -217,10 +218,7 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     const now = String((nowRow as any)?.now || new Date().toISOString());
 
     if (id) {
-      const existing = await d1.db
-        .prepare("SELECT id, status FROM content_inventory WHERE id = ?")
-        .bind(id)
-        .first();
+      const existing = await d1.db.prepare("SELECT id, status FROM content_inventory WHERE id = ?").bind(id).first();
 
       if (!existing) {
         return jsonResponse({ ok: false, error: "Content record not found." }, 404);
@@ -259,6 +257,15 @@ export const onRequestPost = async (context: any): Promise<Response> => {
         )
         .run();
 
+      await recordEditorialAudit(d1.db, {
+        action: "inventory_update",
+        objectType: "content_inventory",
+        objectId: id,
+        actor: fields.submittedBy || "admin-ui",
+        before: { status: String((existing as any).status || "draft") },
+        after: { status: String((existing as any).status || "draft"), tag: fields.tag },
+      });
+
       return jsonResponse({ ok: true, action: "update", id, status: String((existing as any).status || "draft") }, 200);
     }
 
@@ -295,6 +302,16 @@ export const onRequestPost = async (context: any): Promise<Response> => {
       .run();
 
     const inventoryId = (insert as any)?.meta?.last_row_id ?? (insert as any)?.meta?.lastRowId ?? null;
+
+    await recordEditorialAudit(d1.db, {
+      action: "inventory_create",
+      objectType: "content_inventory",
+      objectId: inventoryId == null ? null : Number(inventoryId),
+      actor: fields.submittedBy || "admin-ui",
+      before: null,
+      after: { status: "draft", tag: fields.tag },
+    });
+
     return jsonResponse({ ok: true, action: "create", id: inventoryId, status: "draft" }, 200);
   } catch (err: any) {
     const message = String(err?.message || err);
