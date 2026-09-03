@@ -1,11 +1,12 @@
 'use client';
 
 import Link from 'next/link';
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { fanclubThreeColumnGridClassName } from '@/components/fanclub/fanclubGridStyles';
 import { useMemberSession } from '@/hooks/useMemberSession';
 import { buildFanclubPhotoListApiUrl } from '@/lib/fanclubApi';
+import styles from './page.module.css';
 
 type MemorabiliaItem = {
   id: number;
@@ -20,34 +21,6 @@ type RelatedLibraryEntry = {
   title?: string | null;
   author?: string | null;
   summary?: string | null;
-};
-
-const pillBase: React.CSSProperties = {
-  padding: '6px 12px',
-  borderRadius: 999,
-  border: '1px solid rgba(0,0,0,0.2)',
-  background: 'rgba(255,255,255,0.6)',
-  cursor: 'pointer',
-  fontSize: 13,
-};
-
-const pillActive: React.CSSProperties = {
-  ...pillBase,
-  background: '#1e3a8a',
-  borderColor: '#1e3a8a',
-  color: '#fff',
-};
-
-const styles: Record<string, React.CSSProperties> = {
-  main: { padding: '40px 16px', maxWidth: 1100, margin: '0 auto' },
-  h1: { fontSize: 34, lineHeight: 1.15, margin: '0 0 12px 0' },
-  lead: { fontSize: 18, lineHeight: 1.6, margin: '0 0 18px 0' },
-  card: { border: '1px solid rgba(0,0,0,0.15)', borderRadius: 14, overflow: 'hidden', background: 'rgba(255,255,255,0.6)' },
-  img: { width: '100%', height: 160, objectFit: 'cover', display: 'block' },
-  cap: { padding: 10, fontSize: 13, lineHeight: 1.4, opacity: 0.9 },
-  btnRow: { display: 'flex', gap: 10, marginTop: 14, flexWrap: 'wrap' },
-  btn: { padding: '10px 14px', fontSize: 16, borderRadius: 12, border: '1px solid rgba(0,0,0,0.2)', cursor: 'pointer', textDecoration: 'none', color: 'inherit' },
-  related: { marginTop: 24, padding: 16, borderRadius: 14, border: '1px solid rgba(0,0,0,0.12)' },
 };
 
 function parseTagsParam(raw: string | null): string[] {
@@ -148,9 +121,9 @@ export default function MemorabiliaPage() {
   const tagCsv = selectedTags.join(',');
 
   return (
-    <main style={{ ...styles.main }}>
-      <h1 style={{ ...styles.h1 }}>Memorabilia Archive</h1>
-      <p style={{ ...styles.lead }}>A read-only view of memorabilia-tagged records sourced from the photo archive.</p>
+    <main className={styles.main}>
+      <h1 className={styles.title}>Memorabilia Archive</h1>
+      <p className={styles.lead}>A read-only view of memorabilia-tagged records sourced from the photo archive.</p>
       <form
         onSubmit={(event) => {
           event.preventDefault();
@@ -162,23 +135,23 @@ export default function MemorabiliaPage() {
           router.replace(suffix ? `/fanclub/memorabilia?${suffix}` : '/fanclub/memorabilia');
         }}
       >
-        <label style={{ display: 'grid', gap: 6, fontSize: 14, marginBottom: 14 }}>
+        <label className={styles.field}>
           Search
           <input
+            className={styles.input}
             value={draftQuery}
             onChange={(e) => setDraftQuery(e.target.value)}
             placeholder="Search memorabilia…"
-            style={{ padding: '10px 12px', fontSize: 16, borderRadius: 10, border: '1px solid rgba(0,0,0,0.2)' }}
           />
         </label>
 
-        <div style={{ marginBottom: 14 }}>
-          <div style={{ fontSize: 13, opacity: 0.85, marginBottom: 8 }}>Tag filters</div>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
+        <div className={styles.tagBlock}>
+          <div className={styles.tagLabel}>Tag filters</div>
+          <div className={styles.pillRow}>
             <button
               type="button"
               aria-pressed={selectedTags.length === 0}
-              style={selectedTags.length === 0 ? pillActive : pillBase}
+              className={selectedTags.length === 0 ? styles.pillActive : styles.pill}
               onClick={() => setSelectedTags([])}
             >
               All
@@ -190,7 +163,7 @@ export default function MemorabiliaPage() {
                   key={tag}
                   type="button"
                   aria-pressed={active}
-                  style={active ? pillActive : pillBase}
+                  className={active ? styles.pillActive : styles.pill}
                   onClick={() => {
                     setSelectedTags((current) =>
                       current.includes(tag) ? current.filter((value) => value !== tag) : [...current, tag],
@@ -204,29 +177,29 @@ export default function MemorabiliaPage() {
           </div>
         </div>
 
-        <button type="submit" style={{ ...styles.btn, marginBottom: 14 }}>
+        <button type="submit" className={styles.button}>
           Apply filters
         </button>
       </form>
-      {message ? <p style={{ opacity: 0.85 }}>{message}</p> : null}
+      {message ? <p className={styles.muted}>{message}</p> : null}
 
       <div className={fanclubThreeColumnGridClassName}>
         {items.map((p) => (
-          <div key={p.id} style={{ ...styles.card }}>
+          <div key={p.id} className={styles.card}>
             {p.thumbnail_url ? (
-              <img src={p.thumbnail_url} alt={p.description || p.title || `Item ${p.id}`} style={{ ...styles.img }} />
+              <img src={p.thumbnail_url} alt={p.description || p.title || `Item ${p.id}`} className={styles.img} />
             ) : (
-              <div style={{ ...styles.img, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>No image</div>
+              <div className={styles.imgFallback}>No image</div>
             )}
-            <div style={{ ...styles.cap }}>
+            <div className={styles.cap}>
               <div>{p.title || p.description || '—'}</div>
-              {p.tags ? <div style={{ marginTop: 6, opacity: 0.75, fontSize: 12 }}>Tags: {p.tags}</div> : null}
+              {p.tags ? <div className={styles.capMeta}>Tags: {p.tags}</div> : null}
             </div>
           </div>
         ))}
       </div>
       {!loading && items.length === 0 ? (
-        <p style={{ marginTop: 14, opacity: 0.85 }}>
+        <p className={styles.muted}>
           {activeQuery.trim() || activeTags.length > 0
             ? 'No memorabilia items match your search.'
             : 'No memorabilia items found.'}
@@ -234,26 +207,26 @@ export default function MemorabiliaPage() {
       ) : null}
 
       {relatedEntries.length > 0 ? (
-        <section style={styles.related} aria-label="Related library stories">
-          <h2 style={{ margin: '0 0 10px 0', fontSize: 20 }}>Related stories</h2>
-          <ul style={{ margin: 0, paddingLeft: 18 }}>
+        <section className={styles.related} aria-label="Related library stories">
+          <h2 className={styles.relatedTitle}>Related stories</h2>
+          <ul className={styles.relatedList}>
             {relatedEntries.map((entry) => (
-              <li key={entry.id} style={{ marginBottom: 10 }}>
+              <li key={entry.id} className={styles.relatedItem}>
                 <strong>{entry.title || 'Untitled story'}</strong>
-                {entry.author ? <span style={{ opacity: 0.8 }}> — {entry.author}</span> : null}
-                {entry.summary ? <div style={{ opacity: 0.85, marginTop: 4 }}>{entry.summary}</div> : null}
+                {entry.author ? <span className={styles.muted}> — {entry.author}</span> : null}
+                {entry.summary ? <div className={styles.relatedSummary}>{entry.summary}</div> : null}
               </li>
             ))}
           </ul>
-          <Link href="/fanclub/library" style={{ ...styles.btn, display: 'inline-block', marginTop: 10 }}>
+          <Link href="/fanclub/library" className={styles.button}>
             Open Gehrig Library
           </Link>
         </section>
       ) : null}
 
-      <div style={{ ...styles.btnRow }}>
+      <div className={styles.btnRow}>
         <button
-          style={{ ...styles.btn }}
+          className={styles.button}
           disabled={loading}
           onClick={() => {
             const next = offset + limit;
@@ -263,13 +236,13 @@ export default function MemorabiliaPage() {
         >
           {loading ? 'Loading...' : 'Load more'}
         </button>
-        <Link style={{ ...styles.btn }} href="/fanclub/photo">
+        <Link className={styles.button} href="/fanclub/photo">
           View photos
         </Link>
-        <Link style={{ ...styles.btn }} href="/fanclub/library">
+        <Link className={styles.button} href="/fanclub/library">
           View library
         </Link>
-        <Link style={{ ...styles.btn }} href="/fanclub">
+        <Link className={styles.button} href="/fanclub">
           Back to Fan Club Home
         </Link>
       </div>

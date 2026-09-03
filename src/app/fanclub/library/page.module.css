@@ -1,0 +1,116 @@
+.main {
+  box-sizing: border-box;
+  padding: 40px 16px;
+  max-width: 1000px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.title {
+  font-size: clamp(1.75rem, 4vw, 2.125rem);
+  line-height: 1.15;
+  margin: 0 0 12px;
+}
+
+.lead {
+  font-size: clamp(1rem, 2.5vw, 1.125rem);
+  line-height: 1.6;
+  margin: 0 0 18px;
+}
+
+.p {
+  font-size: 16px;
+  line-height: 1.7;
+  margin: 0 0 14px;
+  overflow-wrap: anywhere;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 18px;
+}
+
+.card {
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 16px;
+  padding: 16px;
+  min-width: 0;
+}
+
+.sectionTitle {
+  margin: 0;
+}
+
+.hr {
+  margin: 18px 0;
+  opacity: 0.25;
+}
+
+.field {
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+  min-width: 0;
+}
+
+.input {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-height: 44px;
+  padding: 10px 12px;
+  font-size: 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+
+.button {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 10px 14px;
+  font-size: 15px;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  cursor: pointer;
+  text-decoration: none;
+  color: inherit;
+  background: transparent;
+}
+
+.meta {
+  opacity: 0.75;
+  font-size: 13px;
+  margin-top: 6px;
+}
+
+.article {
+  margin-bottom: 14px;
+}
+
+.articleTitle {
+  margin: 0 0 6px;
+  overflow-wrap: anywhere;
+}
+
+.body {
+  margin-top: 8px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 520px) {
+  .main {
+    padding: 28px 12px;
+  }
+}

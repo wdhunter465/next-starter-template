@@ -32,6 +32,11 @@ export const HAMBURGER_MENU_ITEMS: Record<HamburgerMenuVariant, MenuItem[]> = {
   fanclub: [
     { kind: 'link', label: 'Club Home', href: '/fanclub' },
     { kind: 'link', label: 'My Profile', href: '/fanclub/myprofile' },
+    { kind: 'link', label: 'Photo', href: '/fanclub/photo' },
+    { kind: 'link', label: 'Library', href: '/fanclub/library' },
+    { kind: 'link', label: 'Memorabilia', href: '/fanclub/memorabilia' },
+    { kind: 'link', label: 'Chat', href: '/fanclub/chat' },
+    { kind: 'link', label: 'Submit', href: '/fanclub/submit' },
     { kind: 'link', label: 'Search', href: '/search' },
     { kind: 'external', label: 'Store', href: STORE_URL },
     { kind: 'link', label: 'Logout', href: '/logout' },
