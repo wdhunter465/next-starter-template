@@ -1,13 +1,13 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import RenditionGenerationControl from '@/components/admin/RenditionGenerationControl';
 import {
   RENDITION_LONG_EDGE_PX as CLIENT_RENDITION_LONG_EDGE_PX,
   RENDITION_SIZES as CLIENT_RENDITION_SIZES,
-  RenditionGenerationControl,
   computeRenditionDimensions,
   type RenditionSize,
-} from '@/app/admin/editorial/page';
+} from '@/lib/renditionGeneration';
 import {
   RENDITION_LONG_EDGE_PX as SERVER_RENDITION_LONG_EDGE_PX,
   RENDITION_SIZES as SERVER_RENDITION_SIZES,
