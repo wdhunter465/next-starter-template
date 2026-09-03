@@ -22,3 +22,10 @@ export function buildFanclubPhotoListApiUrl(options?: {
   const query = params.toString();
   return query ? `${path}?${query}` : path;
 }
+
+/** Deep-link helper for the photo detail experience (`/fanclub/photo?id=<n>`). */
+export function buildFanclubPhotoDetailHref(photoId: number): string {
+  const id = Math.trunc(Number(photoId));
+  if (!Number.isFinite(id) || id <= 0) return '/fanclub/photo';
+  return `/fanclub/photo?id=${id}`;
+}

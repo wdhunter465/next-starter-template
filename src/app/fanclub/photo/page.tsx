@@ -3,18 +3,11 @@
 import Link from 'next/link';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useMemberSession } from '@/hooks/useMemberSession';
-import { buildFanclubPhotoListApiUrl } from '@/lib/fanclubApi';
+import { buildFanclubPhotoDetailHref, buildFanclubPhotoListApiUrl } from '@/lib/fanclubApi';
 import { fanclubThreeColumnGridClassName } from '@/components/fanclub/fanclubGridStyles';
+import PhotoDetailPanel, { type PhotoDetailItem } from '@/components/fanclub/PhotoDetailPanel';
 
-type PhotoItem = {
-  id: number;
-  url?: string;
-  thumbnail_url?: string;
-  title?: string | null;
-  description?: string;
-  tags?: string | null;
-  uploaded_by?: string | null;
-};
+type PhotoItem = PhotoDetailItem;
 
 const pillBase: React.CSSProperties = {
   padding: '6px 12px',
@@ -32,6 +25,13 @@ const pillActive: React.CSSProperties = {
   color: '#fff',
 };
 
+function readIdFromLocation(): number | null {
+  if (typeof window === 'undefined') return null;
+  const raw = new URLSearchParams(window.location.search).get('id');
+  const id = Number(raw);
+  return Number.isFinite(id) && id > 0 ? Math.trunc(id) : null;
+}
+
 export default function FanclubPhotoGalleryPage() {
   const [items, setItems] = useState<PhotoItem[]>([]);
   const [availableTags, setAvailableTags] = useState<string[]>([]);
@@ -42,6 +42,7 @@ export default function FanclubPhotoGalleryPage() {
   const [submittedQuery, setSubmittedQuery] = useState('');
   const [submittedTags, setSubmittedTags] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
+  const [activeId, setActiveId] = useState<number | null>(null);
   const { isLoading, isAuthenticated } = useMemberSession({ redirectTo: '/' });
 
   const loadTags = useCallback(async () => {
@@ -87,7 +88,33 @@ export default function FanclubPhotoGalleryPage() {
     }
   }, [isLoading, isAuthenticated, load, refreshKey]);
 
+  useEffect(() => {
+    setActiveId(readIdFromLocation());
+    function onPopState() {
+      setActiveId(readIdFromLocation());
+    }
+    window.addEventListener('popstate', onPopState);
+    return () => window.removeEventListener('popstate', onPopState);
+  }, []);
+
+  const openDetail = useCallback((id: number) => {
+    setActiveId(id);
+    const href = buildFanclubPhotoDetailHref(id);
+    window.history.pushState({ photoId: id }, '', href);
+  }, []);
+
+  const closeDetail = useCallback(() => {
+    setActiveId(null);
+    window.history.pushState({}, '', '/fanclub/photo');
+  }, []);
+
+  const navigateDetail = useCallback((id: number) => {
+    setActiveId(id);
+    window.history.replaceState({ photoId: id }, '', buildFanclubPhotoDetailHref(id));
+  }, []);
+
   const tagCsv = useMemo(() => selectedTags.join(','), [selectedTags]);
+  const unavailable = Boolean(activeId && !loading && !items.some((item) => item.id === activeId));
 
   if (isLoading || !isAuthenticated) {
     return null;
@@ -97,7 +124,7 @@ export default function FanclubPhotoGalleryPage() {
     <main style={{ maxWidth: 1100, margin: '0 auto', padding: '28px 16px' }}>
       <h1 style={{ fontSize: 32, margin: '0 0 8px 0' }}>Photo Gallery</h1>
       <p style={{ marginTop: 0, opacity: 0.85 }}>
-        Browse member-only photos. Use search and tags to narrow the archive.
+        Browse member-only photos. Use search and tags to narrow the archive. Open any photo for attribution and keyboard navigation.
       </p>
 
       <form
@@ -165,13 +192,31 @@ export default function FanclubPhotoGalleryPage() {
       {err && <p style={{ color: 'salmon' }}>Unable to load member photos right now. {err}</p>}
 
       {!loading && !err && (
-        <div className={fanclubThreeColumnGridClassName} style={{ marginTop: 14 }}>
+        <div className={fanclubThreeColumnGridClassName} style={{ marginTop: 14 }} data-testid="photo-thumbnail-grid">
           {items.map((p) => {
             const photoUrl = p.thumbnail_url || p.url;
             const title = p.title || p.description || `Photo #${p.id}`;
+            const credit = p.credit_line || p.uploaded_by || null;
 
             return (
-              <div key={p.id} style={{ borderRadius: 16, border: '1px solid rgba(255,255,255,0.12)', overflow: 'hidden' }}>
+              <button
+                key={p.id}
+                type="button"
+                onClick={() => openDetail(p.id)}
+                aria-label={`Open ${title}`}
+                style={{
+                  display: 'block',
+                  width: '100%',
+                  textAlign: 'left',
+                  borderRadius: 16,
+                  border: '1px solid rgba(255,255,255,0.12)',
+                  overflow: 'hidden',
+                  background: 'transparent',
+                  color: 'inherit',
+                  cursor: 'pointer',
+                  padding: 0,
+                }}
+              >
                 <div style={{ aspectRatio: '4/3', background: 'rgba(255,255,255,0.04)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                   {photoUrl ? (
                     <img src={photoUrl} alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
@@ -183,9 +228,9 @@ export default function FanclubPhotoGalleryPage() {
                   <div style={{ fontWeight: 600 }}>{title}</div>
                   {p.description && p.description !== title ? <p style={{ margin: '8px 0 0', opacity: 0.85 }}>{p.description}</p> : null}
                   {p.tags ? <div style={{ marginTop: 8, opacity: 0.72, fontSize: 12 }}>Tags: {p.tags}</div> : null}
-                  {p.uploaded_by ? <div style={{ marginTop: 6, opacity: 0.72, fontSize: 12 }}>Source: {p.uploaded_by}</div> : null}
+                  {credit ? <div style={{ marginTop: 6, opacity: 0.72, fontSize: 12 }}>Credit: {credit}</div> : null}
                 </div>
-              </div>
+              </button>
             );
           })}
           {items.length === 0 && (
@@ -202,6 +247,14 @@ export default function FanclubPhotoGalleryPage() {
           Submit a Photo →
         </Link>
       </p>
+
+      <PhotoDetailPanel
+        items={items}
+        activeId={activeId}
+        unavailable={unavailable}
+        onClose={closeDetail}
+        onNavigate={navigateDetail}
+      />
     </main>
   );
 }
