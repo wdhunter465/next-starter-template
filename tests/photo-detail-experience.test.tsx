@@ -44,6 +44,31 @@ describe('#2900 photo detail experience', () => {
     expect(onClose).toHaveBeenCalled();
   });
 
+  it('restores focus to the opener, not an element inside the panel, after navigating and closing', () => {
+    const opener = document.createElement('button');
+    opener.textContent = 'Open photo';
+    document.body.appendChild(opener);
+    opener.focus();
+    expect(document.activeElement).toBe(opener);
+
+    const { rerender } = render(
+      <PhotoDetailPanel items={items} activeId={null} onClose={() => undefined} onNavigate={() => undefined} />,
+    );
+    rerender(<PhotoDetailPanel items={items} activeId={10} onClose={() => undefined} onNavigate={() => undefined} />);
+    expect(document.activeElement).toBe(screen.getByRole('button', { name: 'Close photo detail' }));
+
+    // Simulate prev/next navigation while the panel stays open - this used
+    // to re-capture `document.activeElement` (by then the close button)
+    // instead of preserving the original opener, so closing afterward would
+    // restore focus to the close button rather than the opener.
+    rerender(<PhotoDetailPanel items={items} activeId={11} onClose={() => undefined} onNavigate={() => undefined} />);
+
+    rerender(<PhotoDetailPanel items={items} activeId={null} onClose={() => undefined} onNavigate={() => undefined} />);
+    expect(document.activeElement).toBe(opener);
+
+    opener.remove();
+  });
+
   it('shows loading while waiting and unavailable only when flagged', () => {
     const { rerender } = render(
       <PhotoDetailPanel items={items} activeId={999} unavailable={false} onClose={() => undefined} onNavigate={() => undefined} />,

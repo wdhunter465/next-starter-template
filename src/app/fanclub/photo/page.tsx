@@ -105,7 +105,9 @@ export default function FanclubPhotoGalleryPage() {
 
   const closeDetail = useCallback(() => {
     setActiveId(null);
-    window.history.pushState({}, '', '/fanclub/photo');
+    // replaceState, not pushState: closing shouldn't add a history entry, or
+    // Back would just land on the still-`?id=`-bearing entry and reopen the panel.
+    window.history.replaceState({}, '', '/fanclub/photo');
   }, []);
 
   const navigateDetail = useCallback((id: number) => {

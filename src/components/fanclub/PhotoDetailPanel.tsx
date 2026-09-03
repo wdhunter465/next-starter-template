@@ -40,10 +40,24 @@ export default function PhotoDetailPanel({
   const item = index >= 0 ? items[index] : null;
   const open = activeId !== null;
 
+  // Capture/restore focus only on the open/close transition. Keeping this
+  // separate from the keydown-listener effect below matters: that effect's
+  // dependencies (item/index/items) change on every prev/next navigation
+  // while the panel stays open, and re-running this logic on each of those
+  // would recapture `document.activeElement` as the close button itself
+  // (already focused from the previous run) instead of the element that
+  // originally opened the panel.
   useEffect(() => {
     if (!open) return;
     previousFocusRef.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
     closeRef.current?.focus();
+    return () => {
+      previousFocusRef.current?.focus?.();
+    };
+  }, [open]);
+
+  useEffect(() => {
+    if (!open) return;
     function onKey(event: KeyboardEvent) {
       if (event.key === 'Escape') {
         event.preventDefault();
@@ -63,7 +77,6 @@ export default function PhotoDetailPanel({
     window.addEventListener('keydown', onKey);
     return () => {
       window.removeEventListener('keydown', onKey);
-      previousFocusRef.current?.focus?.();
     };
   }, [open, item, unavailable, index, items, onClose, onNavigate]);
 
