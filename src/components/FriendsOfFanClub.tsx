@@ -38,6 +38,30 @@ const DEFAULT_FRIENDS: Friend[] = [
     blurb: 'Preserving and sharing baseball history with depth and accuracy.',
     photo_url: null,
   },
+  {
+    id: -4,
+    name: 'Phi Delta Theta — Lou Gehrig Award',
+    kind: 'Friend',
+    url: 'https://museum.phideltatheta.org/lou-gehrig-award/',
+    blurb: 'Honoring collegiate baseball players who exemplify Gehrig’s character on and off the field.',
+    photo_url: null,
+  },
+  {
+    id: -5,
+    name: 'I AM ALS',
+    kind: 'Friend',
+    url: 'https://www.iamals.org/',
+    blurb: 'A community-driven organization fighting to end ALS through advocacy, research, and support.',
+    photo_url: null,
+  },
+  {
+    id: -6,
+    name: 'LouGehrig.com',
+    kind: 'Friend',
+    url: 'https://lougehrig.com/',
+    blurb: 'A dedicated archive of Lou Gehrig history, statistics, and memorabilia.',
+    photo_url: null,
+  },
 ];
 
 export default function FriendsOfFanClub() {
