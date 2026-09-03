@@ -5,9 +5,11 @@ import AdminLink from '@/components/fanclub/AdminLink';
 import ArchivesTiles from '@/components/fanclub/ArchivesTiles';
 import ClubHomeArchiveSpotlight from '@/components/fanclub/ClubHomeArchiveSpotlight';
 import ClubHomeDeferredModule from '@/components/fanclub/ClubHomeDeferredModule';
+import ClubHomeEventsModule from '@/components/fanclub/ClubHomeEventsModule';
 import ClubHomeMasthead from '@/components/fanclub/ClubHomeMasthead';
 import ClubHomeMediaFeature from '@/components/fanclub/ClubHomeMediaFeature';
 import ClubHomeMemberPrompt from '@/components/fanclub/ClubHomeMemberPrompt';
+import ClubHomeRecognitionModule from '@/components/fanclub/ClubHomeRecognitionModule';
 import ClubHomeStaticStory from '@/components/fanclub/ClubHomeStaticStory';
 import ClubHomeStoryRail from '@/components/fanclub/ClubHomeStoryRail';
 import ClubHomeSubmissionCta from '@/components/fanclub/ClubHomeSubmissionCta';
@@ -70,18 +72,10 @@ export default function MemberHomePage() {
           />
         </div>
         <div className={clubHomeZoneClassName.events}>
-          <ClubHomeDeferredModule
-            ariaLabel="Events callout"
-            title="Events & Calendar"
-            reason="Upcoming Lou Gehrig Fan Club events will appear here when the calendar is connected."
-          />
+          <ClubHomeEventsModule />
         </div>
         <div className={clubHomeZoneClassName.recognition}>
-          <ClubHomeDeferredModule
-            ariaLabel="Recognition tile"
-            title="Recognition & Partners"
-            reason="Partner and recognition highlights will appear here when new display features are enabled."
-          />
+          <ClubHomeRecognitionModule />
         </div>
         <div className={clubHomeZoneClassName.submissionCta}>
           <ClubHomeSubmissionCta />
