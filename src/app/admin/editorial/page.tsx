@@ -5,6 +5,7 @@ import PageShell from '@/components/PageShell';
 import AdminNav from '@/components/admin/AdminNav';
 import AdminStatusText from '@/components/admin/AdminStatusText';
 import { adminJson } from '@/lib/adminClient';
+import RenditionGenerationControl from '@/components/admin/RenditionGenerationControl';
 
 const ALLOWED_SECTION_OPTIONS = [
   { key: 'club_home', label: 'Club Home' },
@@ -32,6 +33,9 @@ type MediaAssociation = {
   source_name?: string | null;
   source_url?: string | null;
   credit_line?: string | null;
+  // Present on associations loaded from the server (joined from `photos`),
+  // absent on rows a user is still drafting in the JSON textarea.
+  url?: string | null;
 };
 
 type Submission = {
@@ -944,6 +948,30 @@ function MediaAssociationsEditor(props: {
       >
         Save Media Associations
       </button>
+
+      {props.initialAssociations && props.initialAssociations.length > 0 ? (
+        <div style={{ display: 'grid', gap: 6, marginTop: 8, paddingTop: 8, borderTop: '1px solid #eee' }}>
+          <div style={{ fontSize: 13, fontWeight: 600 }}>Renditions (P1-07 / #4077)</div>
+          <p style={{ opacity: 0.75, fontSize: 13, margin: 0 }}>
+            Generates thumbnail/small/medium/large JPEG renditions in the browser (no server-side image processing, no new provider) and
+            persists them for each saved association below.
+          </p>
+          {props.initialAssociations.map((association) => (
+            <div key={association.media_id} style={{ display: 'flex', alignItems: 'center', gap: 10, fontSize: 13 }}>
+              <span style={{ opacity: 0.85 }}>
+                media_id {association.media_id} ({association.media_role})
+              </span>
+              <RenditionGenerationControl
+                storyId={props.storyId}
+                mediaId={association.media_id}
+                url={association.url}
+                onStatus={props.onStatus}
+                actionsEnabled={props.actionsEnabled}
+              />
+            </div>
+          ))}
+        </div>
+      ) : null}
     </div>
   );
 }
