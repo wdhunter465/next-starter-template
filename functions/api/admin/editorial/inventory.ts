@@ -3,6 +3,7 @@
 
 import { requireAdmin } from "../../../_lib/auth";
 import { jsonResponse, requireD1, requireTables } from "../../../_lib/d1";
+import { recordEditorialAudit } from "../../../_lib/editorial-audit";
 
 const STORY_TYPES = new Set(["primary", "secondary", "brief"]);
 const ALLOWED_SECTION_KEYS = new Set([
@@ -67,44 +68,6 @@ function slugifyTag(value: string): string {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")
     .slice(0, 80);
-}
-
-/** Fail-open structured audit (P1-08 / #3416) — never blocks a successful editorial mutation. */
-async function recordEditorialAudit(
-  db: any,
-  event: {
-    action: string;
-    objectType: string;
-    objectId?: number | null;
-    actor?: string | null;
-    before?: Record<string, unknown> | null;
-    after?: Record<string, unknown> | null;
-    meta?: Record<string, unknown> | null;
-  },
-): Promise<void> {
-  try {
-    const nowRow = await db.prepare("SELECT datetime('now') AS now").first();
-    const now = String((nowRow as any)?.now || new Date().toISOString());
-    await db
-      .prepare(
-        `INSERT INTO editorial_audit_events
-           (action, object_type, object_id, actor, outcome, before_json, after_json, meta_json, created_at)
-         VALUES (?, ?, ?, ?, 'success', ?, ?, ?, ?)`,
-      )
-      .bind(
-        event.action,
-        event.objectType,
-        event.objectId ?? null,
-        event.actor ?? null,
-        event.before ? JSON.stringify(event.before) : null,
-        event.after ? JSON.stringify(event.after) : null,
-        event.meta ? JSON.stringify(event.meta) : null,
-        now,
-      )
-      .run();
-  } catch (err) {
-    console.error("editorial audit write error:", err);
-  }
 }
 
 function normalizeAllowedSections(value: unknown): { ok: true; value: string } | { ok: false; error: string } {

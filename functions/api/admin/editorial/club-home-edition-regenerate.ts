@@ -1,6 +1,6 @@
 // POST /api/admin/editorial/club-home-edition-regenerate
 // GET  /api/admin/editorial/club-home-edition-regenerate  (inspect current active edition)
-// Protected by ADMIN_TOKEN.
+// Protected by an authenticated D1 admin member session (requireAdmin).
 // P1-06 (#3413): on-demand Club Home edition regeneration + inspect.
 
 import { requireAdmin } from "../../../_lib/auth";

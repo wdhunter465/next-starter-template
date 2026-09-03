@@ -1,5 +1,5 @@
 // POST /api/admin/editorial/club-home-edition-rollback
-// Protected by ADMIN_TOKEN.
+// Protected by an authenticated D1 admin member session (requireAdmin).
 // P1-06 (#3413): reactivate a prior ready Club Home edition without rewriting history.
 
 import { requireAdmin } from "../../../_lib/auth";

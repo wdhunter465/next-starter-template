@@ -7,6 +7,7 @@ import { CLUB_HOME_PINNABLE_ZONES, CLUB_HOME_SECTION, isClubHomePinnableZone } f
 import { publishedInventoryWhere } from "../../../_lib/content-inventory-public";
 import { CLUB_HOME_PLACEMENT_ZONES } from "../../../_lib/content-inventory-rotation";
 import { jsonResponse, requireD1, requireTables } from "../../../_lib/d1";
+import { recordEditorialAudit } from "../../../_lib/editorial-audit";
 import { preparePublicationEvent } from "../../../_lib/publication-audit";
 import {
   evaluatePublicationTransition,
@@ -56,44 +57,6 @@ function pinZoneAllowsStoryType(zoneId: string, storyType: unknown): boolean {
 
 function hasRequiredFields(row: Record<string, unknown>, fields: string[]): boolean {
   return fields.every((field) => String(row[field] || "").trim().length > 0);
-}
-
-/** Fail-open structured audit (P1-08 / #3416) — never blocks a successful editorial mutation. */
-async function recordEditorialAudit(
-  db: any,
-  event: {
-    action: string;
-    objectType: string;
-    objectId?: number | null;
-    actor?: string | null;
-    before?: Record<string, unknown> | null;
-    after?: Record<string, unknown> | null;
-    meta?: Record<string, unknown> | null;
-  },
-): Promise<void> {
-  try {
-    const nowRow = await db.prepare("SELECT datetime('now') AS now").first();
-    const now = String((nowRow as any)?.now || new Date().toISOString());
-    await db
-      .prepare(
-        `INSERT INTO editorial_audit_events
-           (action, object_type, object_id, actor, outcome, before_json, after_json, meta_json, created_at)
-         VALUES (?, ?, ?, ?, 'success', ?, ?, ?, ?)`,
-      )
-      .bind(
-        event.action,
-        event.objectType,
-        event.objectId ?? null,
-        event.actor ?? null,
-        event.before ? JSON.stringify(event.before) : null,
-        event.after ? JSON.stringify(event.after) : null,
-        event.meta ? JSON.stringify(event.meta) : null,
-        now,
-      )
-      .run();
-  } catch (err) {
-    console.error("editorial audit write error:", err);
-  }
 }
 
 /** Club Home manual pin/unpin (P1-05 / #3399). Not a publication-state action. */
