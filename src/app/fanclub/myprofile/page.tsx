@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import MembershipCardSection from '@/components/fanclub/MembershipCardSection';
 import { useMemberSession } from '@/hooks/useMemberSession';
+import styles from './page.module.css';
 
 type Profile = {
   email: string;
@@ -124,45 +125,45 @@ export default function MemberProfilePage() {
   }
 
   return (
-    <main style={{ padding: '40px 16px', maxWidth: 980, margin: '0 auto' }}>
-      <h1 style={{ fontSize: 34, margin: '0 0 12px 0' }}>My Profile</h1>
-      <p style={{ opacity: 0.85, marginTop: 0 }}>Manage your member profile details and membership card.</p>
+    <main className={styles.main}>
+      <h1 className={styles.title}>My Profile</h1>
+      <p className={styles.lead}>Manage your member profile details and membership card.</p>
 
-      <section style={{ marginTop: 18, padding: 16, borderRadius: 14, border: '1px solid rgba(0,0,0,0.12)' }}>
-        <h2 style={{ marginTop: 0 }}>Profile</h2>
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>Profile</h2>
         {loadingProfile ? (
           <p>Loading profile…</p>
         ) : (
-          <div style={{ display: 'grid', gap: 10 }}>
-            <label>
+          <div className={styles.formGrid}>
+            <label className={styles.field}>
               First name
               <input
+                className={styles.input}
                 value={profile.first_name}
                 onChange={(e) => setProfile((p) => ({ ...p, first_name: e.target.value }))}
-                style={{ width: '100%', padding: 8, marginTop: 4 }}
               />
             </label>
-            <label>
+            <label className={styles.field}>
               Last name
               <input
+                className={styles.input}
                 value={profile.last_name}
                 onChange={(e) => setProfile((p) => ({ ...p, last_name: e.target.value }))}
-                style={{ width: '100%', padding: 8, marginTop: 4 }}
               />
             </label>
-            <label>
+            <label className={styles.field}>
               Screen name
               <input
+                className={styles.input}
                 value={profile.screen_name}
                 onChange={(e) => setProfile((p) => ({ ...p, screen_name: e.target.value }))}
-                style={{ width: '100%', padding: 8, marginTop: 4 }}
               />
             </label>
-            <label>
+            <label className={styles.field}>
               Email address
-              <input value={profile.email} disabled style={{ width: '100%', padding: 8, marginTop: 4, opacity: 0.7 }} />
+              <input className={styles.input} value={profile.email} disabled />
             </label>
-            <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <label className={styles.checkboxRow}>
               <input
                 type="checkbox"
                 checked={profile.email_opt_in}
@@ -171,25 +172,25 @@ export default function MemberProfilePage() {
               Email opt-in
             </label>
 
-            <div style={{ display: 'flex', gap: 10 }}>
-              <button onClick={saveProfile} disabled={saving || !dirty} style={{ padding: '10px 14px' }}>
+            <div className={styles.actions}>
+              <button className={styles.button} onClick={saveProfile} disabled={saving || !dirty}>
                 {saving ? 'Saving…' : 'Save'}
               </button>
-              <button onClick={() => setProfile(savedProfile)} disabled={!dirty || saving} style={{ padding: '10px 14px' }}>
+              <button className={styles.button} onClick={() => setProfile(savedProfile)} disabled={!dirty || saving}>
                 Cancel
               </button>
             </div>
-            {message ? <p style={{ margin: 0, opacity: 0.85 }}>{message}</p> : null}
+            {message ? <p className={styles.message}>{message}</p> : null}
           </div>
         )}
       </section>
 
-      <div style={{ marginTop: 24 }}>
+      <div className={styles.cardWrap}>
         <MembershipCardSection />
       </div>
 
-      <section style={{ marginTop: 24 }}>
-        <Link href="/fanclub" style={{ textDecoration: 'none', fontWeight: 700 }}>
+      <section className={styles.back}>
+        <Link href="/fanclub" className={styles.backLink}>
           Back to Fan Club Home
         </Link>
       </section>

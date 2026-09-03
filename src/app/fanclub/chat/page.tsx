@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useMemberSession } from '@/hooks/useMemberSession';
+import styles from './page.module.css';
 
 type DiscussionItem = {
   id: number;
@@ -16,12 +17,6 @@ export default function FanclubChatPage() {
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string>('');
   const { isLoading, isAuthenticated, email } = useMemberSession({ redirectTo: '/' });
-
-  const baseStyle = useMemo(() => ({
-    maxWidth: 980,
-    margin: '0 auto',
-    padding: '28px 16px',
-  }), []);
 
   async function load() {
     setLoading(true);
@@ -62,32 +57,29 @@ export default function FanclubChatPage() {
   }
 
   return (
-    <main style={baseStyle}>
-      <h1 style={{ fontSize: 32, margin: '0 0 8px 0' }}>Member Chat</h1>
-      <p style={{ marginTop: 0, opacity: 0.85 }}>
+    <main className={styles.main}>
+      <h1 className={styles.title}>Member Chat</h1>
+      <p className={styles.lead}>
         Post short notes, questions, and updates. Reports go to the admin moderation queue.
       </p>
 
       <ChatComposer onSubmit={submitPost} disabled={!email} />
       {!email && (
-        <div style={{ marginTop: 10, padding: 12, border: '1px solid rgba(255,255,255,0.15)', borderRadius: 12, opacity: 0.9 }}>
+        <div className={styles.banner}>
           You appear to be missing a stored member email. Login again to restore session.
         </div>
       )}
 
-      <div style={{ marginTop: 18 }}>
-        <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-          <h2 style={{ margin: 0, fontSize: 20 }}>Latest posts</h2>
-          <button
-            onClick={load}
-            style={{ marginLeft: 'auto', padding: '8px 12px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.18)', background: 'transparent', cursor: 'pointer' }}
-          >
+      <div className={styles.feedWrap}>
+        <div className={styles.feedHeader}>
+          <h2 className={styles.feedTitle}>Latest posts</h2>
+          <button onClick={load} className={styles.refresh}>
             Refresh
           </button>
         </div>
 
-        {loading && <p style={{ opacity: 0.85 }}>Loading…</p>}
-        {error && <p style={{ color: 'salmon' }}>Error: {error}</p>}
+        {loading && <p className={styles.muted}>Loading…</p>}
+        {error && <p className={styles.error}>Error: {error}</p>}
 
         {!loading && !error && (
           <ChatFeed items={items} />
@@ -121,30 +113,26 @@ function ChatComposer({ onSubmit, disabled }: { onSubmit: (title: string, body: 
   }
 
   return (
-    <section style={{ marginTop: 14, padding: 16, borderRadius: 16, border: '1px solid rgba(255,255,255,0.14)' }}>
-      <h2 style={{ margin: 0, fontSize: 18 }}>Create a post</h2>
-      <div style={{ display: 'grid', gap: 10, marginTop: 10 }}>
+    <section className={styles.composer}>
+      <h2 className={styles.composerTitle}>Create a post</h2>
+      <div className={styles.formGrid}>
         <input
+          className={styles.input}
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           placeholder="Title"
-          style={{ padding: 10, borderRadius: 10, border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(0,0,0,0.2)' }}
         />
         <textarea
+          className={styles.textarea}
           value={body}
           onChange={(e) => setBody(e.target.value)}
           placeholder="Write your message…"
           rows={4}
-          style={{ padding: 10, borderRadius: 10, border: '1px solid rgba(255,255,255,0.18)', background: 'rgba(0,0,0,0.2)', resize: 'vertical' }}
         />
-        <button
-          onClick={go}
-          disabled={!canSubmit}
-          style={{ padding: '10px 14px', borderRadius: 12, border: '1px solid rgba(255,255,255,0.18)', background: canSubmit ? 'rgba(255,255,255,0.08)' : 'rgba(255,255,255,0.03)', cursor: canSubmit ? 'pointer' : 'not-allowed' }}
-        >
+        <button className={styles.button} onClick={go} disabled={!canSubmit}>
           {busy ? 'Posting…' : 'Post'}
         </button>
-        {error ? <p style={{ margin: 0, color: 'salmon' }}>{error}</p> : null}
+        {error ? <p className={styles.error}>{error}</p> : null}
       </div>
     </section>
   );
@@ -152,21 +140,19 @@ function ChatComposer({ onSubmit, disabled }: { onSubmit: (title: string, body: 
 
 function ChatFeed({ items }: { items: DiscussionItem[] }) {
   return (
-    <div style={{ display: 'grid', gap: 12, marginTop: 12 }}>
+    <div className={styles.feed}>
       {items.length === 0 && (
-        <div style={{ padding: 14, borderRadius: 14, border: '1px solid rgba(255,255,255,0.12)', opacity: 0.85 }}>
-          No posts yet.
-        </div>
+        <div className={styles.empty}>No posts yet.</div>
       )}
 
       {items.map((it) => (
-        <article key={it.id} style={{ padding: 14, borderRadius: 16, border: '1px solid rgba(255,255,255,0.12)' }}>
-          <div style={{ display: 'flex', gap: 10, alignItems: 'baseline' }}>
-            <h3 style={{ margin: 0, fontSize: 18 }}>{it.title}</h3>
-            <span style={{ marginLeft: 'auto', opacity: 0.75, fontSize: 12 }}>{new Date(it.created_at).toLocaleString()}</span>
+        <article key={it.id} className={styles.article}>
+          <div className={styles.articleHead}>
+            <h3 className={styles.articleTitle}>{it.title}</h3>
+            <span className={styles.timestamp}>{new Date(it.created_at).toLocaleString()}</span>
           </div>
-          <p style={{ margin: '10px 0 0 0', opacity: 0.92, whiteSpace: 'pre-wrap' }}>{it.body}</p>
-          <div style={{ marginTop: 10, opacity: 0.72, fontSize: 12 }}>
+          <p className={styles.body}>{it.body}</p>
+          <div className={styles.meta}>
             Reporting workflow will be handled by the moderation queue.
           </div>
         </article>

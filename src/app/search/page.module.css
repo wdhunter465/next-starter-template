@@ -1,0 +1,161 @@
+.main {
+  box-sizing: border-box;
+  padding: 40px 16px;
+  max-width: 980px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.title {
+  font-size: clamp(1.75rem, 4vw, 2.125rem);
+  margin: 0 0 12px;
+}
+
+.form {
+  display: grid;
+  gap: 10px;
+  max-width: 720px;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.fieldLabel {
+  font-weight: 700;
+}
+
+.input {
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border-radius: 12px;
+  border: 1px solid #dde3f5;
+  font-size: 16px;
+  min-height: 48px;
+  width: 100%;
+  max-width: 100%;
+}
+
+.button {
+  box-sizing: border-box;
+  width: fit-content;
+  min-height: 44px;
+  padding: 10px 16px;
+  border-radius: 10px;
+  border: none;
+  background: var(--lgfc-blue);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.status {
+  margin-top: 18px;
+  color: #666;
+  min-height: 24px;
+}
+
+.memberNote {
+  margin-top: 0;
+  color: rgba(0, 0, 0, 0.65);
+  font-size: 14px;
+}
+
+.results {
+  margin-top: 16px;
+  display: grid;
+  gap: 16px;
+}
+
+.article {
+  background: #fff;
+  border: 1px solid #dde3f5;
+  border-radius: 14px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  min-width: 0;
+}
+
+.typeChip {
+  display: inline-block;
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: #f8f9ff;
+  color: var(--lgfc-blue);
+  font-weight: 700;
+  margin-bottom: 10px;
+}
+
+.resultTitle {
+  margin: 0 0 8px;
+  font-size: 18px;
+  overflow-wrap: anywhere;
+}
+
+.resultLink {
+  color: #333;
+  text-decoration: none;
+}
+
+.excerpt {
+  margin: 0;
+  color: #666;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.pagination {
+  margin-top: 20px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.pageLink {
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  text-decoration: none;
+  font-weight: 700;
+  background: #fff;
+  color: #333;
+  border: 1px solid #dde3f5;
+}
+
+.pageLinkActive {
+  background: var(--lgfc-blue);
+  color: #fff;
+}
+
+.fallback {
+  padding: 40px 16px;
+}
+
+.fallbackTitle {
+  margin-top: 0;
+}
+
+@media (max-width: 520px) {
+  .main {
+    padding: 28px 12px;
+  }
+
+  .button {
+    width: 100%;
+  }
+}
