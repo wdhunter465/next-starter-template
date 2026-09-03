@@ -5,6 +5,7 @@ import RenditionGenerationControl from '@/components/admin/RenditionGenerationCo
 import {
   RENDITION_LONG_EDGE_PX as CLIENT_RENDITION_LONG_EDGE_PX,
   RENDITION_SIZES as CLIENT_RENDITION_SIZES,
+  buildRenditionPayload,
   computeRenditionDimensions,
   type RenditionSize,
 } from '@/lib/renditionGeneration';
@@ -144,6 +145,50 @@ describe('#4077 RenditionGenerationControl', () => {
     }
 
     await waitFor(() => expect(onStatus).toHaveBeenCalledWith(expect.stringContaining('all 4 rendition sizes generated and persisted')));
+  });
+
+  it('reports failed sizes and their error detail, not just a count, when persist_renditions returns per-size failures', async () => {
+    vi.spyOn(globalThis, 'fetch').mockImplementation(async () =>
+      new Response(
+        JSON.stringify({
+          ok: true,
+          story_id: 7,
+          renditions: [
+            { media_id: 42, size: 'thumbnail', status: 'ready' },
+            { media_id: 42, size: 'small', status: 'failed', error: 'B2 PUT failed: HTTP 503' },
+            { media_id: 42, size: 'medium', status: 'ready' },
+            { media_id: 42, size: 'large', status: 'failed', error: 'B2 PUT failed: HTTP 503' },
+          ],
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      ),
+    );
+
+    const onStatus = vi.fn();
+    render(
+      <RenditionGenerationControl storyId={7} mediaId={42} url="https://cdn.example/photo.jpg" onStatus={onStatus} actionsEnabled />,
+    );
+    fireEvent.click(screen.getByRole('button', { name: /Generate/i }));
+
+    await waitFor(() =>
+      expect(onStatus).toHaveBeenCalledWith(
+        expect.stringMatching(/small \(B2 PUT failed: HTTP 503\)[\s\S]*large \(B2 PUT failed: HTTP 503\)/),
+      ),
+    );
+  });
+
+  it('buildRenditionPayload fails closed with a size-specific error instead of throwing when JPEG encoding fails', async () => {
+    HTMLCanvasElement.prototype.toDataURL = vi.fn(() => {
+      throw new DOMException('tainted canvas', 'SecurityError');
+    });
+
+    const result = await buildRenditionPayload(42, 'https://cdn.example/photo.jpg');
+
+    expect(result.ok).toBe(false);
+    if (!result.ok) {
+      expect(result.error).toContain('thumbnail');
+      expect(result.error).toContain('tainted canvas');
+    }
   });
 
   it('fails closed by disabling the trigger (not by allowing a click) when there is no source URL', () => {

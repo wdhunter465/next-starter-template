@@ -84,7 +84,17 @@ export async function buildRenditionPayload(mediaId: number, url: string): Promi
     if (!ctx) {
       return { ok: false, error: 'Canvas 2D context is not available in this browser.' };
     }
-    ctx.drawImage(img, 0, 0, width, height);
+    let bytesBase64: string;
+    try {
+      ctx.drawImage(img, 0, 0, width, height);
+      bytesBase64 = canvasToJpegBase64(canvas);
+    } catch (err) {
+      // e.g. a SecurityError from a tainted canvas, or another toDataURL failure.
+      return { ok: false, error: `Could not encode ${size} rendition: ${err instanceof Error ? err.message : String(err)}` };
+    }
+    if (!bytesBase64) {
+      return { ok: false, error: `Encoding the ${size} rendition produced no image data.` };
+    }
     items.push({
       media_id: mediaId,
       size,
@@ -93,7 +103,7 @@ export async function buildRenditionPayload(mediaId: number, url: string): Promi
       width_px: width,
       height_px: height,
       content_type: RENDITION_OUTPUT_CONTENT_TYPE,
-      bytes_base64: canvasToJpegBase64(canvas),
+      bytes_base64: bytesBase64,
     });
   }
   return { ok: true, items };

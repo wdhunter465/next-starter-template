@@ -50,7 +50,8 @@ export default function RenditionGenerationControl(props: {
       }
       const failed = result.data.renditions.filter((r) => r.status !== 'ready');
       if (failed.length) {
-        props.onStatus(`Media ${props.mediaId}: ${failed.length} of ${result.data.renditions.length} rendition(s) failed to persist.`);
+        const detail = failed.map((r) => `${r.size}${r.error ? ` (${r.error})` : ''}`).join(', ');
+        props.onStatus(`Media ${props.mediaId}: ${failed.length} of ${result.data.renditions.length} rendition(s) failed to persist: ${detail}`);
         return;
       }
       props.onStatus(`Media ${props.mediaId}: all ${result.data.renditions.length} rendition sizes generated and persisted.`);
