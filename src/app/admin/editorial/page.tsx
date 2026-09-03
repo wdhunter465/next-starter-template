@@ -17,6 +17,12 @@ const ALLOWED_SECTION_OPTIONS = [
   { key: 'related_content', label: 'Related content' },
 ] as const;
 
+const CLUB_HOME_PIN_ZONES = [
+  { key: 'lead-story', label: 'Lead story' },
+  { key: 'story-rail', label: 'Story rail' },
+  { key: 'archive-spotlight', label: 'Archive spotlight' },
+] as const;
+
 type MediaAssociation = {
   media_id: number;
   media_role: string;
@@ -52,7 +58,14 @@ type Submission = {
   created_at?: string | null;
 };
 
-type SubmissionStatus = 'pending' | 'triaged' | 'under_review' | 'approved' | 'rejected' | 'merged' | 'purged';
+type SubmissionStatus =
+  | 'pending'
+  | 'triaged'
+  | 'under_review'
+  | 'approved'
+  | 'rejected'
+  | 'merged'
+  | 'purged';
 type SubmissionFilter = SubmissionStatus | 'all';
 type ReviewAction = 'triage' | 'start_review' | 'approve' | 'merge' | 'reject' | 'purge';
 
@@ -131,6 +144,25 @@ type EditorialListResponse = {
   ok: true;
   submissions: Submission[];
   inventory: InventoryRecord[];
+};
+
+type ClubHomeEditionInspect = {
+  ok: true;
+  active: { edition_id: number; activated_at: string; activated_by: string | null } | null;
+  edition?: {
+    id: number;
+    status: string;
+    created_at: string;
+    created_by: string | null;
+    completed_at: string | null;
+  };
+  placements?: Array<{
+    zone_id: string;
+    story_id: number | null;
+    position: number;
+    selection_mode: string;
+  }>;
+  message?: string;
 };
 
 function fieldStyle(): React.CSSProperties {
@@ -217,6 +249,8 @@ export default function AdminEditorialArchivePage() {
   // AdminLayout already gates this whole route tree on an admin session (#3547);
   // actionsEnabled/tokenReady only tracks the initial load race, not authorization.
   const tokenReady = true;
+  const [editionInspect, setEditionInspect] = useState<ClubHomeEditionInspect | null>(null);
+  const [rollbackEditionId, setRollbackEditionId] = useState('');
   const loadRequestRef = useRef(0);
 
   const load = useCallback(async () => {
@@ -248,22 +282,121 @@ export default function AdminEditorialArchivePage() {
       `Loaded ${nextSubmissions.length} ${submissionFilter} submission(s) and ${nextInventory.length} ${inventoryFilter} archive record(s).`,
     );
     setLoading(false);
+
+    const editionResult = await adminJson<ClubHomeEditionInspect>(
+      '/api/admin/editorial/club-home-edition-regenerate',
+    );
+    if (requestId === loadRequestRef.current && editionResult.ok && editionResult.data) {
+      setEditionInspect(editionResult.data);
+      if (editionResult.data.active?.edition_id) {
+        setRollbackEditionId(String(editionResult.data.active.edition_id));
+      }
+    }
   }, [submissionFilter, inventoryFilter]);
+
+  const regenerateClubHomeEdition = useCallback(async () => {
+    setStatus('Regenerating Club Home edition…');
+    const result = await adminJson<{
+      ok: true;
+      edition_id: number;
+      previous_edition_id: number | null;
+    }>('/api/admin/editorial/club-home-edition-regenerate', {
+      method: 'POST',
+      body: JSON.stringify({ created_by: 'admin-ui' }),
+    });
+    if (!result.ok) {
+      setStatus(`Error: ${result.error}`);
+      return;
+    }
+    setStatus(
+      `Activated Club Home edition ${result.data?.edition_id}` +
+        (result.data?.previous_edition_id
+          ? ` (previous ${result.data.previous_edition_id}).`
+          : '.'),
+    );
+    await load();
+  }, [load]);
+
+  const rollbackClubHomeEdition = useCallback(async () => {
+    const editionId = Number(rollbackEditionId);
+    if (!Number.isFinite(editionId) || editionId <= 0) {
+      setStatus('Error: Enter a valid prior edition_id to roll back to.');
+      return;
+    }
+    setStatus(`Rolling Club Home back to edition ${editionId}…`);
+    const result = await adminJson<{
+      ok: true;
+      edition_id: number;
+      previous_edition_id: number | null;
+    }>('/api/admin/editorial/club-home-edition-rollback', {
+      method: 'POST',
+      body: JSON.stringify({ edition_id: editionId, activated_by: 'admin-ui' }),
+    });
+    if (!result.ok) {
+      setStatus(`Error: ${result.error}`);
+      return;
+    }
+    setStatus(`Club Home active edition is now ${result.data?.edition_id}.`);
+    await load();
+  }, [load, rollbackEditionId]);
+
+  const updateClubHomePin = useCallback(
+    async (payload: { action: 'pin' | 'unpin'; id?: number; zoneId: string }) => {
+      setStatus(
+        payload.action === 'pin'
+          ? `Pinning archive record ${payload.id} to ${payload.zoneId}…`
+          : `Unpinning Club Home zone ${payload.zoneId}…`,
+      );
+
+      const result = await adminJson<{
+        ok: true;
+        action: string;
+        zone_id: string;
+        story_id?: number;
+      }>('/api/admin/editorial/publish', {
+        method: 'POST',
+        body: JSON.stringify({
+          action: payload.action,
+          id: payload.id,
+          zone_id: payload.zoneId,
+          pinned_by: 'admin-ui',
+        }),
+      });
+
+      if (!result.ok) {
+        setStatus(`Error: ${result.error}`);
+        return;
+      }
+
+      setStatus(
+        payload.action === 'pin'
+          ? `Pinned archive record ${payload.id} to ${payload.zoneId}.`
+          : `Cleared Club Home pin for ${payload.zoneId}.`,
+      );
+      await load();
+    },
+    [load],
+  );
 
   const saveInventory = useCallback(
     async (payload: Record<string, unknown>, label: string) => {
       setStatus(`${label}…`);
-      const result = await adminJson<{ ok: true; id: number; action: string }>('/api/admin/editorial/inventory', {
-        method: 'POST',
-        body: JSON.stringify(payload),
-      });
+      const result = await adminJson<{ ok: true; id: number; action: string }>(
+        '/api/admin/editorial/inventory',
+        {
+          method: 'POST',
+          body: JSON.stringify(payload),
+        },
+      );
 
       if (!result.ok) {
         setStatus(`Error: ${result.error}`);
         return false;
       }
 
-      setStatus(`Inventory ${result.data?.action || 'saved'} for record ${result.data?.id ?? 'unknown'}.`);
+      setStatus(
+        `Inventory ${result.data?.action || 'saved'} for record ${result.data?.id ?? 'unknown'}.`,
+      );
       await load();
       return true;
     },
@@ -282,7 +415,9 @@ export default function AdminEditorialArchivePage() {
 
       let mediaAssociations: MediaAssociation[] = [];
       try {
-        mediaAssociations = parseMediaAssociationsJson(String(new FormData(form).get('media_associations_json') || '[]'));
+        mediaAssociations = parseMediaAssociationsJson(
+          String(new FormData(form).get('media_associations_json') || '[]'),
+        );
       } catch {
         setStatus('Error: media_associations_json must be valid JSON.');
         return;
@@ -419,12 +554,54 @@ export default function AdminEditorialArchivePage() {
           <p style={{ margin: 0, opacity: 0.85 }}>{status}</p>
         ) : null}
 
+        <section style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: 14, padding: 14 }}>
+          <h2 style={{ marginTop: 0 }}>Club Home Edition</h2>
+          <p style={{ opacity: 0.8 }}>
+            Member Club Home serves one explicit persisted edition. Regenerate creates a new
+            immutable edition from current publication gates, fairness, and pins, then activates it.
+            Rollback reactivates a prior edition without rewriting it.
+          </p>
+          <div style={{ opacity: 0.85, fontSize: 13, marginBottom: 10 }}>
+            {editionInspect?.active
+              ? `Active edition ${editionInspect.active.edition_id} (activated ${editionInspect.active.activated_at}${editionInspect.active.activated_by ? ` by ${editionInspect.active.activated_by}` : ''}).`
+              : editionInspect?.message ||
+                'No active edition yet. Regenerate after pins/publication changes to publish Club Home content.'}
+          </div>
+          <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', alignItems: 'center' }}>
+            <button
+              type="button"
+              onClick={() => void regenerateClubHomeEdition()}
+              disabled={!tokenReady}
+              style={buttonStyle(!tokenReady)}
+            >
+              Regenerate edition
+            </button>
+            <label style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+              Rollback to edition
+              <input
+                value={rollbackEditionId}
+                onChange={(event) => setRollbackEditionId(event.target.value)}
+                style={{ ...fieldStyle(), width: 100 }}
+              />
+            </label>
+            <button
+              type="button"
+              onClick={() => void rollbackClubHomeEdition()}
+              disabled={!tokenReady}
+              style={buttonStyle(!tokenReady)}
+            >
+              Rollback
+            </button>
+          </div>
+        </section>
+
         <CreateStorySection onSave={saveInventory} actionsEnabled={tokenReady} />
 
         <section style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: 14, padding: 14 }}>
           <h2 style={{ marginTop: 0 }}>Submission Review Queue</h2>
           <p style={{ opacity: 0.8 }}>
-            Member submissions stay here until a human triages, reviews, approves, merges, rejects, retains, or purges them.
+            Member submissions stay here until a human triages, reviews, approves, merges, rejects,
+            retains, or purges them.
           </p>
 
           {submissions.length === 0 ? (
@@ -446,8 +623,8 @@ export default function AdminEditorialArchivePage() {
         <section style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: 14, padding: 14 }}>
           <h2 style={{ marginTop: 0 }}>Content Inventory Publication State</h2>
           <p style={{ opacity: 0.8 }}>
-            Only published records are eligible for member archive/library reads. Record a named human
-            approval before publish. Archive/unpublish requires a reason.
+            Only published records are eligible for member archive/library reads. Record a named
+            human approval before publish. Archive/unpublish requires a reason.
           </p>
 
           {inventory.length === 0 ? (
@@ -460,6 +637,7 @@ export default function AdminEditorialArchivePage() {
                   record={record}
                   onSave={saveInventory}
                   onPublish={updatePublication}
+                  onClubHomePin={updateClubHomePin}
                   onStatus={setStatus}
                   actionsEnabled={tokenReady}
                 />
@@ -477,9 +655,18 @@ function SectionCheckboxes(props: { prefix: string; defaultSections?: string[] }
   return (
     <fieldset style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: 10, padding: 12 }}>
       <legend>Allowed sections</legend>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 8 }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: 8,
+        }}
+      >
         {ALLOWED_SECTION_OPTIONS.map((option) => (
-          <label key={`${props.prefix}-${option.key}`} style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <label
+            key={`${props.prefix}-${option.key}`}
+            style={{ display: 'flex', gap: 8, alignItems: 'center' }}
+          >
             <input
               type="checkbox"
               name={`section_${option.key}`}
@@ -503,7 +690,13 @@ function EditorialMetadataFields(props: {
 
   return (
     <>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10 }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: 10,
+        }}
+      >
         <label style={{ display: 'grid', gap: 6 }}>
           Tag
           <input name="tag" defaultValue={defaults.tag || ''} style={fieldStyle()} />
@@ -514,7 +707,11 @@ function EditorialMetadataFields(props: {
         </label>
         <label style={{ display: 'grid', gap: 6 }}>
           Source name
-          <input name="source_name" defaultValue={defaults.source_name || 'Editorial draft'} style={fieldStyle()} />
+          <input
+            name="source_name"
+            defaultValue={defaults.source_name || 'Editorial draft'}
+            style={fieldStyle()}
+          />
         </label>
         <label style={{ display: 'grid', gap: 6 }}>
           Source URL
@@ -522,11 +719,20 @@ function EditorialMetadataFields(props: {
         </label>
         <label style={{ display: 'grid', gap: 6 }}>
           Credit line
-          <input name="credit_line" defaultValue={defaults.credit_line || ''} style={fieldStyle()} required />
+          <input
+            name="credit_line"
+            defaultValue={defaults.credit_line || ''}
+            style={fieldStyle()}
+            required
+          />
         </label>
         <label style={{ display: 'grid', gap: 6 }}>
           Story type
-          <select name="story_type" defaultValue={defaults.story_type || 'brief'} style={fieldStyle()}>
+          <select
+            name="story_type"
+            defaultValue={defaults.story_type || 'brief'}
+            style={fieldStyle()}
+          >
             <option value="brief">brief</option>
             <option value="secondary">secondary</option>
             <option value="primary">primary</option>
@@ -534,19 +740,38 @@ function EditorialMetadataFields(props: {
         </label>
         <label style={{ display: 'grid', gap: 6 }}>
           Priority
-          <input name="priority" type="number" defaultValue={defaults.priority ?? 0} style={fieldStyle()} />
+          <input
+            name="priority"
+            type="number"
+            defaultValue={defaults.priority ?? 0}
+            style={fieldStyle()}
+          />
         </label>
         <label style={{ display: 'grid', gap: 6 }}>
           Event date
-          <input name="event_date" defaultValue={defaults.event_date || ''} placeholder="YYYY-MM-DD" style={fieldStyle()} />
+          <input
+            name="event_date"
+            defaultValue={defaults.event_date || ''}
+            placeholder="YYYY-MM-DD"
+            style={fieldStyle()}
+          />
         </label>
         <label style={{ display: 'grid', gap: 6 }}>
           Event year
-          <input name="event_year" type="number" defaultValue={defaults.event_year ?? ''} style={fieldStyle()} />
+          <input
+            name="event_year"
+            type="number"
+            defaultValue={defaults.event_year ?? ''}
+            style={fieldStyle()}
+          />
         </label>
         <label style={{ display: 'grid', gap: 6 }}>
           Rotation group
-          <input name="rotation_group" defaultValue={defaults.rotation_group || ''} style={fieldStyle()} />
+          <input
+            name="rotation_group"
+            defaultValue={defaults.rotation_group || ''}
+            style={fieldStyle()}
+          />
         </label>
         <label style={{ display: 'grid', gap: 6 }}>
           Feature weight
@@ -562,19 +787,40 @@ function EditorialMetadataFields(props: {
 
       <label style={{ display: 'grid', gap: 6 }}>
         Summary
-        <textarea name="summary" rows={2} defaultValue={defaults.summary || ''} style={fieldStyle()} />
+        <textarea
+          name="summary"
+          rows={2}
+          defaultValue={defaults.summary || ''}
+          style={fieldStyle()}
+        />
       </label>
 
       {props.includeBody !== false ? (
         <label style={{ display: 'grid', gap: 6 }}>
           Story text
-          <textarea name="text" rows={5} defaultValue={defaults.text || ''} style={fieldStyle()} required />
+          <textarea
+            name="text"
+            rows={5}
+            defaultValue={defaults.text || ''}
+            style={fieldStyle()}
+            required
+          />
         </label>
       ) : null}
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 10 }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+          gap: 10,
+        }}
+      >
         <label style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-          <input type="checkbox" name="canonical" defaultChecked={(defaults.canonical ?? 1) !== 0} />
+          <input
+            type="checkbox"
+            name="canonical"
+            defaultChecked={(defaults.canonical ?? 1) !== 0}
+          />
           Canonical story
         </label>
         <label style={{ display: 'grid', gap: 6 }}>
@@ -592,7 +838,12 @@ function EditorialMetadataFields(props: {
 
       <label style={{ display: 'grid', gap: 6 }}>
         Review notes
-        <textarea name="review_notes" rows={2} defaultValue={defaults.review_notes || ''} style={fieldStyle()} />
+        <textarea
+          name="review_notes"
+          rows={2}
+          defaultValue={defaults.review_notes || ''}
+          style={fieldStyle()}
+        />
       </label>
     </>
   );
@@ -605,7 +856,9 @@ function CreateStorySection(props: {
   return (
     <section style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: 14, padding: 14 }}>
       <h2 style={{ marginTop: 0 }}>Create Story Draft</h2>
-      <p style={{ opacity: 0.8 }}>Create a content_inventory draft directly without a queue submission.</p>
+      <p style={{ opacity: 0.8 }}>
+        Create a content_inventory draft directly without a queue submission.
+      </p>
       <form
         onSubmit={(event) => {
           event.preventDefault();
@@ -616,7 +869,11 @@ function CreateStorySection(props: {
         style={{ display: 'grid', gap: 10 }}
       >
         <EditorialMetadataFields prefix="create" includeBody />
-        <button type="submit" disabled={!props.actionsEnabled} style={buttonStyle(!props.actionsEnabled)}>
+        <button
+          type="submit"
+          disabled={!props.actionsEnabled}
+          style={buttonStyle(!props.actionsEnabled)}
+        >
           Create Draft Story
         </button>
       </form>
@@ -676,8 +933,8 @@ function MediaAssociationsEditor(props: {
         />
       </label>
       <p style={{ opacity: 0.75, fontSize: 13, margin: 0 }}>
-        Example: [{'{'}&quot;media_id&quot;: 12, &quot;media_role&quot;: &quot;primary_image&quot;, &quot;display_order&quot;: 0,
-        &quot;alt_text&quot;: &quot;Caption&quot;{'}'}]
+        Example: [{'{'}&quot;media_id&quot;: 12, &quot;media_role&quot;: &quot;primary_image&quot;,
+        &quot;display_order&quot;: 0, &quot;alt_text&quot;: &quot;Caption&quot;{'}'}]
       </p>
       <button
         type="button"
@@ -695,6 +952,11 @@ function InventoryRecordCard(props: {
   record: InventoryRecord;
   onSave: (payload: Record<string, unknown>, label: string) => Promise<boolean>;
   onPublish: (payload: PublicationPayload) => Promise<void>;
+  onClubHomePin: (payload: {
+    action: 'pin' | 'unpin';
+    id?: number;
+    zoneId: string;
+  }) => Promise<void>;
   onStatus: (message: string) => void;
   actionsEnabled: boolean;
 }) {
@@ -702,18 +964,37 @@ function InventoryRecordCard(props: {
   const [approvedBy, setApprovedBy] = useState(record.approved_by || '');
   const [reason, setReason] = useState('');
   const [scheduledAt, setScheduledAt] = useState(record.scheduled_at || '');
+  const [pinZone, setPinZone] = useState<string>(CLUB_HOME_PIN_ZONES[0].key);
   const isScheduled = record.operational_state === 'scheduled';
   const canSchedule =
     record.operational_state === 'approved' || record.operational_state === 'scheduled';
+  const allowsClubHome = (() => {
+    try {
+      const parsed = JSON.parse(record.allowed_sections || '[]');
+      return Array.isArray(parsed) && parsed.map(String).includes('club_home');
+    } catch {
+      return String(record.allowed_sections || '').includes('club_home');
+    }
+  })();
+  const canPin = props.actionsEnabled && record.status === 'published' && allowsClubHome;
 
   return (
-    <article style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: 12, padding: 12, display: 'grid', gap: 12 }}>
+    <article
+      style={{
+        border: '1px solid rgba(0,0,0,0.1)',
+        borderRadius: 12,
+        padding: 12,
+        display: 'grid',
+        gap: 12,
+      }}
+    >
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
         <div>
           <h3 style={{ margin: 0 }}>{record.title}</h3>
           <div style={{ opacity: 0.75, fontSize: 13 }}>
-            tag: {record.tag} · status: {record.status} · operational: {record.operational_state || '—'} · canonical:{' '}
-            {record.canonical ? 'yes' : 'no'} · credit: {record.credit_line}
+            tag: {record.tag} · status: {record.status} · operational:{' '}
+            {record.operational_state || '—'} · canonical: {record.canonical ? 'yes' : 'no'} ·
+            credit: {record.credit_line}
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
@@ -773,7 +1054,9 @@ function InventoryRecordCard(props: {
               })
             }
             disabled={!props.actionsEnabled || record.status === 'published' || !canSchedule}
-            style={buttonStyle(!props.actionsEnabled || record.status === 'published' || !canSchedule)}
+            style={buttonStyle(
+              !props.actionsEnabled || record.status === 'published' || !canSchedule,
+            )}
           >
             Schedule
           </button>
@@ -805,9 +1088,7 @@ function InventoryRecordCard(props: {
           </button>
           <button
             type="button"
-            onClick={() =>
-              void props.onPublish({ id: record.id, action: 'unpublish', reason })
-            }
+            onClick={() => void props.onPublish({ id: record.id, action: 'unpublish', reason })}
             disabled={!props.actionsEnabled || record.status !== 'published'}
             style={buttonStyle(!props.actionsEnabled || record.status !== 'published')}
           >
@@ -826,10 +1107,11 @@ function InventoryRecordCard(props: {
 
       <p style={{ whiteSpace: 'pre-wrap', margin: 0 }}>{record.text}</p>
       <div style={{ opacity: 0.75, fontSize: 13 }}>
-        sections: {record.allowed_sections} · event: {record.event_date || '—'} / {record.event_year ?? '—'} · rotation:{' '}
-        {record.rotation_group || '—'} · weight: {record.feature_weight ?? 1} · last featured:{' '}
-        {record.last_featured || '—'} · created: {record.created_at || '—'} · updated: {record.updated_at || '—'} ·
-        published: {record.published_at || '—'} · approved by: {record.approved_by || '—'} · approved at:{' '}
+        sections: {record.allowed_sections} · event: {record.event_date || '—'} /{' '}
+        {record.event_year ?? '—'} · rotation: {record.rotation_group || '—'} · weight:{' '}
+        {record.feature_weight ?? 1} · last featured: {record.last_featured || '—'} · created:{' '}
+        {record.created_at || '—'} · updated: {record.updated_at || '—'} · published:{' '}
+        {record.published_at || '—'} · approved by: {record.approved_by || '—'} · approved at:{' '}
         {record.approved_at || '—'} · scheduled at: {record.scheduled_at || '—'}
         {Number(record.schedule_paused) === 1 ? ' · paused' : ''}
         {record.pause_reason ? ` (${record.pause_reason})` : ''}
@@ -845,7 +1127,11 @@ function InventoryRecordCard(props: {
       >
         <h4 style={{ margin: 0 }}>Edit Metadata</h4>
         <EditorialMetadataFields prefix={`inventory-${record.id}`} defaults={record} />
-        <button type="submit" disabled={!props.actionsEnabled} style={buttonStyle(!props.actionsEnabled)}>
+        <button
+          type="submit"
+          disabled={!props.actionsEnabled}
+          style={buttonStyle(!props.actionsEnabled)}
+        >
           Save Metadata
         </button>
       </form>
@@ -856,6 +1142,47 @@ function InventoryRecordCard(props: {
         onStatus={props.onStatus}
         actionsEnabled={props.actionsEnabled}
       />
+
+      <div style={{ display: 'grid', gap: 8 }}>
+        <h4 style={{ margin: 0 }}>Club Home pin</h4>
+        <p style={{ opacity: 0.75, fontSize: 13, margin: 0 }}>
+          Pin overrides rotation for one zone without changing publication status. Unpin restores
+          ordinary selection.
+          {!allowsClubHome ? ' Add club_home to allowed sections before pinning.' : ''}
+        </p>
+        <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
+          <select
+            value={pinZone}
+            onChange={(event) => setPinZone(event.target.value)}
+            disabled={!canPin}
+            style={{ ...fieldStyle(), width: 'auto' }}
+          >
+            {CLUB_HOME_PIN_ZONES.map((zone) => (
+              <option key={zone.key} value={zone.key}>
+                {zone.label}
+              </option>
+            ))}
+          </select>
+          <button
+            type="button"
+            onClick={() =>
+              void props.onClubHomePin({ action: 'pin', id: record.id, zoneId: pinZone })
+            }
+            disabled={!canPin}
+            style={buttonStyle(!canPin)}
+          >
+            Pin to zone
+          </button>
+          <button
+            type="button"
+            onClick={() => void props.onClubHomePin({ action: 'unpin', zoneId: pinZone })}
+            disabled={!props.actionsEnabled}
+            style={buttonStyle(!props.actionsEnabled)}
+          >
+            Unpin zone
+          </button>
+        </div>
+      </div>
     </article>
   );
 }
@@ -871,19 +1198,27 @@ function SubmissionCard(props: {
   actionsEnabled: boolean;
 }) {
   const { submission, onReview } = props;
-  const canPurge = submission.status === 'rejected' && !String(submission.retention_reason || '').trim();
+  const canPurge =
+    submission.status === 'rejected' && !String(submission.retention_reason || '').trim();
   const retainedDefault =
     String(submission.retention_reason || '').trim() || 'Retained for editorial follow-up.';
 
   return (
     <form
       onSubmit={(event) => event.preventDefault()}
-      style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: 12, padding: 12, display: 'grid', gap: 10 }}
+      style={{
+        border: '1px solid rgba(0,0,0,0.1)',
+        borderRadius: 12,
+        padding: 12,
+        display: 'grid',
+        gap: 10,
+      }}
     >
       <div>
         <h3 style={{ margin: 0 }}>{submission.title}</h3>
         <div style={{ opacity: 0.75, fontSize: 13 }}>
-          submitted by {submission.submitted_by} · status: {submission.status} · {submission.created_at || 'date unavailable'}
+          submitted by {submission.submitted_by} · status: {submission.status} ·{' '}
+          {submission.created_at || 'date unavailable'}
           {submission.decision_by ? ` · decided by ${submission.decision_by}` : ''}
           {submission.decision_at ? ` · decided at ${submission.decision_at}` : ''}
           {submission.rejected_at ? ` · rejected at ${submission.rejected_at}` : ''}
@@ -904,16 +1239,27 @@ function SubmissionCard(props: {
           text: submission.description,
           source_name: submission.source_name || 'Member submission',
           source_url: submission.source_url || '',
-          credit_line: submission.credit_line || defaultCreditFromSubmitter(submission.submitted_by),
+          credit_line:
+            submission.credit_line || defaultCreditFromSubmitter(submission.submitted_by),
           review_notes: submission.review_notes || '',
           allowed_sections: '["library"]',
         }}
       />
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10 }}>
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+          gap: 10,
+        }}
+      >
         <label style={{ display: 'grid', gap: 6 }}>
           Duplicate candidate / merge target note
-          <input name="duplicate_candidate" defaultValue={submission.duplicate_candidate || ''} style={fieldStyle()} />
+          <input
+            name="duplicate_candidate"
+            defaultValue={submission.duplicate_candidate || ''}
+            style={fieldStyle()}
+          />
         </label>
         <label style={{ display: 'grid', gap: 6 }}>
           Target inventory ID for merge
@@ -921,32 +1267,43 @@ function SubmissionCard(props: {
         </label>
         <label style={{ display: 'grid', gap: 6 }}>
           Purge eligible at
-          <input name="purge_eligible_at" placeholder="YYYY-MM-DD or ISO timestamp" style={fieldStyle()} />
+          <input
+            name="purge_eligible_at"
+            placeholder="YYYY-MM-DD or ISO timestamp"
+            style={fieldStyle()}
+          />
         </label>
       </div>
 
       <label style={{ display: 'grid', gap: 6 }}>
         Objective triage flags JSON
-        <textarea name="triage_flags" rows={2} defaultValue={submission.triage_flags || '[]'} style={fieldStyle()} />
+        <textarea
+          name="triage_flags"
+          rows={2}
+          defaultValue={submission.triage_flags || '[]'}
+          style={fieldStyle()}
+        />
       </label>
       <label style={{ display: 'grid', gap: 6 }}>
         Retention reason
-        <textarea name="retention_reason" rows={2} defaultValue={submission.retention_reason || ''} style={fieldStyle()} />
+        <textarea
+          name="retention_reason"
+          rows={2}
+          defaultValue={submission.retention_reason || ''}
+          style={fieldStyle()}
+        />
       </label>
       <label style={{ display: 'grid', gap: 6 }}>
         Media associations JSON (approve)
-        <textarea
-          name="media_associations_json"
-          rows={4}
-          defaultValue="[]"
-          style={fieldStyle()}
-        />
+        <textarea name="media_associations_json" rows={4} defaultValue="[]" style={fieldStyle()} />
       </label>
 
       <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap' }}>
         <button
           type="button"
-          onClick={(event) => void onReview(submission, 'triage', event.currentTarget.form as HTMLFormElement)}
+          onClick={(event) =>
+            void onReview(submission, 'triage', event.currentTarget.form as HTMLFormElement)
+          }
           disabled={!props.actionsEnabled}
           style={buttonStyle(!props.actionsEnabled)}
         >
@@ -954,7 +1311,9 @@ function SubmissionCard(props: {
         </button>
         <button
           type="button"
-          onClick={(event) => void onReview(submission, 'start_review', event.currentTarget.form as HTMLFormElement)}
+          onClick={(event) =>
+            void onReview(submission, 'start_review', event.currentTarget.form as HTMLFormElement)
+          }
           disabled={!props.actionsEnabled}
           style={buttonStyle(!props.actionsEnabled)}
         >
@@ -962,7 +1321,9 @@ function SubmissionCard(props: {
         </button>
         <button
           type="button"
-          onClick={(event) => void onReview(submission, 'approve', event.currentTarget.form as HTMLFormElement)}
+          onClick={(event) =>
+            void onReview(submission, 'approve', event.currentTarget.form as HTMLFormElement)
+          }
           disabled={!props.actionsEnabled}
           style={buttonStyle(!props.actionsEnabled)}
         >
@@ -970,7 +1331,9 @@ function SubmissionCard(props: {
         </button>
         <button
           type="button"
-          onClick={(event) => void onReview(submission, 'merge', event.currentTarget.form as HTMLFormElement)}
+          onClick={(event) =>
+            void onReview(submission, 'merge', event.currentTarget.form as HTMLFormElement)
+          }
           disabled={!props.actionsEnabled}
           style={buttonStyle(!props.actionsEnabled)}
         >
@@ -978,7 +1341,9 @@ function SubmissionCard(props: {
         </button>
         <button
           type="button"
-          onClick={(event) => void onReview(submission, 'reject', event.currentTarget.form as HTMLFormElement)}
+          onClick={(event) =>
+            void onReview(submission, 'reject', event.currentTarget.form as HTMLFormElement)
+          }
           disabled={!props.actionsEnabled}
           style={buttonStyle(!props.actionsEnabled)}
         >
@@ -998,7 +1363,9 @@ function SubmissionCard(props: {
         </button>
         <button
           type="button"
-          onClick={(event) => void onReview(submission, 'purge', event.currentTarget.form as HTMLFormElement)}
+          onClick={(event) =>
+            void onReview(submission, 'purge', event.currentTarget.form as HTMLFormElement)
+          }
           disabled={!props.actionsEnabled || !canPurge}
           style={buttonStyle(!props.actionsEnabled || !canPurge)}
         >

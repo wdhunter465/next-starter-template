@@ -14,6 +14,8 @@ export type ClubHomeStory = {
 
 export type ClubHomeMediaFeature = {
   thumbnail_url: string | null;
+  /** Persisted rendition size label when thumbnail_url comes from a ready rendition. */
+  media_rendition?: string | null;
   title: string | null;
   description: string | null;
   credit_line: string | null;

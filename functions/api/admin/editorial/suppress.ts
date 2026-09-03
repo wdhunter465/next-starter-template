@@ -47,17 +47,13 @@ export const onRequestPost = async (context: any): Promise<Response> => {
       return jsonResponse(
         {
           ok: false,
-          error:
-            "content_inventory_id, suppression_reason, and takedown_request_source are all required.",
+          error: "content_inventory_id, suppression_reason, and takedown_request_source are all required.",
         },
         400,
       );
     }
 
-    const existing = await d1.db
-      .prepare("SELECT id, status FROM content_inventory WHERE id = ?")
-      .bind(contentInventoryId)
-      .first();
+    const existing = await d1.db.prepare("SELECT id, status FROM content_inventory WHERE id = ?").bind(contentInventoryId).first();
 
     if (!existing) {
       return jsonResponse({ ok: false, error: "content_inventory record not found." }, 404);
@@ -73,6 +69,7 @@ export const onRequestPost = async (context: any): Promise<Response> => {
       .prepare(
         `UPDATE content_inventory
             SET status = 'archived',
+                published_at = NULL,
                 suppression_reason = ?,
                 takedown_request_source = ?,
                 takedown_resolution_note = ?,
@@ -83,10 +80,18 @@ export const onRequestPost = async (context: any): Promise<Response> => {
       .bind(suppressionReason, takedownRequestSource, takedownResolutionNote, now, now, contentInventoryId)
       .run();
 
-    return jsonResponse(
-      { ok: true, content_inventory_id: contentInventoryId, status: "archived" },
-      200,
-    );
+    // Fail-closed for Club Home: clear any active pins for this story so
+    // archived/suppressed content cannot remain pinned into live zones.
+    try {
+      const pinTables = await requireTables(d1.db, ["content_inventory_club_home_pins"]);
+      if (pinTables.ok) {
+        await d1.db.prepare(`DELETE FROM content_inventory_club_home_pins WHERE story_id = ?`).bind(contentInventoryId).run();
+      }
+    } catch (pinErr: any) {
+      console.error("admin editorial suppress pin-clear error:", pinErr);
+    }
+
+    return jsonResponse({ ok: true, content_inventory_id: contentInventoryId, status: "archived" }, 200);
   } catch (err: any) {
     console.error("admin editorial suppress error:", err);
     return jsonResponse({ ok: false, error: "Takedown suppression failed." }, 500);
