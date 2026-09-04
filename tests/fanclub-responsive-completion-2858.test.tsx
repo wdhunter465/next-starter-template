@@ -48,6 +48,7 @@ describe('#2858 fanclub responsive completion', () => {
     ]) {
       const css = readFileSync(path, 'utf8');
       expect(css).toContain('min-height: 44px');
+      // Require fluid max-width: 100% (whitespace-tolerant). Fixed container max-width: Npx alone must not pass.
       expect(css).toMatch(/max-width:\s*100%/);
     }
   });
