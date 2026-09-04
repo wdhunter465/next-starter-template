@@ -38,18 +38,25 @@ describe('#2858 fanclub responsive completion', () => {
     expect(css).toContain('repeat(3, minmax(0, 1fr))');
   });
 
-  it('ships fluid CSS modules with 44px tap targets for the converted pages', () => {
+  it('ships fluid CSS modules with 44px tap targets for converted interactive pages', () => {
     for (const path of [
       'src/app/fanclub/library/page.module.css',
       'src/app/fanclub/memorabilia/page.module.css',
       'src/app/fanclub/myprofile/page.module.css',
       'src/app/fanclub/chat/page.module.css',
       'src/app/search/page.module.css',
-      'src/components/fanclub/MembershipCardSection.module.css',
     ]) {
       const css = readFileSync(path, 'utf8');
-      expect(css.includes('min-height: 44px') || css.includes('max-width: 100%') || css.includes('max-width:')).toBe(true);
+      expect(css).toContain('min-height: 44px');
+      // Require fluid max-width: 100% (whitespace-tolerant). Fixed container max-width: Npx alone must not pass.
+      expect(css).toMatch(/max-width:\s*100%/);
     }
+  });
+
+  it('keeps membership card figures fluid without requiring control tap targets', () => {
+    const css = readFileSync('src/components/fanclub/MembershipCardSection.module.css', 'utf8');
+    expect(css).toContain('max-width: min(190px, 100%)');
+    expect(css).toContain('@media (max-width: 390px)');
   });
 
   it('keeps the converted pages free of hardcoded inline style objects', () => {
