@@ -116,19 +116,28 @@ function ChatComposer({ onSubmit, disabled }: { onSubmit: (title: string, body: 
     <section className={styles.composer}>
       <h2 className={styles.composerTitle}>Create a post</h2>
       <div className={styles.formGrid}>
-        <input
-          className={styles.input}
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="Title"
-        />
-        <textarea
-          className={styles.textarea}
-          value={body}
-          onChange={(e) => setBody(e.target.value)}
-          placeholder="Write your message…"
-          rows={4}
-        />
+        <label className={styles.field} htmlFor="fanclub-chat-title">
+          Title
+          <input
+            id="fanclub-chat-title"
+            className={styles.input}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Title"
+            autoComplete="off"
+          />
+        </label>
+        <label className={styles.field} htmlFor="fanclub-chat-body">
+          Message
+          <textarea
+            id="fanclub-chat-body"
+            className={styles.textarea}
+            value={body}
+            onChange={(e) => setBody(e.target.value)}
+            placeholder="Write your message…"
+            rows={4}
+          />
+        </label>
         <button className={styles.button} onClick={go} disabled={!canSubmit}>
           {busy ? 'Posting…' : 'Post'}
         </button>
