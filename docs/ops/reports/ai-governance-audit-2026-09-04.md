@@ -11,11 +11,11 @@ Last Reviewed: 2026-09-04
 
 # AI Governance Audit — 2026-09-04
 
-## Origin
+## Purpose
 
 Bill reported inconsistent task performance across ChatGPT, Work, and Codex and asked for a root-cause audit of the repository's AI-agent governance surface (`Agent.md`, `AGENTS.md`, `docs/ops/ai/**`, `docs/governance/**`). Claude Code was authorized to own the audit and its implementation end-to-end (Issue #4091). This report is Phase 3: a concrete, file-by-file consolidation proposal for Bill's review. **No file named below has been changed by this report.** Phase 5 (implementation) is separate follow-up work, gated on this review.
 
-## Method
+## Scope
 
 Every file in `docs/ops/ai/**` (17 files, 2,923 lines) and `docs/governance/**` (37 files, 5,569 lines) — the full 8,628-line, ~48-file surface nominally required reading before an agent acts — was read in full or, for the `docs/governance/standards/` cohort, read by front-matter header (`Doc Type`, `Authority Level`, `Canonical Reference`, `Last Reviewed`) plus targeted full reads where headers indicated risk. Each file was classified as:
 
@@ -25,13 +25,17 @@ Every file in `docs/ops/ai/**` (17 files, 2,923 lines) and `docs/governance/**` 
 - **Actively wrong** — contradicts current canonical policy, not merely superseded. Safe to delete (git history preserves it).
 - **Misplaced** — legitimate content in the wrong Diataxis folder, creating ambiguity about whether it's part of the mandatory chain.
 
-## Headline finding
+This report does not own governance policy itself, OpenAI-side agent configuration, or authorization to execute the consolidation it proposes.
+
+## Current known truth
+
+### Headline finding
 
 **`docs/governance/**` is the healthy part of the system.** All 37 files there are dated 2026-07 through 2026-09, cross-reference each other correctly, and most carry an explicit "Supersession" section naming exactly what old behavior they replace. `REPOSITORY-AUTHORITY.md` (constitutional) and `AGENT-TEAM.md` (role mapping) — the two files every other governance file points to — are internally consistent and current.
 
 **The drift is concentrated in `docs/ops/ai/**`.** It predates the `docs/governance/**` rebuild and was never fully reconciled afterward. Five of its 17 files are the healthiest part of the whole surface (`CHATGPT-RULES.md`, `WORK-RULES.md`, `CODEX-RULES.md`, `CLAUDE-CODE-RULES.md`, `CURSOR-RULES.md` — all `Last Reviewed: 2026-09-01/02`). The rest range from fine to actively contradictory.
 
-## File-by-file disposition — `docs/ops/ai/**`
+### File-by-file disposition — `docs/ops/ai/**`
 
 | File | Lines | Classification | Proposed action |
 | --- | --- | --- | --- |
@@ -48,7 +52,7 @@ Every file in `docs/ops/ai/**` (17 files, 2,923 lines) and `docs/governance/**` 
 | `pr-lifecycle-standard.md` | 42 | **Actively wrong** | **Delete.** Asserts "ChatGPT = PR owner" / "PR is created in DRAFT state by ChatGPT" for all PRs (lines 17, 39). This directly contradicts current canonical `docs/governance/PR_PROCESS.md` (2026-08-07) and `AGENT-TEAM.md`'s actual routing, where each implementer (Cursor Local, Claude Code, Codex, etc.) owns and progresses its own PRs — confirmed by this session's own practice. `PR_PROCESS.md` and `PR_LIFECYCLE_STATE_MACHINE.md` fully replace this file's intended scope with correct content; nothing here is worth archiving. |
 | `AI-REVIEW-ACCESS.md` | 102 | Misplaced (content is fine) | Keep content; one-line front-matter fix: `Canonical Reference` from `/docs/ops/ai/SHARED-AGENT-RULES.md` to `/docs/ops/ai/CORE-RULES.md` (its actual operational parent). This is a narrow, correct technical reference (token-gated preview config) that happens to live in the agent-routing directory. Optional follow-up (not proposed for Phase 5): relocate to `docs/reference/platform/` or `docs/how-to/ci/` per Diataxis folder rules, since its presence in `docs/ops/ai/` next to mandatory-read files creates ambiguity about whether it's part of the required chain. |
 
-## The `SHARED-AGENT-RULES.md` dependency chain
+### The `SHARED-AGENT-RULES.md` dependency chain
 
 Six files currently cite `SHARED-AGENT-RULES.md` as a **mandatory read step** or **Canonical Reference**, even though the file itself disclaims authority:
 
@@ -61,7 +65,7 @@ Six files currently cite `SHARED-AGENT-RULES.md` as a **mandatory read step** or
 
 Proposed Phase 5 order: repoint 1-5 to their real canonical parents (as specified in the table above), confirm nothing else cites `SHARED-AGENT-RULES.md`, then delete it. Deleting it first would leave five dangling references.
 
-## File-by-file disposition — `docs/governance/**`
+### File-by-file disposition — `docs/governance/**`
 
 All 37 files are current and internally consistent, with one structural pattern worth fixing and one worth documenting as intentional:
 
@@ -75,7 +79,9 @@ Each lists `Canonical Reference: docs/governance/standards/document-authority-hi
 
 **Two files use a second root of authority** (`Authority Level: Binding`, `Canonical Reference: /Agent.md` rather than `/docs/governance/REPOSITORY-AUTHORITY.md`): `standards/CURSOR-RUNTIME-ROUTING.md` and `standards/AGENT-EXECUTION-FIDELITY.md`. This is not a defect — `Agent.md` is the routing entry point by design, and these are agent-execution-contract documents anchored to it rather than domain policy. Documenting it here so it isn't mistaken for drift in a future audit.
 
-## Net impact if Phase 5 is approved
+## Intended final state
+
+### Net impact if Phase 5 is approved
 
 | Metric | Before | After |
 | --- | --- | --- |
@@ -88,7 +94,7 @@ Each lists `Canonical Reference: docs/governance/standards/document-authority-hi
 
 No load-bearing operational rule (Issue-first gate, PR discipline, stop conditions, the 5 healthy per-agent rule files, any of `docs/governance/**`'s substantive content) is touched. This proposal only removes redundant indirection, retires genuinely concluded historical material, and deletes one file whose content is now actively wrong rather than merely old.
 
-## Proposed Phase 5 sequencing
+### Proposed Phase 5 sequencing
 
 Small, independently reviewable PRs rather than one large one, per this repo's own PR-discipline standard:
 
@@ -99,7 +105,7 @@ Small, independently reviewable PRs rather than one large one, per this repo's o
 
 Each PR should run `docs_check_headers.sh` and the full `agent-governance-bootstrap` test suite before merge, per this repo's own documentation-header standard.
 
-## Explicit non-goals (unchanged from #4091)
+### Explicit non-goals (unchanged from #4091)
 
 - No change to OpenAI-side agent configuration.
 - No deletion of load-bearing operational rules.
