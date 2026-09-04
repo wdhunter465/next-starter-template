@@ -37,12 +37,18 @@ jobs:
 
             core.setOutput('files', files.map((file) => file.filename).join('\n'));
 
+      - name: Fetch live PR body
+        if: github.event_name == 'pull_request'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: gh pr view "$PR_NUMBER" --json body -q .body > "$RUNNER_TEMP/pr_body.md"
+
       - name: Write PR hygiene audit inputs
         env:
-          PR_BODY: ${{ github.event.pull_request.body }}
           CHANGED_FILES: ${{ steps.changed_files.outputs.files }}
         run: |
-          printf '%s\n' "$PR_BODY" > "$RUNNER_TEMP/pr_body.md"
+          [ -f "$RUNNER_TEMP/pr_body.md" ] || printf '' > "$RUNNER_TEMP/pr_body.md"
           printf '%s\n' "$CHANGED_FILES" > "$RUNNER_TEMP/pr_changed_files.txt"
 
       - name: PR hygiene advisory audit

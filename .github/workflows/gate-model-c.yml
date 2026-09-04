@@ -54,8 +54,9 @@ jobs:
       - name: Write PR body
         if: github.event_name == 'pull_request'
         env:
-          PR_BODY: ${{ github.event.pull_request.body }}
-        run: printf '%s\n' "$PR_BODY" > "$RUNNER_TEMP/pr_body.md"
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: gh pr view "$PR_NUMBER" --json body -q .body > "$RUNNER_TEMP/pr_body.md"
 
       - name: Detect Model C claim
         if: github.event_name == 'pull_request'

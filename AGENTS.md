@@ -18,9 +18,11 @@ When a Cloud Agent session loads this file, the bootstrap is not complete until 
 Do not merely report that these files are required. Read them before making any repo-work, readiness, implementation, or PR-governance claim:
 
 1. `Agent.md`
-2. `docs/ops/ai/SHARED-AGENT-RULES.md`
-3. `docs/ops/ai/CORE-RULES.md`
-4. `docs/ops/ai/CURSOR-RULES.md`
+2. `docs/governance/REPOSITORY-AUTHORITY.md`
+3. `docs/governance/AGENT-TEAM.md`
+4. `docs/ops/ai/SHARED-AGENT-RULES.md`
+5. `docs/ops/ai/CORE-RULES.md`
+6. `docs/ops/ai/CURSOR-RULES.md`
 
 For PR, issue, review, remediation, or implementation work, also read:
 
@@ -38,6 +40,8 @@ Before any other repo-work response, report each file as **read**:
 
 - AGENTS.md: read
 - Agent.md: read
+- REPOSITORY-AUTHORITY.md: read
+- AGENT-TEAM.md: read
 - SHARED-AGENT-RULES.md: read
 - CORE-RULES.md: read
 - CURSOR-RULES.md: read
