@@ -18,6 +18,13 @@ describe('#2312 content storage policy — normal retention', () => {
     expect(mustRetainOriginal('pdf')).toBe(true);
     expect(evaluateObjectAvailability(true, true)).toBe('available');
   });
+
+  it('classifies retention media types case/whitespace-insensitively', () => {
+    expect(mustRetainOriginal('PDF')).toBe(true);
+    expect(mustRetainOriginal(' Pdf ')).toBe(true);
+    expect(mustRetainOriginal('Image')).toBe(true);
+    expect(mustRetainOriginal('spreadsheet')).toBe(false);
+  });
 });
 
 describe('#2312 content storage policy — duplicate object', () => {
@@ -51,7 +58,19 @@ describe('#2312 content storage policy — free-tier threshold', () => {
   });
 
   it('treats unknown/zero capacity as an exception rather than an unbounded free pass', () => {
-    expect(evaluateStorageCapacity(1, 0).status).toBe('blocked_exception');
+    const result = evaluateStorageCapacity(1, 0);
+    expect(result.status).toBe('blocked_exception');
+    expect(result.used_ratio).toBeNull();
+  });
+
+  it('fails closed (never "ok") on non-finite input instead of letting NaN comparisons fall through', () => {
+    expect(evaluateStorageCapacity(NaN, 10_000_000_000).status).toBe('blocked_exception');
+    expect(evaluateStorageCapacity(1, NaN).status).toBe('blocked_exception');
+  });
+
+  it('never returns a non-JSON-safe used_ratio (Infinity) for unknown/zero capacity', () => {
+    const result = evaluateStorageCapacity(1, 0);
+    expect(JSON.parse(JSON.stringify(result)).used_ratio).toBeNull();
   });
 });
 

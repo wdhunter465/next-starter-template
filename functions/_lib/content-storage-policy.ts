@@ -19,7 +19,7 @@ export interface StorageCapacityResult {
   status: StorageCapacityStatus;
   used_bytes: number;
   capacity_bytes: number;
-  used_ratio: number;
+  used_ratio: number | null;
   reason: string | null;
 }
 
@@ -30,19 +30,22 @@ const DEFAULT_WARNING_RATIO = 0.8;
  * does not compromise data integrity... If free-tier limits create risk,
  * stop and surface a Bill/Atlas decision before proceeding." A capacity at
  * or above the threshold fails closed into `blocked_exception`; it never
- * silently overflows.
+ * silently overflows. Unknown/zero/non-finite inputs (including NaN, which
+ * would otherwise make every comparison false and fall through to `ok`)
+ * fail closed the same way, and `used_ratio` stays JSON-safe (`null`
+ * instead of `Infinity`) rather than a non-finite number.
  */
 export function evaluateStorageCapacity(
   usedBytes: number,
   capacityBytes: number,
   warningRatio: number = DEFAULT_WARNING_RATIO,
 ): StorageCapacityResult {
-  if (capacityBytes <= 0) {
+  if (!Number.isFinite(usedBytes) || !Number.isFinite(capacityBytes) || capacityBytes <= 0) {
     return {
       status: 'blocked_exception',
       used_bytes: usedBytes,
       capacity_bytes: capacityBytes,
-      used_ratio: Infinity,
+      used_ratio: null,
       reason: 'capacity_unknown_or_zero',
     };
   }
@@ -82,10 +85,12 @@ export type OriginalRetentionMediaType = (typeof ORIGINAL_RETENTION_MEDIA_TYPES)
  * PDF/text policy from #2312: "Do not discard the original PDF
  * automatically after text extraction." Extended to every retained binary
  * media type this pipeline handles -- derived/extracted text is never a
- * substitute for the source object.
+ * substitute for the source object. Case/whitespace-insensitive so a caller
+ * passing "PDF" or " Pdf " is not misclassified as an unrecognized type.
  */
 export function mustRetainOriginal(mediaType: string): boolean {
-  return (ORIGINAL_RETENTION_MEDIA_TYPES as readonly string[]).includes(mediaType);
+  const normalized = mediaType.trim().toLowerCase();
+  return (ORIGINAL_RETENTION_MEDIA_TYPES as readonly string[]).includes(normalized);
 }
 
 export interface PurgeEligibilityInput {
