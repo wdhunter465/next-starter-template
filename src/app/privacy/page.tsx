@@ -94,13 +94,40 @@ export default async function Page() {
       )}
 
       {/* Always rendered so D1 body_html cannot omit the analytics disclosure (Product Decision item 2 / #2920). */}
-      <h2 style={{ ...styles.h2 }}>Analytics and cookies</h2>
+      <h2 style={{ ...styles.h2 }}>Cookie &amp; Privacy Preferences</h2>
       <p style={{ ...styles.p }}>
-        When analytics is enabled for this site, we use Google Analytics 4 (gtag) to collect aggregate usage
-        information such as pages viewed and approximate traffic patterns. The measurement identifier is
-        configured at deploy time. Analytics scripts may set or read cookies or similar storage used by Google
-        Analytics. We do not use analytics data to sell personal information.
+        <strong>We do not sell your personal information.</strong>
       </p>
+      <p style={{ ...styles.p }}>
+        Any information retained by this website is used solely to operate the site, maintain security and
+        signed-in sessions, remember your preferences, understand how the website is used, and improve content
+        delivery and your overall experience while visiting the site.
+      </p>
+
+      <h3 style={{ ...styles.h3 }}>Essential website functions</h3>
+      <p style={{ ...styles.p }}>
+        Some cookies or browser storage may be required for core functions such as authentication, maintaining
+        your signed-in session, security, and remembering necessary site preferences.
+      </p>
+
+      <h3 style={{ ...styles.h3 }}>Analytics</h3>
+      <p style={{ ...styles.p }}>
+        We may use analytics tools to understand aggregate website usage, such as which pages are visited and
+        how visitors navigate the site. This information helps us improve content, performance, navigation, and
+        the overall user experience. When analytics is enabled, we use Google Analytics 4 (gtag), and it does
+        not run until you choose Accept on the analytics preference notice; choosing Decline keeps it off. Where
+        your browser allows local storage, your choice is remembered on this browser/device so the notice does
+        not reappear on later visits, unless you clear your site data or your browser blocks that storage (for
+        example, in some private-browsing modes), in which case the notice may appear again.
+      </p>
+
+      <h3 style={{ ...styles.h3 }}>Optional features</h3>
+      <p style={{ ...styles.p }}>
+        Additional cookies or browser storage may be used only if and when optional website features that
+        require them are enabled. Where applicable, their purpose will be identified and handled in accordance
+        with the website&rsquo;s privacy practices.
+      </p>
+
       <p style={{ ...styles.p }}>
         Independently of analytics, a short-lived session cookie is used only after Login to keep you signed
         in to Fan Club member surfaces. You can request removal of personal data you submitted by contacting{" "}
@@ -114,6 +141,7 @@ const styles: Record<string, React.CSSProperties> = {
   main: { padding: "40px 16px", maxWidth: 900, margin: "0 auto" },
   h1: { fontSize: 34, lineHeight: 1.15, margin: "0 0 12px 0" },
   h2: { fontSize: 22, lineHeight: 1.25, margin: "22px 0 10px 0" },
+  h3: { fontSize: 18, lineHeight: 1.3, margin: "16px 0 8px 0" },
   lead: { fontSize: 18, lineHeight: 1.6, margin: "0 0 18px 0" },
   body: { fontSize: 16, lineHeight: 1.7 },
   p: { fontSize: 16, lineHeight: 1.7, margin: "0 0 14px 0" },
