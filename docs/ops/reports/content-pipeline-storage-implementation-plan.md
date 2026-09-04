@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: Migration sequencing and implementation plan for content pipeline storage
 Does Not Own: SQL migration files, runtime deployment, or merge approval
 Canonical Reference: /docs/reference/content/content-pipeline-storage-model.md
-Related issues: #2273, #2278, #2274, #2275, #2277
-Last Reviewed: 2026-07-05
+Related issues: #2273, #2278, #2274, #2275, #2277, #2312
+Last Reviewed: 2026-09-04
 ---
 
 # Content Pipeline Storage Implementation Plan
@@ -121,6 +121,23 @@ Validation: JSON Schema + dry-run mode.
 | JSON drift from D1 | Schema validation; import idempotency |
 | Queue/candidate duplication | Link `submission_queue_id`; deprecate dual storage later |
 
+## Storage exception and capacity-threshold rollout (#2312)
+
+A future authorized phase must wire `functions/_lib/content-storage-policy.ts`
+(the #2312 decision contract) into real acquisition/write paths rather than
+re-deriving free-tier, dedupe, or purge rules at call sites:
+
+| Rollout point | Contract call | Effect |
+| --- | --- | --- |
+| Before any B2 write | `evaluateStorageCapacity` | Block the write and raise a tracked exception at/above threshold instead of writing past it |
+| Before persisting a new candidate | `classifyDedupe` | Route `duplicate` results to the existing candidate instead of creating a second row |
+| Publication-prep / periodic audit | `evaluateObjectAvailability` | Flag any `content_items`/`media_assets` row whose B2 key has no live object as an orphan exception |
+| Purge/delete request handling | `evaluatePurgeEligibility` | Refuse the request unless legal/rights/privacy holds are all clear and deletion was explicitly approved |
+| Backup/restore verification | `evaluateRecoveryOutcome` | Treat an unverified restore the same as a failed one |
+
+This table is planning input for a successor implementation issue; it does
+not itself authorize migrations, B2 bucket changes, or Production writes.
+
 ## Acceptance
 
 - [x] Metadata vs media separation explicit
@@ -128,3 +145,4 @@ Validation: JSON Schema + dry-run mode.
 - [x] B2 recommendation explicit
 - [x] Seed promotion path defined
 - [x] Audit/retention addressed
+- [x] Free-tier/cost-risk and storage-exception decision contract addressed (#2312)
