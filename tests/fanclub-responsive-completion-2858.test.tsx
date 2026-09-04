@@ -48,7 +48,7 @@ describe('#2858 fanclub responsive completion', () => {
     ]) {
       const css = readFileSync(path, 'utf8');
       expect(css).toContain('min-height: 44px');
-      expect(css).toMatch(/max-width:\s*(100%|\d+px)/);
+      expect(css).toMatch(/max-width:\s*100%/);
     }
   });
 
