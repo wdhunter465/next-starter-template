@@ -115,9 +115,10 @@ export default async function Page() {
         We may use analytics tools to understand aggregate website usage, such as which pages are visited and
         how visitors navigate the site. This information helps us improve content, performance, navigation, and
         the overall user experience. When analytics is enabled, we use Google Analytics 4 (gtag), and it does
-        not run until you choose Accept on the analytics preference notice; choosing Decline keeps it off. Your
-        choice is remembered on this browser/device so the notice does not reappear on later visits, unless you
-        clear your site data.
+        not run until you choose Accept on the analytics preference notice; choosing Decline keeps it off. Where
+        your browser allows local storage, your choice is remembered on this browser/device so the notice does
+        not reappear on later visits, unless you clear your site data or your browser blocks that storage (for
+        example, in some private-browsing modes), in which case the notice may appear again.
       </p>
 
       <h3 style={{ ...styles.h3 }}>Optional features</h3>
