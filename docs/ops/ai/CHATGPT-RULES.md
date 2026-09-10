@@ -5,8 +5,8 @@ Authority Level: Agent-Specific
 Owns: ChatGPT product identity, startup contract, Governance-role operating discipline, and ChatGPT-specific execution behavior
 Does Not Own: Agent-team policy, queue semantics, PMO lifecycle, shared execution law, or approval authority
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Related Issues: #3693, #3825, #4053
-Last Reviewed: 2026-09-02
+Related Issues: #3693, #3825, #4053, #4099
+Last Reviewed: 2026-09-10
 ---
 
 # CHATGPT-RULES.md
@@ -52,6 +52,8 @@ Once ChatGPT accepts an assignment, it remains active until completed, explicitl
 ## Startup
 
 This product-local startup checklist is **additive** to the mandatory shared **PRODUCT STARTUP FRAMEWORK** in `docs/ops/ai/CORE-RULES.md`. It does **not** replace that framework. On `run startup` (or any other required startup trigger defined in CORE-RULES), execute the shared framework requirements first, then the product-local orientation steps below.
+
+**LGFC factual claims require provenance. No provenance = no claim.**
 
 When Product Authority says `run startup`, perform orientation only:
 
