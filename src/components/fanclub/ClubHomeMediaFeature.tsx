@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { clubHomeMutedText, clubHomeSectionCard, clubHomeSectionTitle } from './clubHomeStyles';
+import { clubHomeColors, clubHomeMutedText, clubHomePhotoPlaceholder, clubHomeSectionCard, clubHomeSectionTitle } from './clubHomeStyles';
 import type { ClubHomeMediaFeature } from '@/lib/clubHomeApi';
 
 type ClubHomeMediaFeatureProps = {
@@ -14,18 +14,30 @@ export default function ClubHomeMediaFeature({ media }: ClubHomeMediaFeatureProp
       <h2 style={clubHomeSectionTitle}>Featured Photo &amp; Memorabilia</h2>
       {hasMedia ? (
         <>
-          <div style={{ marginBottom: 12 }}>
+          <div style={{ marginBottom: 12, border: `2px solid ${clubHomeColors.navy}`, padding: 4, background: '#fff' }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={media?.thumbnail_url || ''}
               alt={media?.title || 'Featured club photo'}
-              style={{ width: '100%', maxWidth: 420, borderRadius: 10, border: '1px solid rgba(0,0,0,0.12)' }}
+              style={{ width: '100%', display: 'block' }}
             />
           </div>
-          {media?.title ? <p style={{ margin: '0 0 6px 0', fontWeight: 600 }}>{media.title}</p> : null}
+          {media?.title ? (
+            <p
+              style={{
+                margin: '0 0 6px 0',
+                fontFamily: "'Fraunces', Georgia, serif",
+                fontWeight: 700,
+                fontSize: 20,
+                color: clubHomeColors.navy,
+              }}
+            >
+              {media.title}
+            </p>
+          ) : null}
           {media?.description ? <p style={clubHomeMutedText}>{media.description}</p> : null}
           {(media?.credit_line || media?.source_name) && (
-            <p style={{ ...clubHomeMutedText, marginTop: 8, fontSize: 13 }}>
+            <p style={{ ...clubHomeMutedText, marginTop: 8, fontSize: 12, fontStyle: 'italic' }}>
               {media.credit_line ? `Credit: ${media.credit_line}` : null}
               {media.credit_line && media.source_name ? ' · ' : null}
               {media.source_name ? `Source: ${media.source_name}` : null}
@@ -39,6 +51,9 @@ export default function ClubHomeMediaFeature({ media }: ClubHomeMediaFeatureProp
         </>
       ) : (
         <>
+          <div style={{ ...clubHomePhotoPlaceholder(220), marginBottom: 12 }}>
+            [ Photo &amp; memorabilia feature — coming soon ]
+          </div>
           <p style={{ ...clubHomeMutedText, marginBottom: 12 }}>
             A rotating approved photo or memorabilia highlight will appear here soon. Browse the archives below in the
             meantime.
