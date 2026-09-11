@@ -1,4 +1,11 @@
-import { clubHomeColors, clubHomeMutedText, clubHomePhotoPlaceholder, clubHomeSectionCard, clubHomeSectionTitle } from './clubHomeStyles';
+import {
+  clubHomeColors,
+  clubHomeHeadlineFontFamily,
+  clubHomeMutedText,
+  clubHomePhotoPlaceholder,
+  clubHomeSectionCard,
+  clubHomeSectionTitle,
+} from './clubHomeStyles';
 
 type ClubHomeStaticStoryProps = {
   title: string;
@@ -33,14 +40,14 @@ export default function ClubHomeStaticStory({
     <article aria-label={ariaLabel} style={clubHomeSectionCard}>
       <h2 style={{ ...clubHomeSectionTitle, fontSize: compact ? 12 : 13 }}>{title}</h2>
       {!compact && (
-        <div style={{ ...clubHomePhotoPlaceholder(300), marginBottom: 14 }}>
+        <div aria-hidden="true" style={{ ...clubHomePhotoPlaceholder(300), marginBottom: 14 }}>
           [ Photo — {headline || 'Club Home lead story'} ]
         </div>
       )}
       <h3
         style={{
           margin: '0 0 8px 0',
-          fontFamily: "'Fraunces', Georgia, serif",
+          fontFamily: clubHomeHeadlineFontFamily,
           fontWeight: compact ? 600 : 900,
           fontSize: compact ? 16 : 36,
           lineHeight: compact ? 1.3 : 1.08,
@@ -52,7 +59,7 @@ export default function ClubHomeStaticStory({
       {dek ? (
         <p
           style={{
-            fontFamily: "'Fraunces', Georgia, serif",
+            fontFamily: clubHomeHeadlineFontFamily,
             fontStyle: 'italic',
             fontWeight: 600,
             fontSize: 17,

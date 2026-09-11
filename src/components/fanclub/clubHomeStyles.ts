@@ -13,8 +13,16 @@ export const clubHomeColors = {
   rule: 'rgba(11, 37, 69, 0.35)',
 } as const;
 
-const headlineFont = "'Fraunces', Georgia, serif";
-const bodyFont = "'Lora', Georgia, serif";
+/**
+ * System serif stacks, not a remote Google Fonts request — the production CSP's
+ * `style-src` only allows 'self' plus the Elfsight widget domains, so a remote
+ * fonts.googleapis.com @import is silently blocked (and spams CSP reports) in prod.
+ */
+const headlineFont = "Georgia, 'Times New Roman', Times, serif";
+const bodyFont = "'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif";
+
+export const clubHomeHeadlineFontFamily = headlineFont;
+export const clubHomeBodyFontFamily = bodyFont;
 
 export const clubHomePageStack = {
   maxWidth: 1200,
@@ -139,8 +147,6 @@ export const clubHomeFooterRowClassName = 'club-home-footer-row';
  * "above-the-fold dominant lead story" requirement in #2461.
  */
 export const clubHomePageLayoutCss = `
-@import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,900&family=Lora:ital,wght@0,400;0,600;1,400&display=swap');
-
 .club-home-page-stack {
   max-width: 1200px;
   margin: 0 auto;
@@ -150,7 +156,7 @@ export const clubHomePageLayoutCss = `
   gap: 28px;
   background: #f5efe0;
   color: #0b2545;
-  font-family: 'Lora', Georgia, serif;
+  font-family: ${bodyFont};
 }
 
 .club-home-page-stack a {

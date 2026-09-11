@@ -1,5 +1,12 @@
 import Link from 'next/link';
-import { clubHomeColors, clubHomeMutedText, clubHomePhotoPlaceholder, clubHomeSectionCard, clubHomeSectionTitle } from './clubHomeStyles';
+import {
+  clubHomeColors,
+  clubHomeHeadlineFontFamily,
+  clubHomeMutedText,
+  clubHomePhotoPlaceholder,
+  clubHomeSectionCard,
+  clubHomeSectionTitle,
+} from './clubHomeStyles';
 import type { ClubHomeMediaFeature } from '@/lib/clubHomeApi';
 
 type ClubHomeMediaFeatureProps = {
@@ -26,7 +33,7 @@ export default function ClubHomeMediaFeature({ media }: ClubHomeMediaFeatureProp
             <p
               style={{
                 margin: '0 0 6px 0',
-                fontFamily: "'Fraunces', Georgia, serif",
+                fontFamily: clubHomeHeadlineFontFamily,
                 fontWeight: 700,
                 fontSize: 20,
                 color: clubHomeColors.navy,
@@ -51,7 +58,7 @@ export default function ClubHomeMediaFeature({ media }: ClubHomeMediaFeatureProp
         </>
       ) : (
         <>
-          <div style={{ ...clubHomePhotoPlaceholder(220), marginBottom: 12 }}>
+          <div aria-hidden="true" style={{ ...clubHomePhotoPlaceholder(220), marginBottom: 12 }}>
             [ Photo &amp; memorabilia feature — coming soon ]
           </div>
           <p style={{ ...clubHomeMutedText, marginBottom: 12 }}>
