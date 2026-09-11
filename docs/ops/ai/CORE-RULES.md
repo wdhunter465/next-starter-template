@@ -5,8 +5,8 @@ Authority Level: Core
 Owns: Shared execution rules, enforcement model, PR discipline, stop conditions, shared product-startup framework
 Does Not Own: Design authority, platform configuration, tracker content
 Canonical Reference: /docs/ops/ai/SHARED-AGENT-RULES.md
-Related Issues: #3055, #3113, #3117, #3138, #3142, #3188, #3605, #3611, #3693, #3755, #3756, #3774
-Last Reviewed: 2026-08-26
+Related Issues: #3055, #3113, #3117, #3138, #3142, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4099
+Last Reviewed: 2026-09-10
 ---
 
 # CORE-RULES.md
@@ -460,6 +460,12 @@ Every product-specific startup contract must, at minimum:
 9. Report only explicitly supplied active context — no queue audit, no inferred work.
 10. Determine and report whether any work is authorized (it is not, by startup alone).
 11. Stop.
+
+## Startup provenance invariant
+
+**LGFC factual claims require provenance. No provenance = no claim.**
+
+This grounding requirement remains in force after startup for every LGFC factual claim. If provenance cannot be established from the applicable authoritative source, the claim must not be made.
 
 ## What startup must never authorize
 
