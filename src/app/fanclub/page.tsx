@@ -15,9 +15,12 @@ import ClubHomeStoryRail from '@/components/fanclub/ClubHomeStoryRail';
 import ClubHomeSubmissionCta from '@/components/fanclub/ClubHomeSubmissionCta';
 import { useClubHomeContent } from '@/components/fanclub/useClubHomeContent';
 import {
+  clubHomeColumnClassName,
+  clubHomeColumnsClassName,
+  clubHomeFooterRowClassName,
+  clubHomeMastheadRowClassName,
   clubHomePageLayoutCss,
   clubHomePageStackClassName,
-  clubHomeZoneClassName,
 } from '@/components/fanclub/clubHomeStyles';
 import { useMemberSession } from '@/hooks/useMemberSession';
 
@@ -34,53 +37,43 @@ export default function MemberHomePage() {
       <style dangerouslySetInnerHTML={{ __html: clubHomePageLayoutCss }} />
       <FloatingLogo />
       <div className={clubHomePageStackClassName} aria-label="FanClubHomeSections">
-        <div className={clubHomeZoneClassName.masthead}>
+        <div className={clubHomeMastheadRowClassName}>
           <ClubHomeMasthead email={email || ''} />
         </div>
 
-        <div className={clubHomeZoneClassName.leadStory}>
-          <ClubHomeStaticStory
-            ariaLabel="Lead story"
-            title="Lead Story"
-            headline={clubHome.leadHeadline}
-            summary={clubHome.leadSummary}
-            credit={clubHome.leadCredit}
-            sourceName={clubHome.leadSourceName}
-          />
+        <div className={clubHomeColumnsClassName}>
+          <div className={clubHomeColumnClassName.center}>
+            <ClubHomeStaticStory
+              ariaLabel="Lead story"
+              title="Lead Story"
+              headline={clubHome.leadHeadline}
+              summary={clubHome.leadSummary}
+              credit={clubHome.leadCredit}
+              sourceName={clubHome.leadSourceName}
+            />
+            <ClubHomeMediaFeature media={clubHome.mediaFeature} />
+          </div>
+
+          <div className={clubHomeColumnClassName.left}>
+            <ClubHomeEventsModule />
+            <ClubHomeArchiveSpotlight story={clubHome.archiveSpotlight} />
+            <ClubHomeRecognitionModule />
+          </div>
+
+          <div className={clubHomeColumnClassName.right}>
+            <ClubHomeStoryRail stories={clubHome.railStories} />
+            <ClubHomeMemberPrompt />
+            <ClubHomeDeferredModule
+              ariaLabel="Campaign module"
+              title="Campaign & Fundraiser"
+              reason="No active campaign module is configured. Fundraiser operations remain a separate program; this slot fails closed until explicitly scoped."
+            />
+          </div>
         </div>
 
-        <div className={clubHomeZoneClassName.storyRail}>
-          <ClubHomeStoryRail stories={clubHome.railStories} />
-        </div>
-        <div className={clubHomeZoneClassName.featureLinks}>
+        <div className={clubHomeFooterRowClassName}>
           <ArchivesTiles />
-        </div>
-        <div className={clubHomeZoneClassName.mediaFeature}>
-          <ClubHomeMediaFeature media={clubHome.mediaFeature} />
-        </div>
-        <div className={clubHomeZoneClassName.memberPrompt}>
-          <ClubHomeMemberPrompt />
-        </div>
-        <div className={clubHomeZoneClassName.archiveSpotlight}>
-          <ClubHomeArchiveSpotlight story={clubHome.archiveSpotlight} />
-        </div>
-        <div className={clubHomeZoneClassName.campaign}>
-          <ClubHomeDeferredModule
-            ariaLabel="Campaign module"
-            title="Campaign & Fundraiser"
-            reason="No active campaign module is configured. Fundraiser operations remain a separate program; this slot fails closed until explicitly scoped."
-          />
-        </div>
-        <div className={clubHomeZoneClassName.events}>
-          <ClubHomeEventsModule />
-        </div>
-        <div className={clubHomeZoneClassName.recognition}>
-          <ClubHomeRecognitionModule />
-        </div>
-        <div className={clubHomeZoneClassName.submissionCta}>
           <ClubHomeSubmissionCta />
-        </div>
-        <div className={clubHomeZoneClassName.adminLink}>
           <AdminLink isAdmin={role === 'admin'} />
         </div>
       </div>

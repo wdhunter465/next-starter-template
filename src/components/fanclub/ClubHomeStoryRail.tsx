@@ -1,4 +1,5 @@
 import ClubHomeStaticStory from './ClubHomeStaticStory';
+import { clubHomeSectionTitle } from './clubHomeStyles';
 import type { ClubHomeStory } from '@/lib/clubHomeApi';
 
 const STATIC_RAIL_ITEMS = [
@@ -31,14 +32,8 @@ export default function ClubHomeStoryRail({ stories }: ClubHomeStoryRailProps) {
 
   return (
     <section aria-label="Secondary story rail">
-      <h2 style={{ margin: '0 0 12px 0', fontSize: 22, color: 'var(--lgfc-blue, #003366)' }}>More Stories</h2>
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-          gap: 12,
-        }}
-      >
+      <h2 style={clubHomeSectionTitle}>More Stories</h2>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
         {items.map((item) => (
           <ClubHomeStaticStory
             key={item.headline}

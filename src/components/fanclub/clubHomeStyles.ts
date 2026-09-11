@@ -1,110 +1,210 @@
-/** Shared Club Home presentation tokens and responsive page composition (#3383 / P1-01). */
+/**
+ * Shared Club Home presentation tokens and responsive page composition.
+ * (#3383 / P1-01 baseline; restyled per #2461 / #4097 — approved "Heritage Navy & Cream"
+ * newspaper direction.)
+ */
+
+export const clubHomeColors = {
+  navy: '#0b2545',
+  accent: '#8a3324',
+  bg: '#f5efe0',
+  ink: '#2a2620',
+  muted: '#4a4238',
+  rule: 'rgba(11, 37, 69, 0.35)',
+} as const;
+
+/**
+ * System serif stacks, not a remote Google Fonts request — the production CSP's
+ * `style-src` only allows 'self' plus the Elfsight widget domains, so a remote
+ * fonts.googleapis.com @import is silently blocked (and spams CSP reports) in prod.
+ */
+const headlineFont = "Georgia, 'Times New Roman', Times, serif";
+const bodyFont = "'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif";
+
+export const clubHomeHeadlineFontFamily = headlineFont;
+export const clubHomeBodyFontFamily = bodyFont;
 
 export const clubHomePageStack = {
-  maxWidth: 1100,
+  maxWidth: 1200,
   margin: '0 auto',
-  padding: '0 20px 40px',
+  padding: '24px 20px 40px',
   display: 'flex',
   flexDirection: 'column' as const,
-  gap: 20,
+  gap: 24,
+  background: clubHomeColors.bg,
+  color: clubHomeColors.navy,
+  fontFamily: bodyFont,
 };
 
 export const clubHomeSectionCard = {
-  padding: 16,
-  border: '1px solid rgba(0,0,0,0.12)',
-  borderRadius: 12,
-  background: '#fff',
+  paddingTop: 14,
+  paddingBottom: 4,
+  borderTop: `3px solid ${clubHomeColors.accent}`,
+  background: 'transparent',
+  fontFamily: bodyFont,
 };
 
 export const clubHomeSectionTitle = {
-  margin: '0 0 8px 0',
-  fontSize: 22,
-  color: 'var(--lgfc-blue, #003366)',
+  margin: '0 0 10px 0',
+  fontSize: 13,
+  fontFamily: headlineFont,
+  fontWeight: 700 as const,
+  letterSpacing: '0.08em',
+  textTransform: 'uppercase' as const,
+  color: clubHomeColors.navy,
+  borderBottom: `2px solid ${clubHomeColors.accent}`,
+  paddingBottom: 6,
 };
 
 export const clubHomeMutedText = {
   margin: 0,
-  color: 'rgba(0,0,0,0.75)',
+  color: clubHomeColors.muted,
   lineHeight: 1.55,
+  fontFamily: bodyFont,
+  fontSize: 14,
 };
 
-/** Class names for zone grid placement (paired with clubHomePageLayoutCss). */
-export const clubHomePageStackClassName = 'club-home-page-stack';
+/** Vintage halftone placeholder for a photo slot with no real image yet. */
+export const clubHomePhotoPlaceholder = (height: number) => ({
+  width: '100%',
+  height,
+  background: 'repeating-linear-gradient(45deg, #ded0b8, #ded0b8 10px, #d3c3a5 10px, #d3c3a5 20px)',
+  border: `2px solid ${clubHomeColors.navy}`,
+  boxSizing: 'border-box' as const,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  textAlign: 'center' as const,
+  fontSize: 11,
+  letterSpacing: '0.05em',
+  textTransform: 'uppercase' as const,
+  color: clubHomeColors.navy,
+  padding: 8,
+});
 
-export const clubHomeZoneClassName = {
-  masthead: 'club-home-zone club-home-zone--masthead',
-  leadStory: 'club-home-zone club-home-zone--lead-story',
-  storyRail: 'club-home-zone club-home-zone--story-rail',
-  featureLinks: 'club-home-zone club-home-zone--feature-links',
-  mediaFeature: 'club-home-zone club-home-zone--media-feature',
-  memberPrompt: 'club-home-zone club-home-zone--member-prompt',
-  archiveSpotlight: 'club-home-zone club-home-zone--archive-spotlight',
-  campaign: 'club-home-zone club-home-zone--campaign',
-  events: 'club-home-zone club-home-zone--events',
-  recognition: 'club-home-zone club-home-zone--recognition',
-  submissionCta: 'club-home-zone club-home-zone--submission-cta',
-  adminLink: 'club-home-zone club-home-zone--admin-link',
+export const clubHomeMastheadKicker = {
+  display: 'flex',
+  justifyContent: 'space-between',
+  alignItems: 'center',
+  fontSize: 11,
+  letterSpacing: '0.08em',
+  textTransform: 'uppercase' as const,
+  color: clubHomeColors.accent,
+  fontWeight: 700 as const,
+  fontFamily: bodyFont,
+  borderBottom: `2px solid ${clubHomeColors.navy}`,
+  paddingBottom: 8,
+};
+
+export const clubHomeMastheadNameplate = {
+  fontFamily: headlineFont,
+  fontWeight: 900 as const,
+  fontSize: 52,
+  lineHeight: 1.05,
+  letterSpacing: '-0.01em',
+  margin: '16px 0 6px 0',
+  color: clubHomeColors.navy,
+  textAlign: 'center' as const,
+};
+
+export const clubHomeMastheadDateline = {
+  fontFamily: headlineFont,
+  fontStyle: 'italic' as const,
+  fontWeight: 600 as const,
+  fontSize: 15,
+  margin: '0 0 14px 0',
+  color: clubHomeColors.accent,
+  textAlign: 'center' as const,
+};
+
+export const clubHomeMastheadRule = {
+  height: 4,
+  background: clubHomeColors.accent,
+};
+
+/** Class names for the newspaper composition (paired with clubHomePageLayoutCss). */
+export const clubHomePageStackClassName = 'club-home-page-stack';
+export const clubHomeMastheadRowClassName = 'club-home-masthead-row';
+export const clubHomeColumnsClassName = 'club-home-columns';
+export const clubHomeColumnClassName = {
+  left: 'club-home-col club-home-col--left',
+  center: 'club-home-col club-home-col--center',
+  right: 'club-home-col club-home-col--right',
 } as const;
+export const clubHomeFooterRowClassName = 'club-home-footer-row';
 
 /**
- * Responsive composition CSS for Club Home.
+ * Responsive newspaper composition CSS for Club Home (#2461 / #4097 — Heritage Navy & Cream).
  * Breakpoints match Header.module.css (mobile <768, tablet 768–919, desktop ≥920).
- * Uses named grid areas — not flex/grid `order` — so DOM/reading order stays zone-table order
- * while tablet/desktop visually place side-rail zones beside the primary column.
- * Kept as a string so media queries stay inside the P1-01 allowlisted `clubHomeStyles.ts`.
+ *
+ * `.club-home-columns` places exactly three direct children — left rail, center, right rail —
+ * into a single grid row. Each column is its own independent block of stacked zones, so one
+ * column's content height can never force empty space into a shorter neighboring column: the
+ * dead-space defect from the prior shared-row-track `grid-template-areas` layout (found during
+ * #3382 end-to-end verification) cannot recur by construction, because there is only one row.
+ * `order` reflows only those three wrapper elements for desktop left/center/right placement;
+ * DOM order keeps the lead story first so mobile readers reach it before rail content, per the
+ * "above-the-fold dominant lead story" requirement in #2461.
  */
 export const clubHomePageLayoutCss = `
 .club-home-page-stack {
-  max-width: 1100px;
+  max-width: 1200px;
   margin: 0 auto;
-  padding: 0 20px 40px;
+  padding: 24px 20px 40px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 28px;
+  background: #f5efe0;
+  color: #0b2545;
+  font-family: ${bodyFont};
 }
 
-.club-home-zone {
+.club-home-page-stack a {
+  color: #8a3324;
+  text-decoration: none;
+}
+
+.club-home-page-stack a:hover {
+  text-decoration: underline;
+}
+
+.club-home-columns {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 28px;
+}
+
+.club-home-col {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
   min-width: 0;
 }
 
-/* Tablet + desktop: two-column composition (fanclub-home.md) */
+.club-home-footer-row {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(11, 37, 69, 0.35);
+}
+
 @media (min-width: 768px) {
-  .club-home-page-stack {
-    display: grid;
-    grid-template-columns: minmax(0, 1.35fr) minmax(0, 1fr);
-    grid-template-areas:
-      "masthead rail"
-      "lead rail"
-      "lead media"
-      "lead member"
-      "links links"
-      "archive archive"
-      "campaign campaign"
-      "events events"
-      "recognition recognition"
-      "cta cta"
-      "admin admin";
+  .club-home-columns {
+    grid-template-columns: 220px minmax(0, 1fr) 220px;
+    column-gap: 32px;
     align-items: start;
   }
 
-  .club-home-zone--masthead { grid-area: masthead; }
-  .club-home-zone--lead-story { grid-area: lead; }
-  .club-home-zone--story-rail { grid-area: rail; }
-  .club-home-zone--feature-links { grid-area: links; }
-  .club-home-zone--media-feature { grid-area: media; }
-  .club-home-zone--member-prompt { grid-area: member; }
-  .club-home-zone--archive-spotlight { grid-area: archive; }
-  .club-home-zone--campaign { grid-area: campaign; }
-  .club-home-zone--events { grid-area: events; }
-  .club-home-zone--recognition { grid-area: recognition; }
-  .club-home-zone--submission-cta { grid-area: cta; }
-  .club-home-zone--admin-link { grid-area: admin; }
+  .club-home-col--left { order: 1; }
+  .club-home-col--center { order: 2; }
+  .club-home-col--right { order: 3; }
 }
 
-/* Desktop: same composition; stack already caps at 1100px for breathing room */
 @media (min-width: 920px) {
-  .club-home-page-stack {
-    grid-template-columns: minmax(0, 1.4fr) minmax(0, 0.95fr);
+  .club-home-columns {
+    grid-template-columns: 240px minmax(0, 1fr) 240px;
+    column-gap: 40px;
   }
 }
 `;
