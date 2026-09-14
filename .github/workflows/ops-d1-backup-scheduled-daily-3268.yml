@@ -1,0 +1,126 @@
+name: OPS — D1 Backup Scheduled Daily Export (#3268 Phase 3)
+
+# Scheduled, unattended daily execution of the proven #3268 Phase 2 Package 2
+# export/upload job. Reuses scripts/ci/d1_backup_phase2_export_upload_3268.mjs
+# exactly as-is (same read-only `wrangler d1 export --remote` + checksum + private
+# R2 upload + independent re-verification behavior already proven manually on
+# 2026-08-14) — no new backup logic, only a schedule trigger wrapper, since a
+# `schedule` event cannot supply the manual workflow's `workflow_dispatch`
+# confirmation input.
+#
+# This workflow never writes to, restores into, or otherwise mutates lgfc_lite in
+# any way. Cadence matches the #3268-documented baseline: daily, complete SQL
+# export, 30-day retention (pruning is a tracked follow-up — see #3268).
+#
+# Kept as a separate file rather than editing
+# ops-d1-backup-phase2-export-upload-3268.yml, since that file is protected-path
+# per scripts/ci/delivery_profile.mjs and this addition does not need that review
+# tier.
+
+on:
+  schedule:
+    - cron: '0 9 * * *'   # Daily, ~04:00 EST / 05:00 EDT — matches #3268's documented cadence and this repo's existing daily B2->D1 sync schedule.
+  workflow_dispatch:
+    inputs:
+      confirm_manual_run:
+        description: 'Manual trigger only: type "confirm" to run this scheduled backup job outside its normal cadence'
+        required: false
+        type: string
+
+concurrency:
+  group: d1-backup-phase2-export-upload-3268
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  export-upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require explicit confirmation for manual runs
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          if [ "${{ inputs.confirm_manual_run }}" != "confirm" ]; then
+            echo "confirm_manual_run must be exactly 'confirm' for a manual trigger — refusing to run. Scheduled runs are unaffected."
+            exit 1
+          fi
+
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run #3268 Phase 2 Package 2 export/upload (scheduled)
+        id: export_upload
+        env:
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DATABASE_NAME: ${{ secrets.D1_DATABASE_NAME }}
+        run: node scripts/ci/d1_backup_phase2_export_upload_3268.mjs
+
+      - name: Upload result evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: d1-backup-scheduled-daily-3268-result
+          path: |
+            d1-backup-phase2-export-upload-3268-result.json
+            d1-backup-phase2-export-upload-3268-result.md
+          if-no-files-found: warn
+
+      - name: Write step summary
+        if: always() && hashFiles('d1-backup-phase2-export-upload-3268-result.md') != ''
+        run: cat d1-backup-phase2-export-upload-3268-result.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Record result on #3268
+        if: always() && hashFiles('d1-backup-phase2-export-upload-3268-result.md') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue comment 3268 --body-file d1-backup-phase2-export-upload-3268-result.md
+
+      - name: Alert #2780 on failure (fail-closed, Day-2 visibility)
+        if: failure() && steps.checkout.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue comment 2780 --body "$(cat <<'EOF'
+          <!-- d1-backup-scheduled-daily-3268 -->
+          ## Scheduled D1 daily backup FAILED (#3268 Phase 3)
+
+          The automated daily D1 export/checksum/R2-upload job did not complete on
+          schedule. No Production D1 write or restore was attempted. See the
+          workflow run logs and uploaded artifact (if any) for details, and #3268
+          for the failure-detail comment this same run posts there.
+
+          Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          EOF
+          )"
+
+      - name: Record failure on #3268
+        if: failure() && steps.checkout.outcome == 'success' && hashFiles('d1-backup-phase2-export-upload-3268-result.md') == ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue comment 3268 --body "$(cat <<'EOF'
+          <!-- d1-backup-scheduled-daily-3268 -->
+          ## Scheduled D1 daily backup — FAILED (fail-closed)
+
+          The bounded real D1 export/checksum/R2-upload job did not complete. No
+          Production D1 write or restore was attempted. See the workflow run logs
+          and uploaded artifact (if any) for details.
+
+          Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          EOF
+          )"
