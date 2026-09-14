@@ -144,7 +144,36 @@ function dispositionForComment(commentId, dispositions, threadComments) {
   return null;
 }
 
-function threadResolvedInGitHub(threadComments) {
+function threadCommentIds(threadComments = []) {
+  return threadComments
+    .map((comment) => comment?.id ?? comment?.databaseId)
+    .filter((id) => id != null)
+    .map((id) => String(id));
+}
+
+/**
+ * Map GraphQL `reviewThreads { isResolved, comments { databaseId } }` onto REST
+ * review-comment ids. REST `/pulls/{n}/comments` never returns `is_resolved`.
+ */
+export function resolvedCommentIdsFromReviewThreads(reviewThreads = []) {
+  const resolvedIds = new Set();
+  for (const thread of reviewThreads) {
+    if (!thread?.isResolved) continue;
+    const nodes = thread.comments?.nodes || (Array.isArray(thread.comments) ? thread.comments : []);
+    for (const node of nodes) {
+      const id = node?.databaseId ?? node?.id;
+      if (id != null) resolvedIds.add(String(id));
+    }
+  }
+  return resolvedIds;
+}
+
+function threadResolvedInGitHub(threadComments, graphqlResolvedIds = new Set()) {
+  if (graphqlResolvedIds.size > 0) {
+    for (const id of threadCommentIds(threadComments)) {
+      if (graphqlResolvedIds.has(id)) return true;
+    }
+  }
   const ordered = sortCommentsChronologically(threadComments);
   const latest = ordered[ordered.length - 1];
   return Boolean(latest?.is_resolved) || ordered.some((comment) => comment.is_resolved === true);
@@ -190,18 +219,23 @@ export function collectInlineReviewThreads(reviewComments = []) {
  *   outdated when the thread is resolved / finding addressed on current head.
  * Body dispositions remain a valid alternative closeout path and are still
  * useful for human CHANGES_REQUESTED paper trails on protected paths.
+ *
+ * #4066: consult GraphQL `reviewThreads.isResolved` keyed by comment
+ * `databaseId`. REST review comments do not carry `is_resolved`.
  */
 export function evaluateReviewerCommentDisposition({
   body = '',
   issueComments = [],
   reviewComments = [],
   reviews = [],
+  reviewThreads = [],
   headSha = '',
   readyForReviewAt = '',
   mergedAt = '',
   auditPhase = 'pre_merge',
 } = {}) {
   const dispositions = parseReviewerDispositions(body);
+  const graphqlResolvedIds = resolvedCommentIdsFromReviewThreads(reviewThreads);
   const undispositioned = [];
   const outdatedWithoutDisposition = [];
   const lateFindings = [];
@@ -222,7 +256,7 @@ export function evaluateReviewerCommentDisposition({
     if (comments.some((comment) => IGNORE_MARKER.test(comment.body || ''))) continue;
 
     const disposition = dispositionForComment(threadId, dispositions, comments);
-    const resolved = threadResolvedInGitHub(comments) || threadResolvedByReply(comments);
+    const resolved = threadResolvedInGitHub(comments, graphqlResolvedIds) || threadResolvedByReply(comments);
     const outdated = isOutdatedComment(root, headSha);
     const createdAt = root.created_at || root.submitted_at || '';
     const isLate =
