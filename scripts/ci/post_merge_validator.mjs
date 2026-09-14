@@ -32,6 +32,7 @@ import { findUnlistedChangedFiles, parseAllowedFiles } from './pr_hygiene_audit.
 
 export { isPermittedClosedSourceIssueFollowup };
 import { evaluateReviewerCommentDisposition, hasValidDisposition, parseReviewerDispositions } from './reviewer_comment_disposition.mjs';
+import { fetchNativeReviewState } from './reviewer_lifecycle_gate.mjs';
 import { isTrustedReviewer } from './reviewer_trusted_bots.mjs';
 import { resolveExistingCloseoutBodyFile } from './post_merge_closeout_trigger.mjs';
 import { AUTO_REPAIR_END, AUTO_REPAIR_START } from './pr_body_auto_repair.mjs';
@@ -853,6 +854,7 @@ export function reviewerDispositionFailures({
 	issueComments = [],
 	reviewComments = [],
 	reviews = [],
+	reviewThreads = [],
 	headSha = '',
 	mergedAt = '',
 } = {}) {
@@ -861,6 +863,7 @@ export function reviewerDispositionFailures({
 		issueComments,
 		reviewComments,
 		reviews,
+		reviewThreads,
 		headSha,
 		mergedAt,
 		auditPhase: 'post_merge',
@@ -1217,6 +1220,21 @@ async function listOpenExceptionIssues({ token, repository }) {
 		.map(toLineageIssue);
 }
 
+export async function loadPostMergeReviewThreads({
+	token,
+	repository,
+	prNumber,
+	fetchNativeReviewStateFn = fetchNativeReviewState,
+}) {
+	const [owner, repo] = String(repository || '').split('/');
+	if (!owner || !repo) throw new Error(`Invalid repository for native review state: ${repository}`);
+	const state = await fetchNativeReviewStateFn({ token, owner, repo, prNumber });
+	if (state.paginationFailures.length > 0) {
+		throw new Error(`Post-merge native review state is incomplete: ${state.paginationFailures.join(' ')}`);
+	}
+	return state.reviewThreads;
+}
+
 function uniqueRuns(...runGroups) {
 	const byId = new Map();
 	for (const group of runGroups) {
@@ -1326,10 +1344,11 @@ export async function runValidator({
 	const pr = await apiRequest({ token, repository, path: `/pulls/${resolution.pr}` });
 	const prHeadSha = pr.head?.sha || '';
 
-	const [issueComments, reviewComments, reviews, mergeRunsResponse, headRunsResponse, openExceptionIssues] = await Promise.all([
+	const [issueComments, reviewComments, reviews, reviewThreads, mergeRunsResponse, headRunsResponse, openExceptionIssues] = await Promise.all([
 		paginate({ token, repository, path: `/issues/${resolution.pr}/comments` }),
 		paginate({ token, repository, path: `/pulls/${resolution.pr}/comments` }),
 		paginate({ token, repository, path: `/pulls/${resolution.pr}/reviews` }),
+		loadPostMergeReviewThreads({ token, repository, prNumber: resolution.pr }),
 		apiRequest({ token, repository, path: `/actions/runs?head_sha=${encodeURIComponent(sha)}&per_page=100` }),
 		prHeadSha
 			? apiRequest({ token, repository, path: `/actions/runs?head_sha=${encodeURIComponent(prHeadSha)}&per_page=100` })
@@ -1500,6 +1519,7 @@ export async function runValidator({
 		issueComments,
 		reviewComments,
 		reviews,
+		reviewThreads,
 		headSha: normalizedPr.mergeCommit?.oid || sha,
 		mergedAt: normalizedPr.mergedAt,
 	});
