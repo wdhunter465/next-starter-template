@@ -370,6 +370,7 @@ export function assessReviewerLifecycle({
     issueComments: Array.isArray(issueComments) ? issueComments : [],
     reviewComments: Array.isArray(reviewComments) ? reviewComments : [],
     reviews: Array.isArray(reviews) ? reviews : [],
+    reviewThreads: Array.isArray(reviewThreads) ? reviewThreads : [],
     headSha,
     readyForReviewAt,
     auditPhase: 'pre_merge',
@@ -592,7 +593,10 @@ export async function fetchNativeReviewState({ owner, repo, prNumber, token }) {
               isResolved
               isOutdated
               path
-              comments(first: 1) { nodes { author { login } body path } }
+              comments(first: 20) {
+                nodes { databaseId author { login } body path }
+                pageInfo { hasNextPage }
+              }
             }
             pageInfo { hasNextPage }
           }
@@ -604,10 +608,16 @@ export async function fetchNativeReviewState({ owner, repo, prNumber, token }) {
   const pr = data.repository?.pullRequest;
   if (!pr) throw new Error(`PR #${prNumber} not found.`);
 
+  const threadCommentOverflow = (pr.reviewThreads?.nodes || []).some(
+    (thread) => thread?.comments?.pageInfo?.hasNextPage,
+  );
   const paginationFailures = [
     pageInfoFailure(pr.labels?.pageInfo, 'label'),
     pageInfoFailure(pr.reviews?.pageInfo, 'review'),
     pageInfoFailure(pr.reviewThreads?.pageInfo, 'review thread'),
+    threadCommentOverflow
+      ? 'review thread comments pagination not supported; refusing to make an incomplete reviewer lifecycle decision.'
+      : '',
   ].filter(Boolean);
 
   return {
