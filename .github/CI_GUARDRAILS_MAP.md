@@ -19,7 +19,7 @@ The dedicated #1075 CI phase engine is retired under #2469 and is not a guardrai
 | --- | --- | --- |
 | `gate-quality.yml` | `quality` | Class-aware deterministic quality routing |
 | `gitleaks.yml` | `gitleaks` | Secret exposure blocker |
-| `reviewer-response-completion.yml` | `reviewer-response-completion` | Required on `main` after #3746; event-conditional enforcement (advisory on pure open/sync; enforcing on review / ready-for-review / body edit / comment / dispatch) |
+| `reviewer-response-completion.yml` | `reviewer-response-completion` | Required on `main` after #3746; event-conditional enforcement (advisory on `opened` / `synchronize` / `reopened`; enforcing on `pull_request_review`, `ready_for_review`, `edited`, `pull_request_review_comment`, and `workflow_dispatch`) |
 
 No retired or manual-only workflow may be required by branch protection. Do not restore a two-check-only required surface.
 

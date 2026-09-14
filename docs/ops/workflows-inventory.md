@@ -42,7 +42,7 @@ Live `main` requires these deterministic checks:
 | `gitleaks` | `gitleaks.yml` | `GATE — Secret Scan` |
 | `reviewer-response-completion` | `reviewer-response-completion.yml` | `GATE — Reviewer Response Completion` |
 
-`reviewer-response-completion` was promoted by #3746 so late trusted-review events re-pending merge eligibility. Enforcement remains event-conditional inside the workflow (advisory on pure open/synchronize/reopen; enforcing on review, ready-for-review, body edit, comment, and dispatch). Required in the ruleset does not mean it fails closed on every push.
+`reviewer-response-completion` was promoted by #3746 so late trusted-review events re-pending merge eligibility. Enforcement remains event-conditional inside the workflow (advisory on `opened` / `synchronize` / `reopened`; enforcing on `pull_request_review`, `ready_for_review`, `edited`, `pull_request_review_comment`, and `workflow_dispatch`). Required in the ruleset does not mean it fails closed on every push.
 
 Do **not** configure as required:
 
