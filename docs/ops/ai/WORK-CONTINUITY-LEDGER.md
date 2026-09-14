@@ -1,16 +1,18 @@
 ---
-Doc Type: Operational Continuity Ledger
-Audience: Product Authority, PMO / Engineering role holder, Work, Chat, successor role holders
-Authority Level: Operational State / Continuity
-Owns: Current PMO conversational/work state, role handoff context, active task rationale, resume instructions, and bounded work log
-Does Not Own: Product decisions, repository implementation authority, issue/PR acceptance, queue priority, or canonical governance policy
+Doc Type: Operational Continuity Ledger — RETIRED
+Audience: Historical record only
+Authority Level: Historical — not current operational state
+Owns: Historical record of Work's former PMO conversational/work state only
+Does Not Own: Any current product decisions, repository implementation authority, issue/PR acceptance, queue priority, or canonical governance policy
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Related: /docs/ops/ai/WORK-RULES.md, /docs/governance/ADMINISTRATION-AND-COMMUNICATIONS.md, live GitHub Issues/PRs
+Related: /docs/ops/ai/WORK-RULES.md (retired), /docs/governance/ADMINISTRATION-AND-COMMUNICATIONS.md, live GitHub Issues/PRs
 Last Updated: 2026-08-14
-Last Reviewed: 2026-08-14
+Last Reviewed: 2026-09-14
 ---
 
-# WORK-CONTINUITY-LEDGER
+# WORK-CONTINUITY-LEDGER — RETIRED
+
+**RETIRED 2026-09-14 (#4074).** Product Authority permanently removed OpenAI / Work from the LGFC Agentic Team on 2026-09-03. This ledger no longer reflects current PMO state or continuity instructions — ChatGPT is the permanent PMO owner and does not resume from this file. Retained only as a historical record of Work's prior PMO working context; do not treat any content below as current authority or resume instructions.
 
 ## Purpose
 
