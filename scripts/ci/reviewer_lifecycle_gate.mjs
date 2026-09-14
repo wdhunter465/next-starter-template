@@ -370,6 +370,7 @@ export function assessReviewerLifecycle({
     issueComments: Array.isArray(issueComments) ? issueComments : [],
     reviewComments: Array.isArray(reviewComments) ? reviewComments : [],
     reviews: Array.isArray(reviews) ? reviews : [],
+    reviewThreads: Array.isArray(reviewThreads) ? reviewThreads : [],
     headSha,
     readyForReviewAt,
     auditPhase: 'pre_merge',
@@ -592,7 +593,7 @@ export async function fetchNativeReviewState({ owner, repo, prNumber, token }) {
               isResolved
               isOutdated
               path
-              comments(first: 1) { nodes { author { login } body path } }
+              comments(first: 1) { nodes { databaseId author { login } body path } }
             }
             pageInfo { hasNextPage }
           }
