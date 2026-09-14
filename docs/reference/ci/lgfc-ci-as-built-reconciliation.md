@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: Historical #1075/#1500 CI reconciliation and current retirement disposition
 Does Not Own: Canonical PR policy, branch protection settings, or production runtime configuration
 Canonical Reference: /docs/governance/PR_PROCESS.md
-Related Issues: #1075, #1058, #1500, #2175, #2208, #2469
-Last Reviewed: 2026-07-12
+Related Issues: #1075, #1058, #1500, #2175, #2208, #2469, #3746, #2769
+Last Reviewed: 2026-09-14
 ---
 
 # LGFC CI As-Built Reconciliation
@@ -46,8 +46,8 @@ Issue #2469 retires the dedicated #1075 phase-generation engine and legacy workf
 
 ## Capabilities retained
 
-- deterministic `quality` and `gitleaks` required checks;
-- advisory PR hygiene, diff-scope, and GitHub-native reviewer checks;
+- deterministic `quality`, `gitleaks`, and `reviewer-response-completion` required checks (#3746);
+- advisory PR hygiene and diff-scope checks;
 - single-owner automatic post-merge closeout;
 - bounded remediation and routine exception housekeeping;
 - production OPS monitoring;

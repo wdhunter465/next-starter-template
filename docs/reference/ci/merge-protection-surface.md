@@ -5,24 +5,25 @@ Authority Level: Controlled
 Owns: LGFC merge-protection required check surface, consolidated deterministic blockers, and branch-protection naming alignment as a supporting specification
 Does Not Own: CI and Verification Domain Policy; GitHub branch protection settings UI; reviewer lifecycle policy; PR hygiene policy; OPS runtime workflows
 Canonical Reference: /docs/governance/CI-AND-VERIFICATION.md
-Related Issues: #2689, #2175, #2184, #2208, #2228, #2657, #2271
-Last Reviewed: 2026-08-18
+Related Issues: #2689, #2175, #2184, #2208, #2228, #2657, #2271, #3746, #2769
+Last Reviewed: 2026-09-14
 ---
 
 # LGFC Merge Protection Surface
 
 This document is the **supporting merge-protection surface** under the CI and Verification Domain Policy (`docs/governance/CI-AND-VERIFICATION.md`).
 
-It documents the expected required-check surface for `main` after #2228 closeout. It is **not** a Domain Policy co-owner. Conflicts with domain policy resolve through `docs/governance/CI-AND-VERIFICATION.md`. PR lifecycle procedure remains in `docs/governance/PR_PROCESS.md`.
+It documents the expected required-check surface for `main` after #2228 closeout and the #3746 reviewer-lifecycle promotion. It is **not** a Domain Policy co-owner. Conflicts with domain policy resolve through `docs/governance/CI-AND-VERIFICATION.md`. PR lifecycle procedure remains in `docs/governance/PR_PROCESS.md`.
 
 ## Required checks
 
-Configure branch protection for `main` with these deterministic checks only:
+Configure branch protection for `main` with these deterministic checks:
 
 | Job id | Workflow | Notes |
 |---|---|---|
 | `quality` | `GATE — Quality Checks` | Class-aware structure, ZIP, backend-ref guard, typecheck, lint, targeted tests, conditional build |
 | `gitleaks` | `GATE — Secret Scan` | Secret exposure blocker; upstream `gitleaks/gitleaks-action@v2` owns its GitHub API calls — repository #2657 retry hardening does not silently weaken this required gate |
+| `reviewer-response-completion` | `GATE — Reviewer Response Completion` | Required by #3746 so late trusted-review events re-pending merge eligibility before enforcement completes. Enforcement is still event-conditional inside the workflow. |
 
 ## Advisory checks (active, non-blocking)
 
@@ -30,7 +31,6 @@ Configure branch protection for `main` with these deterministic checks only:
 |---|---|---|
 | `pr-hygiene` | `GATE — PR Hygiene` | Stable PR-body validation; artifact + upsert comment |
 | `diff-scope` | `GATE — Diff Scope` | Allowed-path diff validation; artifact + upsert comment; transient GitHub API retry via repository script (#2657) |
-| `reviewer-response-completion` | `GATE — Reviewer Response Completion` | GitHub-native reviewer lifecycle; artifact; transient GitHub API retry via repository script (#2657) |
 
 Advisory checks remain advisory unless a future source issue promotes them after advisory evidence under `/docs/governance/PR_PROCESS.md`.
 
@@ -58,21 +58,20 @@ Remove these from branch protection if still listed:
 - `docs_guardrails`
 - `design_compliance_warn`
 - `diff-scope` (until promoted after advisory evidence)
-- `reviewer-response-completion` (until promoted after advisory evidence)
 - `pr-hygiene` (until promoted after advisory evidence)
 
 OPS runtime, post-merge closeout, and metrics workflows are not merge-protection checks.
 
 ## Live GitHub verification (operator)
 
-Repo-owned docs cannot mutate GitHub settings. Expected required checks on `main` remain only `quality` and `gitleaks`.
+Repo-owned docs cannot mutate GitHub settings. Expected required checks on `main` are `quality`, `gitleaks`, and `reviewer-response-completion`, matching `scripts/ci/merge_protection_surface.mjs` and live ruleset `Main`.
 
-#2175 and #2208 closed complete on 2026-07-04. Do not reopen them for branch-protection confirmation. If live `main` protection diverges from this reference, open a **new bounded Ops correction** Issue.
+#2175 and #2208 closed complete on 2026-07-04. #3746 closed complete after promoting the reviewer-lifecycle check. Do not reopen those Issues for routine confirmation. If live `main` protection diverges from this reference, open a **new bounded Ops correction** Issue.
 
 Operator steps:
 
-1. Open repository **Settings → Branches → Branch protection rules** for `main`.
-2. Under **Require status checks to pass**, confirm only `quality` and `gitleaks` are required.
+1. Open repository **Settings → Rules → Rulesets** for `Main` (or Branches → protection for `main`).
+2. Under required status checks, confirm `quality`, `gitleaks`, and `reviewer-response-completion`.
 3. Remove any retired checks listed above if still present.
 4. If the live surface does not match, record the mismatch on a new bounded Ops Issue. Do not treat #2175 or #2208 as open pre-closeout work.
 

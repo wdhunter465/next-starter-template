@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Gate profiles, check classification, deterministic evidence, validation ownership, promotion verification criteria, failure routing, remediation boundaries, and post-merge verification ownership
 Does Not Own: Delivery Model A/B selection, agent approval routing, branch-protection UI settings, workflow YAML implementation, product/UX behavior, or platform isolation claims
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2689, #2686, #3668, #3671, #3807
-Last Reviewed: 2026-08-30
+Related Issues: #2689, #2686, #3668, #3671, #3807, #3746, #2769
+Last Reviewed: 2026-09-14
 ---
 
 # CI and Verification
@@ -66,16 +66,16 @@ Every workflow or check belongs to exactly one primary class:
 | **Compatibility** | Inert or marker workflow retained for transition | Read-only / no mutation; not a required blocker |
 | **Retired** | Removed or permanently out of service | Must not be restored from stale plans or issue memory |
 
-Current known required surface for `main` (supporting detail in `docs/reference/ci/merge-protection-surface.md`):
+Current known required surface for `main` (supporting detail in `docs/reference/ci/merge-protection-surface.md` and `scripts/ci/merge_protection_surface.mjs`):
 
 - `quality` from `GATE — Quality Checks`
 - `gitleaks` from `GATE — Secret Scan`
+- `reviewer-response-completion` from `GATE — Reviewer Response Completion` (promoted by #3746; event-conditional enforcement inside the workflow)
 
 Current known active advisory PR checks (supporting detail in `docs/reference/ci/lgfc-ci-workflow-classification-matrix.md`):
 
 - PR hygiene
 - Diff scope
-- Reviewer response completion
 
 Component-child gate profiles may require a different evidence set than `main`. The gate profile named on the PR (`component-child`, `production-candidate`, `component-promotion`, `emergency-recovery`) selects which verification bar applies. Delivery policy owns when a profile may be used; this domain owns what verification means inside that bar.
 

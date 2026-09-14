@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: Current CI workflow classification by lifecycle domain and retirement status as a supporting specification
 Does Not Own: CI and Verification Domain Policy; workflow implementation details; branch protection settings
 Canonical Reference: /docs/governance/CI-AND-VERIFICATION.md
-Related Issues: #2689, #2683, #1058, #2175, #2208, #2469, #2524
-Last Reviewed: 2026-08-05
+Related Issues: #2689, #2683, #1058, #2175, #2208, #2469, #2524, #3746, #2769
+Last Reviewed: 2026-09-14
 ---
 
 # LGFC Workflow Classification Matrix
@@ -25,7 +25,7 @@ This reference covers required merge protection, advisory PR checks, manual-only
 
 ## Current known truth
 
-`gate-quality.yml` and `gitleaks.yml` are the required deterministic checks. Delivery-profile classification now fails closed inside `GATE — Quality Checks` (including Model B rollback↔delivery-model cross-check and required `Implementation agent`). PR hygiene remains non-required for branch protection, but hard-fails the hygiene job on `missing_allowlist`, `allowlist_violation`, `unchecked_acceptance_criterion`, and `forbidden_placeholder_token`. Reviewer response completion fails closed on undispositioned and outdated-without-disposition findings. Soft PR-hygiene findings and diff scope remain advisory.
+`gate-quality.yml` and `gitleaks.yml` remain required deterministic checks. `reviewer-response-completion.yml` is also required on `main` after #3746. Delivery-profile classification now fails closed inside `GATE — Quality Checks` (including Model B rollback↔delivery-model cross-check and required `Implementation agent`). PR hygiene remains non-required for branch protection, but hard-fails the hygiene job on `missing_allowlist`, `allowlist_violation`, `unchecked_acceptance_criterion`, and `forbidden_placeholder_token`. Soft PR-hygiene findings and diff scope remain advisory.
 
 ## Intended final state
 
@@ -37,6 +37,7 @@ Each workflow remains in the correct lifecycle domain, retired assets stay absen
 | --- | --- | --- |
 | `gate-quality.yml` | Keep | Deterministic class-aware quality blocker; includes fail-closed delivery-profile classification |
 | `gitleaks.yml` | Keep | Secret exposure blocker |
+| `reviewer-response-completion.yml` | Keep required (#3746) | GitHub-native reviewer/thread assessment; event-conditional enforcement; required on `main` so late review re-pends merge |
 
 ## Active advisory PR checks
 
@@ -44,7 +45,7 @@ Each workflow remains in the correct lifecycle domain, retired assets stay absen
 | --- | --- | --- |
 | `gate-pr-hygiene.yml` | Keep advisory for soft findings; hard-fail selected codes | Stable PR-body hygiene; hard-fails allowlist / unchecked AC / forbidden placeholder |
 | `gate-diff-scope.yml` | Keep advisory | Allowed-path diff assessment |
-| `reviewer-response-completion.yml` | Enforce disposition completeness | GitHub-native reviewer/thread assessment; fails closed on undispositioned and outdated-without-disposition |
+| `gate-model-c.yml` | Keep advisory / profile-scoped | Model C documentation path boundary |
 
 ## Manual-only / paused
 
@@ -73,6 +74,9 @@ Each workflow remains in the correct lifecycle domain, retired assets stay absen
 | `b2-s3-smoke-test.yml` | Keep OPS | B2 smoke testing |
 | `b2-d1-daily-sync.yml` | Keep OPS | B2/D1 synchronization |
 | `post-merge-intent-verification.yml` | Compatibility marker | Manual-only, read-only, no mutation |
+| `post-merge-late-review-reaudit.yml` | Keep bounded | Late trusted-review reaudit |
+| `post-merge-model-c.yml` | Keep bounded | Model C post-merge verification |
+| Additional live OPS/content/dispatch workflows | Keep OPS or freeze one-shot | See `docs/ops/workflows-inventory.md` complete 102-file index. Do not treat OPS jobs as `main` required checks. |
 
 ## Retired by #2469
 

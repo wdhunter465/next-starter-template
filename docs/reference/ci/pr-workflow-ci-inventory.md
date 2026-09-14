@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: Current PR-workflow CI inventory and active/retired classification as a supporting specification
 Does Not Own: CI and Verification Domain Policy; canonical PR-process policy; branch protection settings; production deployment; non-PR operations
 Canonical Reference: /docs/governance/CI-AND-VERIFICATION.md
-Related Issues: #2689, #2175, #2208, #2469, #2657
-Last Reviewed: 2026-08-07
+Related Issues: #2689, #2175, #2208, #2469, #2657, #3746, #2769
+Last Reviewed: 2026-09-14
 ---
 
 # PR Workflow CI Inventory
@@ -25,7 +25,7 @@ This reference covers workflows that directly participate in PR readiness, revie
 
 ## Current known truth
 
-Only `quality` and `gitleaks` are required. PR hygiene, diff scope, and reviewer response are advisory. `post-merge-closeout.yml` is the single automatic closeout owner, and the #1075 phase engine is retired.
+Only `quality`, `gitleaks`, and `reviewer-response-completion` are required on `main` (#3746). PR hygiene and diff scope remain advisory. `post-merge-closeout.yml` is the single automatic closeout owner, and the #1075 phase engine is retired.
 
 Repository-owned GitHub API calls in the reviewer lifecycle gate and diff-scope context resolver use bounded retry/backoff for transient `5xx` and rate-limit responses (`scripts/ci/github_api_retry.mjs`, #2657). Exhausted retries fail closed with an `INFRASTRUCTURE_FAILURE` classification and do not weaken deterministic policy, scope, or review-state failures. The required `gitleaks` gate remains an upstream action (`gitleaks/gitleaks-action@v2`); its GitHub API outage handling is evaluated separately and is not silently weakened by repository scripts.
 
@@ -39,6 +39,7 @@ The PR workflow surface remains deterministic, minimal, and documented. No manua
 | --- | --- | --- |
 | `gate-quality.yml` | `quality` | Required deterministic blocker |
 | `gitleaks.yml` | `gitleaks` | Required deterministic blocker |
+| `reviewer-response-completion.yml` | `reviewer-response-completion` | Required (#3746); event-conditional enforcement; script uses shared transient API retry (#2657) |
 
 ## Active advisory surface
 
@@ -46,7 +47,7 @@ The PR workflow surface remains deterministic, minimal, and documented. No manua
 | --- | --- | --- |
 | `gate-pr-hygiene.yml` | `pr-hygiene` | Advisory |
 | `gate-diff-scope.yml` | `diff-scope` | Advisory; PR context resolved by `scripts/ci/diff_scope_gate.mjs --resolve-context` with shared transient API retry (#2657) |
-| `reviewer-response-completion.yml` | `reviewer-response-completion` | Advisory inventory class; script uses shared transient API retry (#2657) |
+| `gate-model-c.yml` | Model C path/docs jobs | Advisory / profile-scoped |
 
 ## Manual-only or paused
 

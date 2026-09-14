@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: CI lifecycle philosophy, production-grade CI design rationale, LGFC workflow domain model
 Does Not Own: Individual workflow implementation, branch protection configuration, runtime secrets
 Canonical Reference: /docs/reference/ci/lgfc-ci-ci-domain-reference.md
-Related Issues: #1199, #1058, #2175, #2208, #2469
-Last Reviewed: 2026-07-12
+Related Issues: #1199, #1058, #2175, #2208, #2469, #3746, #2769
+Last Reviewed: 2026-09-14
 ---
 
 # LGFC Production CI Design
@@ -25,7 +25,7 @@ It does not define individual GitHub Actions implementation details or repositor
 
 ## Current Known Truth
 
-As of 2026-07-12, the July PR-process rebuild is the current operating model. Required merge protection is limited to deterministic `quality` and `gitleaks` checks. PR hygiene, diff scope, and reviewer lifecycle operate advisory-first. Automatic source-issue closeout has one owner: `.github/workflows/post-merge-closeout.yml`.
+As of 2026-09-14, the July PR-process rebuild remains the current operating model, with #3746 adding `reviewer-response-completion` to the live `main` required-check surface. Required merge protection is `quality`, `gitleaks`, and `reviewer-response-completion`. PR hygiene and diff scope remain advisory. Reviewer-lifecycle enforcement is event-conditional inside the required workflow. Automatic source-issue closeout has one owner: `.github/workflows/post-merge-closeout.yml`.
 
 Issue #2469 retires the dedicated #1075 CI phase engine, fixed JSON state, orphaned task selector, and legacy workflow residue. The generic implementation-plan issue factory remains available only for explicitly approved production-ready plans.
 

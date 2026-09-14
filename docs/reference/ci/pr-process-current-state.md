@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: Current PR process baseline after #2228, #2469, and #3281 closeout
 Does Not Own: Canonical PR-process policy, live GitHub branch protection settings, or GitHub App settings
 Canonical Reference: /docs/governance/PR_PROCESS.md
-Related Issues: #2175, #2208, #2228, #2469, #2271, #3281
-Last Reviewed: 2026-08-18
+Related Issues: #2175, #2208, #2228, #2469, #2271, #3281, #3746, #2769
+Last Reviewed: 2026-09-14
 ---
 
 # PR Process Current State
@@ -21,9 +21,9 @@ This reference covers required checks, active advisory checks, manual-only workf
 
 ## Current known truth
 
-The PR-process redesign is implemented around stable-facts PR bodies, GitHub-native reviewer state, deterministic required checks, advisory-first promotion, single-owner post-merge closeout, and routine incremental exception housekeeping. There is no active dedicated #1075 CI phase-generation engine. Controlled and operational authority documents that formerly described that engine as active are reconciled by #2469. #2175 and #2208 closed complete on 2026-07-04; they are historical related Issues, not open pre-closeout operator work. If live branch protection later diverges from the documented `quality` and `gitleaks` required-check surface, handle that as a new bounded Ops correction.
+The PR-process redesign is implemented around stable-facts PR bodies, GitHub-native reviewer state, deterministic required checks, advisory-first promotion, single-owner post-merge closeout, and routine incremental exception housekeeping. There is no active dedicated #1075 CI phase-generation engine. Controlled and operational authority documents that formerly described that engine as active are reconciled by #2469. #2175 and #2208 closed complete on 2026-07-04; they are historical related Issues, not open pre-closeout operator work. #3746 promoted `reviewer-response-completion` onto the live `main` required-check surface. If live branch protection later diverges from the documented `quality`, `gitleaks`, and `reviewer-response-completion` required-check surface, handle that as a new bounded Ops correction.
 
-#3281 splits **code green** (every push) from **review closed** (merge-readiness). `reviewer-response-completion` is advisory on pure `synchronize` / open / reopen so async trusted bots cannot deadlock the gate; it enforces on review events, `ready_for_review`, PR body edit, and manual dispatch. Closeout prefers native thread resolve; prior-SHA outdated bot threads do not block pre-merge solely by being outdated.
+#3281 splits **code green** (every push) from **review closed** (merge-readiness). `reviewer-response-completion` is required on `main` after #3746 so late trusted-review events re-pending merge eligibility. Enforcement remains event-conditional: advisory on pure `synchronize` / open / reopen so async trusted bots cannot deadlock the gate; it enforces on review events, `ready_for_review`, PR body edit, comment, and manual dispatch. Closeout prefers native thread resolve; prior-SHA outdated bot threads do not block pre-merge solely by being outdated.
 
 ## Intended final state
 
@@ -44,12 +44,13 @@ Current principles:
 
 ## Branch protection alignment
 
-Documented required checks for `main` are only:
+Documented required checks for `main` are:
 
 - `quality`
 - `gitleaks`
+- `reviewer-response-completion`
 
-Live GitHub branch-protection settings are outside repo-owned docs. Remove retired check names if still configured on `main`. Any future live-setting mismatch is a **new bounded Ops correction** — do not reopen #2175, #2208, or #2469.
+Live GitHub branch-protection settings are outside repo-owned docs. Remove retired check names if still configured on `main`. Any future live-setting mismatch is a **new bounded Ops correction** — do not reopen #2175, #2208, #2469, or #3746.
 
 ## Required checks
 
@@ -57,14 +58,14 @@ Live GitHub branch-protection settings are outside repo-owned docs. Remove retir
 | --- | --- |
 | `quality` | `gate-quality.yml` |
 | `gitleaks` | `gitleaks.yml` |
+| `reviewer-response-completion` | `reviewer-response-completion.yml` (required on `main`; advisory on push; enforcing on review / ready_for_review / body edit / comment / dispatch) |
 
-## Active advisory / event-conditional checks
+## Active advisory checks
 
 | Job | Workflow |
 | --- | --- |
 | `pr-hygiene` | `gate-pr-hygiene.yml` |
 | `diff-scope` | `gate-diff-scope.yml` |
-| `reviewer-response-completion` | `reviewer-response-completion.yml` (advisory on push; enforcing on review / ready_for_review / body edit / dispatch) |
 
 Do not promote advisory gates to required status without satisfying `/docs/governance/PR_PROCESS.md`.
 

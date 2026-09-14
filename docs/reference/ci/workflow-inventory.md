@@ -5,13 +5,13 @@ Authority Level: Controlled
 Owns: Current closeout-related workflow inventory excerpt and retirement disposition as a supporting specification
 Does Not Own: CI and Verification Domain Policy; complete repository workflow inventory; branch protection settings; CI policy rationale
 Canonical Reference: /docs/governance/CI-AND-VERIFICATION.md
-Related Issues: #2689, #1500, #2175, #2208, #2469
-Last Reviewed: 2026-07-21
+Related Issues: #2689, #1500, #2175, #2208, #2469, #3746, #2769
+Last Reviewed: 2026-09-14
 ---
 
 # GitHub Actions Closeout Workflow Inventory Excerpt
 
-This document is a **supporting closeout workflow inventory** under the CI and Verification Domain Policy (`docs/governance/CI-AND-VERIFICATION.md`).
+This document is a **supporting closeout workflow inventory** under the CI and Verification Domain Policy (`docs/governance/CI-AND-VERIFICATION.md`). The complete live workflow file index is `docs/ops/workflows-inventory.md`.
 
 It is **not** a Domain Policy co-owner. Conflicts with domain policy resolve through `docs/governance/CI-AND-VERIFICATION.md`. PR lifecycle procedure remains in `docs/governance/PR_PROCESS.md`.
 

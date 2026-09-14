@@ -1,7 +1,7 @@
 # CI Guardrails Map
 
 **Status:** AUTHORITATIVE  
-**Effective Date:** 2026-07-12  
+**Effective Date:** 2026-09-14
 **Purpose:** Current CI/CD guardrails, PR-process checks, post-merge ownership, and retired workflow disposition
 
 ## Controlling authority
@@ -19,8 +19,9 @@ The dedicated #1075 CI phase engine is retired under #2469 and is not a guardrai
 | --- | --- | --- |
 | `gate-quality.yml` | `quality` | Class-aware deterministic quality routing |
 | `gitleaks.yml` | `gitleaks` | Secret exposure blocker |
+| `reviewer-response-completion.yml` | `reviewer-response-completion` | Required on `main` after #3746; event-conditional enforcement (advisory on pure open/sync; enforcing on review / ready-for-review / body edit / comment / dispatch) |
 
-No retired or manual-only workflow may be required by branch protection.
+No retired or manual-only workflow may be required by branch protection. Do not restore a two-check-only required surface.
 
 ## Active advisory checks
 
@@ -28,7 +29,6 @@ No retired or manual-only workflow may be required by branch protection.
 | --- | --- | --- |
 | `gate-pr-hygiene.yml` | `pr-hygiene` | Stable PR-body hygiene and guidance |
 | `gate-diff-scope.yml` | `diff-scope` | Allowed-path diff assessment |
-| `reviewer-response-completion.yml` | `reviewer-response-completion` | GitHub-native reviewer/thread assessment |
 
 Advisory checks remain non-blocking until promotion criteria in `PR_PROCESS.md` are satisfied.
 
