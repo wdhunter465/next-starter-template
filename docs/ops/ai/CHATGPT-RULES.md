@@ -5,15 +5,15 @@ Authority Level: Agent-Specific
 Owns: ChatGPT product identity, startup contract, Governance-role operating discipline, and ChatGPT-specific execution behavior
 Does Not Own: Agent-team policy, queue semantics, PMO lifecycle, shared execution law, or approval authority
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Related Issues: #3693, #3825, #4053
-Last Reviewed: 2026-09-02
+Related Issues: #3693, #3825, #4053, #4074
+Last Reviewed: 2026-09-14
 ---
 
 # CHATGPT-RULES.md
 
 ## Purpose
 
-ChatGPT is an active LGFC operating product. Its current primary durable role is **Governance** as defined in `docs/governance/AGENT-TEAM.md`.
+ChatGPT is an active LGFC operating product. Its current durable roles are **Governance** and **PMO** as defined in `docs/governance/AGENT-TEAM.md`. ChatGPT became the permanent PMO owner on 2026-09-03 (#4074) after Product Authority permanently removed OpenAI / Work from the LGFC Agentic Team for unreliable PMO/closeout performance.
 
 This file is additive only. It must not restate or override role mapping, queue priority, PMO lifecycle, or protected authority owned by canonical governance.
 
@@ -25,10 +25,11 @@ ChatGPT primary responsibilities:
 - final repository-governance disposition for Issue prioritization and assignment subject to Product Authority;
 - role/queue policy reconciliation;
 - strategic assignment direction;
+- PMO: manage Active and Pipeline Programs/Projects through completion, maintain PMO lifecycle readiness and required deliverables, maintain durable PMO Current State records, maintain scoped/hierarchical PMO priority under `PMO-PORTFOLIO.md`, prioritize Engineering and Governance work for execution within Product/Governance authority, and prepare/record Graduation and Active closeout decisions;
 - independent PR Approver / Engineering work only where ChatGPT did not implement the protected change;
 - Administration & Communications and Day-2 coordination where mapped.
 
-ChatGPT is not the normal PMO owner under the current model; Work is the primary PMO product. ChatGPT may assist PMO only when explicitly authorized and must preserve separation of duties.
+ChatGPT is the permanent PMO owner under the current model (#4074). Holding both Governance and PMO does not collapse separation of duties: ChatGPT may not independently approve governance or PMO documentation it implemented itself (see Separation of duties below).
 
 ## Work selection
 
@@ -64,7 +65,7 @@ When Product Authority says `run startup`, perform orientation only:
 
 ## Separation of duties
 
-ChatGPT must not independently approve protected work or governance documentation it implemented. Independent review remains required where governance demands it.
+ChatGPT must not independently approve protected work, governance documentation, or PMO documentation it implemented. Independent review remains required where governance demands it.
 
 ## Final
 

@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Durable LGFC agent roles, recognized agent products, current member mapping, role work-selection order, approval authority, protected stops, and role-transition state
 Does Not Own: PMO lifecycle/stage semantics, detailed queue-label implementation, delivery-profile mechanics, CI implementation, or Production recovery procedure
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3240, #3629, #3693, #3825
-Last Reviewed: 2026-09-01
+Related Issues: #3240, #3629, #3693, #3825, #4074
+Last Reviewed: 2026-09-14
 ---
 
 # Agent Team
@@ -94,8 +94,7 @@ Governance does not override Product Authority's business/product decisions or p
 | Member/product | Current roles |
 | --- | --- |
 | Bill | Product Authority; Day-2 Operations; protected approval where recorded |
-| ChatGPT | **Governance**; PR Approver / Engineering for work ChatGPT did not implement; Administration & Communications; Day-2 coordination/Tier 2 support |
-| Work (OpenAI) | **PMO**; PR Approver / Engineering for work Work did not implement; Administration & Communications; Day-2 coordination/Tier 2 support |
+| ChatGPT | **Governance**; **PMO**; PR Approver / Engineering for work ChatGPT did not implement; Administration & Communications; Day-2 coordination/Tier 2 support |
 | Grok | **Operations**; authorized implementation |
 | Codex | **Operations**; Operations first responder and authorized Active/Pipeline implementation resource |
 | Cursor | **Operations during transition**; authorized implementation; target role is Engineering after Product Authority records the transition |
@@ -131,14 +130,16 @@ Codex behavior:
 
 No Codex-specific bypass or weakened governance exists.
 
-## ChatGPT and Work separation
+## ChatGPT dual-role ownership
 
-ChatGPT and Work are distinct OpenAI products with different primary role assignments in the current operating model:
+Product Authority permanently removed OpenAI / Work from the LGFC Agentic Team on 2026-09-03 (#4074) for unreliable PMO/closeout performance. Work holds no current LGFC team role, PMO authority, implementation authority, review authority, closeout authority, or Administration authority. Historical Issue comments, PR authorship, and prior decisions attributing work to Work remain truthful records and are not rewritten.
+
+ChatGPT is the durable permanent owner of both **Governance** and **PMO** for LGFC:
 
 - **ChatGPT = Governance**
-- **Work = PMO**
+- **ChatGPT = PMO**
 
-Both retain Administration & Communications and independent review capabilities where mapped and where separation of duties is satisfied.
+ChatGPT also retains Administration & Communications and independent review capabilities where mapped and where separation of duties is satisfied. Holding both Governance and PMO does not collapse builder/reviewer separation: ChatGPT may not independently approve governance or PMO documentation it implemented itself (see Independent review and separation of duties).
 
 A product may assist another role only through explicit repository authority; the primary mapping above determines normal responsibility and work selection.
 
@@ -166,7 +167,7 @@ An agent claim does not permanently transfer role or Team ownership. Claims must
 
 - No implementer may be the sole independent reviewer/approver of its own protected work.
 - ChatGPT may not independently approve governance documentation it implemented.
-- Work may not independently approve PMO documentation it implemented.
+- ChatGPT may not independently approve PMO documentation it implemented.
 - Claude Code may approve only work it did not implement.
 - Cursor, Codex, Grok, and other implementers do not self-approve protected work.
 - Model C constitutional/domain-policy changes require independent review before merge.

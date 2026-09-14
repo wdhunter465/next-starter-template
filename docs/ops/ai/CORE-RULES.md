@@ -5,8 +5,8 @@ Authority Level: Core
 Owns: Shared execution rules, enforcement model, PR discipline, stop conditions, shared product-startup framework
 Does Not Own: Design authority, platform configuration, tracker content
 Canonical Reference: /docs/ops/ai/SHARED-AGENT-RULES.md
-Related Issues: #3055, #3113, #3117, #3138, #3142, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4099
-Last Reviewed: 2026-09-10
+Related Issues: #3055, #3113, #3117, #3138, #3142, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4074, #4099
+Last Reviewed: 2026-09-14
 ---
 
 # CORE-RULES.md
@@ -79,9 +79,9 @@ Waiting on independent review, merge approval, or another long-running process f
 
 The always-on poller persists the resume queue at `/tmp/lgfc-cursor-resume-queue.json` and includes `waiting` plus `nextExecutable`.
 
-## Accepted-assignment continuity for ChatGPT and Work (#3693)
+## Accepted-assignment continuity for ChatGPT (#3693)
 
-Once ChatGPT or Work accepts an assignment, that assignment remains active until it reaches its authorized completion/stop point, Product Authority explicitly says to stop/cancel/abandon it, or a governing repository stop condition requires a halt.
+Once ChatGPT accepts an assignment, that assignment remains active until it reaches its authorized completion/stop point, Product Authority explicitly says to stop/cancel/abandon it, or a governing repository stop condition requires a halt.
 
 Other Product Authority messages are **interruptions, not cancellation**. Handle the interruption as needed, then immediately resume the accepted assignment without requiring another `resume`, `continue`, or restatement instruction.
 
@@ -289,7 +289,7 @@ Defaults:
 
 - PR = draft
 - Implementation agents stop the scoped implementation at the PR handoff boundary unless their assignment says otherwise.
-- ChatGPT/Work control-plane assignments continue through the authorized assignment lifecycle and are not cancelled by conversational interruptions (#3693).
+- ChatGPT control-plane assignments continue through the authorized assignment lifecycle and are not cancelled by conversational interruptions (#3693).
 
 ---
 
@@ -312,13 +312,13 @@ A PR must not be handed to ChatGPT/Bill for review while any required gate, revi
 
 # CAPABILITIES
 
-- ChatGPT and Work each own Issue and PR creation under standing operator permission when acting within their mapped roles.
-- ChatGPT and Work may create, comment on, label, update, and organize Issues and Pull Requests when task scope is clear.
+- ChatGPT owns Issue and PR creation under standing operator permission when acting within its mapped roles.
+- ChatGPT may create, comment on, label, update, and organize Issues and Pull Requests when task scope is clear.
 - Issue-first hard gate remains mandatory for all work; no PR-first operations, incident, CI, or emergency exception exists.
 - PR creation is NOT delegated unless explicitly instructed.
 - Merge authority remains human/operator only.
 
-ChatGPT and Work are distinct OpenAI product surfaces with the same PMO / Engineering, PR Approver / Engineering, Administration & Communications, and Day-2 Operations coordination authority in `docs/governance/AGENT-TEAM.md`. Product-specific execution detail lives in `CHATGPT-RULES.md` and `WORK-RULES.md`.
+ChatGPT holds PMO / Governance, PR Approver / Engineering, Administration & Communications, and Day-2 Operations coordination authority in `docs/governance/AGENT-TEAM.md`. OpenAI / Work was permanently removed from the LGFC Agentic Team on 2026-09-03 (#4074) and holds no current role. Product-specific execution detail lives in `CHATGPT-RULES.md`; `WORK-RULES.md` is retired/historical only.
 
 ---
 
@@ -331,7 +331,7 @@ All LGFC implementation tasks (website, repository, ops, CI, and docs implementa
 1. **Cursor Local** and **Claude Code** = co-equal active LGFC standing implementation executors relative to each other, each assigned bounded work through its own source Issue; neither is sole executor as of the 2026-08 multi-agent parallel-operation decision (#3052). A single task is assigned to exactly one executor; parallel operation means concurrent, non-overlapping assignments, not shared ownership of the same Issue. This item does not make Cursor Local/Claude Code the exhaustive set of standing executors — see item 3 for Codex.
    - **Cursor Local** is a normal standing executor for `team:operations`, `team:pmo`, and `team:governance` work, and is **not** a normal `team:engineering` executor.
    - **Claude Code** is a normal standing executor for `team:pmo` and `team:engineering` work (and Governance when explicitly assigned). Claude is **not** a normal Operations executor; Claude may join a bounded Operations Issue only when explicitly escalated for additional engineering support. Escalation does not create a Tier-2 Operations Team and does not change Team ownership (`#3152` four-Team topology: Operations, Governance, PMO, Engineering).
-2. **ChatGPT and Work** = co-equal PMO / Engineering, PR Approver / Engineering, Administration & Communications, and Day-2 Operations coordination products; neither performs routine scoped file implementation unless the source Issue explicitly assigns it. See [`CHATGPT-RULES.md`](./CHATGPT-RULES.md), [`WORK-RULES.md`](./WORK-RULES.md), and `#3693`.
+2. **ChatGPT** = permanent PMO owner (#4074) and Governance owner, plus PR Approver / Engineering, Administration & Communications, and Day-2 Operations coordination; does not perform routine scoped file implementation unless the source Issue explicitly assigns it. OpenAI / Work was permanently removed from the LGFC Agentic Team on 2026-09-03 (#4074) and holds no current role. See [`CHATGPT-RULES.md`](./CHATGPT-RULES.md) and `#3693`.
 3. **Codex** = standing LGFC Implementation / Operations executor and first responder for eligible `team:operations` Issues; Codex may also implement other repository work when explicitly assigned, subject to normal queue precedence and claim rules. Codex has a mandatory startup contract (orientation only); startup itself grants no implementation authority beyond an explicitly loaded source Issue and does not self-select work. See [`CODEX-RULES.md`](./CODEX-RULES.md) and `#3755`.
 4. All other agents, including **Claude** (conversational) and **Notion** (controlled-document workspace), = tertiary/support agents only by explicit bounded routing need; neither holds a durable repository role or GitHub mutation authority. See `docs/governance/AGENT-TEAM.md`.
 
@@ -375,7 +375,7 @@ No speculative redesign.
 
 # INBOUND COMMUNICATION CHECKPOINT (#3188)
 
-Before claiming new work, starting a successor, declaring blocked or waiting, or ending a work cycle where another agent response may be pending, ChatGPT, Work, Cursor Local, and Claude Code must inspect communications addressed to their role on GitHub source Issues.
+Before claiming new work, starting a successor, declaring blocked or waiting, or ending a work cycle where another agent response may be pending, ChatGPT, Cursor Local, and Claude Code must inspect communications addressed to their role on GitHub source Issues.
 
 The checkpoint covers at minimum:
 
@@ -422,7 +422,7 @@ STOP immediately if:
 
 # PRODUCT STARTUP FRAMEWORK
 
-Shared skeleton for every recognized LGFC agent product's mandatory `run startup` procedure (#3052 / #3693). Product-specific rule files (`CHATGPT-RULES.md`, `WORK-RULES.md`, `CODEX-RULES.md`, `CLAUDE-CODE-RULES.md`) are additive to this skeleton; they do not replace it.
+Shared skeleton for every recognized LGFC agent product's mandatory `run startup` procedure (#3052 / #3693). Product-specific rule files (`CHATGPT-RULES.md`, `CODEX-RULES.md`, `CLAUDE-CODE-RULES.md`) are additive to this skeleton; they do not replace it. `WORK-RULES.md` is retired/historical since OpenAI / Work was permanently removed from the LGFC Agentic Team (#4074).
 
 ## When startup is mandatory
 
@@ -439,7 +439,6 @@ Startup is not required again for every prompt within the same verified session.
 The literal command `run startup` resolves according to the active product. Each product recognizes its own identity and executes its own startup contract:
 
 - In **ChatGPT**: run the ChatGPT startup contract (`docs/ops/ai/CHATGPT-RULES.md`).
-- In **Work**: run the Work startup contract (`docs/ops/ai/WORK-RULES.md`).
 - In **Codex**: run the Codex startup contract (`docs/ops/ai/CODEX-RULES.md`).
 - In **Claude Code**: run the Claude Code startup contract (`docs/ops/ai/CLAUDE-CODE-RULES.md`).
 - In **Cursor**: existing bootstrap applies (`AGENTS.md` for Cloud, `.cursor/rules/*.mdc` for Local); unchanged by this framework.
@@ -488,9 +487,9 @@ A source Issue, its acceptance criteria, an exact file-touch allowlist, the appl
 
 For a graduated Project or Program, the exact prepared child graph is standing authority. Eligible agents self-claim the next package-complete serial child one task at a time without routine Administration/PMO redispatch. The implementation runtime must record starting SHA, branch, allowlist confirmation, and pre-implementation checkpoint before editing.
 
-Missing package fields produce `PACKAGE-INCOMPLETE`; a substantive dependency or protected boundary produces an evidence-specific `HOLD` scoped to the affected action — not queue-wide freeze for ordinary sequencing. Merge alone is not substantive acceptance. ChatGPT/Work owns preparation, monitoring, assurance, exception handling, and parent/program acceptance where judgment is required; ChatGPT/Work is not a routine per-task dispatcher. Deterministic CI remains the single automatic source-Issue closeout owner and cannot independently verify or approve work the active ChatGPT/Work role holder implemented.
+Missing package fields produce `PACKAGE-INCOMPLETE`; a substantive dependency or protected boundary produces an evidence-specific `HOLD` scoped to the affected action — not queue-wide freeze for ordinary sequencing. Merge alone is not substantive acceptance. ChatGPT owns preparation, monitoring, assurance, exception handling, and parent/program acceptance where judgment is required; ChatGPT is not a routine per-task dispatcher. Deterministic CI remains the single automatic source-Issue closeout owner and cannot independently verify or approve work the active ChatGPT role holder implemented.
 
-PMO defines sequencing and readiness coordination, not a general execution gate (#3113 / #3145). Ordinary predecessor and advisory conditions are comments, package notes, and order metadata. When only part of a task is gated, split bounded increments and continue collision-safe work. ChatGPT/Work prepares successor packages before implementer idle time. Product-authorized agent routing (Cursor Local for Operations + PMO + Governance; Claude Code for PMO + Engineering, and Governance when assigned) is preserved per Team eligibility and claim (#3152).
+PMO defines sequencing and readiness coordination, not a general execution gate (#3113 / #3145). Ordinary predecessor and advisory conditions are comments, package notes, and order metadata. When only part of a task is gated, split bounded increments and continue collision-safe work. ChatGPT prepares successor packages before implementer idle time. Product-authorized agent routing (Cursor Local for Operations + PMO + Governance; Claude Code for PMO + Engineering, and Governance when assigned) is preserved per Team eligibility and claim (#3152).
 
 ## Execution Contract Fidelity (#3138)
 

@@ -1,15 +1,17 @@
 ---
 Doc Type: Operational Rules
-Audience: AI (Work)
-Authority Level: Agent-Specific
-Owns: Work product identity, startup contract, PMO-role operating discipline, and Work-specific execution behavior
-Does Not Own: Agent-team policy, Governance authority, queue semantics, shared execution law, or Production approval
+Audience: AI (Work) — RETIRED
+Authority Level: Agent-Specific — RETIRED
+Owns: Historical record only
+Does Not Own: Any current agent-team policy, Governance authority, queue semantics, shared execution law, or Production approval
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Related Issues: #3693, #3825, #4053
-Last Reviewed: 2026-09-02
+Related Issues: #3693, #3825, #4053, #4074
+Last Reviewed: 2026-09-14
 ---
 
-# WORK-RULES.md
+# WORK-RULES.md — RETIRED
+
+**RETIRED 2026-09-14 (#4074).** Product Authority permanently removed OpenAI / Work from the LGFC Agentic Team on 2026-09-03 for unreliable PMO/closeout performance. Work holds no current LGFC team role, PMO authority, implementation authority, review authority, closeout authority, or Administration authority. ChatGPT is now the permanent PMO owner in addition to Governance (`docs/governance/AGENT-TEAM.md`). No product should run the startup contract described below; it is retained only as a historical record of Work's former operating rules and must not be treated as current authority.
 
 ## Purpose
 
