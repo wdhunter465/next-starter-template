@@ -20,7 +20,12 @@ name: OPS — D1 Backup Scheduled Daily Export (#3268 Phase 3)
 on:
   schedule:
     - cron: '0 9 * * *'   # Daily, ~04:00 EST / 05:00 EDT — matches #3268's documented cadence and this repo's existing daily B2->D1 sync schedule.
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      confirm_manual_run:
+        description: 'Manual trigger only: type "confirm" to run this scheduled backup job outside its normal cadence'
+        required: false
+        type: string
 
 concurrency:
   group: d1-backup-phase2-export-upload-3268
@@ -34,6 +39,14 @@ jobs:
   export-upload:
     runs-on: ubuntu-latest
     steps:
+      - name: Require explicit confirmation for manual runs
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          if [ "${{ inputs.confirm_manual_run }}" != "confirm" ]; then
+            echo "confirm_manual_run must be exactly 'confirm' for a manual trigger — refusing to run. Scheduled runs are unaffected."
+            exit 1
+          fi
+
       - name: Checkout
         id: checkout
         uses: actions/checkout@v4

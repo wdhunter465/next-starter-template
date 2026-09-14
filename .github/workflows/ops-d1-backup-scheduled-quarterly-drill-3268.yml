@@ -21,7 +21,12 @@ name: OPS — D1 Backup Scheduled Quarterly Restore Drill (#3268 Phase 4)
 on:
   schedule:
     - cron: '0 10 1 1,4,7,10 *'   # Quarterly: 1st of Jan/Apr/Jul/Oct at 10:00 UTC.
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      confirm_manual_run:
+        description: 'Manual trigger only: type "confirm" to run this restore drill outside its normal cadence'
+        required: false
+        type: string
 
 concurrency:
   group: d1-backup-phase2-restore-verify-3268
@@ -35,6 +40,14 @@ jobs:
   restore-verify:
     runs-on: ubuntu-latest
     steps:
+      - name: Require explicit confirmation for manual runs
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          if [ "${{ inputs.confirm_manual_run }}" != "confirm" ]; then
+            echo "confirm_manual_run must be exactly 'confirm' for a manual trigger — refusing to run. Scheduled runs are unaffected."
+            exit 1
+          fi
+
       - name: Checkout
         id: checkout
         uses: actions/checkout@v4
