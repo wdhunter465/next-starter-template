@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: PR-process success metrics schema and collection workflow
 Does Not Own: Branch protection settings or merge approval
 Canonical Reference: /docs/governance/PR_PROCESS.md
-Related issues: #2175, #2208, #2228
-Last Reviewed: 2026-07-04
+Related Issues: #2175, #2208, #2228, #3746, #2769
+Last Reviewed: 2026-09-14
 ---
 
 # PR Process Metrics
@@ -19,9 +19,9 @@ Lightweight measurement for PR-process rebuild validation. Metrics are recorded 
 
 - `quality` — required
 - `gitleaks` — required
+- `reviewer-response-completion` — required on `main` (#3746); event-conditional enforcement
 - `pr-hygiene` — advisory
 - `diff-scope` — advisory
-- `reviewer-response-completion` — advisory
 
 ## Recorded fields
 
