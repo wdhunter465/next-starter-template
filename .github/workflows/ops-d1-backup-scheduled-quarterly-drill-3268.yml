@@ -1,0 +1,114 @@
+name: OPS — D1 Backup Scheduled Quarterly Restore Drill (#3268 Phase 4)
+
+# Scheduled, unattended quarterly execution of the proven #3268 Phase 2 Package 3
+# isolated restore-verify job. Reuses
+# scripts/ci/d1_backup_phase2_restore_verify_3268.mjs exactly as-is (same
+# find-latest-backup -> re-verify checksum -> restore into a throwaway D1 database
+# never referenced in wrangler.toml -> schema/table-count check -> unconditional
+# teardown behavior already proven manually on 2026-08-14) — no new restore logic,
+# only a schedule trigger wrapper, since a `schedule` event cannot supply the
+# manual workflow's `workflow_dispatch` confirmation input.
+#
+# This workflow never reads, writes, or otherwise touches lgfc_lite (Production D1)
+# directly — only the most recent R2 backup produced by the daily export job is
+# read, restored into an isolated throwaway database, and verified.
+#
+# Kept as a separate file rather than editing
+# ops-d1-backup-phase2-restore-verify-3268.yml, since that file is protected-path
+# per scripts/ci/delivery_profile.mjs and this addition does not need that review
+# tier.
+
+on:
+  schedule:
+    - cron: '0 10 1 1,4,7,10 *'   # Quarterly: 1st of Jan/Apr/Jul/Oct at 10:00 UTC.
+  workflow_dispatch: {}
+
+concurrency:
+  group: d1-backup-phase2-restore-verify-3268
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  restore-verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run #3268 Phase 2 Package 3 restore proof (scheduled quarterly drill)
+        id: restore_verify
+        env:
+          R2_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY_ID }}
+          R2_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_ACCESS_KEY }}
+          R2_BUCKET_NAME: ${{ secrets.R2_BUCKET_NAME }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DATABASE_NAME: ${{ secrets.D1_DATABASE_NAME }}
+        run: node scripts/ci/d1_backup_phase2_restore_verify_3268.mjs
+
+      - name: Upload result evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: d1-backup-scheduled-quarterly-drill-3268-result
+          path: |
+            d1-backup-phase2-restore-verify-3268-result.json
+            d1-backup-phase2-restore-verify-3268-result.md
+          if-no-files-found: warn
+
+      - name: Write step summary
+        if: always() && hashFiles('d1-backup-phase2-restore-verify-3268-result.md') != ''
+        run: cat d1-backup-phase2-restore-verify-3268-result.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Record result on #3268
+        if: always() && hashFiles('d1-backup-phase2-restore-verify-3268-result.md') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue comment 3268 --body-file d1-backup-phase2-restore-verify-3268-result.md
+
+      - name: Alert #2780 on failure (fail-closed, Day-2 visibility)
+        if: failure() && steps.checkout.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue comment 2780 --body "$(cat <<'EOF'
+          <!-- d1-backup-scheduled-quarterly-drill-3268 -->
+          ## Scheduled quarterly D1 restore drill FAILED (#3268 Phase 4)
+
+          The automated quarterly isolated restore-verify drill did not complete.
+          No Production D1 read or write was attempted. See the workflow run logs
+          and uploaded artifact (if any) for details, and #3268 for the
+          failure-detail comment this same run posts there.
+
+          Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          EOF
+          )"
+
+      - name: Record failure on #3268
+        if: failure() && steps.checkout.outcome == 'success' && hashFiles('d1-backup-phase2-restore-verify-3268-result.md') == ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh issue comment 3268 --body "$(cat <<'EOF'
+          <!-- d1-backup-scheduled-quarterly-drill-3268 -->
+          ## Scheduled quarterly D1 restore drill — FAILED (fail-closed)
+
+          The isolated, non-Production restore proof did not complete. No
+          Production D1 read or write was attempted. See the workflow run logs and
+          uploaded artifact (if any) for details.
+
+          Run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          EOF
+          )"
