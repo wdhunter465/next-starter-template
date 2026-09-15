@@ -1229,10 +1229,15 @@ export async function loadPostMergeReviewThreads({
 	const [owner, repo] = String(repository || '').split('/');
 	if (!owner || !repo) throw new Error(`Invalid repository for native review state: ${repository}`);
 	const state = await fetchNativeReviewStateFn({ token, owner, repo, prNumber });
-	if (state.paginationFailures.length > 0) {
-		throw new Error(`Post-merge native review state is incomplete: ${state.paginationFailures.join(' ')}`);
+	const paginationFailures = Array.isArray(state?.paginationFailures) ? state.paginationFailures : null;
+	const reviewThreads = Array.isArray(state?.reviewThreads) ? state.reviewThreads : null;
+	if (paginationFailures === null || reviewThreads === null) {
+		throw new Error('Post-merge native review state is incomplete: fetchNativeReviewStateFn returned a malformed result (missing paginationFailures/reviewThreads array).');
 	}
-	return state.reviewThreads;
+	if (paginationFailures.length > 0) {
+		throw new Error(`Post-merge native review state is incomplete: ${paginationFailures.join(' ')}`);
+	}
+	return reviewThreads;
 }
 
 function uniqueRuns(...runGroups) {

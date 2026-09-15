@@ -48,6 +48,31 @@ describe('post-merge native review state loading', () => {
 			}),
 		})).rejects.toThrow('Post-merge native review state is incomplete');
 	});
+
+	it('fails closed instead of throwing a TypeError when fetchNativeReviewStateFn returns null', async () => {
+		await expect(loadPostMergeReviewThreads({
+			token: 'test-token',
+			repository: 'wdhunter465/next-starter-template',
+			prNumber: 4094,
+			fetchNativeReviewStateFn: async () => null,
+		})).rejects.toThrow('Post-merge native review state is incomplete');
+	});
+
+	it('fails closed instead of throwing a TypeError when paginationFailures/reviewThreads are missing or non-array', async () => {
+		await expect(loadPostMergeReviewThreads({
+			token: 'test-token',
+			repository: 'wdhunter465/next-starter-template',
+			prNumber: 4094,
+			fetchNativeReviewStateFn: async () => ({}),
+		})).rejects.toThrow('Post-merge native review state is incomplete');
+
+		await expect(loadPostMergeReviewThreads({
+			token: 'test-token',
+			repository: 'wdhunter465/next-starter-template',
+			prNumber: 4094,
+			fetchNativeReviewStateFn: async () => ({ reviewThreads: 'not-an-array', paginationFailures: [] }),
+		})).rejects.toThrow('Post-merge native review state is incomplete');
+	});
 });
 
 const baseBody = [
