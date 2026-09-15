@@ -3,6 +3,7 @@ import {
   evaluateReviewerCommentDisposition,
   resolvedCommentIdsFromReviewThreads,
 } from '../scripts/ci/reviewer_comment_disposition.mjs';
+import { reviewerDispositionFailures } from '../scripts/ci/post_merge_validator.mjs';
 import { assessReviewerLifecycle } from '../scripts/ci/reviewer_lifecycle_gate.mjs';
 
 const reviewComments = [
@@ -97,5 +98,42 @@ describe('issue #4066 GraphQL native resolve closeout', () => {
     expect(result.shouldFail).toBe(false);
     expect(result.reviewThreads.resolved).toHaveLength(1);
     expect(result.disposition.undispositionedCount).toBe(0);
+  });
+});
+
+describe('issue #4095 post-merge native review-thread regression', () => {
+  it('accepts PR #4094 resolved outdated trusted thread without a PR-body ledger', () => {
+    const failures = reviewerDispositionFailures({
+      body: [
+        '## Purpose',
+        'Record the governance correction.',
+        '## Scope',
+        'Bounded report correction.',
+        '## Current known truth',
+        'The requested correction is present.',
+        '## Intended final state',
+        'The report remains authoritative.',
+      ].join('\n'),
+      reviewComments: [{
+        id: 3934045985,
+        user: { login: 'copilot-pull-request-reviewer[bot]' },
+        commit_id: 'pre-fix-sha',
+        path: 'docs/ops/reports/repository-operating-model-analysis-4091.md',
+        line: null,
+        position: 12,
+        body: 'Add Purpose, Scope, Current known truth, and Intended final state.',
+        created_at: '2026-09-04T00:00:00Z',
+      }],
+      reviewThreads: [{
+        id: 'PRRT_kwDOQCj8X86fSl2f',
+        isResolved: true,
+        isOutdated: true,
+        comments: { nodes: [{ databaseId: 3934045985 }] },
+      }],
+      headSha: '233b35e68159bc1eb31a123accc3ffc1bb8c5847',
+      mergedAt: '2026-09-05T00:00:00Z',
+    });
+
+    expect(failures).toEqual([]);
   });
 });

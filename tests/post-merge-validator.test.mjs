@@ -9,6 +9,7 @@ import {
 	isPermittedClosedSourceIssueFollowup,
 	isRequiredMergeProtectionRun,
 	latestRunsByWorkflow,
+	loadPostMergeReviewThreads,
 	metadataFailures,
 	preMergeReadinessBodyFailures,
 	preMergeReviewerDispositionFailures,
@@ -19,6 +20,60 @@ import {
 	stripAutoRepairBlock,
 	workflowFailures,
 } from '../scripts/ci/post_merge_validator.mjs';
+
+describe('post-merge native review state loading', () => {
+	it('loads authoritative GraphQL review threads for the requested PR', async () => {
+		const reviewThreads = [{ id: 'PRRT_4095', isResolved: true }];
+		const fetchNativeReviewStateFn = async (input) => {
+			expect(input).toMatchObject({ owner: 'wdhunter465', repo: 'next-starter-template', prNumber: 4094 });
+			return { reviewThreads, paginationFailures: [] };
+		};
+
+		await expect(loadPostMergeReviewThreads({
+			token: 'test-token',
+			repository: 'wdhunter465/next-starter-template',
+			prNumber: 4094,
+			fetchNativeReviewStateFn,
+		})).resolves.toEqual(reviewThreads);
+	});
+
+	it('fails closed when GraphQL review-thread pagination is incomplete', async () => {
+		await expect(loadPostMergeReviewThreads({
+			token: 'test-token',
+			repository: 'wdhunter465/next-starter-template',
+			prNumber: 4094,
+			fetchNativeReviewStateFn: async () => ({
+				reviewThreads: [],
+				paginationFailures: ['review thread pagination not supported'],
+			}),
+		})).rejects.toThrow('Post-merge native review state is incomplete');
+	});
+
+	it('fails closed instead of throwing a TypeError when fetchNativeReviewStateFn returns null', async () => {
+		await expect(loadPostMergeReviewThreads({
+			token: 'test-token',
+			repository: 'wdhunter465/next-starter-template',
+			prNumber: 4094,
+			fetchNativeReviewStateFn: async () => null,
+		})).rejects.toThrow('Post-merge native review state is incomplete');
+	});
+
+	it('fails closed instead of throwing a TypeError when paginationFailures/reviewThreads are missing or non-array', async () => {
+		await expect(loadPostMergeReviewThreads({
+			token: 'test-token',
+			repository: 'wdhunter465/next-starter-template',
+			prNumber: 4094,
+			fetchNativeReviewStateFn: async () => ({}),
+		})).rejects.toThrow('Post-merge native review state is incomplete');
+
+		await expect(loadPostMergeReviewThreads({
+			token: 'test-token',
+			repository: 'wdhunter465/next-starter-template',
+			prNumber: 4094,
+			fetchNativeReviewStateFn: async () => ({ reviewThreads: 'not-an-array', paginationFailures: [] }),
+		})).rejects.toThrow('Post-merge native review state is incomplete');
+	});
+});
 
 const baseBody = [
 	'- **Issue:** #1122',
