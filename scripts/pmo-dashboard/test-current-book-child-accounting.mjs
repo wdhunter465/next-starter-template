@@ -130,9 +130,11 @@ async function main() {
     assert((data.dataQualityExceptions || []).some((row) => row.issueNumber === 4001), 'unplaceable project is a metadata defect');
 
     const mutated = structuredClone(data);
-    mutated.dataQualityExceptions[0].issueUrl = 'not-a-github-url';
-    delete mutated.dataQualityExceptions[0].status;
-    mutated.dataQualityExceptions[0].labels = 'pmo';
+    const exception = (mutated.dataQualityExceptions || []).find((row) => row.issueNumber === 4001);
+    assert(exception, 'malformed-validation target is the #4001 exception row');
+    exception.issueUrl = 'not-a-github-url';
+    delete exception.status;
+    exception.labels = 'pmo';
     await writeFile(path.join(outDir, 'dashboard-data.json'), `${JSON.stringify(mutated, null, 2)}\n`);
     let failed = false;
     try {
