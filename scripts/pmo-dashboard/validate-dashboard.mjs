@@ -6,7 +6,8 @@ import { fileURLToPath } from 'node:url';
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const outDir = process.argv[2] || process.env.PMO_DASHBOARD_OUT_DIR || 'site/pmo-dashboard';
 const requiredViews = ['activePrograms', 'pmoPipeline', 'completedPrograms', 'incomplete'];
-const validRowLifecycles = new Set(['active', 'pipeline', 'closed', 'incomplete']);
+const currentBookViews = ['activePrograms', 'pmoPipeline'];
+const validRowLifecycles = new Set(['active', 'pipeline', 'closed']);
 const FORBIDDEN_INVENTORY_LIVE_STATE_FIELDS = ['expectedLifecycle', 'expectedPriority', 'expectedTeam'];
 const stageLabels = new Set([
   'pmo:stage:idea',
@@ -40,10 +41,11 @@ const allowedStatusByView = {
     'Initial Idea',
     'Drafted Design',
     'Pending Launch Packet',
-    'Graduation Candidate'
+    'Graduation Candidate',
+    'Pipeline'
   ]),
   completedPrograms: new Set(['Completed']),
-  incomplete: new Set(['Incomplete'])
+  incomplete: new Set()
 };
 const errors = [];
 
@@ -88,6 +90,7 @@ function validateQueueFields(row, label, view) {
     if (row.priorityLabel !== null) errors.push(`${label} child rows must use priorityLabel null`);
     return;
   }
+  if (row.dataQualityErrors?.length) return;
   if (view === 'activePrograms') {
     if (row.teamLabel !== 'team:pmo') errors.push(`${label} Active rows require team:pmo`);
     if (!pmoActivePriorityRe.test(row.priorityLabel || '')) {
@@ -98,19 +101,6 @@ function validateQueueFields(row, label, view) {
     if (!pmoPipelinePriorityRe.test(row.priorityLabel || '')) {
       errors.push(`${label} Pipeline rows require pmo:pipeline-priority:<n> with n a positive integer and no 1-4 cap`);
     }
-  } else if (view === 'completedPrograms') {
-    if (row.teamLabel === 'team:operations') errors.push(`${label} completed PMO rows cannot use team:operations`);
-    if (
-      row.teamLabel === 'team:pmo' &&
-      row.priorityLabel &&
-      !pmoActivePriorityRe.test(row.priorityLabel) &&
-      !pmoPipelinePriorityRe.test(row.priorityLabel)
-    ) {
-      errors.push(`${label} completed team:pmo rows may only retain a PMO Active or Pipeline priority`);
-    }
-    if (row.teamLabel === 'team:engineering' && row.priorityLabel) {
-      errors.push(`${label} completed team:engineering rows must not retain PMO portfolio priority`);
-    }
   }
 }
 
@@ -119,33 +109,36 @@ function validateRow(row, label, rowByNumber, rowDataByNumber) {
   if (!Number.isInteger(row.issueNumber) || row.issueNumber <= 0) errors.push(`${label} is missing a valid issueNumber`);
   if (!validUrl(row.issueUrl)) errors.push(`${label} contains an obviously invalid issue link`);
   if (!Array.isArray(row.labels)) errors.push(`${label} labels must be an array`);
-  if (!validRowLifecycles.has(row.lifecycle)) errors.push(`${label} lifecycle must be active|pipeline|closed|incomplete, got ${JSON.stringify(row.lifecycle)}`);
+  if (!validRowLifecycles.has(row.lifecycle)) errors.push(`${label} lifecycle must be active|pipeline|closed, got ${JSON.stringify(row.lifecycle)}`);
+  if (row.lifecycle === 'incomplete') errors.push(`${label} must not manufacture lifecycle incomplete`);
   if (!row.status) errors.push(`${label} is missing Status`);
   validateViewStatus(row, label);
   if (!Array.isArray(row.dataQualityErrors)) errors.push(`${label} dataQualityErrors must be an array`);
   if (!Array.isArray(row.requiredRemediation)) errors.push(`${label} requiredRemediation must be an array`);
+  if (row.linkedTaskDataQuality != null && !Array.isArray(row.linkedTaskDataQuality)) {
+    errors.push(`${label} linkedTaskDataQuality must be an array when present`);
+  }
 
   const view = topLevelViewFromLabel(label);
-  if (view === 'incomplete') {
-    if (!row.dataQualityErrors?.length) errors.push(`${label} Incomplete rows must include dataQualityErrors`);
-    if (!row.requiredRemediation?.length) errors.push(`${label} Incomplete rows must include requiredRemediation`);
-    if (row.lifecycle !== 'incomplete') errors.push(`${label} Incomplete rows must use lifecycle incomplete`);
+  if (view === 'incomplete' || view === 'completedPrograms') {
+    errors.push(`${label} current-book presentation must not include ${view} rows`);
   } else {
-    if (!isChildLabel(label) && row.dataQualityErrors?.length) {
-      errors.push(`${label} valid lifecycle rows must not carry dataQualityErrors; route to Incomplete instead`);
-    }
     validateQueueFields(row, label, view);
     if (row.lifecycle === 'pipeline') {
-      if (!row.pipelineStageLabel || !stageLabels.has(row.pipelineStageLabel)) {
-        errors.push(`${label} Pipeline rows require exactly one supported pipelineStageLabel`);
+      if (!row.dataQualityErrors?.length) {
+        if (!row.pipelineStageLabel || !stageLabels.has(row.pipelineStageLabel)) {
+          errors.push(`${label} Pipeline rows require exactly one supported pipelineStageLabel`);
+        }
+        if (!row.pipelineStageDisplay) errors.push(`${label} Pipeline rows require pipelineStageDisplay`);
       }
-      if (!row.pipelineStageDisplay) errors.push(`${label} Pipeline rows require pipelineStageDisplay`);
     } else if (row.pipelineStageLabel || row.pipelineStageDisplay) {
       errors.push(`${label} non-Pipeline rows must not carry Pipeline stage fields`);
     }
     if (row.lifecycle === 'active' && view !== 'activePrograms' && !isChildLabel(label)) errors.push(`${label} active lifecycle must appear in activePrograms`);
     if (row.lifecycle === 'pipeline' && view !== 'pmoPipeline' && !isChildLabel(label)) errors.push(`${label} pipeline lifecycle must appear in pmoPipeline`);
-    if (row.lifecycle === 'closed' && view !== 'completedPrograms' && !isChildLabel(label)) errors.push(`${label} closed lifecycle must appear in completedPrograms`);
+    if (row.lifecycle === 'closed' && !isChildLabel(label)) {
+      errors.push(`${label} closed records are not part of the current PMO book`);
+    }
   }
 
   if (Number.isNaN(row.percentComplete)) errors.push(`${label} percentComplete is NaN`);
@@ -195,7 +188,47 @@ if (data) {
   const rowDataByNumber = new Map();
   for (const view of requiredViews) {
     if (!Array.isArray(data.views?.[view])) errors.push(`required top-level view missing: ${view}`);
+  }
+  if ((data.views?.completedPrograms || []).length) {
+    errors.push('views.completedPrograms must be empty; Completed Programs is not part of current-book presentation');
+  }
+  if ((data.views?.incomplete || []).length) {
+    errors.push('views.incomplete must be empty; Incomplete is not a PMO lifecycle');
+  }
+  if (!Array.isArray(data.dataQualityExceptions)) {
+    errors.push('dataQualityExceptions must be present and must be an array');
+  }
+  if (!data.currentBook || typeof data.currentBook !== 'object') {
+    errors.push('currentBook summary must be present');
+  } else {
+    const activeCount = (data.views?.activePrograms || []).length;
+    const pipelineCount = (data.views?.pmoPipeline || []).length;
+    if (data.currentBook.activeCount !== activeCount) {
+      errors.push(`currentBook.activeCount (${data.currentBook.activeCount}) must equal activePrograms length (${activeCount})`);
+    }
+    if (data.currentBook.pipelineCount !== pipelineCount) {
+      errors.push(`currentBook.pipelineCount (${data.currentBook.pipelineCount}) must equal pmoPipeline length (${pipelineCount})`);
+    }
+    if (data.currentBook.parentStandaloneCount !== activeCount + pipelineCount) {
+      errors.push('currentBook.parentStandaloneCount must equal activeCount + pipelineCount');
+    }
+  }
+  for (const view of currentBookViews) {
     for (const [index, row] of (data.views?.[view] || []).entries()) validateRow(row, `${view}[${index}]`, rowByNumber, rowDataByNumber);
+  }
+  for (const [index, row] of (data.dataQualityExceptions || []).entries()) {
+    const label = `dataQualityExceptions[${index}]`;
+    if (!Number.isInteger(row.issueNumber) || row.issueNumber <= 0) errors.push(`${label} is missing a valid issueNumber`);
+    if (!Array.isArray(row.dataQualityErrors) || !row.dataQualityErrors.length) {
+      errors.push(`${label} must include dataQualityErrors`);
+    }
+    if (!Array.isArray(row.requiredRemediation) || !row.requiredRemediation.length) {
+      errors.push(`${label} must include requiredRemediation`);
+    }
+    if (row.lifecycle === 'incomplete') errors.push(`${label} must not manufacture lifecycle incomplete`);
+    if (rowByNumber.has(row.issueNumber)) {
+      errors.push(`issue #${row.issueNumber} cannot appear in both the current book and dataQualityExceptions`);
+    }
   }
 
   const taskAccountingByNumber = new Map();

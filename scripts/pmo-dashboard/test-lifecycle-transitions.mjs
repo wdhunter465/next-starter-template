@@ -35,7 +35,7 @@ function issue({
 }
 
 function findView(data, issueNumber) {
-  for (const view of ['activePrograms', 'pmoPipeline', 'completedPrograms', 'incomplete']) {
+  for (const view of ['activePrograms', 'pmoPipeline']) {
     const row = (data.views[view] || []).find((entry) => entry.issueNumber === issueNumber);
     if (row) return { view, row };
   }
@@ -43,6 +43,8 @@ function findView(data, issueNumber) {
     const child = (parent.children || []).find((entry) => entry.issueNumber === issueNumber);
     if (child) return { view: 'activePrograms.children', row: child, parent };
   }
+  const exception = (data.dataQualityExceptions || []).find((entry) => entry.issueNumber === issueNumber);
+  if (exception) return { view: 'dataQualityExceptions', row: exception };
   return null;
 }
 
@@ -155,21 +157,21 @@ async function main() {
     })
   ], (data) => {
     const hit = findView(data, 9104);
-    assert(hit?.view === 'completedPrograms', 'T4: Completed placement');
-    assert(hit.row.teamLabel === null && hit.row.priorityLabel === null, 'T4: terminal queue fields optional');
+    assert(!hit, 'T4: closed records are omitted from the current book');
   });
 
-  for (const [number, labels, expected] of [
-    [9105, ['pmo', 'team:pmo', 'pmo:priority:1'], /lifecycle/i],
-    [9106, ['pmo', 'pmo:active', 'pmo:pipeline', 'team:pmo', 'pmo:priority:1'], /conflicting lifecycle/i],
-    [9107, ['pmo', 'pmo:active', 'team:pmo', 'pmo:priority:none'], /priority/i],
-    [9108, ['pmo', 'pmo:pipeline', 'team:pmo', 'pmo:pipeline-priority:2'], /stage/i],
-    [9109, ['pmo', 'pmo:closed'], /open GitHub issue carries pmo:closed/i]
+  for (const [number, labels, expected, view] of [
+    [9105, ['pmo', 'team:pmo', 'pmo:priority:1'], /lifecycle/i, 'dataQualityExceptions'],
+    [9106, ['pmo', 'pmo:active', 'pmo:pipeline', 'team:pmo', 'pmo:priority:1'], /conflicting lifecycle/i, 'dataQualityExceptions'],
+    [9107, ['pmo', 'pmo:active', 'team:pmo', 'pmo:priority:none'], /priority/i, 'activePrograms'],
+    [9108, ['pmo', 'pmo:pipeline', 'team:pmo', 'pmo:pipeline-priority:2'], /stage/i, 'pmoPipeline'],
+    [9109, ['pmo', 'pmo:closed'], /open GitHub issue carries pmo:closed/i, 'dataQualityExceptions']
   ]) {
     await withBuild([issue({ number, title: `PROJECT: Invalid ${number}`, labels })], (data) => {
       const hit = findView(data, number);
-      assert(hit?.view === 'incomplete', `T invalid ${number}: Incomplete`);
+      assert(hit?.view === view, `T invalid ${number}: ${view}`);
       assert(hit.row.dataQualityErrors.some((error) => expected.test(error)), `T invalid ${number}: expected error`);
+      assert(hit.row.lifecycle !== 'incomplete', `T invalid ${number}: must not manufacture Incomplete lifecycle`);
     });
   }
 
@@ -181,7 +183,7 @@ async function main() {
       labels: ['pmo', 'pmo:active', 'team:pmo', 'pmo:priority:1']
     })
   ], (data) => {
-    assert(findView(data, 9110)?.view === 'incomplete', 'T10: closed without pmo:closed');
+    assert(findView(data, 9110)?.view === 'dataQualityExceptions', 'T10: closed without pmo:closed is not current-book');
   });
 
   await withBuild([
@@ -249,19 +251,24 @@ async function main() {
   ], (data) => {
     const parent = findView(data, 9120);
     assert(parent?.view === 'activePrograms', 'T14: parent active');
-    assert(parent.row.taskCount === 2, 'T14: only valid linked tasks counted');
+    assert(parent.row.taskCount === 3, 'T14: linked tasks remain in accounting even with remediable defects');
     assert(parent.row.tasksCompleted === 1, 'T14: completed valid task counted');
-    assert(parent.row.percentComplete === 50, 'T14: completion math');
+    assert(parent.row.percentComplete === 33, 'T14: completion math includes defective linked children');
     assert(parent.row.children?.[0]?.issueNumber === 9125, 'T14: child project nested');
     assert(parent.row.children[0].teamLabel === null && parent.row.children[0].priorityLabel === null, 'T14: nested child queue fields null');
-    assert(findView(data, 9123)?.view === 'incomplete', 'T15: orphan task Incomplete');
-    assert(findView(data, 9124)?.view === 'incomplete', 'T16: prioritized task Incomplete');
+    assert(findView(data, 9123)?.view === 'dataQualityExceptions', 'T15: orphan task is a metadata defect');
+    assert(!findView(data, 9124), 'T16: prioritized linked task is counted on the parent, not quarantined');
+    assert(
+      (parent.row.linkedTaskDataQuality || []).some((entry) => entry.issueNumber === 9124),
+      'T16: parent surfaces the prioritized linked-task defect'
+    );
   });
 
   await withBuild([
     issue({ number: 9130, labels: ['pmo', 'pmo:active', 'pmo:priority:1'] })
   ], (data) => {
-    assert(findView(data, 9130)?.view === 'incomplete', 'Correction a: missing team');
+    assert(findView(data, 9130)?.view === 'activePrograms', 'Correction a: missing team stays Active with a data-quality warning');
+    assert(findView(data, 9130).row.dataQualityErrors.some((error) => /team/i.test(error)), 'Correction a: missing team reported');
   });
   await withBuild([
     issue({ number: 9130, labels: ['pmo', 'pmo:active', 'team:pmo', 'pmo:priority:1'] })

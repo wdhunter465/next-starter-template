@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * Regression coverage for #2788: linked but Incomplete pmo:task Issues must not
- * inflate parent taskCount, and after child-contract labels are corrected the same
- * parent must show accurate nonzero rollups.
+ * Regression coverage for #4117: linked pmo:task Issues stay in parent task
+ * accounting even when they have remediable metadata defects. Incomplete is not
+ * a lifecycle, so defective children must not be quarantined out of the count.
  */
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { execFile } from 'node:child_process';
@@ -67,8 +67,8 @@ function findActive(data, issueNumber) {
   return (data.views.activePrograms || []).find((row) => row.issueNumber === issueNumber) || null;
 }
 
-function incompleteTasks(data) {
-  return (data.views.incomplete || []).filter((row) => row.role === 'task');
+function metadataDefectTasks(data) {
+  return (data.dataQualityExceptions || []).filter((row) => row.role === 'task');
 }
 
 function applyPlansToIssues(issues) {
@@ -136,18 +136,23 @@ async function main() {
     const { outDir, data } = await build([parent, emptyParent, ...defectiveChildren]);
     try {
       const skewed = findActive(data, 9200);
-      assert(skewed, 'parent remains Active while children Incomplete');
-      assert(skewed.taskCount === 0, 'linked Incomplete children must not count');
-      assert(skewed.tasksCompleted === 0, 'linked Incomplete children must not count completed');
-      assert(skewed.percentComplete === null, 'percentComplete null when taskCount is 0');
+      assert(skewed, 'parent remains Active while children have remediable defects');
+      assert(skewed.taskCount === 3, 'linked children with remediable defects still count');
+      assert(skewed.tasksCompleted === 1, 'GitHub-closed linked child counts completed even with remediable label defects');
+      assert(skewed.percentComplete === 33, 'completion percentage includes closed unreconciled children');
+      assert(
+        (skewed.linkedTaskDataQuality || []).map((entry) => entry.issueNumber).sort((a, b) => a - b).join(',') === '9210,9211,9212',
+        'parent surfaces linked-task metadata defects without dropping them from accounting'
+      );
 
       const empty = findActive(data, 9201);
       assert(empty, 'empty parent Active');
       assert(empty.taskCount === 0, 'parent with no tasks stays at 0');
 
-      const incomplete = incompleteTasks(data);
-      assert(incomplete.length === 4, 'all four defective tasks appear in Incomplete');
-      assert(incomplete.some((row) => row.issueNumber === 9213), 'orphan remains Incomplete');
+      assert(!(data.views.incomplete || []).length, 'Incomplete view stays empty');
+      const defects = metadataDefectTasks(data);
+      assert(defects.length === 1, 'only the orphan task is unplaceable');
+      assert(defects[0].issueNumber === 9213, 'orphan remains a metadata defect');
     } finally {
       await rm(outDir, { recursive: true, force: true });
     }
@@ -173,9 +178,9 @@ async function main() {
       const empty = findActive(data, 9201);
       assert(empty.taskCount === 0, 'empty parent remains 0 after reconcile');
 
-      const incomplete = incompleteTasks(data);
-      assert(incomplete.length === 1, 'only orphan remains Incomplete');
-      assert(incomplete[0].issueNumber === 9213, 'orphan is the remaining Incomplete task');
+      const incomplete = metadataDefectTasks(data);
+      assert(incomplete.length === 1, 'only orphan remains a metadata defect');
+      assert(incomplete[0].issueNumber === 9213, 'orphan is the remaining metadata defect');
     } finally {
       await rm(outDir, { recursive: true, force: true });
     }
@@ -202,7 +207,56 @@ async function main() {
     }
   }
 
-  console.log('task-count Incomplete skew regression tests passed');
+  {
+    const fanClub = issue({
+      number: 2682,
+      title: 'PROJECT: Fan Club Product',
+      labels: ['pmo', 'pmo:active', 'team:pmo', 'pmo:priority:1'],
+      body: 'Owner / Agent: ChatGPT\nProject Description: Live #2682 accounting regression.\n'
+    });
+    const liveChildren = [
+      issue({
+        number: 2683,
+        title: 'TASK: Closed valid child',
+        state: 'closed',
+        closed_at: '2026-07-21T12:00:00Z',
+        labels: ['pmo', 'pmo:task', 'pmo:closed'],
+        body: 'Parent: #2682\n'
+      }),
+      issue({
+        number: 3879,
+        title: 'TASK: Child with team pmo',
+        labels: ['pmo', 'pmo:task', 'pmo:active', 'team:pmo'],
+        body: 'Parent Project: #2682\n'
+      }),
+      issue({
+        number: 3880,
+        title: 'TASK: Child with team pmo 2',
+        labels: ['pmo', 'pmo:task', 'pmo:active', 'team:pmo'],
+        body: 'Parent Project: #2682\n'
+      }),
+      issue({
+        number: 3881,
+        title: 'TASK: Child with team pmo 3',
+        labels: ['pmo', 'pmo:task', 'pmo:active', 'team:pmo'],
+        body: 'Parent Project: #2682\n'
+      })
+    ];
+    const { outDir, data } = await build([fanClub, ...liveChildren]);
+    try {
+      const row = findActive(data, 2682);
+      assert(row, '#2682 remains Active');
+      assert(row.taskCount === 4, '#2682 linked children remain in accounting despite team:pmo on tasks');
+      assert(row.tasksCompleted === 1, '#2682 closed child still counts completed');
+      assert(row.percentComplete === 25, '#2682 completion is 1 of 4');
+      assert(!(data.views.incomplete || []).length, '#2682 children are not quarantined into Incomplete');
+      assert(!metadataDefectTasks(data).some((entry) => [3879, 3880, 3881].includes(entry.issueNumber)), 'linked defective children are not unplaceable exceptions');
+    } finally {
+      await rm(outDir, { recursive: true, force: true });
+    }
+  }
+
+  console.log('task-count linked-child accounting regression tests passed');
 }
 
 main().catch((error) => {
