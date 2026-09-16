@@ -89,6 +89,7 @@ async function main() {
   for (const rows of Object.values(data.views || {})) {
     for (const row of rows || []) reconcileOwner(row);
   }
+  for (const row of data.dataQualityExceptions || []) reconcileOwner(row);
 
   await writeFile(dataPath, `${JSON.stringify(data, null, 2)}\n`);
   console.log(`Reconciled PMO dashboard repository and agent:* owner authority for ${data.repository}`);
