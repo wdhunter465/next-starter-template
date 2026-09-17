@@ -82,6 +82,7 @@ common placeholder tokens such as `TBD` are treated as missing metadata.
 
 ### Gate profiles
 
+- `development` (Model A only; blocks merge until the PR transitions to `production-candidate`)
 - `component-child`
 - `production-candidate`
 - `component-promotion`
@@ -124,7 +125,11 @@ not silently downgrade one delivery model to another.
 - Base branch: `main`
 - Target environment: `production`
 - Approval profile: `chat-bill-production`
-- Gate profile: `production-candidate`
+- Gate profile: `development` while Development-exit criteria are outstanding (classifier reports
+  `model_a_still_in_development`, a blocking state distinct from a metadata error), then
+  `production-candidate` once met — see `docs/governance/DELIVERY-AND-RELEASE.md` Model A
+  Development-exit / Promotion Candidate-entry criteria. Only `production-candidate` is eligible
+  to merge.
 - Rollback profile: `one-step`
 
 ### Model B child
