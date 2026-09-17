@@ -137,3 +137,71 @@ describe('issue #4095 post-merge native review-thread regression', () => {
     expect(failures).toEqual([]);
   });
 });
+
+describe('issue #4093 PR #4092 native review-thread regression', () => {
+  const stablePrBody = [
+    '# PR Summary',
+    '- **Issue:** #4091',
+    '## Scope',
+    'Bounded governance and workflow correction.',
+    '## Change Summary',
+    'Applied the accepted reviewer fixes.',
+    '## Verification',
+    'Required checks passed.',
+    '## Acceptance Criteria',
+    '- [x] Reviewer findings addressed',
+  ].join('\n');
+
+  const trustedComments = [3933744715, 3933744763, 3933744804].map((id, index) => ({
+    id,
+    user: { login: 'copilot-pull-request-reviewer[bot]' },
+    commit_id: `pre-fix-sha-${index + 1}`,
+    path: index === 0 ? 'AGENTS.md' : `.github/workflows/gate-${index === 1 ? 'quality' : 'model-c'}.yml`,
+    line: null,
+    position: index + 1,
+    body: `Trusted reviewer finding ${index + 1}.`,
+    created_at: `2026-09-04T00:0${index}:00Z`,
+  }));
+
+  const nativeThreads = trustedComments.map((comment, index) => ({
+    id: [
+      'PRRT_kwDOQCj8X86fR0uF',
+      'PRRT_kwDOQCj8X86fR0un',
+      'PRRT_kwDOQCj8X86fR0u_',
+    ][index],
+    isResolved: true,
+    isOutdated: true,
+    comments: { nodes: [{ databaseId: comment.id }] },
+  }));
+
+  it('accepts all three resolved outdated trusted threads without a PR-body ledger', () => {
+    const failures = reviewerDispositionFailures({
+      body: stablePrBody,
+      reviewComments: trustedComments,
+      reviewThreads: nativeThreads,
+      headSha: '05437ef35332dd5060e3e797beea9a16deec7bd5',
+      mergedAt: '2026-09-04T12:33:25Z',
+    });
+
+    expect(failures).toEqual([]);
+  });
+
+  it('still fails closed when one of the three trusted threads is unresolved', () => {
+    const reviewThreads = nativeThreads.map((thread, index) => (
+      index === 1 ? { ...thread, isResolved: false } : thread
+    ));
+
+    const failures = reviewerDispositionFailures({
+      body: stablePrBody,
+      reviewComments: trustedComments,
+      reviewThreads,
+      headSha: '05437ef35332dd5060e3e797beea9a16deec7bd5',
+      mergedAt: '2026-09-04T12:33:25Z',
+    });
+
+    expect(failures).toContainEqual(expect.objectContaining({
+      code: 'outdated_reviewer_thread_without_disposition',
+      commentId: '3933744763',
+    }));
+  });
+});
