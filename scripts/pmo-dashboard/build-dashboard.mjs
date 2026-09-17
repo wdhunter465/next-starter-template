@@ -397,7 +397,7 @@ function buildTaskIndex(classifications) {
 }
 
 function isTaskCompleted(task) {
-  return task.issue?.state === 'closed' || task.rawLifecycle === 'closed';
+  return task.issue?.state === 'closed';
 }
 
 function taskAccountingFor(parentNumber, tasksByParent) {

@@ -74,11 +74,22 @@ async function main() {
       body: 'Parent Project: #2682\n'
     }),
     issue({
+      number: 3882,
+      title: 'TASK: Open child with pmo:closed',
+      labels: ['pmo', 'pmo:task', 'pmo:closed'],
+      body: 'Parent Project: #2682\n'
+    }),
+    issue({
       number: 4000,
       title: 'PROJECT: Closed archive must not count in current book',
       state: 'closed',
       closed_at: '2026-09-01T00:00:00Z',
       labels: ['pmo', 'pmo:closed']
+    }),
+    issue({
+      number: 4001,
+      title: 'PROJECT: Unplaceable missing lifecycle',
+      labels: ['pmo', 'team:pmo', 'pmo:priority:1']
     })
   ];
 
@@ -103,17 +114,41 @@ async function main() {
     const parent = (data.views.activePrograms || []).find((row) => row.issueNumber === 2682);
     assert(parent, '#2682 stays Active');
     assert(parent.lifecycle === 'active', '#2682 lifecycle remains active');
-    assert(parent.taskCount === 4, '#2682 counts all four linked children, including defective ones');
-    assert(parent.tasksCompleted === 1, '#2682 counts the closed reconciled child');
-    assert(parent.percentComplete === 25, '#2682 percentComplete is 1 of 4');
+    assert(parent.taskCount === 5, '#2682 counts all linked children, including defective ones');
+    assert(parent.tasksCompleted === 1, '#2682 counts only GitHub-closed children as completed');
+    assert(parent.percentComplete === 20, '#2682 percentComplete is 1 of 5');
     assert(
-      (parent.linkedTaskDataQuality || []).map((entry) => entry.issueNumber).sort((a, b) => a - b).join(',') === '3879,3880,3881',
-      '#2682 surfaces the three remediable child defects without dropping them'
+      (parent.linkedTaskDataQuality || []).map((entry) => entry.issueNumber).sort((a, b) => a - b).join(',') === '3879,3880,3881,3882',
+      '#2682 surfaces remediable child defects without dropping them'
     );
+    const accounting = (data.taskAccounting || []).find((entry) => entry.parentIssueNumber === 2682);
+    assert(accounting.completedTaskIssueNumbers.join(',') === '3881', 'open pmo:closed child is not completed');
     assert(!(data.views.incomplete || []).length, 'Incomplete view stays empty');
     assert(!(data.views.completedPrograms || []).length, 'Completed Programs stays empty');
     assert(!(data.views.activePrograms || []).some((row) => row.issueNumber === 4000), 'closed archive is not current-book');
     assert(data.currentBook.parentStandaloneCount === 1, 'current book is the one open parent/standalone');
+    assert((data.dataQualityExceptions || []).some((row) => row.issueNumber === 4001), 'unplaceable project is a metadata defect');
+
+    const mutated = structuredClone(data);
+    const exception = (mutated.dataQualityExceptions || []).find((row) => row.issueNumber === 4001);
+    assert(exception, 'malformed-validation target is the #4001 exception row');
+    exception.issueUrl = 'not-a-github-url';
+    delete exception.status;
+    exception.labels = 'pmo';
+    await writeFile(path.join(outDir, 'dashboard-data.json'), `${JSON.stringify(mutated, null, 2)}\n`);
+    let failed = false;
+    try {
+      await execFileAsync('node', [path.join(__dirname, 'validate-dashboard.mjs'), outDir], {
+        env: { ...process.env, PMO_DASHBOARD_SKIP_INVENTORY_VALIDATION: '1' }
+      });
+    } catch (error) {
+      failed = true;
+      const stderr = String(error.stderr || error.message || '');
+      assert(/invalid issue link/.test(stderr), 'malformed exception issueUrl is rejected');
+      assert(/missing Status/.test(stderr), 'malformed exception status is rejected');
+      assert(/labels must be an array/.test(stderr), 'malformed exception labels are rejected');
+    }
+    assert(failed, 'malformed dataQualityExceptions must fail validation');
     console.log('PMO current-book child accounting tests passed');
   } finally {
     await rm(outDir, { recursive: true, force: true });

@@ -176,6 +176,24 @@ function validateRow(row, label, rowByNumber, rowDataByNumber) {
   }
 }
 
+function validateExceptionRow(row, label, rowByNumber) {
+  if (!row.name && !row.title) errors.push(`${label} is missing title/name`);
+  if (!Number.isInteger(row.issueNumber) || row.issueNumber <= 0) errors.push(`${label} is missing a valid issueNumber`);
+  if (!validUrl(row.issueUrl)) errors.push(`${label} contains an obviously invalid issue link`);
+  if (!Array.isArray(row.labels)) errors.push(`${label} labels must be an array`);
+  if (!row.status) errors.push(`${label} is missing Status`);
+  if (!Array.isArray(row.dataQualityErrors) || !row.dataQualityErrors.length) {
+    errors.push(`${label} must include dataQualityErrors`);
+  }
+  if (!Array.isArray(row.requiredRemediation) || !row.requiredRemediation.length) {
+    errors.push(`${label} must include requiredRemediation`);
+  }
+  if (row.lifecycle === 'incomplete') errors.push(`${label} must not manufacture lifecycle incomplete`);
+  if (row.issueNumber && rowByNumber.has(row.issueNumber)) {
+    errors.push(`issue #${row.issueNumber} cannot appear in both the current book and dataQualityExceptions`);
+  }
+}
+
 const data = await readJson(path.join(outDir, 'dashboard-data.json'), 'dashboard data');
 const inventoryPath = process.env.PMO_DASHBOARD_INVENTORY_PATH || path.join(__dirname, 'pmo-tracked-inventory.json');
 const inventory = process.env.PMO_DASHBOARD_SKIP_INVENTORY_VALIDATION
@@ -217,18 +235,7 @@ if (data) {
     for (const [index, row] of (data.views?.[view] || []).entries()) validateRow(row, `${view}[${index}]`, rowByNumber, rowDataByNumber);
   }
   for (const [index, row] of (data.dataQualityExceptions || []).entries()) {
-    const label = `dataQualityExceptions[${index}]`;
-    if (!Number.isInteger(row.issueNumber) || row.issueNumber <= 0) errors.push(`${label} is missing a valid issueNumber`);
-    if (!Array.isArray(row.dataQualityErrors) || !row.dataQualityErrors.length) {
-      errors.push(`${label} must include dataQualityErrors`);
-    }
-    if (!Array.isArray(row.requiredRemediation) || !row.requiredRemediation.length) {
-      errors.push(`${label} must include requiredRemediation`);
-    }
-    if (row.lifecycle === 'incomplete') errors.push(`${label} must not manufacture lifecycle incomplete`);
-    if (rowByNumber.has(row.issueNumber)) {
-      errors.push(`issue #${row.issueNumber} cannot appear in both the current book and dataQualityExceptions`);
-    }
+    validateExceptionRow(row, `dataQualityExceptions[${index}]`, rowByNumber);
   }
 
   const taskAccountingByNumber = new Map();
