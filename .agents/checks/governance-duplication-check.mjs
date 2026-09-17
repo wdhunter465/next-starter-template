@@ -33,7 +33,10 @@ function listMarkdownFiles(root, base) {
 
   const out = [];
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const rel = path.join(root, entry.name);
+    // Join with a literal '/' (not path.join) so the returned relative path
+    // is always POSIX-style, matching the hardcoded '/'-separated ownerPath
+    // values in DUPLICATION_SIGNATURES regardless of host OS.
+    const rel = `${root}/${entry.name}`;
     if (entry.isDirectory()) {
       out.push(...listMarkdownFiles(rel, base));
     } else if (entry.name.endsWith('.md')) {
