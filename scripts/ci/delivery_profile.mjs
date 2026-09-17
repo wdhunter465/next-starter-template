@@ -15,6 +15,7 @@ export const APPROVAL_PROFILES = [
   'documentation-review',
 ];
 export const GATE_PROFILES = [
+  'development',
   'component-child',
   'production-candidate',
   'component-promotion',
@@ -228,7 +229,20 @@ export function classifyDeliveryProfile({
   if (metadata.deliveryModel === 'A') {
     pushExpectedError(errors, 'targetEnvironment', metadata.targetEnvironment, 'production');
     pushExpectedError(errors, 'approvalProfile', metadata.approvalProfile, 'work-bill-production');
-    pushExpectedError(errors, 'gateProfile', metadata.gateProfile, 'production-candidate');
+    if (metadata.gateProfile === 'development') {
+      // Model A PRs occupy Development from open until Development-exit criteria
+      // (full behavior testable, Promotion Candidate validation complete) are met.
+      // This is the enforcement point for DELIVERY-AND-RELEASE.md's Model A
+      // Development-exit / Candidate-entry checklist: it blocks merge, distinct
+      // from a malformed-metadata error, until Gate profile is updated to
+      // production-candidate.
+      errors.push(deliveryError(
+        'model_a_still_in_development',
+        'Model A PR is still in Development. Set Gate profile to production-candidate once Development-exit criteria are satisfied before this PR can merge.',
+      ));
+    } else {
+      pushExpectedError(errors, 'gateProfile', metadata.gateProfile, 'production-candidate');
+    }
     pushExpectedError(errors, 'rollbackProfile', metadata.rollbackProfile, 'one-step');
     if (baseRef !== 'main') {
       errors.push(deliveryError('invalid_baseRef', 'Model A PRs must target main.', {

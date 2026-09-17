@@ -106,7 +106,7 @@ Every release unit uses exactly one delivery model.
 
 | Model | When used | Profile path | Rollback profile |
 | --- | --- | --- | --- |
-| Model A | Small or Medium work that fits one reviewable production PR | Promotion Candidate -> Production | `one-step` |
+| Model A | Small or Medium work that fits one reviewable production PR | Development -> Promotion Candidate -> Production | `one-step` |
 | Model B child | Bounded increment into a component branch | Development only | `multi-step` component scope |
 | Model B promotion | Final integrated release-unit promotion | Promotion Candidate -> Production | `multi-step` release-unit scope |
 | Model C | Documentation-only work on approved documentation surfaces | Documentation gate profile (no code Promotion Candidate) | `one-step` (docs revert) |
@@ -124,14 +124,32 @@ PMO / Engineering selects the delivery model under `docs/governance/PMO-PORTFOLI
 
 ## Model A — direct release unit
 
-Model A is a single reviewable change whose PR itself becomes the Promotion Candidate.
+Model A is a single reviewable change whose PR itself becomes the Promotion Candidate. Unlike Model B, Development and Promotion Candidate are not separate branches — they are two states of the same PR, on the same branch, targeting `main` throughout. The PR does not skip Development; it occupies Development from open until it satisfies the exit criteria below, then transitions to Promotion Candidate without a branch change.
 
-Requirements:
+### Development state (PR open, in progress)
+
+Implementation and builder validation are in progress. The PR is not yet eligible for Promotion Candidate approval or Production merge.
+
+### Development-exit / Promotion Candidate-entry criteria
+
+The PR transitions from Development to Promotion Candidate only once all of the following hold:
 
 - one primary source Issue;
 - one implementation PR targeting `main`;
-- full behavior testable before merge;
-- Promotion Candidate validation complete;
+- full behavior testable and demonstrated;
+- Promotion Candidate validation complete.
+
+### Distinguishing state administratively
+
+The PR body's `Gate profile` metadata field is the mechanism, consistent with how every other delivery model already records its gate profile:
+
+- `Gate profile: development` while Development-exit criteria are outstanding — `scripts/ci/delivery_profile.mjs` classifies this as a blocking (non-mergeable) state, not a malformed-metadata error.
+- `Gate profile: production-candidate` once Development-exit criteria are met — this is the only Model A gate profile eligible to merge.
+
+Updating the same PR's `Gate profile` line from `development` to `production-candidate` is the transition. No new branch, PR, or Issue is required.
+
+### Remaining requirements before Production merge
+
 - PR Approver / Engineering approval;
 - Production authority recorded;
 - one-step rollback prepared.

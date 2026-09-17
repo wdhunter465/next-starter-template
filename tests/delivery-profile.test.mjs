@@ -81,6 +81,7 @@ describe('delivery profile contract constants', () => {
       'documentation-review',
     ]);
     expect(GATE_PROFILES).toEqual([
+      'development',
       'component-child',
       'production-candidate',
       'component-promotion',
@@ -166,6 +167,25 @@ describe('classifyDeliveryProfile', () => {
       protectedChange: false,
       errors: [],
     });
+  });
+
+  it('blocks merge for Model A PRs still in Development', () => {
+    const profile = classify({ gateProfile: 'development' });
+
+    expect(profile.errors).toContainEqual(expect.objectContaining({
+      code: 'model_a_still_in_development',
+    }));
+    expect(profile.errors).not.toContainEqual(expect.objectContaining({
+      code: 'invalid_gateProfile',
+    }));
+  });
+
+  it('allows a Model A PR to transition from Development to production-candidate cleanly', () => {
+    const inDevelopment = classify({ gateProfile: 'development' });
+    const asCandidate = classify({ gateProfile: 'production-candidate' });
+
+    expect(inDevelopment.errors.map((error) => error.code)).toContain('model_a_still_in_development');
+    expect(asCandidate.errors).toEqual([]);
   });
 
   it('classifies non-protected Model B child PRs as component auto-integration eligible', () => {
