@@ -54,6 +54,7 @@
     "infra": {
       "allow_prefixes": [
         ".github/",
+        "config/github-actions/",
         "scripts/",
         "functions/",
         "src/app/admin/",
