@@ -5,7 +5,7 @@ Authority Level: Core
 Owns: Shared execution rules, enforcement model, PR discipline, stop conditions, shared product-startup framework
 Does Not Own: Design authority, platform configuration, tracker content
 Canonical Reference: /docs/ops/ai/SHARED-AGENT-RULES.md
-Related Issues: #3055, #3113, #3117, #3138, #3142, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4074, #4099
+Related Issues: #3055, #3113, #3117, #3138, #3142, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4074, #4099, #4131
 Last Reviewed: 2026-09-14
 ---
 
@@ -487,7 +487,7 @@ A source Issue, its acceptance criteria, an exact file-touch allowlist, the appl
 
 For a graduated Project or Program, the exact prepared child graph is standing authority. Eligible agents self-claim the next package-complete serial child one task at a time without routine Administration/PMO redispatch. The implementation runtime must record starting SHA, branch, allowlist confirmation, and pre-implementation checkpoint before editing.
 
-Missing package fields produce `PACKAGE-INCOMPLETE`; a substantive dependency or protected boundary produces an evidence-specific `HOLD` scoped to the affected action — not queue-wide freeze for ordinary sequencing. Merge alone is not substantive acceptance. ChatGPT owns preparation, monitoring, assurance, exception handling, and parent/program acceptance where judgment is required; ChatGPT is not a routine per-task dispatcher. Deterministic CI remains the single automatic source-Issue closeout owner and cannot independently verify or approve work the active ChatGPT role holder implemented.
+Missing package fields produce `PACKAGE-INCOMPLETE`; a substantive dependency or protected boundary produces an evidence-specific `HOLD` scoped to the affected action — not queue-wide freeze for ordinary sequencing. Merge alone is not substantive acceptance. Current role ownership for preparation, monitoring, assurance, exception handling, and parent/program acceptance in this workflow is defined in `docs/governance/AGENT-TEAM.md`, not restated here; no role may independently verify or approve protected work it implemented.
 
 PMO defines sequencing and readiness coordination, not a general execution gate (#3113 / #3145). Ordinary predecessor and advisory conditions are comments, package notes, and order metadata. When only part of a task is gated, split bounded increments and continue collision-safe work. ChatGPT prepares successor packages before implementer idle time. Product-authorized agent routing (Cursor Local for Operations + PMO + Governance; Claude Code for PMO + Engineering, and Governance when assigned) is preserved per Team eligibility and claim (#3152).
 
