@@ -38,6 +38,15 @@ function extractCandidatePaths(evidenceCell) {
     .filter((candidate) => /[./]/.test(candidate) && !candidate.includes(' '));
 }
 
+// Rejects a candidate (e.g. `../../etc/passwd` or an absolute path) that would
+// resolve outside the repository root, so a row can't "pass" by pointing at
+// evidence that isn't actually in-repo.
+function resolvesWithinRoot(root, candidate) {
+  const resolvedRoot = path.resolve(root);
+  const resolvedCandidate = path.resolve(root, candidate);
+  return resolvedCandidate === resolvedRoot || resolvedCandidate.startsWith(resolvedRoot + path.sep);
+}
+
 export function checkPolicyControlMatrix(root) {
   const failures = [];
   const matrixFullPath = path.join(root, MATRIX_PATH);
@@ -68,6 +77,12 @@ export function checkPolicyControlMatrix(root) {
   const controlIdx = header.indexOf('Control');
   const stateIdx = header.indexOf('State');
   const evidenceIdx = header.indexOf('Evidence');
+
+  // A required column reported missing above means its index is -1; reading
+  // rows against that index would throw rather than fail gracefully.
+  if (controlIdx === -1 || stateIdx === -1 || evidenceIdx === -1) {
+    return failures;
+  }
 
   let rowCount = 0;
   for (let i = headerIndex + 2; i < lines.length; i += 1) {
@@ -104,7 +119,9 @@ export function checkPolicyControlMatrix(root) {
       continue;
     }
 
-    const anyExists = candidates.some((candidate) => fs.existsSync(path.join(root, candidate)));
+    const anyExists = candidates.some(
+      (candidate) => resolvesWithinRoot(root, candidate) && fs.existsSync(path.join(root, candidate)),
+    );
     if (!anyExists) {
       failures.push(
         `${MATRIX_PATH} row "${control}" claims "${state}" but none of its cited evidence paths exist: ${candidates.join(', ')}`,

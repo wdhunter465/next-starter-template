@@ -20,7 +20,7 @@ This is not an exhaustive claim of every possible control in the repository. Ent
 ## How to read a row
 
 - **State** is the actual, checked state as of **Last verified**, not the intended state.
-- **Evidence** is a real repository path (script, workflow, or test) or a specific, dated observation (e.g., a live PR comment). A state of Enforced or Verified without a concrete evidence path is itself a defect in this table.
+- **Evidence** is a real, backtick-quoted repository path (script, workflow, or test — e.g. `` `scripts/ci/example.mjs` ``) or a specific, dated observation (e.g., a live PR comment). The automated check (below) only recognizes backtick-quoted paths; a plain-text path is not detected as evidence. A state of Enforced or Verified without a concrete, backtick-quoted evidence path is itself a defect in this table.
 - **Owner** is the domain doc from `docs/governance/REPOSITORY-AUTHORITY.md`'s domain table, not a person.
 
 ## Matrix

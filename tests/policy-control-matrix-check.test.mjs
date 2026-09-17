@@ -92,4 +92,32 @@ describe('policy control matrix check (#2821)', () => {
 
     expect(checkPolicyControlMatrix(dir)).toContainEqual(expect.stringContaining('has 3 columns, expected 5'));
   });
+
+  it('fails gracefully instead of throwing when a required column is missing from the header', () => {
+    const dir = makeTempRepo({
+      [MATRIX_PATH]: [
+        '## Matrix',
+        '',
+        '| Control | Domain owner | Evidence | Last verified |',
+        '| --- | --- | --- | --- |',
+        '| Fake gate | CI and Verification | `real.mjs` | 2026-09-17 |',
+        '',
+      ].join('\n'),
+      'real.mjs': '// exists',
+    });
+
+    expect(() => checkPolicyControlMatrix(dir)).not.toThrow();
+    expect(checkPolicyControlMatrix(dir)).toContainEqual(
+      expect.stringContaining('missing required column: State'),
+    );
+  });
+
+  it('rejects an Enforced row whose evidence path resolves outside the repository root', () => {
+    const dir = makeTempRepo({
+      [MATRIX_PATH]: tableWithRow('| Fake gate | CI and Verification | Enforced | `../../../../etc/passwd` | 2026-09-17 |'),
+    });
+
+    const failures = checkPolicyControlMatrix(dir);
+    expect(failures).toContainEqual(expect.stringContaining('none of its cited evidence paths exist'));
+  });
 });
