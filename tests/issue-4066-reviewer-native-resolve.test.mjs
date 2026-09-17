@@ -200,6 +200,7 @@ describe('issue #4093 PR #4092 native review-thread regression', () => {
     });
 
     expect(failures).toContainEqual(expect.objectContaining({
+      code: 'outdated_reviewer_thread_without_disposition',
       commentId: '3933744763',
     }));
   });
