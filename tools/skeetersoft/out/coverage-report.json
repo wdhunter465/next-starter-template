@@ -1,0 +1,33 @@
+{
+  "accepted_games": 13,
+  "collision_games": 2,
+  "failure_path": {
+    "incorrectly_accepted": [],
+    "input_records": 6,
+    "missing_failure_codes": [],
+    "note": "F-DUP-GAME is a pair: the first record parses, the second must raise duplicate_game_id.",
+    "rejected": 5
+  },
+  "note": "Pilot uses synthetic 1985 fixtures only. Full 1976-1985 is not authorized until pilot acceptance.",
+  "rejected_games": 0,
+  "seasons": {
+    "1985": {
+      "accepted_games": 13,
+      "pages": 13,
+      "series_count": 11,
+      "unavailable_fields": []
+    }
+  },
+  "series_count": 11,
+  "unavailable_seasons": [
+    1976,
+    1977,
+    1978,
+    1979,
+    1980,
+    1981,
+    1982,
+    1983,
+    1984
+  ]
+}
