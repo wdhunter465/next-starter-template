@@ -5,7 +5,7 @@ Authority Level: Navigation
 Owns: Read order, authority routing, lane/profile identification, execution entry point
 Does Not Own: Role policy, execution rules, design authority, communication policy, delivery policy, or governance decisions
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2640, #2641, #2686, #2690, #3052, #3138, #3142, #3693, #3755
+Related Issues: #2640, #2641, #2686, #2690, #3052, #3138, #3142, #3693, #3755, #4126
 Last Reviewed: 2026-08-26
 ---
 
@@ -242,4 +242,4 @@ Legacy person-specific or serialized instructions must not be cited when they co
 
 For a graduated project, the exact prepared child graph is standing authority. Eligible agents self-claim the next package-complete serial child without a repeat Administration/PMO dispatch. Standalone `team:governance` stewardship Issues are claimed separately from the project child graph. The implementation runtime must record starting SHA, branch, allowlist confirmation, and pre-implementation checkpoint before editing.
 
-Missing package fields produce `PACKAGE-INCOMPLETE`; a substantive dependency or protected boundary produces an evidence-specific `HOLD`. Merge alone is not substantive acceptance. ChatGPT/Work owns preparation, monitoring, assurance, and exception handling where judgment is required — not routine per-task successor release — and neither may independently verify or approve protected work it implemented.
+Missing package fields produce `PACKAGE-INCOMPLETE`; a substantive dependency or protected boundary produces an evidence-specific `HOLD`. Merge alone is not substantive acceptance. Current role ownership for preparation, monitoring, assurance, and exception handling in this workflow is defined in `docs/governance/AGENT-TEAM.md`, not restated here; no role may independently verify or approve protected work it implemented.
