@@ -78,6 +78,16 @@ describe('admin route auth coverage (#3633)', () => {
     return out;
   }
 
+  // Comments like reports/list.ts's own "Protected by requireAdmin()." would
+  // otherwise satisfy the regex below without the code actually calling it —
+  // strip comments first so only real usage counts. Good enough for scanning
+  // this repo's plain handler files; not a general-purpose JS/TS parser.
+  function stripComments(source: string): string {
+    return source
+      .replace(/\/\*[\s\S]*?\*\//g, '')
+      .replace(/(^|[^:])\/\/.*$/gm, '$1');
+  }
+
   // A file either calls requireAdmin/requireAdminMember directly, or is a
   // thin `export { onRequestX } from '<relative path>'` re-export shim —
   // resolve those one level before checking, since the real guard lives at
@@ -87,8 +97,8 @@ describe('admin route auth coverage (#3633)', () => {
     if (seen.has(filePath)) return false; // guard against re-export cycles
     seen.add(filePath);
 
-    const source = fs.readFileSync(filePath, 'utf8');
-    if (/requireAdmin(Member)?\s*\(/.test(source)) return true;
+    const source = stripComments(fs.readFileSync(filePath, 'utf8'));
+    if (/\brequireAdmin(Member)?\s*\(/.test(source)) return true;
 
     const reExport = source.match(/export\s*\{[^}]*\}\s*from\s*['"](\.[^'"]+)['"]/);
     if (!reExport) return false;
@@ -100,10 +110,12 @@ describe('admin route auth coverage (#3633)', () => {
   }
 
   it('every /api/admin/** route file (directly or via re-export) enforces requireAdmin/requireAdminMember', () => {
-    const files = listAdminHandlerFiles(adminDir);
+    const files = listAdminHandlerFiles(adminDir).sort();
     expect(files.length).toBeGreaterThan(0);
 
-    const unguarded = files.filter((file) => !resolvesToAdminGuard(file));
+    const unguarded = files
+      .filter((file) => !resolvesToAdminGuard(file))
+      .map((file) => path.relative(process.cwd(), file));
 
     expect(unguarded).toEqual([]);
   });
