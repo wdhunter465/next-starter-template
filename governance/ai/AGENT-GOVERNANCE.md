@@ -8,7 +8,7 @@ Canonical Reference: Agent.md
 Last Reviewed: 2026-06-02
 ---
 
-> **SUPERSEDED (#2823, 2026-09-17):** This document is historical/non-authoritative. It is not part of the canonical agent authority chain and must not be used for conflict resolution. Current authority: `Agent.md` (mandatory authority chain) → `docs/governance/REPOSITORY-AUTHORITY.md` (constitutional) → `docs/governance/AGENT-TEAM.md` → `docs/ops/ai/SHARED-AGENT-RULES.md` → `docs/ops/ai/CORE-RULES.md`. Retained only as a historical record of prior cross-agent operating guidance.
+> **SUPERSEDED (#2823, 2026-09-17):** This document is historical/non-authoritative. It is not part of the canonical agent authority chain and must not be used for conflict resolution. Current authority: `Agent.md` (mandatory authority chain) → `docs/governance/REPOSITORY-AUTHORITY.md` (constitutional) → `docs/governance/AGENT-TEAM.md` → `docs/ops/ai/SHARED-AGENT-RULES.md` → `docs/ops/ai/CORE-RULES.md`. Retained only as a historical record of prior cross-agent governance rules.
 
 # Agent Governance
 
