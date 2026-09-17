@@ -8,29 +8,17 @@ Canonical Reference: Agent.md
 Last Reviewed: 2026-06-02
 ---
 
+> **SUPERSEDED (#2823, 2026-09-17):** This document is historical/non-authoritative. It is not part of the canonical agent authority chain and must not be used for conflict resolution. Current authority: `Agent.md` (mandatory authority chain) → `docs/governance/REPOSITORY-AUTHORITY.md` (constitutional) → `docs/governance/AGENT-TEAM.md` → `docs/ops/ai/SHARED-AGENT-RULES.md` → `docs/ops/ai/CORE-RULES.md`. Retained only as a historical record of prior cross-agent operating guidance.
+
 # Agent Governance
 
 ## Purpose
 
 This document defines the longer-form operating rules for agents working in the LGFC repository. The root `Agent.md` file remains the single agent entry point and routing file.
 
-## Authority order
+## Authority order — superseded, historical only
 
-Agents must resolve conflicts in this order:
-
-1. Locked governance / design / platform documents.
-2. `Agent.md` navigation and skill routing.
-3. `docs/ops/ai/SHARED-AGENT-RULES.md` categorized shared agent law.
-4. `docs/ops/ai/CORE-RULES.md` detailed execution rules.
-5. Source issue scope.
-6. Task-specific implementation plan or queue issue.
-7. Repository skill files under `.agents/skills/`.
-8. Cross-agent operational guidance under `governance/` and `ops/`.
-9. Historical thread logs and tracker context.
-
-Tracker files are historical/status indexes. They may be read for verification when relevant, but they are not task authority for normal implementation work unless the source issue explicitly scopes tracker governance, tracker reconciliation, or status-index maintenance.
-
-When sources conflict, use the higher authority and document the conflict in the PR.
+This section previously defined a standalone conflict-resolution order that never referenced `docs/governance/REPOSITORY-AUTHORITY.md` and competed with `Agent.md`'s "Mandatory authority chain." It is retired. For current authority order, see `Agent.md`'s "Mandatory authority chain" section — do not resolve conflicts using the list that previously appeared here.
 
 ## Agent operating model
 

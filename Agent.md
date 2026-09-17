@@ -199,14 +199,12 @@ Tracker/status-index files are updated only when the source Issue authorizes tha
 
 ## Agent governance implementation references
 
-These paths remain required navigation and validation surfaces:
-
-- `governance/ai/AGENT-GOVERNANCE.md`
-- `ops/ai/CROSS-AGENT-OPERATING-RULES.md`
 - `.agents/checks/agent-governance-check.mjs`
 - `.github/workflows/agent-governance.yml`
 
-They do not override the constitutional and domain-policy chain above.
+These remain required validation surfaces. They do not override the constitutional and domain-policy chain above.
+
+`governance/ai/AGENT-GOVERNANCE.md` and `ops/ai/CROSS-AGENT-OPERATING-RULES.md` are historical/superseded (#2823) — retained as a record of prior cross-agent operating guidance, not as navigation or authority surfaces. Do not read them for conflict resolution; use the "Mandatory authority chain" above.
 
 ## Stop conditions
 

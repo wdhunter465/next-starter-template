@@ -75,12 +75,23 @@ const requiredAgentText = [
   '.agents/skills/lgfc-docs-authority/SKILL.md',
   '.agents/skills/lgfc-cloudflare-static-export/SKILL.md',
   '.agents/skills/lgfc-verification-closeout/SKILL.md',
-  'governance/ai/AGENT-GOVERNANCE.md',
-  'ops/ai/CROSS-AGENT-OPERATING-RULES.md',
   'docs/ops/ai/SHARED-AGENT-RULES.md',
   'docs/ops/ai/CODEX-RULES.md',
   '.agents/checks/agent-governance-check.mjs',
   '.github/workflows/agent-governance.yml',
+];
+
+// #2823: governance/ai/AGENT-GOVERNANCE.md and ops/ai/CROSS-AGENT-OPERATING-RULES.md
+// are retired as authority surfaces (they previously defined a competing authority
+// order that never referenced REPOSITORY-AUTHORITY.md). They still exist as
+// historical record, and Agent.md still names them as historical/superseded, but
+// Agent.md must no longer cite them as required reading — enforce the retirement
+// marker instead of the old citation requirement.
+const SUPERSEDED_MARKER = 'SUPERSEDED (#2823';
+
+const LEGACY_MARKDOWN_FILES = [
+  'governance/ai/AGENT-GOVERNANCE.md',
+  'ops/ai/CROSS-AGENT-OPERATING-RULES.md',
 ];
 
 function filePath(root, relativePath) {
@@ -134,10 +145,7 @@ export function validateLegacyAgentGovernance(root) {
     }
   }
 
-  for (const markdownFile of [
-    'governance/ai/AGENT-GOVERNANCE.md',
-    'ops/ai/CROSS-AGENT-OPERATING-RULES.md',
-  ]) {
+  for (const markdownFile of LEGACY_MARKDOWN_FILES) {
     if (!exists(root, markdownFile)) {
       continue;
     }
@@ -145,6 +153,21 @@ export function validateLegacyAgentGovernance(root) {
     const content = read(root, markdownFile);
     if (!/^---\r?\n/.test(content)) {
       failures.push(`${markdownFile} is missing required docs header fence`);
+    }
+    if (!content.includes(SUPERSEDED_MARKER)) {
+      failures.push(`${markdownFile} is missing its superseded/retirement marker`);
+    }
+  }
+
+  if (exists(root, 'Agent.md')) {
+    const agent = read(root, 'Agent.md');
+    for (const legacyFile of LEGACY_MARKDOWN_FILES) {
+      if (!agent.includes(legacyFile)) {
+        failures.push(`Agent.md does not reference retired path: ${legacyFile}`);
+      }
+    }
+    if (!agent.includes('historical/superseded')) {
+      failures.push('Agent.md must mark the legacy governance/ops files as historical/superseded, not required navigation');
     }
   }
 
