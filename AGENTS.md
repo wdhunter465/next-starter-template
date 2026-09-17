@@ -26,9 +26,9 @@ Do not merely report that these files are required. Read them before making any 
 
 For PR, issue, review, remediation, or implementation work, also read:
 
-5. `.agents/skills/lgfc-pr-governance/SKILL.md`
-6. `.github/pull_request_template.md`
-7. `docs/how-to/cursor/open-task-pr.md`
+7. `.agents/skills/lgfc-pr-governance/SKILL.md`
+8. `.github/pull_request_template.md`
+9. `docs/how-to/cursor/open-task-pr.md`
 
 A bootstrap report that says these files are "required but not yet read" is noncompliant.
 
@@ -68,10 +68,3 @@ Task prompts do not override the chain in `Agent.md`.
 This file routes to canonical governance. It does not replace `Agent.md` or duplicate shared/core doctrine.
 
 See `docs/how-to/cursor/agent-session-bootstrap.md` for verification steps.
-
-
-## Continuous serial implementation (#3055)
-
-For a graduated project, the exact prepared child graph is standing authority. After WORK records predecessor `ACCEPT`, the next package-complete serial child may proceed without a repeat Administration/PMO dispatch. The implementation runtime must record starting SHA, branch, allowlist confirmation, and pre-implementation checkpoint before editing.
-
-Missing package fields produce `PACKAGE-INCOMPLETE`; a substantive dependency or protected boundary produces an evidence-specific `HOLD`. Merge alone is not acceptance. WORK owns acceptance, child/parent reconciliation, and successor release, and cannot independently verify or approve work WORK implemented.
