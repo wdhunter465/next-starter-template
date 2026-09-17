@@ -75,7 +75,7 @@ The PR body must not become a live ledger for:
 
 ## Source-Issue collaboration involving a PR
 
-Normal agent-to-agent collaboration remains on the source Issue even when the collaborator must inspect a PR.
+Normal agent-to-agent collaboration remains on the source Issue even when the collaborator must inspect a PR. The four-event pattern below (`COLLABORATION REQUEST` / `ACKNOWLEDGED` / `RESPONSE` / `COMPLETE`) is owned by `docs/governance/WORK-QUEUES-AND-COLLABORATION.md`'s "Universal collaboration" section; the steps here are its PR-specific refinement, not a competing definition.
 
 The collaboration sequence is:
 
