@@ -350,13 +350,13 @@ function classifyTrackedIssue(issue, byNumber) {
   errors.push(...stage.errors);
   remediation.push(...stage.remediation);
 
-  const incomplete = errors.length > 0;
+  const hasDataQualityDefects = errors.length > 0;
   return {
     role,
     type,
     childMeta,
     parentIssueNumber,
-    lifecycle: incomplete ? 'incomplete' : life.lifecycle,
+    lifecycle: life.lifecycle,
     rawLifecycle: life.lifecycle,
     teamLabel: queue.teamLabel,
     priorityLabel: queue.priorityLabel,
@@ -366,23 +366,28 @@ function classifyTrackedIssue(issue, byNumber) {
     stageOrder: stage.stageOrder,
     dataQualityErrors: [...new Set(errors)],
     requiredRemediation: [...new Set(remediation)],
-    incomplete,
+    hasDataQualityDefects,
     labels: issueLabels
   };
 }
 
 function statusForRow(classification) {
-  if (classification.incomplete) return 'Incomplete';
   if (classification.lifecycle === 'active') return 'Active';
   if (classification.lifecycle === 'closed') return 'Completed';
   if (classification.lifecycle === 'pipeline') return classification.pipelineStageDisplay || 'Pipeline';
-  return 'Incomplete';
+  return 'Unclassified';
+}
+
+function isCurrentBookOpen(issue, classification) {
+  return issue.state === 'open'
+    && classification.role === 'portfolio'
+    && (classification.lifecycle === 'active' || classification.lifecycle === 'pipeline');
 }
 
 function buildTaskIndex(classifications) {
   const tasksByParent = new Map();
   for (const entry of classifications.values()) {
-    if (entry.role !== 'task' || entry.incomplete) continue;
+    if (entry.role !== 'task' || !entry.parentIssueNumber) continue;
     const parent = entry.parentIssueNumber;
     if (!tasksByParent.has(parent)) tasksByParent.set(parent, []);
     tasksByParent.get(parent).push(entry);
@@ -391,11 +396,15 @@ function buildTaskIndex(classifications) {
   return tasksByParent;
 }
 
+function isTaskCompleted(task) {
+  return task.issue?.state === 'closed' || task.rawLifecycle === 'closed';
+}
+
 function taskAccountingFor(parentNumber, tasksByParent) {
   const tasks = tasksByParent.get(parentNumber) || [];
   const declaredTaskIssueNumbers = tasks.map((task) => task.issue.number);
   const completedTaskIssueNumbers = tasks
-    .filter((task) => task.rawLifecycle === 'closed')
+    .filter((task) => isTaskCompleted(task))
     .map((task) => task.issue.number);
   return {
     parentIssueNumber: parentNumber,
@@ -407,12 +416,24 @@ function taskAccountingFor(parentNumber, tasksByParent) {
   };
 }
 
+function linkedTaskDataQuality(parentNumber, tasksByParent) {
+  return (tasksByParent.get(parentNumber) || [])
+    .filter((task) => task.hasDataQualityDefects)
+    .map((task) => ({
+      issueNumber: task.issue.number,
+      issueUrl: task.issue.html_url,
+      dataQualityErrors: task.dataQualityErrors,
+      requiredRemediation: task.requiredRemediation
+    }));
+}
+
 function buildRow(entry, tasksByParent) {
   const { issue, classification } = entry;
   const accounting = taskAccountingFor(issue.number, tasksByParent);
   const percentComplete = accounting.taskCount > 0
     ? Math.round((accounting.tasksCompleted / accounting.taskCount) * 100)
     : null;
+  const linkedTaskDefects = linkedTaskDataQuality(issue.number, tasksByParent);
   return {
     type: classification.type,
     name: displayName(issue),
@@ -420,15 +441,11 @@ function buildRow(entry, tasksByParent) {
     issueNumber: issue.number,
     issueUrl: issue.html_url,
     labels: classification.labels,
-    lifecycle: classification.incomplete ? 'incomplete' : classification.lifecycle,
+    lifecycle: classification.lifecycle,
     teamLabel: classification.teamLabel,
     priorityLabel: classification.priorityLabel,
-    priorityDisplay: classification.incomplete
-      ? (classification.priorityDisplay || 'Remediation required')
-      : classification.priorityDisplay,
-    priority: classification.incomplete
-      ? (classification.priorityDisplay || 'Remediation required')
-      : classification.priorityDisplay,
+    priorityDisplay: classification.priorityDisplay,
+    priority: classification.priorityDisplay,
     pipelineStageLabel: classification.pipelineStageLabel,
     pipelineStageDisplay: classification.pipelineStageDisplay,
     status: statusForRow(classification),
@@ -442,13 +459,17 @@ function buildRow(entry, tasksByParent) {
     updatedAt: issue.updated_at || null,
     parentProgramIssue: classification.childMeta?.parentProgramIssue ?? classification.parentIssueNumber ?? null,
     childSequence: classification.childMeta?.sequence ?? null,
-    dataQualityErrors: classification.incomplete ? classification.dataQualityErrors : [],
-    requiredRemediation: classification.incomplete ? classification.requiredRemediation : [],
-    role: classification.role
+    dataQualityErrors: classification.dataQualityErrors,
+    requiredRemediation: classification.requiredRemediation,
+    hasDataQualityDefects: classification.hasDataQualityDefects || linkedTaskDefects.length > 0,
+    linkedTaskDataQuality: linkedTaskDefects,
+    role: classification.role,
+    githubState: issue.state
   };
 }
 
 function prioritySortValue(row) {
+  if (row.priorityDisplay == null || row.priorityDisplay === '') return Number.POSITIVE_INFINITY;
   const parsed = Number(row.priorityDisplay);
   return Number.isFinite(parsed) ? parsed : Number.POSITIVE_INFINITY;
 }
@@ -471,13 +492,7 @@ function pipelineSort(a, b) {
     || a.name.localeCompare(b.name);
 }
 
-function completedSort(a, b) {
-  const aTime = a.closedAt ? new Date(a.closedAt).getTime() : updatedSortValue(a);
-  const bTime = b.closedAt ? new Date(b.closedAt).getTime() : updatedSortValue(b);
-  return bTime - aTime || a.name.localeCompare(b.name);
-}
-
-function incompleteSort(a, b) {
+function exceptionSort(a, b) {
   return (b.dataQualityErrors?.length || 0) - (a.dataQualityErrors?.length || 0)
     || updatedSortValue(b) - updatedSortValue(a)
     || a.name.localeCompare(b.name);
@@ -486,18 +501,16 @@ function incompleteSort(a, b) {
 function assembleViews(entries) {
   const activeParentNumbers = new Set(
     entries
-      .filter((entry) => !entry.row.dataQualityErrors?.length && entry.row.lifecycle === 'active' && entry.row.type === 'program')
-      .map((entry) => entry.row.issueNumber)
-  );
-  const completedParentNumbers = new Set(
-    entries
-      .filter((entry) => !entry.row.dataQualityErrors?.length && entry.row.lifecycle === 'closed' && entry.row.type === 'program')
+      .filter((entry) => isCurrentBookOpen(entry.issue, entry.classification)
+        && entry.row.lifecycle === 'active'
+        && entry.row.type === 'program')
       .map((entry) => entry.row.issueNumber)
   );
   const childrenByParent = new Map();
   for (const entry of entries) {
-    if (!entry.classification.childMeta || entry.row.lifecycle === 'incomplete' || entry.classification.role !== 'portfolio') continue;
+    if (!entry.classification.childMeta || entry.classification.role !== 'portfolio') continue;
     const parent = entry.classification.childMeta.parentProgramIssue;
+    if (!activeParentNumbers.has(parent)) continue;
     if (!childrenByParent.has(parent)) childrenByParent.set(parent, []);
     childrenByParent.get(parent).push(entry);
   }
@@ -508,32 +521,41 @@ function assembleViews(entries) {
     const children = childrenByParent.get(parentEntry.row.issueNumber) || [];
     if (children.length) parentEntry.row.children = children.map((child) => child.row);
   }
+  const nestedChildNumbers = new Set(
+    [...childrenByParent.values()].flatMap((children) => children.map((child) => child.row.issueNumber))
+  );
   const views = { activePrograms: [], pmoPipeline: [], completedPrograms: [], incomplete: [] };
+  const dataQualityExceptions = [];
   for (const entry of entries) {
-    if (entry.classification.role === 'task' && !entry.classification.incomplete) continue;
-    if (entry.row.lifecycle === 'incomplete' || entry.classification.incomplete) {
-      views.incomplete.push(entry.row);
+    if (entry.classification.role === 'task') {
+      if (!entry.classification.parentIssueNumber || !tasksCountedOnCurrentBook(entry, activeParentNumbers, entries)) {
+        if (entry.classification.hasDataQualityDefects) dataQualityExceptions.push(entry.row);
+      }
       continue;
     }
-    const parent = entry.classification.childMeta?.parentProgramIssue;
-    if (entry.row.lifecycle === 'active') {
+    if (isCurrentBookOpen(entry.issue, entry.classification)) {
+      const parent = entry.classification.childMeta?.parentProgramIssue;
       if (parent && activeParentNumbers.has(parent)) continue;
       if (entry.row.type === 'program') attachChildren(entry);
-      views.activePrograms.push(entry.row);
-    } else if (entry.row.lifecycle === 'pipeline') {
-      if (parent && activeParentNumbers.has(parent)) continue;
-      views.pmoPipeline.push(entry.row);
-    } else if (entry.row.lifecycle === 'closed') {
-      if (parent && (activeParentNumbers.has(parent) || completedParentNumbers.has(parent))) continue;
-      if (entry.row.type === 'program') attachChildren(entry);
-      views.completedPrograms.push(entry.row);
+      if (entry.row.lifecycle === 'active') views.activePrograms.push(entry.row);
+      else views.pmoPipeline.push(entry.row);
+      continue;
     }
+    if (nestedChildNumbers.has(entry.row.issueNumber)) continue;
+    if (entry.classification.hasDataQualityDefects) dataQualityExceptions.push(entry.row);
   }
   views.activePrograms.sort(activeSort);
   views.pmoPipeline.sort(pipelineSort);
-  views.completedPrograms.sort(completedSort);
-  views.incomplete.sort(incompleteSort);
-  return views;
+  dataQualityExceptions.sort(exceptionSort);
+  return { views, dataQualityExceptions };
+}
+
+function tasksCountedOnCurrentBook(entry, activeParentNumbers, entries) {
+  const parentNumber = entry.classification.parentIssueNumber;
+  if (!parentNumber) return false;
+  return entries.some((candidate) => (
+    candidate.issue.number === parentNumber && isCurrentBookOpen(candidate.issue, candidate.classification)
+  )) || activeParentNumbers.has(parentNumber);
 }
 
 async function main() {
@@ -555,7 +577,7 @@ async function main() {
   for (const entry of classificationEntries) {
     const row = buildRow(entry, tasksByParent);
     built.push({ issue: entry.issue, classification: entry.classification, row });
-    if (entry.classification.role === 'portfolio' || entry.classification.incomplete) {
+    if (entry.classification.role === 'portfolio') {
       taskAccounting.push(taskAccountingFor(entry.issue.number, tasksByParent));
     }
   }
@@ -564,20 +586,23 @@ async function main() {
       taskAccounting.push(taskAccountingFor(parentNumber, tasksByParent));
     }
   }
-  const views = assembleViews(built);
+  const { views, dataQualityExceptions } = assembleViews(built);
   taskAccounting.sort((a, b) => a.parentIssueNumber - b.parentIssueNumber);
-  const topLevelCount = Object.values(views).reduce((sum, view) => sum + view.length, 0);
-  const nestedCount = Object.values(views).reduce(
-    (sum, view) => sum + view.reduce((count, row) => count + (row.children?.length || 0), 0),
-    0
-  );
+  const currentBook = {
+    activeCount: views.activePrograms.length,
+    pipelineCount: views.pmoPipeline.length,
+    parentStandaloneCount: views.activePrograms.length + views.pmoPipeline.length
+  };
+  const nestedCount = views.activePrograms.reduce((count, row) => count + (row.children?.length || 0), 0);
   const data = {
     generatedAt: new Date().toISOString(),
     source: 'github-issues',
     repository: `${OWNER}/${REPO}`,
     trackingModel: 'pmo-label',
     contractVersion: 'queue-label-registry-v1',
+    currentBook,
     views,
+    dataQualityExceptions,
     taskAccounting
   };
   await mkdir(path.join(OUT_DIR, 'assets'), { recursive: true });
@@ -585,7 +610,7 @@ async function main() {
   await cp(path.join(__dirname, 'static/index.html'), path.join(OUT_DIR, 'index.html'));
   await cp(path.join(__dirname, 'static/pmo-dashboard.css'), path.join(OUT_DIR, 'assets/pmo-dashboard.css'));
   await cp(path.join(__dirname, 'static/pmo-dashboard.js'), path.join(OUT_DIR, 'assets/pmo-dashboard.js'));
-  console.log(`Generated PMO dashboard with ${topLevelCount} top-level rows and ${nestedCount} nested child rows at ${OUT_DIR}`);
+  console.log(`Generated PMO dashboard with ${currentBook.parentStandaloneCount} current-book parent/standalone rows and ${nestedCount} nested child rows at ${OUT_DIR}`);
 }
 
 main().catch((error) => {

@@ -36,11 +36,18 @@ async function main() {
     const pipeline = data.views.pmoPipeline;
     const completed = data.views.completedPrograms;
     const incomplete = data.views.incomplete;
-    assert(active.length === 2, `expected two active portfolio rows, got ${active.length}`);
+    const exceptions = data.dataQualityExceptions || [];
+    assert(Array.isArray(completed) && completed.length === 0, 'Completed Programs is omitted from the current book');
+    assert(Array.isArray(incomplete) && incomplete.length === 0, 'Incomplete is not a lifecycle view');
+    assert(data.currentBook.parentStandaloneCount === active.length + pipeline.length, 'current-book total');
+    assert(active.length === 4, `expected four active portfolio rows, got ${active.length}`);
     const activeMap = byNumber(active);
-    assert(activeMap.has(9001) && activeMap.has(9028), 'active rows');
+    assert(activeMap.has(9001) && activeMap.has(9028), 'healthy active rows');
+    assert(activeMap.has(9026) && activeMap.has(9027), 'open pmo:active rows stay Active with data-quality defects');
     assert(activeMap.get(9028).teamLabel === 'team:pmo', '#9028 Active team');
     assert(activeMap.get(9028).priorityDisplay === '4', '#9028 priority from label');
+    assert(activeMap.get(9026).dataQualityErrors.length > 0, '#9026 keeps Active with conflicting-priority defects');
+    assert(activeMap.get(9027).dataQualityErrors.some((error) => /priority/.test(error)), 'none priority reported on Active row');
 
     const program = activeMap.get(9001);
     assert(program.children?.length === 3, 'active program should have three nested children');
@@ -51,29 +58,26 @@ async function main() {
     assert(program.taskCount === 3 && program.tasksCompleted === 1 && program.percentComplete === 33, 'task accounting');
 
     const pipelineMap = byNumber(pipeline);
+    assert(pipeline.length === 3, `expected three pipeline rows, got ${pipeline.length}`);
     assert(pipelineMap.has(9004) && pipelineMap.has(9005), 'pipeline rows');
+    assert(pipelineMap.has(9030), 'open pmo:pipeline rows stay in Pipeline with data-quality defects');
     assert(pipelineMap.get(9004).teamLabel === 'team:pmo', '#9004 Pipeline team');
     assert(pipelineMap.get(9004).priorityLabel === 'pmo:pipeline-priority:3', '#9004 Pipeline priority');
     assert(pipelineMap.get(9005).priorityLabel === 'pmo:pipeline-priority:12', '#9005 unbounded Pipeline priority');
     assert(pipelineMap.get(9005).priorityDisplay === '12', '#9005 unbounded display');
     assert(pipelineMap.get(9004).pipelineStageDisplay === 'Graduation Candidate', '#9004 stage display');
+    assert(pipelineMap.get(9030).dataQualityErrors.some((error) => /cross-namespace/.test(error)), 'cross namespace reported on Pipeline row');
     assert(pipeline[0].issueNumber === 9004, 'Pipeline sorts by independent numeric priority');
 
-    const completedMap = byNumber(completed);
-    assert(completed[0].issueNumber === 9006, 'completed newest first');
-    assert(completedMap.has(9011) && completedMap.has(9007), 'completed rows retained');
-    assert(!completedMap.has(9008), 'completed child must not duplicate');
-
-    const incompleteMap = byNumber(incomplete);
-    for (const number of [9023, 9024, 9025, 9026, 9027, 9029, 9030]) {
-      const row = incompleteMap.get(number);
-      assert(row, `#${number} must quarantine`);
-      assert(row.lifecycle === 'incomplete', `#${number} lifecycle`);
+    const exceptionMap = byNumber(exceptions);
+    for (const number of [9023, 9024, 9025, 9029]) {
+      const row = exceptionMap.get(number);
+      assert(row, `#${number} must surface as a metadata defect`);
+      assert(row.lifecycle !== 'incomplete', `#${number} must not manufacture Incomplete lifecycle`);
       assert(row.dataQualityErrors.length > 0 && row.requiredRemediation.length > 0, `#${number} evidence`);
     }
-    assert(incompleteMap.get(9027).dataQualityErrors.some((error) => /priority/.test(error)), 'none priority reported');
-    assert(incompleteMap.get(9029).dataQualityErrors.some((error) => /not reconciled to pmo:closed/.test(error)), 'closed conflict reported');
-    assert(incompleteMap.get(9030).dataQualityErrors.some((error) => /cross-namespace/.test(error)), 'cross namespace reported');
+    assert(!exceptionMap.has(9026) && !exceptionMap.has(9027) && !exceptionMap.has(9030), 'placeable current-book rows are not duplicated as exceptions');
+    assert(exceptionMap.get(9029).dataQualityErrors.some((error) => /not reconciled to pmo:closed/.test(error)), 'closed conflict reported');
 
     const serialized = JSON.stringify(data);
     for (const excluded of [9010, 9031, 9032]) assert(!serialized.includes(`"issueNumber":${excluded}`), `#${excluded} excluded`);
@@ -83,10 +87,11 @@ async function main() {
     assert(parentAccounting.declaredTaskIssueNumbers.sort().join(',') === '9020,9021,9022', 'linked tasks');
     assert(parentAccounting.completedTaskIssueNumbers.includes(9022), 'completed task');
 
-    for (const row of [...active, ...pipeline, ...completed, ...incomplete]) {
+    for (const row of [...active, ...pipeline, ...exceptions]) {
       assert(Number.isInteger(row.issueNumber) && row.issueNumber > 0, `row identity ${row.name}`);
       assert(typeof row.issueUrl === 'string' && row.issueUrl.includes('github.com'), `row URL #${row.issueNumber}`);
       assert(Array.isArray(row.dataQualityErrors), `row errors #${row.issueNumber}`);
+      assert(row.lifecycle !== 'incomplete', `row #${row.issueNumber} must not use Incomplete lifecycle`);
     }
 
     const contract = await execFileAsync('node', [path.join(__dirname, 'test-queue-label-contract.mjs')]);
@@ -97,6 +102,8 @@ async function main() {
     if (reconcile.stdout) process.stdout.write(reconcile.stdout);
     const skew = await execFileAsync('node', [path.join(__dirname, 'test-task-count-incomplete-skew.mjs')]);
     if (skew.stdout) process.stdout.write(skew.stdout);
+    const currentBook = await execFileAsync('node', [path.join(__dirname, 'test-current-book-child-accounting.mjs')]);
+    if (currentBook.stdout) process.stdout.write(currentBook.stdout);
     console.log('PMO label-driven fixture test passed');
   } finally {
     await rm(outDir, { recursive: true, force: true });
