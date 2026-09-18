@@ -79,11 +79,12 @@ Git/PR authority fields (section 2A) live in `docs/templates/agent-assignment-te
 Read in order (do not skip):
 
 1. `Agent.md`
-2. `docs/ops/ai/SHARED-AGENT-RULES.md`
-3. `docs/ops/ai/CORE-RULES.md`
-4. `docs/ops/ai/CURSOR-RULES.md`
-5. Applicable `.agents/skills/*/SKILL.md`
-6. Source GitHub Issue + task-linked authority files
+2. `docs/governance/REPOSITORY-AUTHORITY.md`
+3. `docs/governance/AGENT-TEAM.md`
+4. `docs/ops/ai/CORE-RULES.md`
+5. `docs/ops/ai/CURSOR-RULES.md`
+6. Applicable `.agents/skills/*/SKILL.md`
+7. Source GitHub Issue + task-linked authority files
 
 For PR work also read:
 

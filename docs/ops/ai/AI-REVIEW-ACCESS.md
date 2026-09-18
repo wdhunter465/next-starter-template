@@ -4,7 +4,7 @@ Audience: Human + AI
 Authority Level: Operational Authority
 Owns: Tokenized AI review access configuration, security constraints, and operator usage
 Does Not Own: Member/admin authentication model, production merge approval, or Program #1685 scope
-Canonical Reference: /docs/ops/ai/SHARED-AGENT-RULES.md
+Canonical Reference: /docs/ops/ai/CORE-RULES.md
 Related Issues: #1973, #2215, #3289
 Last Reviewed: 2026-08-11
 ---
@@ -98,5 +98,5 @@ Optionally unset or rotate `AI_REVIEW_TOKEN`. Redeploy or update the Cloudflare 
 
 ## Related governance
 
-- Shared agent law: [`SHARED-AGENT-RULES.md`](./SHARED-AGENT-RULES.md)
+- Shared execution law: [`CORE-RULES.md`](./CORE-RULES.md)
 - Source issue: [#1973](https://github.com/wdhunter645/next-starter-template/issues/1973)

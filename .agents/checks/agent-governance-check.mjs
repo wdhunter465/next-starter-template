@@ -17,7 +17,8 @@ export const BOOTSTRAP_FILES = [
 
 export const BOOTSTRAP_REQUIRED_PATH_REFERENCES = [
   'Agent.md',
-  'docs/ops/ai/SHARED-AGENT-RULES.md',
+  'docs/governance/REPOSITORY-AUTHORITY.md',
+  'docs/governance/AGENT-TEAM.md',
   'docs/ops/ai/CORE-RULES.md',
   'docs/ops/ai/CURSOR-RULES.md',
   '.agents/skills/lgfc-pr-governance/SKILL.md',
@@ -36,7 +37,8 @@ export const AGENTS_MD_CLOUD_BOOTSTRAP_REQUIRED_PHRASES = [
 export const AGENTS_MD_BOOTSTRAP_REPORT_REQUIRED = [
   'AGENTS.md: read',
   'Agent.md: read',
-  'SHARED-AGENT-RULES.md: read',
+  'REPOSITORY-AUTHORITY.md: read',
+  'AGENT-TEAM.md: read',
   'CORE-RULES.md: read',
   'CURSOR-RULES.md: read',
 ];
@@ -65,7 +67,7 @@ const requiredFiles = [
   '.github/workflows/agent-governance.yml',
   'governance/ai/AGENT-GOVERNANCE.md',
   'ops/ai/CROSS-AGENT-OPERATING-RULES.md',
-  'docs/ops/ai/SHARED-AGENT-RULES.md',
+  'docs/ops/ai/CORE-RULES.md',
   'docs/ops/ai/CODEX-RULES.md',
 ];
 
@@ -75,7 +77,7 @@ const requiredAgentText = [
   '.agents/skills/lgfc-docs-authority/SKILL.md',
   '.agents/skills/lgfc-cloudflare-static-export/SKILL.md',
   '.agents/skills/lgfc-verification-closeout/SKILL.md',
-  'docs/ops/ai/SHARED-AGENT-RULES.md',
+  'docs/ops/ai/CORE-RULES.md',
   'docs/ops/ai/CODEX-RULES.md',
   '.agents/checks/agent-governance-check.mjs',
   '.github/workflows/agent-governance.yml',

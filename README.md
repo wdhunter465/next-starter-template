@@ -40,8 +40,8 @@ For orientation, read:
 
 For any repository work, do not stop at this README. Follow the full mandatory chain in `Agent.md`, including:
 
-- `docs/ops/ai/LGFC-AI-TEAM-OPERATING-MODEL.md`.
-- `docs/ops/ai/SHARED-AGENT-RULES.md`.
+- `docs/governance/REPOSITORY-AUTHORITY.md`.
+- `docs/governance/AGENT-TEAM.md`.
 - `docs/ops/ai/CORE-RULES.md`.
 - The applicable agent-specific rule file under `docs/ops/ai/`.
 - The source GitHub issue and task-linked design, architecture, governance, or implementation-plan files.
