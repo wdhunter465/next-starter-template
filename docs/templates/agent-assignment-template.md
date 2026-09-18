@@ -103,9 +103,8 @@ Read before acting:
 1. `Agent.md`
 2. `docs/governance/REPOSITORY-AUTHORITY.md`
 3. `docs/governance/AGENT-TEAM.md`
-4. `docs/ops/ai/SHARED-AGENT-RULES.md`
-5. `docs/ops/ai/CORE-RULES.md`
-6. <task-specific policy, design, plan, procedure, or skill>
+4. `docs/ops/ai/CORE-RULES.md`
+5. <task-specific policy, design, plan, procedure, or skill>
 
 Approved documentation PR or decision reference: #<number> | <path/reference>
 
@@ -375,7 +374,7 @@ Do not:
 
 - Constitution and authority order: `Agent.md`, `docs/governance/REPOSITORY-AUTHORITY.md`
 - Durable roles and current mappings: `docs/governance/AGENT-TEAM.md`
-- Shared execution rules: `docs/ops/ai/SHARED-AGENT-RULES.md`, `docs/ops/ai/CORE-RULES.md`
+- Shared execution rules: `docs/ops/ai/CORE-RULES.md`
 - Execution fidelity: `docs/governance/standards/AGENT-EXECUTION-FIDELITY.md`
 - Implementation role contract: `docs/reference/agents/implementation-authority-contract.md`
 - Administration executor matrix: `docs/reference/operations/administrative-control-lane-contract.md`

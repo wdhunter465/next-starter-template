@@ -45,14 +45,14 @@ DIATAXIS is considered 100% complete for Phase 1 when:
 
 | Legacy root / path | DIATAXIS target | Type | Status | Action |
 |---|---|---|---|---|
-| `docs/ops/ai/SHARED-AGENT-RULES.md` | `docs/ops/ai/SHARED-AGENT-RULES.md` | Reference (ops) | **Migrated** | Retain — canonical shared agent law |
+| `docs/ops/ai/SHARED-AGENT-RULES.md` | — | Reference (ops) | **Retired (#4091)** | Deleted — superseded pointer; chain is `Agent.md` → `REPOSITORY-AUTHORITY.md` → `AGENT-TEAM.md` → `CORE-RULES.md` |
 | `docs/ops/ai/CORE-RULES.md` | `docs/ops/ai/CORE-RULES.md` | Reference (ops) | **Migrated** | Retain — canonical detailed execution rules |
 | `docs/ops/ai/CHATGPT-RULES.md` | `docs/ops/ai/CHATGPT-RULES.md` | Reference (ops) | **Migrated** | Retain — ChatGPT control-plane rules |
 | `docs/ops/ai/CURSOR-RULES.md` | `docs/ops/ai/CURSOR-RULES.md` | Reference (ops) | **Migrated** | Retain — Cursor tool rules |
 | `docs/ops/ai/CODEX-RULES.md` | `docs/ops/ai/CODEX-RULES.md` | Reference (ops) | **Migrated** | Retain — Codex tool rules |
 | `docs/ops/ai/COPILOT-RULES.md` | `docs/ops/ai/COPILOT-RULES.md` | Reference (ops) | **Migrated** | Retain — Copilot tool rules |
 | `docs/ops/ai/DEVIN-RULES.md` | `docs/ops/ai/DEVIN-RULES.md` | Reference (ops) | **Migrated** | Retain — Devin tool rules |
-| `docs/ops/ai/pr-lifecycle-standard.md` | `docs/ops/ai/pr-lifecycle-standard.md` | Operations | **Migrated** | Retain — PR lifecycle ops standard |
+| `docs/ops/ai/pr-lifecycle-standard.md` | — | Operations | **Retired (#4091)** | Deleted — contradicted `PR_PROCESS.md` / `AGENT-TEAM.md` (ChatGPT-as-universal-PR-owner) |
 | `ops/ai/CROSS-AGENT-OPERATING-RULES.md` | `docs/ops/ai/CROSS-AGENT-OPERATING-RULES.md` | Operations | **Deferred Program 3** | Migrate — move live file into `docs/ops/ai/`; retire repo-root path |
 | `governance/ai/AGENT-GOVERNANCE.md` | `docs/governance/standards/agent-governance.md` | Governance | **Deferred Program 3** | Rewrite + migrate — create DIATAXIS standard; retire repo-root path |
 | `docs/governance/ai/AI-GUIDE.md` | `docs/archive/superseded/governance/ai/AI-GUIDE.md` *(planned)* | Governance | **Retain** | Route — historical build prompt; not agent routing authority |
@@ -75,7 +75,7 @@ One recommended canonical target per topic (details in status report):
 
 | Topic | Canonical target |
 |---|---|
-| Shared agent law | `docs/ops/ai/SHARED-AGENT-RULES.md` |
+| Shared agent law | `docs/ops/ai/CORE-RULES.md` |
 | Cross-agent handoff | `docs/ops/ai/CROSS-AGENT-OPERATING-RULES.md` *(after Program 3 move)* |
 | Long-form agent governance | `docs/governance/standards/agent-governance.md` *(after Program 3 authoring)* |
 | Cursor program execution | `docs/reference/pmo/lgfc-cursor-execution-contract.md` |

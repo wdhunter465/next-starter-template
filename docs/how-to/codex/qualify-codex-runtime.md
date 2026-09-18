@@ -24,11 +24,10 @@ Read, in order (per `docs/ops/ai/CODEX-RULES.md`'s mandatory documentation chain
 1. `Agent.md`
 2. `docs/governance/REPOSITORY-AUTHORITY.md`
 3. `docs/governance/AGENT-TEAM.md`
-4. `docs/ops/ai/SHARED-AGENT-RULES.md`
-5. `docs/ops/ai/CORE-RULES.md`
-6. `docs/ops/ai/CODEX-RULES.md`
-7. This file
-8. Issue #3758 itself
+4. `docs/ops/ai/CORE-RULES.md`
+5. `docs/ops/ai/CODEX-RULES.md`
+6. This file
+7. Issue #3758 itself
 
 ## Evidence format
 
@@ -284,7 +283,7 @@ Retrospective startup reconstruction (context only; not acceptance evidence):
 5. Repository and checkout: `wdhunter465/next-starter-template`; qualification work isolated in `/tmp/lgfc-3758`.
 6. Branch and working tree: assignment branch `codex/3758-runtime-qualification-20260826t1748`; clean before qualification evidence edits; branch repeatedly synchronized with `main` through the PR update-branch workflow.
 7. GitHub access: authenticated HTTPS Git plus REST Issue, PR, review, check, branch, label, and workflow access; administrative/push/pull permissions verified. GraphQL was temporarily rate-limited, with equivalent REST evidence used where available.
-8. Mandatory authority files read: `Agent.md`, `docs/governance/REPOSITORY-AUTHORITY.md`, `docs/governance/AGENT-TEAM.md`, `docs/ops/ai/SHARED-AGENT-RULES.md`, and `docs/ops/ai/CORE-RULES.md`.
+8. Mandatory authority files read: `Agent.md`, `docs/governance/REPOSITORY-AUTHORITY.md`, `docs/governance/AGENT-TEAM.md`, and `docs/ops/ai/CORE-RULES.md`.
 9. Codex-specific rules loaded: `docs/ops/ai/CODEX-RULES.md`, including the corrected standing-executor contract from #3756/#3774.
 10. Explicit source Issue: #3758.
 11. Assignment/claim state: separately assigned by Product Authority and labeled `agent:codex`.
