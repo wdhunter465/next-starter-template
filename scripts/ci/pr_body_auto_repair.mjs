@@ -76,24 +76,28 @@ function inferDocsOnly(files = []) {
   return names.length > 0 && names.every((name) => name.endsWith('.md') || name.startsWith('docs/') || name === 'active_tasklist.md');
 }
 
+function bodyOutsideManagedBlock(body = '') {
+  return String(body || '').replace(
+    new RegExp(`${escapeRegExp(AUTO_REPAIR_START)}[\\s\\S]*?${escapeRegExp(AUTO_REPAIR_END)}`, 'm'),
+    '',
+  );
+}
+
+function isCanonicalIntentValue(value) {
+  return /^(intent:[^\s]+|docs-only)$/i.test(String(value || ''));
+}
+
 export function extractCanonicalIntent({ body = '', labels = [] } = {}) {
-  const text = String(body || '');
-  const fromBody = text.match(/^\s*-\s*Intent label(?: for this PR)?:\s*(\S+)/im)
-    || text.match(/Intent label:\s*(\S+)/i);
+  const text = bodyOutsideManagedBlock(body);
+  const fromBody = text.match(/^\s*-\s*Intent label(?: for this PR)?:\s*(\S+)/im);
   const candidate = String(fromBody?.[1] || '').replace(/[.,;]+$/, '');
-  if (candidate && !candidate.startsWith('<!--') && candidate !== 'unknown') {
-    return candidate;
-  }
+  if (isCanonicalIntentValue(candidate)) return candidate;
   const names = (labels || []).map((label) => (typeof label === 'string' ? label : label?.name)).filter(Boolean);
-  return names.find((name) => name.startsWith('intent:') || name === 'docs-only') || '';
+  return names.find((name) => isCanonicalIntentValue(name)) || '';
 }
 
 export function isLiveRequiredChecksClean(liveState = {}) {
-  const mergeableState = String(liveState.mergeableState || '').toLowerCase();
-  if (mergeableState === 'clean') return true;
-  if (mergeableState === 'dirty' || mergeableState === 'blocked') return false;
-  const combined = String(liveState.combinedState || '').toLowerCase();
-  return combined === 'success' && liveState.mergeable !== false;
+  return String(liveState.mergeableState || '').toLowerCase() === 'clean';
 }
 
 export function hasGenuineGovernanceFailure({

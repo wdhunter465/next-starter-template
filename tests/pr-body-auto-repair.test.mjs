@@ -3,8 +3,10 @@ import {
   AUTO_REPAIR_END,
   AUTO_REPAIR_START,
   canAutoRepairPullRequest,
+  extractCanonicalIntent,
   extractSourceIssue,
   hasHeading,
+  isLiveRequiredChecksClean,
   repairPullRequestBody,
 } from '../scripts/ci/pr_body_auto_repair.mjs';
 
@@ -196,5 +198,26 @@ describe('PR body auto-repair generation', () => {
 
     expect(result.body).toMatch(/^- Status: BLOCKED$/m);
     expect(result.body).toContain('Continue/halt decision: halt');
+  });
+
+  it('ignores inferred intent inside the managed block and prefers GitHub labels', () => {
+    const body = [
+      '- **Issue:** #3839',
+      AUTO_REPAIR_START,
+      '- Intent label for this PR: infra',
+      AUTO_REPAIR_END,
+    ].join('\n');
+
+    expect(extractCanonicalIntent({
+      body,
+      labels: [{ name: 'intent:ci' }],
+    })).toBe('intent:ci');
+  });
+
+  it('treats only mergeable_state=clean as live-clean', () => {
+    expect(isLiveRequiredChecksClean({ mergeableState: 'clean', combinedState: 'success' })).toBe(true);
+    expect(isLiveRequiredChecksClean({ mergeableState: 'behind', combinedState: 'success', mergeable: true })).toBe(false);
+    expect(isLiveRequiredChecksClean({ mergeableState: 'unstable', combinedState: 'success', mergeable: true })).toBe(false);
+    expect(isLiveRequiredChecksClean({ mergeableState: 'has_hooks', combinedState: 'success', mergeable: true })).toBe(false);
   });
 });
