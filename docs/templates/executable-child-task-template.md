@@ -67,6 +67,7 @@ The machine-readable projection of this template's required fields, plus determi
 - Bounded increment split (when only part is gated): ____ | not applicable
 - HOLD owner: ____ | not applicable
 - HOLD evidence: ____ | not applicable
+  (when live: include why continuation is unsafe or unauthorized)
 - HOLD release condition: ____ | not applicable
 - HOLD mitigation owner: ____ | not applicable
 - HOLD parallel-safe work: ____ | not applicable

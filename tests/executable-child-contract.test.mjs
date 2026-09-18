@@ -196,7 +196,17 @@ describe('executable-child-contract (#3665)', () => {
     });
     expect(result.status).toBe(CONTRACT_STATUS.INVALID_HOLD);
     expect(result.claimable).toBe(false);
-    expect(result.errors.join(' ')).toMatch(/generic BLOCKED/);
+    expect(result.errors.join(' ')).toMatch(/generic BLOCKED or HOLD/);
+  });
+
+  it('rejects Disposition: HOLD without a completed HOLD contract', () => {
+    const result = evaluateExecutableChildContract({
+      body: `${VALID_BODY}\nDisposition: HOLD\n`,
+      labels: ['pmo:task', 'pmo:active']
+    });
+    expect(result.status).toBe(CONTRACT_STATUS.INVALID_HOLD);
+    expect(result.claimable).toBe(false);
+    expect(result.errors.join(' ')).toMatch(/generic BLOCKED or HOLD/);
   });
 
   it('rejects a live HOLD that says waiting on PMO instead of evidence', () => {

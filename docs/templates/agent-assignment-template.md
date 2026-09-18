@@ -214,7 +214,7 @@ For a `project-child` or `child-remediation`, the live Issue must also define:
 
 If any applicable field is absent, record `PACKAGE-INCOMPLETE` and stop before branch creation or editing. Do not infer the value and do not use a generic `BLOCKED` state.
 
-When a stop is live, record the #3134 HOLD contract on the source Issue (`docs/governance/PMO-PORTFOLIO.md`): owner, evidence, why continuation is unsafe or unauthorized, mitigation owner, release condition, parallel-safe work, and disputed-risk decision owner. `waiting on PMO` and `pending review` are not holds.
+When a stop is live, record the #3134 HOLD contract on the source Issue (`docs/governance/PMO-PORTFOLIO.md`): owner, evidence (including why continuation is unsafe or unauthorized), mitigation owner, release condition, parallel-safe work, and disputed-risk decision owner. `waiting on PMO` and `pending review` are not holds.
 
 ## 12. Pre-Implementation Checkpoint
 
@@ -329,6 +329,7 @@ Collision constraints: ____ | none
 Halt/resume condition: ____
 HOLD owner: ____ | not applicable
 HOLD evidence: ____ | not applicable
+  (when live: include why continuation is unsafe or unauthorized)
 HOLD release condition: ____ | not applicable
 HOLD mitigation owner: ____ | not applicable
 HOLD parallel-safe work: ____ | not applicable

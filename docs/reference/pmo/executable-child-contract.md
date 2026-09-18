@@ -96,7 +96,7 @@ unfilled blank.
 | `successor` | `Successor` | The successor child, or `terminal` |
 | `completionEvidence` | `Durable evidence location`, `Completion evidence` | Where durable completion evidence is recorded |
 | `holdOwner` | `HOLD owner` | Owner of a live hold, or `not applicable` |
-| `holdEvidence` | `HOLD evidence` | Evidence for the named stop, or `not applicable` |
+| `holdEvidence` | `HOLD evidence` | Evidence for the named stop, including why continuation is unsafe or unauthorized, or `not applicable` |
 | `holdReleaseCondition` | `HOLD release condition` | Release condition, or `not applicable` |
 | `holdMitigationOwner` | `HOLD mitigation owner` | Mitigation owner, or `not applicable` |
 | `holdParallelSafeWork` | `HOLD parallel-safe work` | Work that may continue, or `not applicable` |

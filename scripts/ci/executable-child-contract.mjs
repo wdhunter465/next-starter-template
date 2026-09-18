@@ -160,8 +160,8 @@ export function validatePackageCompleteness(issue = {}) {
 
 const GENERIC_ADMIN_BLOCK_RE =
   /\b(?:waiting on pmo|pending review|generic blocked)\b/i;
-const BLOCKED_STATE_RE =
-  /^\s*-?\s*(?:disposition|status|state|halt(?:\/resume)? condition)\s*:.*\bblocked\b/im;
+const STOP_STATE_RE =
+  /^\s*-?\s*(?:(?:disposition|status|state)\s*:\s*(?:blocked|hold)\b|(?:halt(?:\/resume)? condition)\s*:.*\bblocked\b)/im;
 const HOLD_FIELD_KEYS = Object.freeze([
   'holdOwner',
   'holdEvidence',
@@ -216,8 +216,8 @@ export function validateHoldContract(input = {}) {
     }
   }
 
-  if (BLOCKED_STATE_RE.test(body) && !liveHold) {
-    errors.push('generic BLOCKED state is prohibited without a complete HOLD contract');
+  if (STOP_STATE_RE.test(body) && !liveHold) {
+    errors.push('generic BLOCKED or HOLD state is prohibited without a complete HOLD contract');
     remediation.push('Use PACKAGE-INCOMPLETE for missing fields or a complete HOLD contract for a named stop');
   }
 

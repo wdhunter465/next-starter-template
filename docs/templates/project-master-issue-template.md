@@ -39,6 +39,7 @@ Live HOLD fields (required as `not applicable` until a hold exists; all six must
 
 - HOLD owner:
 - HOLD evidence:
+  (when live: include why continuation is unsafe or unauthorized)
 - HOLD release condition:
 - HOLD mitigation owner:
 - HOLD parallel-safe work:
