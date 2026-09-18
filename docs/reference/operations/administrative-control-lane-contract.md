@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: Administration & Communications event, mutation, routing, evidence, acknowledgment, collaboration, escalation, hold/resume, blocking, closeout executor, and exception contract
 Does Not Own: Product scope, priority decisions, queue ownership decisions, design, delivery-model selection, implementation authority, PR approval, recovery strategy, Production authority, or workflow implementation
 Canonical Reference: /docs/governance/ADMINISTRATION-AND-COMMUNICATIONS.md
-Related Issues: #2640, #2641, #2639, #2699, #2700, #2709
-Last Reviewed: 2026-07-21
+Related Issues: #2640, #2641, #2639, #2699, #2700, #2709, #3134, #3145
+Last Reviewed: 2026-09-18
 ---
 
 # Administration and Communications Contract
@@ -150,6 +150,7 @@ The designated Administration & Communications transaction executor must not be 
 - `PROBLEM FOUND`
 - `GUIDANCE`
 - `ADJUSTMENT`
+- `RISK IDENTIFIED`
 - `HOLD`
 - `PLAN CHANGE REQUIRED`
 - `RESUME`
@@ -406,4 +407,4 @@ An exception identifies the affected subject, invariant, evidence, blocking scop
 
 WORK owns controlling `ACCEPT`, `HOLD`, `REMEDIATE`, or `VERIFY MORE` dispositions when substantive assurance or discrepancy handling is required, plus child/parent reconciliation. After deterministic predecessor completion, eligible agents self-claim the next package-complete serial successor under standing parent authority (#3145). Transport automation may apply an idempotent mutation but cannot invent acceptance.
 
-A generic `BLOCKED` state is prohibited for prepared project queues. Use `PACKAGE-INCOMPLETE` for missing execution fields or `HOLD` for a named substantive condition with owner, evidence, and release criteria. WORK must not independently verify or approve a PR that WORK implemented.
+A generic `BLOCKED` state is prohibited for prepared project queues. Use `PACKAGE-INCOMPLETE` for missing execution fields or `HOLD` for a named substantive condition that satisfies the `docs/governance/PMO-PORTFOLIO.md` HOLD contract (affected scope, evidence, why continuation is unsafe or unauthorized, mitigation owner, release condition, parallel-safe work, disputed-risk decision owner). `waiting on PMO` and `pending review` are not holds. Disputed risk uses `RISK IDENTIFIED`. PMO / ChatGPT must not independently verify or approve a PR that the same role holder implemented.

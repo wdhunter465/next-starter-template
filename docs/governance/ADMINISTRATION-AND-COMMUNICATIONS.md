@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Cross-lane and cross-queue communication transport, evidence routing, repository-state reconciliation, acknowledgment, escalation, hold/resume administration, collaboration routing, reporting, closeout policy, and closeout delegation boundaries
 Does Not Own: Product outcomes, priority decisions, queue ownership decisions, design decisions, implementation methods, PR approval decisions, incident recovery strategy, runner host maintenance, or Production authorization
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2640, #2641, #2639, #2648, #2695, #2699, #2700, #2709, #3055, #3113, #3188
-Last Reviewed: 2026-08-18
+Related Issues: #2640, #2641, #2639, #2648, #2695, #2699, #2700, #2709, #3055, #3113, #3134, #3145, #3188
+Last Reviewed: 2026-09-18
 ---
 
 # Administration and Communications
@@ -32,7 +32,7 @@ Administration & Communications follows:
 
 Lanes define authority. Queues define work precedence. Administration & Communications supplies transport, reconciliation, authorized transaction execution, and evidence continuity across both structures.
 
-PMO sequencing is coordination, not a general execution gate (#3113). Administration & Communications must not apply queue-wide `HOLD` or `BLOCKED` for ordinary predecessor or advisory conditions. Record those as comments, package notes, or order metadata. Protected stops block only the affected unsafe action.
+PMO sequencing is coordination, not a general execution gate (#3113 / #3134). Administration & Communications must not apply queue-wide `HOLD` or `BLOCKED` for ordinary predecessor or advisory conditions. Record those as comments, package notes, or order metadata. Protected stops and other enforceable holds block only the affected unsafe action and must satisfy the HOLD contract in `docs/governance/PMO-PORTFOLIO.md`. Disputed risk is transported as `RISK IDENTIFIED`; it is not converted into a silent queue freeze.
 
 ## Role-based operating principle
 
@@ -224,6 +224,7 @@ Live label creation and migration remain separately authorized implementation wo
 - `PROBLEM FOUND`
 - `GUIDANCE`
 - `ADJUSTMENT`
+- `RISK IDENTIFIED`
 - `HOLD`
 - `PLAN CHANGE REQUIRED`
 - `RESUME`
@@ -268,7 +269,7 @@ After verified integration of a project child:
 4. an eligible agent self-claims the next package-complete serial successor under standing Project Graduation authority (#3145);
 5. a wake event may transport existing authority; it does not recreate it or require repeat PMO dispatch.
 
-While a predecessor is in review, WORK prepares the successor package. Ordered-predecessor conditions are satisfied by deterministic predecessor completion (or WORK `ACCEPT` when a substantive gate is defined), not by queue-wide freeze or routine administrative release.
+While a predecessor is in review, ChatGPT/PMO prepares the successor package. Ordered-predecessor conditions are satisfied by deterministic predecessor completion (or recorded `ACCEPT` when a substantive gate is defined), not by queue-wide freeze or routine administrative release. Missing repeat dispatch, preferred review timing, or other administrative incompleteness is not itself a blocker when standing project authority and an executable package already exist (#3134).
 
 ## Non-blocking rule
 
