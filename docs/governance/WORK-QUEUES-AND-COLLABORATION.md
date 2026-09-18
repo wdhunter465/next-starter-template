@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Repository work-queue classification, queue ownership, team/agent claim semantics, queue-state transitions, Operations interrupt behavior, role-work-selection integration, Project Graduation routing, and universal collaboration
 Does Not Own: Product outcome, final Product priority decisions, PMO lifecycle/stage deliverables, implementation methods, recovery strategy, PR approval decisions, or Production authorization
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3240, #3629, #3825
-Last Reviewed: 2026-09-01
+Related Issues: #3134, #3145, #3240, #3629, #3825
+Last Reviewed: 2026-09-18
 ---
 
 # Work Queues and Collaboration
@@ -153,6 +153,8 @@ Routine PMO redispatch is not required between already-authorized children.
 | Protected stop | Blocks the unsafe/protected action until required authority/evidence exists |
 
 Ordinary dependencies are not queue-wide HOLD/BLOCKED states. Split bounded increments when only one action is gated.
+
+Preferred PMO sequence is advisory. An enforceable stop is an evidence-backed `HOLD` under `docs/governance/PMO-PORTFOLIO.md` (#3134). Generic `BLOCKED` / `waiting on PMO` language without that contract is invalid. Disputed risk uses `RISK IDENTIFIED` and a recorded decision (`HOLD` | `MITIGATE AND CONTINUE` | `BOUNDED EXCEPTION` | `RESEQUENCE`); it does not silently freeze the queue.
 
 ## Continuous-work invariant
 
