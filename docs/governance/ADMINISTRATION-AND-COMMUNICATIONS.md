@@ -269,7 +269,7 @@ After verified integration of a project child:
 4. an eligible agent self-claims the next package-complete serial successor under standing Project Graduation authority (#3145);
 5. a wake event may transport existing authority; it does not recreate it or require repeat PMO dispatch.
 
-While a predecessor is in review, ChatGPT/PMO prepares the successor package. Ordered-predecessor conditions are satisfied by deterministic predecessor completion (or recorded `ACCEPT` when a substantive gate is defined), not by queue-wide freeze or routine administrative release. Missing repeat dispatch, preferred review timing, or other administrative incompleteness is not itself a blocker when standing project authority and an executable package already exist (#3134).
+While a predecessor is in review, PMO / Engineering prepares the successor package. Ordered-predecessor conditions are satisfied by deterministic predecessor completion (or recorded `ACCEPT` when a substantive gate is defined), not by queue-wide freeze or routine administrative release. Missing repeat dispatch, preferred review timing, or other administrative incompleteness is not itself a blocker when standing project authority and an executable package already exist (#3134).
 
 ## Non-blocking rule
 
