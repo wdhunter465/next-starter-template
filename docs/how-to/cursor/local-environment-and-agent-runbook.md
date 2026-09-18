@@ -84,7 +84,7 @@ Read in order (do not skip):
 4. `docs/ops/ai/CORE-RULES.md`
 5. `docs/ops/ai/CURSOR-RULES.md`
 6. Applicable `.agents/skills/*/SKILL.md`
-6. Source GitHub Issue + task-linked authority files
+7. Source GitHub Issue + task-linked authority files
 
 For PR work also read:
 
