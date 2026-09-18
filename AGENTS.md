@@ -20,15 +20,14 @@ Do not merely report that these files are required. Read them before making any 
 1. `Agent.md`
 2. `docs/governance/REPOSITORY-AUTHORITY.md`
 3. `docs/governance/AGENT-TEAM.md`
-4. `docs/ops/ai/SHARED-AGENT-RULES.md`
-5. `docs/ops/ai/CORE-RULES.md`
-6. `docs/ops/ai/CURSOR-RULES.md`
+4. `docs/ops/ai/CORE-RULES.md`
+5. `docs/ops/ai/CURSOR-RULES.md`
 
 For PR, issue, review, remediation, or implementation work, also read:
 
-7. `.agents/skills/lgfc-pr-governance/SKILL.md`
-8. `.github/pull_request_template.md`
-9. `docs/how-to/cursor/open-task-pr.md`
+6. `.agents/skills/lgfc-pr-governance/SKILL.md`
+7. `.github/pull_request_template.md`
+8. `docs/how-to/cursor/open-task-pr.md`
 
 A bootstrap report that says these files are "required but not yet read" is noncompliant.
 
@@ -42,7 +41,6 @@ Before any other repo-work response, report each file as **read**:
 - Agent.md: read
 - REPOSITORY-AUTHORITY.md: read
 - AGENT-TEAM.md: read
-- SHARED-AGENT-RULES.md: read
 - CORE-RULES.md: read
 - CURSOR-RULES.md: read
 

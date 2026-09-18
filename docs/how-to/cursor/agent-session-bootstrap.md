@@ -46,7 +46,8 @@ MCP servers are **not** part of session bootstrap. MCP connects external tools; 
 3. Confirm the first bootstrap report marks each canonical file as **read** (not "required but not yet read"):
    - AGENTS.md: read
    - Agent.md: read
-   - SHARED-AGENT-RULES.md: read
+   - REPOSITORY-AUTHORITY.md: read
+   - AGENT-TEAM.md: read
    - CORE-RULES.md: read
    - CURSOR-RULES.md: read
 4. For PR work, confirm the first bootstrap report also marks:

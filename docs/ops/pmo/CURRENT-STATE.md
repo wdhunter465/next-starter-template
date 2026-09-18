@@ -155,7 +155,7 @@ For any agent or human starting work:
 2. This file (`docs/ops/pmo/CURRENT-STATE.md`)
 3. Source GitHub Issue for the task
 4. Applicable design / governance / PMO docs linked from the Issue
-5. `docs/ops/ai/SHARED-AGENT-RULES.md` and agent-specific rules
+5. `docs/ops/ai/CORE-RULES.md` and agent-specific rules
 6. `.agents/skills/lgfc-pr-governance/SKILL.md` when PR work is involved
 
 ## Operator stop conditions

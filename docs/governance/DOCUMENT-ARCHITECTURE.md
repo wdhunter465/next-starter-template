@@ -73,7 +73,6 @@ Target routing (binding policy → governance; contracts → reference; procedur
 
 Until migrated under an explicit delivery-system child issue, these interim canonical files remain authoritative for execution:
 
-- `SHARED-AGENT-RULES.md`
 - `CORE-RULES.md`
 - `CHATGPT-RULES.md`
 - `CURSOR-RULES.md`
