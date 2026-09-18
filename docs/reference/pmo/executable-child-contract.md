@@ -102,7 +102,7 @@ unfilled blank.
 | `holdParallelSafeWork` | `HOLD parallel-safe work` | Work that may continue, or `not applicable` |
 | `holdDisputedRiskDecisionOwner` | `HOLD disputed-risk decision owner` | Decision owner for `RISK IDENTIFIED`, or `not applicable` |
 
-A live HOLD requires all six HOLD fields with real, non-generic values. Canonical policy: `docs/governance/PMO-PORTFOLIO.md` (#3134). Generic `BLOCKED`, `waiting on PMO`, or `pending review` fails closed (`INVALID-HOLD`).
+A live HOLD requires all six HOLD fields with real, non-generic values; they are not required on every child when the values are `not applicable` or omitted. Canonical policy: `docs/governance/PMO-PORTFOLIO.md` (#3134). Generic `BLOCKED`, `waiting on PMO`, or `pending review` fails closed (`INVALID-HOLD`).
 
 Authors using `docs/templates/executable-child-task-template.md` already
 produce most of these fields inline. For the two fields that template
@@ -115,7 +115,7 @@ prose bullet list.
 ## Package-completeness validation
 
 `validatePackageCompleteness(issue)` in
-`scripts/ci/executable-child-contract.mjs` parses the eighteen fields above
+`scripts/ci/executable-child-contract.mjs` parses the twelve fields above
 and returns `complete: false` with an actionable `missing` field list and
 `remediation` guidance when any field is absent or placeholder-only. A
 child fails closed (`PACKAGE-INCOMPLETE`) rather than being silently routed

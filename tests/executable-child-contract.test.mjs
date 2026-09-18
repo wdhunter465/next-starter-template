@@ -69,7 +69,7 @@ describe('executable-child-contract (#3665)', () => {
   it('parses all fields present on a valid package', () => {
     const { present, missing } = parseContractFields(VALID_BODY);
     expect(missing).toEqual([]);
-    expect(present).toHaveLength(18);
+    expect(present).toHaveLength(12);
   });
 
   it('treats template placeholder blanks as missing', () => {

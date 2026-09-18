@@ -61,7 +61,10 @@ export const CONTRACT_FIELDS = Object.freeze([
   {
     key: 'completionEvidence',
     labels: ['durable evidence location', 'completion evidence']
-  },
+  }
+]);
+
+export const HOLD_CONTRACT_FIELDS = Object.freeze([
   { key: 'holdOwner', labels: ['hold owner'] },
   { key: 'holdEvidence', labels: ['hold evidence'] },
   { key: 'holdReleaseCondition', labels: ['hold release condition'] },
@@ -184,7 +187,12 @@ function isLiveHoldValue(value = '') {
  */
 export function validateHoldContract(input = {}) {
   const body = input.body || '';
-  const values = input.values || parseContractFields(body).values;
+  const values = { ...(input.values || {}) };
+  for (const field of HOLD_CONTRACT_FIELDS) {
+    if (values[field.key] == null) {
+      values[field.key] = extractFieldValue(body, field.labels);
+    }
+  }
   const errors = [];
   const remediation = [];
 
