@@ -37,7 +37,7 @@ Claude Code work order:
 
 ## Startup
 
-This product-local startup checklist is **additive** to the mandatory shared **PRODUCT STARTUP FRAMEWORK** in `docs/ops/ai/CORE-RULES.md`. It does **not** replace that framework. On `run startup` (or any other required startup trigger defined in CORE-RULES), execute the shared framework requirements first, then the product-local orientation steps below.
+The **PRODUCT STARTUP FRAMEWORK** in `docs/ops/ai/CORE-RULES.md` is the canonical shared startup contract. The bullets below are additional Claude Code-specific orientation steps applied within that shared framework.
 
 When Product Authority says `run startup`, perform orientation only:
 
