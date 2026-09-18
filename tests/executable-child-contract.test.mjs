@@ -5,6 +5,7 @@ import {
   evaluateExecutableChildContract,
   extractFieldValue,
   parseContractFields,
+  validateHoldContract,
   validatePackageCompleteness
 } from '../scripts/ci/executable-child-contract.mjs';
 
@@ -26,6 +27,12 @@ Expected artifact/PR: PR against main with test evidence
 
 Rollback: revert the merge commit
 Protected stops: none identified
+HOLD owner: not applicable
+HOLD evidence: not applicable
+HOLD release condition: not applicable
+HOLD mitigation owner: not applicable
+HOLD parallel-safe work: not applicable
+HOLD disputed-risk decision owner: not applicable
 
 ## Independent review
 
@@ -36,6 +43,17 @@ Independent reviewer role holder: WORK
 Successor: #1002
 Durable evidence location: PR description and CI run link
 `;
+
+const LIVE_HOLD_BODY = VALID_BODY
+  .replace('HOLD owner: not applicable', 'HOLD owner: PMO / Engineering')
+  .replace('HOLD evidence: not applicable', 'HOLD evidence: Task B consumes schema file produced only by Task A merge SHA')
+  .replace('HOLD release condition: not applicable', 'HOLD release condition: Task A merged and post-merge closeout pass')
+  .replace('HOLD mitigation owner: not applicable', 'HOLD mitigation owner: Cursor Local')
+  .replace('HOLD parallel-safe work: not applicable', 'HOLD parallel-safe work: docs and test fixtures for Task C')
+  .replace(
+    'HOLD disputed-risk decision owner: not applicable',
+    'HOLD disputed-risk decision owner: Product Authority'
+  );
 
 describe('executable-child-contract (#3665)', () => {
   it('extracts a labeled field value', () => {
@@ -169,5 +187,52 @@ describe('executable-child-contract (#3665)', () => {
     });
     expect(result.status).toBe(CONTRACT_STATUS.LIFECYCLE_CONTRADICTION);
     expect(result.claimable).toBe(false);
+  });
+
+  it('rejects generic BLOCKED without a HOLD contract', () => {
+    const result = evaluateExecutableChildContract({
+      body: `${VALID_BODY}\nDisposition: BLOCKED\n`,
+      labels: ['pmo:task', 'pmo:active']
+    });
+    expect(result.status).toBe(CONTRACT_STATUS.INVALID_HOLD);
+    expect(result.claimable).toBe(false);
+    expect(result.errors.join(' ')).toMatch(/generic BLOCKED or HOLD/);
+  });
+
+  it('rejects Disposition: HOLD without a completed HOLD contract', () => {
+    const result = evaluateExecutableChildContract({
+      body: `${VALID_BODY}\nDisposition: HOLD\n`,
+      labels: ['pmo:task', 'pmo:active']
+    });
+    expect(result.status).toBe(CONTRACT_STATUS.INVALID_HOLD);
+    expect(result.claimable).toBe(false);
+    expect(result.errors.join(' ')).toMatch(/generic BLOCKED or HOLD/);
+  });
+
+  it('rejects a live HOLD that says waiting on PMO instead of evidence', () => {
+    const body = VALID_BODY
+      .replace('HOLD owner: not applicable', 'HOLD owner: waiting on PMO')
+      .replace('HOLD evidence: not applicable', 'HOLD evidence: waiting on PMO')
+      .replace('HOLD release condition: not applicable', 'HOLD release condition: pending review')
+      .replace('HOLD mitigation owner: not applicable', 'HOLD mitigation owner: waiting on PMO')
+      .replace('HOLD parallel-safe work: not applicable', 'HOLD parallel-safe work: waiting on PMO')
+      .replace(
+        'HOLD disputed-risk decision owner: not applicable',
+        'HOLD disputed-risk decision owner: waiting on PMO'
+      );
+    const hold = validateHoldContract({ body });
+    expect(hold.ok).toBe(false);
+    expect(hold.errors.join(' ')).toMatch(/generic administrative block/);
+  });
+
+  it('accepts a complete evidence-backed HOLD', () => {
+    const result = evaluateExecutableChildContract({
+      body: LIVE_HOLD_BODY,
+      labels: ['pmo:task', 'pmo:active']
+    });
+    expect(result.status).toBe(CONTRACT_STATUS.PACKAGE_COMPLETE);
+    expect(result.hold.ok).toBe(true);
+    expect(result.hold.liveHold).toBe(true);
+    expect(result.claimable).toBe(true);
   });
 });
