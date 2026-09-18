@@ -256,7 +256,7 @@ Every current `.github/workflows/*` file as of 2026-09-14 (`HEAD` at inventory r
 | `ops-assess.yml` | OPS — Site Assessment |
 | `ops-cf-pages-retry.yml` | OPS — Cloudflare Pages Auto-Retry |
 | `ops-chatterbox-command-bridge.yml` | OPS — Chatterbox Command Bridge (#3415) |
-| `ops-chatterbox-reconciliation-sweep.yml` | OPS — Chatterbox Reconciliation Sweep (#3794) |
+| `ops-chatterbox-reconciliation-sweep.yml` | OPS — Chatterbox Reconciliation Sweep (#3845) |
 | `ops-chatterbox-room-bootstrap.yml` | OPS — Chatterbox Room Bootstrap (#3794) |
 | `ops-close-superseded-pr-1492.yml` | OPS — Close Superseded PR #1492 |
 | `ops-d1-3658-legacy-photos-inventory.yml` | OPS — 3658 Legacy Photos Rights Inventory |
