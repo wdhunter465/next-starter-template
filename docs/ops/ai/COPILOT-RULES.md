@@ -4,7 +4,7 @@ Audience: AI (Copilot)
 Authority Level: Agent-Specific
 Owns: Copilot execution behavior
 Does Not Own: Shared rules, design authority, governance
-Canonical Reference: /docs/ops/ai/SHARED-AGENT-RULES.md
+Canonical Reference: /docs/governance/AGENT-TEAM.md
 Last Reviewed: 2026-06-04
 ---
 
@@ -12,13 +12,13 @@ Last Reviewed: 2026-06-04
 
 Purpose: Defines Copilot-specific execution behavior.
 
-Shared agent law: [`SHARED-AGENT-RULES.md`](./SHARED-AGENT-RULES.md). Detailed shared execution: [`CORE-RULES.md`](./CORE-RULES.md).
+Shared execution law: [`CORE-RULES.md`](./CORE-RULES.md). Role mapping: [`docs/governance/AGENT-TEAM.md`](../../governance/AGENT-TEAM.md).
 
 ---
 
 # MANDATORY DOCUMENTATION CHAIN
 
-Before any repo work, follow the chain in [`Agent.md`](../../../Agent.md): `Agent.md` → [`SHARED-AGENT-RULES.md`](./SHARED-AGENT-RULES.md) → [`CORE-RULES.md`](./CORE-RULES.md) → this file → applicable repo governance/procedure docs → applicable `.agents/skills/*/SKILL.md` files.
+Before any repo work, follow the chain in [`Agent.md`](../../../Agent.md): `Agent.md` → [`docs/governance/REPOSITORY-AUTHORITY.md`](../../governance/REPOSITORY-AUTHORITY.md) → [`docs/governance/AGENT-TEAM.md`](../../governance/AGENT-TEAM.md) → [`CORE-RULES.md`](./CORE-RULES.md) → this file → applicable repo governance/procedure docs → applicable `.agents/skills/*/SKILL.md` files.
 
 This file is additive. It does not replace shared/core rules or repo governance.
 
