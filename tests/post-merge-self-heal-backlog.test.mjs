@@ -332,6 +332,79 @@ describe('post-merge self-healing backlog classification', () => {
 		expect(report.summary.auto_close_planned).toBe(1);
 		expect(report.summary.unsafe_escalated_issues).toBe(0);
 	});
+
+	it('does not safe-close #3462-shaped exceptions when #3069-shaped source is OPEN with terminal labels', () => {
+		const report = buildBacklogReport({
+			issues: [exceptionIssue({
+				number: 3462,
+				title: 'Post-merge closeout exception for PR #3461 / source #3069 / unresolved_exception_chain',
+				body: [
+					POST_MERGE_EXCEPTION_SIGNATURE,
+					'',
+					'- PR: #3461',
+					'- Source issue: #3069',
+					'- Validator status: pass',
+					'- Remediation required: no',
+					'',
+					'## Detected failure condition',
+					'- unresolved_exception_chain: original source-Issue terminal closeout is withheld while exception Issues remain open.',
+				].join('\n'),
+				labels: [{ name: 'post-merge-failure' }, { name: 'agent:cursor' }],
+			})],
+			sourceIssuesByNumber: {
+				3069: {
+					number: 3069,
+					state: 'open',
+					state_reason: null,
+					labels: [{ name: 'status:complete' }, { name: 'pmo:closed' }, { name: 'agent:cursor' }],
+				},
+			},
+			dryRun: true,
+		});
+
+		expect(report.classifications[0]).toMatchObject({
+			disposition: BACKLOG_DISPOSITIONS.PRESERVE_SOURCE_STATE_RECONCILIATION,
+			safe_to_close: false,
+			source_issue: 3069,
+		});
+		expect(report.classifications[0].reason).toMatch(/OPEN while carrying terminal labels/);
+		expect(report.summary.auto_close_planned).toBe(0);
+		expect(report.summary.preserved_source_state_reconciliation_issues).toBe(1);
+		expect(dispositionComment(report.classifications[0])).toContain('PMO/source-state reconciliation');
+	});
+
+	it('safe-closes #3462-shaped exceptions after the source is genuinely closed-complete', () => {
+		const report = buildBacklogReport({
+			issues: [exceptionIssue({
+				number: 3462,
+				title: 'Post-merge closeout exception for PR #3461 / source #3069 / unresolved_exception_chain',
+				body: [
+					POST_MERGE_EXCEPTION_SIGNATURE,
+					'',
+					'- PR: #3461',
+					'- Source issue: #3069',
+					'- Validator status: pass',
+					'- Remediation required: no',
+				].join('\n'),
+			})],
+			sourceIssuesByNumber: {
+				3069: {
+					number: 3069,
+					state: 'closed',
+					state_reason: 'completed',
+					labels: [{ name: 'status:complete' }, { name: 'pmo:closed' }],
+				},
+			},
+			dryRun: true,
+		});
+
+		expect(report.classifications[0]).toMatchObject({
+			disposition: BACKLOG_DISPOSITIONS.SAFE_TO_CLOSE,
+			safe_to_close: true,
+			source_issue: 3069,
+		});
+		expect(report.summary.auto_close_planned).toBe(1);
+	});
 });
 
 describe('post-merge self-healing backlog execution', () => {

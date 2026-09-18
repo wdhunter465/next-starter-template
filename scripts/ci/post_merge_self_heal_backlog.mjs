@@ -29,6 +29,7 @@ export const BACKLOG_DISPOSITIONS = Object.freeze({
 	SAFE_MANIFEST_OR_METADATA_REPAIR: 'safe_manifest_or_metadata_repair',
 	DUPLICATE_OF_CANONICAL_REMEDIATION: 'duplicate_of_canonical_remediation',
 	PRESERVE_ACTIVE_SOURCE: 'preserve_active_source',
+	PRESERVE_SOURCE_STATE_RECONCILIATION: 'preserve_source_state_reconciliation',
 	PRESERVE_AMBIGUOUS_EVIDENCE: 'preserve_ambiguous_evidence',
 	UNSAFE_OPERATOR_REVIEW_REQUIRED: 'unsafe_operator_review_required',
 	NOT_POST_MERGE_EXCEPTION: 'not_post_merge_exception',
@@ -187,6 +188,18 @@ function isOpenActive(issue = {}) {
 		|| labels.has('status:review')
 		|| labels.has('status:post-merge-verify')
 	);
+}
+
+const SOURCE_TERMINAL_LABELS = Object.freeze(['status:complete', 'pmo:closed']);
+
+export function openSourceTerminalLabels(issue = {}) {
+	if (!issue || String(issue?.state || '').toLowerCase() !== 'open') return [];
+	const labels = new Set(labelNames(issue?.labels));
+	return SOURCE_TERMINAL_LABELS.filter((name) => labels.has(name));
+}
+
+export function hasOpenSourceTerminalLabelConflict(issue = {}) {
+	return openSourceTerminalLabels(issue).length > 0;
 }
 
 const HISTORICAL_PR_BODY_HYGIENE_FAILURE_CODES = new Set([
@@ -382,6 +395,17 @@ export function classifyBacklogIssue(parsed = {}, context = {}) {
 		};
 	}
 
+	if (sourceIssue && hasOpenSourceTerminalLabelConflict(sourceIssue)) {
+		const terminalLabels = openSourceTerminalLabels(sourceIssue).join(', ');
+		return {
+			disposition: BACKLOG_DISPOSITIONS.PRESERVE_SOURCE_STATE_RECONCILIATION,
+			issue_number: parsed.number,
+			source_issue: parsed.source_issue,
+			safe_to_close: false,
+			reason: `Source issue #${parsed.source_issue} is OPEN while carrying terminal labels (${terminalLabels}); PMO/source-state reconciliation is required. Do not auto-close from those labels.`,
+		};
+	}
+
 	if (sourceIssue && isOpenActive(sourceIssue)) {
 		return {
 			disposition: BACKLOG_DISPOSITIONS.PRESERVE_ACTIVE_SOURCE,
@@ -484,6 +508,9 @@ export function buildBacklogReport({
 	const preservedActive = classifications.filter((entry) =>
 		entry.disposition === BACKLOG_DISPOSITIONS.PRESERVE_ACTIVE_SOURCE
 	);
+	const preservedSourceState = classifications.filter((entry) =>
+		entry.disposition === BACKLOG_DISPOSITIONS.PRESERVE_SOURCE_STATE_RECONCILIATION
+	);
 	const preservedAmbiguous = classifications.filter((entry) =>
 		entry.disposition === BACKLOG_DISPOSITIONS.PRESERVE_AMBIGUOUS_EVIDENCE
 	);
@@ -513,6 +540,7 @@ export function buildBacklogReport({
 			duplicate_closures: dryRun ? 0 : duplicateClosures.length,
 			duplicate_closures_planned: dryRun ? duplicateClosures.length : 0,
 			preserved_active_source_issues: preservedActive.length,
+			preserved_source_state_reconciliation_issues: preservedSourceState.length,
 			preserved_ambiguous_issues: preservedAmbiguous.length,
 			unsafe_escalated_issues: unsafe.length,
 			before_open_post_merge_issue_count: allOpenPostMergeIssues.length,
@@ -537,11 +565,18 @@ export function dispositionComment(entry = {}) {
 		'',
 		entry.safe_to_close
 			? 'CI is applying a deterministic safe close for this post-merge exception.'
-			: [
-				'CI is preserving this issue for Operations review and applied the `ops-pr-escalation` label.',
-				'Ops should remediate via a bounded follow-up PR using the source issue evidence above.',
-				'This issue will not be rescanned by daily self-healing while `ops-pr-escalation` remains.',
-			].join(' '),
+			: entry.disposition === BACKLOG_DISPOSITIONS.PRESERVE_SOURCE_STATE_RECONCILIATION
+				? [
+					'CI is preserving this exception for PMO/source-state reconciliation.',
+					'An OPEN source Issue with terminal labels is not closed-complete evidence.',
+					'Originating-agent ownership is unchanged. Applied `ops-pr-escalation`.',
+					'This issue will not be rescanned by daily self-healing while `ops-pr-escalation` remains.',
+				].join(' ')
+				: [
+					'CI is preserving this issue for Operations review and applied the `ops-pr-escalation` label.',
+					'Ops should remediate via a bounded follow-up PR using the source issue evidence above.',
+					'This issue will not be rescanned by daily self-healing while `ops-pr-escalation` remains.',
+				].join(' '),
 	].filter(Boolean).join('\n');
 }
 

@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: Post-merge self-healing classifier outcomes, evidence inputs, safety rules, and documented example fixtures
 Does Not Own: Workflow implementation, detector ingestion, auto-fix action execution, issue mutation, merge approval, runtime app-code remediation
 Canonical Reference: /docs/reference/ci/post-merge-validation-surface.md
-Related issues: #1847, #1848, #1914, #1921
-Last Reviewed: 2026-06-22
+Related issues: #1847, #1848, #1914, #1921, #3069, #3462
+Last Reviewed: 2026-09-18
 ---
 
 # Post-Merge Self-Healing Classification Contract
@@ -147,6 +147,7 @@ post-merge exception issue to a backlog disposition. Execution outcomes:
 | `safe_to_close` | yes | Close issue + disposition comment |
 | `duplicate_of_canonical_remediation` | yes | Close issue + disposition comment |
 | `preserve_active_source` | no | Comment + add `ops-pr-escalation` (and `post-merge-failure` when missing) |
+| `preserve_source_state_reconciliation` | no | Comment + add `ops-pr-escalation` (and `post-merge-failure` when missing). Source Issue is OPEN while carrying terminal labels such as `status:complete` and/or `pmo:closed`. Do not auto-close. Originating-agent ownership is unchanged. After the source is genuinely closed-complete, the normal no-remaining-action safe-close path may evaluate the exception. |
 | `preserve_ambiguous_evidence` | no | Comment + add `ops-pr-escalation` (and `post-merge-failure` when missing) |
 | `unsafe_operator_review_required` | no | Comment + add `ops-pr-escalation` (and `post-merge-failure` when missing) |
 
