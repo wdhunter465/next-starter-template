@@ -40,7 +40,7 @@ After independent review, merge, and post-merge verification of the three childr
 | Parent project | #3134 |
 | Child #3134-001 | #3885 / PR #4152 / `306aa38e` |
 | Child #3134-002 | #3886 / PR #4153 / `3f2f49c8` |
-| Child #3134-003 | #3887 / this record |
+| Child #3134-003 | #3887 / this record / `e20e3224` |
 | Starting SHA | `08e58b33` (`main` after PR #4151) |
 | Merge SHA | pending independent review |
 | Post-merge verification | pending |
