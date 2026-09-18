@@ -71,7 +71,7 @@ Use a unique `idempotency_key` per intended event so retries do not double-post.
 
 Two simultaneous claims for the same task must produce exactly one `ACTIVE` owner (unique index, not check-then-write). A participant credential cannot claim as another `participant_key` (JULES-1).
 
-## Successful multi-participant exchange
+## Procedure
 
 1. Two implementation agents check in independently (`cursor-local`, `claude-code`).
 2. Agent A posts a `STATUS` (or `QUESTION`) event.
