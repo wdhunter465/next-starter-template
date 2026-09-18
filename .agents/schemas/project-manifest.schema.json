@@ -1,0 +1,22 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "lgfc-project-manifest",
+  "title": "LGFC project manifest",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema", "schemaVersion", "parentIssue", "members", "exclusions"],
+  "properties": {
+    "schema": { "const": "project-manifest" },
+    "schemaVersion": { "type": "integer", "minimum": 1 },
+    "parentIssue": { "type": "integer", "minimum": 1 },
+    "members": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "exclusions": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    }
+  }
+}
