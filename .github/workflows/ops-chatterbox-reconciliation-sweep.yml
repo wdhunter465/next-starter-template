@@ -1,6 +1,6 @@
 name: OPS — Chatterbox Reconciliation Sweep (#3845)
 
-# #3794 Layer 4: the self-hosted substitute for a Cloudflare Durable
+# #3845 Layer 4 (origin #3794): the self-hosted substitute for a Cloudflare Durable
 # Object's Alarm API. Runs on a fixed schedule against this branch's own
 # Development deployment — never Production — and does two things:
 #
