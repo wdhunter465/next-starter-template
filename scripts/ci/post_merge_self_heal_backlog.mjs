@@ -395,6 +395,16 @@ export function classifyBacklogIssue(parsed = {}, context = {}) {
 		};
 	}
 
+	if (hasUnsafeOperatorSignal(parsed)) {
+		return {
+			disposition: BACKLOG_DISPOSITIONS.UNSAFE_OPERATOR_REVIEW_REQUIRED,
+			issue_number: parsed.number,
+			source_issue: parsed.source_issue,
+			safe_to_close: false,
+			reason: 'Finding includes operator-authority, secret/config, runtime, production, program-lane, or linkage signals.',
+		};
+	}
+
 	if (sourceIssue && hasOpenSourceTerminalLabelConflict(sourceIssue)) {
 		const terminalLabels = openSourceTerminalLabels(sourceIssue).join(', ');
 		return {
@@ -423,16 +433,6 @@ export function classifyBacklogIssue(parsed = {}, context = {}) {
 			source_issue: parsed.source_issue,
 			safe_to_close: true,
 			reason: `Historical PR-body hygiene finding with closed-complete source issue #${parsed.source_issue}; no actionable post-merge defect remains.`,
-		};
-	}
-
-	if (hasUnsafeOperatorSignal(parsed)) {
-		return {
-			disposition: BACKLOG_DISPOSITIONS.UNSAFE_OPERATOR_REVIEW_REQUIRED,
-			issue_number: parsed.number,
-			source_issue: parsed.source_issue,
-			safe_to_close: false,
-			reason: 'Finding includes operator-authority, secret/config, runtime, production, program-lane, or linkage signals.',
 		};
 	}
 
@@ -569,7 +569,7 @@ export function dispositionComment(entry = {}) {
 				? [
 					'CI is preserving this exception for PMO/source-state reconciliation.',
 					'An OPEN source Issue with terminal labels is not closed-complete evidence.',
-					'Originating-agent ownership is unchanged. Applied `ops-pr-escalation`.',
+					'Originating-agent ownership is unchanged. CI will apply `ops-pr-escalation`.',
 					'This issue will not be rescanned by daily self-healing while `ops-pr-escalation` remains.',
 				].join(' ')
 				: [

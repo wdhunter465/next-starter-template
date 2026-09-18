@@ -151,6 +151,8 @@ post-merge exception issue to a backlog disposition. Execution outcomes:
 | `preserve_ambiguous_evidence` | no | Comment + add `ops-pr-escalation` (and `post-merge-failure` when missing) |
 | `unsafe_operator_review_required` | no | Comment + add `ops-pr-escalation` (and `post-merge-failure` when missing) |
 
+`unsafe_operator_review_required` retains precedence over `preserve_source_state_reconciliation`. An OPEN source Issue with terminal labels does not hide operator-unsafe evidence.
+
 Any issues already labeled `ops-pr-escalation` are excluded from backlog scans.
 Applying the label does not re-trigger `OPS — Post-Merge Self-Healing`.
 

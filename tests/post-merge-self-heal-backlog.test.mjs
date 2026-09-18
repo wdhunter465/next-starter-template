@@ -371,6 +371,40 @@ describe('post-merge self-healing backlog classification', () => {
 		expect(report.summary.auto_close_planned).toBe(0);
 		expect(report.summary.preserved_source_state_reconciliation_issues).toBe(1);
 		expect(dispositionComment(report.classifications[0])).toContain('PMO/source-state reconciliation');
+		expect(dispositionComment(report.classifications[0])).toContain('will apply `ops-pr-escalation`');
+	});
+
+	it('keeps unsafe operator evidence ahead of mixed open/terminal source-state reconciliation', () => {
+		const report = buildBacklogReport({
+			issues: [exceptionIssue({
+				number: 3462,
+				title: 'Post-merge closeout exception for PR #3461 / source #3069 / auth_token_secret_failure',
+				body: [
+					POST_MERGE_EXCEPTION_SIGNATURE,
+					'',
+					'- PR: #3461',
+					'- Source issue: #3069',
+					'## Detected failure condition',
+					'- auth_token_secret_failure: missing token configuration blocks closeout',
+				].join('\n'),
+			})],
+			sourceIssuesByNumber: {
+				3069: {
+					number: 3069,
+					state: 'open',
+					labels: [{ name: 'status:complete' }, { name: 'pmo:closed' }],
+				},
+			},
+			dryRun: true,
+		});
+
+		expect(report.classifications[0]).toMatchObject({
+			disposition: BACKLOG_DISPOSITIONS.UNSAFE_OPERATOR_REVIEW_REQUIRED,
+			safe_to_close: false,
+			source_issue: 3069,
+		});
+		expect(report.summary.unsafe_escalated_issues).toBe(1);
+		expect(report.summary.preserved_source_state_reconciliation_issues).toBe(0);
 	});
 
 	it('safe-closes #3462-shaped exceptions after the source is genuinely closed-complete', () => {
