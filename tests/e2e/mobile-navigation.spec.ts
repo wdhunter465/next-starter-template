@@ -3,7 +3,21 @@ import { expect, test, type Page } from '@playwright/test';
 const STORE_URL = 'https://www.bonfire.com/store/lou-gehrig-fan-club/';
 
 const publicGuestItems = ['Join', 'Search', 'Store', 'Login', 'About', 'Contact'];
-const fanclubItems = ['Club Home', 'My Profile', 'Search', 'Store', 'Logout', 'About', 'Contact'];
+// Must match HAMBURGER_MENU_ITEMS.fanclub labels (src/components/HamburgerMenu.tsx).
+const fanclubItems = [
+  'Club Home',
+  'My Profile',
+  'Photo',
+  'Library',
+  'Memorabilia',
+  'Chat',
+  'Submit',
+  'Search',
+  'Store',
+  'Logout',
+  'About',
+  'Contact',
+];
 
 async function assertNoHorizontalOverflow(page: Page) {
   const overflow = await page.evaluate(() => ({
