@@ -44,7 +44,7 @@ alwaysApply: true
 
 # Bootstrap
 
-Read Agent.md, docs/ops/ai/SHARED-AGENT-RULES.md, docs/ops/ai/CORE-RULES.md,
+Read Agent.md, docs/governance/REPOSITORY-AUTHORITY.md, docs/governance/AGENT-TEAM.md, docs/ops/ai/CORE-RULES.md,
 docs/ops/ai/CURSOR-RULES.md, .agents/skills/lgfc-pr-governance/SKILL.md,
 .github/pull_request_template.md, docs/how-to/cursor/open-task-pr.md.
 ${extra}
@@ -64,12 +64,13 @@ When a Cloud Agent session loads this file, the bootstrap is not complete until 
 Do not merely report that these files are required. Read them before making any repo-work, readiness, implementation, or PR-governance claim:
 
 1. Agent.md
-2. docs/ops/ai/SHARED-AGENT-RULES.md
-3. docs/ops/ai/CORE-RULES.md
-4. docs/ops/ai/CURSOR-RULES.md
-5. .agents/skills/lgfc-pr-governance/SKILL.md
-6. .github/pull_request_template.md
-7. docs/how-to/cursor/open-task-pr.md
+2. docs/governance/REPOSITORY-AUTHORITY.md
+3. docs/governance/AGENT-TEAM.md
+4. docs/ops/ai/CORE-RULES.md
+5. docs/ops/ai/CURSOR-RULES.md
+6. .agents/skills/lgfc-pr-governance/SKILL.md
+7. .github/pull_request_template.md
+8. docs/how-to/cursor/open-task-pr.md
 
 A bootstrap report that says these files are "required but not yet read" is noncompliant.
 
@@ -82,7 +83,8 @@ A bootstrap report that says these files are "required but not yet read" is nonc
 function minimalCanonicalFiles() {
   return {
     'Agent.md': '# Agent\n\n.cursor/rules/\n\nAGENTS.md\n',
-    'docs/ops/ai/SHARED-AGENT-RULES.md': '# shared\n',
+    'docs/governance/REPOSITORY-AUTHORITY.md': '# authority\n',
+    'docs/governance/AGENT-TEAM.md': '# team\n',
     'docs/ops/ai/CORE-RULES.md': '# core\n',
     'docs/ops/ai/CURSOR-RULES.md': '# cursor\n',
     '.agents/skills/lgfc-pr-governance/SKILL.md': '# pr governance\n',
@@ -125,7 +127,7 @@ alwaysApply: false
 
 # Bootstrap
 
-Read Agent.md, docs/ops/ai/SHARED-AGENT-RULES.md, docs/ops/ai/CORE-RULES.md,
+Read Agent.md, docs/governance/REPOSITORY-AUTHORITY.md, docs/governance/AGENT-TEAM.md, docs/ops/ai/CORE-RULES.md,
 docs/ops/ai/CURSOR-RULES.md, .agents/skills/lgfc-pr-governance/SKILL.md,
 .github/pull_request_template.md.
 `,

@@ -4,7 +4,7 @@ Audience: Bill, ChatGPT, Cursor, Codex, LGFC maintainers, and CI/governance impl
 Authority Level: Controlled
 Owns: Draft governance launch-control automation concepts, pseudocode contracts, future file-path map, test strategy, acceptance criteria, and edge-case register for optional post-package implementation
 Does Not Own: Shipped CI scripts, workflow YAML, tests, branch protection settings, or executable enforcement logic
-Canonical Reference: /docs/ops/ai/GOVERNANCE-LAUNCH-CONTROL-PACKAGE.md
+Canonical Reference: /docs/archive/GOVERNANCE-LAUNCH-CONTROL-PACKAGE.md
 Related Issues: #1755, #1500, #1544, #1545, #1546, #1547, #1548
 Last Reviewed: 2026-06-17
 ---
@@ -72,7 +72,7 @@ The following concepts are **design proposals**. None are implemented by issue #
 
 ### Concept A — Package completeness scoring
 
-A validator reads `docs/ops/ai/GOVERNANCE-LAUNCH-CONTROL-PACKAGE.md` and checks for required H2 sections (Purpose through Closeout checklist). Missing sections produce deterministic failure codes.
+A validator reads `docs/archive/GOVERNANCE-LAUNCH-CONTROL-PACKAGE.md` and checks for required H2 sections (Purpose through Closeout checklist). Missing sections produce deterministic failure codes.
 
 ### Concept B — Issue-body structural validation
 
@@ -122,7 +122,7 @@ const REQUIRED_PACKAGE_SECTIONS = [
 ];
 
 const PACKAGE_PATH =
-  'docs/ops/ai/GOVERNANCE-LAUNCH-CONTROL-PACKAGE.md';
+  'docs/archive/GOVERNANCE-LAUNCH-CONTROL-PACKAGE.md';
 
 export function validateLaunchControlPackage({ repoRoot, packagePath = PACKAGE_PATH }) {
   const text = readUtf8(join(repoRoot, packagePath));
@@ -462,7 +462,7 @@ A future authorized implementation issue may be closed when:
 - [ ] No duplicate PR body validation logic outside shared `post_merge_validator.mjs` exports.
 - [ ] Orchestrator returns deterministic failure codes documented in this reference.
 - [ ] CI workflow (if authorized) uses trusted base-ref execution model.
-- [ ] `docs/ops/ai/GOVERNANCE-LAUNCH-CONTROL-PACKAGE.md` updated only if contracts change.
+- [ ] `docs/archive/GOVERNANCE-LAUNCH-CONTROL-PACKAGE.md` updated only if contracts change.
 - [ ] Merge-protection and post-merge surfaces updated only when a new gate becomes blocking (operator action documented).
 - [ ] Issue #1755 reference implementation section cross-linked from implementation PR.
 

@@ -23,4 +23,4 @@ Stop and report instead of continuing when:
 - Do not close or relabel GitHub issues unless explicitly authorized
 - When cloud workflow instructs branch creation, use `cursor/<descriptive-name>-2e48`
 
-Full stop conditions and execution law live in `docs/ops/ai/CORE-RULES.md` and `docs/ops/ai/SHARED-AGENT-RULES.md`.
+Full stop conditions and execution law live in `docs/ops/ai/CORE-RULES.md`.

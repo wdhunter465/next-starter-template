@@ -8,7 +8,7 @@ Canonical Reference: Agent.md
 Last Reviewed: 2026-05-11
 ---
 
-> **SUPERSEDED (#2823, 2026-09-17):** This document is historical/non-authoritative. It is not part of the canonical agent authority chain and must not be used for conflict resolution. Current authority: `Agent.md` (mandatory authority chain) → `docs/governance/REPOSITORY-AUTHORITY.md` (constitutional) → `docs/governance/AGENT-TEAM.md` → `docs/ops/ai/SHARED-AGENT-RULES.md` → `docs/ops/ai/CORE-RULES.md`. Retained only as a historical record of prior cross-agent operating guidance.
+> **SUPERSEDED (#2823, 2026-09-17):** This document is historical/non-authoritative. It is not part of the canonical agent authority chain and must not be used for conflict resolution. Current authority: `Agent.md` (mandatory authority chain) → `docs/governance/REPOSITORY-AUTHORITY.md` (constitutional) → `docs/governance/AGENT-TEAM.md` → `docs/ops/ai/CORE-RULES.md`. Retained only as a historical record of prior cross-agent operating guidance.
 
 # Cross-Agent Operating Rules
 
@@ -18,7 +18,7 @@ This document makes LGFC repository work repeatable across ChatGPT, Codex, Curso
 
 ## Shared rules
 
-All agents must follow [`docs/ops/ai/SHARED-AGENT-RULES.md`](../../docs/ops/ai/SHARED-AGENT-RULES.md) and the detailed rules in [`docs/ops/ai/CORE-RULES.md`](../../docs/ops/ai/CORE-RULES.md).
+All agents must follow the chain in [`Agent.md`](../../Agent.md) and the shared execution rules in [`docs/ops/ai/CORE-RULES.md`](../../docs/ops/ai/CORE-RULES.md).
 
 In addition:
 
