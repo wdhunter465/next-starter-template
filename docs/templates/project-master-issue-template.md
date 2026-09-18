@@ -5,8 +5,8 @@ Authority Level: Controlled Template
 Owns: Required project-master Issue structure, authority identities, documentation inventory, validation, and closeout gates
 Does Not Own: Project-specific product decisions, implementation scope, priority, Production approval, or runtime behavior
 Canonical Reference: /docs/reference/pmo/project-documentation-closeout-contract.md
-Related Issues: #1719, #3050, #3055, #3113
-Last Reviewed: 2026-08-06
+Related Issues: #1719, #3050, #3055, #3113, #3134, #3145
+Last Reviewed: 2026-09-18
 ---
 
 # Project Master Issue Template
@@ -31,9 +31,21 @@ Last Reviewed: 2026-08-06
 
 ## Dependencies and protected boundaries
 
-Record each condition with taxonomy class: advisory prerequisite | ordered predecessor | real collision | protected stop. Ordinary prerequisites are comments or sequencing metadata — not queue-wide `HOLD` or `BLOCKED`.
+Record each condition with taxonomy class: advisory prerequisite | ordered predecessor | real collision | protected stop. Ordinary prerequisites are comments or sequencing metadata — not queue-wide `HOLD` or `BLOCKED`. Preferred serial order is PMO sequencing, not an implementation gate (`docs/governance/PMO-PORTFOLIO.md`, #3134).
 
 When only part of a task is gated, define bounded increments so collision-safe work can proceed.
+
+Live HOLD fields (required as `not applicable` until a hold exists; all six must be real when a hold is live):
+
+- HOLD owner:
+- HOLD evidence:
+  (when live: include why continuation is unsafe or unauthorized)
+- HOLD release condition:
+- HOLD mitigation owner:
+- HOLD parallel-safe work:
+- HOLD disputed-risk decision owner:
+
+Generic `BLOCKED`, `waiting on PMO`, or `pending review` is invalid. Disputed risk: `RISK IDENTIFIED` → `HOLD` | `MITIGATE AND CONTINUE` | `BOUNDED EXCEPTION` | `RESEQUENCE`.
 
 ## Ordered task graph
 

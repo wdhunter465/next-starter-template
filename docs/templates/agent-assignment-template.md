@@ -5,8 +5,8 @@ Authority Level: Operational
 Owns: Standard role-based format for assigning scoped work to current and future LGFC agents and systems
 Does Not Own: Source Issue scope, design authority, current team mapping, implementation decisions, PR approval, merge authority, or closeout policy
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Related Issues: #1449, #2700, #3138
-Last Reviewed: 2026-08-07
+Related Issues: #1449, #2700, #3134, #3138, #3145
+Last Reviewed: 2026-09-18
 ---
 
 # Agent Assignment Template
@@ -214,6 +214,8 @@ For a `project-child` or `child-remediation`, the live Issue must also define:
 
 If any applicable field is absent, record `PACKAGE-INCOMPLETE` and stop before branch creation or editing. Do not infer the value and do not use a generic `BLOCKED` state.
 
+When a stop is live, record the #3134 HOLD contract on the source Issue (`docs/governance/PMO-PORTFOLIO.md`): owner, evidence (including why continuation is unsafe or unauthorized), mitigation owner, release condition, parallel-safe work, and disputed-risk decision owner. `waiting on PMO` and `pending review` are not holds.
+
 ## 12. Pre-Implementation Checkpoint
 
 Before edits or mutations, the assigned role holder records:
@@ -325,6 +327,13 @@ Successor: #____ | terminal | none
 Stage-before-merge: yes | no | not applicable
 Collision constraints: ____ | none
 Halt/resume condition: ____
+HOLD owner: ____ | not applicable
+HOLD evidence: ____ | not applicable
+  (when live: include why continuation is unsafe or unauthorized)
+HOLD release condition: ____ | not applicable
+HOLD mitigation owner: ____ | not applicable
+HOLD parallel-safe work: ____ | not applicable
+HOLD disputed-risk decision owner: ____ | not applicable
 
 Dependency state controls technical continuation. Routine administrative prose does not create a dependency.
 ```
