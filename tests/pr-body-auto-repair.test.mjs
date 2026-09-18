@@ -3,8 +3,10 @@ import {
   AUTO_REPAIR_END,
   AUTO_REPAIR_START,
   canAutoRepairPullRequest,
+  extractCanonicalIntent,
   extractSourceIssue,
   hasHeading,
+  isLiveRequiredChecksClean,
   repairPullRequestBody,
 } from '../scripts/ci/pr_body_auto_repair.mjs';
 
@@ -119,5 +121,103 @@ describe('PR body auto-repair generation', () => {
 
     expect(result.body).toContain('review-comment:3427000000');
     expect(result.body).toContain('auto-generated disposition pending agent completion');
+  });
+
+  it('#3836: clean GitHub-native state cannot retain BLOCKED/halt or inject docs-only on a CI PR', () => {
+    const result = repairPullRequestBody({
+      body: [
+        '- **Issue:** #3836',
+        '- Intent label: intent:ci',
+        '',
+        AUTO_REPAIR_START,
+        '- Status: BLOCKED',
+        '- Continue/halt decision: halt',
+        '## DOCS-ONLY ASSERTION (REQUIRED FOR change-ops)',
+        AUTO_REPAIR_END,
+      ].join('\n'),
+      pull: { ...sameRepoPull, labels: [{ name: 'intent:ci' }] },
+      files: [
+        { filename: '.github/workflows/gate-model-c.yml' },
+        { filename: 'scripts/ci/pr_body_auto_repair.mjs' },
+      ],
+      headSha: 'abc123',
+      liveState: {
+        mergeable: true,
+        mergeableState: 'clean',
+        combinedState: 'success',
+      },
+    });
+
+    expect(result.body).not.toMatch(/^- Status: BLOCKED$/m);
+    expect(result.body).toContain('Status: SCAFFOLD');
+    expect(result.body).toContain('Continue/halt decision: not-applicable');
+    expect(result.body).toContain('Intent conflict:');
+    expect(result.body).toContain('Intent label for this PR: intent:ci');
+    expect(result.body).not.toContain('## DOCS-ONLY ASSERTION (REQUIRED FOR change-ops)');
+    expect(result.body).toContain('GitHub-native required checks currently clean');
+  });
+
+  it('#3832: regenerating the managed block drops stale prior-failure narrative once current head is clean', () => {
+    const result = repairPullRequestBody({
+      body: [
+        '- **Issue:** #3832',
+        AUTO_REPAIR_START,
+        '- Status: BLOCKED',
+        '- Result summary:',
+        '  - PENDING — Model C Documentation failed on previous evaluation',
+        AUTO_REPAIR_END,
+      ].join('\n'),
+      pull: sameRepoPull,
+      files: [{ filename: 'scripts/ci/pr_body_auto_repair.mjs' }],
+      headSha: 'def456',
+      liveState: {
+        mergeable: true,
+        mergeableState: 'clean',
+        combinedState: 'success',
+      },
+    });
+
+    expect(result.body).not.toContain('Model C Documentation failed on previous evaluation');
+    expect(result.body).not.toMatch(/^- Status: BLOCKED$/m);
+    expect(result.body).toContain('Current head SHA: def456');
+    expect(result.body).toContain('Status: SCAFFOLD');
+  });
+
+  it('keeps fail-closed BLOCKED status when required checks are currently failing', () => {
+    const result = repairPullRequestBody({
+      body: '- **Issue:** #3839',
+      pull: sameRepoPull,
+      files: [{ filename: 'scripts/ci/pr_body_auto_repair.mjs' }],
+      headSha: 'abc123',
+      liveState: {
+        mergeable: false,
+        mergeableState: 'blocked',
+        combinedState: 'failure',
+      },
+    });
+
+    expect(result.body).toMatch(/^- Status: BLOCKED$/m);
+    expect(result.body).toContain('Continue/halt decision: halt');
+  });
+
+  it('ignores inferred intent inside the managed block and prefers GitHub labels', () => {
+    const body = [
+      '- **Issue:** #3839',
+      AUTO_REPAIR_START,
+      '- Intent label for this PR: infra',
+      AUTO_REPAIR_END,
+    ].join('\n');
+
+    expect(extractCanonicalIntent({
+      body,
+      labels: [{ name: 'intent:ci' }],
+    })).toBe('intent:ci');
+  });
+
+  it('treats only mergeable_state=clean as live-clean', () => {
+    expect(isLiveRequiredChecksClean({ mergeableState: 'clean', combinedState: 'success' })).toBe(true);
+    expect(isLiveRequiredChecksClean({ mergeableState: 'behind', combinedState: 'success', mergeable: true })).toBe(false);
+    expect(isLiveRequiredChecksClean({ mergeableState: 'unstable', combinedState: 'success', mergeable: true })).toBe(false);
+    expect(isLiveRequiredChecksClean({ mergeableState: 'has_hooks', combinedState: 'success', mergeable: true })).toBe(false);
   });
 });

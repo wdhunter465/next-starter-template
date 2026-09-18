@@ -5,7 +5,7 @@ Authority Level: Operational Reference
 Owns: PR body auto-repair behavior, trusted PR safety limits, managed repair block semantics, reviewer-disposition placeholder behavior
 Does Not Own: Merge authority, issue closeout, label mutation, source issue approval, runtime implementation behavior
 Canonical Reference: /docs/governance/PR_PROCESS.md
-Related Issues: #1715, #1713
+Related Issues: #1715, #1713, #3839
 Last Reviewed: 2026-06-17
 ---
 
@@ -25,7 +25,7 @@ It does not run as a write operation for fork pull requests.
 
 It does not approve, merge, close issues, reopen issues, relabel issues, request reviewers, or mark a pull request ready for review.
 
-It does not decide that a pull request is merge-ready.
+It does not decide that a pull request is merge-ready. GitHub-native required checks, reviews, and branch protection remain the authoritative merge blockers. Generated `Status: BLOCKED` / `halt` lines must reflect *current* live state, not an earlier scaffold snapshot (#3839).
 
 It may generate evidence placeholders that an agent must complete before claiming `READY FOR REVIEW`.
 
