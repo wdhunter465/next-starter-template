@@ -11,6 +11,14 @@ Last Reviewed: 2026-09-17
 
 # Codex local dispatch contract
 
+## Purpose
+
+Define the contract for Codex's local, self-hosted dispatch path so it stays Cursor-parity: label-driven automatic wake, trusted manual recovery, and fail-closed security-negative preflight, without reintroducing the failed #3844 broad event fan-out.
+
+## Scope
+
+Covers the runner, dispatch workflow, event surface, identifiers-only wrapper rules, and health monitoring for the dedicated `lgfc-codex` self-hosted runner (Issue #4052). Does not cover Cursor's own dispatch internals, Production deployment, or the later review/CI/merge wake extension described under "Later extensions" below.
+
 ## Current known truth
 
 Codex local auto-start uses the same control plane as Cursor Phase 4, with Codex-specific labels and CLI:

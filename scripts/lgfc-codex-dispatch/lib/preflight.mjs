@@ -10,6 +10,12 @@ function isCanonicalRemote(url) {
   );
 }
 
+// Strips userinfo (e.g. https://<token>@github.com/...) before a remote URL
+// is ever placed in an error string that might reach logs.
+function redactRemoteUrl(url) {
+  return String(url || '').replace(/^([a-z][a-z0-9+.-]*:\/\/)[^@/]*@/i, '$1');
+}
+
 export function resolveAndValidateWorkspace(explicitWorkspace) {
   const candidates = [
     explicitWorkspace,
@@ -32,7 +38,7 @@ export function resolveAndValidateWorkspace(explicitWorkspace) {
     }
     const url = String(remote.stdout || '').trim();
     if (!isCanonicalRemote(url)) {
-      return { ok: false, error: `unexpected_remote:${url}` };
+      return { ok: false, error: `unexpected_remote:${redactRemoteUrl(url)}` };
     }
 
     const dirty = spawnSync('git', ['-C', abs, 'status', '--porcelain'], {

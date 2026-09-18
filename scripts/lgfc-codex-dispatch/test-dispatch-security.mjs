@@ -157,6 +157,25 @@ test('label wake requires agent:codex and handoff:ready', () => {
   assert.equal(ok.deliver, true);
 });
 
+test('manual workflow_dispatch requires handoff:ready, not just agent:codex', () => {
+  const missingHandoff = shouldDeliverCodexWake({
+    repository: 'wdhunter465/next-starter-template',
+    eventName: 'workflow_dispatch',
+    actor: 'wdhunter465',
+    issueLabels: ['agent:codex']
+  });
+  assert.equal(missingHandoff.deliver, false);
+  assert.equal(missingHandoff.reason, 'absent_codex_routing');
+
+  const ready = shouldDeliverCodexWake({
+    repository: 'wdhunter465/next-starter-template',
+    eventName: 'workflow_dispatch',
+    actor: 'wdhunter465',
+    issueLabels: ['agent:codex', 'handoff:ready']
+  });
+  assert.equal(ready.deliver, true);
+});
+
 test('cursor-routed issues do not wake Codex', () => {
   const decision = shouldDeliverCodexWake({
     repository: 'wdhunter465/next-starter-template',

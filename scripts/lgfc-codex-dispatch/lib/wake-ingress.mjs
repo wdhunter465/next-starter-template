@@ -73,7 +73,7 @@ export function shouldDeliverCodexWake(event = {}) {
     if (!TRUSTED_DISPATCH_ACTORS.includes(event.actor)) {
       return { deliver: false, reason: 'dispatch_actor_not_authorized' };
     }
-    if (!labels.includes(CODEX_AGENT_LABEL)) {
+    if (!hasReadyCodexHandoff({ labels })) {
       return { deliver: false, reason: 'absent_codex_routing' };
     }
     return { deliver: true, reason: 'manual_dispatch_codex_routed' };
