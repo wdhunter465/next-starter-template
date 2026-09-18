@@ -1,4 +1,4 @@
-name: OPS — Chatterbox Reconciliation Sweep (#3794)
+name: OPS — Chatterbox Reconciliation Sweep (#3845)
 
 # #3794 Layer 4: the self-hosted substitute for a Cloudflare Durable
 # Object's Alarm API. Runs on a fixed schedule against this branch's own
@@ -13,10 +13,10 @@ name: OPS — Chatterbox Reconciliation Sweep (#3794)
 #      read-only against GitHub, using the standard Actions GITHUB_TOKEN
 #      rather than binding a GitHub credential into Cloudflare Pages).
 #
-# A GitHub Actions `schedule` trigger only fires for workflows already on
-# the default branch (Jules #3579 JULES-4) -- true here, this file lives on
-# main. #3845: the design itself has lived on main since before #3794
-# closed; only the *target* was still pointed at the throwaway build
+# A GitHub Actions `schedule` trigger only fires after the workflow is merged
+# to the default branch (Jules #3579 JULES-4); it does not run from a
+# non-default branch. #3845: the design itself has lived on main since before
+# #3794 closed; only the *target* was still pointed at the throwaway build
 # branch, which is what this file fixes.
 
 on:
