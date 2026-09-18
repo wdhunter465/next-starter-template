@@ -17,7 +17,7 @@ Documented governance intent and live enforcement can diverge — labels, dashbo
 
 This is not an exhaustive claim of every possible control in the repository. Entries exist only where real evidence was checked — a control not listed here is not thereby claimed compliant; it is simply not yet inventoried. Add rows as controls are verified, not as they are assumed.
 
-## How to read a row
+## Reading a row
 
 - **State** is the actual, checked state as of **Last verified**, not the intended state.
 - **Evidence** is a real, backtick-quoted repository path (script, workflow, or test — e.g. `` `scripts/ci/example.mjs` ``) or a specific, dated observation (e.g., a live PR comment). The automated check (below) only recognizes backtick-quoted paths; a plain-text path is not detected as evidence. A state of Enforced or Verified without a concrete, backtick-quoted evidence path is itself a defect in this table.
