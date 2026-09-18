@@ -21,36 +21,20 @@ name: OPS — Chatterbox Reconciliation Sweep (#3845)
 # which is what this file fixes.
 
 on:
-  # #3845 fixed the target-branch problem #3840 disabled the schedule for
-  # (DEFAULT_TARGET_BRANCH pointing at a dead branch) and re-enabled the
-  # schedule on 2026-09-01. The URL now resolves correctly, but every
-  # scheduled run since has failed at the reconcile call itself:
-  # functions/api/chatterbox/reconcile.ts returns HTTP 404 "room not found"
-  # for the sweep's default room_key (lgfc-website) against the resolved
-  # Development Preview URL, every 30 minutes. Cause not yet root-caused
-  # here -- see #3845's open thread on the related room-bootstrap/auth
-  # failures. Disabling the schedule again (same as #3840) until that's
-  # resolved, via ops-chatterbox-room-bootstrap.yml or otherwise.
-  # workflow_dispatch is untouched for a manual run against an explicit,
-  # real room_key in the meantime.
-  # schedule:
-  #   - cron: '*/30 * * * *'
-  #
-  # The push trigger below hits the exact same broken reconcile call and is
-  # disabled for the same reason: merging PR #4049 (which only killed the
-  # schedule above) still fired this push trigger against its own changed
-  # workflow file and failed with the identical HTTP 404 "room not found"
-  # (run #187, 2026-09-01T18:15Z) -- so any future push to main touching
-  # these paths will alert too, not just the 30-minute schedule. Disabled
-  # until the room-bootstrap/auth work in #3845 is resolved; re-enable both
-  # triggers together at that point. workflow_dispatch remains available.
-  # push:
-  #   branches:
-  #     - main
-  #   paths:
-  #     - '.github/workflows/ops-chatterbox-reconciliation-sweep.yml'
-  #     - 'functions/api/chatterbox/reconcile.ts'
-  #     - 'scripts/ci/chatterbox_reconcile_github.mjs'
+  # Manual dispatch against an explicit room_key remains available.
+  # schedule + push were disabled by #4049/#4050 after HTTP 404 "room not
+  # found". Re-enabled under #3845 after workflow_dispatch run 35352002246
+  # returned HTTP 200 for POST /api/chatterbox/reconcile against
+  # room_key=lgfc-website on main's Preview.
+  schedule:
+    - cron: '*/30 * * * *'
+  push:
+    branches:
+      - main
+    paths:
+      - '.github/workflows/ops-chatterbox-reconciliation-sweep.yml'
+      - 'functions/api/chatterbox/reconcile.ts'
+      - 'scripts/ci/chatterbox_reconcile_github.mjs'
   workflow_dispatch:
     inputs:
       target_branch:
