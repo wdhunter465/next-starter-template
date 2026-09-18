@@ -68,11 +68,15 @@ export async function runPrBodyAutoRepair({
     };
   }
 
-  const [files, issueComments, reviewComments, reviews] = await Promise.all([
+  const sha = pull.head?.sha || '';
+  const [files, issueComments, reviewComments, reviews, combinedStatus] = await Promise.all([
     paginate(`/repos/${owner}/${repo}/pulls/${prNumber}/files`, token),
     paginate(`/repos/${owner}/${repo}/issues/${prNumber}/comments`, token),
     paginate(`/repos/${owner}/${repo}/pulls/${prNumber}/comments`, token),
     paginate(`/repos/${owner}/${repo}/pulls/${prNumber}/reviews`, token),
+    sha
+      ? request(`/repos/${owner}/${repo}/commits/${sha}/status`, token).catch(() => ({ state: '' }))
+      : Promise.resolve({ state: '' }),
   ]);
 
   const result = repairPullRequestBody({
@@ -82,7 +86,13 @@ export async function runPrBodyAutoRepair({
     issueComments,
     reviewComments,
     reviews,
-    headSha: pull.head?.sha || '',
+    headSha: sha,
+    liveState: {
+      mergeable: pull.mergeable,
+      mergeableState: pull.mergeable_state,
+      combinedState: combinedStatus?.state || '',
+      labels: pull.labels || [],
+    },
   });
 
   if (result.changed && !dryRun) {
