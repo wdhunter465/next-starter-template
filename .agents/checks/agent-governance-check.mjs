@@ -21,6 +21,8 @@ export const BOOTSTRAP_REQUIRED_PATH_REFERENCES = [
   'docs/governance/AGENT-TEAM.md',
   'docs/ops/ai/CORE-RULES.md',
   'docs/ops/ai/CURSOR-RULES.md',
+  'docs/ops/ai/CODEX-RULES.md',
+  'docs/ops/ai/CHATGPT-RULES.md',
   '.agents/skills/lgfc-pr-governance/SKILL.md',
   '.github/pull_request_template.md',
   'docs/how-to/cursor/open-task-pr.md',
@@ -32,7 +34,12 @@ export const AGENTS_MD_CLOUD_BOOTSTRAP_REQUIRED_PHRASES = [
   'repo-work, readiness, implementation, or PR-governance claim',
   'required but not yet read',
   'docs/how-to/cursor/open-task-pr.md',
+  'compatibility/router',
+  'applicable product-specific pointer',
+  'Cursor Cloud route',
 ];
+
+export const AGENTS_MD_EXCLUSIVE_CURSOR_STEP5 = /^\s*5\.\s*`?docs\/ops\/ai\/CURSOR-RULES\.md`?\s*$/m;
 
 export const AGENTS_MD_BOOTSTRAP_REPORT_REQUIRED = [
   'AGENTS.md: read',
@@ -244,6 +251,16 @@ export function validateBootstrap(root) {
     ]) {
       if (!agentsMd.includes(reportLine)) {
         failures.push(`AGENTS.md must define bootstrap report contract line: ${reportLine}`);
+      }
+    }
+
+    if (AGENTS_MD_EXCLUSIVE_CURSOR_STEP5.test(agentsMd)) {
+      failures.push('AGENTS.md must not force every product through CURSOR-RULES.md as numbered step 5');
+    }
+
+    for (const productPointer of ['docs/ops/ai/CODEX-RULES.md', 'docs/ops/ai/CHATGPT-RULES.md']) {
+      if (!agentsMd.includes(productPointer)) {
+        failures.push(`AGENTS.md must route the matching product through ${productPointer}`);
       }
     }
   }

@@ -45,7 +45,8 @@ alwaysApply: true
 # Bootstrap
 
 Read Agent.md, docs/governance/REPOSITORY-AUTHORITY.md, docs/governance/AGENT-TEAM.md, docs/ops/ai/CORE-RULES.md,
-docs/ops/ai/CURSOR-RULES.md, .agents/skills/lgfc-pr-governance/SKILL.md,
+docs/ops/ai/CURSOR-RULES.md, docs/ops/ai/CODEX-RULES.md, docs/ops/ai/CHATGPT-RULES.md,
+.agents/skills/lgfc-pr-governance/SKILL.md,
 .github/pull_request_template.md, docs/how-to/cursor/open-task-pr.md.
 ${extra}
 `;
@@ -59,6 +60,8 @@ function minimalAgentsMd() {
 
   return `# AGENTS.md
 
+This file is a compatibility/router layer. Read the applicable product-specific pointer.
+
 When a Cloud Agent session loads this file, the bootstrap is not complete until the agent has read the canonical chain below.
 
 Do not merely report that these files are required. Read them before making any repo-work, readiness, implementation, or PR-governance claim:
@@ -67,12 +70,19 @@ Do not merely report that these files are required. Read them before making any 
 2. docs/governance/REPOSITORY-AUTHORITY.md
 3. docs/governance/AGENT-TEAM.md
 4. docs/ops/ai/CORE-RULES.md
-5. docs/ops/ai/CURSOR-RULES.md
+5. applicable product-specific pointer
+   - Cursor → docs/ops/ai/CURSOR-RULES.md
+   - Codex → docs/ops/ai/CODEX-RULES.md
+   - ChatGPT → docs/ops/ai/CHATGPT-RULES.md
 6. .agents/skills/lgfc-pr-governance/SKILL.md
 7. .github/pull_request_template.md
 8. docs/how-to/cursor/open-task-pr.md
 
 A bootstrap report that says these files are "required but not yet read" is noncompliant.
+
+## Cursor Cloud route
+
+Cursor Cloud only.
 
 ## First bootstrap report
 
@@ -87,6 +97,8 @@ function minimalCanonicalFiles() {
     'docs/governance/AGENT-TEAM.md': '# team\n',
     'docs/ops/ai/CORE-RULES.md': '# core\n',
     'docs/ops/ai/CURSOR-RULES.md': '# cursor\n',
+    'docs/ops/ai/CODEX-RULES.md': '# codex\n',
+    'docs/ops/ai/CHATGPT-RULES.md': '# chatgpt\n',
     '.agents/skills/lgfc-pr-governance/SKILL.md': '# pr governance\n',
     '.github/pull_request_template.md': '# template\n',
     'docs/how-to/cursor/open-task-pr.md': '# open task pr\n',
@@ -218,5 +230,46 @@ ${AGENTS_MD_CLOUD_BOOTSTRAP_REQUIRED_PHRASES.join('\n')}
   it('passes a minimal valid bootstrap fixture', () => {
     const root = makeTempRepo(minimalBootstrapFixture());
     expect(validateBootstrap(root)).toEqual([]);
+  });
+
+  it('rejects AGENTS.md that forces every product through CURSOR-RULES as step 5', () => {
+    const reportLines = [
+      ...AGENTS_MD_BOOTSTRAP_REPORT_REQUIRED,
+      ...AGENTS_MD_PR_BOOTSTRAP_REPORT_REQUIRED,
+    ].join('\n- ');
+    const root = makeTempRepo(minimalBootstrapFixture({
+      'AGENTS.md': `# AGENTS.md
+
+This file is a compatibility/router layer. Read the applicable product-specific pointer.
+
+When a Cloud Agent session loads this file, the bootstrap is not complete until the agent has read the canonical chain below.
+
+Do not merely report that these files are required. Read them before making any repo-work, readiness, implementation, or PR-governance claim:
+
+1. Agent.md
+2. docs/governance/REPOSITORY-AUTHORITY.md
+3. docs/governance/AGENT-TEAM.md
+4. docs/ops/ai/CORE-RULES.md
+5. docs/ops/ai/CURSOR-RULES.md
+6. docs/ops/ai/CODEX-RULES.md
+7. docs/ops/ai/CHATGPT-RULES.md
+8. .agents/skills/lgfc-pr-governance/SKILL.md
+9. .github/pull_request_template.md
+10. docs/how-to/cursor/open-task-pr.md
+
+A bootstrap report that says these files are "required but not yet read" is noncompliant.
+
+## Cursor Cloud route
+
+Cursor Cloud only.
+
+## First bootstrap report
+
+- ${reportLines}
+`,
+    }));
+
+    const failures = validateBootstrap(root);
+    expect(failures.some((failure) => failure.includes('must not force every product through CURSOR-RULES.md'))).toBe(true);
   });
 });

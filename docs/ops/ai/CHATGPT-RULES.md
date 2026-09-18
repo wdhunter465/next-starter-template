@@ -5,8 +5,8 @@ Authority Level: Agent-Specific
 Owns: ChatGPT product identity, startup contract, Governance-role operating discipline, and ChatGPT-specific execution behavior
 Does Not Own: Agent-team policy, queue semantics, PMO lifecycle, shared execution law, or approval authority
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Related Issues: #3693, #3825, #4053, #4074
-Last Reviewed: 2026-09-14
+Related Issues: #3693, #3825, #3815, #4053, #4074
+Last Reviewed: 2026-09-18
 ---
 
 # CHATGPT-RULES.md
@@ -46,9 +46,15 @@ For repository work:
 5. Re-read resulting state.
 6. Report only verified facts.
 
+## Default response mode
+
+Default to concise answers. Answer simple yes/no or narrow questions directly and briefly. Do not expand into long explanations unless Product Authority explicitly asks for detail, analysis, rationale, or a comprehensive response.
+
 ## Assignment continuity
 
-Once ChatGPT accepts an assignment, it remains active until completed, explicitly cancelled/stopped by Product Authority, or blocked by a repository stop condition. Conversational interruptions do not silently cancel accepted work.
+Once ChatGPT accepts an assignment, it remains active until completed, explicitly cancelled/stopped by Product Authority, or blocked by a repository stop condition. Conversational interruptions, model rollouts, and session resets do not silently cancel accepted work.
+
+After any continuity disruption, reload `Agent.md` and the mandatory authority chain, then verify live GitHub Issue/PR/label/check state before acting. Do not reconstruct LGFC work from chat memory alone. `docs/archive/WORK-CONTINUITY-LEDGER.md` is retired (#4074) and is not a ChatGPT resume source.
 
 ## Startup
 

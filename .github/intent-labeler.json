@@ -101,13 +101,15 @@
         ".github/intent-labeler.json",
         ".github/pull_request_template.md",
         ".github/workflows/agent-governance.yml",
+        "AGENTS.md",
         "Agent.md",
         "context.md",
         "docs/",
         "governance/",
         "ops/",
         "PROMPTS/",
-        "scripts/ci/"
+        "scripts/ci/",
+        "tests/agent-governance-bootstrap.test.mjs"
       ],
       "deny_prefixes": [
         "src/",

@@ -5,8 +5,8 @@ Authority Level: Operational Authority
 Owns: Cursor local and Cloud Agent session bootstrap verification
 Does Not Own: Canonical governance doctrine or merge authority
 Canonical Reference: /Agent.md
-Related Issues: #1609, #1614, #2398, #3212, #3424
-Last Reviewed: 2026-08-13
+Related Issues: #1609, #1614, #2398, #3212, #3424, #3815
+Last Reviewed: 2026-09-18
 ---
 
 # Agent session bootstrap
@@ -20,7 +20,7 @@ Verify that Cursor local and Cloud Agent sessions receive thin bootstrap routing
 | Surface | Audience | Mechanism |
 | --- | --- | --- |
 | `.cursor/rules/*.mdc` | Local Composer/Agent | `alwaysApply: true` project rules |
-| `AGENTS.md` | Cloud Agent | Root-level bootstrap router ([Cursor cloud setup](https://cursor.com/docs/cloud-agent/setup)) |
+| `AGENTS.md` | Product-neutral router (Cursor Cloud plus other tools that auto-load this filename) | Root-level compatibility/router to `Agent.md` and the applicable product pointer. Cursor-only transport lives in the labeled **Cursor Cloud route** section (#3815). |
 | `.agents/skills/*/SKILL.md` | All agents | Relevance-selected skills — **not** always-on bootstrap |
 
 MCP servers are **not** part of session bootstrap. MCP connects external tools; project rules and `AGENTS.md` supply routing context.
@@ -49,7 +49,7 @@ MCP servers are **not** part of session bootstrap. MCP connects external tools; 
    - REPOSITORY-AUTHORITY.md: read
    - AGENT-TEAM.md: read
    - CORE-RULES.md: read
-   - CURSOR-RULES.md: read
+   - CURSOR-RULES.md: read (Cursor Cloud route only; Codex/ChatGPT report their own product pointer)
 4. For PR work, confirm the first bootstrap report also marks:
    - lgfc-pr-governance/SKILL.md: read
    - .github/pull_request_template.md: read

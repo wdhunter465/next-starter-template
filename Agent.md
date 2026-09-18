@@ -5,8 +5,8 @@ Authority Level: Navigation
 Owns: Read order, authority routing, lane/profile identification, execution entry point
 Does Not Own: Role policy, execution rules, design authority, communication policy, delivery policy, or governance decisions
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2640, #2641, #2686, #2690, #3052, #3138, #3142, #3693, #3755, #4126
-Last Reviewed: 2026-08-26
+Related Issues: #2640, #2641, #2686, #2690, #3052, #3138, #3142, #3693, #3755, #3815, #4126
+Last Reviewed: 2026-09-18
 ---
 
 # Agent.md
@@ -50,7 +50,7 @@ Before repository work—including exploration, design, Sandbox, implementation,
 4. `docs/ops/ai/CORE-RULES.md`
 5. Applicable tool-specific pointer:
    - `docs/ops/ai/CHATGPT-RULES.md`
-   - `docs/ops/ai/WORK-RULES.md`
+   - `docs/ops/ai/WORK-RULES.md` (retired #4074; historical only)
    - `docs/ops/ai/CURSOR-RULES.md`
    - `docs/ops/ai/CODEX-RULES.md`
    - `docs/ops/ai/CLAUDE-CODE-RULES.md`
