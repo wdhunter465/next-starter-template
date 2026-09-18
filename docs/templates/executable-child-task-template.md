@@ -5,8 +5,8 @@ Authority Level: Operational
 Owns: Package-complete project-child and child-remediation Issue format
 Does Not Own: Project Graduation, priority, Product/Production decisions, PR approval, or merge authority
 Canonical Reference: /docs/governance/WORK-QUEUES-AND-COLLABORATION.md
-Related Issues: #3055, #3113, #3665
-Last Reviewed: 2026-08-06
+Related Issues: #3055, #3113, #3134, #3145, #3665
+Last Reviewed: 2026-09-18
 ---
 
 # Executable Child Task Template
@@ -65,7 +65,14 @@ The machine-readable projection of this template's required fields, plus determi
 - Protected Product/Production/legal/privacy/rights/cost/provider/credential/destructive-data/public-claim boundaries: ____
 - Stop conditions: ____
 - Bounded increment split (when only part is gated): ____ | not applicable
-- HOLD owner, evidence, and release condition when applicable (protected stop or real collision only): ____ | not applicable
+- HOLD owner: ____ | not applicable
+- HOLD evidence: ____ | not applicable
+- HOLD release condition: ____ | not applicable
+- HOLD mitigation owner: ____ | not applicable
+- HOLD parallel-safe work: ____ | not applicable
+- HOLD disputed-risk decision owner: ____ | not applicable
+
+A live `HOLD` requires every HOLD field above with real values. Canonical contract: `docs/governance/PMO-PORTFOLIO.md` (#3134). Generic `BLOCKED`, `waiting on PMO`, or `pending review` is invalid. Disputed risk uses `RISK IDENTIFIED` and a recorded `HOLD` | `MITIGATE AND CONTINUE` | `BOUNDED EXCEPTION` | `RESEQUENCE` decision.
 
 ## Independent review
 
@@ -88,7 +95,7 @@ Record on the live Issue before branch creation or editing:
 - protected-stop check;
 - validation and rollback confirmation.
 
-Result: `PASS` | `PACKAGE-INCOMPLETE` | `HOLD` (evidence-specific protected stop or real collision only)
+Result: `PASS` | `PACKAGE-INCOMPLETE` | `HOLD` (evidence-specific protected stop or real collision only; HOLD contract complete)
 
 ## Implementation handoff packet
 
@@ -106,7 +113,7 @@ Result: `PASS` | `PACKAGE-INCOMPLETE` | `HOLD` (evidence-specific protected stop
 
 WORK independently reviews the source package, final diff, tests, checks, review dispositions, integration identity, post-integration evidence, documentation, rollback, and unresolved exceptions when substantive assurance is required or a discrepancy appears.
 
-Disposition: `ACCEPT` | `HOLD` (protected stop or real collision only) | `REMEDIATE` | `VERIFY MORE`
+Disposition: `ACCEPT` | `HOLD` (HOLD contract complete) | `REMEDIATE` | `VERIFY MORE` | `MITIGATE AND CONTINUE` | `BOUNDED EXCEPTION` | `RESEQUENCE`
 
 On deterministic predecessor completion (and on `ACCEPT` when a substantive gate applies):
 

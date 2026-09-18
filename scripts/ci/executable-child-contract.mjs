@@ -13,7 +13,8 @@ export const CONTRACT_STATUS = Object.freeze({
   PACKAGE_COMPLETE: 'PACKAGE-COMPLETE',
   PACKAGE_INCOMPLETE: 'PACKAGE-INCOMPLETE',
   LIFECYCLE_CONTRADICTION: 'LIFECYCLE-CONTRADICTION',
-  INVALID_QUEUE_STATE: 'INVALID-QUEUE-STATE'
+  INVALID_QUEUE_STATE: 'INVALID-QUEUE-STATE',
+  INVALID_HOLD: 'INVALID-HOLD'
 });
 
 /**
@@ -60,6 +61,15 @@ export const CONTRACT_FIELDS = Object.freeze([
   {
     key: 'completionEvidence',
     labels: ['durable evidence location', 'completion evidence']
+  },
+  { key: 'holdOwner', labels: ['hold owner'] },
+  { key: 'holdEvidence', labels: ['hold evidence'] },
+  { key: 'holdReleaseCondition', labels: ['hold release condition'] },
+  { key: 'holdMitigationOwner', labels: ['hold mitigation owner'] },
+  { key: 'holdParallelSafeWork', labels: ['hold parallel-safe work'] },
+  {
+    key: 'holdDisputedRiskDecisionOwner',
+    labels: ['hold disputed-risk decision owner']
   }
 ]);
 
@@ -140,6 +150,72 @@ export function validatePackageCompleteness(issue = {}) {
     present,
     missing,
     values,
+    errors,
+    remediation
+  };
+}
+
+const GENERIC_ADMIN_BLOCK_RE =
+  /\b(?:waiting on pmo|pending review|generic blocked)\b/i;
+const BLOCKED_STATE_RE =
+  /^\s*-?\s*(?:disposition|status|state|halt(?:\/resume)? condition)\s*:.*\bblocked\b/im;
+const HOLD_FIELD_KEYS = Object.freeze([
+  'holdOwner',
+  'holdEvidence',
+  'holdReleaseCondition',
+  'holdMitigationOwner',
+  'holdParallelSafeWork',
+  'holdDisputedRiskDecisionOwner'
+]);
+
+function isNotApplicableHoldValue(value = '') {
+  return /^(?:not applicable|n\/a|none|none identified)$/i.test(String(value || '').trim());
+}
+
+function isLiveHoldValue(value = '') {
+  return hasRealContent(value) && !isNotApplicableHoldValue(value);
+}
+
+/**
+ * #3134: generic BLOCKED / waiting-on-PMO language is not a hold.
+ * A live HOLD requires all six contract fields with non-generic evidence.
+ *
+ * @param {{ body?: string, values?: Record<string, string|null> }} input
+ */
+export function validateHoldContract(input = {}) {
+  const body = input.body || '';
+  const values = input.values || parseContractFields(body).values;
+  const errors = [];
+  const remediation = [];
+
+  const liveValues = HOLD_FIELD_KEYS.map((key) => values[key] || '').filter(isLiveHoldValue);
+  const liveHold = liveValues.length > 0;
+
+  if (liveHold) {
+    const incomplete = HOLD_FIELD_KEYS.filter((key) => !isLiveHoldValue(values[key]));
+    if (incomplete.length) {
+      errors.push(`live HOLD is missing required contract field(s): ${incomplete.join(', ')}`);
+      remediation.push(
+        'Complete HOLD owner, evidence, release condition, mitigation owner, parallel-safe work, and disputed-risk decision owner (docs/governance/PMO-PORTFOLIO.md)'
+      );
+    }
+    for (const key of HOLD_FIELD_KEYS) {
+      const value = values[key] || '';
+      if (isLiveHoldValue(value) && GENERIC_ADMIN_BLOCK_RE.test(value)) {
+        errors.push(`HOLD field ${key} uses generic administrative block language`);
+        remediation.push('Replace waiting-on-PMO / pending-review wording with specific evidence and a release condition');
+      }
+    }
+  }
+
+  if (BLOCKED_STATE_RE.test(body) && !liveHold) {
+    errors.push('generic BLOCKED state is prohibited without a complete HOLD contract');
+    remediation.push('Use PACKAGE-INCOMPLETE for missing fields or a complete HOLD contract for a named stop');
+  }
+
+  return {
+    ok: errors.length === 0,
+    liveHold,
     errors,
     remediation
   };
@@ -263,12 +339,14 @@ export function evaluateExecutableChildContract(issue = {}) {
   const queue = analyzeQueueLabels({ labels: issue.labels, role: 'task' });
   const lifecycle = detectLifecycleContradiction(issue);
   const pkg = validatePackageCompleteness(issue);
+  const hold = validateHoldContract({ body: issue.body || '', values: pkg.values });
 
-  const errors = [...queue.errors, ...lifecycle.contradictions, ...pkg.errors];
+  const errors = [...queue.errors, ...lifecycle.contradictions, ...pkg.errors, ...hold.errors];
   const remediation = [
     ...queue.remediation,
     ...lifecycle.remediation,
-    ...pkg.remediation
+    ...pkg.remediation,
+    ...hold.remediation
   ];
 
   let status;
@@ -278,6 +356,8 @@ export function evaluateExecutableChildContract(issue = {}) {
     status = CONTRACT_STATUS.LIFECYCLE_CONTRADICTION;
   } else if (!pkg.complete) {
     status = CONTRACT_STATUS.PACKAGE_INCOMPLETE;
+  } else if (!hold.ok) {
+    status = CONTRACT_STATUS.INVALID_HOLD;
   } else {
     status = CONTRACT_STATUS.PACKAGE_COMPLETE;
   }
@@ -288,6 +368,7 @@ export function evaluateExecutableChildContract(issue = {}) {
     queue,
     lifecycle,
     package: pkg,
+    hold,
     errors: [...new Set(errors)],
     remediation: [...new Set(remediation)]
   };

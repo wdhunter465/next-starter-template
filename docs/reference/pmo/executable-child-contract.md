@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: Canonical machine-readable executable project/child contract fields, package-completeness validation, and lifecycle-state consistency validation
 Does Not Own: Project Graduation, priority, Product/Production decisions, PR approval, merge authority, or the human-facing child task template
 Canonical Reference: /docs/governance/WORK-QUEUES-AND-COLLABORATION.md
-Related Issues: #3665, #3055, #3113, #2724, #3240
-Last Reviewed: 2026-08-24
+Related Issues: #3665, #3055, #3113, #3134, #3145, #2724, #3240
+Last Reviewed: 2026-09-18
 ---
 
 # Executable Child Contract
@@ -95,6 +95,14 @@ unfilled blank.
 | `reviewerRequirement` | `Independent reviewer role holder`, `Required review/check evidence`, `Collaboration/reviewer requirement` | The independent-review requirement |
 | `successor` | `Successor` | The successor child, or `terminal` |
 | `completionEvidence` | `Durable evidence location`, `Completion evidence` | Where durable completion evidence is recorded |
+| `holdOwner` | `HOLD owner` | Owner of a live hold, or `not applicable` |
+| `holdEvidence` | `HOLD evidence` | Evidence for the named stop, or `not applicable` |
+| `holdReleaseCondition` | `HOLD release condition` | Release condition, or `not applicable` |
+| `holdMitigationOwner` | `HOLD mitigation owner` | Mitigation owner, or `not applicable` |
+| `holdParallelSafeWork` | `HOLD parallel-safe work` | Work that may continue, or `not applicable` |
+| `holdDisputedRiskDecisionOwner` | `HOLD disputed-risk decision owner` | Decision owner for `RISK IDENTIFIED`, or `not applicable` |
+
+A live HOLD requires all six HOLD fields with real, non-generic values. Canonical policy: `docs/governance/PMO-PORTFOLIO.md` (#3134). Generic `BLOCKED`, `waiting on PMO`, or `pending review` fails closed (`INVALID-HOLD`).
 
 Authors using `docs/templates/executable-child-task-template.md` already
 produce most of these fields inline. For the two fields that template
@@ -107,7 +115,7 @@ prose bullet list.
 ## Package-completeness validation
 
 `validatePackageCompleteness(issue)` in
-`scripts/ci/executable-child-contract.mjs` parses the twelve fields above
+`scripts/ci/executable-child-contract.mjs` parses the eighteen fields above
 and returns `complete: false` with an actionable `missing` field list and
 `remediation` guidance when any field is absent or placeholder-only. A
 child fails closed (`PACKAGE-INCOMPLETE`) rather than being silently routed
