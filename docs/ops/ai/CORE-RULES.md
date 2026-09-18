@@ -4,7 +4,7 @@ Audience: All AI Agents
 Authority Level: Core
 Owns: Shared execution rules, enforcement model, PR discipline, stop conditions, shared product-startup framework
 Does Not Own: Design authority, platform configuration, tracker content
-Canonical Reference: /docs/ops/ai/SHARED-AGENT-RULES.md
+Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
 Related Issues: #3055, #3113, #3117, #3138, #3142, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4074, #4099, #4131
 Last Reviewed: 2026-09-17
 ---
@@ -15,17 +15,17 @@ Last Reviewed: 2026-09-17
 
 This document is the **detailed expansion** of shared AI-agent execution rules, including PR discipline, verification behavior, drift prevention, PR gate-readiness troubleshooting, and mandatory stop conditions.
 
-For the categorized shared agent law index (evidence-first work, one issue per PR, parser-safe PR bodies, gates, documentation taxonomy, ZIP safety, secrets, and scope boundaries), read [`SHARED-AGENT-RULES.md`](./SHARED-AGENT-RULES.md) first. Keep both documents aligned; do not weaken restrictions in either file.
+This file is the shared execution law. Do not treat retired pointer files as competing policy. Keep this document aligned with `Agent.md` and `docs/governance/REPOSITORY-AUTHORITY.md`; do not weaken restrictions.
 
 ## Mandatory documentation chain
 
 Before any repo work, every agent must follow the chain defined in [`Agent.md`](../../../Agent.md):
 
-[`Agent.md`](../../../Agent.md) → [`SHARED-AGENT-RULES.md`](./SHARED-AGENT-RULES.md) → this document → applicable agent-specific rule file → applicable repo governance/procedure docs → applicable `.agents/skills/*/SKILL.md` files.
+[`Agent.md`](../../../Agent.md) → [`docs/governance/REPOSITORY-AUTHORITY.md`](../../governance/REPOSITORY-AUTHORITY.md) → [`docs/governance/AGENT-TEAM.md`](../../governance/AGENT-TEAM.md) → this document → applicable agent-specific rule file → applicable repo governance/procedure docs → applicable `.agents/skills/*/SKILL.md` files.
 
 Rules:
 
-- Start at `Agent.md`; do not skip shared or core rules.
+- Start at `Agent.md`; do not skip core rules.
 - Agent-specific rules are additive; they never replace shared law or repo governance.
 - For PR, issue, review, remediation, and implementation work, read `.agents/skills/lgfc-pr-governance/SKILL.md` and `.github/pull_request_template.md` before opening or updating a PR.
 - Task prompts and subagent instructions do not override this chain.
@@ -324,7 +324,7 @@ ChatGPT holds PMO / Governance, PR Approver / Engineering, Administration & Comm
 
 # AGENT ROUTING PRIORITY
 
-LGFC implementation routing is defined in [`LGFC-AI-TEAM-OPERATING-MODEL.md`](./LGFC-AI-TEAM-OPERATING-MODEL.md) (issue #1754, superseded) and [`docs/governance/AGENT-TEAM.md`](../../governance/AGENT-TEAM.md) (current).
+LGFC implementation routing is defined in [`docs/archive/LGFC-AI-TEAM-OPERATING-MODEL.md`](../../archive/LGFC-AI-TEAM-OPERATING-MODEL.md) (issue #1754, superseded/historical) and [`docs/governance/AGENT-TEAM.md`](../../governance/AGENT-TEAM.md) (current).
 
 All LGFC implementation tasks (website, repository, ops, CI, and docs implementation):
 

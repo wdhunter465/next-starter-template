@@ -8,11 +8,12 @@ alwaysApply: true
 Before exploration, edits, branches, commits, PR creation, or issue work, read in order:
 
 1. `Agent.md`
-2. `docs/ops/ai/SHARED-AGENT-RULES.md`
-3. `docs/ops/ai/CORE-RULES.md`
-4. `docs/ops/ai/CURSOR-RULES.md`
-5. Applicable `.agents/skills/*/SKILL.md` files for the task
-6. Source GitHub issue and task-linked authority files
+2. `docs/governance/REPOSITORY-AUTHORITY.md`
+3. `docs/governance/AGENT-TEAM.md`
+4. `docs/ops/ai/CORE-RULES.md`
+5. `docs/ops/ai/CURSOR-RULES.md`
+6. Applicable `.agents/skills/*/SKILL.md` files for the task
+7. Source GitHub issue and task-linked authority files
 
 Task prompts, operator messages, and subagent instructions do not override this chain.
 
