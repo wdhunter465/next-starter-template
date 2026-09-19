@@ -10,14 +10,13 @@ on:
         required: true
         type: string
       agent:
-        description: "Agent route: cursor, copilot, or codex"
+        description: "Agent route: cursor or copilot"
         required: true
         default: "cursor"
         type: choice
         options:
           - cursor
           - copilot
-          - codex
       title:
         description: "Implementation issue title"
         required: true
@@ -71,7 +70,6 @@ jobs:
 
             case ",$PR_LABELS," in
               *,agent-next:copilot,*) agent="copilot" ;;
-              *,agent-next:codex,*) agent="codex" ;;
               *,agent-next:cursor,*) agent="cursor" ;;
             esac
 
@@ -81,7 +79,7 @@ jobs:
           fi
 
           case "$agent" in
-            cursor|copilot|codex) ;;
+            cursor|copilot) ;;
             *)
               echo "Unsupported agent route: $agent"
               exit 1
@@ -109,9 +107,6 @@ jobs:
             printf '## Agent Handoff\n'
             if [ "$agent" = "cursor" ]; then
               printf '%s\n' "@cursor Please take this issue. Follow the task body exactly. Create a working branch and open a PR against main when complete. Do not expand scope."
-            fi
-            if [ "$agent" = "codex" ]; then
-              printf '%s\n' "Codex route selected. Use the Codex-enabled repository workflow or assigned agent queue for execution."
             fi
             if [ "$agent" = "copilot" ]; then
               printf '%s\n' "Copilot route selected. Assigning to copilot-swe-agent[bot] where repository permissions allow."
@@ -209,12 +204,6 @@ jobs:
             gh issue edit "$ISSUE_NUMBER" \
               --repo "${{ github.repository }}" \
               --add-assignee "copilot-swe-agent[bot]" || true
-          fi
-
-          if [ "$AGENT" = "codex" ]; then
-            gh issue comment "$ISSUE_NUMBER" \
-              --repo "${{ github.repository }}" \
-              --body "Codex route selected. Execute this issue through the repository Codex workflow or Codex agent queue."
           fi
 
       - name: Comment orchestration result on source PR

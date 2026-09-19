@@ -167,7 +167,7 @@ At every safe task boundary the agent:
 3. selects the next executable item;
 4. preserves waiting items for later gate/review/post-merge follow-through.
 
-This applies to Codex, Cursor, Claude Code, Grok, and other role holders according to their mapped eligibility.
+This applies to Cursor, Claude Code, Grok, and other live role holders according to their mapped eligibility. Codex is retired (#4165) and is not a live role holder.
 
 ## Universal collaboration
 

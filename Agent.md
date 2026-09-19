@@ -52,7 +52,7 @@ Before repository work—including exploration, design, Sandbox, implementation,
    - `docs/ops/ai/CHATGPT-RULES.md`
    - `docs/ops/ai/WORK-RULES.md` (retired #4074; historical only)
    - `docs/ops/ai/CURSOR-RULES.md`
-   - `docs/ops/ai/CODEX-RULES.md`
+   - `docs/ops/ai/CODEX-RULES.md` (retired #4165; historical only)
    - `docs/ops/ai/CLAUDE-CODE-RULES.md`
    - `docs/ops/ai/COPILOT-RULES.md`
    - `docs/ops/ai/DEVIN-RULES.md`
@@ -165,8 +165,8 @@ Administration & Communications spans all steps.
 When Product Authority says `run startup`, the literal command resolves according to the active product. Each recognized product identifies itself and performs its own product-specific orientation-only startup, then stops:
 
 - ChatGPT: `docs/ops/ai/CHATGPT-RULES.md`
-- Work: `docs/ops/ai/WORK-RULES.md`
-- Codex: `docs/ops/ai/CODEX-RULES.md`
+- Work: `docs/ops/ai/WORK-RULES.md` (retired #4074; historical only)
+- Codex: `docs/ops/ai/CODEX-RULES.md` (retired #4165; historical only)
 - Claude Code: `docs/ops/ai/CLAUDE-CODE-RULES.md`
 - Cursor: existing bootstrap, unchanged (`AGENTS.md` for Cloud, `.cursor/rules/*.mdc` for Local)
 - Claude (conversational): no product-specific startup contract; outside the operational delivery chain unless bounded collaboration is authorized

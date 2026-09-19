@@ -2,7 +2,7 @@
 Doc Type: Governance Standard
 Audience: Human + AI
 Authority Level: Binding
-Owns: Cross-agent execution fidelity — approved-action contracts, literal execution of agreed elements, end-state reconciliation, blocker handling, and completion semantics for WORK, Cursor, Claude Code, Codex, and future LGFC agents
+Owns: Cross-agent execution fidelity — approved-action contracts, literal execution of agreed elements, end-state reconciliation, blocker handling, and completion semantics for live LGFC agents and future members mapped in AGENT-TEAM.md
 Does Not Own: Role mapping, merge authority, Product direction, assignment priority, PR process redesign, or incidental implementation details intentionally left open inside an approved contract
 Canonical Reference: /Agent.md
 Related Issues: #3138
@@ -29,7 +29,7 @@ This standard is the single, stable source of the execution-fidelity contract fo
 
 ## Scope
 
-Applies to every LGFC agent and runtime that executes repository work under the mandatory authority chain, including WORK, Cursor (local/cloud), Claude Code, Codex, Copilot, Devin, and future members mapped in `docs/governance/AGENT-TEAM.md`.
+Applies to every live LGFC agent and runtime that executes repository work under the mandatory authority chain, including Cursor (local/cloud), Claude Code, ChatGPT, Copilot, Devin, and future members mapped in `docs/governance/AGENT-TEAM.md`. Retired products (WORK #4074, Codex #4165) are not live executors.
 
 Does not redesign agent-team roles, merge authority, assignment priority, or unrelated PR governance.
 

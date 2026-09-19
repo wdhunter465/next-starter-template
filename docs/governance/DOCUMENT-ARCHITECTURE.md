@@ -76,7 +76,7 @@ Until migrated under an explicit delivery-system child issue, these interim cano
 - `CORE-RULES.md`
 - `CHATGPT-RULES.md`
 - `CURSOR-RULES.md`
-- `CODEX-RULES.md`
+- `CODEX-RULES.md` (retired #4165; historical pointer only)
 - `COPILOT-RULES.md`
 - `DEVIN-RULES.md`
 

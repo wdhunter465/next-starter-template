@@ -26,7 +26,7 @@ function queryFor(statuses) {
 describe('orchestrator issue creation queue model', () => {
 	it('labels the first produced task as queued and subsequent tasks as blocked', () => {
 		const tasks = [
-			{ type: 'repository', agent: 'codex' },
+			{ type: 'repository', agent: 'cursor' },
 			{ type: 'website', agent: 'cursor' },
 			{ type: 'docs', agent: 'ChatGPT' },
 		];
@@ -42,7 +42,7 @@ describe('orchestrator issue creation queue model', () => {
 
 	it('labels every produced task as blocked when an orchestrator issue is already open', () => {
 		const tasks = [
-			{ type: 'repository', agent: 'codex' },
+			{ type: 'repository', agent: 'cursor' },
 			{ type: 'website', agent: 'cursor' },
 		];
 
@@ -114,7 +114,7 @@ describe('orchestrator draft PR preflight model', () => {
 describe('orchestrator queue advancement', () => {
 	it('keeps a three-task queue serial until merge verification completes, then queues the next task', () => {
 		const tasks = [
-			{ type: 'repository', agent: 'codex' },
+			{ type: 'repository', agent: 'cursor' },
 			{ type: 'website', agent: 'cursor' },
 			{ type: 'docs', agent: 'ChatGPT' },
 		];

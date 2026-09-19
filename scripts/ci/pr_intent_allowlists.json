@@ -111,29 +111,6 @@
       "deny_prefixes": [
         ".github/workflows/gate-"
       ]
-    },
-    "codex": {
-      "allow_prefixes": [
-        ".agents/",
-        ".github/copilot-instructions.md",
-        ".github/agents/",
-        ".github/intent-labeler.json",
-        ".github/workflows/agent-governance.yml",
-        "AGENTS.md",
-        "Agent.md",
-        "context.md",
-        "docs/",
-        "governance/",
-        "ops/",
-        "PROMPTS/",
-        "scripts/ci/",
-        "tests/agent-governance-bootstrap.test.mjs",
-        "tests/agent-config-validate.test.mjs"
-      ],
-      "deny_prefixes": [
-        "src/",
-        "functions/"
-      ]
     }
   }
 }

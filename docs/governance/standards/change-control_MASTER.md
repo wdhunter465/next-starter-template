@@ -30,7 +30,7 @@ Define how production changes are proposed, reviewed, executed, verified, and (i
 - PR templates and file-touch allowlists are enforced by CI (drift gates).
 
 ## Standard change flow (Day-2 Operations)
-1. **Classify**: choose the single intent label that matches the work (infra/docs-only/feature/change-ops/platform/codex).
+1. **Classify**: choose the single intent label that matches the work (infra/docs-only/feature/change-ops/platform/recovery).
 2. **Scope-lock**: define the exact files allowed to change (must satisfy drift gate).
 3. **Execute**: apply the minimum change set.
 4. **Verify**: run required checks and post-merge verification (see `/docs/governance/verification-criteria_MASTER.md`).

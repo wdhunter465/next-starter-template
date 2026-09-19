@@ -5,8 +5,8 @@ Authority Level: Core
 Owns: Shared execution rules, enforcement model, PR discipline, stop conditions, shared product-startup framework
 Does Not Own: Design authority, platform configuration, tracker content
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3055, #3113, #3117, #3134, #3138, #3142, #3145, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4074, #4099, #4131
-Last Reviewed: 2026-09-18
+Related Issues: #3055, #3113, #3117, #3134, #3138, #3142, #3145, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4074, #4099, #4131, #4165
+Last Reviewed: 2026-09-19
 ---
 
 # CORE-RULES.md
@@ -143,7 +143,7 @@ All agents must follow the execution pattern that has produced the lowest-fricti
 8. Do not include unrelated tracker, documentation, runtime, workflow, or cleanup edits.
 9. When the scoped PR is ready for review or blocked by a documented gate, stop *that Issue's implementation* and immediately return to the remaining assigned/resume queue (#3605). Select `nextExecutable`; do not wait silently on independent review (#3611). Do not idle the session.
 
-This standard applies to Cursor, Codex, ChatGPT, Copilot, and any future implementation agent.
+This standard applies to Cursor, ChatGPT, Copilot, Claude Code, and any future implementation agent.
 
 ---
 
@@ -328,14 +328,14 @@ LGFC implementation routing is defined in [`docs/archive/LGFC-AI-TEAM-OPERATING-
 
 All LGFC implementation tasks (website, repository, ops, CI, and docs implementation):
 
-1. **Cursor Local** and **Claude Code** = co-equal active LGFC standing implementation executors relative to each other, each assigned bounded work through its own source Issue; neither is sole executor as of the 2026-08 multi-agent parallel-operation decision (#3052). A single task is assigned to exactly one executor; parallel operation means concurrent, non-overlapping assignments, not shared ownership of the same Issue. This item does not make Cursor Local/Claude Code the exhaustive set of standing executors — see item 3 for Codex.
+1. **Cursor Local** and **Claude Code** = co-equal active LGFC standing implementation executors relative to each other, each assigned bounded work through its own source Issue; neither is sole executor as of the 2026-08 multi-agent parallel-operation decision (#3052). A single task is assigned to exactly one executor; parallel operation means concurrent, non-overlapping assignments, not shared ownership of the same Issue.
    - **Cursor Local** is a normal standing executor for `team:operations`, `team:pmo`, and `team:governance` work, and is **not** a normal `team:engineering` executor.
    - **Claude Code** is a normal standing executor for `team:pmo` and `team:engineering` work (and Governance when explicitly assigned). Claude is **not** a normal Operations executor; Claude may join a bounded Operations Issue only when explicitly escalated for additional engineering support. Escalation does not create a Tier-2 Operations Team and does not change Team ownership (`#3152` four-Team topology: Operations, Governance, PMO, Engineering).
 2. **ChatGPT** = permanent PMO owner (#4074) and Governance owner, plus PR Approver / Engineering, Administration & Communications, and Day-2 Operations coordination; does not perform routine scoped file implementation unless the source Issue explicitly assigns it. OpenAI / Work was permanently removed from the LGFC Agentic Team on 2026-09-03 (#4074) and holds no current role. See [`CHATGPT-RULES.md`](./CHATGPT-RULES.md) and `#3693`.
-3. **Codex** = standing LGFC Implementation / Operations executor and first responder for eligible `team:operations` Issues; Codex may also implement other repository work when explicitly assigned, subject to normal queue precedence and claim rules. Codex has a mandatory startup contract (orientation only); startup itself grants no implementation authority beyond an explicitly loaded source Issue and does not self-select work. See [`CODEX-RULES.md`](./CODEX-RULES.md) and `#3755`.
+3. **Codex** = **retired** (#4165). Codex is not a live Implementation / Operations executor, first responder, or wake target. `CODEX-RULES.md` is historical only. Do not assign `agent:codex` or invoke a Codex dispatch path.
 4. All other agents, including **Claude** (conversational) and **Notion** (controlled-document workspace), = tertiary/support agents only by explicit bounded routing need; neither holds a durable repository role or GitHub mutation authority. See `docs/governance/AGENT-TEAM.md`.
 
-Prior documentation that listed Cursor as sole implementation executor, described Codex as repository-prohibited / globally disabled for all LGFC implementation, or treated Codex as a selective-use-only executor requiring Product Authority task-by-task reactivation before it could act as a standing executor, is superseded for LGFC work by this section, `docs/governance/AGENT-TEAM.md`, and `#3755`.
+Prior documentation that listed Codex as a standing executor, first responder, or isolated configuration-pilot consumer is superseded for LGFC work by this section, `docs/governance/AGENT-TEAM.md`, and `#4165`.
 
 Routing priority controls assignment preference only. It does not override design authority, scope limits, PR discipline, separation-of-duty (an executor does not approve its own protected work), or merge approval.
 
@@ -422,7 +422,7 @@ STOP immediately if:
 
 # PRODUCT STARTUP FRAMEWORK
 
-Shared skeleton for every recognized LGFC agent product's mandatory `run startup` procedure (#3052 / #3693). Product-specific rule files (`CHATGPT-RULES.md`, `CODEX-RULES.md`, `CLAUDE-CODE-RULES.md`) are additive to this skeleton; they do not replace it. `WORK-RULES.md` is retired/historical since OpenAI / Work was permanently removed from the LGFC Agentic Team (#4074).
+Shared skeleton for every recognized LGFC agent product's mandatory `run startup` procedure (#3052 / #3693). Product-specific rule files (`CHATGPT-RULES.md`, `CLAUDE-CODE-RULES.md`) are additive to this skeleton; they do not replace it. `WORK-RULES.md` is retired/historical since OpenAI / Work was permanently removed (#4074). `CODEX-RULES.md` is retired/historical since Codex was permanently terminated (#4165).
 
 ## When startup is mandatory
 
@@ -439,7 +439,7 @@ Startup is not required again for every prompt within the same verified session.
 The literal command `run startup` resolves according to the active product. Each product recognizes its own identity and executes its own startup contract:
 
 - In **ChatGPT**: run the ChatGPT startup contract (`docs/ops/ai/CHATGPT-RULES.md`).
-- In **Codex**: run the Codex startup contract (`docs/ops/ai/CODEX-RULES.md`).
+- In **Codex**: do not run startup as a live product. `docs/ops/ai/CODEX-RULES.md` is retired (#4165).
 - In **Claude Code**: run the Claude Code startup contract (`docs/ops/ai/CLAUDE-CODE-RULES.md`).
 - In **Cursor**: existing bootstrap applies (`AGENTS.md` for Cloud, `.cursor/rules/*.mdc` for Local); unchanged by this framework.
 - In **Claude** (conversational): no product-specific startup contract exists; the product is outside the operational delivery chain unless bounded collaboration is explicitly authorized.

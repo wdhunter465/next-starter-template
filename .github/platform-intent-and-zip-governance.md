@@ -53,7 +53,6 @@ The repository defines these PR intent labels:
 | **docs-only** | Documentation changes only | `docs/**`, `Agent.md`, `active_tasklist.md` |
 | **platform** | Cloudflare runtime config only | `wrangler.toml`, `functions/**` |
 | **change-ops** | Operational changes, migrations, scripts | `migrations/**`, `scripts/d1-*`, `scripts/b2-*`, `data/**` |
-| **codex** | AI/agent config, copilot instructions | `.github/copilot-instructions.md`, `.github/agents/**`, `Agent.md` |
 | **recovery** | Emergency fixes (break-glass) | All paths (unrestricted) |
 
 For detailed intent definitions, see `/docs/governance/pr-intent-labels.md`.

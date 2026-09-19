@@ -17,7 +17,6 @@
     "type:docs",
     "type:recovery",
     "type:ci",
-    "agent:codex",
     "agent:cursor",
     "agent:copilot",
     "agent:ChatGPT"

@@ -240,15 +240,7 @@ Program #1500 closeout is **not** an active queue lane. It is closed complete hi
 
 ### Project-Level Maps (Program #3125)
 
-Canonical architecture: `docs/reference/ai/agent-configuration-architecture.md`.
-
-| Child task | Objective | Position in map |
-| --- | --- | --- |
-| `#3125-001` `#3882` | Architecture and ordered project map | This map |
-| `#3125-002` `#3883` | Codex pilot schemas, validation, and #3124 package | Successor |
-| `#3125-003` `#3884` | Broader agent-team rollout package | Terminal child before parent verification |
-
-Nested project `#3126` children `#3127`–`#3133` are coverage of the same program, not a second queue. `#3132` (Codex executes `#3124`) is a named HOLD: Codex identity / Bill Go required; Cursor must not impersonate Codex. Preferred order is advisory (#3134). WORK, Cursor, and Claude Code website routing stay outside the Codex pilot tree until Bill accepts general rollout.
+Program #3125's Codex-only configuration stack is **terminated**. Product Authority retired Codex (#4165). Nested project `#3126` and children `#3127`–`#3133` are closed as not planned. Live files from `#3882`–`#3884` (architecture, `.agents/configs/codex.json`, rollout package, dispatch runner) are removed under #4165. Do not resume the Codex pilot or treat preferred #3125 order as live queue work.
 
 ### Issue-Level Fields (Required for Queue Tasks)
 
