@@ -71,8 +71,8 @@ This document does not own:
 - Queue markers such as labels, blocked-status text, dependency-map rows, and
   PMO Admin handoff comments do not advance work by themselves. Historical
   `CHATGPT HANDOFF` markers remain comments only; they are not launch authority. A launched queue
-  requires a manual dispatcher, scheduled PMO Admin watch, or repo-native automation
-  path defined in `docs/ops/pmo/queue-watch-and-dispatch-protocol.md`.
+  requires a manual dispatcher, an operator-run PMO Admin check-in, or repo-native automation
+  path defined in `docs/ops/pmo/queue-watch-and-dispatch-protocol.md`. This is an operational check-in, not vendor account-level scheduled automation.
 - Product Authority owns merge authority to `main` when available, launch gates, and destructive issue actions. CMO may approve merge only when Product Authority is unavailable and a holder is recorded in AGENT-TEAM.
 - PMO Admin owns PMO process: queue conformance, batch verification, rebaseline authority, and dispatcher/remediation routing when authorized.
 - Cursor may not merge to `main`, approve, close, relabel, advance queues, or mutate
@@ -252,7 +252,7 @@ Every executable task issue in launched-program queue mode must state:
 | Successor | `#1403` or `Task 005` |
 | Stage-before-merge | `yes` / `no` |
 | Halt/resume condition | Rebaseline complete; `#1448` closed; predecessor WORK `ACCEPT`; scoped protected stop for Production only |
-| Dispatcher path | manual / scheduled PMO Admin watch / repo-native automation / not configured |
+| Dispatcher path | manual / operator-run PMO Admin check-in / repo-native automation / not configured |
 
 Partial overlap with dependency/blocking criteria is not sufficient. Use the field names above in the issue body.
 

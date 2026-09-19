@@ -108,7 +108,7 @@ CMO may not:
 - authorize Production Go, cost, legal, privacy, credentials, destructive data, or other protected Product decisions;
 - replace Product Authority as the default merge approver when Product Authority is available.
 
-A CMO holder must be recorded in the member mapping below before CMO may approve a merge. An unassigned CMO role is not an approval.
+A CMO holder must be a named member in the mapping table below, with CMO listed in that member's current roles, before CMO may approve a merge. Until Product Authority records that assignment, CMO remains unassigned in the holders section. An unassigned CMO role is not an approval.
 
 ### Governance role
 
@@ -133,7 +133,6 @@ Governance does not override Product Authority's business/product decisions or p
 | Codex | **Retired** (#4165). No current team role, wake path, or implementation authority. Historical record only (`docs/ops/ai/CODEX-RULES.md`). |
 | Cursor | **Operations during transition**; **PMO Admin** (interim, #4174); authorized implementation; target role is Engineering after Product Authority records the transition |
 | Claude Code | **Engineering**; authorized implementation; PR Approver / Engineering only for work Claude Code did not implement |
-| CMO holder | **Unassigned** (#4174). Product Authority must record a named member here before CMO may approve a merge. |
 | Jules | Implementation resource only when explicitly assigned under a compatible role/source Issue |
 | Gemini | Research and repository monitoring/reporting; read-only unless separately authorized |
 | CloudflareAI | Evaluation/support only under recorded access |
@@ -162,7 +161,7 @@ PMO process documents name **PMO Admin** and **CMO**. They do not name ChatGPT o
 Current holders live only in this file:
 
 - **PMO Admin:** Cursor (interim, #4174)
-- **CMO:** unassigned until Product Authority records a named member in the mapping table above
+- **CMO:** unassigned until Product Authority adds CMO to a named member's role list in the mapping table above
 
 Product Authority (Bill) remains the default merge approver when available. CMO is the recorded delegate for merge approval only when Product Authority is unavailable and a holder is named.
 
