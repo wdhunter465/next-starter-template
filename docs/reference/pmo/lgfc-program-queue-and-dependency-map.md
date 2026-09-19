@@ -5,7 +5,7 @@ Authority Level: Operational Authority
 Owns: Launched-program queue mode, dependency-map requirements, execution-mode selection, continue/halt decision rules, and dispatcher requirements for PMO-governed programs
 Does Not Own: Workflow YAML implementation, GitHub merge authority, issue mutation authority, ChatGPT account-level scheduled automation, or uncontrolled orchestrator label automation
 Canonical Reference: /docs/reference/pmo/lgfc-program-portfolio-model.md
-Related Issues: #2391, #2386, #2360, #2361, #2363, #2364, #1449, #1448, #1411, #1255, #1256, #1258, #1259, #1501, #1500, #1719, #1720, #1721, #1725, #2775, #3055, #3113, #3134, #3145
+Related Issues: #2391, #2386, #2360, #2361, #2363, #2364, #1449, #1448, #1411, #1255, #1256, #1258, #1259, #1501, #1500, #1719, #1720, #1721, #1725, #2775, #3055, #3113, #3125, #3134, #3145
 Last Reviewed: 2026-09-18
 ---
 
@@ -237,6 +237,18 @@ Approval:
 | Task 008 `#1727` | Same plan | Terminal closeout / promotion handoff |
 
 Program #1500 closeout is **not** an active queue lane. It is closed complete historical evidence consumed by Task #1725. Cursor must not rebuild #1500 workflow or closeout work without a new CI source issue.
+
+### Project-Level Maps (Program #3125)
+
+Canonical architecture: `docs/reference/ai/agent-configuration-architecture.md`.
+
+| Child task | Objective | Position in map |
+| --- | --- | --- |
+| `#3125-001` `#3882` | Architecture and ordered project map | This map |
+| `#3125-002` `#3883` | Codex pilot schemas, validation, and #3124 package | Successor |
+| `#3125-003` `#3884` | Broader agent-team rollout package | Terminal child before parent verification |
+
+Nested project `#3126` children `#3127`–`#3133` are coverage of the same program, not a second queue. `#3132` (Codex executes `#3124`) is a named HOLD: Codex identity / Bill Go required; Cursor must not impersonate Codex. Preferred order is advisory (#3134). WORK, Cursor, and Claude Code website routing stay outside the Codex pilot tree until Bill accepts general rollout.
 
 ### Issue-Level Fields (Required for Queue Tasks)
 
