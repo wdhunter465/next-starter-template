@@ -5,8 +5,8 @@ Authority Level: Operational Authority
 Owns: Launched-program queue mode, dependency-map requirements, execution-mode selection, continue/halt decision rules, and dispatcher requirements for PMO-governed programs
 Does Not Own: Workflow YAML implementation, GitHub merge authority, issue mutation authority, ChatGPT account-level scheduled automation, or uncontrolled orchestrator label automation
 Canonical Reference: /docs/reference/pmo/lgfc-program-portfolio-model.md
-Related Issues: #2391, #2386, #2360, #2361, #2363, #2364, #1449, #1448, #1411, #1255, #1256, #1258, #1259, #1501, #1500, #1719, #1720, #1721, #1725, #2775, #3055, #3113
-Last Reviewed: 2026-08-06
+Related Issues: #2391, #2386, #2360, #2361, #2363, #2364, #1449, #1448, #1411, #1255, #1256, #1258, #1259, #1501, #1500, #1719, #1720, #1721, #1725, #2775, #3055, #3113, #3134, #3145
+Last Reviewed: 2026-09-18
 ---
 
 # LGFC Program Queue and Dependency Map
@@ -148,9 +148,9 @@ Launched-program queue mode does not grant Cursor merge, close, relabel, queue m
 
 In Mode B, the approved project graph is standing authority. Eligible agents self-claim the next package-complete successor under that authority after deterministic predecessor completion (#3145). WORK may record substantive `ACCEPT`/`HOLD`/`REMEDIATE`/`VERIFY MORE` when judgment is required; the dispatcher may transport a wake event, but absence of repeated prose does not block a package-complete successor.
 
-A successor that lacks any executable-package field is `PACKAGE-INCOMPLETE` and fails closed before branch creation or editing. A real collision or protected stop is recorded as an evidence-specific `HOLD` scoped to the affected action — never a generic `BLOCKED` placeholder or queue-wide freeze.
+A successor that lacks any executable-package field is `PACKAGE-INCOMPLETE` and fails closed before branch creation or editing. A real collision or protected stop is recorded as an evidence-specific `HOLD` scoped to the affected action — never a generic `BLOCKED` placeholder or queue-wide freeze. A valid `HOLD` uses the contract in `docs/governance/PMO-PORTFOLIO.md` (#3134): affected scope, evidence, why continuation is unsafe or unauthorized, mitigation owner, release condition, parallel-safe work, and disputed-risk decision owner.
 
-Ordinary predecessor and advisory conditions are ordering metadata (comments, package notes, dependency-map rows). They do not deny otherwise authorized, collision-safe work. When only part of a task is gated, split bounded increments and continue collision-safe work.
+Ordinary predecessor and advisory conditions are ordering metadata (comments, package notes, dependency-map rows). They do not deny otherwise authorized, collision-safe work. Missing repeat dispatch or other administrative incompleteness is not a halt condition. When only part of a task is gated, split bounded increments and continue collision-safe work. Disputed risk is `RISK IDENTIFIED` plus a recorded `HOLD` | `MITIGATE AND CONTINUE` | `BOUNDED EXCEPTION` | `RESEQUENCE` decision.
 
 ## Dependency and stop taxonomy
 

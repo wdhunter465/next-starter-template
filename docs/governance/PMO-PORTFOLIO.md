@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: PMO intake, Pipeline lifecycle, stage deliverables, scoped priority, Sandbox authority, Project Graduation, Active closeout, portfolio inventory, and PMO continuity
 Does Not Own: Queue-label implementation mechanics, executable implementation, CI implementation, Day-2 recovery strategy, or Production approval
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3597, #3823
-Last Reviewed: 2026-09-01
+Related Issues: #3134, #3145, #3597, #3823
+Last Reviewed: 2026-09-18
 ---
 
 # PMO Portfolio
@@ -231,7 +231,7 @@ Programs group related Projects. Priority presents the execution order within th
 
 Dependencies remain explicit where needed for machine safety or protected sequencing, using the repository dependency/stop taxonomy. They explain why an item must precede or constrain another item; they do not replace scoped priority as the visible execution order.
 
-Ordinary predecessor or advisory conditions do not create a queue-wide HOLD when collision-safe earlier work remains executable.
+Ordinary predecessor or advisory conditions do not create a queue-wide HOLD when collision-safe earlier work remains executable. Preferred serial order is PMO sequencing, not an implementation gate. The enforceable-hold contract is defined below.
 
 ## Durable PMO Current State contract
 
@@ -329,11 +329,78 @@ Sandbox is an optional PMO proof-of-concept profile used only to reduce material
 
 Sandbox evidence is incorporated into the durable design before the Project advances.
 
+## PMO sequencing, holds, and risk-decision exceptions (#3134)
+
+This section is the canonical PMO owner for distinguishing preferred order from an enforceable stop. Continuous parent-level self-claim after deterministic predecessor completion remains #3145 / `docs/ops/ai/CORE-RULES.md`; this section does not create a second owner for that rule.
+
+PMO may define preferred serial implementation order and identify factual prerequisites. PMO administration must not block implementation unless there is a specific, evidence-backed risk-mitigation, protected-boundary, unsafe-collision, true-dependency, or missing-authority reason.
+
+When the existence, severity, or treatment of a risk is disputable, the workflow supports conversation, evidence review, and a recorded decision or bounded exception. It does not default to a generic administrative block.
+
+### Six distinctions
+
+| Class | Meaning | Effect on executable work |
+| --- | --- | --- |
+| PMO sequencing | Preferred order and implementation planning guidance | Advisory. Collision-safe packaged work may proceed. |
+| Factual prerequisite | A condition that materially affects safe or correct execution | Recorded as taxonomy class (advisory, ordered predecessor, real collision, or protected stop). Only collision and protected-stop classes halt an action. |
+| Implementation hold | Permitted stop of a named action | Requires the HOLD contract below. |
+| Risk discussion | Disputed risk about whether work must stop | Routes `RISK IDENTIFIED` → recorded decision. Does not silently block. |
+| Bounded exception | Product Authority or the owning decision role approves a documented alternate path | Continues only inside the recorded mitigation and scope. |
+| Administrative incompleteness | Missing repeat dispatch, preferred review timing, or routine PMO prose | Not a blocker when executable authority and safe scope already exist. |
+
+Generic `BLOCKED`, `waiting on PMO`, `pending review`, or equivalent administrative language is insufficient without the HOLD contract.
+
+### HOLD contract
+
+Any implementation hold must record all of the following on the affected source Issue:
+
+- affected Issue/task and exact paused scope;
+- specific risk, dependency, collision, protected boundary, or missing authority;
+- supporting evidence;
+- why continued execution of that scope is unsafe or unauthorized;
+- mitigation owner;
+- release condition;
+- safe work that may continue in parallel;
+- escalation/decision owner when the risk is disputed.
+
+`HOLD` is scoped to the affected action. Only that scope pauses unless evidence justifies broader impact. Missing package fields remain `PACKAGE-INCOMPLETE`, not `HOLD`.
+
+### Disputed-risk path
+
+```text
+RISK IDENTIFIED
+  -> evidence and affected scope recorded
+  -> owning role / Product Authority discusses treatment
+  -> decision recorded: HOLD | MITIGATE AND CONTINUE | BOUNDED EXCEPTION | RESEQUENCE
+  -> Administration & Communications reconciles repository state
+  -> execution resumes or remains narrowly held
+```
+
+Decision meanings:
+
+- `HOLD` — the HOLD contract is complete; only the named scope pauses.
+- `MITIGATE AND CONTINUE` — named mitigation is applied; remaining collision-safe work continues.
+- `BOUNDED EXCEPTION` — Product Authority or the owning decision role records limited alternate sequence, mitigation, and scope; protected fail-closed boundaries stay intact.
+- `RESEQUENCE` — PMO may change preferred order without treating the original sequence as immutable.
+
+Protected Product, legal, privacy, credential, Production, destructive-data, cost, independent-review, and self-merge boundaries remain fail-closed. A bounded exception never grants Production authority or self-approval.
+
+### Validation scenarios
+
+1. Preferred sequence A → B → C: B is parallel-safe and proceeds when its package is executable.
+2. True dependency: B requires A's schema output; B pauses with HOLD evidence and a release condition.
+3. Administrative delay: PMO has not posted a repeat dispatch; the prepared successor proceeds under standing authority (#3145).
+4. Disputed risk: agent and PMO disagree about collision; `RISK IDENTIFIED` is recorded and the owning role decides.
+5. Bounded exception: Product Authority approves a limited alternate path with mitigation and documented scope.
+6. Protected boundary: legal, privacy, credential, Production, destructive-data, or cost authority remains fail-closed.
+7. Narrow hold: only the affected files/task pause; disjoint safe work continues.
+8. No generic block: `BLOCKED` or `HOLD` without risk, evidence, owner, and release condition is invalid.
+
 ## Protected boundaries
 
 Nothing in this PMO model weakens Product Authority, legal, rights, privacy, security, credential, cost, destructive-data, Production, independent-review, rollback, or separation-of-duty controls.
 
-PMO sequencing does not bypass protected stops.
+PMO sequencing does not bypass protected stops. Enforceable stops use the HOLD contract in this document.
 
 ## Administration & Communications
 
