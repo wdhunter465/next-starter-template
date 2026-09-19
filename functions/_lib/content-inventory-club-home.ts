@@ -589,6 +589,7 @@ async function payloadFromEdition(
   await attachStoryImages(
     db,
     [
+      { story: leadStory, zone: CLUB_HOME_PLACEMENT_ZONES.leadStory },
       ...railStories.map((story) => ({ story, zone: CLUB_HOME_PLACEMENT_ZONES.storyRail })),
       { story: archiveSpotlight, zone: CLUB_HOME_PLACEMENT_ZONES.archiveSpotlight },
     ],
@@ -654,6 +655,7 @@ async function fetchClubHomeContentLive(
   await attachStoryImages(
     db,
     [
+      { story: leadStory, zone: CLUB_HOME_PLACEMENT_ZONES.leadStory },
       ...railStories.map((story) => ({ story, zone: CLUB_HOME_PLACEMENT_ZONES.storyRail })),
       { story: archiveSpotlight, zone: CLUB_HOME_PLACEMENT_ZONES.archiveSpotlight },
     ],
