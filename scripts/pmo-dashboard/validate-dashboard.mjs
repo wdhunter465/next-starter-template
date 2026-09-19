@@ -230,6 +230,10 @@ if (data) {
       data.teamQueues.queues.forEach((queue, index) => {
         const expected = TEAM_QUEUE_ORDER[index];
         const label = `teamQueues.queues[${index}]`;
+        if (!queue || typeof queue !== 'object') {
+          errors.push(`${label} must be an object`);
+          return;
+        }
         if (queue.id !== expected.id) errors.push(`${label} id must be ${expected.id}`);
         if (queue.title !== expected.title) errors.push(`${label} title must be ${expected.title}`);
         if (!Number.isInteger(queue.count) || queue.count < 0) errors.push(`${label} count must be a non-negative integer`);
