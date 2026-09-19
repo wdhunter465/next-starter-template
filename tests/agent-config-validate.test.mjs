@@ -111,6 +111,46 @@ describe('agent config validator', () => {
     expect(result.errors.join(' ')).toMatch(/allowlist/);
   });
 
+  it('fails closed when allowlist is not an array', () => {
+    const result = validateAssignmentEnvelope({
+      ...VALID_ENVELOPE,
+      allowlist: 'tools/skeetersoft/**'
+    });
+    expect(result.ok).toBe(false);
+    expect(result.errors.join(' ')).toMatch(/allowlist must be an array/);
+  });
+
+  it('fails closed when implementationGo is an unexpected value', () => {
+    const result = validateAssignmentEnvelope({
+      ...VALID_ENVELOPE,
+      implementationGo: 'unknown'
+    });
+    expect(result.ok).toBe(false);
+    expect(result.executable).toBe(false);
+    expect(result.errors.join(' ')).toMatch(/implementationGo must be one of/);
+  });
+
+  it('fails closed when cannotGrant is not an array', () => {
+    const result = validateProductConfig({
+      ...VALID_CONFIG,
+      cannotGrant: 'merge production standing-role self-approval'
+    });
+    expect(result.ok).toBe(false);
+    expect(result.errors.join(' ')).toMatch(/cannotGrant must be an array/);
+  });
+
+  it('fails closed when authorityChain contains a placeholder entry', () => {
+    const result = validateProductConfig(
+      {
+        ...VALID_CONFIG,
+        authorityChain: [...VALID_CONFIG.authorityChain, 'TODO']
+      },
+      { repoRoot: REPO_ROOT }
+    );
+    expect(result.ok).toBe(false);
+    expect(result.errors.join(' ')).toMatch(/authorityChain contains a placeholder/);
+  });
+
   it('treats required-on-source-issue as a valid non-executable package', () => {
     const result = validateAssignmentEnvelope(VALID_ENVELOPE);
     expect(result.ok).toBe(true);

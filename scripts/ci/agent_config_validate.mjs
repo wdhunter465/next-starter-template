@@ -87,16 +87,27 @@ export function validateProductConfig(config, { repoRoot, filePath } = {}) {
       }
     }
   }
+  const cannotGrantList = Array.isArray(config.cannotGrant) ? config.cannotGrant : [];
   const requiredCannotGrant = ['merge', 'production', 'standing-role', 'self-approval'];
   for (const grant of requiredCannotGrant) {
-    if (!(config.cannotGrant || []).includes(grant)) {
+    if (!cannotGrantList.includes(grant)) {
       addError(errors, `cannotGrant must include ${grant}`);
     }
+  }
+  if (!Array.isArray(config.authorityChain)) {
+    addError(errors, 'authorityChain must be an array');
+  } else {
+    for (const entry of config.authorityChain) {
+      if (isBlank(entry)) addError(errors, 'authorityChain contains a placeholder or empty entry');
+    }
+  }
+  if (config.cannotGrant != null && !Array.isArray(config.cannotGrant)) {
+    addError(errors, 'cannotGrant must be an array');
   }
   if (repoRoot) {
     const authorityPaths = [
       config.roleMappingAuthority,
-      ...(config.authorityChain || [])
+      ...(Array.isArray(config.authorityChain) ? config.authorityChain : [])
     ].filter(Boolean);
     for (const rel of authorityPaths) {
       const abs = path.join(repoRoot, rel);
@@ -135,7 +146,9 @@ export function validateAssignmentEnvelope(envelope, { filePath } = {}) {
   ) {
     addError(errors, 'implementer and reviewer must be different');
   }
-  if (Array.isArray(envelope.allowlist)) {
+  if (!Array.isArray(envelope.allowlist)) {
+    addError(errors, 'allowlist must be an array');
+  } else {
     for (const item of envelope.allowlist) {
       if (isBlank(item)) addError(errors, 'allowlist contains a placeholder or empty path');
     }
@@ -143,8 +156,11 @@ export function validateAssignmentEnvelope(envelope, { filePath } = {}) {
   for (const key of FORBIDDEN_GRANT_KEYS) {
     if (envelope[key] != null) addError(errors, `envelope cannot grant ${key}`);
   }
+  const VALID_IMPLEMENTATION_GO = ['recorded', 'required-on-source-issue', 'missing'];
   const executable = envelope.implementationGo === 'recorded';
-  if (envelope.implementationGo === 'missing') {
+  if (!VALID_IMPLEMENTATION_GO.includes(envelope.implementationGo)) {
+    addError(errors, `implementationGo must be one of ${VALID_IMPLEMENTATION_GO.join(', ')}`);
+  } else if (envelope.implementationGo === 'missing') {
     addError(errors, 'implementationGo is missing');
   } else if (envelope.implementationGo === 'required-on-source-issue') {
     warnings.push('package is valid but Codex must not edit until Bill records implementation Go on the source Issue');
