@@ -25,7 +25,7 @@
       {
         "name": "team:pmo",
         "color": "0052cc",
-        "description": "PMO owner for Pipeline preparation parents and Active implementation parents"
+        "description": "Issue is tracked by PMO Admin"
       },
       {
         "name": "team:engineering",
@@ -104,14 +104,19 @@
         "description": "Issue is included in PMO portfolio reporting"
       },
       {
+        "name": "pmo:parent",
+        "color": "0e8a16",
+        "description": "Head Issue for a PMO project or book of work; never a child task"
+      },
+      {
         "name": "pmo:pipeline",
         "color": "c5def5",
-        "description": "PMO-tracked parent in PMO Pipeline preparation; not Active until Project Graduation"
+        "description": "Project is in PMO Pipeline preparation; not Active until Project Graduation"
       },
       {
         "name": "pmo:active",
         "color": "0052cc",
-        "description": "PMO-tracked parent or child in authorized Active delivery"
+        "description": "Project is being implemented"
       },
       {
         "name": "pmo:closed",
@@ -274,7 +279,8 @@
         "portfolio-parent"
       ],
       "requires": [
-        "team:pmo"
+        "team:pmo",
+        "pmo:parent"
       ],
       "requiresExactlyOneMatching": "^pmo:priority:[1-9]\\d*$",
       "forbidsPrefixes": [
@@ -293,7 +299,8 @@
         "pmo:stage:definition",
         "pmo:stage:planning",
         "pmo:stage:prep",
-        "pmo:stage:ready-for-launch"
+        "pmo:stage:ready-for-launch",
+        "pmo:stage:active"
       ]
     },
     {
@@ -304,7 +311,8 @@
         "portfolio-parent"
       ],
       "requires": [
-        "team:pmo"
+        "team:pmo",
+        "pmo:parent"
       ],
       "requiresExactlyOneMatching": "^pmo:pipeline-priority:[1-9]\\d*$",
       "requiresExactlyOneOf": [

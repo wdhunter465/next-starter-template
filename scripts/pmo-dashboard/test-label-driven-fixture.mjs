@@ -95,9 +95,13 @@ async function main() {
     }
 
     const teamQueues = data.teamQueues?.queues || [];
-    assert(data.teamQueues.order.join(',') === 'operations,pmoActive,engineering,governance,pmoPipeline', 'team queue order');
-    assert(teamQueues.map((queue) => queue.count).join(',') === '1,5,2,0,2', 'label-driven team-queue counts');
-    assert(teamQueues[0].title === 'Operations' && teamQueues[3].title === 'Governance', 'display titles');
+    const pmoQueues = data.teamQueues?.pmoQueues || [];
+    assert(data.teamQueues.order.join(',') === 'operations,engineering,governance', 'team queue order');
+    assert(teamQueues.map((queue) => queue.count).join(',') === '1,2,0', 'label-driven team-queue counts');
+    assert(teamQueues[0].title === 'Operations' && teamQueues[2].title === 'Governance', 'team display titles');
+    assert(data.teamQueues.pmoOrder.join(',') === 'pmoTracked,pmoPipeline,pmoActive', 'pmo queue order');
+    assert(pmoQueues.map((queue) => queue.count).join(',') === '7,2,5', 'label-driven pmo parent counts');
+    assert(pmoQueues[0].title === 'PMO tracked' && pmoQueues[2].title === 'PMO Active', 'pmo display titles');
 
     const contract = await execFileAsync('node', [path.join(__dirname, 'test-queue-label-contract.mjs')]);
     if (contract.stdout) process.stdout.write(contract.stdout);
