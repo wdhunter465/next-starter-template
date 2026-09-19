@@ -20,8 +20,10 @@ name: Gehrig Content Discovery (#3551 / #3552 / #2270 perpetual collection)
 #   publication/visibility effect either way. No human types "confirm" for
 #   the scheduled path because the recurring schedule itself -- reviewed
 #   and merged through normal PR review -- is the standing authorization,
-#   scoped to the same #3551-approved sources (loc, wikimedia) and the same
-#   small per-run limit as the manual default. A human must still
+#   scoped to the same #3551-approved automated sources (loc, wikimedia,
+#   openverse) and the same small per-run limit as the manual default. A
+#   fourth approved source, DPLA, stays manual-opt-in only since it
+#   requires a DPLA_API_KEY that isn't configured. A human must still
 #   separately record rights_evidence and run the #3567 ingestion endpoint
 #   before anything discovered here can become usable media; this workflow
 #   never does that and never writes to B2.
@@ -38,9 +40,9 @@ on:
         required: false
         default: "Lou Gehrig"
       sources:
-        description: "Comma-separated sources: openverse,loc,wikimedia"
+        description: "Comma-separated sources: openverse,loc,wikimedia,dpla (dpla requires the DPLA_API_KEY secret and fails fast without it)"
         required: false
-        default: "loc,wikimedia"
+        default: "loc,wikimedia,openverse"
       limit:
         description: "Max results per source"
         required: false
@@ -54,12 +56,12 @@ on:
         required: false
         default: ""
   schedule:
-    # Every Monday 13:00 UTC, against the same "loc,wikimedia" default
-    # workflow_dispatch declares above (Openverse remains manual-dispatch
-    # only, not part of the scheduled defaults). Weekly matches the
+    # Every Monday 13:00 UTC, against all three #3551-approved automated
+    # sources (loc, wikimedia, openverse -- DPLA stays opt-in only since it
+    # requires DPLA_API_KEY, not configured here). Weekly matches the
     # zero-recurring-cost / low-volume-first posture in #2270 and #2312 --
-    # LOC and Wikimedia are free public APIs with no meaningful cost or
-    # rate risk at this cadence and the existing per-run limit.
+    # all three are free public APIs with no meaningful cost or rate risk
+    # at this cadence and the existing per-run limit.
     - cron: "0 13 * * 1"
 
 concurrency:
@@ -93,7 +95,7 @@ jobs:
           # an intentional empty string -- so manual-dispatch behavior is
           # byte-for-byte unchanged, not silently coerced to a default.
           DISCOVERY_QUERY: ${{ github.event_name == 'schedule' && 'Lou Gehrig' || github.event.inputs.query }}
-          DISCOVERY_SOURCES: ${{ github.event_name == 'schedule' && 'loc,wikimedia' || github.event.inputs.sources }}
+          DISCOVERY_SOURCES: ${{ github.event_name == 'schedule' && 'loc,wikimedia,openverse' || github.event.inputs.sources }}
           DISCOVERY_LIMIT: ${{ github.event_name == 'schedule' && '10' || github.event.inputs.limit }}
         run: |
           node --experimental-strip-types scripts/content-pipeline/collect-gehrig-external-sources.mjs \
