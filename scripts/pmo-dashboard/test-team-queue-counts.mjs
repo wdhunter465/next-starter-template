@@ -69,9 +69,14 @@ assert(
 );
 assert(
   counts.pmoQueues[2].issueSearchUrl.includes('label%3Apmo%3Aactive') &&
+    counts.pmoQueues[2].issueSearchUrl.includes('label%3Apmo%3Aparent') &&
     counts.pmoQueues[2].issueSearchUrl.includes('-label%3Apmo%3Atask'),
-  'pmo active search includes lifecycle and omits tasks'
+  'pmo active search includes parent, lifecycle, and omits tasks'
 );
-assert(counts.pmoQueues[0].issueSearchUrl.includes('-label%3Apmo%3Atask'), 'pmo tracked search omits tasks');
+assert(
+  counts.pmoQueues[0].issueSearchUrl.includes('label%3Apmo%3Aparent') &&
+    counts.pmoQueues[0].issueSearchUrl.includes('-label%3Apmo%3Atask'),
+  'pmo tracked search includes parent and omits tasks'
+);
 
 console.log('team-queue count contract passed');

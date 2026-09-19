@@ -177,18 +177,18 @@ function validateRow(row, label, rowByNumber, rowDataByNumber) {
   }
 }
 
-function validateQueueRow(errors, order, queues, expected, prefix) {
+function validateQueueRow(errors, order, queues, expected, { orderPath, queuesPath }) {
   const expectedOrder = expected.map((queue) => queue.id);
   if (!Array.isArray(order) || order.join(',') !== expectedOrder.join(',')) {
-    errors.push(`${prefix}.order must be ${expectedOrder.join(', ')}`);
+    errors.push(`${orderPath} must be ${expectedOrder.join(', ')}`);
   }
   if (!Array.isArray(queues) || queues.length !== expected.length) {
-    errors.push(`${prefix} queues must contain ${expected.length} rows`);
+    errors.push(`${queuesPath} must contain ${expected.length} rows`);
     return;
   }
   queues.forEach((queue, index) => {
     const expectedQueue = expected[index];
-    const label = `${prefix}[${index}]`;
+    const label = `${queuesPath}[${index}]`;
     if (!queue || typeof queue !== 'object') {
       errors.push(`${label} must be an object`);
       return;
@@ -250,8 +250,14 @@ if (data) {
   if (!data.teamQueues || typeof data.teamQueues !== 'object') {
     errors.push('teamQueues summary must be present');
   } else {
-    validateQueueRow(errors, data.teamQueues.order, data.teamQueues.queues, TEAM_QUEUE_ORDER, 'teamQueues');
-    validateQueueRow(errors, data.teamQueues.pmoOrder, data.teamQueues.pmoQueues, PMO_QUEUE_ORDER, 'teamQueues.pmo');
+    validateQueueRow(errors, data.teamQueues.order, data.teamQueues.queues, TEAM_QUEUE_ORDER, {
+      orderPath: 'teamQueues.order',
+      queuesPath: 'teamQueues.queues'
+    });
+    validateQueueRow(errors, data.teamQueues.pmoOrder, data.teamQueues.pmoQueues, PMO_QUEUE_ORDER, {
+      orderPath: 'teamQueues.pmoOrder',
+      queuesPath: 'teamQueues.pmoQueues'
+    });
     if (Array.isArray(data.teamQueues.pmoQueues) && data.teamQueues.pmoQueues.length === PMO_QUEUE_ORDER.length) {
       const tracked = data.teamQueues.pmoQueues[0];
       const pipeline = data.teamQueues.pmoQueues[1];

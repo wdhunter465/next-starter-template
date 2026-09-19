@@ -5,9 +5,9 @@ const TEAM_QUEUE_ORDER = [
 ];
 
 const PMO_QUEUE_ORDER = [
-  { id: 'pmoTracked', title: 'PMO tracked', teamLabel: 'team:pmo', omitTask: true },
-  { id: 'pmoPipeline', title: 'PMO Pipeline', teamLabel: 'team:pmo', lifecycleLabel: 'pmo:pipeline', omitTask: true },
-  { id: 'pmoActive', title: 'PMO Active', teamLabel: 'team:pmo', lifecycleLabel: 'pmo:active', omitTask: true }
+  { id: 'pmoTracked', title: 'PMO tracked', teamLabel: 'team:pmo', omitTask: true, parentLabel: 'pmo:parent' },
+  { id: 'pmoPipeline', title: 'PMO Pipeline', teamLabel: 'team:pmo', lifecycleLabel: 'pmo:pipeline', omitTask: true, parentLabel: 'pmo:parent' },
+  { id: 'pmoActive', title: 'PMO Active', teamLabel: 'team:pmo', lifecycleLabel: 'pmo:active', omitTask: true, parentLabel: 'pmo:parent' }
 ];
 
 const APPROVED_TEAMS = new Set([
@@ -47,6 +47,7 @@ export function classifyTeamQueue(issue) {
 function issueSearchUrl(owner, repo, queue) {
   const query = ['is:open', `label:${queue.teamLabel}`];
   if (queue.lifecycleLabel) query.push(`label:${queue.lifecycleLabel}`);
+  if (queue.parentLabel) query.push(`label:${queue.parentLabel}`);
   if (queue.omitTask) query.push('-label:pmo:task');
   if (queue.id === 'pmoTracked') {
     query.push('label:pmo:active,pmo:pipeline');

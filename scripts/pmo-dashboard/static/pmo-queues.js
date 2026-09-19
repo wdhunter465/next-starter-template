@@ -17,7 +17,7 @@ function searchHref(value) {
 
 function cardGrid(queues) {
   if (!queues.length) return '';
-  return `<div class="queue-grid">${queues.map((queue) => `<article class="queue-card"><h2>${esc(queue.title)}</h2><p class="count">${esc(queue.count)}</p><p class="meta"><a href="${searchHref(queue.issueSearchUrl)}">Open issues on GitHub</a></p></article>`).join('')}</div>`;
+  return `<div class="queue-grid">${queues.map((queue) => `<article class="queue-card"><h3>${esc(queue.title)}</h3><p class="count">${esc(queue.count)}</p><p class="meta"><a href="${searchHref(queue.issueSearchUrl)}">Open issues on GitHub</a></p></article>`).join('')}</div>`;
 }
 
 fetch('dashboard-data.json')
