@@ -224,6 +224,19 @@ describe('content-inventory-club-home', () => {
         feature_weight: 1,
       },
       {
+        id: 5,
+        title: 'Unready-rendition rail story',
+        summary: 'Third rail summary',
+        credit_line: 'Archive Desk',
+        source_name: 'Library',
+        story_type: 'brief',
+        allowed_sections: 'club_home',
+        status: 'published',
+        canonical: 1,
+        priority: 3,
+        feature_weight: 1,
+      },
+      {
         id: 4,
         title: 'Spotlight story',
         summary: 'Spotlight summary',
@@ -263,6 +276,16 @@ describe('content-inventory-club-home', () => {
             source_name: 'LGFC Photo Desk',
             credit_line: 'LGFC Archive',
           },
+          {
+            story_id: 5,
+            media_id: 503,
+            media_role: 'primary_image',
+            display_order: 0,
+            caption: 'Unready photo',
+            alt_text: 'Photo still being processed',
+            source_name: 'LGFC Photo Desk',
+            credit_line: 'LGFC Archive',
+          },
         ],
         renditions: [
           {
@@ -279,6 +302,9 @@ describe('content-inventory-club-home', () => {
           },
           // Deliberately no "medium" rendition for 501/502 — proves rail/spotlight
           // request "thumbnail", not the media-feature "medium" size.
+          // Deliberately no rendition row at all for media_id 503 — story 5 has a
+          // primary_image association but no persisted rendition yet, exercising
+          // the association-present / rendition-missing fail-closed path.
         ],
       }),
     );
@@ -293,6 +319,10 @@ describe('content-inventory-club-home', () => {
     // No media association at all for this story → fails closed to null.
     expect(payload.rail_stories[1]?.headline).toBe('No-image rail story');
     expect(payload.rail_stories[1]?.image).toBeNull();
+    // A primary_image association exists for this story, but no rendition row was
+    // ever persisted for it → still fails closed to null, not a stale/partial image.
+    expect(payload.rail_stories[2]?.headline).toBe('Unready-rendition rail story');
+    expect(payload.rail_stories[2]?.image).toBeNull();
 
     expect(payload.archive_spotlight?.image).toEqual({
       url: 'https://cdn.example.com/renditions/502/thumbnail.jpg',

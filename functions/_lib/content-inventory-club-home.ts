@@ -274,32 +274,39 @@ async function resolveReadyClubHomeRenditionUrl(
 }
 
 /**
- * Attaches each story's zone-sized primary-image rendition, in place, batching
- * the media-association lookup across all given stories in one query. Mirrors
- * resolveMediaFeature's "primary_image, else first" association pick and its
- * fail-closed behavior (no ready rendition → no image), but sizes the
- * rendition per the target zone instead of always requesting the media-feature
- * size (#4180 — margin posting spaces get a smaller picture than the center).
+ * Attaches each story's zone-sized primary-image rendition, in place, from a
+ * caller-supplied association map (batched across all given stories in one
+ * query by the caller — see fetchClubHomeContentLive / payloadFromEdition —
+ * and shared with resolveMediaFeature() to avoid re-fetching the same lead
+ * story's associations twice). Mirrors resolveMediaFeature's "primary_image,
+ * else first" association pick and its fail-closed behavior (no ready
+ * rendition → no image), but sizes the rendition per the target zone instead
+ * of always requesting the media-feature size (#4180 — margin posting spaces
+ * get a smaller picture than the center). A zone with no configured size is
+ * also treated as fail-closed (no image) rather than silently guessing one,
+ * so a missing zone mapping surfaces as "no picture" instead of a wrong size.
  */
 async function attachStoryImages(
   db: any,
+  associations: Map<number, Array<Record<string, unknown>>>,
   entries: Array<{ story: ClubHomeStoryPayload | null; zone: string }>,
   request: Request,
   publicB2BaseUrl?: unknown,
 ): Promise<void> {
-  const withStory = entries.filter((entry): entry is { story: ClubHomeStoryPayload; zone: string } => Boolean(entry.story));
-  const storyIds = [...new Set(withStory.map((entry) => entry.story.id))];
-  if (!storyIds.length) return;
+  for (const { story, zone } of entries) {
+    if (!story) continue;
 
-  const associations = await listStoryMediaAssociations(db, storyIds);
+    const size = ZONE_RENDITION_SIZE[zone];
+    if (!size) {
+      console.error(`content inventory club home: no rendition size configured for zone "${zone}"`);
+      continue;
+    }
 
-  for (const { story, zone } of withStory) {
     const rows = associations.get(story.id) || [];
     const primary = rows.find((row) => String((row as any).media_role || "") === "primary_image") || rows[0];
     if (!primary) continue;
 
     const mediaId = Number((primary as any).media_id || 0);
-    const size = ZONE_RENDITION_SIZE[zone] || "thumbnail";
     const rendition = await resolveReadyClubHomeRenditionUrl(db, mediaId, size, request, publicB2BaseUrl);
     if (!rendition) continue;
 
@@ -323,15 +330,26 @@ async function resolveMediaFeature(
   leadStory: ClubHomeStoryPayload | null,
   request: Request,
   publicB2BaseUrl?: unknown,
+  /** When the caller already resolved leadStory's associations/image via attachStoryImages() (the common case), passing them here skips a second identical listStoryMediaAssociations()+getMediaRendition() round trip for the same story. Omit when leadStory wasn't part of that batch (e.g. an edition's standalone media placement). */
+  precomputed?: { associations: Map<number, Array<Record<string, unknown>>>; image: ClubHomeStoryImagePayload | null },
 ): Promise<ClubHomeMediaFeaturePayload | null> {
   // Fail-closed: never substitute original photos.url when the required rendition is absent.
   if (leadStory) {
-    const associations = await listStoryMediaAssociations(db, [leadStory.id]);
+    const associations = precomputed?.associations ?? (await listStoryMediaAssociations(db, [leadStory.id]));
     const mediaRows = associations.get(leadStory.id) || [];
     const primary = mediaRows.find((row) => String((row as any).media_role || "") === "primary_image") || mediaRows[0];
     if (primary) {
-      const mediaId = Number((primary as any).media_id || 0);
-      const rendition = await resolveReadyClubHomeRenditionUrl(db, mediaId, CLUB_HOME_MEDIA_RENDITION_SIZE, request, publicB2BaseUrl);
+      const rendition = precomputed
+        ? precomputed.image
+          ? { url: precomputed.image.url, size: precomputed.image.rendition_size }
+          : null
+        : await resolveReadyClubHomeRenditionUrl(
+            db,
+            Number((primary as any).media_id || 0),
+            CLUB_HOME_MEDIA_RENDITION_SIZE,
+            request,
+            publicB2BaseUrl,
+          );
       const isMemorabilia = Number((primary as any).is_memorabilia) === 1;
       return {
         thumbnail_url: rendition?.url ?? null,
@@ -586,14 +604,21 @@ async function payloadFromEdition(
   const spotlightRow = spotlightPlacement?.story_id != null ? await loadEligibleStoryById(db, spotlightPlacement.story_id) : null;
   const archiveSpotlight = spotlightRow ? mapClubHomeStory(spotlightRow) : null;
 
+  const request = options?.request ?? new Request("https://www.lougehrigfanclub.com");
+  const associations = await listStoryMediaAssociations(db, [
+    ...(leadStory ? [leadStory.id] : []),
+    ...railStories.map((story) => story.id),
+    ...(archiveSpotlight ? [archiveSpotlight.id] : []),
+  ]);
   await attachStoryImages(
     db,
+    associations,
     [
       { story: leadStory, zone: CLUB_HOME_PLACEMENT_ZONES.leadStory },
       ...railStories.map((story) => ({ story, zone: CLUB_HOME_PLACEMENT_ZONES.storyRail })),
       { story: archiveSpotlight, zone: CLUB_HOME_PLACEMENT_ZONES.archiveSpotlight },
     ],
-    options?.request ?? new Request("https://www.lougehrigfanclub.com"),
+    request,
     options?.publicB2BaseUrl,
   );
 
@@ -605,12 +630,11 @@ async function payloadFromEdition(
 
   let mediaFeature: ClubHomeMediaFeaturePayload | null = null;
   if (mediaLeadStory) {
-    mediaFeature = await resolveMediaFeature(
-      db,
-      mediaLeadStory,
-      options?.request ?? new Request("https://www.lougehrigfanclub.com"),
-      options?.publicB2BaseUrl,
-    );
+    // Only reuse the pre-fetched batch when it's the same story attachStoryImages() already
+    // resolved above; an edition's standalone media placement can point at a different story.
+    const precomputed =
+      leadStory && mediaLeadStory.id === leadStory.id ? { associations, image: leadStory.image } : undefined;
+    mediaFeature = await resolveMediaFeature(db, mediaLeadStory, request, options?.publicB2BaseUrl, precomputed);
     if (mediaFeature && mediaPlacement?.feature_size) {
       mediaFeature = {
         ...mediaFeature,
@@ -652,8 +676,14 @@ async function fetchClubHomeContentLive(
   const railStories = composed.railRows.map(mapClubHomeStory);
   const archiveSpotlight = composed.spotlightRow ? mapClubHomeStory(composed.spotlightRow) : null;
   const request = options?.request ?? new Request("https://www.lougehrigfanclub.com");
+  const associations = await listStoryMediaAssociations(db, [
+    ...(leadStory ? [leadStory.id] : []),
+    ...railStories.map((story) => story.id),
+    ...(archiveSpotlight ? [archiveSpotlight.id] : []),
+  ]);
   await attachStoryImages(
     db,
+    associations,
     [
       { story: leadStory, zone: CLUB_HOME_PLACEMENT_ZONES.leadStory },
       ...railStories.map((story) => ({ story, zone: CLUB_HOME_PLACEMENT_ZONES.storyRail })),
@@ -662,7 +692,13 @@ async function fetchClubHomeContentLive(
     request,
     options?.publicB2BaseUrl,
   );
-  const mediaFeature = await resolveMediaFeature(db, leadStory, request, options?.publicB2BaseUrl);
+  const mediaFeature = await resolveMediaFeature(
+    db,
+    leadStory,
+    request,
+    options?.publicB2BaseUrl,
+    leadStory ? { associations, image: leadStory.image } : undefined,
+  );
 
   const placements = [...composed.placements];
   if (leadStory && mediaFeature) {

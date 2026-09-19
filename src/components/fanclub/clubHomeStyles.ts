@@ -71,8 +71,10 @@ export const clubHomeMutedText = {
  */
 export const clubHomeStoryHeroImage = {
   width: '100%',
-  // Matches clubHomePhotoPlaceholder(300)'s height so swapping placeholder -> real image doesn't shift layout.
-  maxHeight: 300,
+  // Fixed (not max) height, matching clubHomePhotoPlaceholder(300)'s height exactly, with
+  // objectFit: 'cover' to crop rather than letterbox -- any aspect ratio still renders at
+  // this exact height, so swapping placeholder -> real image never shifts layout.
+  height: 300,
   objectFit: 'cover' as const,
   display: 'block',
   border: `2px solid ${clubHomeColors.navy}`,
