@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Product behavior ownership, UX and functional-requirement decision rules, design freeze and deviation policy, and product/design escalation boundaries
 Does Not Own: Agent team approval routing, delivery Model A/B selection, platform/runtime isolation, CI gate implementation, or page-level visual specifications
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2687, #2686
-Last Reviewed: 2026-07-21
+Related Issues: #2687, #2686, #4174
+Last Reviewed: 2026-09-19
 ---
 
 # Product and Design
@@ -23,24 +23,25 @@ Agent roles and protected-stop contracts remain in `docs/governance/AGENT-TEAM.m
 
 | Role | Actor | Owns in this domain |
 | --- | --- | --- |
-| **Product Authority** | Bill | Product go/no-go; material UX or functional-requirement decisions; final completed-product judgment for product outcomes |
-| **PMO / Engineering** | ChatGPT | Final design package authorship; launch-control packaging; design documentation completeness; primary PR review for product/design changes |
-| **Implementation / Operations** | Cursor | Scoped implementation of approved product/design work; no self-approval of product or design authority |
-| **PR Approver / Engineering** | ChatGPT (Bill alternate) | Approval and merge of product/design PRs per delivery profile; not a substitute for Product Authority on material product decisions |
+| **Product Authority** | Current holder in `docs/governance/AGENT-TEAM.md` | Product go/no-go; material UX or functional-requirement decisions; final completed-product judgment for product outcomes |
+| **PMO Admin** | Current holder in `docs/governance/AGENT-TEAM.md` | Final design package authorship; launch-control packaging; design documentation completeness |
+| **Implementation / Operations** | Current holder in `docs/governance/AGENT-TEAM.md` | Scoped implementation of approved product/design work; no self-approval of product or design authority |
+| **PR Approver / Engineering** | Current holder in `docs/governance/AGENT-TEAM.md` | Independent review of product/design PRs per delivery profile; not a substitute for Product Authority on material product decisions |
+| **CMO** | Current holder in `docs/governance/AGENT-TEAM.md` (unassigned until recorded) | Merge approval when Product Authority is unavailable; may not approve own implementation |
 | **Supporting design references** | `docs/reference/design/**` and `docs/governance/standards/design-authority_MASTER.md` | Locked behavior facts, page/route contracts, and enforcement pointers only |
 
 Rules:
 
-- Product Authority decisions recorded by Bill outrank competing design commentary in issues, PRs, chat, or agent memory.
-- Chat authors and maintains the design documentation package; Cursor implements within the approved allowlist.
-- Cursor must not invent product direction, unlock frozen design, or treat supporting specs as independent policy owners.
+- Product Authority decisions recorded in the repository outrank competing design commentary in issues, PRs, chat, or agent memory.
+- PMO Admin authors and maintains the design documentation package; Implementation / Operations implements within the approved allowlist.
+- Implementation / Operations must not invent product direction, unlock frozen design, or treat supporting specs as independent policy owners.
 - Supporting design references must cite this domain policy (directly or through the production design standards hub) and must not restate competing domain ownership.
 
 ## Authority stack inside this domain
 
 When product or design sources conflict inside this domain, resolve in this order:
 
-1. Locked Product Authority decisions recorded by Bill (issue, PR, or approved design lock)
+1. Locked Product Authority decisions recorded on the source Issue or PR (or an approved design lock)
 2. This domain policy (`docs/governance/PRODUCT-AND-DESIGN.md`)
 3. Primary production behavior specification: `docs/reference/design/LGFC-Production-Design-and-Standards.md`
 4. Topic-specific supporting specs under `docs/reference/design/**` (for example auth, homepage, FanClub, Join/Login)
@@ -53,9 +54,9 @@ When product or design sources conflict inside this domain, resolve in this orde
 
 | Decision class | Authority | Required record |
 | --- | --- | --- |
-| New product capability or user-facing behavior | Product Authority go/no-go; Chat packages design | Source issue + design package |
-| Locked route, navigation, header, footer, auth, or Store invariant | Chat updates supporting design specs first; Product Authority when material | Updated supporting spec section cited by implementation PR |
-| Visual or copy change within an unlocked surface | Chat design package or explicit issue authorization | Source issue allowlist |
+| New product capability or user-facing behavior | Product Authority go/no-go; PMO Admin packages design | Source issue + design package |
+| Locked route, navigation, header, footer, auth, or Store invariant | PMO Admin updates supporting design specs first; Product Authority when material | Updated supporting spec section cited by implementation PR |
+| Visual or copy change within an unlocked surface | PMO Admin design package or explicit issue authorization | Source issue allowlist |
 | Platform/runtime hosting model that affects UX contracts | Product Authority + Platform domain (do not resolve here alone) | Cross-domain disposition on the source issue |
 | Emergency product/UX rollback | Operations and Recovery path; Product Authority for lasting product change | Incident/source issue disposition |
 
@@ -81,7 +82,7 @@ An adjustment updates locked product or design authority before or with implemen
 
 Required sequence:
 
-1. Confirm Product Authority is required (material change) or that Chat may author a non-material documentation correction within existing Product Authority intent.
+1. Confirm Product Authority is required (material change) or that PMO Admin may author a non-material documentation correction within existing Product Authority intent.
 2. Update the owning supporting specification under `docs/reference/design/**` (and this domain policy only when ownership or decision rules change).
 3. Cite the exact updated section(s) from the implementation PR.
 4. Keep the diff inside the source-issue allowlist.
@@ -94,7 +95,7 @@ A **deviation** is temporary permission to ship while a supporting specification
 
 Deviations require:
 
-- explicit Product Authority or Chat authorization on the source issue;
+- explicit Product Authority or PMO Admin authorization on the source issue;
 - a named follow-up issue or acceptance criterion to close the gap;
 - no silent expansion of the mismatch beyond the recorded bound.
 
@@ -102,7 +103,7 @@ Unauthorized deviation is drift. Drift must be corrected to the locked supportin
 
 ## Escalation rules
 
-Stop and escalate to Product Authority (Bill), with Chat as gate-review partner, when:
+Stop and escalate to Product Authority, with PMO Admin as process partner, when:
 
 - two active product/design sources disagree and the source issue does not resolve precedence;
 - a material UX, route, auth, navigation, or acceptance-framing decision is unresolved;
@@ -115,9 +116,9 @@ Routine wording fixes, reference routing corrections, validation remediation, an
 
 | Change type | Design-doc update first? | Approval |
 | --- | --- | --- |
-| Docs-only supporting-spec correction aligned to existing Product Authority intent | Yes (the docs PR is the change) | Chat primary; Bill alternate |
+| Docs-only supporting-spec correction aligned to existing Product Authority intent | Yes (the docs PR is the change) | PMO Admin; CMO may merge if Product Authority is unavailable and a CMO holder is recorded |
 | Implementation matching already-locked supporting specs | No additional design ownership change | Per delivery profile (`docs/governance/DELIVERY-AND-RELEASE.md`) |
-| Material product/UX change | Yes | Product Authority go/no-go, then Chat review/merge |
+| Material product/UX change | Yes | Product Authority go/no-go, then PMO Admin review/merge |
 | Component-child drafting under an authorized Model B program | Per child allowlist | Component auto-integration only when the child profile allows it; does not activate `main` policy alone |
 
 Cursor never self-approves product or design authority.

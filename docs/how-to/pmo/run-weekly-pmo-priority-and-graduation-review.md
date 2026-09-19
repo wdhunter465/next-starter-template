@@ -5,15 +5,15 @@ Authority Level: Procedure
 Owns: Weekly PMO meeting sequence for Active ordered priority, Pipeline ordered priority, Engineering qualification, Project Graduation, and metadata reconciliation
 Does Not Own: Product priority decisions, implementation execution, recovery strategy, PR approval, Production authorization, or dashboard runtime behavior
 Canonical Reference: /docs/governance/WORK-QUEUES-AND-COLLABORATION.md
-Related Issues: #2699, #2705, #2706, #3597
-Last Reviewed: 2026-08-18
+Related Issues: #2699, #2705, #2706, #3597, #4174
+Last Reviewed: 2026-09-19
 ---
 
 # Run the Weekly PMO Priority and Graduation Review
 
 ## Purpose
 
-Provide one weekly review path for Bill and ChatGPT to govern the PMO portfolio without defining project child-task implementation order.
+Provide one weekly review path for **PMO Admin** to govern the PMO portfolio without defining project child-task implementation order. The current PMO Admin holder is recorded in `docs/governance/AGENT-TEAM.md`.
 
 ## Inputs
 

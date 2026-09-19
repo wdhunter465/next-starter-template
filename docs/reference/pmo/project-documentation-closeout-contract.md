@@ -5,15 +5,15 @@ Authority Level: Controlled Reference
 Owns: Exact PMO documentation preparation, execution, verification, header compatibility, and closeout responsibilities
 Does Not Own: Product priorities, implementation details, or Production approval
 Canonical Reference: /docs/governance/PROJECT-DOCUMENTATION-AND-AS-BUILT.md
-Related Issues: #1719, #3050
-Last Reviewed: 2026-08-04
+Related Issues: #1719, #3050, #4174
+Last Reviewed: 2026-09-19
 ---
 
 # PMO Project Documentation and Closeout Contract
 
 ## PMO owner
 
-ChatGPT / Atlas is the LGFC PMO / Engineering owner. PMO is accountable for complete project definition, sequencing, assignment, governance, documentation completeness, independent review coordination, repository-state reconciliation, verification, and closeout control.
+**PMO Admin** is the LGFC PMO process executor. The current holder is recorded only in `docs/governance/AGENT-TEAM.md`. PMO Admin is accountable for complete project definition, sequencing, assignment, governance, documentation completeness, independent review coordination, repository-state reconciliation, verification, and closeout control. PMO Admin does not merge Pull Requests.
 
 ## Active-document header compatibility
 
@@ -86,8 +86,8 @@ PMO must not close a project because:
 
 - Cursor-originating PR exception → Cursor remediation.
 - Claude-originating PR exception → Claude remediation.
-- ChatGPT-originating documentation/governance PR exception → ChatGPT remediation.
-- PMO remains responsible for defect definition, routing, independent review, verification, and final closure.
+- Documentation/governance PR exception → originating implementer remediation.
+- PMO Admin remains responsible for defect definition, routing, independent review, verification, and final closure.
 
 ## Evidence format
 

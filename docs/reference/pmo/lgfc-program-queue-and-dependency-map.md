@@ -3,10 +3,10 @@ Doc Type: Reference
 Audience: Human + AI
 Authority Level: Operational Authority
 Owns: Launched-program queue mode, dependency-map requirements, execution-mode selection, continue/halt decision rules, and dispatcher requirements for PMO-governed programs
-Does Not Own: Workflow YAML implementation, GitHub merge authority, issue mutation authority, ChatGPT account-level scheduled automation, or uncontrolled orchestrator label automation
+Does Not Own: Workflow YAML implementation, GitHub merge authority, issue mutation authority, vendor account-level scheduled automation, or uncontrolled orchestrator label automation
 Canonical Reference: /docs/reference/pmo/lgfc-program-portfolio-model.md
-Related Issues: #2391, #2386, #2360, #2361, #2363, #2364, #1449, #1448, #1411, #1255, #1256, #1258, #1259, #1501, #1500, #1719, #1720, #1721, #1725, #2775, #3055, #3113, #3125, #3134, #3145
-Last Reviewed: 2026-09-18
+Related Issues: #2391, #2386, #2360, #2361, #2363, #2364, #1449, #1448, #1411, #1255, #1256, #1258, #1259, #1501, #1500, #1719, #1720, #1721, #1725, #2775, #3055, #3113, #3125, #3134, #3145, #4174
+Last Reviewed: 2026-09-19
 ---
 
 # LGFC Program Queue and Dependency Map
@@ -24,13 +24,13 @@ This document owns:
 - dependency-map structure and approval requirements;
 - continue/halt decision rules Cursor may apply from documentation;
 - dispatcher/watch requirements for keeping a launched queue moving;
-- authority boundaries for Bill (merge) and ChatGPT (batch verification/rebaseline).
+- authority boundaries for Product Authority (default merge) and PMO Admin (batch verification/rebaseline). Current holders: `docs/governance/AGENT-TEAM.md`. CMO may approve merge when Product Authority is unavailable and a holder is recorded.
 
 This document does not own:
 
 - workflow YAML or orchestrator script implementation;
 - GitHub issue closure, relabeling, or queue mutation;
-- ChatGPT product automation configuration;
+- PMO Admin or vendor product automation configuration;
 - production configuration or secrets;
 - merge, approval, closeout, or destructive-action authority.
 
@@ -69,12 +69,12 @@ This document does not own:
 - Historical `#1411` planning does **not** block Program `#1719` execution after
   the 2026-07-16 continuous authorization.
 - Queue markers such as labels, blocked-status text, dependency-map rows, and
-  `CHATGPT HANDOFF` comments do not advance work by themselves. A launched queue
-  requires a manual dispatcher, scheduled ChatGPT watch, or repo-native automation
-  path defined in `docs/ops/pmo/queue-watch-and-dispatch-protocol.md`.
-- Bill owns merge authority to `main`, launch gates, and destructive issue actions.
-- ChatGPT owns governance review, queue conformance, batch verification,
-  rebaseline authority, and component integration control for Model B.
+  PMO Admin handoff comments do not advance work by themselves. Historical
+  `CHATGPT HANDOFF` markers remain comments only; they are not launch authority. A launched queue
+  requires a manual dispatcher, an operator-run PMO Admin check-in, or repo-native automation
+  path defined in `docs/ops/pmo/queue-watch-and-dispatch-protocol.md`. This is an operational check-in, not vendor account-level scheduled automation.
+- Product Authority owns merge authority to `main` when available, launch gates, and destructive issue actions. CMO may approve merge only when Product Authority is unavailable and a holder is recorded in AGENT-TEAM.
+- PMO Admin owns PMO process: queue conformance, batch verification, rebaseline authority, and dispatcher/remediation routing when authorized.
 - Cursor may not merge to `main`, approve, close, relabel, advance queues, or mutate
   issue state unless the active source issue explicitly authorizes that action.
   Non-`main` component integration may proceed under source-issue
@@ -172,7 +172,7 @@ Ordinary predecessor and advisory conditions are ordering metadata (comments, pa
 
 For launched or launch-control work, closeout is not complete until queue continuation has been checked.
 
-The responsible ChatGPT/operator path must verify:
+The responsible PMO Admin/operator path must verify:
 
 1. the predecessor issue state and terminal labels;
 2. the successor or dependent issues named by the issue body, parent issue, PR body, or dependency map;
@@ -211,8 +211,8 @@ Required map fields per task or checkpoint:
 
 Approval:
 
-- ChatGPT prepares the map in the implementation plan.
-- Bill approves the map before launch or issue creation.
+- PMO Admin prepares the map in the implementation plan.
+- Product Authority approves the map before launch or issue creation.
 - Until approved, the program issue remains in one-task handoff mode.
 
 ### Project-Level Maps (Program #1255)
@@ -252,7 +252,7 @@ Every executable task issue in launched-program queue mode must state:
 | Successor | `#1403` or `Task 005` |
 | Stage-before-merge | `yes` / `no` |
 | Halt/resume condition | Rebaseline complete; `#1448` closed; predecessor WORK `ACCEPT`; scoped protected stop for Production only |
-| Dispatcher path | manual / scheduled ChatGPT watch / repo-native automation / not configured |
+| Dispatcher path | manual / operator-run PMO Admin check-in / repo-native automation / not configured |
 
 Partial overlap with dependency/blocking criteria is not sufficient. Use the field names above in the issue body.
 
@@ -292,14 +292,15 @@ Cursor must **halt** (stop at `READY FOR REVIEW` or report without implementing)
 
 When halted, Cursor reports the blocking checkpoint, the next queue item if known, and the continue/halt decision. Cursor does not infer authorization from labels, merge state, or queue order alone.
 
-If the halt is caused by missing dispatcher/watch behavior, stale blocked successor state, or launch-halting process failure, ChatGPT must create or update an Ops remediation issue under `docs/ops/pmo/queue-watch-and-dispatch-protocol.md`.
+If the halt is caused by missing dispatcher/watch behavior, stale blocked successor state, or launch-halting process failure, PMO Admin must create or update an Ops remediation issue under `docs/ops/pmo/queue-watch-and-dispatch-protocol.md`.
 
 ## Authority Model
 
 | Role | Authority |
 | --- | --- |
-| Bill | Merge, launch gates, destructive issue actions, strategy exceptions |
-| ChatGPT | Governance review, queue conformance, batch verification, rebaseline, dispatcher/remediation routing when authorized |
+| Product Authority | Default merge, launch gates, destructive issue actions, strategy exceptions |
+| CMO | Merge approval when Product Authority is unavailable and a holder is recorded in AGENT-TEAM |
+| PMO Admin | PMO process, queue conformance, batch verification, rebaseline, dispatcher/remediation routing when authorized |
 | Cursor | Bounded implementation, validation, PR-body evidence, `READY FOR REVIEW` handoff |
 
 Cursor does not own merge, approval, closeout, relabel, production, or secret authority in either execution mode.

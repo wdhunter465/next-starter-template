@@ -5,15 +5,15 @@ Authority Level: Procedure
 Owns: Procedures to qualify Engineering work, move PMO stages, assign or renumber ordered priorities, graduate a project, and reconcile dashboard defects
 Does Not Own: Product priority decisions, implementation execution, Production authorization, or live bulk label mutation
 Canonical Reference: /docs/reference/pmo/pmo-lifecycle-and-priority-contract.md
-Related Issues: #3597, #3620, #3622, #2699
-Last Reviewed: 2026-08-19
+Related Issues: #3597, #3620, #3622, #2699, #4174
+Last Reviewed: 2026-09-19
 ---
 
 # Run PMO Lifecycle and Priority
 
 ## Purpose
 
-Move one project through Engineering qualification and PMO Pipeline without treating preparation as Active implementation.
+Move one project through Engineering qualification and PMO Pipeline without treating preparation as Active implementation. **PMO Admin** executes this procedure. The current holder is recorded in `docs/governance/AGENT-TEAM.md`.
 
 Use the weekly review how-to for meeting sequence: `docs/how-to/pmo/run-weekly-pmo-priority-and-graduation-review.md`.
 

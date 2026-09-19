@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Gate profiles, check classification, deterministic evidence, validation ownership, promotion verification criteria, failure routing, remediation boundaries, and post-merge verification ownership
 Does Not Own: Delivery Model A/B selection, agent approval routing, branch-protection UI settings, workflow YAML implementation, product/UX behavior, or platform isolation claims
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2689, #2686, #3668, #3671, #3807, #3746, #2769
-Last Reviewed: 2026-09-14
+Related Issues: #2689, #2686, #3668, #3671, #3807, #3746, #2769, #4174
+Last Reviewed: 2026-09-19
 ---
 
 # CI and Verification
@@ -23,13 +23,14 @@ Delivery model selection and promotion-profile policy remain in `docs/governance
 
 | Role | Actor | Owns in this domain |
 | --- | --- | --- |
-| **Product Authority** | Bill | Final judgment when verification cost, credential use in CI, or Production risk is material; not a routine gate for ordinary check green/red |
-| **PMO / Engineering** | ChatGPT | Verification package completeness; Promotion Candidate qualification criteria authorship; primary review when CI/verification policy or protected gate meaning changes |
-| **Implementation / Operations** | Cursor | Scoped implementation of approved CI docs and allowlisted verification work; remediation of failing checks inside the allowlist; no self-approval of protected gate or Production authority |
-| **PR Approver / Engineering** | ChatGPT (Bill alternate) | Human judgment that work meets design, acceptance, repository, and promotion requirements; approval of protected/material changes; not replaceable by a green CI panel alone |
+| **Product Authority** | Current holder in `docs/governance/AGENT-TEAM.md` | Final judgment when verification cost, credential use in CI, or Production risk is material; not a routine gate for ordinary check green/red |
+| **PMO Admin** | Current holder in `docs/governance/AGENT-TEAM.md` | Verification package completeness; Promotion Candidate qualification criteria authorship; PMO process for CI/verification policy |
+| **Implementation / Operations** | Current holder in `docs/governance/AGENT-TEAM.md` | Scoped implementation of approved CI docs and allowlisted verification work; remediation of failing checks inside the allowlist; no self-approval of protected gate or Production authority |
+| **PR Approver / Engineering** | Current holder in `docs/governance/AGENT-TEAM.md` | Independent judgment that work meets design, acceptance, repository, and promotion requirements; not replaceable by a green CI panel alone |
+| **CMO** | Current holder in `docs/governance/AGENT-TEAM.md` (unassigned until recorded) | Merge approval of PRs when Product Authority is unavailable; not Product Authority; may not approve own implementation |
 | **Deterministic CI** | GitHub Actions and authorized repository automation | Machine-provable checks, evidence artifacts, eligible non-main integration under Delivery policy, and bounded authorized automation |
-| **Administration & Communications** | ChatGPT + automation | Routing, acknowledgments, evidence transport, hold/resume, and closeout state reconciliation that depends on verification outcomes |
-| **Day-2 Operations** | Bill / Chat coordination | Production health verification after deploy; incident classification when live verification fails |
+| **Administration & Communications** | Current holder in `docs/governance/AGENT-TEAM.md` plus automation | Routing, acknowledgments, evidence transport, hold/resume, and closeout state reconciliation that depends on verification outcomes |
+| **Day-2 Operations** | Current holder in `docs/governance/AGENT-TEAM.md` | Production health verification after deploy; incident classification when live verification fails |
 | **Supporting CI references** | `docs/reference/ci/**` | Workflow inventories, classification matrices, surface contracts, and as-built facts only |
 
 Rules:
@@ -43,7 +44,7 @@ Rules:
 
 When CI or verification sources conflict inside this domain, resolve in this order:
 
-1. Locked Product Authority decisions recorded by Bill when verification risk, cost, or credentials are material
+1. Locked Product Authority decisions recorded on the source Issue or PR when verification risk, cost, or credentials are material
 2. This domain policy (`docs/governance/CI-AND-VERIFICATION.md`)
 3. Delivery and Release policy for profile transitions and approval boundaries (`docs/governance/DELIVERY-AND-RELEASE.md`)
 4. PR process policy for PR lifecycle procedure (`docs/governance/PR_PROCESS.md`)
@@ -197,7 +198,7 @@ Routine inventory wording fixes, reference routing corrections, and allowlisted 
 
 | Change type | CI-doc update first? | Approval |
 | --- | --- | --- |
-| Docs-only supporting inventory correction aligned to existing authority | Yes (the docs PR is the change) | Per delivery profile; Chat primary for policy meaning |
+| Docs-only supporting inventory correction aligned to existing authority | Yes (the docs PR is the change) | Per delivery profile; PMO Admin for policy meaning; CMO may merge if Product Authority is unavailable and a holder is recorded |
 | Workflow behavior change matching already-recorded surfaces | Supporting surface update with or before implementation | Per delivery profile; protected-path rules apply |
 | Required-check or Production verification meaning change | Yes | PMO / Engineering; Product Authority when material |
 | Component-child drafting under an authorized Model B program | Per child allowlist | Component auto-integration only when the child profile allows it; does not activate `main` policy alone |

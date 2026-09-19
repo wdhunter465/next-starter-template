@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: PMO intake, Pipeline lifecycle, stage deliverables, scoped priority, Sandbox authority, Project Graduation, Active closeout, portfolio inventory, and PMO continuity
 Does Not Own: Queue-label implementation mechanics, executable implementation, CI implementation, Day-2 recovery strategy, or Production approval
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3134, #3145, #3597, #3823
-Last Reviewed: 2026-09-18
+Related Issues: #3134, #3145, #3597, #3823, #4174
+Last Reviewed: 2026-09-19
 ---
 
 # PMO Portfolio
@@ -15,7 +15,7 @@ Last Reviewed: 2026-09-18
 
 This document defines the controlling LGFC PMO operating model for Engineering qualification, Pipeline preparation, Project Graduation, Active execution oversight, portfolio ordering, durable handoff continuity, and completion.
 
-Product Authority makes final business/product priority and protected decisions. PMO manages lifecycle readiness, portfolio sequencing, preparation completeness, Graduation, and project closeout within recorded authority.
+Product Authority makes final business/product priority and protected decisions. **PMO Admin** executes PMO process (lifecycle, labels, current-state, dashboard hygiene, Graduation packets). The current PMO Admin holder is recorded only in `docs/governance/AGENT-TEAM.md`. **CMO** may approve Pull Requests for merge when Product Authority is unavailable, only after a holder is recorded in AGENT-TEAM. CMO is not Product Authority and may not approve its own implementation.
 
 Machine-readable lifecycle and priority details are in `docs/reference/pmo/pmo-lifecycle-and-priority-contract.md`.
 

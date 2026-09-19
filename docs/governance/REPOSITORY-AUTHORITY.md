@@ -5,8 +5,8 @@ Authority Level: Constitutional
 Owns: Repository precedence, GitHub Issue authority, domain ownership, lane topology, queue topology, role-based work-selection delegation, canonical-source rules, supersession, and unresolved-conflict escalation
 Does Not Own: Detailed PMO, delivery, agent, CI, Administration, Operations, collaboration, or platform procedures
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2678, #3629, #3825
-Last Reviewed: 2026-09-01
+Related Issues: #2678, #3629, #3825, #4174
+Last Reviewed: 2026-09-19
 ---
 
 # Repository Authority
@@ -122,7 +122,9 @@ Introducing a competing owner or changing a canonical domain owner requires an a
 
 Broad authority attaches to durable roles, not vendor names. Current mappings and role-specific work-selection order live in `docs/governance/AGENT-TEAM.md`.
 
-Required role families include Product Authority, Operations, Engineering, PMO, Governance, PR Approver / Engineering, Administration & Communications, Day-2 Operations, and Deterministic CI.
+Required role families include Product Authority, Operations, Engineering, PMO, PMO Admin, Governance, PR Approver / Engineering, CMO (Change Management Office), Administration & Communications, Day-2 Operations, and Deterministic CI.
+
+Current holders for PMO Admin and CMO are recorded only in `docs/governance/AGENT-TEAM.md`. Process documents name those roles, not a vendor or a person.
 
 No mapping may weaken required independent review or protected authority.
 
