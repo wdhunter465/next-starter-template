@@ -40,7 +40,7 @@ on:
         required: false
         default: "Lou Gehrig"
       sources:
-        description: "Comma-separated sources: openverse,loc,wikimedia"
+        description: "Comma-separated sources: openverse,loc,wikimedia,dpla (dpla requires the DPLA_API_KEY secret and fails fast without it)"
         required: false
         default: "loc,wikimedia,openverse"
       limit:
