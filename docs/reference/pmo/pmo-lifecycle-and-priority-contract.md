@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: Canonical PMO lifecycle states, hierarchical priority representation, stage deliverables, handoff continuity, and dashboard/routing invariants
 Does Not Own: Product priority decisions, weekly meeting procedure, live GitHub label creation, or bulk Issue mutation
 Canonical Reference: /docs/governance/PMO-PORTFOLIO.md
-Related Issues: #3597, #3823
-Last Reviewed: 2026-09-01
+Related Issues: #3597, #3823, #4176
+Last Reviewed: 2026-09-19
 ---
 
 # PMO Lifecycle and Priority Contract
@@ -151,14 +151,14 @@ After Production Accepted and PMO closeout, the Project becomes Completed. Admin
 
 ### Portfolio parent
 
-A PMO portfolio parent is a Program or Project record and is not `pmo:task`.
+A PMO portfolio parent is a Program or Project record. It carries `pmo:parent` and is not `pmo:task`. `team:pmo` means PMO Admin is tracking the Issue. `pmo:active` means the project is being implemented. `pmo:pipeline` means Pipeline preparation. `pmo:stage:*` is Pipeline maturity only; Active is not a stage.
 
 Pipeline parent minimum shape:
 
 ```text
-pmo
-pmo:pipeline
 team:pmo
+pmo:parent
+pmo:pipeline
 exactly one pmo:stage:*
 scoped priority represented in its parent/current-stage context
 ```
@@ -166,11 +166,13 @@ scoped priority represented in its parent/current-stage context
 Active parent minimum shape:
 
 ```text
-pmo
-pmo:active
 team:pmo
+pmo:parent
+pmo:active
 scoped priority represented in its parent/program context
 ```
+
+Generic `pmo` is a historical reporting tag. It does not replace `team:pmo` or `pmo:parent`. Do not use `pmo:stage:active`. Existing `pmo:project` maps to `pmo:parent`.
 
 ### Counted child
 

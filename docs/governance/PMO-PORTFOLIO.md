@@ -5,7 +5,7 @@ Authority Level: Domain Policy
 Owns: PMO intake, Pipeline lifecycle, stage deliverables, scoped priority, Sandbox authority, Project Graduation, Active closeout, portfolio inventory, and PMO continuity
 Does Not Own: Queue-label implementation mechanics, executable implementation, CI implementation, Day-2 recovery strategy, or Production approval
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3134, #3145, #3597, #3823, #4174
+Related Issues: #3134, #3145, #3597, #3823, #4174, #4176
 Last Reviewed: 2026-09-19
 ---
 
@@ -298,7 +298,7 @@ Administrative cleanup does not normally send an Active Project back to Pipeline
 
 ## Parent/child accounting
 
-PMO portfolio parents are Programs/Projects and are not `pmo:task`.
+PMO portfolio parents are Programs/Projects. They carry `pmo:parent` and are not `pmo:task`. `team:pmo` means PMO Admin is tracking the Issue. `pmo:active` means the project is being implemented. `pmo:pipeline` is preparation. `pmo:stage:*` is Pipeline maturity only.
 
 Valid counted child work requires:
 

@@ -2,7 +2,7 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { TEAM_QUEUE_ORDER } from './team-queue-counts.mjs';
+import { TEAM_QUEUE_ORDER, PMO_QUEUE_ORDER } from './team-queue-counts.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const outDir = process.argv[2] || process.env.PMO_DASHBOARD_OUT_DIR || 'site/pmo-dashboard';
@@ -177,6 +177,36 @@ function validateRow(row, label, rowByNumber, rowDataByNumber) {
   }
 }
 
+function validateQueueRow(errors, order, queues, expected, prefix) {
+  const expectedOrder = expected.map((queue) => queue.id);
+  if (!Array.isArray(order) || order.join(',') !== expectedOrder.join(',')) {
+    errors.push(`${prefix}.order must be ${expectedOrder.join(', ')}`);
+  }
+  if (!Array.isArray(queues) || queues.length !== expected.length) {
+    errors.push(`${prefix} queues must contain ${expected.length} rows`);
+    return;
+  }
+  queues.forEach((queue, index) => {
+    const expectedQueue = expected[index];
+    const label = `${prefix}[${index}]`;
+    if (!queue || typeof queue !== 'object') {
+      errors.push(`${label} must be an object`);
+      return;
+    }
+    if (queue.id !== expectedQueue.id) errors.push(`${label} id must be ${expectedQueue.id}`);
+    if (queue.title !== expectedQueue.title) errors.push(`${label} title must be ${expectedQueue.title}`);
+    if (!Number.isInteger(queue.count) || queue.count < 0) errors.push(`${label} count must be a non-negative integer`);
+    try {
+      const url = new URL(queue.issueSearchUrl);
+      if (url.protocol !== 'https:' || url.hostname !== 'github.com') {
+        errors.push(`${label} issueSearchUrl must be an https GitHub issues search`);
+      }
+    } catch {
+      errors.push(`${label} issueSearchUrl must be a valid URL`);
+    }
+  });
+}
+
 function validateExceptionRow(row, label, rowByNumber) {
   if (!row.name && !row.title) errors.push(`${label} is missing title/name`);
   if (!Number.isInteger(row.issueNumber) || row.issueNumber <= 0) errors.push(`${label} is missing a valid issueNumber`);
@@ -217,35 +247,22 @@ if (data) {
   if (!Array.isArray(data.dataQualityExceptions)) {
     errors.push('dataQualityExceptions must be present and must be an array');
   }
-  const expectedQueueOrder = TEAM_QUEUE_ORDER.map((queue) => queue.id);
   if (!data.teamQueues || typeof data.teamQueues !== 'object') {
     errors.push('teamQueues summary must be present');
   } else {
-    if (!Array.isArray(data.teamQueues.order) || data.teamQueues.order.join(',') !== expectedQueueOrder.join(',')) {
-      errors.push(`teamQueues.order must be ${expectedQueueOrder.join(', ')}`);
-    }
-    if (!Array.isArray(data.teamQueues.queues) || data.teamQueues.queues.length !== TEAM_QUEUE_ORDER.length) {
-      errors.push(`teamQueues.queues must contain ${TEAM_QUEUE_ORDER.length} rows`);
-    } else {
-      data.teamQueues.queues.forEach((queue, index) => {
-        const expected = TEAM_QUEUE_ORDER[index];
-        const label = `teamQueues.queues[${index}]`;
-        if (!queue || typeof queue !== 'object') {
-          errors.push(`${label} must be an object`);
-          return;
-        }
-        if (queue.id !== expected.id) errors.push(`${label} id must be ${expected.id}`);
-        if (queue.title !== expected.title) errors.push(`${label} title must be ${expected.title}`);
-        if (!Number.isInteger(queue.count) || queue.count < 0) errors.push(`${label} count must be a non-negative integer`);
-        try {
-          const url = new URL(queue.issueSearchUrl);
-          if (url.protocol !== 'https:' || url.hostname !== 'github.com') {
-            errors.push(`${label} issueSearchUrl must be an https GitHub issues search`);
-          }
-        } catch {
-          errors.push(`${label} issueSearchUrl must be a valid URL`);
-        }
-      });
+    validateQueueRow(errors, data.teamQueues.order, data.teamQueues.queues, TEAM_QUEUE_ORDER, 'teamQueues');
+    validateQueueRow(errors, data.teamQueues.pmoOrder, data.teamQueues.pmoQueues, PMO_QUEUE_ORDER, 'teamQueues.pmo');
+    if (Array.isArray(data.teamQueues.pmoQueues) && data.teamQueues.pmoQueues.length === PMO_QUEUE_ORDER.length) {
+      const tracked = data.teamQueues.pmoQueues[0];
+      const pipeline = data.teamQueues.pmoQueues[1];
+      const active = data.teamQueues.pmoQueues[2];
+      if (
+        tracked && pipeline && active &&
+        Number.isInteger(tracked.count) && Number.isInteger(pipeline.count) && Number.isInteger(active.count) &&
+        tracked.count !== pipeline.count + active.count
+      ) {
+        errors.push('teamQueues.pmoQueues tracked count must equal Pipeline plus Active');
+      }
     }
   }
   if (!data.currentBook || typeof data.currentBook !== 'object') {
