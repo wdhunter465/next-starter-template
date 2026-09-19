@@ -4,6 +4,7 @@ import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import PageShell from '@/components/PageShell';
 import AdminNav from '@/components/admin/AdminNav';
 import AdminStatusText from '@/components/admin/AdminStatusText';
+import PhotoCreditEditor from '@/components/admin/PhotoCreditEditor';
 import { adminJson } from '@/lib/adminClient';
 
 type MatchupRecord = {
@@ -395,6 +396,22 @@ export default function AdminMatchupPage() {
                 </article>
               ))}
             </div>
+          )}
+        </section>
+
+        <section style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: 14, padding: 14 }}>
+          <h2 style={{ marginTop: 0 }}>Photo credit / attribution</h2>
+          <p style={{ opacity: 0.85 }}>
+            Sets the `source` field the public Weekly Matchup widget shows as &quot;Credit: ...&quot; under each
+            photo (#4166). Leave blank to show no credit line for that photo.
+          </p>
+          {selected ? (
+            <div style={{ display: 'grid', gap: 12, marginTop: 10 }}>
+              <PhotoCreditEditor photoId={selected.photo_a_id} label="Photo A" />
+              <PhotoCreditEditor photoId={selected.photo_b_id} label="Photo B" />
+            </div>
+          ) : (
+            <p style={{ opacity: 0.75, marginTop: 10 }}>No matchup selected — create or select one above first.</p>
           )}
         </section>
 
