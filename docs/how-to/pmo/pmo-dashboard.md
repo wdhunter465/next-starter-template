@@ -5,7 +5,7 @@ Authority Level: Operational Guidance
 Owns: PMO dashboard generation, refresh, validation procedure, operator remediation flow, and GitHub Pages limitations
 Does Not Own: PMO lifecycle definitions, queue and priority policy, PMO issue contract, dashboard JSON specification, GitHub Issues source records, or Cloudflare production deployment
 Canonical Reference: /docs/reference/pmo/pmo-lifecycle-and-priority-contract.md
-Related Issues: #2101, #2299, #2313, #2471, #2516, #2610, #2611, #2699, #2702, #3116, #3136, #3597, #3615, #4171, #4174
+Related Issues: #2101, #2299, #2313, #2471, #2516, #2610, #2611, #2699, #2702, #3116, #3136, #3597, #3615, #4171, #4174, #4176
 Last Reviewed: 2026-09-19
 ---
 
@@ -74,7 +74,7 @@ Canonical JSON:
 https://wdhunter465.github.io/next-starter-template/pmo-dashboard/dashboard-data.json
 ```
 
-The Team queues page reports open Issue counts in this order: Operations, PMO Active, Engineering, Governance, PMO Pipeline. Counts use exclusive `team:*` ownership. PMO Active and PMO Pipeline also require exactly one of `pmo:active` or `pmo:pipeline`. The `teamQueues` JSON object is reporting-only. GitHub search links on that page are convenience filters and may include dual-labeled Issues that the exclusive counts omit.
+The Team queues page has two rows. Row one reports exclusive team ownership in this order: Operations, Engineering, Governance. Row two reports PMO **parent projects only** in this order: PMO tracked, PMO Pipeline, PMO Active. Tracked equals Pipeline plus Active. Child `pmo:task` Issues are omitted from the PMO row. The `teamQueues` JSON object is reporting-only. GitHub search links follow the same filters.
 
 The former owner URL (`https://wdhunter645.github.io/next-starter-template/pmo-dashboard/`) returns 404 after the repository rename to `wdhunter465/next-starter-template`. Use only the `wdhunter465.github.io` URLs above.
 

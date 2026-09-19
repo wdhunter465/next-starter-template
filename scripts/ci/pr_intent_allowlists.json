@@ -66,6 +66,7 @@
         "docs/templates/",
         "docs/explanation/ci/",
         "docs/reference/ci/",
+        "docs/reference/pmo/",
         "docs/reference/architecture/orchestration-model.md",
         "PROMPTS/",
         "docs/governance/PR_GOVERNANCE.md",
