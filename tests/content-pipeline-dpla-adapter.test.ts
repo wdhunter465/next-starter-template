@@ -108,6 +108,28 @@ describe('mapDplaDocToCandidateFields (#3826)', () => {
     expect(fields.summary).toContain('Discovered via DPLA search for "Lou Gehrig"');
   });
 
+  it('does not crash when sourceResource.date.begin/displayDate is array-typed (#4163 live-API regression)', () => {
+    // Reproduces the exact failure from the first live-verification run
+    // against the real DPLA API after #4161 wired DPLA_API_KEY through:
+    // "dpla failed: value.trim is not a function". At least one contributing
+    // institution sent a nested date subfield as an array rather than the
+    // single string the object-branch fallback (date.displayDate ??
+    // date.begin ?? "") assumed, and the un-normalized value reached
+    // orUndefined()'s .trim() call.
+    const doc = {
+      id: 'live999',
+      sourceResource: {
+        title: 'Gehrig portrait',
+        date: { displayDate: ['1927'], begin: ['1927'] },
+      },
+      dataProvider: 'Inconsistent Institution',
+    };
+
+    expect(() => mapDplaDocToCandidateFields(doc, query)).not.toThrow();
+    const fields = mapDplaDocToCandidateFields(doc, query);
+    expect(fields.dateOrPeriod).toBe('1927');
+  });
+
   it('never produces a rights_status or conclusion field -- mapping is metadata-only per #3551 core safety rule', () => {
     const doc = { id: 'x', rightsCategory: 'Public Domain' };
     const fields = mapDplaDocToCandidateFields(doc, query);

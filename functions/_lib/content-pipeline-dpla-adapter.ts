@@ -68,8 +68,15 @@ function firstScalar(value: unknown): string {
   return String(value);
 }
 
-function orUndefined(value: string): string | undefined {
-  const trimmed = value.trim();
+// Accepts `unknown`, not `string` -- #4163 live-verification against the real
+// DPLA API crashed here ("value.trim is not a function") because a nested
+// sourceResource.date subfield (begin/displayDate) came back array-typed for
+// at least one contributing institution, and the un-normalized value was
+// passed straight through from dplaDisplayDate(). Routing through
+// firstScalar() first makes this safe for any shape a DPLA provider sends,
+// matching the same inconsistency already documented for isShownAt above.
+function orUndefined(value: unknown): string | undefined {
+  const trimmed = firstScalar(value).trim();
   return trimmed === "" ? undefined : trimmed;
 }
 
@@ -77,7 +84,15 @@ export type DplaSourceResource = {
   title?: string | string[];
   description?: string | string[];
   creator?: string | string[];
-  date?: { displayDate?: string; begin?: string; end?: string } | string | string[];
+  // The nested object's own subfields are documented as single strings, but
+  // #4163's live-verification run proved at least one contributing
+  // institution sends them array-typed too -- widened defensively like the
+  // other sourceResource fields, per the same DPLA-provider-inconsistency
+  // pattern.
+  date?:
+    | { displayDate?: string | string[]; begin?: string | string[]; end?: string | string[] }
+    | string
+    | string[];
   rights?: string | string[];
   collection?: { title?: string } | { title?: string }[];
 };
@@ -113,7 +128,7 @@ function dplaDisplayDate(date: DplaSourceResource["date"]): string {
   if (date == null) return "";
   if (typeof date === "string") return date;
   if (Array.isArray(date)) return firstScalar(date);
-  return date.displayDate ?? date.begin ?? "";
+  return firstScalar(date.displayDate) || firstScalar(date.begin);
 }
 
 function dplaCollectionTitle(collection: DplaSourceResource["collection"]): string {
