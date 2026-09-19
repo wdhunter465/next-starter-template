@@ -2,6 +2,7 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { TEAM_QUEUE_ORDER } from './team-queue-counts.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const outDir = process.argv[2] || process.env.PMO_DASHBOARD_OUT_DIR || 'site/pmo-dashboard';
@@ -216,6 +217,33 @@ if (data) {
   if (!Array.isArray(data.dataQualityExceptions)) {
     errors.push('dataQualityExceptions must be present and must be an array');
   }
+  const expectedQueueOrder = TEAM_QUEUE_ORDER.map((queue) => queue.id);
+  if (!data.teamQueues || typeof data.teamQueues !== 'object') {
+    errors.push('teamQueues summary must be present');
+  } else {
+    if (!Array.isArray(data.teamQueues.order) || data.teamQueues.order.join(',') !== expectedQueueOrder.join(',')) {
+      errors.push(`teamQueues.order must be ${expectedQueueOrder.join(', ')}`);
+    }
+    if (!Array.isArray(data.teamQueues.queues) || data.teamQueues.queues.length !== TEAM_QUEUE_ORDER.length) {
+      errors.push(`teamQueues.queues must contain ${TEAM_QUEUE_ORDER.length} rows`);
+    } else {
+      data.teamQueues.queues.forEach((queue, index) => {
+        const expected = TEAM_QUEUE_ORDER[index];
+        const label = `teamQueues.queues[${index}]`;
+        if (queue.id !== expected.id) errors.push(`${label} id must be ${expected.id}`);
+        if (queue.title !== expected.title) errors.push(`${label} title must be ${expected.title}`);
+        if (!Number.isInteger(queue.count) || queue.count < 0) errors.push(`${label} count must be a non-negative integer`);
+        try {
+          const url = new URL(queue.issueSearchUrl);
+          if (url.protocol !== 'https:' || url.hostname !== 'github.com') {
+            errors.push(`${label} issueSearchUrl must be an https GitHub issues search`);
+          }
+        } catch {
+          errors.push(`${label} issueSearchUrl must be a valid URL`);
+        }
+      });
+    }
+  }
   if (!data.currentBook || typeof data.currentBook !== 'object') {
     errors.push('currentBook summary must be present');
   } else {
@@ -278,7 +306,7 @@ if (data) {
   }
 }
 
-for (const file of ['index.html', 'assets/pmo-dashboard.css', 'assets/pmo-dashboard.js']) {
+for (const file of ['index.html', 'queues.html', 'assets/pmo-dashboard.css', 'assets/pmo-dashboard.js', 'assets/pmo-queues.js']) {
   try {
     await readFile(path.join(outDir, file), 'utf8');
   } catch {
