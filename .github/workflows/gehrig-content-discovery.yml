@@ -22,8 +22,12 @@ name: Gehrig Content Discovery (#3551 / #3552 / #2270 perpetual collection)
 #   and merged through normal PR review -- is the standing authorization,
 #   scoped to the same #3551-approved automated sources (loc, wikimedia,
 #   openverse) and the same small per-run limit as the manual default. A
-#   fourth approved source, DPLA, stays manual-opt-in only since it
-#   requires a DPLA_API_KEY that isn't configured. A human must still
+#   fourth approved source, DPLA, stays manual-opt-in only (via
+#   workflow_dispatch --sources ...,dpla) even once DPLA_API_KEY is
+#   configured -- its adapter has never been verified against DPLA's live
+#   API (see functions/_lib/content-pipeline-dpla-adapter.ts), so it is not
+#   promoted into the scheduled/manual-dispatch defaults until a human runs
+#   and confirms a manual dispatch (#4161). A human must still
 #   separately record rights_evidence and run the #3567 ingestion endpoint
 #   before anything discovered here can become usable media; this workflow
 #   never does that and never writes to B2.
@@ -57,8 +61,9 @@ on:
         default: ""
   schedule:
     # Every Monday 13:00 UTC, against all three #3551-approved automated
-    # sources (loc, wikimedia, openverse -- DPLA stays opt-in only since it
-    # requires DPLA_API_KEY, not configured here). Weekly matches the
+    # sources in the default set (loc, wikimedia, openverse -- DPLA stays
+    # manual opt-in only regardless of DPLA_API_KEY, see #4161). Weekly
+    # matches the
     # zero-recurring-cost / low-volume-first posture in #2270 and #2312 --
     # all three are free public APIs with no meaningful cost or rate risk
     # at this cadence and the existing per-run limit.
@@ -97,6 +102,12 @@ jobs:
           DISCOVERY_QUERY: ${{ github.event_name == 'schedule' && 'Lou Gehrig' || github.event.inputs.query }}
           DISCOVERY_SOURCES: ${{ github.event_name == 'schedule' && 'loc,wikimedia,openverse' || github.event.inputs.sources }}
           DISCOVERY_LIMIT: ${{ github.event_name == 'schedule' && '10' || github.event.inputs.limit }}
+          # Threaded through so a manual `--sources ...,dpla` dispatch can
+          # authenticate once the DPLA_API_KEY repository secret is
+          # registered (#4161). Resolves to an empty string, matching the
+          # script's own fail-fast behavior, when the secret isn't set --
+          # this line has no effect on any source other than dpla.
+          DPLA_API_KEY: ${{ secrets.DPLA_API_KEY }}
         run: |
           node --experimental-strip-types scripts/content-pipeline/collect-gehrig-external-sources.mjs \
             --query "$DISCOVERY_QUERY" \
