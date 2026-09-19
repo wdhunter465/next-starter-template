@@ -5,7 +5,7 @@ Authority Level: Domain Policy
 Owns: Durable LGFC agent roles, recognized agent products, current member mapping, role work-selection order, approval authority, protected stops, and role-transition state
 Does Not Own: PMO lifecycle/stage semantics, detailed queue-label implementation, delivery-profile mechanics, CI implementation, or Production recovery procedure
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3240, #3629, #3693, #3825, #4074, #4165
+Related Issues: #3240, #3629, #3693, #3825, #4074, #4165, #4174
 Last Reviewed: 2026-09-19
 ---
 
@@ -25,8 +25,10 @@ A member may act only through its currently assigned role authority plus an open
 | Operations | Operations Issue response and authorized project implementation when Operations is clear |
 | Engineering | Engineering qualification, technical design/review, authorized project implementation/review, Governance technical work |
 | PMO | Active/Pipeline portfolio management, lifecycle readiness, scoped priority, Engineering/Governance execution prioritization, Graduation and project closeout preparation |
+| PMO Admin | Executes PMO process: lifecycle and label reconciliation, current-state records, dashboard reporting hygiene, Graduation packet recording, and queue administration. Does not create Product Go, Production authorization, or merge authority. The current holder is the member mapped below. |
 | Governance | Final repository-governance disposition and Issue assignment/prioritization subject to Product Authority; Governance Issue ownership |
 | PR Approver / Engineering | Independent validation that work meets design, acceptance, repository, and promotion requirements |
+| CMO (Change Management Office) | Independent review and merge approval of Pull Requests when Product Authority is unavailable. CMO is not Product Authority, may not approve its own implementation, and may not authorize Production Go, cost, legal, secrets, or other protected Product decisions. The current holder is the member mapped below. |
 | Administration & Communications | Evidence, routing, acknowledgments, escalation, repository-state reconciliation, holds/resumes, reporting, and authorized closeout transactions |
 | Day-2 Operations | Production monitoring, incident classification, containment, recovery strategy, operational hold release |
 | Deterministic CI | Machine-provable checks, evidence, eligible bounded automation, and authorized non-main integration |
@@ -76,6 +78,38 @@ PMO responsibilities:
 
 PMO does not create Product Authority, Production Go, or protected decisions.
 
+### PMO Admin role
+
+PMO Admin is the process executor for PMO administration. Process documents name this role. They do not name a vendor or a person.
+
+PMO Admin:
+
+- maintains live Issue lifecycle, team, and ordered-priority labels;
+- writes and reconciles PMO current-state records;
+- clears dashboard metadata defects from live GitHub state;
+- records Graduation packets and Active placement after Product/PMO Go;
+- routes dispatcher/remediation Issues when a launched queue stalls.
+
+PMO Admin does not merge Pull Requests, invent Product Go, or close program/master Issues without the closeout protocol.
+
+### CMO role
+
+CMO is the Change Management Office. It exists so merge approval can continue when Product Authority is unavailable.
+
+CMO may:
+
+- independently review a Pull Request it did not implement;
+- approve that Pull Request for merge after required gates and independent review evidence exist.
+
+CMO may not:
+
+- approve its own implementation;
+- waive independent review;
+- authorize Production Go, cost, legal, privacy, credentials, destructive data, or other protected Product decisions;
+- replace Product Authority as the default merge approver when Product Authority is available.
+
+A CMO holder must be recorded in the member mapping below before CMO may approve a merge. An unassigned CMO role is not an approval.
+
 ### Governance role
 
 Governance responsibilities:
@@ -93,12 +127,13 @@ Governance does not override Product Authority's business/product decisions or p
 
 | Member/product | Current roles |
 | --- | --- |
-| Bill | Product Authority; Day-2 Operations; protected approval where recorded |
-| ChatGPT | **Governance**; **PMO**; PR Approver / Engineering for work ChatGPT did not implement; Administration & Communications; Day-2 coordination/Tier 2 support |
+| Bill | Product Authority; Day-2 Operations; default merge approval when available |
+| ChatGPT | **Governance**; Administration & Communications; Day-2 coordination. Not PMO Admin. Not CMO. |
 | Grok | **Operations**; authorized implementation |
 | Codex | **Retired** (#4165). No current team role, wake path, or implementation authority. Historical record only (`docs/ops/ai/CODEX-RULES.md`). |
-| Cursor | **Operations during transition**; authorized implementation; target role is Engineering after Product Authority records the transition |
+| Cursor | **Operations during transition**; **PMO Admin** (interim, #4174); authorized implementation; target role is Engineering after Product Authority records the transition |
 | Claude Code | **Engineering**; authorized implementation; PR Approver / Engineering only for work Claude Code did not implement |
+| CMO holder | **Unassigned** (#4174). Product Authority must record a named member here before CMO may approve a merge. |
 | Jules | Implementation resource only when explicitly assigned under a compatible role/source Issue |
 | Gemini | Research and repository monitoring/reporting; read-only unless separately authorized |
 | CloudflareAI | Evaluation/support only under recorded access |
@@ -111,25 +146,33 @@ Current transition state:
 
 - Cursor remains eligible for Operations implementation. Codex is retired (#4165) and is not a reliability gate for that eligibility.
 - Cursor is **not yet removed from Operations**.
-- Target state moves Cursor into Engineering alongside Claude Code.
-- The transition is complete only after Product Authority records the trigger/disposition in the repository.
+- Product Authority #4174 assigned Cursor **interim PMO Admin**. That is an explicit recorded assignment, not a completed Engineering transition.
+- Target state still moves Cursor into Engineering alongside Claude Code after Product Authority records that trigger/disposition.
 
-Do not silently place Cursor in both roles as if the transition were complete. During transition, its Operations eligibility remains controlling unless an explicit source Issue assigns bounded Engineering participation.
+Do not treat the Engineering transition as complete. Interim PMO Admin is the #4174 Product decision only.
 
 ## Codex retirement
 
 Product Authority permanently terminated Codex as an LGFC agent on 2026-09-19 (#4165). Codex holds no current Operations, implementation, review, or wake/dispatch authority. Historical Issue comments, PR authorship, and prior decisions attributing work to Codex remain truthful records and are not rewritten.
 
+## PMO Admin and CMO holders
+
+PMO process documents name **PMO Admin** and **CMO**. They do not name ChatGPT or Bill as the process actor.
+
+Current holders live only in this file:
+
+- **PMO Admin:** Cursor (interim, #4174)
+- **CMO:** unassigned until Product Authority records a named member in the mapping table above
+
+Product Authority (Bill) remains the default merge approver when available. CMO is the recorded delegate for merge approval only when Product Authority is unavailable and a holder is named.
+
 ## ChatGPT dual-role ownership
 
 Product Authority permanently removed OpenAI / Work from the LGFC Agentic Team on 2026-09-03 (#4074) for unreliable PMO/closeout performance. Work holds no current LGFC team role, PMO authority, implementation authority, review authority, closeout authority, or Administration authority. Historical Issue comments, PR authorship, and prior decisions attributing work to Work remain truthful records and are not rewritten.
 
-ChatGPT is the durable permanent owner of both **Governance** and **PMO** for LGFC:
+ChatGPT is not PMO Admin and is not CMO. PMO process execution is **PMO Admin** (current holder in the mapping table). Merge approval when Product Authority is unavailable is **CMO** only after Product Authority records a holder.
 
-- **ChatGPT = Governance**
-- **ChatGPT = PMO**
-
-ChatGPT also retains Administration & Communications and independent review capabilities where mapped and where separation of duties is satisfied. Holding both Governance and PMO does not collapse builder/reviewer separation: ChatGPT may not independently approve governance or PMO documentation it implemented itself (see Independent review and separation of duties).
+ChatGPT currently retains Governance and Administration & Communications where mapped. Holding Governance does not collapse builder/reviewer separation: no implementer may independently approve protected work it implemented.
 
 A product may assist another role only through explicit repository authority; the primary mapping above determines normal responsibility and work selection.
 
@@ -156,8 +199,8 @@ An agent claim does not permanently transfer role or Team ownership. Claims must
 ## Independent review and separation of duties
 
 - No implementer may be the sole independent reviewer/approver of its own protected work.
-- ChatGPT may not independently approve governance documentation it implemented.
-- ChatGPT may not independently approve PMO documentation it implemented.
+- PMO Admin may not merge Pull Requests.
+- CMO may not approve its own implementation.
 - Claude Code may approve only work it did not implement.
 - Cursor, Grok, and other implementers do not self-approve protected work.
 - Model C constitutional/domain-policy changes require independent review before merge.
@@ -202,7 +245,8 @@ Project/Program closeout remains a PMO/Governance/Product decision at the level 
 
 This document supersedes earlier agent-team language that:
 
-- treats ChatGPT and Work as indistinguishable primary role holders for all control-plane work;
+- names ChatGPT or Bill as the PMO process actor instead of **PMO Admin**;
+- treats merge approval as only a named person instead of Product Authority by default and **CMO** when Product Authority is unavailable and a holder is recorded;
 - treats Cursor as permanently Operations-only or permanently Engineering before the recorded transition;
 - treats retired Codex (#4165) as a live Operations/implementation role;
 - defines one universal normal-work queue order for every agent regardless of role;

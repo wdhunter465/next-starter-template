@@ -5,8 +5,8 @@ Authority Level: Procedure
 Owns: Step-by-step PMO classification and Model A/B selection before launch
 Does Not Own: Domain policy, delivery-profile parser implementation, or merge approval
 Canonical Reference: /docs/governance/PMO-PORTFOLIO.md
-Related Issues: #2487
-Last Reviewed: 2026-07-13
+Related Issues: #2487, #4174
+Last Reviewed: 2026-09-19
 ---
 
 # Classify Work and Select Delivery Model
@@ -81,11 +81,11 @@ Use values from the decision matrix or `classifyDeliveryProfile` when the PR exi
 
 ### 6. Validate against the decision matrix
 
-Compare the outcome to `docs/reference/pmo/work-size-and-delivery-model-contract.md`. If no row matches, stop and post a `CHATGPT HANDOFF` with `Status: blocked` for PMO review.
+Compare the outcome to `docs/reference/pmo/work-size-and-delivery-model-contract.md`. If no row matches, stop and post a source-Issue handoff for **PMO Admin** review.
 
 ### 7. Authorize launch
 
-ChatGPT or Bill authorizes launch on the classified issue. Local Cursor implementation begins only after assignment, runtime, allowlist, and the `agent:cursor` + `handoff:ready` labels (labels/status only — #3013; no resume comment required).
+**PMO Admin** authorizes launch on the classified issue. Product Authority retains protected Product Go. Local implementation begins only after assignment, runtime, allowlist, and the current implementer `agent:*` plus `handoff:ready` labels (labels/status only — #3013; no resume comment required).
 
 ## Verification
 

@@ -5,8 +5,8 @@ Authority Level: Operational Authority
 Owns: Issue closeout evidence, role-based closeout execution, profile-aware completion accounting, deterministic closeout, exception handling, parent/reporting reconciliation, and successor disposition
 Does Not Own: Merge authority, delivery or promotion decisions, project objectives, PR approval, Production authorization, recovery strategy, or workflow implementation
 Canonical Reference: /docs/governance/ADMINISTRATION-AND-COMMUNICATIONS.md
-Related Issues: #1411, #2359, #2640, #2641, #2639, #2700, #3069
-Last Reviewed: 2026-08-14
+Related Issues: #1411, #2359, #2640, #2641, #2639, #2700, #3069, #4174
+Last Reviewed: 2026-09-19
 ---
 
 # GitHub Issue Closeout Protocol
@@ -207,7 +207,7 @@ When post-merge verification cannot close the original source Issue:
 2. Create a new exception Issue in the same delivery lineage (same original source Issue and originating PR).
 3. Assign that exception to the same originating agent with the matching `agent:*` label and `status:active` immediately.
 4. Pause only that agent's next assigned project task at `status:queued`. Keep unrelated agent lanes executable.
-5. Do not reintroduce `handoff:ready` for the exception. Ownership continuity is preserved from the original claim. There is no PMO/Bill reassignment step when originating ownership is determinable.
+5. Do not reintroduce `handoff:ready` for the exception. Ownership continuity is preserved from the original claim. There is no PMO Admin reassignment step when originating ownership is determinable.
 6. The originating agent remediates: reconcile reviewer threads and validation defects; open a bounded remediation PR only when repository content must change; stop for independent review.
 7. Merge of the remediation PR does not end the cycle by itself. It must re-enter the same post-merge verification/closeout workflow.
 8. If that verification produces another exception, create another new exception Issue in the same lineage, keep the same originating owner, and repeat. There is no one-pass completion and no arbitrary retry limit.
@@ -215,7 +215,7 @@ When post-merge verification cannot close the original source Issue:
 
 The cycle ends only when post-merge verification is clean and the original source Issue is completely and properly resolved. After that clean terminal closeout, the paused successor resumes automatically.
 
-ChatGPT/Bill review, then assignment of a remediation owner, is reserved for genuinely ambiguous originating ownership or an explicit protected decision boundary recorded on the exception Issue.
+PMO Admin or Product Authority review, then assignment of a remediation owner, is reserved for genuinely ambiguous originating ownership or an explicit protected decision boundary recorded on the exception Issue.
 
 ## Project/master audit sequence
 

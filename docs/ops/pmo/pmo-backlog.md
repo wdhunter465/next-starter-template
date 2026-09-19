@@ -5,8 +5,8 @@ Authority Level: Operational Authority
 Owns: Verified PMO backlog state, preparation status, active assignment summary, and closeout-remediation visibility
 Does Not Own: Product priority decisions, implementation authority, Production approval, or status inferred without repository evidence
 Canonical Reference: /docs/governance/PMO-PORTFOLIO.md
-Related Issues: #1255, #1719, #2215, #2615, #2678, #2779, #2784, #2817, #3355
-Last Reviewed: 2026-08-18
+Related Issues: #1255, #1719, #2215, #2615, #2678, #2779, #2784, #2817, #3355, #4174
+Last Reviewed: 2026-09-19
 ---
 
 # PMO Backlog
@@ -32,13 +32,13 @@ Canonical policy: `docs/governance/PROJECT-DOCUMENTATION-AND-AS-BUILT.md`.
 | #2615 | Active PMO implementation | Cursor | #2622 | Active |
 | #2784 | Active PMO implementation | Claude | #2918 | Active |
 
-ChatGPT / Atlas owns PMO / Engineering. Bill retains Product and Production authority.
+**PMO Admin** executes PMO process. The current holder is recorded in `docs/governance/AGENT-TEAM.md`. Product Authority retains Product and Production authority. CMO may approve merge when Product Authority is unavailable and a holder is recorded.
 
 ## Engineering Pipeline preparation
 
 | Project | Lane | Preparation owner | Package state | Readiness |
 | --- | --- | --- | --- | --- |
-| #2817 | Pipeline Engineering Preparation | ChatGPT (PMO); Cursor Local (child ownership / post-GO implementer) | Launch packet, design draft, and open children cite the #2817 15-child graph. #2818 CLOSED COMPLETE via #3355. First executable after GO: #2822 | Ready for PMO Graduation Review (GO is a PMO meeting decision; not implementation) |
+| #2817 | Pipeline Engineering Preparation | PMO Admin; Cursor Local (child ownership / post-GO implementer) | Launch packet, design draft, and open children cite the #2817 15-child graph. #2818 CLOSED COMPLETE via #3355. First executable after GO: #2822 | Ready for PMO Graduation Review (GO is a PMO meeting decision; not implementation) |
 
 ## Closeout remediation
 

@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Platform architecture ownership, environment classification, preview/component/production boundaries, credentials and external-service decision rules, deployment/migration/rollback platform boundaries, and platform escalation
 Does Not Own: Delivery Model A/B selection, agent approval routing, CI gate implementation, product/UX behavior, or day-to-day operator checklists
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2688, #2686
-Last Reviewed: 2026-08-11
+Related Issues: #2688, #2686, #4174
+Last Reviewed: 2026-09-19
 ---
 
 # Platform and Environment
@@ -23,24 +23,25 @@ Delivery model selection remains in `docs/governance/PMO-PORTFOLIO.md` and `docs
 
 | Role | Actor | Owns in this domain |
 | --- | --- | --- |
-| **Product Authority** | Bill | Platform go/no-go that changes product risk; credentials, cost, vendor, or business authorization; final judgment when isolation or hosting model is material |
-| **PMO / Engineering** | ChatGPT | Platform documentation package authorship; environment classification completeness; primary PR review for platform/environment policy and protected platform changes |
-| **Implementation / Operations** | Cursor | Scoped implementation of approved platform docs and allowlisted platform work; no self-approval of platform authority |
-| **PR Approver / Engineering** | ChatGPT (Bill alternate) | Approval and merge of platform/environment PRs per delivery profile; not a substitute for Product Authority on credentials, cost, or material isolation decisions |
+| **Product Authority** | Current holder in `docs/governance/AGENT-TEAM.md` | Platform go/no-go that changes product risk; credentials, cost, vendor, or business authorization; final judgment when isolation or hosting model is material |
+| **PMO Admin** | Current holder in `docs/governance/AGENT-TEAM.md` | Platform documentation package authorship; environment classification completeness |
+| **Implementation / Operations** | Current holder in `docs/governance/AGENT-TEAM.md` | Scoped implementation of approved platform docs and allowlisted platform work; no self-approval of platform authority |
+| **PR Approver / Engineering** | Current holder in `docs/governance/AGENT-TEAM.md` | Independent review of platform/environment PRs per delivery profile; not a substitute for Product Authority on credentials, cost, or material isolation decisions |
+| **CMO** | Current holder in `docs/governance/AGENT-TEAM.md` (unassigned until recorded) | Merge approval when Product Authority is unavailable; may not approve own implementation |
 | **Supporting platform references** | `docs/reference/platform/**` | Resource inventories, isolation classifications, and operational platform facts only |
 
 Rules:
 
-- Product Authority decisions recorded by Bill outrank competing platform commentary in issues, PRs, chat, or agent memory when credentials, cost, vendor access, isolation, or hosting model are material.
-- Chat authors and maintains the platform documentation package; Cursor implements within the approved allowlist.
-- Cursor must not invent isolation claims, provision production-affecting resources, or treat supporting inventories as independent policy owners.
+- Product Authority decisions recorded in the repository outrank competing platform commentary in issues, PRs, chat, or agent memory when credentials, cost, vendor access, isolation, or hosting model are material.
+- PMO Admin authors and maintains the platform documentation package; Implementation / Operations implements within the approved allowlist.
+- Implementation / Operations must not invent isolation claims, provision production-affecting resources, or treat supporting inventories as independent policy owners.
 - Supporting platform references must cite this domain policy and must not restate competing domain ownership.
 
 ## Authority stack inside this domain
 
 When platform or environment sources conflict inside this domain, resolve in this order:
 
-1. Locked Product Authority decisions recorded by Bill (issue, PR, or approved platform lock)
+1. Locked Product Authority decisions recorded on the source Issue or PR (or an approved platform lock)
 2. This domain policy (`docs/governance/PLATFORM-AND-ENVIRONMENT.md`)
 3. Isolation and mutating-resource inventory: `docs/reference/platform/component-environment-isolation.md`
 4. Resource inventories under `docs/reference/platform/**` (Cloudflare, D1, B2, and related guides)
@@ -76,7 +77,7 @@ As of the supporting isolation inventory:
 
 Required controls while isolation is incomplete:
 
-- Do not mirror production `ADMIN_TOKEN`, MailChannels enablement, GA ids, or B2 write-capable secrets onto preview/component deploys unless Product Authority and Chat record an intentional, bounded exception.
+- Do not mirror production `ADMIN_TOKEN`, MailChannels enablement, GA ids, or B2 write-capable secrets onto preview/component deploys unless Product Authority and PMO Admin record an intentional, bounded exception.
 - Treat mutating preview paths that share production D1 as protected for Model B integration decisions.
 - Prefer fail-closed defaults documented in the isolation inventory and `.env.example`.
 
@@ -84,21 +85,21 @@ Required controls while isolation is incomplete:
 
 | Decision class | Authority | Required record |
 | --- | --- | --- |
-| Platform architecture / hosting model | Product Authority go/no-go; Chat packages design | Source issue + platform package |
-| Environment classification or isolation claim | Chat updates isolation inventory; Product Authority when material risk changes | Updated `component-environment-isolation.md` cited by PR |
-| Provisioning separate preview/component resources | Product Authority + Chat | Source issue authorization before implementation |
-| Credentials, secrets, vendor access, or paid service enablement | Product Authority (credentials/cost/business); Chat records packaging | Source issue authorization; secrets never committed |
-| External-service mutation (B2 write sync, email send, analytics) | Chat review; Product Authority when production impact or cost applies | Source issue + protected-change review when required |
-| Deployment binding / Pages project / production domain change | Chat primary; Product Authority when material | Protected-change review |
-| D1 schema migration affecting production | Chat review; Product Authority when destructive or irreversible | Migration plan + protected-change review |
-| Platform rollback of bindings, credentials, or external writes | Chat/Bill per Operations and Delivery policies | Rollback package on source issue / PR |
+| Platform architecture / hosting model | Product Authority go/no-go; PMO Admin packages design | Source issue + platform package |
+| Environment classification or isolation claim | PMO Admin updates isolation inventory; Product Authority when material risk changes | Updated `component-environment-isolation.md` cited by PR |
+| Provisioning separate preview/component resources | Product Authority + PMO Admin | Source issue authorization before implementation |
+| Credentials, secrets, vendor access, or paid service enablement | Product Authority (credentials/cost/business); PMO Admin records packaging | Source issue authorization; secrets never committed |
+| External-service mutation (B2 write sync, email send, analytics) | PMO Admin review; Product Authority when production impact or cost applies | Source issue + protected-change review when required |
+| Deployment binding / Pages project / production domain change | PMO Admin primary; Product Authority when material | Protected-change review |
+| D1 schema migration affecting production | PMO Admin review; Product Authority when destructive or irreversible | Migration plan + protected-change review |
+| Platform rollback of bindings, credentials, or external writes | Product Authority; CMO only for merge when Product Authority is unavailable and a holder is recorded | Rollback package on source issue / PR |
 | Emergency platform stabilization | Operations and Recovery path | Incident/source issue disposition |
 
 No agent may treat an implementation convenience, screenshot, prior PR, or draft comment as a platform isolation or credential decision.
 
 ## Protected platform changes
 
-The following require Chat review before component integration or production merge, and Product Authority when credentials, cost, vendor access, or irreversible risk apply:
+The following require PMO Admin review before component integration or production merge, and Product Authority when credentials, cost, vendor access, or irreversible risk apply:
 
 - destructive or non-backward-compatible database migration;
 - authentication or authorization boundary that changes platform access;
@@ -131,7 +132,7 @@ Credential, cost, or business authorization missing from the source issue is a p
 
 ## Escalation rules
 
-Stop and escalate to Product Authority (Bill), with Chat as gate-review partner, when:
+Stop and escalate to Product Authority, with PMO Admin as process partner, when:
 
 - two active platform sources disagree and the source issue does not resolve precedence;
 - preview or component execution can mutate production without an approved control;
@@ -145,9 +146,9 @@ Routine inventory wording fixes, reference routing corrections, validation remed
 
 | Change type | Platform-doc update first? | Approval |
 | --- | --- | --- |
-| Docs-only supporting inventory correction aligned to existing authority | Yes (the docs PR is the change) | Chat primary; Bill alternate |
+| Docs-only supporting inventory correction aligned to existing authority | Yes (the docs PR is the change) | PMO Admin; CMO may merge if Product Authority is unavailable and a CMO holder is recorded |
 | Implementation matching already-recorded platform facts | No additional ownership change | Per delivery profile (`docs/governance/DELIVERY-AND-RELEASE.md`) |
-| Material isolation, binding, credential, or hosting change | Yes | Product Authority go/no-go when material, then Chat review/merge |
+| Material isolation, binding, credential, or hosting change | Yes | Product Authority go/no-go when material, then PMO Admin review/merge |
 | Component-child drafting under an authorized Model B program | Per child allowlist | Component auto-integration only when the child profile allows it; does not activate `main` policy alone |
 
 Cursor never self-approves platform authority.

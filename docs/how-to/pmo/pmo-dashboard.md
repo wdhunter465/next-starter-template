@@ -5,8 +5,8 @@ Authority Level: Operational Guidance
 Owns: PMO dashboard generation, refresh, validation procedure, operator remediation flow, and GitHub Pages limitations
 Does Not Own: PMO lifecycle definitions, queue and priority policy, PMO issue contract, dashboard JSON specification, GitHub Issues source records, or Cloudflare production deployment
 Canonical Reference: /docs/reference/pmo/pmo-lifecycle-and-priority-contract.md
-Related Issues: #2101, #2299, #2313, #2471, #2516, #2610, #2611, #2699, #2702, #3116, #3136, #3597, #3615
-Last Reviewed: 2026-08-23
+Related Issues: #2101, #2299, #2313, #2471, #2516, #2610, #2611, #2699, #2702, #3116, #3136, #3597, #3615, #4174
+Last Reviewed: 2026-09-19
 ---
 
 # PMO Dashboard
@@ -19,7 +19,7 @@ The dashboard normalizes public-safe Issue data into Active, Pipeline, Completed
 
 Queue, priority, Project Graduation, and collaboration semantics are owned by `docs/governance/WORK-QUEUES-AND-COLLABORATION.md`. The JSON and view contract is owned by `docs/reference/pmo/pmo-lifecycle-and-priority-contract.md`. The July 2026 dashboard specification is superseded historical context.
 
-This operator guidance was reconciled directly by ChatGPT under #2699 from the PMO meeting decisions. It must not be delegated to an implementation agent to reinterpret the meeting record. Owner-display and event-refresh behavior were corrected under #3615.
+This operator guidance was reconciled under #2699 from the PMO meeting decisions. It must not be delegated to an implementation agent to reinterpret the meeting record. Owner-display and event-refresh behavior were corrected under #3615. PMO process execution is **PMO Admin**; the current holder is in `docs/governance/AGENT-TEAM.md`.
 
 ## Scope
 

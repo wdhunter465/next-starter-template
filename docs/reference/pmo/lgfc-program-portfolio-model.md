@@ -5,8 +5,8 @@ Authority Level: Operational Authority
 Owns: LGFC PMO July 2026 program issue portfolio model, PMO Backlog intake model, and execution-chain reference
 Does Not Own: Product design, workflow implementation, runtime behavior, GitHub issue mutation, or merge authority
 Canonical Reference: /docs/ops/pmo/PMO-JULY-2026-OPERATING-MODEL.md
-Related Issues: #1411, #1417, #1418, #1419, #1420, #1421, #1422, #1423, #1424, #1379, #1255, #1501, #1719, #1720
-Last Reviewed: 2026-07-16
+Related Issues: #1411, #1417, #1418, #1419, #1420, #1421, #1422, #1423, #1424, #1379, #1255, #1501, #1719, #1720, #4174
+Last Reviewed: 2026-09-19
 ---
 
 # LGFC Program Portfolio Model
@@ -85,7 +85,7 @@ A later program issue is not a child of an earlier program issue unless the curr
 
 A PMO Backlog item may move toward executable work only after:
 
-1. Bill/owner approves promotion review during a PMO meeting or explicit Bill/ChatGPT review.
+1. Product Authority or PMO Admin approves promotion review during a PMO meeting or explicit recorded review.
 2. The idea is converted into a documented project candidate.
 3. The design source of truth is saved into the GitHub repository.
 4. Readiness gaps are identified and resolved or accepted.
@@ -93,7 +93,7 @@ A PMO Backlog item may move toward executable work only after:
 6. A program issue is created or updated if the work becomes a program.
 7. Project/task issues are created if executable.
 8. Cursor or another agent receives a specific issue, file allowlist, validation requirement, and stop condition.
-9. ChatGPT/Bill explicitly authorize launch.
+9. PMO Admin records launch. Product Authority retains protected Product Go.
 
 Workflow Automation follows this path: it was captured as backlog material, promoted into historical Program `#1411` for documentation planning, and continues under current Priority #3 Program `#1719` child issues.
 
@@ -102,8 +102,8 @@ Workflow Automation follows this path: it was captured as backlog material, prom
 - One primary source issue controls each PR.
 - Cursor edits files inside the active task allowlist and records validation.
 - Cursor may not merge PRs, close issues, relabel issues, mutate queue state, or create child issues unless the active source issue explicitly authorizes it.
-- ChatGPT reviews governance, source-issue accounting, queue conformance, and documentation authority.
-- Bill retains merge authority, protected action authority, launch-gate approval, destructive issue-action authority, and strategy decision authority.
+- PMO Admin reviews governance, source-issue accounting, queue conformance, and documentation authority.
+- Product Authority retains default merge authority, protected action authority, launch-gate approval, destructive issue-action authority, and strategy decision authority. CMO may approve merge only when Product Authority is unavailable and a holder is recorded in AGENT-TEAM.
 - GitHub is the shared audit trail after planning content is promoted out of chat or Drive.
 
 ## Cursor Read Order
