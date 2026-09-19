@@ -5,7 +5,14 @@ import {
   clubHomePhotoPlaceholder,
   clubHomeSectionCard,
   clubHomeSectionTitle,
+  clubHomeStoryHeroImage,
+  clubHomeStoryThumbImage,
 } from './clubHomeStyles';
+
+type ClubHomeStaticStoryImage = {
+  url: string;
+  alt: string;
+};
 
 type ClubHomeStaticStoryProps = {
   title: string;
@@ -15,6 +22,8 @@ type ClubHomeStaticStoryProps = {
   compact?: boolean;
   credit?: string | null;
   sourceName?: string | null;
+  /** Zone-sized image for this posting space — large hero framing when !compact, a small thumbnail when compact (#4180). */
+  image?: ClubHomeStaticStoryImage | null;
 };
 
 /** Splits a summary into a dek (first sentence) and body, for the lead story's dual-headline treatment. */
@@ -33,17 +42,12 @@ export default function ClubHomeStaticStory({
   compact = false,
   credit,
   sourceName,
+  image,
 }: ClubHomeStaticStoryProps) {
   const { dek, body } = compact ? { dek: '', body: summary } : splitDek(summary);
 
-  return (
-    <article aria-label={ariaLabel} style={clubHomeSectionCard}>
-      <h2 style={{ ...clubHomeSectionTitle, fontSize: compact ? 12 : 13 }}>{title}</h2>
-      {!compact && (
-        <div aria-hidden="true" style={{ ...clubHomePhotoPlaceholder(300), marginBottom: 14 }}>
-          [ Photo — {headline || 'Club Home lead story'} ]
-        </div>
-      )}
+  const headlineBlock = (
+    <>
       <h3
         style={{
           margin: '0 0 8px 0',
@@ -72,6 +76,28 @@ export default function ClubHomeStaticStory({
         </p>
       ) : null}
       {body ? <p style={clubHomeMutedText}>{body}</p> : null}
+    </>
+  );
+
+  return (
+    <article aria-label={ariaLabel} style={clubHomeSectionCard}>
+      <h2 style={{ ...clubHomeSectionTitle, fontSize: compact ? 12 : 13 }}>{title}</h2>
+      {!compact &&
+        (image ? (
+          <img src={image.url} alt={image.alt} style={{ ...clubHomeStoryHeroImage, marginBottom: 14 }} />
+        ) : (
+          <div aria-hidden="true" style={{ ...clubHomePhotoPlaceholder(300), marginBottom: 14 }}>
+            [ Photo — {headline || 'Club Home lead story'} ]
+          </div>
+        ))}
+      {compact && image ? (
+        <div style={{ display: 'flex', gap: 10, marginBottom: 4 }}>
+          <img src={image.url} alt={image.alt} style={clubHomeStoryThumbImage()} />
+          <div style={{ minWidth: 0 }}>{headlineBlock}</div>
+        </div>
+      ) : (
+        headlineBlock
+      )}
       {(credit || sourceName) && (
         <p style={{ ...clubHomeMutedText, marginTop: 8, fontSize: 12, fontStyle: 'italic' }}>
           {credit ? `Credit: ${credit}` : null}

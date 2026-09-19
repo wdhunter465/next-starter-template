@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { clubHomeMutedText, clubHomeSectionCard, clubHomeSectionTitle } from './clubHomeStyles';
+import { clubHomeMutedText, clubHomeSectionCard, clubHomeSectionTitle, clubHomeStoryThumbImage } from './clubHomeStyles';
 import type { ClubHomeStory } from '@/lib/clubHomeApi';
 
 type ClubHomeArchiveSpotlightProps = {
@@ -14,10 +14,17 @@ export default function ClubHomeArchiveSpotlight({ story }: ClubHomeArchiveSpotl
       <h2 style={clubHomeSectionTitle}>Archive Spotlight</h2>
       {hasStory ? (
         <>
-          <h3 style={{ margin: '0 0 8px 0', fontSize: 18, lineHeight: 1.35 }}>
-            {story?.headline || story?.title || 'Archive highlight'}
-          </h3>
-          {story?.summary ? <p style={clubHomeMutedText}>{story.summary}</p> : null}
+          <div style={{ display: 'flex', gap: 10 }}>
+            {story?.image ? (
+              <img src={story.image.url} alt={story.image.alt} style={clubHomeStoryThumbImage()} />
+            ) : null}
+            <div style={{ minWidth: 0 }}>
+              <h3 style={{ margin: '0 0 8px 0', fontSize: 18, lineHeight: 1.35 }}>
+                {story?.headline || story?.title || 'Archive highlight'}
+              </h3>
+              {story?.summary ? <p style={clubHomeMutedText}>{story.summary}</p> : null}
+            </div>
+          </div>
           {(story?.credit || story?.source_name) && (
             <p style={{ ...clubHomeMutedText, marginTop: 8, fontSize: 13 }}>
               {story.credit ? `Credit: ${story.credit}` : null}

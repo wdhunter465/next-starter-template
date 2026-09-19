@@ -55,6 +55,7 @@ export const CLUB_STAGING_RAIL_STORIES: ClubHomeStory[] = [
     perspective_label: null,
     canonical: false,
     story_type: 'staging_sample',
+    image: null,
   },
   {
     id: 9002,
@@ -68,6 +69,7 @@ export const CLUB_STAGING_RAIL_STORIES: ClubHomeStory[] = [
     perspective_label: null,
     canonical: false,
     story_type: 'staging_sample',
+    image: null,
   },
 ];
 

@@ -50,6 +50,11 @@ export default function MemberHomePage() {
               summary={clubHome.leadSummary}
               credit={clubHome.leadCredit}
               sourceName={clubHome.leadSourceName}
+              image={
+                clubHome.mediaFeature?.thumbnail_url
+                  ? { url: clubHome.mediaFeature.thumbnail_url, alt: clubHome.mediaFeature.title || clubHome.leadHeadline }
+                  : null
+              }
             />
             <ClubHomeMediaFeature media={clubHome.mediaFeature} />
           </div>

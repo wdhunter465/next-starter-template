@@ -1,3 +1,11 @@
+export type ClubHomeStoryImage = {
+  url: string;
+  alt: string;
+  credit_line: string | null;
+  source_name: string | null;
+  rendition_size: 'thumbnail' | 'small' | 'medium' | 'large';
+};
+
 export type ClubHomeStory = {
   id: number;
   title: string | null;
@@ -10,6 +18,8 @@ export type ClubHomeStory = {
   perspective_label: string | null;
   canonical: boolean;
   story_type: string | null;
+  /** Zone-sized rendition of the story's primary image, when available (#4180). */
+  image: ClubHomeStoryImage | null;
 };
 
 export type ClubHomeMediaFeature = {
