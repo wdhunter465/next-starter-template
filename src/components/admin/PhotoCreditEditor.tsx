@@ -70,9 +70,11 @@ export default function PhotoCreditEditor({ photoId, label }: { photoId: number;
     }
 
     setSaving(false);
-    await load();
-    setStatus(result.data!.source ? `Saved: "${result.data!.source}"` : 'Saved (credit cleared).');
-  }, [draft, load, photoId]);
+    const savedSource = result.data!.source;
+    setPhoto((prev) => (prev ? { ...prev, source: savedSource } : prev));
+    setDraft(savedSource || '');
+    setStatus(savedSource ? `Saved: "${savedSource}"` : 'Saved (credit cleared).');
+  }, [draft, photoId]);
 
   return (
     <div style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: 12, padding: 12 }}>

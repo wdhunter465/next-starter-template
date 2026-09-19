@@ -42,6 +42,7 @@ export const onRequestGet = async (context: any): Promise<Response> => {
 
     return jsonResponse({ ok: true, item: row }, 200);
   } catch (err: any) {
+    console.error("admin photos get error:", err);
     return jsonResponse({ ok: false, error: "server_error", detail: String(err?.message || err) }, 500);
   }
 };

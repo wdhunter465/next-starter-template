@@ -1,5 +1,5 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import PhotoCreditEditor from '@/components/admin/PhotoCreditEditor';
 
@@ -14,6 +14,10 @@ function jsonResponse(body: unknown, status = 200): Response {
 }
 
 describe('PhotoCreditEditor (#4166)', () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
   it('loads and pre-fills the current credit, then saves an edited value', async () => {
     const fetchMock = vi.spyOn(globalThis, 'fetch').mockImplementation((input, init) => {
       const path = String(input);

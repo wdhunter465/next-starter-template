@@ -40,6 +40,7 @@ export const onRequestPost = async (context: any): Promise<Response> => {
 
     return jsonResponse({ ok: true, id, source: value, changed: result?.meta?.changes || 0 }, 200);
   } catch (err: any) {
+    console.error("admin photos update error:", err);
     return jsonResponse({ ok: false, error: "server_error", detail: String(err?.message || err) }, 500);
   }
 };
