@@ -27,8 +27,10 @@ except locale.Error:
 
 from skeetersoft import __version__
 from skeetersoft.compile import compile_records, coverage_report
+from skeetersoft.ingest import YEARS, event_games_to_records, ingest_years
 from skeetersoft.pilot_data import ACCEPTED_GAMES, FAILURE_GAMES
 from skeetersoft.render import render_ledger
+from skeetersoft.teams import merge_aliases
 from skeetersoft.validate import validate_print_stream
 
 
@@ -58,7 +60,10 @@ def compile_pilot(out_dir: Path) -> dict:
     invariant_errors = validate_print_stream(accepted_result["accepted"])
     failure_result = compile_records(FAILURE_GAMES)
     html = render_ledger(accepted_result["accepted"])
-    coverage = coverage_report(accepted_result)
+    coverage = coverage_report(
+        accepted_result,
+        note="Pilot uses synthetic 1985 fixtures only. Full 1976-1985 uses Retrosheet ingest (`run.py full`).",
+    )
     expected_failure_codes = {
         "F-MISS-LINEUP": "missing_lineup",
         "F-BAD-DATE": "invalid_date",
@@ -168,8 +173,12 @@ def compile_pilot(out_dir: Path) -> dict:
 
 def write_manifest(out_dir: Path, repo_root: Path) -> None:
     files = []
+    skip_parts = {"__pycache__", "cache", "full", "repro"}
     for path in sorted(ROOT.rglob("*")):
-        if path.is_file() and "__pycache__" not in path.parts and path.name != ".gitignore":
+        if not path.is_file() or path.name == ".gitignore":
+            continue
+        if any(part in skip_parts for part in path.parts):
+            continue
             rel = path.relative_to(repo_root).as_posix()
             files.append(
                 {
@@ -216,9 +225,102 @@ def reproducibility_check(out_dir: Path) -> list[str]:
     return errors
 
 
+def compile_full(out_dir: Path) -> dict:
+    started = time.time()
+    ingested = ingest_years(YEARS)
+    records = event_games_to_records(ingested["games"])
+    compiled = compile_records(
+        records,
+        aliases=merge_aliases(),
+        register=ingested["register"],
+    )
+    invariant_errors = validate_print_stream(compiled["accepted"]) if compiled["accepted"] else []
+    coverage = coverage_report(
+        compiled,
+        note=(
+            "Full 1976-1985 regular-season ingest from Retrosheet event files. "
+            + ingested["notice"]
+        ),
+    )
+    coverage["unavailable_download"] = ingested["unavailable"]
+    coverage["source_files"] = ingested["sources"]
+    coverage["input_records"] = len(records)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    dump_json(out_dir / "exceptions.json", compiled["exceptions"])
+    dump_json(out_dir / "coverage-report.json", coverage)
+    season_lines = [
+        f"- {year}: {row['accepted_games']} games / {row['series_count']} series"
+        for year, row in sorted(coverage["seasons"].items())
+    ]
+    unavailable = coverage["unavailable_seasons"]
+    coverage_md = "\n".join(
+        [
+            "# Skeetersoft 1976-1985 coverage",
+            "",
+            ingested["notice"],
+            "",
+            f"- accepted games: {coverage['accepted_games']}",
+            f"- rejected games: {coverage['rejected_games']}",
+            f"- series: {coverage['series_count']}",
+            f"- collision games: {coverage['collision_games']}",
+            f"- unavailable seasons: {', '.join(str(y) for y in unavailable) if unavailable else 'none'}",
+            f"- download failures: {len(ingested['unavailable'])}",
+            "",
+            *season_lines,
+            "",
+        ]
+    )
+    (out_dir / "coverage-report.md").write_text(coverage_md, encoding="utf-8", newline="\n")
+    evidence_dir = ROOT / "evidence"
+    evidence_dir.mkdir(parents=True, exist_ok=True)
+    (evidence_dir / "1976-1985-coverage.md").write_text(coverage_md, encoding="utf-8", newline="\n")
+
+    by_season: dict[str, list] = {}
+    for game in compiled["accepted"]:
+        by_season.setdefault(str(game["season"]), []).append(game)
+    for year, games in sorted(by_season.items()):
+        dump_json(out_dir / f"master_print_stream-{year}.json", games)
+        (out_dir / f"ledger-{year}.html").write_text(render_ledger(games), encoding="utf-8", newline="\n")
+
+    seasons_present = set(coverage["seasons"])
+    complete_ok = (
+        not invariant_errors
+        and coverage["accepted_games"] > 0
+        and all(str(year) in seasons_present for year in YEARS)
+        and not ingested["unavailable"]
+    )
+    if complete_ok:
+        (out_dir / "COMPLETE").write_text("full-1976-1985-retrosheet\n", encoding="utf-8")
+        (out_dir / "COMPLETE.forbidden").unlink(missing_ok=True)
+    else:
+        (out_dir / "COMPLETE").unlink(missing_ok=True)
+        (out_dir / "COMPLETE.forbidden").write_text(
+            "Full-range package incomplete; see coverage-report.md.\n", encoding="utf-8"
+        )
+
+    elapsed = time.time() - started
+    write_run_log(
+        out_dir / "run.log",
+        [
+            "Skeetersoft Replay Ledger 1976-1985 ingest",
+            f"version: {__version__}",
+            f"python: {sys.version.replace(chr(10), ' ')}",
+            "tz: UTC",
+            "locale: C",
+            f"elapsed_s: {elapsed:.3f}",
+            f"accepted: {coverage['accepted_games']}",
+            f"rejected: {coverage['rejected_games']}",
+            f"invariant_errors: {invariant_errors}",
+            f"download_failures: {ingested['unavailable']}",
+            ingested["notice"],
+        ],
+    )
+    return {"ok": complete_ok, "coverage": coverage, "invariant_errors": invariant_errors}
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="skeetersoft")
-    parser.add_argument("command", choices=["test", "compile", "pilot", "inventory"])
+    parser.add_argument("command", choices=["test", "compile", "pilot", "inventory", "full"])
     parser.add_argument("--out", default=str(ROOT / "out"))
     args = parser.parse_args(argv)
     out_dir = Path(args.out)
@@ -240,6 +342,23 @@ def main(argv: list[str] | None = None) -> int:
         write_manifest(out_dir, repo_root)
         print(out_dir / "inventory.sha256")
         return 0
+
+    if args.command == "full":
+        if Path(args.out) == ROOT / "out":
+            out_dir = ROOT / "out" / "full"
+        result = compile_full(out_dir)
+        print(
+            json.dumps(
+                {
+                    "ok": result["ok"],
+                    "accepted": result["coverage"]["accepted_games"],
+                    "rejected": result["coverage"]["rejected_games"],
+                    "unavailable_seasons": result["coverage"]["unavailable_seasons"],
+                },
+                indent=2,
+            )
+        )
+        return 0 if result["ok"] else 1
 
     test_rc = run_tests()
     if test_rc != 0:

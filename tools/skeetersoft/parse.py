@@ -33,7 +33,8 @@ def parse_iso_date(value: str, game_id: str | None = None) -> str:
 
 
 def resolve_team(abbrev: str, season: int, aliases: dict) -> str:
-    table = aliases.get(str(season)) or aliases.get(season) or aliases.get("default") or {}
+    table = dict(aliases.get("default") or {})
+    table.update(aliases.get(str(season)) or aliases.get(season) or {})
     if abbrev not in table:
         raise ParseError("unknown_team_alias", f"unknown team alias {abbrev!r} for season {season}")
     return table[abbrev]

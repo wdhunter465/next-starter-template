@@ -1,3 +1,3 @@
-"""Skeetersoft Replay Ledger sandbox utility (#3124 / #3970)."""
+"""Skeetersoft Replay Ledger sandbox utility (#3124)."""
 
-__version__ = "0.1.0-pilot"
+__version__ = "0.2.0-dev"

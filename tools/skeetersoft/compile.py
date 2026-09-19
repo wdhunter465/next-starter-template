@@ -8,6 +8,7 @@ from .names import display_names_for_side
 from .parse import ParseError, validate_game
 from .pilot_data import REGISTER, TEAM_ALIASES
 from .series import segment_series, sort_print_order
+from .teams import merge_aliases
 
 
 def enrich_side(lineup: list[dict], register: dict) -> list[dict]:
@@ -17,7 +18,7 @@ def enrich_side(lineup: list[dict], register: dict) -> list[dict]:
         if rec is None:
             raise ParseError(
                 "unknown_player",
-                f"player_id {row['player_id']} is not in the synthetic register",
+                f"player_id {row['player_id']} is not in the player register",
                 None,
             )
         item = dict(row)
@@ -49,7 +50,7 @@ def pitcher_record(player_id: str | None, lineup: list[dict], register: dict) ->
 
 
 def compile_records(raw_games: list[dict], aliases=None, register=None, seen_ids=None):
-    aliases = aliases if aliases is not None else TEAM_ALIASES
+    aliases = aliases if aliases is not None else merge_aliases(TEAM_ALIASES)
     register = register if register is not None else REGISTER
     seen_ids = seen_ids if seen_ids is not None else set()
     accepted = []
@@ -78,7 +79,7 @@ def compile_records(raw_games: list[dict], aliases=None, register=None, seen_ids
     return {"accepted": accepted, "exceptions": exceptions}
 
 
-def coverage_report(compiled: dict) -> dict:
+def coverage_report(compiled: dict, note: str | None = None) -> dict:
     by_season: dict[str, dict] = {}
     collision_games = 0
     for game in compiled["accepted"]:
@@ -114,5 +115,6 @@ def coverage_report(compiled: dict) -> dict:
         "unavailable_seasons": [
             year for year in range(1976, 1986) if str(year) not in seasons
         ],
-        "note": "Pilot uses synthetic 1985 fixtures only. Full 1976-1985 is not authorized until pilot acceptance.",
+        "note": note
+        or "Pilot uses synthetic 1985 fixtures only. Full 1976-1985 uses Retrosheet ingest on the sandbox branch.",
     }
