@@ -13,8 +13,9 @@ name: Gehrig Content Discovery (#3551 / #3552 / #2270 perpetual collection)
 #   (automation may create pending candidates; it must not approve rights,
 #   privacy, or publication). A scheduled run always imports discovered
 #   candidates into production D1, in the exact same metadata-only,
-#   unreviewed shape a manual "confirm" import produces (rights_status
-#   =unknown, review_status=pending_review, publication_status=not_ready).
+#   unreviewed shape a manual "confirm" import produces
+#   (rights_status=unknown, review_status=pending_review,
+#   publication_status=not_ready).
 #   content_items has no public read path, so this has zero
 #   publication/visibility effect either way. No human types "confirm" for
 #   the scheduled path because the recurring schedule itself -- reviewed
@@ -27,7 +28,7 @@ name: Gehrig Content Discovery (#3551 / #3552 / #2270 perpetual collection)
 #
 # To pause scheduled discovery without editing this file: disable the
 # workflow from the repo's Actions tab. To change cadence/sources/limit,
-# edit the `schedule:` cron and the env fallback defaults below via PR.
+# edit the `schedule:` cron and the scheduled-event env values below via PR.
 
 on:
   workflow_dispatch:
@@ -53,10 +54,12 @@ on:
         required: false
         default: ""
   schedule:
-    # Every Monday 13:00 UTC. Weekly matches the zero-recurring-cost /
-    # low-volume-first posture in #2270 and #2312 -- LOC/Wikimedia/Openverse
-    # are free public APIs with no meaningful cost or rate risk at this
-    # cadence and the existing per-run limit.
+    # Every Monday 13:00 UTC, against the same "loc,wikimedia" default
+    # workflow_dispatch declares above (Openverse remains manual-dispatch
+    # only, not part of the scheduled defaults). Weekly matches the
+    # zero-recurring-cost / low-volume-first posture in #2270 and #2312 --
+    # LOC and Wikimedia are free public APIs with no meaningful cost or
+    # rate risk at this cadence and the existing per-run limit.
     - cron: "0 13 * * 1"
 
 concurrency:
@@ -84,11 +87,14 @@ jobs:
       - name: Run discovery against approved sources
         id: discovery
         env:
-          # Falls back to the same defaults workflow_dispatch declares above
-          # when triggered by schedule, where github.event.inputs is empty.
-          DISCOVERY_QUERY: ${{ github.event.inputs.query || 'Lou Gehrig' }}
-          DISCOVERY_SOURCES: ${{ github.event.inputs.sources || 'loc,wikimedia' }}
-          DISCOVERY_LIMIT: ${{ github.event.inputs.limit || '10' }}
+          # On schedule, github.event.inputs is entirely absent, so these
+          # use the fixed scheduled defaults directly. On workflow_dispatch,
+          # this passes github.event.inputs.* through unmodified -- including
+          # an intentional empty string -- so manual-dispatch behavior is
+          # byte-for-byte unchanged, not silently coerced to a default.
+          DISCOVERY_QUERY: ${{ github.event_name == 'schedule' && 'Lou Gehrig' || github.event.inputs.query }}
+          DISCOVERY_SOURCES: ${{ github.event_name == 'schedule' && 'loc,wikimedia' || github.event.inputs.sources }}
+          DISCOVERY_LIMIT: ${{ github.event_name == 'schedule' && '10' || github.event.inputs.limit }}
         run: |
           node --experimental-strip-types scripts/content-pipeline/collect-gehrig-external-sources.mjs \
             --query "$DISCOVERY_QUERY" \
