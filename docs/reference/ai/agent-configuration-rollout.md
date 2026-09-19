@@ -5,7 +5,7 @@ Authority Level: Controlled
 Owns: Broader agent-team rollout package and evidence-based recommendation for program #3125
 Does Not Own: Bill’s rollout decision, live routing of WORK/Cursor/Claude Code, Codex execution of #3124, or program/master closeout of #3125
 Canonical Reference: /docs/reference/ai/agent-configuration-architecture.md
-Related Issues: #3125, #3884, #3883, #3882, #3126, #3133, #3124, #3145
+Related Issues: #3125, #3884, #3883, #3882, #3126, #3133, #3124, #3145, #3132, #3407
 Last Reviewed: 2026-09-18
 ---
 
