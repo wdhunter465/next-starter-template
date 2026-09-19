@@ -125,7 +125,8 @@ describe('mapDplaDocToCandidateFields (#3826)', () => {
       dataProvider: 'Inconsistent Institution',
     };
 
-    expect(() => mapDplaDocToCandidateFields(doc, query)).not.toThrow();
+    // A thrown error here already fails the test, so this single call
+    // proves both "doesn't crash" and "produces the right value."
     const fields = mapDplaDocToCandidateFields(doc, query);
     expect(fields.dateOrPeriod).toBe('1927');
   });
