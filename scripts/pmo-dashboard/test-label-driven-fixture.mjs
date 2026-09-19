@@ -94,6 +94,11 @@ async function main() {
       assert(row.lifecycle !== 'incomplete', `row #${row.issueNumber} must not use Incomplete lifecycle`);
     }
 
+    const teamQueues = data.teamQueues?.queues || [];
+    assert(data.teamQueues.order.join(',') === 'operations,pmoActive,engineering,governance,pmoPipeline', 'team queue order');
+    assert(teamQueues.map((queue) => queue.count).join(',') === '1,5,2,0,2', 'label-driven team-queue counts');
+    assert(teamQueues[0].title === 'Operations' && teamQueues[3].title === 'Governance', 'display titles');
+
     const contract = await execFileAsync('node', [path.join(__dirname, 'test-queue-label-contract.mjs')]);
     if (contract.stdout) process.stdout.write(contract.stdout);
     const transition = await execFileAsync('node', [path.join(__dirname, 'test-lifecycle-transitions.mjs')]);
@@ -104,6 +109,8 @@ async function main() {
     if (skew.stdout) process.stdout.write(skew.stdout);
     const currentBook = await execFileAsync('node', [path.join(__dirname, 'test-current-book-child-accounting.mjs')]);
     if (currentBook.stdout) process.stdout.write(currentBook.stdout);
+    const teamQueueCounts = await execFileAsync('node', [path.join(__dirname, 'test-team-queue-counts.mjs')]);
+    if (teamQueueCounts.stdout) process.stdout.write(teamQueueCounts.stdout);
     console.log('PMO label-driven fixture test passed');
   } finally {
     await rm(outDir, { recursive: true, force: true });
