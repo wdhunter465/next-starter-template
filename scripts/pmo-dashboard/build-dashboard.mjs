@@ -7,6 +7,7 @@ import {
   isPeerEngineeringPreparation,
   isStandaloneOperationsIssue
 } from './queue-label-contract.mjs';
+import { buildTeamQueueCounts } from './team-queue-counts.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OWNER = process.env.GITHUB_REPOSITORY_OWNER || 'wdhunter465';
@@ -594,6 +595,7 @@ async function main() {
     parentStandaloneCount: views.activePrograms.length + views.pmoPipeline.length
   };
   const nestedCount = views.activePrograms.reduce((count, row) => count + (row.children?.length || 0), 0);
+  const teamQueues = buildTeamQueueCounts(issues, { owner: OWNER, repo: REPO });
   const data = {
     generatedAt: new Date().toISOString(),
     source: 'github-issues',
@@ -601,6 +603,7 @@ async function main() {
     trackingModel: 'pmo-label',
     contractVersion: 'queue-label-registry-v1',
     currentBook,
+    teamQueues,
     views,
     dataQualityExceptions,
     taskAccounting
@@ -608,9 +611,11 @@ async function main() {
   await mkdir(path.join(OUT_DIR, 'assets'), { recursive: true });
   await writeFile(path.join(OUT_DIR, 'dashboard-data.json'), `${JSON.stringify(data, null, 2)}\n`);
   await cp(path.join(__dirname, 'static/index.html'), path.join(OUT_DIR, 'index.html'));
+  await cp(path.join(__dirname, 'static/queues.html'), path.join(OUT_DIR, 'queues.html'));
   await cp(path.join(__dirname, 'static/pmo-dashboard.css'), path.join(OUT_DIR, 'assets/pmo-dashboard.css'));
   await cp(path.join(__dirname, 'static/pmo-dashboard.js'), path.join(OUT_DIR, 'assets/pmo-dashboard.js'));
-  console.log(`Generated PMO dashboard with ${currentBook.parentStandaloneCount} current-book parent/standalone rows and ${nestedCount} nested child rows at ${OUT_DIR}`);
+  await cp(path.join(__dirname, 'static/pmo-queues.js'), path.join(OUT_DIR, 'assets/pmo-queues.js'));
+  console.log(`Generated PMO dashboard with ${currentBook.parentStandaloneCount} current-book parent/standalone rows, ${nestedCount} nested child rows, and team-queue counts at ${OUT_DIR}`);
 }
 
 main().catch((error) => {
