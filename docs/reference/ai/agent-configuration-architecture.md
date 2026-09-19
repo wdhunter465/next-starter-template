@@ -87,7 +87,7 @@ Reconcile with the existing `.agents/skills` and `.agents/checks` trees. Do not 
   pilots/codex/           # Codex-only assignment packages
 ```
 
-Validation implementation lives in `scripts/ci/agent_config_validate.mjs` so CI stays with other machine checks. Pilot CI must not fail WORK, Cursor, or Claude Code PRs that do not touch this tree.
+Validation implementation is planned for `scripts/ci/agent_config_validate.mjs` (introduced by #3883) so CI stays with other machine checks. Pilot CI must not fail WORK, Cursor, or Claude Code PRs that do not touch this tree.
 
 ## Manifest types
 

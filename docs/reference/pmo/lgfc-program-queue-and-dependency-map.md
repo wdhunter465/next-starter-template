@@ -242,7 +242,7 @@ Program #1500 closeout is **not** an active queue lane. It is closed complete hi
 
 Canonical architecture: `docs/reference/ai/agent-configuration-architecture.md`.
 
-| Child task | Objective | Status |
+| Child task | Objective | Position in map |
 | --- | --- | --- |
 | `#3125-001` `#3882` | Architecture and ordered project map | This map |
 | `#3125-002` `#3883` | Codex pilot schemas, validation, and #3124 package | Successor |
