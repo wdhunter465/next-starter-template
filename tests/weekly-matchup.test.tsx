@@ -213,6 +213,35 @@ describe('WeeklyMatchup interactive behavior (reactivated 2026-08-18, #3552)', (
     expect(screen.queryByText('Replacement B')).not.toBeInTheDocument();
   });
 
+  it('renders a credit line for each photo when source is present, and omits it when absent', async () => {
+    window.localStorage.clear();
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
+      const path = String(input);
+      if (path === '/api/matchup/current') {
+        return Promise.resolve(
+          jsonResponse({
+            ok: true,
+            week_start: currentWeek,
+            matchup_id: 2,
+            items: [
+              { id: 10, url: '/photos/10.jpg', title: 'Current A', source: 'LGFC Archive' },
+              { id: 11, url: '/photos/11.jpg', title: 'Current B' },
+            ],
+          }),
+        );
+      }
+      return Promise.reject(new Error(`Unexpected fetch: ${path}`));
+    });
+
+    render(<WeeklyMatchup />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Credit: LGFC Archive')).toBeInTheDocument();
+    });
+    // Photo B has no source -- only one credit line should render, not two.
+    expect(screen.getAllByText(/^Credit:/)).toHaveLength(1);
+  });
+
   it('renders winner A thumbnail and keeps result text', async () => {
     mockVotedMatchupFetch({
       week_start: '2026-05-25',

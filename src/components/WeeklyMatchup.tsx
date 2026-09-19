@@ -9,6 +9,7 @@ type Photo = {
   url: string;
   description?: string;
   title?: string;
+  source?: string;
 };
 
 type CurrentResp = {
@@ -276,7 +277,7 @@ function LastWeekWinnerThumbnail({ photo }: { photo: { url: string; alt?: string
 }
 
 function renderMatchupBody(
-  items: { id: number; url: string; description?: string; title?: string }[],
+  items: { id: number; url: string; description?: string; title?: string; source?: string }[],
   hasVoted: boolean,
   submitting: boolean,
   totals: { a: number; b: number } | null,
@@ -307,6 +308,7 @@ function renderMatchupBody(
           </div>
 
           <div className="sub" style={{ marginTop: 10 }}>{a.title || a.description || 'Photo A'}</div>
+          {a.source && <div className="sub" style={{ marginTop: 4, fontSize: 13, opacity: 0.8 }}>Credit: {a.source}</div>}
 
           {!hasVoted && (
             <button
@@ -331,6 +333,7 @@ function renderMatchupBody(
           </div>
 
           <div className="sub" style={{ marginTop: 10 }}>{b.title || b.description || 'Photo B'}</div>
+          {b.source && <div className="sub" style={{ marginTop: 4, fontSize: 13, opacity: 0.8 }}>Credit: {b.source}</div>}
 
           {!hasVoted && (
             <button

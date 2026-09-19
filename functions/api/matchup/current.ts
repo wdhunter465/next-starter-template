@@ -15,6 +15,7 @@ type PhotoItem = {
   url: string;
   description?: string;
   title?: string;
+  source?: string;
 };
 
 type EligiblePhoto = {
