@@ -49,7 +49,7 @@ DIATAXIS is considered 100% complete for Phase 1 when:
 | `docs/ops/ai/CORE-RULES.md` | `docs/ops/ai/CORE-RULES.md` | Reference (ops) | **Migrated** | Retain — canonical detailed execution rules |
 | `docs/ops/ai/CHATGPT-RULES.md` | `docs/ops/ai/CHATGPT-RULES.md` | Reference (ops) | **Migrated** | Retain — ChatGPT control-plane rules |
 | `docs/ops/ai/CURSOR-RULES.md` | `docs/ops/ai/CURSOR-RULES.md` | Reference (ops) | **Migrated** | Retain — Cursor tool rules |
-| `docs/ops/ai/CODEX-RULES.md` | `docs/ops/ai/CODEX-RULES.md` | Reference (ops) | **Migrated** | Retain — Codex tool rules |
+| `docs/ops/ai/CODEX-RULES.md` | `docs/ops/ai/CODEX-RULES.md` | Reference (ops) | **Retired (#4165)** | Retain path only — historical pointer; not a live product |
 | `docs/ops/ai/COPILOT-RULES.md` | `docs/ops/ai/COPILOT-RULES.md` | Reference (ops) | **Migrated** | Retain — Copilot tool rules |
 | `docs/ops/ai/DEVIN-RULES.md` | `docs/ops/ai/DEVIN-RULES.md` | Reference (ops) | **Migrated** | Retain — Devin tool rules |
 | `docs/ops/ai/pr-lifecycle-standard.md` | — | Operations | **Retired (#4091)** | Deleted — contradicted `PR_PROCESS.md` / `AGENT-TEAM.md` (ChatGPT-as-universal-PR-owner) |
@@ -57,9 +57,9 @@ DIATAXIS is considered 100% complete for Phase 1 when:
 | `governance/ai/AGENT-GOVERNANCE.md` | `docs/governance/standards/agent-governance.md` | Governance | **Deferred Program 3** | Rewrite + migrate — create DIATAXIS standard; retire repo-root path |
 | `docs/governance/ai/AI-GUIDE.md` | `docs/archive/superseded/governance/ai/AI-GUIDE.md` *(planned)* | Governance | **Retain** | Route — historical build prompt; not agent routing authority |
 | `PROMPTS/Cursor-Rules.md` | `docs/ops/ai/CURSOR-RULES.md` | How-To / Reference | **Deferred Program 3** | Route → retire — prompt summary only |
-| `PROMPTS/Codex-Rules.md` | `docs/ops/ai/CODEX-RULES.md` | How-To / Reference | **Deferred Program 3** | Route → retire — prompt summary only |
+| `PROMPTS/Codex-Rules.md` | `docs/ops/ai/CODEX-RULES.md` | How-To / Reference | **Removed (#4165)** | Deleted with Codex decommission |
 | `PROMPTS/Cursor-Launch-Prompt.md` | `docs/how-to/cursor/run-program-task.md` | How-To | **Deferred Program 3** | Route → retire — use DIATAXIS how-to |
-| `PROMPTS/Codex-Launch-Prompt.md` | `docs/ops/ai/CODEX-RULES.md` | How-To / Reference | **Deferred Program 3** | Route → retire — use DIATAXIS rules + issue scope |
+| `PROMPTS/Codex-Launch-Prompt.md` | `docs/ops/ai/CODEX-RULES.md` | How-To / Reference | **Removed (#4165)** | Deleted with Codex decommission |
 | `PROMPTS/PR-as-ticket-template.md` | `docs/templates/agent-assignment-template.md` | Reference | **Deferred Program 3** | Route → retire — use DIATAXIS template |
 | `docs/ops/trackers/LGFC-WEBSITE-IMPLEMENTATION-QUEUE-NORMALIZATION.md` | `docs/reference/website/lgfc-website-as-built-reconciliation.md` | Operations | **Retain** | Route — tracker readable; ops truth in as-built reconciliation |
 | `docs/reference/lgfc-implementation-coverage-map.md` | `docs/reference/lgfc-implementation-coverage-map.md` | Reference | **Retain** | Route — reference-only; non-authoritative for ops queue |

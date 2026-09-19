@@ -376,11 +376,11 @@
       "type:recovery",
       "type:ci",
       "agent:ChatGPT",
-      "agent:cursor",
-      "agent:codex"
+      "agent:cursor"
     ],
     "quarantineForExplicitRetirementOrRemappingDecision": [
-      "agent:copilot"
+      "agent:copilot",
+      "agent:codex"
     ],
     "replaceOnlyAfterIssueSpecificValidation": [
       {

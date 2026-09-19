@@ -109,8 +109,7 @@
         "ops/",
         "PROMPTS/",
         "scripts/ci/",
-        "tests/agent-governance-bootstrap.test.mjs",
-        "tests/agent-config-validate.test.mjs"
+        "tests/agent-governance-bootstrap.test.mjs"
       ],
       "deny_prefixes": [
         "src/",

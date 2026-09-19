@@ -2,18 +2,18 @@
 Doc Type: Reference
 Audience: Human + AI
 Authority Level: Controlled
-Owns: Inventory of OpenAI-consumed LGFC Agentic/bootstrap/startup/skill/config surfaces for Codex, ChatGPT, and retired OpenAI/Work
+Owns: Inventory of OpenAI-consumed LGFC Agentic/bootstrap/startup/skill/config surfaces for ChatGPT, retired Codex (#4165), and retired OpenAI/Work
 Does Not Own: Repository-wide governance policy, queue precedence, PR lifecycle, merge authority, or restoring OpenAI/Work as a live product
 Canonical Reference: /Agent.md
-Related Issues: #3815, #3755, #3825, #4074, #4052, #3808, #4091
-Last Reviewed: 2026-09-18
+Related Issues: #3815, #3755, #3825, #4074, #4052, #3808, #4091, #4165
+Last Reviewed: 2026-09-19
 ---
 
 # OpenAI Agentic surface inventory
 
 ## Purpose
 
-Record every OpenAI-consumed Agentic/bootstrap/startup/skill/config surface that LGFC currently uses, including WORK retirement under #4074. This inventory is navigation evidence for #3815. It does not redefine shared governance.
+Record every OpenAI-consumed Agentic/bootstrap/startup/skill/config surface that LGFC currently uses, including WORK retirement under #4074 and Codex termination under #4165. This inventory is navigation evidence for #3815. It does not redefine shared governance.
 
 ## Shared routing
 
@@ -33,23 +33,16 @@ Record every OpenAI-consumed Agentic/bootstrap/startup/skill/config surface that
 | `.github/pull_request_template.md` | All PR authors | Required PR body fields | Process template | `PR_PROCESS.md` | PR work | No | Retained |
 | Generic/plugin skills (`~/.codex`, ChatGPT GPTs, vendor plugins) | Host/product local | Technique only | None over LGFC | Product vendor | Optional | No | Must not override LGFC authority or invent gates |
 
-## Codex
+## Codex (retired)
 
 | Surface | Purpose | Authority | Canonical owner | Read timing | `run startup` | Disposition |
 | --- | --- | --- | --- | --- | --- | --- |
-| `docs/ops/ai/CODEX-RULES.md` | Codex identity, startup, wake/continuity | Agent-specific additive | `AGENT-TEAM.md` | After shared chain | Yes | **Revised** #3815: wake/awareness contract |
-| `docs/how-to/codex/qualify-codex-runtime.md` | Runtime qualification procedure | How-to | #3758 | Qualification tasks | No | Retained |
-| `docs/how-to/codex/run-codex-end-to-end-qualification.md` | End-to-end qualification procedure | How-to | #3759 | Qualification tasks | No | Retained; parent #3755 closed |
-| `.github/workflows/lgfc-codex-dispatch.yml` | Trusted GitHub → local Codex wake | CI / runner | `codex-local-dispatch-contract.md` | Event-driven | No | Retained (#4052); not the failed #3844 broad event surface |
-| `scripts/lgfc-codex-dispatch/**` | Identifiers-only wrapper | CI / runner | same contract | On dispatch | No | Retained |
-| `config/github-actions/codex-dispatch-runner.json` | Runner contract | Controlled config | same | Operator/CI | No | Retained |
-| `docs/how-to/ci/configure-lgfc-codex-dispatch-runner.md` | Operator how-to | How-to | #4052 | Operator setup | No | Retained |
-| `docs/reference/ci/codex-local-dispatch-contract.md` | Dispatch contract | Reference | #4052 | Design/review | No | Retained |
-| `.github/workflows/lgfc-codex-runner-health.yml` | Missed-wake / runner health | CI | same | Scheduled/event | No | Retained |
-| `PROMPTS/Codex-Launch-Prompt.md` / `PROMPTS/Codex-Rules.md` | Historical launch prompts | Not live authority | `CODEX-RULES.md` | Do not substitute for the chain | No | Historical; must not compete with `Agent.md` |
+| `docs/ops/ai/CODEX-RULES.md` | Former Codex operating rules | Historical only | `AGENT-TEAM.md` #4165 | Do not run | **No** | **Retired** 2026-09-19 |
+| Former `lgfc-codex-dispatch` workflow/scripts/runner | Former GitHub → local Codex wake | Historical only | #4052 / #4165 | Do not invoke | **No** | **Removed** #4165 |
+| Former `.agents/configs/codex.json` and `#3126` pilot tree | Former Codex configuration stack | Historical only | #3125 / #4165 | Do not load | **No** | **Removed** #4165 |
 | Host `~/.codex` skills/config | Product-local | None over LGFC | Operator host | Product load | Documented limitation | Not in repo; must remain subordinate |
 
-Codex mapped role after startup: Implementation / Operations first responder (`AGENT-TEAM.md`). Task execution remains Issue → allowlist → implement → test → PR → CI/reviewer remediation → submitting-agent exception ownership → independent-review handoff. No self-merge.
+Product Authority permanently terminated Codex as an LGFC agent on 2026-09-19 (#4165). Codex holds no current team role, wake path, or implementation authority. Historical comments remain truthful records.
 
 ## ChatGPT
 
@@ -76,10 +69,10 @@ Known #3815 comment requirements and disposition:
 
 - ChatGPT/WORK concise default → encoded in `CHATGPT-RULES.md`. WORK has no live file to update.
 - ChatGPT/WORK continuity after session reset → ChatGPT reloads the `Agent.md` chain and live GitHub; WORK ledger retired.
-- Codex observation/polling/notification → Cursor-parity `lgfc-codex-dispatch` (#4052) plus `CODEX-RULES.md` wake/awareness; the #3844 `pull_request` / `workflow_run` surface remains rejected.
+- Codex observation/polling/notification → former Cursor-parity `lgfc-codex-dispatch` (#4052) **removed** under #4165; `CODEX-RULES.md` is retired. The #3844 `pull_request` / `workflow_run` surface remains rejected.
 - `AGENTS.md` must not force Codex through Cursor → product-neutral router plus governance-check regression.
 - Invalid OpenAI-consumed LGFC `SKILL.md` files → the five repository `.agents/skills/*/SKILL.md` files remain shared technique skills; none redefine queue/PR/merge authority.
-- Fresh-session Codex/ChatGPT `run startup` proof inside this PR → not executable from Cursor Local for those products; the contracts above are the repository-side qualification. Runtime proof remains the existing Codex qualification how-tos (#3758/#3759, closed) and ChatGPT's next Product Authority `run startup`.
+- Fresh-session Codex/ChatGPT `run startup` proof inside this PR → not executable from Cursor Local for those products; Codex startup is retired (#4165). ChatGPT's next Product Authority `run startup` remains the ChatGPT proof.
 - Peer-comparison performance ledger as a standing metric store → out of file-touch scope; evidence lives on closed qualification Issues #3755–#3759 and dispatch #4052.
 
 No additional OpenAI Agentic/startup follow-on Issue is opened. Remaining live-product gaps are contract enforcement on the files in this inventory, not missing surfaces.

@@ -1,7 +1,7 @@
 # Product-neutral agent bootstrap
 
 This file is a **compatibility/router** layer for tools that auto-load
-`AGENTS.md`. It does not grant Cursor-only authority to Codex, ChatGPT, or
+`AGENTS.md`. It does not grant Cursor-only authority to ChatGPT, Claude Code, or
 any other product. After this file, `Agent.md` remains the mandatory LGFC
 navigation authority.
 
@@ -15,7 +15,7 @@ Do not merely report that these files are required. Read them before making any 
 4. `docs/ops/ai/CORE-RULES.md`
 5. The **applicable product-specific pointer** (choose the active product; do not default every product to Cursor):
    - Cursor → `docs/ops/ai/CURSOR-RULES.md`
-   - Codex → `docs/ops/ai/CODEX-RULES.md`
+   - Codex → `docs/ops/ai/CODEX-RULES.md` (retired #4165; historical only — do not run as a live product)
    - ChatGPT → `docs/ops/ai/CHATGPT-RULES.md`
    - Claude Code → `docs/ops/ai/CLAUDE-CODE-RULES.md`
    - Copilot → `docs/ops/ai/COPILOT-RULES.md`
@@ -50,7 +50,7 @@ For PR work, also report:
 ## Cursor Cloud route (Cursor product only)
 
 The following Cursor Local/Cloud transport notes apply **only** when the
-active product is Cursor. Codex and ChatGPT must ignore this section as
+active product is Cursor. ChatGPT and other live products must ignore this section as
 authority and use their own product pointers and wake paths.
 
 > **Design shift (#3013, 2026-08-03):** Cursor Local handoff is **labels/status
@@ -81,7 +81,7 @@ Task prompts do not override the chain in `Agent.md`.
 
 - **Cursor Local Composer/Agent:** `.cursor/rules/*.mdc` (`alwaysApply: true`)
 - **Cursor Cloud Agent:** this file (`AGENTS.md`) then the Cursor product pointer
-- **Codex / ChatGPT / other products:** this file is a router only; continue from `Agent.md` and the matching product pointer
+- **ChatGPT / other live products:** this file is a router only; continue from `Agent.md` and the matching product pointer. Codex is retired (#4165).
 - **Skills:** `.agents/skills/*` are relevance-selected; they are not a substitute for this bootstrap and must not override LGFC authority or add approval gates
 
 This file routes to canonical governance. It does not replace `Agent.md` or duplicate shared/core doctrine.

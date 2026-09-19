@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Durable LGFC agent roles, recognized agent products, current member mapping, role work-selection order, approval authority, protected stops, and role-transition state
 Does Not Own: PMO lifecycle/stage semantics, detailed queue-label implementation, delivery-profile mechanics, CI implementation, or Production recovery procedure
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3240, #3629, #3693, #3825, #4074
-Last Reviewed: 2026-09-14
+Related Issues: #3240, #3629, #3693, #3825, #4074, #4165
+Last Reviewed: 2026-09-19
 ---
 
 # Agent Team
@@ -96,7 +96,7 @@ Governance does not override Product Authority's business/product decisions or p
 | Bill | Product Authority; Day-2 Operations; protected approval where recorded |
 | ChatGPT | **Governance**; **PMO**; PR Approver / Engineering for work ChatGPT did not implement; Administration & Communications; Day-2 coordination/Tier 2 support |
 | Grok | **Operations**; authorized implementation |
-| Codex | **Operations**; Operations first responder and authorized Active/Pipeline implementation resource |
+| Codex | **Retired** (#4165). No current team role, wake path, or implementation authority. Historical record only (`docs/ops/ai/CODEX-RULES.md`). |
 | Cursor | **Operations during transition**; authorized implementation; target role is Engineering after Product Authority records the transition |
 | Claude Code | **Engineering**; authorized implementation; PR Approver / Engineering only for work Claude Code did not implement |
 | Jules | Implementation resource only when explicitly assigned under a compatible role/source Issue |
@@ -109,26 +109,16 @@ Governance does not override Product Authority's business/product decisions or p
 
 Current transition state:
 
-- Cursor remains eligible for Operations implementation while Codex reliability is being proven.
+- Cursor remains eligible for Operations implementation. Codex is retired (#4165) and is not a reliability gate for that eligibility.
 - Cursor is **not yet removed from Operations**.
 - Target state moves Cursor into Engineering alongside Claude Code.
 - The transition is complete only after Product Authority records the trigger/disposition in the repository.
 
 Do not silently place Cursor in both roles as if the transition were complete. During transition, its Operations eligibility remains controlling unless an explicit source Issue assigns bounded Engineering participation.
 
-## Codex operating contract
+## Codex retirement
 
-Codex is a standing Operations role holder / implementation resource, not a one-off task-only agent.
-
-Codex behavior:
-
-1. first responder for authorized Operations Issues within role eligibility;
-2. when Operations is clear, self-select/continue authorized Active project work according to the current hierarchy and claim rules;
-3. when Active work is unavailable, continue authorized Pipeline project work;
-4. after packaging one task at a review/wait boundary, continue the next eligible work item rather than halting;
-5. follow the same Issue-first, claim, PR, CI, review, closeout, protected-stop, and separation-of-duty contracts as every other implementer.
-
-No Codex-specific bypass or weakened governance exists.
+Product Authority permanently terminated Codex as an LGFC agent on 2026-09-19 (#4165). Codex holds no current Operations, implementation, review, or wake/dispatch authority. Historical Issue comments, PR authorship, and prior decisions attributing work to Codex remain truthful records and are not rewritten.
 
 ## ChatGPT dual-role ownership
 
@@ -169,7 +159,7 @@ An agent claim does not permanently transfer role or Team ownership. Claims must
 - ChatGPT may not independently approve governance documentation it implemented.
 - ChatGPT may not independently approve PMO documentation it implemented.
 - Claude Code may approve only work it did not implement.
-- Cursor, Codex, Grok, and other implementers do not self-approve protected work.
+- Cursor, Grok, and other implementers do not self-approve protected work.
 - Model C constitutional/domain-policy changes require independent review before merge.
 - Production promotion retains the configured Engineering and Product/Production authority.
 
@@ -214,7 +204,7 @@ This document supersedes earlier agent-team language that:
 
 - treats ChatGPT and Work as indistinguishable primary role holders for all control-plane work;
 - treats Cursor as permanently Operations-only or permanently Engineering before the recorded transition;
-- treats Codex as lacking a standing durable Operations/implementation role;
+- treats retired Codex (#4165) as a live Operations/implementation role;
 - defines one universal normal-work queue order for every agent regardless of role;
 - allows an agent to halt after one task while other eligible work exists;
 - conflates team ownership with the current agent claim.

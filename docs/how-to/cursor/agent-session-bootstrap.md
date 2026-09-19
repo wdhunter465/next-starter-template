@@ -49,7 +49,7 @@ MCP servers are **not** part of session bootstrap. MCP connects external tools; 
    - REPOSITORY-AUTHORITY.md: read
    - AGENT-TEAM.md: read
    - CORE-RULES.md: read
-   - CURSOR-RULES.md: read (Cursor Cloud route only; Codex/ChatGPT report their own product pointer)
+   - CURSOR-RULES.md: read (Cursor Cloud route only; ChatGPT reports its own product pointer. Codex is retired #4165.)
 4. For PR work, confirm the first bootstrap report also marks:
    - lgfc-pr-governance/SKILL.md: read
    - .github/pull_request_template.md: read
