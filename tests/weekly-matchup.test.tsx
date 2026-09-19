@@ -242,6 +242,34 @@ describe('WeeklyMatchup interactive behavior (reactivated 2026-08-18, #3552)', (
     expect(screen.getAllByText(/^Credit:/)).toHaveLength(1);
   });
 
+  it('treats a whitespace-only source as absent (#4167 Copilot review)', async () => {
+    window.localStorage.clear();
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
+      const path = String(input);
+      if (path === '/api/matchup/current') {
+        return Promise.resolve(
+          jsonResponse({
+            ok: true,
+            week_start: currentWeek,
+            matchup_id: 2,
+            items: [
+              { id: 10, url: '/photos/10.jpg', title: 'Current A', source: '   ' },
+              { id: 11, url: '/photos/11.jpg', title: 'Current B' },
+            ],
+          }),
+        );
+      }
+      return Promise.reject(new Error(`Unexpected fetch: ${path}`));
+    });
+
+    render(<WeeklyMatchup />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Current A')).toBeInTheDocument();
+    });
+    expect(screen.queryByText(/^Credit:/)).not.toBeInTheDocument();
+  });
+
   it('renders winner A thumbnail and keeps result text', async () => {
     mockVotedMatchupFetch({
       week_start: '2026-05-25',

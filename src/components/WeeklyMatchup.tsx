@@ -277,7 +277,7 @@ function LastWeekWinnerThumbnail({ photo }: { photo: { url: string; alt?: string
 }
 
 function renderMatchupBody(
-  items: { id: number; url: string; description?: string; title?: string; source?: string }[],
+  items: Photo[],
   hasVoted: boolean,
   submitting: boolean,
   totals: { a: number; b: number } | null,
@@ -293,6 +293,8 @@ function renderMatchupBody(
   const a = items[0];
   const b = items[1];
   const resultsAnchorId = 'weekly-matchup-results';
+  const aCredit = a.source?.trim();
+  const bCredit = b.source?.trim();
 
   return (
     <>
@@ -308,7 +310,7 @@ function renderMatchupBody(
           </div>
 
           <div className="sub" style={{ marginTop: 10 }}>{a.title || a.description || 'Photo A'}</div>
-          {a.source && <div className="sub" style={{ marginTop: 4, fontSize: 13, opacity: 0.8 }}>Credit: {a.source}</div>}
+          {aCredit && <div className="sub" style={{ marginTop: 4, fontSize: 13, opacity: 0.8 }}>Credit: {aCredit}</div>}
 
           {!hasVoted && (
             <button
@@ -333,7 +335,7 @@ function renderMatchupBody(
           </div>
 
           <div className="sub" style={{ marginTop: 10 }}>{b.title || b.description || 'Photo B'}</div>
-          {b.source && <div className="sub" style={{ marginTop: 4, fontSize: 13, opacity: 0.8 }}>Credit: {b.source}</div>}
+          {bCredit && <div className="sub" style={{ marginTop: 4, fontSize: 13, opacity: 0.8 }}>Credit: {bCredit}</div>}
 
           {!hasVoted && (
             <button
