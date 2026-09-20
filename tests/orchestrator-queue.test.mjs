@@ -28,7 +28,7 @@ describe('orchestrator issue creation queue model', () => {
 		const tasks = [
 			{ type: 'repository', agent: 'cursor' },
 			{ type: 'website', agent: 'cursor' },
-			{ type: 'docs', agent: 'ChatGPT' },
+			{ type: 'docs', agent: 'cursor' },
 		];
 
 		const labels = tasks.map((task, index) =>
@@ -116,7 +116,7 @@ describe('orchestrator queue advancement', () => {
 		const tasks = [
 			{ type: 'repository', agent: 'cursor' },
 			{ type: 'website', agent: 'cursor' },
-			{ type: 'docs', agent: 'ChatGPT' },
+			{ type: 'docs', agent: 'cursor' },
 		];
 		const producedStatuses = tasks.map((task, index) =>
 			createIssues
@@ -402,7 +402,7 @@ describe('orchestrator workflow trigger compatibility', () => {
 		expect(postMergeWorkflow).toContain('node scripts/ci/run_post_merge_closeout.mjs');
 		expect(postMergeWorkflow).not.toContain('sync-pr-state.mjs');
 		expect(createIssuesScript).toContain('ensureLabels();');
-		expect(createIssuesScript).toMatch(/['"]--state['"],\s*['"]all['"]/s);
+		expect(createIssuesScript).toMatch(/['\"]--state['\"],\s*['\"]all['\"]/s);
 		expect(createDraftPrScript).toContain('existingOpenPrForIssue(repo, issue.number)');
 		expect(createDraftPrScript).toContain("issue.state !== 'OPEN'");
 		expect(createDraftPrScript).not.toContain('orchestrator-placeholder-pr: true');
