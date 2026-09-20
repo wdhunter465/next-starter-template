@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { formatPublishedDate } from '@/lib/formatPublishedDate';
 
 export type FundraiserDailyDetailItem = {
   key: string;
@@ -70,13 +71,7 @@ export default function FundraiserDailyDetailsFeed({
                 lineHeight: 1.5,
               }}
             >
-              <div style={{ fontSize: 13, color: 'rgba(0,0,0,0.6)' }}>
-                {new Date(item.published_at).toLocaleDateString('en-US', {
-                  year: 'numeric',
-                  month: 'long',
-                  day: 'numeric',
-                })}
-              </div>
+              <div style={{ fontSize: 13, color: 'rgba(0,0,0,0.6)' }}>{formatPublishedDate(item.published_at)}</div>
               <div style={{ fontWeight: 700, fontSize: 17, marginTop: 2 }}>{item.title}</div>
               {item.body_md ? (
                 <div style={{ fontSize: 14, color: 'rgba(0,0,0,0.8)', marginTop: 6, whiteSpace: 'pre-wrap' }}>

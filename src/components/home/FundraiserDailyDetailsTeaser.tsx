@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import type { FundraiserDailyDetailItem } from '@/components/fundraiser/FundraiserDailyDetailsFeed';
+import { formatPublishedDate } from '@/lib/formatPublishedDate';
 
 export default function FundraiserDailyDetailsTeaser() {
   const [item, setItem] = useState<FundraiserDailyDetailItem | null>(null);
@@ -37,7 +38,7 @@ export default function FundraiserDailyDetailsTeaser() {
           Fundraiser Details
         </div>
         <div style={{ fontSize: 13, color: 'rgba(0,0,0,0.6)', marginTop: 4 }}>
-          {new Date(item.published_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })}
+          {formatPublishedDate(item.published_at)}
         </div>
         <h3 style={{ margin: '6px 0 8px 0' }}>{item.title}</h3>
         {item.body_md ? (

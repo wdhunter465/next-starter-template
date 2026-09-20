@@ -16,7 +16,7 @@ function json(res: any, status = 200): Response {
 const PAGE = 'home';
 const SECTION = 'fundraiser-daily-details';
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
-const TIME_RE = /^\d{2}:\d{2}$/;
+const TIME_RE = /^([01]\d|2[0-3]):[0-5]\d$/;
 
 export const onRequestPost = async (context: any): Promise<Response> => {
   const { request, env } = context;

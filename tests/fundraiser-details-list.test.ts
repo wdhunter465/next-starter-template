@@ -27,6 +27,11 @@ function publishedRow(overrides: Partial<ContentBlockRow> = {}): ContentBlockRow
 }
 
 describe('GET /api/fundraiser-details/list (#4253)', () => {
+  it('returns 503 when the DB binding is unavailable', async () => {
+    const response = await listFundraiserDetails({ request: getRequest(), env: {} });
+    expect(response.status).toBe(503);
+  });
+
   it('requires no authentication', async () => {
     const env = { DB: makeScheduledContentDb([publishedRow()]) };
     const response = await listFundraiserDetails({ request: getRequest(), env });

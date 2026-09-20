@@ -33,9 +33,10 @@ export function makeScheduledContentDb(initialRows: ContentBlockRow[] = [], now 
         return null;
       },
       all: async () => {
-        if (sql.includes('scheduled_publish_at <= datetime')) {
+        if (sql.includes('scheduled_publish_at <= ?')) {
+          const [nowArg] = args;
           const due = [...rows.values()]
-            .filter((r) => r.status === 'draft' && r.scheduled_publish_at && r.scheduled_publish_at <= now)
+            .filter((r) => r.status === 'draft' && r.scheduled_publish_at && r.scheduled_publish_at <= String(nowArg))
             .sort((a, b) => String(a.scheduled_publish_at).localeCompare(String(b.scheduled_publish_at)));
           return { results: due };
         }

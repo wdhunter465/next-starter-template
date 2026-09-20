@@ -21,6 +21,10 @@ function parseLimit(raw: string | null): number {
 export const onRequestGet = async (context: any): Promise<Response> => {
   const { request, env } = context;
 
+  if (!env?.DB) {
+    return json({ ok: false, error: 'DB binding unavailable' }, 503);
+  }
+
   try {
     const url = new URL(request.url);
     const limit = parseLimit(url.searchParams.get('limit'));

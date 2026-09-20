@@ -54,6 +54,10 @@ export const onRequestPost = async (context: any): Promise<Response> => {
 
     for (const block of due) {
       const result = await publishScheduledBlock(env.DB, block, 'scheduled-content-bridge');
+      // null means a concurrent call already published this row between our
+      // read and our UPDATE -- nothing new happened, so skip it entirely
+      // rather than firing a duplicate Zapier social post.
+      if (!result) continue;
 
       const publicUrl = new URL(request.url);
       const social = await postToZapier(env, {

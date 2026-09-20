@@ -38,6 +38,27 @@ describe('POST /api/admin/fundraiser-details/create (#4253)', () => {
     expect(await response.json()).toMatchObject({ ok: false, error: 'publish_date must be YYYY-MM-DD.' });
   });
 
+  it('rejects an impossible publish_time like 99:99', async () => {
+    const env = { DB: withAdminSession(makeScheduledContentDb([])) };
+    const response = await createFundraiserDetail({
+      request: postRequest({ ...VALID_BODY, publish_time: '99:99' }),
+      env,
+    });
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ ok: false, error: 'publish_time must be HH:MM (24h).' });
+  });
+
+  it('accepts a valid late publish_time like 23:59', async () => {
+    const db = makeScheduledContentDb([]);
+    const env = { DB: withAdminSession(db) };
+    const response = await createFundraiserDetail({
+      request: postRequest({ ...VALID_BODY, publish_time: '23:59' }),
+      env,
+    });
+    expect(response.status).toBe(200);
+    expect((await response.json()).scheduled_publish_at).toBe('2027-02-01 23:59:00');
+  });
+
   it('rejects a missing title', async () => {
     const env = { DB: withAdminSession(makeScheduledContentDb([])) };
     const response = await createFundraiserDetail({

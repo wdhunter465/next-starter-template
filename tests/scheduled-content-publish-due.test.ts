@@ -1,9 +1,16 @@
 import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest';
 
 import { onRequestPost as publishDue } from '../functions/api/scheduled-content/publish-due';
+import { publishScheduledBlock } from '../functions/_lib/content-blocks-scheduled';
 import { makeScheduledContentDb, type ContentBlockRow } from './helpers/scheduledContentDb';
 
 const BRIDGE_TOKEN = 'test-bridge-token';
+
+// Comparisons run against the real nowInNewYork(), so fixtures use dates far
+// enough in the past/future to be unambiguous regardless of when the test
+// suite actually runs.
+const PAST = '2020-01-01 00:00:00';
+const FUTURE = '2099-01-01 00:00:00';
 
 function postRequest(token: string | null): Request {
   const headers: Record<string, string> = { 'Content-Type': 'application/json' };
@@ -27,21 +34,22 @@ function dueRow(overrides: Partial<ContentBlockRow> = {}): ContentBlockRow {
     updated_at: '2027-01-15 10:00:00',
     published_at: null,
     updated_by: 'admin',
-    scheduled_publish_at: '2027-02-01 15:00:00',
+    scheduled_publish_at: PAST,
     social_caption: 'Grand prize day! 🎉',
     ...overrides,
   };
 }
 
 describe('POST /api/scheduled-content/publish-due (#4253)', () => {
-  const originalFetch = global.fetch;
+  let fetchMock: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
-    global.fetch = vi.fn(async () => new Response(null, { status: 200 })) as unknown as typeof fetch;
+    fetchMock = vi.fn(async () => new Response(null, { status: 200 }));
+    vi.stubGlobal('fetch', fetchMock);
   });
 
   afterEach(() => {
-    global.fetch = originalFetch;
+    vi.unstubAllGlobals();
   });
 
   it('refuses a request with no bearer token', async () => {
@@ -85,15 +93,15 @@ describe('POST /api/scheduled-content/publish-due (#4253)', () => {
     expect(updated.published_body_md).toBe('Today we reveal the grand prize.');
     expect(updated.scheduled_publish_at).toBeNull();
 
-    expect(global.fetch).toHaveBeenCalledTimes(1);
-    const [url, init] = (global.fetch as any).mock.calls[0];
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchMock.mock.calls[0];
     expect(url).toBe('https://hooks.zapier.com/hooks/catch/test');
     const payload = JSON.parse(init.body);
     expect(payload.caption).toBe('Grand prize day! 🎉');
   });
 
   it('does not publish a row scheduled for the future', async () => {
-    const db = makeScheduledContentDb([dueRow({ scheduled_publish_at: '2027-03-01 15:00:00' })]);
+    const db = makeScheduledContentDb([dueRow({ scheduled_publish_at: FUTURE })]);
     const env = { DB: db, SCHEDULED_CONTENT_BRIDGE_TOKEN: BRIDGE_TOKEN };
 
     const response = await publishDue({ request: postRequest(BRIDGE_TOKEN), env });
@@ -123,5 +131,29 @@ describe('POST /api/scheduled-content/publish-due (#4253)', () => {
     const body = await response.json();
     expect(body.published[0].social.ok).toBe(false);
     expect(db._rows.get('home.fundraiser-daily-details.2027-02-01')!.status).toBe('published');
+  });
+
+  it('publishScheduledBlock returns null (no duplicate revision) when a concurrent call already published the row', async () => {
+    const db = makeScheduledContentDb([dueRow()]);
+    const block = {
+      key: 'home.fundraiser-daily-details.2027-02-01',
+      page: 'home',
+      section: 'fundraiser-daily-details',
+      title: 'Grand prize announced!',
+      body_md: 'Today we reveal the grand prize.',
+      social_caption: 'Grand prize day! 🎉',
+      scheduled_publish_at: PAST,
+      version: 1,
+    };
+
+    const first = await publishScheduledBlock(db, block, 'scheduled-content-bridge');
+    expect(first).not.toBeNull();
+    expect(db._revisions).toHaveLength(1);
+
+    // Simulates a second, racing call operating on the same pre-race block
+    // snapshot (as if both had read it as 'draft' before either published).
+    const second = await publishScheduledBlock(db, block, 'scheduled-content-bridge');
+    expect(second).toBeNull();
+    expect(db._revisions).toHaveLength(1);
   });
 });
