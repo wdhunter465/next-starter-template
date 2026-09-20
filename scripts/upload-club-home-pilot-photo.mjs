@@ -18,6 +18,13 @@
 // image by design (see CLUB_HOME_PINNABLE_ZONES in
 // functions/_lib/content-inventory-club-home.ts).
 //
+// Each photo is fetched, uploaded to B2, and applied to D1 as one complete
+// unit before moving to the next -- a later photo hitting a rate limit (or
+// any other failure) leaves the earlier photos' work done, instead of an
+// all-or-nothing batch where one failure discards every already-completed
+// upload (#4183: a run that got 429'd by Wikimedia on the 3rd of 4 photos
+// wiped out the first 2 photos' progress under the old batched design).
+//
 // Usage:
 //   node --experimental-strip-types scripts/upload-club-home-pilot-photo.mjs --print
 //   node --experimental-strip-types scripts/upload-club-home-pilot-photo.mjs --apply --remote
@@ -54,6 +61,9 @@ const { validateIngestContentType, validateIngestMagicBytes, validateIngestSize 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const SIZES = ['thumbnail', 'medium'];
 const USER_AGENT = 'LGFC-ClubHome-Pilot/1.0 (lougehrigfanclub.com; contact via site)';
+const RETRYABLE_STATUSES = new Set([429, 502, 503, 504]);
+const MAX_FETCH_ATTEMPTS = 4;
+const INTER_PHOTO_DELAY_MS = 1500;
 
 // One distinct real photo per story (see seed/content/club-home-pilot-pack.json).
 const PHOTOS = [
@@ -63,10 +73,51 @@ const PHOTOS = [
   { mediaId: 9404, commonsTitle: 'File:GehrigCU.jpg' },
 ];
 
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+// Retries on 429/502/503/504 with exponential backoff, honoring a numeric
+// Retry-After header when Wikimedia sends one. Wikimedia rate-limits bursts
+// of back-to-back file fetches from the same client; a bare fetch() with no
+// retry turns a transient 429 into a hard failure for the whole run.
+async function fetchWithRetry(url, options, context) {
+  let lastError;
+  for (let attempt = 1; attempt <= MAX_FETCH_ATTEMPTS; attempt += 1) {
+    let res;
+    try {
+      res = await fetch(url, options);
+    } catch (err) {
+      // Network-level failures (DNS/TLS/reset) throw instead of resolving --
+      // retry these the same as a retryable HTTP status instead of letting
+      // them bypass the retry loop entirely.
+      if (attempt === MAX_FETCH_ATTEMPTS) throw new Error(`${context}: ${err?.message || err} (attempt ${attempt}/${MAX_FETCH_ATTEMPTS})`);
+      const backoffMs = 2 ** attempt * 1000;
+      console.warn(`${context}: ${err?.message || err}, retrying in ${backoffMs}ms (attempt ${attempt}/${MAX_FETCH_ATTEMPTS})`);
+      lastError = err instanceof Error ? err : new Error(String(err));
+      await sleep(backoffMs);
+      continue;
+    }
+    if (res.ok) return res;
+    if (!RETRYABLE_STATUSES.has(res.status) || attempt === MAX_FETCH_ATTEMPTS) {
+      await res.body?.cancel().catch(() => {});
+      throw new Error(`${context}: HTTP ${res.status} (attempt ${attempt}/${MAX_FETCH_ATTEMPTS})`);
+    }
+    const retryAfterHeader = Number(res.headers.get('retry-after'));
+    const backoffMs = Number.isFinite(retryAfterHeader) && retryAfterHeader > 0 ? retryAfterHeader * 1000 : 2 ** attempt * 1000;
+    console.warn(`${context}: HTTP ${res.status}, retrying in ${backoffMs}ms (attempt ${attempt}/${MAX_FETCH_ATTEMPTS})`);
+    lastError = new Error(`${context}: HTTP ${res.status}`);
+    // Drain the failed response body before retrying -- an unread body can
+    // hold the underlying socket open and hurt connection reuse on undici.
+    await res.body?.cancel().catch(() => {});
+    await sleep(backoffMs);
+  }
+  throw lastError;
+}
+
 async function resolveWikimediaFileUrl(title) {
   const infoUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=imageinfo&iiprop=url&format=json&origin=*`;
-  const res = await fetch(infoUrl, { headers: { 'User-Agent': USER_AGENT, Accept: 'application/json' } });
-  if (!res.ok) throw new Error(`Commons API HTTP ${res.status}`);
+  const res = await fetchWithRetry(infoUrl, { headers: { 'User-Agent': USER_AGENT, Accept: 'application/json' } }, `Commons API (${title})`);
   const data = await res.json();
   const pages = Object.values(data.query?.pages ?? {});
   const url = pages[0]?.imageinfo?.[0]?.url;
@@ -85,8 +136,7 @@ async function fetchValidatedPhoto(commonsTitle) {
     throw new Error(`Resolved file URL host "${resolvedHost}" is not upload.wikimedia.org -- refusing to fetch.`);
   }
 
-  const sourceResponse = await fetch(fileUrl, { headers: { 'User-Agent': USER_AGENT } });
-  if (!sourceResponse.ok) throw new Error(`Fetching ${fileUrl} -> HTTP ${sourceResponse.status}`);
+  const sourceResponse = await fetchWithRetry(fileUrl, { headers: { 'User-Agent': USER_AGENT } }, `Fetching ${fileUrl}`);
 
   const contentType = (sourceResponse.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
   const contentTypeCheck = validateIngestContentType(contentType);
@@ -109,17 +159,30 @@ async function fetchValidatedPhoto(commonsTitle) {
   return { bytes, contentType };
 }
 
+function applyStatements(statements, isRemote) {
+  const tmpFile = path.join(__dirname, '..', `.club-home-pilot-photo-update-${Date.now()}.sql`);
+  writeFileSync(tmpFile, statements.join('\n'), 'utf8');
+  const d1Args = isRemote
+    ? ['wrangler', 'd1', 'execute', 'lgfc_lite', '--remote', '--yes']
+    : ['wrangler', 'd1', 'execute', 'DB', '--local', '--env', 'preview'];
+  const result = spawnSync('npx', [...d1Args, '--file', tmpFile], { stdio: 'inherit', cwd: path.join(__dirname, '..') });
+  try {
+    unlinkSync(tmpFile);
+  } catch {}
+  if (result.error) throw new Error(`wrangler d1 execute failed to launch: ${result.error.message}`);
+  if (result.status !== 0) throw new Error(`wrangler d1 execute exited ${result.status}`);
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const mode = args.includes('--apply') ? 'apply' : 'print';
   const isRemote = args.includes('--remote');
 
-  const fetched = [];
-  for (const photo of PHOTOS) {
-    fetched.push({ ...photo, ...(await fetchValidatedPhoto(photo.commonsTitle)) });
-  }
-
   if (mode === 'print') {
+    for (const [index, photo] of PHOTOS.entries()) {
+      if (index > 0) await sleep(INTER_PHOTO_DELAY_MS);
+      await fetchValidatedPhoto(photo.commonsTitle);
+    }
     console.log('--print: not uploading to B2 or writing SQL. Re-run with --apply --remote.');
     return;
   }
@@ -129,44 +192,52 @@ async function main() {
     throw new Error(`B2 not configured (HTTP ${b2Check.response.status})`);
   }
 
-  const now = new Date().toISOString().replace('Z', '000Z').slice(0, 24);
-  const statements = [];
+  const failures = [];
+  for (const [index, photo] of PHOTOS.entries()) {
+    if (index > 0) await sleep(INTER_PHOTO_DELAY_MS);
 
-  for (const { mediaId, bytes, contentType } of fetched) {
-    const renditionUrlBySize = {};
-    for (const size of SIZES) {
-      const key = renditionObjectKey(mediaId, size);
-      await putB2Object(b2Check.cfg, { key, body: bytes, contentType });
-      const publicUrl = publicUrlForRenditionKey(process.env, b2Check.cfg, key);
-      renditionUrlBySize[size] = { key, publicUrl };
-      console.log(`Uploaded media_id ${mediaId} ${size} rendition -> ${key} -> ${publicUrl}`);
-    }
+    try {
+      const { mediaId, commonsTitle } = photo;
+      const { bytes, contentType } = await fetchValidatedPhoto(commonsTitle);
 
-    const photoKey = `club-newspaper/originals/${mediaId}/original.jpg`;
-    await putB2Object(b2Check.cfg, { key: photoKey, body: bytes, contentType });
-    const photoPublicUrl = publicUrlForRenditionKey(process.env, b2Check.cfg, photoKey);
-    console.log(`Uploaded media_id ${mediaId} original -> ${photoKey} -> ${photoPublicUrl}`);
+      const now = new Date().toISOString().replace('Z', '000Z').slice(0, 24);
+      const renditionUrlBySize = {};
+      for (const size of SIZES) {
+        const key = renditionObjectKey(mediaId, size);
+        await putB2Object(b2Check.cfg, { key, body: bytes, contentType });
+        const publicUrl = publicUrlForRenditionKey(process.env, b2Check.cfg, key);
+        renditionUrlBySize[size] = { key, publicUrl };
+        console.log(`Uploaded media_id ${mediaId} ${size} rendition -> ${key} -> ${publicUrl}`);
+      }
 
-    statements.push(`UPDATE photos SET url = ${sqlString(photoPublicUrl)} WHERE id = ${mediaId};`);
-    for (const size of SIZES) {
-      statements.push(
-        `UPDATE content_inventory_media_renditions SET url = ${sqlString(renditionUrlBySize[size].publicUrl)}, b2_key = ${sqlString(renditionUrlBySize[size].key)}, content_type = ${sqlString(contentType)}, status = 'ready', generated_at = ${sqlString(now)}, generated_by = 'club-home-pilot-b2-upload' WHERE media_id = ${mediaId} AND size = ${sqlString(size)};`,
-      );
+      const photoKey = `club-newspaper/originals/${mediaId}/original.jpg`;
+      await putB2Object(b2Check.cfg, { key: photoKey, body: bytes, contentType });
+      const photoPublicUrl = publicUrlForRenditionKey(process.env, b2Check.cfg, photoKey);
+      console.log(`Uploaded media_id ${mediaId} original -> ${photoKey} -> ${photoPublicUrl}`);
+
+      const statements = [`UPDATE photos SET url = ${sqlString(photoPublicUrl)} WHERE id = ${mediaId};`];
+      for (const size of SIZES) {
+        statements.push(
+          `UPDATE content_inventory_media_renditions SET url = ${sqlString(renditionUrlBySize[size].publicUrl)}, b2_key = ${sqlString(renditionUrlBySize[size].key)}, content_type = ${sqlString(contentType)}, status = 'ready', generated_at = ${sqlString(now)}, generated_by = 'club-home-pilot-b2-upload' WHERE media_id = ${mediaId} AND size = ${sqlString(size)};`,
+        );
+      }
+      applyStatements(statements, isRemote);
+      console.log(`media_id ${mediaId} (${commonsTitle}): done.`);
+    } catch (err) {
+      const message = err?.message || String(err);
+      console.error(`media_id ${photo.mediaId} (${photo.commonsTitle}) FAILED: ${message}`);
+      failures.push({ mediaId: photo.mediaId, commonsTitle: photo.commonsTitle, message });
     }
   }
 
-  const sql = statements.join('\n');
+  if (failures.length) {
+    console.error(
+      `\n${failures.length}/${PHOTOS.length} photo(s) failed:\n${failures.map((f) => `  - media_id ${f.mediaId} (${f.commonsTitle}): ${f.message}`).join('\n')}\n\nAlready-succeeded photos above were still uploaded and applied to D1. Re-run this script to retry only what's needed -- it's safe, each photo's D1 statements are plain UPDATEs by id/media_id (not inserts), so re-applying them is idempotent as long as the seed pack has already created those rows.`,
+    );
+    process.exit(1);
+  }
 
-  const tmpFile = path.join(__dirname, '..', '.club-home-pilot-photo-update.sql');
-  writeFileSync(tmpFile, sql, 'utf8');
-  const d1Args = isRemote
-    ? ['wrangler', 'd1', 'execute', 'lgfc_lite', '--remote', '--yes']
-    : ['wrangler', 'd1', 'execute', 'DB', '--local', '--env', 'preview'];
-  const result = spawnSync('npx', [...d1Args, '--file', tmpFile], { stdio: 'inherit', cwd: path.join(__dirname, '..') });
-  try {
-    unlinkSync(tmpFile);
-  } catch {}
-  process.exit(result.status ?? 1);
+  console.log(`\nAll ${PHOTOS.length} photos uploaded and applied.`);
 }
 
 main().catch((err) => {
