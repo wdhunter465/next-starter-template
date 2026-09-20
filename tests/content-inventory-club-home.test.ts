@@ -332,4 +332,172 @@ describe('content-inventory-club-home', () => {
       rendition_size: 'thumbnail',
     });
   });
+
+  it('gives the media-feature zone its own distinct story image instead of mirroring the lead story (#4183 follow-up)', async () => {
+    const inventory = [
+      {
+        id: 1,
+        title: 'Lead headline',
+        text: 'Lead body text',
+        summary: 'Lead summary',
+        credit_line: 'Club Historians',
+        source_name: 'LGFC Archive',
+        story_type: 'primary',
+        allowed_sections: 'club_home',
+        status: 'published',
+        canonical: 1,
+        priority: 10,
+        feature_weight: 2,
+      },
+      {
+        id: 2,
+        title: 'Rail story',
+        summary: 'Rail summary',
+        credit_line: 'Member Historian',
+        source_name: 'Member Notes',
+        story_type: 'secondary',
+        allowed_sections: 'club_home',
+        status: 'published',
+        canonical: 1,
+        priority: 5,
+        feature_weight: 1,
+      },
+      {
+        id: 3,
+        title: 'Another rail story',
+        summary: 'Second rail summary',
+        credit_line: 'Archive Desk',
+        source_name: 'Library',
+        story_type: 'brief',
+        allowed_sections: 'club_home',
+        status: 'published',
+        canonical: 1,
+        priority: 4,
+        feature_weight: 1,
+      },
+      {
+        id: 4,
+        title: 'Spotlight story',
+        summary: 'Spotlight summary',
+        credit_line: 'Archive Desk',
+        source_name: 'Library',
+        story_type: 'primary',
+        allowed_sections: 'club_home',
+        status: 'published',
+        canonical: 1,
+        priority: 2,
+        feature_weight: 1,
+      },
+      {
+        id: 5,
+        title: 'Media feature story',
+        summary: 'Media feature summary',
+        credit_line: 'Archive Desk',
+        source_name: 'Library',
+        story_type: 'primary',
+        allowed_sections: 'club_home',
+        status: 'published',
+        canonical: 1,
+        priority: 1,
+        feature_weight: 1,
+      },
+    ];
+
+    const payload = await fetchClubHomeContent(
+      makeClubHomeDb({
+        inventory,
+        media: [
+          {
+            story_id: 1,
+            media_id: 500,
+            media_role: 'primary_image',
+            display_order: 0,
+            caption: 'Lead photo',
+            alt_text: 'Lead story photograph',
+            source_name: 'LGFC Photo Desk',
+            credit_line: 'LGFC Archive',
+          },
+          {
+            story_id: 5,
+            media_id: 505,
+            media_role: 'primary_image',
+            display_order: 0,
+            caption: 'Media feature photo',
+            alt_text: 'A distinct media feature photograph',
+            source_name: 'LGFC Photo Desk',
+            credit_line: 'LGFC Archive',
+          },
+        ],
+        renditions: [
+          {
+            media_id: 500,
+            size: 'medium',
+            status: 'ready',
+            url: 'https://cdn.example.com/renditions/500/medium.jpg',
+          },
+          {
+            media_id: 505,
+            size: 'medium',
+            status: 'ready',
+            url: 'https://cdn.example.com/renditions/505/medium.jpg',
+          },
+        ],
+      }),
+    );
+
+    expect(payload.lead_story?.headline).toBe('Lead headline');
+    expect(payload.archive_spotlight?.headline).toBe('Spotlight story');
+    // Media-feature is backed by story 5's own image, not story 1's (the lead) --
+    // proves the zone no longer always mirrors the lead story when a distinct,
+    // otherwise-unplaced story is available (#4183 follow-up).
+    expect(payload.media_feature?.thumbnail_url).toBe('https://cdn.example.com/renditions/505/medium.jpg');
+    expect(payload.media_feature?.title).toBe('Media feature photo');
+  });
+
+  it('falls back to mirroring the lead story when it is the only eligible story', async () => {
+    const payload = await fetchClubHomeContent(
+      makeClubHomeDb({
+        inventory: [
+          {
+            id: 1,
+            title: 'Only story',
+            text: 'Only body text',
+            summary: 'Only summary',
+            credit_line: 'Club Historians',
+            source_name: 'LGFC Archive',
+            story_type: 'primary',
+            allowed_sections: 'club_home',
+            status: 'published',
+            canonical: 1,
+            priority: 10,
+            feature_weight: 2,
+          },
+        ],
+        media: [
+          {
+            story_id: 1,
+            media_id: 600,
+            media_role: 'primary_image',
+            display_order: 0,
+            caption: 'Only photo',
+            alt_text: 'The only story photograph',
+            source_name: 'LGFC Photo Desk',
+            credit_line: 'LGFC Archive',
+          },
+        ],
+        renditions: [
+          {
+            media_id: 600,
+            size: 'medium',
+            status: 'ready',
+            url: 'https://cdn.example.com/renditions/600/medium.jpg',
+          },
+        ],
+      }),
+    );
+
+    expect(payload.lead_story?.headline).toBe('Only story');
+    expect(payload.media_feature?.thumbnail_url).toBe('https://cdn.example.com/renditions/600/medium.jpg');
+    expect(payload.media_feature?.title).toBe('Only photo');
+  });
 });
