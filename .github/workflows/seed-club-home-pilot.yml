@@ -1,0 +1,81 @@
+name: Seed Club Home Pilot Content (#4183)
+
+# Manual, human-triggered. Applies the club-home-pilot-pack.json seed pack
+# (seed/content/club-home-pilot-pack.json) -- four sourced, credited Lou
+# Gehrig history articles plus one shared photo and its renditions -- into
+# production D1, then activates a Club Home edition pointing at them.
+#
+# This is a one-time content drop for #4180 verification, not a recurring
+# discovery pipeline. It writes fixed-id rows (INSERT OR REPLACE), so
+# re-running it is a safe no-op refresh of the same content, not a way to
+# add new articles each run.
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_write:
+        description: 'Type "confirm" to allow writing to production D1'
+        required: true
+        default: ""
+
+concurrency:
+  group: seed-club-home-pilot
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  seed:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Require explicit confirmation for production D1 write
+        env:
+          CONFIRM_WRITE: ${{ github.event.inputs.confirm_write }}
+        run: |
+          if [ "$CONFIRM_WRITE" != "confirm" ]; then
+            echo "confirm_write != 'confirm' -- refusing to write to production D1."
+            exit 1
+          fi
+
+      - name: Verify Cloudflare D1 credentials
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DATABASE_NAME: lgfc_lite
+        run: node scripts/ci/verify_cloudflare_d1_auth.mjs
+
+      - name: Seed pilot content into production D1
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          echo "Target database_name=lgfc_lite (Production)"
+          node scripts/seed-club-home-pilot.mjs --apply --remote
+
+      - name: Activate a Club Home edition pointing at the pilot content
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: node scripts/activate-club-home-pilot-edition.mjs --apply --remote
+
+      - name: Verify published content and active edition
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          npx wrangler d1 execute lgfc_lite --remote --command \
+            "SELECT id, title, status FROM content_inventory WHERE tag LIKE 'lgfc-clubhome-pilot-%' ORDER BY id"
+          npx wrangler d1 execute lgfc_lite --remote --command \
+            "SELECT edition_id, activated_at FROM content_inventory_club_home_active_edition WHERE singleton = 1"
