@@ -1,15 +1,22 @@
 #!/usr/bin/env node
-// Fetches the real Lou Gehrig 1925 photo from its Wikimedia Commons original
+// Fetches each pilot story's real photo from its Wikimedia Commons original
 // (validated the same way #3552's ingestion path validates any fetched
-// original), uploads it to production B2 at the pilot pack's rendition keys
-// (media_id 9401, #4183), and updates `photos.url` and
-// `content_inventory_media_renditions` for that media_id to the real B2
-// URLs -- computed via the app's own publicUrlForRenditionKey() so they
-// match exactly what a live rendition would resolve to.
+// original), uploads it to production B2 at that photo's rendition keys,
+// and updates `photos.url` and `content_inventory_media_renditions` for
+// that media_id to the real B2 URLs -- computed via the app's own
+// publicUrlForRenditionKey() so they match exactly what a live rendition
+// would resolve to.
 //
-// Replaces the pilot pack's Wikimedia hotlink, which isn't on the site's
+// Replaces the pilot pack's Wikimedia hotlinks, which aren't on the site's
 // enforced CSP img-src allowlist (public/_headers) and so never rendered in
 // a browser even though the D1 picture-routing chain itself was correct.
+//
+// One distinct, real, public-domain photo per pilot story (#4183 follow-up)
+// so each Club Home zone shows a different picture instead of the same one
+// four times over -- lead-story and media-feature still share one image,
+// since the media-feature zone always mirrors the lead story's own primary
+// image by design (see CLUB_HOME_PINNABLE_ZONES in
+// functions/_lib/content-inventory-club-home.ts).
 //
 // Usage:
 //   node --experimental-strip-types scripts/upload-club-home-pilot-photo.mjs --print
@@ -45,10 +52,16 @@ const { validateIngestContentType, validateIngestMagicBytes, validateIngestSize 
 );
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const MEDIA_ID = 9401;
-const COMMONS_TITLE = 'File:Lou Gehrig 1925.jpg';
 const SIZES = ['thumbnail', 'medium'];
 const USER_AGENT = 'LGFC-ClubHome-Pilot/1.0 (lougehrigfanclub.com; contact via site)';
+
+// One distinct real photo per story (see seed/content/club-home-pilot-pack.json).
+const PHOTOS = [
+  { mediaId: 9401, commonsTitle: 'File:Lou Gehrig 1925.jpg' },
+  { mediaId: 9402, commonsTitle: 'File:Lou Gehrig as a new Yankee 11 Jun 1923.jpg' },
+  { mediaId: 9403, commonsTitle: 'File:LouGehrig1934Goudeycard.jpg' },
+  { mediaId: 9404, commonsTitle: 'File:GehrigCU.jpg' },
+];
 
 async function resolveWikimediaFileUrl(title) {
   const infoUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=imageinfo&iiprop=url&format=json&origin=*`;
@@ -65,12 +78,8 @@ function sqlString(value) {
   return `'${String(value).replace(/'/g, "''")}'`;
 }
 
-async function main() {
-  const args = process.argv.slice(2);
-  const mode = args.includes('--apply') ? 'apply' : 'print';
-  const isRemote = args.includes('--remote');
-
-  const fileUrl = await resolveWikimediaFileUrl(COMMONS_TITLE);
+async function fetchValidatedPhoto(commonsTitle) {
+  const fileUrl = await resolveWikimediaFileUrl(commonsTitle);
   const resolvedHost = new URL(fileUrl).hostname.toLowerCase();
   if (resolvedHost !== 'upload.wikimedia.org') {
     throw new Error(`Resolved file URL host "${resolvedHost}" is not upload.wikimedia.org -- refusing to fetch.`);
@@ -82,6 +91,13 @@ async function main() {
   const contentType = (sourceResponse.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
   const contentTypeCheck = validateIngestContentType(contentType);
   if (!contentTypeCheck.ok) throw new Error(contentTypeCheck.error);
+  // The persisted rendition contract is JPEG-only -- renditionObjectKey() always
+  // produces a .jpg key and RENDITION_OUTPUT_CONTENT_TYPE is image/jpeg. Fail
+  // fast on any other (otherwise-valid) image type instead of silently writing
+  // a mismatched content_type under a .jpg key (#4218 Copilot review).
+  if (contentType !== 'image/jpeg') {
+    throw new Error(`${commonsTitle}: source is ${contentType}, not image/jpeg -- the rendition pipeline is JPEG-only. Pick a JPEG Commons source instead.`);
+  }
 
   const bytes = new Uint8Array(await sourceResponse.arrayBuffer());
   const sizeCheck = validateIngestSize(bytes.byteLength);
@@ -90,6 +106,18 @@ async function main() {
   if (!magicCheck.ok) throw new Error(magicCheck.error);
 
   console.log(`Resolved ${fileUrl} -> ${contentType}, ${bytes.byteLength} bytes`);
+  return { bytes, contentType };
+}
+
+async function main() {
+  const args = process.argv.slice(2);
+  const mode = args.includes('--apply') ? 'apply' : 'print';
+  const isRemote = args.includes('--remote');
+
+  const fetched = [];
+  for (const photo of PHOTOS) {
+    fetched.push({ ...photo, ...(await fetchValidatedPhoto(photo.commonsTitle)) });
+  }
 
   if (mode === 'print') {
     console.log('--print: not uploading to B2 or writing SQL. Re-run with --apply --remote.');
@@ -102,27 +130,31 @@ async function main() {
   }
 
   const now = new Date().toISOString().replace('Z', '000Z').slice(0, 24);
-  const renditionUrlBySize = {};
-  for (const size of SIZES) {
-    const key = renditionObjectKey(MEDIA_ID, size);
-    await putB2Object(b2Check.cfg, { key, body: bytes, contentType });
-    const publicUrl = publicUrlForRenditionKey(process.env, b2Check.cfg, key);
-    renditionUrlBySize[size] = { key, publicUrl };
-    console.log(`Uploaded ${size} rendition -> ${key} -> ${publicUrl}`);
+  const statements = [];
+
+  for (const { mediaId, bytes, contentType } of fetched) {
+    const renditionUrlBySize = {};
+    for (const size of SIZES) {
+      const key = renditionObjectKey(mediaId, size);
+      await putB2Object(b2Check.cfg, { key, body: bytes, contentType });
+      const publicUrl = publicUrlForRenditionKey(process.env, b2Check.cfg, key);
+      renditionUrlBySize[size] = { key, publicUrl };
+      console.log(`Uploaded media_id ${mediaId} ${size} rendition -> ${key} -> ${publicUrl}`);
+    }
+
+    const photoKey = `club-newspaper/originals/${mediaId}/original.jpg`;
+    await putB2Object(b2Check.cfg, { key: photoKey, body: bytes, contentType });
+    const photoPublicUrl = publicUrlForRenditionKey(process.env, b2Check.cfg, photoKey);
+    console.log(`Uploaded media_id ${mediaId} original -> ${photoKey} -> ${photoPublicUrl}`);
+
+    statements.push(`UPDATE photos SET url = ${sqlString(photoPublicUrl)} WHERE id = ${mediaId};`);
+    for (const size of SIZES) {
+      statements.push(
+        `UPDATE content_inventory_media_renditions SET url = ${sqlString(renditionUrlBySize[size].publicUrl)}, b2_key = ${sqlString(renditionUrlBySize[size].key)}, content_type = ${sqlString(contentType)}, status = 'ready', generated_at = ${sqlString(now)}, generated_by = 'club-home-pilot-b2-upload' WHERE media_id = ${mediaId} AND size = ${sqlString(size)};`,
+      );
+    }
   }
 
-  const photoKey = `club-newspaper/originals/${MEDIA_ID}/original.jpg`;
-  await putB2Object(b2Check.cfg, { key: photoKey, body: bytes, contentType });
-  const photoPublicUrl = publicUrlForRenditionKey(process.env, b2Check.cfg, photoKey);
-  console.log(`Uploaded original -> ${photoKey} -> ${photoPublicUrl}`);
-
-  const statements = [
-    `UPDATE photos SET url = ${sqlString(photoPublicUrl)} WHERE id = ${MEDIA_ID};`,
-    ...SIZES.map(
-      (size) =>
-        `UPDATE content_inventory_media_renditions SET url = ${sqlString(renditionUrlBySize[size].publicUrl)}, b2_key = ${sqlString(renditionUrlBySize[size].key)}, content_type = ${sqlString(contentType)}, status = 'ready', generated_at = ${sqlString(now)}, generated_by = 'club-home-pilot-b2-upload' WHERE media_id = ${MEDIA_ID} AND size = ${sqlString(size)};`,
-    ),
-  ];
   const sql = statements.join('\n');
 
   const tmpFile = path.join(__dirname, '..', '.club-home-pilot-photo-update.sql');
