@@ -65,7 +65,7 @@ through before `CHATTERBOX_BRIDGE_PROD_TOKEN` was provisioned — see
    `social.ok: false, social.error: "SCHEDULED_CONTENT_ZAPIER_WEBHOOK_URL not configured"`
    in the sweep's response, never a hard failure).
 
-## Authoring a scheduled post
+## Steps: authoring a scheduled post
 
 `POST /api/admin/fundraiser-details/create` (admin session required, same
 login as the rest of `/admin`):
