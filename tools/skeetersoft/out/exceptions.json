@@ -1,0 +1,52 @@
+[
+  {
+    "code": "missing_lineup",
+    "fixture_id": "F-MISS-LINEUP",
+    "game_id": "SYN-FAIL-MISS-LINEUP",
+    "message": "visitor lineup is missing",
+    "source": {
+      "class": "synthetic",
+      "file": "tools/skeetersoft/pilot_data.py"
+    }
+  },
+  {
+    "code": "invalid_date",
+    "fixture_id": "F-BAD-DATE",
+    "game_id": "SYN-FAIL-BAD-DATE",
+    "message": "invalid month in '1985-13-40'",
+    "source": {
+      "class": "synthetic",
+      "file": "tools/skeetersoft/pilot_data.py"
+    }
+  },
+  {
+    "code": "duplicate_game_id",
+    "fixture_id": "F-DUP-GAME",
+    "game_id": "SYN-FAIL-DUP-GAME",
+    "message": "duplicate game_id SYN-FAIL-DUP-GAME",
+    "source": {
+      "class": "synthetic",
+      "file": "tools/skeetersoft/pilot_data.py"
+    }
+  },
+  {
+    "code": "duplicate_player_id",
+    "fixture_id": "F-DUP-PLAYER",
+    "game_id": "SYN-FAIL-DUP-PLAYER",
+    "message": "home duplicate player_id SYN-DUP",
+    "source": {
+      "class": "synthetic",
+      "file": "tools/skeetersoft/pilot_data.py"
+    }
+  },
+  {
+    "code": "unknown_team_alias",
+    "fixture_id": "F-BAD-ALIAS",
+    "game_id": "SYN-FAIL-BAD-ALIAS",
+    "message": "unknown team alias 'ZZZ' for season 1985",
+    "source": {
+      "class": "synthetic",
+      "file": "tools/skeetersoft/pilot_data.py"
+    }
+  }
+]

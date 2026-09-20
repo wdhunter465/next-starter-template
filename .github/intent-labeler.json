@@ -44,7 +44,8 @@
         ".cursor/rules/",
         "docs/ops/",
         "playwright.config.ts",
-        "tests/"
+        "tests/",
+        "tools/skeetersoft/"
       ],
       "deny_prefixes": []
     },
