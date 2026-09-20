@@ -6,6 +6,7 @@
 
 import { requireAdmin } from "../../../_lib/auth";
 import { jsonResponse, requireD1, requireTables } from "../../../_lib/d1";
+import { revokeMemberSessions } from "../../../_lib/session";
 
 type DeleteBody = {
   email?: unknown;
@@ -29,7 +30,7 @@ export const onRequestPost = async (context: any): Promise<Response> => {
   const d1 = requireD1(env);
   if (!d1.ok) return jsonResponse(d1.body, d1.status);
 
-  const tables = await requireTables(d1.db, ["members", "join_requests"]);
+  const tables = await requireTables(d1.db, ["members", "join_requests", "member_sessions"]);
   if (!tables.ok) return jsonResponse(tables.body, tables.status);
 
   try {
@@ -77,6 +78,8 @@ export const onRequestPost = async (context: any): Promise<Response> => {
         .prepare("UPDATE join_requests SET deleted_at = ? WHERE lower(email) = ?")
         .bind(now, email)
         .run();
+
+      await revokeMemberSessions(d1.db, email);
 
       return jsonResponse({ ok: true, action: "delete", email, deleted_at: now }, 200);
     }

@@ -4,6 +4,8 @@ import { DatabaseSync, type SQLInputValue } from 'node:sqlite';
 import { describe, expect, it } from 'vitest';
 
 import { onRequestPost } from '../../functions/api/admin/member-operations/delete';
+import { onRequestPost as loginPost } from '../../functions/api/login';
+import { getSessionEmail } from '../../functions/_lib/session';
 import { ADMIN_SESSION_COOKIE, seedAdminSession } from '../helpers/adminSqliteSession';
 
 function applyRepoMigrations(db: DatabaseSync) {
@@ -60,6 +62,31 @@ function seedMember(sqlite: DatabaseSync, email = 'member@example.com') {
     INSERT INTO members (email, role, created_at) VALUES ('${email}', 'member', datetime('now'));
     INSERT INTO join_requests (name, email, created_at) VALUES ('Member Name', '${email}', datetime('now'));
   `);
+}
+
+function seedMemberSession(
+  sqlite: DatabaseSync,
+  email = 'member@example.com',
+  sessionId = 'member-session-id',
+): string {
+  sqlite
+    .prepare(
+      `INSERT INTO member_sessions (id, email, expires_at)
+         VALUES (?, ?, datetime('now', '+1 day'))`,
+    )
+    .run(sessionId, email);
+  return sessionId;
+}
+
+function loginRequest(email: string, ip = '203.0.113.10'): Request {
+  return new Request('https://www.lougehrigfanclub.com/api/login', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'CF-Connecting-IP': ip,
+    },
+    body: JSON.stringify({ email }),
+  });
 }
 
 function deleteRequest(body: unknown, cookie: string | null = ADMIN_SESSION_COOKIE): Request {
@@ -174,5 +201,79 @@ describe('POST /api/admin/member-operations/delete (#2919, F6 soft deletion)', (
       env: { DB: db },
     } as any);
     expect(res.status).toBe(401);
+  });
+
+  it('revokes the member session and blocks login while deleted_at is set (#3076)', async () => {
+    const sqlite = new DatabaseSync(':memory:');
+    applyRepoMigrations(sqlite);
+    seedMember(sqlite);
+    seedAdminSession(sqlite);
+    const memberSessionId = seedMemberSession(sqlite);
+    const db = wrapSqliteAsD1(sqlite);
+
+    const before = await getSessionEmail(db, memberSessionId);
+    expect(before).toBe('member@example.com');
+
+    const deleteRes = await onRequestPost({
+      request: deleteRequest({
+        email: 'member@example.com',
+        deletion_reason: 'Member requested account deletion by email.',
+        deleted_by: 'admin@lougehrigfanclub.com',
+      }),
+      env: { DB: db },
+    } as any);
+    expect(deleteRes.status).toBe(200);
+
+    const remaining = sqlite
+      .prepare('SELECT COUNT(*) AS n FROM member_sessions WHERE lower(email) = ?')
+      .get('member@example.com') as { n: number };
+    expect(remaining.n).toBe(0);
+
+    const after = await getSessionEmail(db, memberSessionId);
+    expect(after).toBe('');
+
+    const loginRes = await loginPost({
+      request: loginRequest('member@example.com'),
+      env: { DB: db },
+    } as any);
+    expect(loginRes.status).toBe(404);
+    const loginBody = (await loginRes.json()) as { error?: string };
+    expect(loginBody.error).toBe('Email not found.');
+  });
+
+  it('does not revive revoked session IDs on restore; a new login can succeed (#3076)', async () => {
+    const sqlite = new DatabaseSync(':memory:');
+    applyRepoMigrations(sqlite);
+    seedMember(sqlite);
+    seedAdminSession(sqlite);
+    const oldSessionId = seedMemberSession(sqlite);
+    const db = wrapSqliteAsD1(sqlite);
+
+    await onRequestPost({
+      request: deleteRequest({
+        email: 'member@example.com',
+        deletion_reason: 'test',
+        deleted_by: 'admin@lougehrigfanclub.com',
+      }),
+      env: { DB: db },
+    } as any);
+
+    const restoreRes = await onRequestPost({
+      request: deleteRequest({ email: 'member@example.com', action: 'restore' }),
+      env: { DB: db },
+    } as any);
+    expect(restoreRes.status).toBe(200);
+
+    const revived = await getSessionEmail(db, oldSessionId);
+    expect(revived).toBe('');
+
+    const loginRes = await loginPost({
+      request: loginRequest('member@example.com', '203.0.113.11'),
+      env: { DB: db },
+    } as any);
+    expect(loginRes.status).toBe(200);
+    const setCookie = loginRes.headers.get('Set-Cookie') || '';
+    expect(setCookie).toContain('lgfc_session=');
+    expect(setCookie).not.toContain(`lgfc_session=${oldSessionId}`);
   });
 });

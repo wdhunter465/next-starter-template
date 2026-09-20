@@ -34,13 +34,40 @@ export function clearSessionCookie(): string {
   return `lgfc_session=; Max-Age=0; Path=/; HttpOnly; Secure; SameSite=Lax`;
 }
 
+export async function revokeMemberSessions(db: any, email: string): Promise<void> {
+  const normalized = String(email || '').trim().toLowerCase();
+  if (!normalized) return;
+  await db
+    .prepare(`DELETE FROM member_sessions WHERE lower(email) = lower(?1)`)
+    .bind(normalized)
+    .run();
+}
+
+export async function isMemberSoftDeleted(db: any, email: string): Promise<boolean> {
+  const normalized = String(email || '').trim().toLowerCase();
+  if (!normalized) return false;
+  const row = await db
+    .prepare(
+      `SELECT 1 AS ok
+       FROM members
+       WHERE lower(email) = lower(?1)
+         AND deleted_at IS NOT NULL
+       LIMIT 1`,
+    )
+    .bind(normalized)
+    .first();
+  return Boolean((row as any)?.ok);
+}
+
 export async function getSessionEmail(db: any, sessionId: string): Promise<string> {
   if (!sessionId) return '';
   const row = await db.prepare(
-    `SELECT email
-     FROM member_sessions
-     WHERE id = ?1
-       AND datetime(expires_at) > datetime('now')
+    `SELECT s.email AS email
+     FROM member_sessions s
+     INNER JOIN members m ON lower(m.email) = lower(s.email)
+     WHERE s.id = ?1
+       AND datetime(s.expires_at) > datetime('now')
+       AND m.deleted_at IS NULL
      LIMIT 1`
   ).bind(sessionId).first();
   return String((row as any)?.email || '').trim().toLowerCase();
