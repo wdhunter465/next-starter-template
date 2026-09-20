@@ -4,7 +4,7 @@
 // - Rate limits: max 3 failed attempts per IP per hour
 
 import { requireD1, requireTables, jsonResponse, type Env } from '../_lib/d1';
-import { newSessionIdHex, setSessionCookie } from '../_lib/session';
+import { isMemberSoftDeleted, newSessionIdHex, setSessionCookie } from '../_lib/session';
 
 function getIp(request: Request): string {
   return (
@@ -100,7 +100,8 @@ const emailRaw = (body?.email ?? '').toString();
     }
 
     const exists = await emailExists(db, email);
-    if (!exists) {
+    const deleted = exists ? await isMemberSoftDeleted(db, email) : false;
+    if (!exists || deleted) {
       await logAttempt(db, ip, email, false);
       return jsonResponse({ ok: false, error: 'Email not found.', requestId }, 404);
     }
