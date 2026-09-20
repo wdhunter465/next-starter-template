@@ -1,0 +1,84 @@
+name: OPS — Scheduled Content Publish (#4253)
+
+# #4253: publishes any pre-authored content_blocks row (currently the
+# Fundraiser Daily Details feed) whose scheduled_publish_at has arrived, then
+# lets the publish-due endpoint fan each one out to Zapier for social
+# cross-posting. Runs against Production directly (this is real content
+# going live to real site visitors), unlike the Chatterbox sweep which
+# deliberately stays on Development.
+#
+# Cron fires at both 14:00 and 15:00 UTC to cover 10:00 AM America/New_York
+# across the EST/EDT boundary without timezone-library logic in the
+# workflow itself: 15:00 UTC = 10:00 AM EST, 14:00 UTC = 10:00 AM EDT. The
+# publish-due endpoint is idempotent (functions/_lib/content-blocks-scheduled.ts
+# only touches status='draft' rows), so the extra daily tick is a harmless
+# no-op once the correct-offset tick has already published anything due.
+
+on:
+  schedule:
+    - cron: '0 14 * * *'
+    - cron: '0 15 * * *'
+  workflow_dispatch: {}
+
+concurrency:
+  group: ops-scheduled-content-publish
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  publish-due:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Run publish-due sweep
+        id: sweep
+        env:
+          BASE_URL: https://www.lougehrigfanclub.com
+          SCHEDULED_CONTENT_BRIDGE_TOKEN: ${{ secrets.SCHEDULED_CONTENT_BRIDGE_TOKEN }}
+        run: |
+          set -euo pipefail
+          status=$(curl -sS -o "$RUNNER_TEMP/publish_due_resp.json" -w '%{http_code}' \
+            -X POST "$BASE_URL/api/scheduled-content/publish-due" \
+            -H "Authorization: Bearer $SCHEDULED_CONTENT_BRIDGE_TOKEN" -H "Content-Type: application/json")
+          echo "publish-due response (HTTP $status):"
+          cat "$RUNNER_TEMP/publish_due_resp.json"
+          echo
+          echo "http_status=$status" >> "$GITHUB_OUTPUT"
+          if [[ "$status" != "200" ]]; then
+            echo "FAILED scheduled-content publish sweep (HTTP $status)" >&2
+            exit 1
+          fi
+          published_count=$(jq -r '(.published // []) | length' "$RUNNER_TEMP/publish_due_resp.json")
+          echo "published_count=$published_count" >> "$GITHUB_OUTPUT"
+
+      - name: Record result on #4253 (only on failure or when something published)
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HTTP_STATUS: ${{ steps.sweep.outputs.http_status }}
+          PUBLISHED_COUNT: ${{ steps.sweep.outputs.published_count }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          if [ "$JOB_STATUS" = "success" ] && [ "${PUBLISHED_COUNT:-0}" = "0" ]; then
+            echo "Nothing due this tick — skipping issue comment to avoid spamming #4253 twice a day."
+            exit 0
+          fi
+
+          response_body=""
+          if [ -f "$RUNNER_TEMP/publish_due_resp.json" ]; then
+            response_body=$(cat "$RUNNER_TEMP/publish_due_resp.json")
+          fi
+
+          if [ "$JOB_STATUS" = "success" ]; then
+            title="Scheduled content publish sweep — published $PUBLISHED_COUNT item(s)"
+          else
+            title="Scheduled content publish sweep — FAILED (HTTP ${HTTP_STATUS:-unknown})"
+          fi
+
+          body="## $title\n\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\n\n\`\`\`\n$response_body\n\`\`\`"
+          gh issue comment 4253 --body "$(printf '%b' "$body")"
