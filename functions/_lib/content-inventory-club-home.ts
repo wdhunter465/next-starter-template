@@ -28,7 +28,7 @@ const EDITION_STATUS = {
   failed: "failed",
 } as const;
 
-/** Zones that accept a manual pin (media-feature is auto-selected as its own distinct story, not yet a separate pin slot). */
+/** Zones that accept a manual pin (media-feature is auto-selected -- a distinct story when the eligible pool allows one, else it mirrors the lead -- not yet a separate pin slot). */
 export const CLUB_HOME_PINNABLE_ZONES = [
   CLUB_HOME_PLACEMENT_ZONES.leadStory,
   CLUB_HOME_PLACEMENT_ZONES.storyRail,
