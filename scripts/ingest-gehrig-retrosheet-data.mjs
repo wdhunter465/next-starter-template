@@ -20,7 +20,7 @@
 //   node scripts/ingest-gehrig-retrosheet-data.mjs --apply --remote
 //   node scripts/ingest-gehrig-retrosheet-data.mjs --apply --local
 
-import { writeFileSync, mkdtempSync, readFileSync, rmSync, existsSync, readdirSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, existsSync, readdirSync, createWriteStream } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import os from 'node:os';
@@ -171,6 +171,47 @@ function sqlInt(value) {
   return Number.isFinite(n) ? String(Math.trunc(n)) : 'NULL';
 }
 
+// Groups CSV records by game id once, up front, so per-game box-score
+// lookups are O(1) map reads instead of an O(games x total rows) .filter()
+// scan repeated for every one of Gehrig's 2,164 games.
+function groupByGid(records, gidColumn) {
+  const map = new Map();
+  for (const record of records) {
+    const gid = record[gidColumn];
+    const bucket = map.get(gid);
+    if (bucket) bucket.push(record);
+    else map.set(gid, [record]);
+  }
+  return map;
+}
+
+// Streams SQL statements straight to disk instead of buffering all of them
+// (tens of thousands, across 2,164 games) in memory before a single final
+// join+write.
+function createStatementWriter(filePath) {
+  const stream = createWriteStream(filePath, { encoding: 'utf8' });
+  let count = 0;
+  const preview = [];
+  return {
+    write(statement) {
+      count += 1;
+      if (preview.length < 5) preview.push(statement);
+      stream.write(`${statement}\n`);
+    },
+    get count() {
+      return count;
+    },
+    get preview() {
+      return preview;
+    },
+    close() {
+      return new Promise((resolve, reject) => {
+        stream.end((err) => (err ? reject(err) : resolve()));
+      });
+    },
+  };
+}
+
 async function main() {
   const args = process.argv.slice(2);
   const mode = args.includes('--apply') ? 'apply' : 'print';
@@ -219,6 +260,8 @@ async function main() {
     };
 
     const gameinfoByGid = new Map(gameinfo.records.map((r) => [r[giCols.gid], r]));
+    const battingByGid = groupByGid(batting.records, battingCols.gid);
+    const pitchingByGid = groupByGid(pitching.records, pitchingCols.gid);
 
     // 1. Gehrig's own games: filter batting.csv by his player id, within
     //    his documented career date range, on the Yankees.
@@ -299,9 +342,10 @@ async function main() {
       return best;
     }
 
-    // 3. Build SQL.
+    // 3. Build SQL, streamed straight to disk rather than buffered in memory.
     const now = new Date().toISOString().replace('Z', '000Z').slice(0, 24);
-    const statements = [];
+    const sqlFile = path.join(tmpRoot, 'gehrig-retrosheet-ingest.sql');
+    const writer = createStatementWriter(sqlFile);
 
     for (const gid of gehrigGameIds) {
       const gi = gameinfoByGid.get(gid);
@@ -309,22 +353,26 @@ async function main() {
       const year = seasonYearOf(date);
       const opponent = gi[giCols.visteam] === GEHRIG_TEAM ? gi[giCols.hometeam] : gi[giCols.visteam];
 
-      statements.push(
+      writer.write(
         `INSERT INTO retrosheet_gehrig_games (game_id, game_date, season_year, game_number, vis_team, home_team, vis_score, home_score, site, day_night, gehrig_team, gehrig_opponent, created_at, source) VALUES (${sqlString(gid)}, ${sqlString(date)}, ${sqlInt(year)}, ${sqlInt(gi[giCols.number] || 0)}, ${sqlString(gi[giCols.visteam])}, ${sqlString(gi[giCols.hometeam])}, ${sqlInt(gi[giCols.visscore])}, ${sqlInt(gi[giCols.homescore])}, ${sqlString(gi[giCols.site] || null)}, ${sqlString(gi[giCols.daynight] || null)}, ${sqlString(GEHRIG_TEAM)}, ${sqlString(opponent)}, ${sqlString(now)}, 'retrosheet') ON CONFLICT(game_id) DO UPDATE SET game_date = excluded.game_date, vis_score = excluded.vis_score, home_score = excluded.home_score;`,
       );
 
-      for (const r of batting.records.filter((row) => row[battingCols.gid] === gid)) {
+      // (game_id, team, stat_type, player_id) is a natural key -- a player has
+      // at most one batting line and one pitching line per game per team --
+      // enforced by migration 0075's unique index. Upserting on it makes a
+      // re-run of --apply idempotent instead of duplicating every line.
+      for (const r of battingByGid.get(gid) ?? []) {
         const line = { ...r };
         delete line[battingCols.gid];
-        statements.push(
-          `INSERT INTO retrosheet_box_score_lines (game_id, team, stat_type, player_id, batting_order, line_json, created_at) VALUES (${sqlString(gid)}, ${sqlString(r[battingCols.team])}, 'batting', ${sqlString(r[battingCols.playerid])}, ${sqlInt(r[battingCols.battingorder])}, ${sqlString(JSON.stringify(line))}, ${sqlString(now)});`,
+        writer.write(
+          `INSERT INTO retrosheet_box_score_lines (game_id, team, stat_type, player_id, batting_order, line_json, created_at) VALUES (${sqlString(gid)}, ${sqlString(r[battingCols.team])}, 'batting', ${sqlString(r[battingCols.playerid])}, ${sqlInt(r[battingCols.battingorder])}, ${sqlString(JSON.stringify(line))}, ${sqlString(now)}) ON CONFLICT(game_id, team, stat_type, player_id) DO UPDATE SET batting_order = excluded.batting_order, line_json = excluded.line_json, created_at = excluded.created_at;`,
         );
       }
-      for (const r of pitching.records.filter((row) => row[pitchingCols.gid] === gid)) {
+      for (const r of pitchingByGid.get(gid) ?? []) {
         const line = { ...r };
         delete line[pitchingCols.gid];
-        statements.push(
-          `INSERT INTO retrosheet_box_score_lines (game_id, team, stat_type, player_id, batting_order, line_json, created_at) VALUES (${sqlString(gid)}, ${sqlString(r[pitchingCols.team])}, 'pitching', ${sqlString(r[pitchingCols.playerid])}, NULL, ${sqlString(JSON.stringify(line))}, ${sqlString(now)});`,
+        writer.write(
+          `INSERT INTO retrosheet_box_score_lines (game_id, team, stat_type, player_id, batting_order, line_json, created_at) VALUES (${sqlString(gid)}, ${sqlString(r[pitchingCols.team])}, 'pitching', ${sqlString(r[pitchingCols.playerid])}, NULL, ${sqlString(JSON.stringify(line))}, ${sqlString(now)}) ON CONFLICT(game_id, team, stat_type, player_id) DO UPDATE SET line_json = excluded.line_json, created_at = excluded.created_at;`,
         );
       }
 
@@ -340,7 +388,7 @@ async function main() {
         const leader = ranked[0];
         ranked.forEach((row, idx) => {
           const gamesBack = ((leader.w - row.w + (row.l - leader.l)) / 2).toFixed(1);
-          statements.push(
+          writer.write(
             `INSERT INTO retrosheet_al_standings_snapshots (game_id, team, wins, losses, ties, win_pct, games_back, league_rank, created_at) VALUES (${sqlString(gid)}, ${sqlString(row.team)}, ${sqlInt(row.w)}, ${sqlInt(row.l)}, ${sqlInt(row.t)}, ${row.winPct.toFixed(4)}, ${gamesBack}, ${idx + 1}, ${sqlString(now)}) ON CONFLICT(game_id, team) DO UPDATE SET wins = excluded.wins, losses = excluded.losses, ties = excluded.ties, win_pct = excluded.win_pct, games_back = excluded.games_back, league_rank = excluded.league_rank;`,
           );
         });
@@ -349,17 +397,15 @@ async function main() {
       }
     }
 
-    console.log(`Built ${statements.length} SQL statements for ${gehrigGameIds.length} games.`);
+    await writer.close();
+    console.log(`Built ${writer.count} SQL statements for ${gehrigGameIds.length} games.`);
 
     if (mode === 'print') {
       console.log('--print: not writing to D1. Re-run with --apply --remote/--local.');
-      console.log(statements.slice(0, 5).join('\n'));
-      console.log(`... (${statements.length - 5} more statements)`);
+      console.log(writer.preview.join('\n'));
+      console.log(`... (${writer.count - writer.preview.length} more statements)`);
       return;
     }
-
-    const sqlFile = path.join(tmpRoot, 'gehrig-retrosheet-ingest.sql');
-    writeFileSync(sqlFile, statements.join('\n'), 'utf8');
 
     const d1Args = isRemote
       ? ['wrangler', 'd1', 'execute', 'lgfc_lite', '--remote', '--yes']
