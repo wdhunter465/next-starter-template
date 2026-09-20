@@ -16,7 +16,7 @@ Do not merely report that these files are required. Read them before making any 
 5. The **applicable product-specific pointer** (choose the active product; do not default every product to Cursor):
    - Cursor → `docs/ops/ai/CURSOR-RULES.md`
    - Codex → `docs/ops/ai/CODEX-RULES.md` (retired #4165; historical only — do not run as a live product)
-   - ChatGPT → `docs/ops/ai/CHATGPT-RULES.md`
+   - ChatGPT → `docs/ops/ai/CHATGPT-RULES.md` (retired #4173; historical only — do not run as a live product)
    - Claude Code → `docs/ops/ai/CLAUDE-CODE-RULES.md`
    - Copilot → `docs/ops/ai/COPILOT-RULES.md`
    - Devin → `docs/ops/ai/DEVIN-RULES.md`
@@ -50,8 +50,8 @@ For PR work, also report:
 ## Cursor Cloud route (Cursor product only)
 
 The following Cursor Local/Cloud transport notes apply **only** when the
-active product is Cursor. ChatGPT and other live products must ignore this section as
-authority and use their own product pointers and wake paths.
+active product is Cursor. Non-Cursor products must ignore this section as
+authority and use their own product pointers and wake paths. (ChatGPT is retired #4173.)
 
 > **Design shift (#3013, 2026-08-03):** Cursor Local handoff is **labels/status
 > only** — `agent:cursor` + `handoff:ready` on an open Issue not already handed
@@ -81,7 +81,7 @@ Task prompts do not override the chain in `Agent.md`.
 
 - **Cursor Local Composer/Agent:** `.cursor/rules/*.mdc` (`alwaysApply: true`)
 - **Cursor Cloud Agent:** this file (`AGENTS.md`) then the Cursor product pointer
-- **ChatGPT / other live products:** this file is a router only; continue from `Agent.md` and the matching product pointer. Codex is retired (#4165).
+- **ChatGPT / other products:** this file is a router only; continue from `Agent.md` and the matching product pointer. ChatGPT is retired (#4173). Codex is retired (#4165). Work is retired (#4074).
 - **Skills:** `.agents/skills/*` are relevance-selected; they are not a substitute for this bootstrap and must not override LGFC authority or add approval gates
 
 This file routes to canonical governance. It does not replace `Agent.md` or duplicate shared/core doctrine.

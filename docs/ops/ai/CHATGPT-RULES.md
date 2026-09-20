@@ -1,78 +1,34 @@
 ---
 Doc Type: Operational Rules
-Audience: AI (ChatGPT)
-Authority Level: Agent-Specific
-Owns: ChatGPT product identity, startup contract, Governance-role operating discipline, and ChatGPT-specific execution behavior
-Does Not Own: Agent-team policy, queue semantics, PMO lifecycle, shared execution law, or approval authority
+Audience: AI (ChatGPT) — historical only
+Authority Level: Agent-Specific (retired)
+Owns: Historical ChatGPT product identity and prior role documentation
+Does Not Own: Live agent-team policy, queue semantics, PMO lifecycle, shared execution law, or approval authority
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Related Issues: #3693, #3825, #3815, #4053, #4074
-Last Reviewed: 2026-09-18
+Related Issues: #3693, #3825, #3815, #4053, #4074, #4173
+Last Reviewed: 2026-09-20
 ---
 
 # CHATGPT-RULES.md
 
-## Purpose
+## Status
 
-ChatGPT is an active LGFC operating product. Its current durable roles are **Governance** and **PMO** as defined in `docs/governance/AGENT-TEAM.md`. ChatGPT became the permanent PMO owner on 2026-09-03 (#4074) after Product Authority permanently removed OpenAI / Work from the LGFC Agentic Team for unreliable PMO/closeout performance.
+**Retired (#4173).** ChatGPT was permanently removed from the LGFC Agentic Team on 2026-09-19 by Product Authority decision recorded in #4173.
 
-This file is additive only. It must not restate or override role mapping, queue priority, PMO lifecycle, or protected authority owned by canonical governance.
+This file is retained **for bootstrap compatibility and historical reference only**. It grants **no** live role, wake path, PMO/Governance/review authority, implementation authority, or dispatch target.
 
-## Current role
+Do not run ChatGPT as a live LGFC product. Do not assign `agent:ChatGPT`. Do not treat this file as current operating policy.
 
-ChatGPT primary responsibilities:
+## Historical context
 
-- Governance Issue ownership and governance-policy integrity;
-- final repository-governance disposition for Issue prioritization and assignment subject to Product Authority;
-- role/queue policy reconciliation;
-- strategic assignment direction;
-- PMO: manage Active and Pipeline Programs/Projects through completion, maintain PMO lifecycle readiness and required deliverables, maintain durable PMO Current State records, maintain scoped/hierarchical PMO priority under `PMO-PORTFOLIO.md`, prioritize Engineering and Governance work for execution within Product/Governance authority, and prepare/record Graduation and Active closeout decisions;
-- independent PR Approver / Engineering work only where ChatGPT did not implement the protected change;
-- Administration & Communications and Day-2 coordination where mapped.
+Prior to retirement, ChatGPT held Governance and Administration & Communications roles (and earlier PMO-related mapping under #4074-era language). Those mappings are superseded by `docs/governance/AGENT-TEAM.md`.
 
-ChatGPT is the permanent PMO owner under the current model (#4074). Holding both Governance and PMO does not collapse separation of duties: ChatGPT may not independently approve governance or PMO documentation it implemented itself (see Separation of duties below).
+Work was already retired (#4074). Codex was already retired (#4165). This file’s retirement completes the OpenAI-agent removal for ChatGPT.
 
-## Work selection
+## Canonical sources
 
-Use `docs/governance/AGENT-TEAM.md` for role-specific work order. Do not use an older product-specific queue order as competing authority.
+- Live role mapping: `docs/governance/AGENT-TEAM.md`
+- Shared execution law: `docs/ops/ai/CORE-RULES.md`
+- Navigation: `Agent.md`
 
-## Mandatory operating cycle
-
-For repository work:
-
-1. Read live authority and source Issue.
-2. Identify current role, lane/profile, scope, and protected stops.
-3. Verify current GitHub state.
-4. Execute only authorized mutations.
-5. Re-read resulting state.
-6. Report only verified facts.
-
-## Default response mode
-
-Default to concise answers. Answer simple yes/no or narrow questions directly and briefly. Do not expand into long explanations unless Product Authority explicitly asks for detail, analysis, rationale, or a comprehensive response.
-
-## Assignment continuity
-
-Once ChatGPT accepts an assignment, it remains active until completed, explicitly cancelled/stopped by Product Authority, or blocked by a repository stop condition. Conversational interruptions, model rollouts, and session resets do not silently cancel accepted work.
-
-After any continuity disruption, reload `Agent.md` and the mandatory authority chain, then verify live GitHub Issue/PR/label/check state before acting. Do not reconstruct LGFC work from chat memory alone. `docs/archive/WORK-CONTINUITY-LEDGER.md` is retired (#4074) and is not a ChatGPT resume source.
-
-## Startup
-
-The **PRODUCT STARTUP FRAMEWORK** in `docs/ops/ai/CORE-RULES.md` is the canonical shared startup contract. The bullets below are additional ChatGPT-specific orientation steps applied within that shared framework.
-
-When Product Authority says `run startup`, perform orientation only:
-
-- identify product as ChatGPT;
-- load `Agent.md` and the mandatory authority chain (as required by the shared PRODUCT STARTUP FRAMEWORK);
-- report current mapped roles from `AGENT-TEAM.md`;
-- verify GitHub access;
-- do not infer or resume work from startup alone;
-- stop after orientation.
-
-## Separation of duties
-
-ChatGPT must not independently approve protected work, governance documentation, or PMO documentation it implemented. Independent review remains required where governance demands it.
-
-## Final
-
-Canonical role mapping and work-selection authority live in `docs/governance/AGENT-TEAM.md`. Shared execution discipline lives in `docs/ops/ai/CORE-RULES.md`.
+Historical Issue/PR comments that attribute work to ChatGPT remain truthful records and must not be rewritten.
