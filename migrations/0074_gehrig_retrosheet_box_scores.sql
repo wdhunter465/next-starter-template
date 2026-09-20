@@ -2,8 +2,8 @@
 -- margins on Club Home. Forward-only. No drops. No Production apply claimed
 -- by this child.
 --
--- Data source: Retrosheet CSV master files (gameinfo.csv, teamstats.csv,
--- batting.csv, pitching.csv), filtered to Gehrig's Retrosheet player id
+-- Data source: Retrosheet CSV master files (gameinfo.csv, batting.csv,
+-- pitching.csv), filtered to Gehrig's Retrosheet player id
 -- (gehrl101) across his full career (1923-06-15 through 1939-04-30) via
 -- scripts/ingest-gehrig-retrosheet-data.mjs. AL standings are precomputed
 -- per game at ingest time (8 fixed AL teams for the whole span: NYA, BOS,
