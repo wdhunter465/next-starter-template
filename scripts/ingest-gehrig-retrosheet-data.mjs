@@ -190,13 +190,28 @@ function groupByGid(records, gidColumn) {
 // join+write.
 function createStatementWriter(filePath) {
   const stream = createWriteStream(filePath, { encoding: 'utf8' });
+  let streamError = null;
+  stream.on('error', (err) => {
+    streamError = streamError ?? err;
+  });
   let count = 0;
   const preview = [];
   return {
-    write(statement) {
+    // Awaited by callers -- if stream.write() reports its internal buffer is
+    // over highWaterMark, wait for 'drain' before returning instead of
+    // letting the buffer grow unbounded, which would defeat the point of
+    // streaming instead of building one big in-memory array.
+    async write(statement) {
+      if (streamError) throw streamError;
       count += 1;
       if (preview.length < 5) preview.push(statement);
-      stream.write(`${statement}\n`);
+      const withinBuffer = stream.write(`${statement}\n`);
+      if (!withinBuffer && !streamError) {
+        await new Promise((resolve, reject) => {
+          stream.once('drain', resolve);
+          stream.once('error', reject);
+        });
+      }
     },
     get count() {
       return count;
@@ -205,8 +220,14 @@ function createStatementWriter(filePath) {
       return preview;
     },
     close() {
+      // Writable's end() callback is a 'finish' listener, not an (err) =>
+      // callback -- it never receives an error argument. Track stream
+      // errors via the 'error' listener above instead of trusting end()'s
+      // callback signature to carry one.
+      if (streamError) return Promise.reject(streamError);
       return new Promise((resolve, reject) => {
-        stream.end((err) => (err ? reject(err) : resolve()));
+        stream.once('error', reject);
+        stream.end(() => resolve());
       });
     },
   };
@@ -353,7 +374,7 @@ async function main() {
       const year = seasonYearOf(date);
       const opponent = gi[giCols.visteam] === GEHRIG_TEAM ? gi[giCols.hometeam] : gi[giCols.visteam];
 
-      writer.write(
+      await writer.write(
         `INSERT INTO retrosheet_gehrig_games (game_id, game_date, season_year, game_number, vis_team, home_team, vis_score, home_score, site, day_night, gehrig_team, gehrig_opponent, created_at, source) VALUES (${sqlString(gid)}, ${sqlString(date)}, ${sqlInt(year)}, ${sqlInt(gi[giCols.number] || 0)}, ${sqlString(gi[giCols.visteam])}, ${sqlString(gi[giCols.hometeam])}, ${sqlInt(gi[giCols.visscore])}, ${sqlInt(gi[giCols.homescore])}, ${sqlString(gi[giCols.site] || null)}, ${sqlString(gi[giCols.daynight] || null)}, ${sqlString(GEHRIG_TEAM)}, ${sqlString(opponent)}, ${sqlString(now)}, 'retrosheet') ON CONFLICT(game_id) DO UPDATE SET game_date = excluded.game_date, vis_score = excluded.vis_score, home_score = excluded.home_score;`,
       );
 
@@ -364,14 +385,14 @@ async function main() {
       for (const r of battingByGid.get(gid) ?? []) {
         const line = { ...r };
         delete line[battingCols.gid];
-        writer.write(
+        await writer.write(
           `INSERT INTO retrosheet_box_score_lines (game_id, team, stat_type, player_id, batting_order, line_json, created_at) VALUES (${sqlString(gid)}, ${sqlString(r[battingCols.team])}, 'batting', ${sqlString(r[battingCols.playerid])}, ${sqlInt(r[battingCols.battingorder])}, ${sqlString(JSON.stringify(line))}, ${sqlString(now)}) ON CONFLICT(game_id, team, stat_type, player_id) DO UPDATE SET batting_order = excluded.batting_order, line_json = excluded.line_json, created_at = excluded.created_at;`,
         );
       }
       for (const r of pitchingByGid.get(gid) ?? []) {
         const line = { ...r };
         delete line[pitchingCols.gid];
-        writer.write(
+        await writer.write(
           `INSERT INTO retrosheet_box_score_lines (game_id, team, stat_type, player_id, batting_order, line_json, created_at) VALUES (${sqlString(gid)}, ${sqlString(r[pitchingCols.team])}, 'pitching', ${sqlString(r[pitchingCols.playerid])}, NULL, ${sqlString(JSON.stringify(line))}, ${sqlString(now)}) ON CONFLICT(game_id, team, stat_type, player_id) DO UPDATE SET line_json = excluded.line_json, created_at = excluded.created_at;`,
         );
       }
@@ -386,12 +407,12 @@ async function main() {
           })
           .sort((a, b) => b.winPct - a.winPct);
         const leader = ranked[0];
-        ranked.forEach((row, idx) => {
+        for (const [idx, row] of ranked.entries()) {
           const gamesBack = ((leader.w - row.w + (row.l - leader.l)) / 2).toFixed(1);
-          writer.write(
+          await writer.write(
             `INSERT INTO retrosheet_al_standings_snapshots (game_id, team, wins, losses, ties, win_pct, games_back, league_rank, created_at) VALUES (${sqlString(gid)}, ${sqlString(row.team)}, ${sqlInt(row.w)}, ${sqlInt(row.l)}, ${sqlInt(row.t)}, ${row.winPct.toFixed(4)}, ${gamesBack}, ${idx + 1}, ${sqlString(now)}) ON CONFLICT(game_id, team) DO UPDATE SET wins = excluded.wins, losses = excluded.losses, ties = excluded.ties, win_pct = excluded.win_pct, games_back = excluded.games_back, league_rank = excluded.league_rank;`,
           );
-        });
+        }
       } else {
         console.warn(`No AL standings snapshot available for ${gid} (${date}) -- skipping standings rows for this game.`);
       }
