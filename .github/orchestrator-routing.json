@@ -29,46 +29,51 @@
   "taskTypes": {
     "repository": {
       "defaultAgent": "cursor",
-      "allowedAgents": ["cursor", "ChatGPT", "copilot"],
-      "priorityOrder": ["cursor", "ChatGPT"],
+      "allowedAgents": ["cursor", "copilot"],
+      "priorityOrder": ["cursor"],
       "prIntents": ["infra", "platform", "change-ops"],
       "quarantinedAgents": ["copilot"],
-      "note": "Codex is retired (#4165) and is not an allowed agent. Copilot remains allowed only for explicit remapping/quarantine decisions."
+      "note": "Codex is retired (#4165) and is not an allowed agent. ChatGPT is retired (#4173) and is not an allowed agent. Copilot remains allowed only for explicit remapping/quarantine decisions."
     },
     "website": {
       "defaultAgent": "cursor",
-      "allowedAgents": ["cursor", "ChatGPT", "copilot"],
-      "priorityOrder": ["cursor", "ChatGPT"],
+      "allowedAgents": ["cursor", "copilot"],
+      "priorityOrder": ["cursor"],
       "prIntents": ["feature"],
-      "quarantinedAgents": ["copilot"]
+      "quarantinedAgents": ["copilot"],
+      "note": "ChatGPT is retired (#4173) and is not an allowed agent. Codex is retired (#4165)."
     },
     "governance": {
-      "defaultAgent": "ChatGPT",
-      "allowedAgents": ["ChatGPT", "cursor", "copilot"],
-      "priorityOrder": ["ChatGPT", "cursor"],
+      "defaultAgent": "cursor",
+      "allowedAgents": ["cursor", "copilot"],
+      "priorityOrder": ["cursor"],
       "prIntents": ["infra", "change-ops"],
-      "quarantinedAgents": ["copilot"]
+      "quarantinedAgents": ["copilot"],
+      "note": "ChatGPT is retired (#4173) and is not an allowed agent. Codex is retired (#4165)."
     },
     "docs": {
-      "defaultAgent": "ChatGPT",
-      "allowedAgents": ["ChatGPT", "cursor", "copilot"],
-      "priorityOrder": ["ChatGPT", "cursor"],
+      "defaultAgent": "cursor",
+      "allowedAgents": ["cursor", "copilot"],
+      "priorityOrder": ["cursor"],
       "prIntents": ["docs-only"],
-      "quarantinedAgents": ["copilot"]
+      "quarantinedAgents": ["copilot"],
+      "note": "ChatGPT is retired (#4173) and is not an allowed agent. Codex is retired (#4165)."
     },
     "recovery": {
-      "defaultAgent": "ChatGPT",
-      "allowedAgents": ["ChatGPT", "cursor", "copilot"],
-      "priorityOrder": ["ChatGPT", "cursor"],
+      "defaultAgent": "cursor",
+      "allowedAgents": ["cursor", "copilot"],
+      "priorityOrder": ["cursor"],
       "prIntents": ["recovery"],
-      "quarantinedAgents": ["copilot"]
+      "quarantinedAgents": ["copilot"],
+      "note": "ChatGPT is retired (#4173) and is not an allowed agent. Codex is retired (#4165)."
     },
     "ci": {
       "defaultAgent": "cursor",
-      "allowedAgents": ["cursor", "ChatGPT", "copilot"],
-      "priorityOrder": ["cursor", "ChatGPT"],
+      "allowedAgents": ["cursor", "copilot"],
+      "priorityOrder": ["cursor"],
       "prIntents": ["infra", "change-ops"],
-      "quarantinedAgents": ["copilot"]
+      "quarantinedAgents": ["copilot"],
+      "note": "ChatGPT is retired (#4173) and is not an allowed agent. Codex is retired (#4165)."
     }
   },
   "labelDerivation": {

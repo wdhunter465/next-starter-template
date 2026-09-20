@@ -12,8 +12,8 @@ if (!repo || !issueNumber) {
 
 const AGENT_PROMPTS = {
   'agent:cursor': '@cursor execute implementation per issue and update the existing draft PR only. Do not open a new PR.',
-  'agent:copilot': '@copilot implement per issue and update the existing draft PR only. Do not open a new PR.',
-  'agent:ChatGPT': 'ChatGPT-routed task detected. Human/ChatGPT execution required. Update the existing draft PR only. Do not open a new PR.'
+  'agent:copilot': '@copilot implement per issue and update the existing draft PR only. Do not open a new PR.'
+  // agent:ChatGPT removed — ChatGPT retired (#4173). Unexpected agent:ChatGPT labels fail closed below.
 };
 
 function runGh(args) {
