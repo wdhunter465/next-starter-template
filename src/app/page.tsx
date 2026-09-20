@@ -5,6 +5,7 @@ import styles from './page.module.css';
 import FloatingLogo from '@/components/FloatingLogo';
 import WeeklyMatchup from '@/components/WeeklyMatchup';
 import CampaignSpotlightSlot from '@/components/home/CampaignSpotlightSlot';
+import FundraiserDailyDetailsTeaser from '@/components/home/FundraiserDailyDetailsTeaser';
 import FAQSection from '@/components/FAQSection';
 import MilestonesSection from '@/components/MilestonesSection';
 import FriendsOfFanClub from '@/components/FriendsOfFanClub';
@@ -28,6 +29,7 @@ export default function HomePage() {
         </div>
       </header>
 
+      <FundraiserDailyDetailsTeaser />
       <CampaignSpotlightSlot />
 
       {/* Section: Weekly Photo Matchup */}
