@@ -84,15 +84,32 @@ function sleep(ms) {
 async function fetchWithRetry(url, options, context) {
   let lastError;
   for (let attempt = 1; attempt <= MAX_FETCH_ATTEMPTS; attempt += 1) {
-    const res = await fetch(url, options);
+    let res;
+    try {
+      res = await fetch(url, options);
+    } catch (err) {
+      // Network-level failures (DNS/TLS/reset) throw instead of resolving --
+      // retry these the same as a retryable HTTP status instead of letting
+      // them bypass the retry loop entirely.
+      if (attempt === MAX_FETCH_ATTEMPTS) throw new Error(`${context}: ${err?.message || err} (attempt ${attempt}/${MAX_FETCH_ATTEMPTS})`);
+      const backoffMs = 2 ** attempt * 1000;
+      console.warn(`${context}: ${err?.message || err}, retrying in ${backoffMs}ms (attempt ${attempt}/${MAX_FETCH_ATTEMPTS})`);
+      lastError = err instanceof Error ? err : new Error(String(err));
+      await sleep(backoffMs);
+      continue;
+    }
     if (res.ok) return res;
     if (!RETRYABLE_STATUSES.has(res.status) || attempt === MAX_FETCH_ATTEMPTS) {
+      await res.body?.cancel().catch(() => {});
       throw new Error(`${context}: HTTP ${res.status} (attempt ${attempt}/${MAX_FETCH_ATTEMPTS})`);
     }
     const retryAfterHeader = Number(res.headers.get('retry-after'));
     const backoffMs = Number.isFinite(retryAfterHeader) && retryAfterHeader > 0 ? retryAfterHeader * 1000 : 2 ** attempt * 1000;
     console.warn(`${context}: HTTP ${res.status}, retrying in ${backoffMs}ms (attempt ${attempt}/${MAX_FETCH_ATTEMPTS})`);
     lastError = new Error(`${context}: HTTP ${res.status}`);
+    // Drain the failed response body before retrying -- an unread body can
+    // hold the underlying socket open and hurt connection reuse on undici.
+    await res.body?.cancel().catch(() => {});
     await sleep(backoffMs);
   }
   throw lastError;
@@ -152,6 +169,7 @@ function applyStatements(statements, isRemote) {
   try {
     unlinkSync(tmpFile);
   } catch {}
+  if (result.error) throw new Error(`wrangler d1 execute failed to launch: ${result.error.message}`);
   if (result.status !== 0) throw new Error(`wrangler d1 execute exited ${result.status}`);
 }
 
@@ -161,7 +179,8 @@ async function main() {
   const isRemote = args.includes('--remote');
 
   if (mode === 'print') {
-    for (const photo of PHOTOS) {
+    for (const [index, photo] of PHOTOS.entries()) {
+      if (index > 0) await sleep(INTER_PHOTO_DELAY_MS);
       await fetchValidatedPhoto(photo.commonsTitle);
     }
     console.log('--print: not uploading to B2 or writing SQL. Re-run with --apply --remote.');
@@ -213,7 +232,7 @@ async function main() {
 
   if (failures.length) {
     console.error(
-      `\n${failures.length}/${PHOTOS.length} photo(s) failed:\n${failures.map((f) => `  - media_id ${f.mediaId} (${f.commonsTitle}): ${f.message}`).join('\n')}\n\nAlready-succeeded photos above were still uploaded and applied to D1. Re-run this script to retry only what's needed -- it's safe, each photo upserts its own rows.`,
+      `\n${failures.length}/${PHOTOS.length} photo(s) failed:\n${failures.map((f) => `  - media_id ${f.mediaId} (${f.commonsTitle}): ${f.message}`).join('\n')}\n\nAlready-succeeded photos above were still uploaded and applied to D1. Re-run this script to retry only what's needed -- it's safe, each photo's D1 statements are plain UPDATEs by id/media_id (not inserts), so re-applying them is idempotent as long as the seed pack has already created those rows.`,
     );
     process.exit(1);
   }
