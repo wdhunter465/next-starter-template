@@ -28,7 +28,7 @@ const EDITION_STATUS = {
   failed: "failed",
 } as const;
 
-/** Zones that accept a manual pin (media-feature follows lead pairing, not a separate pin slot). */
+/** Zones that accept a manual pin (media-feature is auto-selected -- a distinct story when the eligible pool allows one, else it mirrors the lead -- not yet a separate pin slot). */
 export const CLUB_HOME_PINNABLE_ZONES = [
   CLUB_HOME_PLACEMENT_ZONES.leadStory,
   CLUB_HOME_PLACEMENT_ZONES.storyRail,
@@ -179,6 +179,8 @@ type ComposedClubHomeSelection = {
   leadRow: ClubHomeInventoryRow | null;
   railRows: ClubHomeInventoryRow[];
   spotlightRow: ClubHomeInventoryRow | null;
+  /** Story backing the media-feature zone's image -- a distinct story when the eligible pool allows one, else leadRow (mirrors it, as before #4183's follow-up). */
+  mediaFeatureRow: ClubHomeInventoryRow | null;
   leadSelectionMode: string;
   railPinnedStoryId: number | null;
   spotlightSelectionMode: string;
@@ -250,6 +252,35 @@ function pickArchiveSpotlight(rows: ClubHomeInventoryRow[], excludeIds: Set<numb
   if (!pool.length) return null;
   const ranked = sortRotationRows(pool, context);
   return ranked[0] ?? null;
+}
+
+/**
+ * Picks the story backing the media-feature zone. Prefers a story not already
+ * placed anywhere else on Club Home so its image is genuinely distinct from
+ * every other zone; falls back to any story other than the lead (reusing a
+ * rail/spotlight story's image is still better than duplicating the lead's);
+ * falls back to null (caller mirrors leadRow, the pre-#4183-follow-up
+ * behavior) only when the lead story is the sole eligible story.
+ */
+function pickMediaFeatureStory(
+  rows: ClubHomeInventoryRow[],
+  leadStoryId: number | null,
+  excludeIds: Set<number>,
+  asOfDate = new Date(),
+): ClubHomeInventoryRow | null {
+  const context = { asOfDate, includeAlternates: true };
+
+  const distinctFromAllZones = rows.filter((row) => !excludeIds.has(Number(row.id)));
+  const poolDistinct = filterRotationFairnessPool(distinctFromAllZones, context);
+  if (poolDistinct.length) return sortRotationRows(poolDistinct, context)[0] ?? null;
+
+  if (leadStoryId !== null) {
+    const distinctFromLead = rows.filter((row) => Number(row.id) !== leadStoryId);
+    const poolLead = filterRotationFairnessPool(distinctFromLead, context);
+    if (poolLead.length) return sortRotationRows(poolLead, context)[0] ?? null;
+  }
+
+  return null;
 }
 
 async function resolveReadyClubHomeRenditionUrl(
@@ -437,6 +468,10 @@ export async function composeClubHomeSelection(db: any, asOfDate = new Date()): 
   const spotlightSelectionMode =
     pinnedSpotlightRow && spotlightRow && Number(spotlightRow.id) === Number(pinnedSpotlightRow.id) ? "pinned" : "automatic";
 
+  const mediaExcludeIds = new Set(excludeIds);
+  if (spotlightRow) mediaExcludeIds.add(Number(spotlightRow.id));
+  const mediaFeatureRow = pickMediaFeatureStory(rows, leadStoryId, mediaExcludeIds, asOfDate) ?? leadRow;
+
   const placements: PlacementHistoryRecord[] = [];
   if (leadRow) {
     placements.push({
@@ -462,12 +497,12 @@ export async function composeClubHomeSelection(db: any, asOfDate = new Date()): 
       selection_mode: spotlightSelectionMode,
     });
   }
-  if (leadRow) {
+  if (mediaFeatureRow) {
     placements.push({
-      story_id: Number(leadRow.id),
+      story_id: Number(mediaFeatureRow.id),
       zone_id: CLUB_HOME_PLACEMENT_ZONES.mediaFeature,
       section_key: CLUB_HOME_SECTION,
-      selection_mode: leadSelectionMode,
+      selection_mode: Number(mediaFeatureRow.id) === leadStoryId ? leadSelectionMode : "automatic",
     });
   }
 
@@ -475,6 +510,7 @@ export async function composeClubHomeSelection(db: any, asOfDate = new Date()): 
     leadRow,
     railRows,
     spotlightRow,
+    mediaFeatureRow,
     leadSelectionMode,
     railPinnedStoryId,
     spotlightSelectionMode,
@@ -622,8 +658,12 @@ async function payloadFromEdition(
     options?.publicB2BaseUrl,
   );
 
+  // The persisted media-feature placement can point at its own distinct story
+  // (see composeClubHomeSelection's mediaFeatureRow), not just at whichever
+  // story leadStory happens to be -- reload it whenever the two differ, not
+  // only when there is no lead story at all.
   let mediaLeadStory = leadStory;
-  if (!mediaLeadStory && mediaPlacement?.story_id != null) {
+  if (mediaPlacement?.story_id != null && (!leadStory || mediaPlacement.story_id !== leadStory.id)) {
     const mediaLeadRow = await loadEligibleStoryById(db, mediaPlacement.story_id);
     mediaLeadStory = mediaLeadRow ? mapClubHomeStory(mediaLeadRow) : null;
   }
@@ -692,12 +732,21 @@ async function fetchClubHomeContentLive(
     request,
     options?.publicB2BaseUrl,
   );
+  const mediaFeatureMirrorsLead =
+    composed.mediaFeatureRow != null &&
+    composed.leadRow != null &&
+    Number(composed.mediaFeatureRow.id) === Number(composed.leadRow.id);
+  const mediaFeatureStory = mediaFeatureMirrorsLead
+    ? leadStory
+    : composed.mediaFeatureRow
+      ? mapClubHomeStory(composed.mediaFeatureRow)
+      : null;
   const mediaFeature = await resolveMediaFeature(
     db,
-    leadStory,
+    mediaFeatureStory,
     request,
     options?.publicB2BaseUrl,
-    leadStory ? { associations, image: leadStory.image } : undefined,
+    mediaFeatureMirrorsLead && leadStory ? { associations, image: leadStory.image } : undefined,
   );
 
   const placements = [...composed.placements];
@@ -930,9 +979,16 @@ export async function regenerateClubHomeEdition(
     }
 
     const leadStory = composed.leadRow ? mapClubHomeStory(composed.leadRow) : null;
+    const mediaFeatureMirrorsLead =
+      composed.mediaFeatureRow != null && composed.leadRow != null && Number(composed.mediaFeatureRow.id) === Number(composed.leadRow.id);
+    const mediaFeatureStory = mediaFeatureMirrorsLead
+      ? leadStory
+      : composed.mediaFeatureRow
+        ? mapClubHomeStory(composed.mediaFeatureRow)
+        : null;
     const mediaFeature = await resolveMediaFeature(
       db,
-      leadStory,
+      mediaFeatureStory,
       options?.request ?? new Request("https://www.lougehrigfanclub.com"),
       options?.publicB2BaseUrl,
     );
@@ -976,12 +1032,12 @@ export async function regenerateClubHomeEdition(
         media_rendition: null,
       });
     }
-    if (composed.leadRow) {
+    if (composed.mediaFeatureRow) {
       placementRows.push({
         zone_id: CLUB_HOME_PLACEMENT_ZONES.mediaFeature,
-        story_id: Number(composed.leadRow.id),
+        story_id: Number(composed.mediaFeatureRow.id),
         position: 0,
-        selection_mode: composed.leadSelectionMode,
+        selection_mode: mediaFeatureMirrorsLead ? composed.leadSelectionMode : "automatic",
         feature_size: mediaFeature ? (mediaFeature.is_memorabilia ? "memorabilia" : "photo") : null,
         media_rendition: mediaFeature?.media_rendition ?? null,
       });
