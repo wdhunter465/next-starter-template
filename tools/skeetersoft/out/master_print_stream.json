@@ -1,0 +1,5033 @@
+[
+  {
+    "date": "1985-04-08",
+    "day_night": "D",
+    "fixture_id": "F-LAYOUT-1985-OPEN",
+    "game_id": "SYN-1985-LAYOUT",
+    "game_number": 1,
+    "game_type": "Opening Day",
+    "home": "KCA",
+    "home_lineup": [
+      {
+        "display_name": "Wilson",
+        "field": "LF",
+        "given": "Willie",
+        "original_full_name": "Willie Wilson",
+        "player_id": "SYN-KCA-1",
+        "slot": 1,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Willie Wilson",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Wilson"
+      },
+      {
+        "display_name": "Brett",
+        "field": "CF",
+        "given": "George",
+        "original_full_name": "George Brett",
+        "player_id": "SYN-KCA-2",
+        "slot": 2,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "George Brett",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Brett"
+      },
+      {
+        "display_name": "McRae",
+        "field": "RF",
+        "given": "Hal",
+        "original_full_name": "Hal McRae",
+        "player_id": "SYN-KCA-3",
+        "slot": 3,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Hal McRae",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "McRae"
+      },
+      {
+        "display_name": "Balboni",
+        "field": "1B",
+        "given": "Steve",
+        "original_full_name": "Steve Balboni",
+        "player_id": "SYN-KCA-4",
+        "slot": 4,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Steve Balboni",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Balboni"
+      },
+      {
+        "display_name": "White",
+        "field": "C",
+        "given": "Frank",
+        "original_full_name": "Frank White",
+        "player_id": "SYN-KCA-5",
+        "slot": 5,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Frank White",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "White"
+      },
+      {
+        "display_name": "Motley",
+        "field": "2B",
+        "given": "Darryl",
+        "original_full_name": "Darryl Motley",
+        "player_id": "SYN-KCA-6",
+        "slot": 6,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Darryl Motley",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Motley"
+      },
+      {
+        "display_name": "Orta",
+        "field": "SS",
+        "given": "Jorge",
+        "original_full_name": "Jorge Orta",
+        "player_id": "SYN-KCA-7",
+        "slot": 7,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Jorge Orta",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Orta"
+      },
+      {
+        "display_name": "Sundberg",
+        "field": "3B",
+        "given": "Jim",
+        "original_full_name": "Jim Sundberg",
+        "player_id": "SYN-KCA-8",
+        "slot": 8,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Jim Sundberg",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Sundberg"
+      },
+      {
+        "display_name": "Black",
+        "field": "P",
+        "given": "Bud",
+        "original_full_name": "Bud Black",
+        "player_id": "SYN-KCA-9",
+        "slot": 9,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Bud Black",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Black"
+      }
+    ],
+    "home_pitcher": {
+      "display_name": "Black",
+      "player_id": "SYN-KCA-9",
+      "source_name": "Bud Black",
+      "source_reference": {
+        "file": "register",
+        "player_id": "SYN-KCA-9"
+      }
+    },
+    "home_pitcher_id": "SYN-KCA-9",
+    "home_team_game_number": 1,
+    "season": 1985,
+    "series_game_count": 1,
+    "series_game_index": 1,
+    "series_id": "S0001",
+    "series_start_date": "1985-04-08",
+    "source": {
+      "class": "synthetic-from-blueprint",
+      "file": "tools/skeetersoft/pilot_data.py"
+    },
+    "visitor": "TOR",
+    "visitor_lineup": [
+      {
+        "display_name": "Bell",
+        "field": "LF",
+        "given": "George",
+        "original_full_name": "George Bell",
+        "player_id": "SYN-TOR-1",
+        "slot": 1,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "George Bell",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Bell"
+      },
+      {
+        "display_name": "Moseby",
+        "field": "CF",
+        "given": "Lloyd",
+        "original_full_name": "Lloyd Moseby",
+        "player_id": "SYN-TOR-2",
+        "slot": 2,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Lloyd Moseby",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Moseby"
+      },
+      {
+        "display_name": "Barfield",
+        "field": "RF",
+        "given": "Jesse",
+        "original_full_name": "Jesse Barfield",
+        "player_id": "SYN-TOR-3",
+        "slot": 3,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Jesse Barfield",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Barfield"
+      },
+      {
+        "display_name": "Upshaw",
+        "field": "1B",
+        "given": "Willie",
+        "original_full_name": "Willie Upshaw",
+        "player_id": "SYN-TOR-4",
+        "slot": 4,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Willie Upshaw",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Upshaw"
+      },
+      {
+        "display_name": "Whitt",
+        "field": "C",
+        "given": "Ernie",
+        "original_full_name": "Ernie Whitt",
+        "player_id": "SYN-TOR-5",
+        "slot": 5,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Ernie Whitt",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Whitt"
+      },
+      {
+        "display_name": "Garcia",
+        "field": "2B",
+        "given": "Damaso",
+        "original_full_name": "Damaso Garcia",
+        "player_id": "SYN-TOR-6",
+        "slot": 6,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Damaso Garcia",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Garcia"
+      },
+      {
+        "display_name": "Fernandez",
+        "field": "SS",
+        "given": "Tony",
+        "original_full_name": "Tony Fernandez",
+        "player_id": "SYN-TOR-7",
+        "slot": 7,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Tony Fernandez",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Fernandez"
+      },
+      {
+        "display_name": "Iorg",
+        "field": "3B",
+        "given": "Garth",
+        "original_full_name": "Garth Iorg",
+        "player_id": "SYN-TOR-8",
+        "slot": 8,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Garth Iorg",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Iorg"
+      },
+      {
+        "display_name": "Stieb",
+        "field": "P",
+        "given": "Dave",
+        "original_full_name": "Dave Stieb",
+        "player_id": "SYN-TOR-9",
+        "slot": 9,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Dave Stieb",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Stieb"
+      }
+    ],
+    "visitor_pitcher": {
+      "display_name": "Stieb",
+      "player_id": "SYN-TOR-9",
+      "source_name": "Dave Stieb",
+      "source_reference": {
+        "file": "register",
+        "player_id": "SYN-TOR-9"
+      }
+    },
+    "visitor_pitcher_id": "SYN-TOR-9",
+    "visitor_team_game_number": 1
+  },
+  {
+    "date": "1985-05-01",
+    "day_night": "D",
+    "fixture_id": "F-NAME-COMPOUND",
+    "game_id": "SYN-1985-COMPOUND",
+    "game_number": 1,
+    "game_type": "Regular Season",
+    "home": "CHN",
+    "home_lineup": [
+      {
+        "display_name": "Sandberg",
+        "field": "LF",
+        "given": "Ryne",
+        "original_full_name": "Ryne Sandberg",
+        "player_id": "SYN-CHN-1",
+        "slot": 1,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Ryne Sandberg",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Sandberg"
+      },
+      {
+        "display_name": "Moreland",
+        "field": "CF",
+        "given": "Keith",
+        "original_full_name": "Keith Moreland",
+        "player_id": "SYN-CHN-2",
+        "slot": 2,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Keith Moreland",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Moreland"
+      },
+      {
+        "display_name": "Durham",
+        "field": "RF",
+        "given": "Leon",
+        "original_full_name": "Leon Durham",
+        "player_id": "SYN-CHN-3",
+        "slot": 3,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Leon Durham",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Durham"
+      },
+      {
+        "display_name": "Davis",
+        "field": "1B",
+        "given": "Jody",
+        "original_full_name": "Jody Davis",
+        "player_id": "SYN-CHN-4",
+        "slot": 4,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Jody Davis",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Davis"
+      },
+      {
+        "display_name": "Cey",
+        "field": "C",
+        "given": "Ron",
+        "original_full_name": "Ron Cey",
+        "player_id": "SYN-CHN-5",
+        "slot": 5,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Ron Cey",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Cey"
+      },
+      {
+        "display_name": "Dernier",
+        "field": "2B",
+        "given": "Bob",
+        "original_full_name": "Bob Dernier",
+        "player_id": "SYN-CHN-6",
+        "slot": 6,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Bob Dernier",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Dernier"
+      },
+      {
+        "display_name": "Bowa",
+        "field": "SS",
+        "given": "Larry",
+        "original_full_name": "Larry Bowa",
+        "player_id": "SYN-CHN-7",
+        "slot": 7,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Larry Bowa",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Bowa"
+      },
+      {
+        "display_name": "Matthews",
+        "field": "3B",
+        "given": "Gary",
+        "original_full_name": "Gary Matthews",
+        "player_id": "SYN-CHN-8",
+        "slot": 8,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Gary Matthews",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Matthews"
+      },
+      {
+        "display_name": "Sutcliffe",
+        "field": "P",
+        "given": "Rick",
+        "original_full_name": "Rick Sutcliffe",
+        "player_id": "SYN-CHN-9",
+        "slot": 9,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Rick Sutcliffe",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Sutcliffe"
+      }
+    ],
+    "home_pitcher": {
+      "display_name": "Sutcliffe",
+      "player_id": "SYN-CHN-9",
+      "source_name": "Rick Sutcliffe",
+      "source_reference": {
+        "file": "register",
+        "player_id": "SYN-CHN-9"
+      }
+    },
+    "home_pitcher_id": "SYN-CHN-9",
+    "home_team_game_number": 1,
+    "season": 1985,
+    "series_game_count": 1,
+    "series_game_index": 1,
+    "series_id": "S0002",
+    "series_start_date": "1985-05-01",
+    "source": {
+      "class": "synthetic",
+      "file": "tools/skeetersoft/pilot_data.py"
+    },
+    "visitor": "PIT",
+    "visitor_lineup": [
+      {
+        "display_name": "Van Slyke Jr",
+        "field": "LF",
+        "given": "Andy",
+        "original_full_name": "Andy Van Slyke Jr",
+        "player_id": "SYN-PIT-VAN",
+        "slot": 1,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Andy Van Slyke Jr",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "Jr",
+        "surname": "Van Slyke"
+      },
+      {
+        "display_name": "Madlock",
+        "field": "CF",
+        "given": "Bill",
+        "original_full_name": "Bill Madlock",
+        "player_id": "SYN-PIT-2",
+        "slot": 2,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Bill Madlock",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Madlock"
+      },
+      {
+        "display_name": "Pena",
+        "field": "RF",
+        "given": "Tony",
+        "original_full_name": "Tony Pena",
+        "player_id": "SYN-PIT-3",
+        "slot": 3,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Tony Pena",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Pena"
+      },
+      {
+        "display_name": "Ray",
+        "field": "1B",
+        "given": "Johnny",
+        "original_full_name": "Johnny Ray",
+        "player_id": "SYN-PIT-4",
+        "slot": 4,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Johnny Ray",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Ray"
+      },
+      {
+        "display_name": "Wynne",
+        "field": "C",
+        "given": "Marvell",
+        "original_full_name": "Marvell Wynne",
+        "player_id": "SYN-PIT-5",
+        "slot": 5,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Marvell Wynne",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Wynne"
+      },
+      {
+        "display_name": "Thompson",
+        "field": "2B",
+        "given": "Jason",
+        "original_full_name": "Jason Thompson",
+        "player_id": "SYN-PIT-6",
+        "slot": 6,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Jason Thompson",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Thompson"
+      },
+      {
+        "display_name": "Berra",
+        "field": "SS",
+        "given": "Dale",
+        "original_full_name": "Dale Berra",
+        "player_id": "SYN-PIT-7",
+        "slot": 7,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Dale Berra",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Berra"
+      },
+      {
+        "display_name": "Morrison",
+        "field": "3B",
+        "given": "Jim",
+        "original_full_name": "Jim Morrison",
+        "player_id": "SYN-PIT-8",
+        "slot": 8,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Jim Morrison",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Morrison"
+      },
+      {
+        "display_name": "Rhoden",
+        "field": "P",
+        "given": "Rick",
+        "original_full_name": "Rick Rhoden",
+        "player_id": "SYN-PIT-9",
+        "slot": 9,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Rick Rhoden",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Rhoden"
+      }
+    ],
+    "visitor_pitcher": {
+      "display_name": "Rhoden",
+      "player_id": "SYN-PIT-9",
+      "source_name": "Rick Rhoden",
+      "source_reference": {
+        "file": "register",
+        "player_id": "SYN-PIT-9"
+      }
+    },
+    "visitor_pitcher_id": "SYN-PIT-9",
+    "visitor_team_game_number": 1
+  },
+  {
+    "date": "1985-05-15",
+    "day_night": "D",
+    "fixture_id": "F-COLLIDE-DAVIS",
+    "game_id": "SYN-1985-DAVIS",
+    "game_number": 1,
+    "game_type": "Regular Season",
+    "home": "SFN",
+    "home_lineup": [
+      {
+        "display_name": "C. Davis",
+        "field": "LF",
+        "given": "Chili",
+        "original_full_name": "Chili Davis",
+        "player_id": "SYN-SFN-C",
+        "slot": 1,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Chili Davis",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Davis"
+      },
+      {
+        "display_name": "M. Davis",
+        "field": "CF",
+        "given": "Mark",
+        "original_full_name": "Mark Davis",
+        "player_id": "SYN-SFN-M",
+        "slot": 2,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Mark Davis",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Davis"
+      },
+      {
+        "display_name": "Leonard",
+        "field": "RF",
+        "given": "Jeffrey",
+        "original_full_name": "Jeffrey Leonard",
+        "player_id": "SYN-SFN-3",
+        "slot": 3,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Jeffrey Leonard",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Leonard"
+      },
+      {
+        "display_name": "Brenly",
+        "field": "1B",
+        "given": "Bob",
+        "original_full_name": "Bob Brenly",
+        "player_id": "SYN-SFN-4",
+        "slot": 4,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Bob Brenly",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Brenly"
+      },
+      {
+        "display_name": "Gladden",
+        "field": "C",
+        "given": "Dan",
+        "original_full_name": "Dan Gladden",
+        "player_id": "SYN-SFN-5",
+        "slot": 5,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Dan Gladden",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Gladden"
+      },
+      {
+        "display_name": "Trillo",
+        "field": "2B",
+        "given": "Manny",
+        "original_full_name": "Manny Trillo",
+        "player_id": "SYN-SFN-6",
+        "slot": 6,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Manny Trillo",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Trillo"
+      },
+      {
+        "display_name": "Uribe",
+        "field": "SS",
+        "given": "Jose",
+        "original_full_name": "Jose Uribe",
+        "player_id": "SYN-SFN-7",
+        "slot": 7,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Jose Uribe",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Uribe"
+      },
+      {
+        "display_name": "Green",
+        "field": "3B",
+        "given": "David",
+        "original_full_name": "David Green",
+        "player_id": "SYN-SFN-8",
+        "slot": 8,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "David Green",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Green"
+      },
+      {
+        "display_name": "Hammaker",
+        "field": "P",
+        "given": "Atlee",
+        "original_full_name": "Atlee Hammaker",
+        "player_id": "SYN-SFN-9",
+        "slot": 9,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Atlee Hammaker",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Hammaker"
+      }
+    ],
+    "home_pitcher": {
+      "display_name": "Hammaker",
+      "player_id": "SYN-SFN-9",
+      "source_name": "Atlee Hammaker",
+      "source_reference": {
+        "file": "register",
+        "player_id": "SYN-SFN-9"
+      }
+    },
+    "home_pitcher_id": "SYN-SFN-9",
+    "home_team_game_number": 1,
+    "season": 1985,
+    "series_game_count": 1,
+    "series_game_index": 1,
+    "series_id": "S0003",
+    "series_start_date": "1985-05-15",
+    "source": {
+      "class": "synthetic",
+      "file": "tools/skeetersoft/pilot_data.py"
+    },
+    "visitor": "SDN",
+    "visitor_lineup": [
+      {
+        "display_name": "Garvey",
+        "field": "LF",
+        "given": "Steve",
+        "original_full_name": "Steve Garvey",
+        "player_id": "SYN-SDN-1",
+        "slot": 1,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Steve Garvey",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Garvey"
+      },
+      {
+        "display_name": "Gwynn",
+        "field": "CF",
+        "given": "Tony",
+        "original_full_name": "Tony Gwynn",
+        "player_id": "SYN-SDN-2",
+        "slot": 2,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Tony Gwynn",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Gwynn"
+      },
+      {
+        "display_name": "Nettles",
+        "field": "RF",
+        "given": "Graig",
+        "original_full_name": "Graig Nettles",
+        "player_id": "SYN-SDN-3",
+        "slot": 3,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Graig Nettles",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Nettles"
+      },
+      {
+        "display_name": "Kennedy",
+        "field": "1B",
+        "given": "Terry",
+        "original_full_name": "Terry Kennedy",
+        "player_id": "SYN-SDN-4",
+        "slot": 4,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Terry Kennedy",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Kennedy"
+      },
+      {
+        "display_name": "McReynolds",
+        "field": "C",
+        "given": "Kevin",
+        "original_full_name": "Kevin McReynolds",
+        "player_id": "SYN-SDN-5",
+        "slot": 5,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Kevin McReynolds",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "McReynolds"
+      },
+      {
+        "display_name": "Martinez",
+        "field": "2B",
+        "given": "Carmelo",
+        "original_full_name": "Carmelo Martinez",
+        "player_id": "SYN-SDN-6",
+        "slot": 6,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Carmelo Martinez",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Martinez"
+      },
+      {
+        "display_name": "Templeton",
+        "field": "SS",
+        "given": "Garry",
+        "original_full_name": "Garry Templeton",
+        "player_id": "SYN-SDN-7",
+        "slot": 7,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Garry Templeton",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Templeton"
+      },
+      {
+        "display_name": "Flannery",
+        "field": "3B",
+        "given": "Tim",
+        "original_full_name": "Tim Flannery",
+        "player_id": "SYN-SDN-8",
+        "slot": 8,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Tim Flannery",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Flannery"
+      },
+      {
+        "display_name": "Hoyt",
+        "field": "P",
+        "given": "LaMarr",
+        "original_full_name": "LaMarr Hoyt",
+        "player_id": "SYN-SDN-9",
+        "slot": 9,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "LaMarr Hoyt",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Hoyt"
+      }
+    ],
+    "visitor_pitcher": {
+      "display_name": "Hoyt",
+      "player_id": "SYN-SDN-9",
+      "source_name": "LaMarr Hoyt",
+      "source_reference": {
+        "file": "register",
+        "player_id": "SYN-SDN-9"
+      }
+    },
+    "visitor_pitcher_id": "SYN-SDN-9",
+    "visitor_team_game_number": 1
+  },
+  {
+    "date": "1985-05-20",
+    "day_night": "D",
+    "fixture_id": "F-COLLIDE-INITIAL",
+    "game_id": "SYN-1985-INITIAL",
+    "game_number": 1,
+    "game_type": "Regular Season",
+    "home": "BOS",
+    "home_lineup": [
+      {
+        "display_name": "Ca. Davis",
+        "field": "LF",
+        "given": "Carl",
+        "original_full_name": "Carl Davis",
+        "player_id": "SYN-INI-C1",
+        "slot": 1,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Carl Davis",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Davis"
+      },
+      {
+        "display_name": "Cr. Davis",
+        "field": "CF",
+        "given": "Craig",
+        "original_full_name": "Craig Davis",
+        "player_id": "SYN-INI-C2",
+        "slot": 2,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Craig Davis",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Davis"
+      },
+      {
+        "display_name": "Ma. Davis",
+        "field": "RF",
+        "given": "Mark",
+        "original_full_name": "Mark Davis",
+        "player_id": "SYN-INI-M",
+        "slot": 3,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Mark Davis",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Davis"
+      },
+      {
+        "display_name": "Unique",
+        "field": "1B",
+        "given": "Owen",
+        "original_full_name": "Owen Unique",
+        "player_id": "SYN-INI-4",
+        "slot": 4,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Owen Unique",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Unique"
+      },
+      {
+        "display_name": "Solo",
+        "field": "C",
+        "given": "Paul",
+        "original_full_name": "Paul Solo",
+        "player_id": "SYN-INI-5",
+        "slot": 5,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Paul Solo",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Solo"
+      },
+      {
+        "display_name": "Lone",
+        "field": "2B",
+        "given": "Quinn",
+        "original_full_name": "Quinn Lone",
+        "player_id": "SYN-INI-6",
+        "slot": 6,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Quinn Lone",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Lone"
+      },
+      {
+        "display_name": "Single",
+        "field": "SS",
+        "given": "Ray",
+        "original_full_name": "Ray Single",
+        "player_id": "SYN-INI-7",
+        "slot": 7,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Ray Single",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Single"
+      },
+      {
+        "display_name": "Only",
+        "field": "3B",
+        "given": "Sam",
+        "original_full_name": "Sam Only",
+        "player_id": "SYN-INI-8",
+        "slot": 8,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Sam Only",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Only"
+      },
+      {
+        "display_name": "Pitch",
+        "field": "P",
+        "given": "Tom",
+        "original_full_name": "Tom Pitch",
+        "player_id": "SYN-INI-9",
+        "slot": 9,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Tom Pitch",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Pitch"
+      }
+    ],
+    "home_pitcher": {
+      "display_name": "Pitch",
+      "player_id": "SYN-INI-9",
+      "source_name": "Tom Pitch",
+      "source_reference": {
+        "file": "register",
+        "player_id": "SYN-INI-9"
+      }
+    },
+    "home_pitcher_id": "SYN-INI-9",
+    "home_team_game_number": 1,
+    "season": 1985,
+    "series_game_count": 1,
+    "series_game_index": 1,
+    "series_id": "S0004",
+    "series_start_date": "1985-05-20",
+    "source": {
+      "class": "synthetic",
+      "file": "tools/skeetersoft/pilot_data.py"
+    },
+    "visitor": "NYA",
+    "visitor_lineup": [
+      {
+        "display_name": "Visit",
+        "field": "LF",
+        "given": "Uma",
+        "original_full_name": "Uma Visit",
+        "player_id": "SYN-INI-V1",
+        "slot": 1,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Uma Visit",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Visit"
+      },
+      {
+        "display_name": "Guest",
+        "field": "CF",
+        "given": "Vic",
+        "original_full_name": "Vic Guest",
+        "player_id": "SYN-INI-V2",
+        "slot": 2,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Vic Guest",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Guest"
+      },
+      {
+        "display_name": "Away",
+        "field": "RF",
+        "given": "Wes",
+        "original_full_name": "Wes Away",
+        "player_id": "SYN-INI-V3",
+        "slot": 3,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Wes Away",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Away"
+      },
+      {
+        "display_name": "Road",
+        "field": "1B",
+        "given": "Xan",
+        "original_full_name": "Xan Road",
+        "player_id": "SYN-INI-V4",
+        "slot": 4,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Xan Road",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Road"
+      },
+      {
+        "display_name": "Travel",
+        "field": "C",
+        "given": "Yan",
+        "original_full_name": "Yan Travel",
+        "player_id": "SYN-INI-V5",
+        "slot": 5,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Yan Travel",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Travel"
+      },
+      {
+        "display_name": "Trip",
+        "field": "2B",
+        "given": "Zed",
+        "original_full_name": "Zed Trip",
+        "player_id": "SYN-INI-V6",
+        "slot": 6,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Zed Trip",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Trip"
+      },
+      {
+        "display_name": "Far",
+        "field": "SS",
+        "given": "Abe",
+        "original_full_name": "Abe Far",
+        "player_id": "SYN-INI-V7",
+        "slot": 7,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Abe Far",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Far"
+      },
+      {
+        "display_name": "Near",
+        "field": "3B",
+        "given": "Ben",
+        "original_full_name": "Ben Near",
+        "player_id": "SYN-INI-V8",
+        "slot": 8,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Ben Near",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Near"
+      },
+      {
+        "display_name": "Start",
+        "field": "P",
+        "given": "Cal",
+        "original_full_name": "Cal Start",
+        "player_id": "SYN-INI-V9",
+        "slot": 9,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Cal Start",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Start"
+      }
+    ],
+    "visitor_pitcher": {
+      "display_name": "Start",
+      "player_id": "SYN-INI-V9",
+      "source_name": "Cal Start",
+      "source_reference": {
+        "file": "register",
+        "player_id": "SYN-INI-V9"
+      }
+    },
+    "visitor_pitcher_id": "SYN-INI-V9",
+    "visitor_team_game_number": 1
+  },
+  {
+    "date": "1985-06-01",
+    "day_night": "D",
+    "fixture_id": "F-DH",
+    "game_id": "SYN-1985-DH-1",
+    "game_number": 1,
+    "game_type": "Regular Season",
+    "home": "BOS",
+    "home_lineup": [
+      {
+        "display_name": "Boggs",
+        "field": "LF",
+        "given": "Wade",
+        "original_full_name": "Wade Boggs",
+        "player_id": "SYN-BOS-1",
+        "slot": 1,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Wade Boggs",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Boggs"
+      },
+      {
+        "display_name": "Rice",
+        "field": "CF",
+        "given": "Jim",
+        "original_full_name": "Jim Rice",
+        "player_id": "SYN-BOS-2",
+        "slot": 2,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Jim Rice",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Rice"
+      },
+      {
+        "display_name": "Evans",
+        "field": "RF",
+        "given": "Dwight",
+        "original_full_name": "Dwight Evans",
+        "player_id": "SYN-BOS-3",
+        "slot": 3,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Dwight Evans",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Evans"
+      },
+      {
+        "display_name": "Buckner",
+        "field": "1B",
+        "given": "Bill",
+        "original_full_name": "Bill Buckner",
+        "player_id": "SYN-BOS-4",
+        "slot": 4,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Bill Buckner",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Buckner"
+      },
+      {
+        "display_name": "Armas",
+        "field": "C",
+        "given": "Tony",
+        "original_full_name": "Tony Armas",
+        "player_id": "SYN-BOS-5",
+        "slot": 5,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Tony Armas",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Armas"
+      },
+      {
+        "display_name": "Barrett",
+        "field": "2B",
+        "given": "Marty",
+        "original_full_name": "Marty Barrett",
+        "player_id": "SYN-BOS-6",
+        "slot": 6,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Marty Barrett",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Barrett"
+      },
+      {
+        "display_name": "Hoffman",
+        "field": "SS",
+        "given": "Glenn",
+        "original_full_name": "Glenn Hoffman",
+        "player_id": "SYN-BOS-7",
+        "slot": 7,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Glenn Hoffman",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Hoffman"
+      },
+      {
+        "display_name": "Gedman",
+        "field": "3B",
+        "given": "Rich",
+        "original_full_name": "Rich Gedman",
+        "player_id": "SYN-BOS-8",
+        "slot": 8,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Rich Gedman",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Gedman"
+      },
+      {
+        "display_name": "Can",
+        "field": "P",
+        "given": "Oil",
+        "original_full_name": "Oil Can",
+        "player_id": "SYN-BOS-9",
+        "slot": 9,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Oil Can",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Can"
+      }
+    ],
+    "home_pitcher": {
+      "display_name": "Can",
+      "player_id": "SYN-BOS-9",
+      "source_name": "Oil Can",
+      "source_reference": {
+        "file": "register",
+        "player_id": "SYN-BOS-9"
+      }
+    },
+    "home_pitcher_id": "SYN-BOS-9",
+    "home_team_game_number": 2,
+    "season": 1985,
+    "series_game_count": 2,
+    "series_game_index": 1,
+    "series_id": "S0005",
+    "series_start_date": "1985-06-01",
+    "source": {
+      "class": "synthetic",
+      "file": "tools/skeetersoft/pilot_data.py"
+    },
+    "visitor": "NYA",
+    "visitor_lineup": [
+      {
+        "display_name": "Henderson",
+        "field": "LF",
+        "given": "Rickey",
+        "original_full_name": "Rickey Henderson",
+        "player_id": "SYN-NYA-1",
+        "slot": 1,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Rickey Henderson",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Henderson"
+      },
+      {
+        "display_name": "Mattingly",
+        "field": "CF",
+        "given": "Don",
+        "original_full_name": "Don Mattingly",
+        "player_id": "SYN-NYA-2",
+        "slot": 2,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Don Mattingly",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Mattingly"
+      },
+      {
+        "display_name": "Winfield",
+        "field": "RF",
+        "given": "Dave",
+        "original_full_name": "Dave Winfield",
+        "player_id": "SYN-NYA-3",
+        "slot": 3,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Dave Winfield",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Winfield"
+      },
+      {
+        "display_name": "Baylor",
+        "field": "1B",
+        "given": "Don",
+        "original_full_name": "Don Baylor",
+        "player_id": "SYN-NYA-4",
+        "slot": 4,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Don Baylor",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Baylor"
+      },
+      {
+        "display_name": "Randolph",
+        "field": "C",
+        "given": "Willie",
+        "original_full_name": "Willie Randolph",
+        "player_id": "SYN-NYA-5",
+        "slot": 5,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Willie Randolph",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Randolph"
+      },
+      {
+        "display_name": "Pagliarulo",
+        "field": "2B",
+        "given": "Mike",
+        "original_full_name": "Mike Pagliarulo",
+        "player_id": "SYN-NYA-6",
+        "slot": 6,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Mike Pagliarulo",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Pagliarulo"
+      },
+      {
+        "display_name": "Griffey",
+        "field": "SS",
+        "given": "Ken",
+        "original_full_name": "Ken Griffey",
+        "player_id": "SYN-NYA-7",
+        "slot": 7,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Ken Griffey",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Griffey"
+      },
+      {
+        "display_name": "Wynegar",
+        "field": "3B",
+        "given": "Butch",
+        "original_full_name": "Butch Wynegar",
+        "player_id": "SYN-NYA-8",
+        "slot": 8,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Butch Wynegar",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Wynegar"
+      },
+      {
+        "display_name": "Guidry",
+        "field": "P",
+        "given": "Ron",
+        "original_full_name": "Ron Guidry",
+        "player_id": "SYN-NYA-9",
+        "slot": 9,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Ron Guidry",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Guidry"
+      }
+    ],
+    "visitor_pitcher": {
+      "display_name": "Guidry",
+      "player_id": "SYN-NYA-9",
+      "source_name": "Ron Guidry",
+      "source_reference": {
+        "file": "register",
+        "player_id": "SYN-NYA-9"
+      }
+    },
+    "visitor_pitcher_id": "SYN-NYA-9",
+    "visitor_team_game_number": 2
+  },
+  {
+    "date": "1985-06-01",
+    "day_night": "D",
+    "fixture_id": "F-DH",
+    "game_id": "SYN-1985-DH-2",
+    "game_number": 2,
+    "game_type": "Regular Season",
+    "home": "BOS",
+    "home_lineup": [
+      {
+        "display_name": "Boggs",
+        "field": "LF",
+        "given": "Wade",
+        "original_full_name": "Wade Boggs",
+        "player_id": "SYN-BOS-1",
+        "slot": 1,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Wade Boggs",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Boggs"
+      },
+      {
+        "display_name": "Rice",
+        "field": "CF",
+        "given": "Jim",
+        "original_full_name": "Jim Rice",
+        "player_id": "SYN-BOS-2",
+        "slot": 2,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Jim Rice",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Rice"
+      },
+      {
+        "display_name": "Evans",
+        "field": "RF",
+        "given": "Dwight",
+        "original_full_name": "Dwight Evans",
+        "player_id": "SYN-BOS-3",
+        "slot": 3,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Dwight Evans",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Evans"
+      },
+      {
+        "display_name": "Buckner",
+        "field": "1B",
+        "given": "Bill",
+        "original_full_name": "Bill Buckner",
+        "player_id": "SYN-BOS-4",
+        "slot": 4,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Bill Buckner",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Buckner"
+      },
+      {
+        "display_name": "Armas",
+        "field": "C",
+        "given": "Tony",
+        "original_full_name": "Tony Armas",
+        "player_id": "SYN-BOS-5",
+        "slot": 5,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Tony Armas",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Armas"
+      },
+      {
+        "display_name": "Barrett",
+        "field": "2B",
+        "given": "Marty",
+        "original_full_name": "Marty Barrett",
+        "player_id": "SYN-BOS-6",
+        "slot": 6,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Marty Barrett",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Barrett"
+      },
+      {
+        "display_name": "Hoffman",
+        "field": "SS",
+        "given": "Glenn",
+        "original_full_name": "Glenn Hoffman",
+        "player_id": "SYN-BOS-7",
+        "slot": 7,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Glenn Hoffman",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Hoffman"
+      },
+      {
+        "display_name": "Gedman",
+        "field": "3B",
+        "given": "Rich",
+        "original_full_name": "Rich Gedman",
+        "player_id": "SYN-BOS-8",
+        "slot": 8,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Rich Gedman",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Gedman"
+      },
+      {
+        "display_name": "Can",
+        "field": "P",
+        "given": "Oil",
+        "original_full_name": "Oil Can",
+        "player_id": "SYN-BOS-9",
+        "slot": 9,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Oil Can",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Can"
+      }
+    ],
+    "home_pitcher": {
+      "display_name": "Can",
+      "player_id": "SYN-BOS-9",
+      "source_name": "Oil Can",
+      "source_reference": {
+        "file": "register",
+        "player_id": "SYN-BOS-9"
+      }
+    },
+    "home_pitcher_id": "SYN-BOS-9",
+    "home_team_game_number": 3,
+    "season": 1985,
+    "series_game_count": 2,
+    "series_game_index": 2,
+    "series_id": "S0005",
+    "series_start_date": "1985-06-01",
+    "source": {
+      "class": "synthetic",
+      "file": "tools/skeetersoft/pilot_data.py"
+    },
+    "visitor": "NYA",
+    "visitor_lineup": [
+      {
+        "display_name": "Henderson",
+        "field": "LF",
+        "given": "Rickey",
+        "original_full_name": "Rickey Henderson",
+        "player_id": "SYN-NYA-1",
+        "slot": 1,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Rickey Henderson",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Henderson"
+      },
+      {
+        "display_name": "Mattingly",
+        "field": "CF",
+        "given": "Don",
+        "original_full_name": "Don Mattingly",
+        "player_id": "SYN-NYA-2",
+        "slot": 2,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Don Mattingly",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Mattingly"
+      },
+      {
+        "display_name": "Winfield",
+        "field": "RF",
+        "given": "Dave",
+        "original_full_name": "Dave Winfield",
+        "player_id": "SYN-NYA-3",
+        "slot": 3,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Dave Winfield",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Winfield"
+      },
+      {
+        "display_name": "Baylor",
+        "field": "1B",
+        "given": "Don",
+        "original_full_name": "Don Baylor",
+        "player_id": "SYN-NYA-4",
+        "slot": 4,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Don Baylor",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Baylor"
+      },
+      {
+        "display_name": "Randolph",
+        "field": "C",
+        "given": "Willie",
+        "original_full_name": "Willie Randolph",
+        "player_id": "SYN-NYA-5",
+        "slot": 5,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Willie Randolph",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Randolph"
+      },
+      {
+        "display_name": "Pagliarulo",
+        "field": "2B",
+        "given": "Mike",
+        "original_full_name": "Mike Pagliarulo",
+        "player_id": "SYN-NYA-6",
+        "slot": 6,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Mike Pagliarulo",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Pagliarulo"
+      },
+      {
+        "display_name": "Griffey",
+        "field": "SS",
+        "given": "Ken",
+        "original_full_name": "Ken Griffey",
+        "player_id": "SYN-NYA-7",
+        "slot": 7,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Ken Griffey",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Griffey"
+      },
+      {
+        "display_name": "Wynegar",
+        "field": "3B",
+        "given": "Butch",
+        "original_full_name": "Butch Wynegar",
+        "player_id": "SYN-NYA-8",
+        "slot": 8,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Butch Wynegar",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Wynegar"
+      },
+      {
+        "display_name": "Guidry",
+        "field": "P",
+        "given": "Ron",
+        "original_full_name": "Ron Guidry",
+        "player_id": "SYN-NYA-9",
+        "slot": 9,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Ron Guidry",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Guidry"
+      }
+    ],
+    "visitor_pitcher": {
+      "display_name": "Guidry",
+      "player_id": "SYN-NYA-9",
+      "source_name": "Ron Guidry",
+      "source_reference": {
+        "file": "register",
+        "player_id": "SYN-NYA-9"
+      }
+    },
+    "visitor_pitcher_id": "SYN-NYA-9",
+    "visitor_team_game_number": 3
+  },
+  {
+    "date": "1985-06-10",
+    "day_night": "D",
+    "fixture_id": "F-OFFDAY",
+    "game_id": "SYN-1985-OFF-1",
+    "game_number": 1,
+    "game_type": "Regular Season",
+    "home": "CHW",
+    "home_lineup": [
+      {
+        "display_name": "Baines",
+        "field": "LF",
+        "given": "Harold",
+        "original_full_name": "Harold Baines",
+        "player_id": "SYN-CHW-1",
+        "slot": 1,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Harold Baines",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Baines"
+      },
+      {
+        "display_name": "Fisk",
+        "field": "CF",
+        "given": "Carlton",
+        "original_full_name": "Carlton Fisk",
+        "player_id": "SYN-CHW-2",
+        "slot": 2,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Carlton Fisk",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Fisk"
+      },
+      {
+        "display_name": "Walker",
+        "field": "RF",
+        "given": "Greg",
+        "original_full_name": "Greg Walker",
+        "player_id": "SYN-CHW-3",
+        "slot": 3,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Greg Walker",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Walker"
+      },
+      {
+        "display_name": "Guillen",
+        "field": "1B",
+        "given": "Ozzie",
+        "original_full_name": "Ozzie Guillen",
+        "player_id": "SYN-CHW-4",
+        "slot": 4,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Ozzie Guillen",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Guillen"
+      },
+      {
+        "display_name": "Cruz",
+        "field": "C",
+        "given": "Julio",
+        "original_full_name": "Julio Cruz",
+        "player_id": "SYN-CHW-5",
+        "slot": 5,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Julio Cruz",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Cruz"
+      },
+      {
+        "display_name": "Law",
+        "field": "2B",
+        "given": "Rudy",
+        "original_full_name": "Rudy Law",
+        "player_id": "SYN-CHW-6",
+        "slot": 6,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Rudy Law",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Law"
+      },
+      {
+        "display_name": "Boston",
+        "field": "SS",
+        "given": "Daryl",
+        "original_full_name": "Daryl Boston",
+        "player_id": "SYN-CHW-7",
+        "slot": 7,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Daryl Boston",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Boston"
+      },
+      {
+        "display_name": "Hulett",
+        "field": "3B",
+        "given": "Tim",
+        "original_full_name": "Tim Hulett",
+        "player_id": "SYN-CHW-8",
+        "slot": 8,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Tim Hulett",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Hulett"
+      },
+      {
+        "display_name": "Seaver",
+        "field": "P",
+        "given": "Tom",
+        "original_full_name": "Tom Seaver",
+        "player_id": "SYN-CHW-9",
+        "slot": 9,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Tom Seaver",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Seaver"
+      }
+    ],
+    "home_pitcher": {
+      "display_name": "Seaver",
+      "player_id": "SYN-CHW-9",
+      "source_name": "Tom Seaver",
+      "source_reference": {
+        "file": "register",
+        "player_id": "SYN-CHW-9"
+      }
+    },
+    "home_pitcher_id": "SYN-CHW-9",
+    "home_team_game_number": 1,
+    "season": 1985,
+    "series_game_count": 2,
+    "series_game_index": 1,
+    "series_id": "S0006",
+    "series_start_date": "1985-06-10",
+    "source": {
+      "class": "synthetic",
+      "file": "tools/skeetersoft/pilot_data.py"
+    },
+    "visitor": "DET",
+    "visitor_lineup": [
+      {
+        "display_name": "Whitaker",
+        "field": "LF",
+        "given": "Lou",
+        "original_full_name": "Lou Whitaker",
+        "player_id": "SYN-DET-1",
+        "slot": 1,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Lou Whitaker",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Whitaker"
+      },
+      {
+        "display_name": "Trammell",
+        "field": "CF",
+        "given": "Alan",
+        "original_full_name": "Alan Trammell",
+        "player_id": "SYN-DET-2",
+        "slot": 2,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Alan Trammell",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Trammell"
+      },
+      {
+        "display_name": "Gibson",
+        "field": "RF",
+        "given": "Kirk",
+        "original_full_name": "Kirk Gibson",
+        "player_id": "SYN-DET-3",
+        "slot": 3,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Kirk Gibson",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Gibson"
+      },
+      {
+        "display_name": "Parrish",
+        "field": "1B",
+        "given": "Lance",
+        "original_full_name": "Lance Parrish",
+        "player_id": "SYN-DET-4",
+        "slot": 4,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Lance Parrish",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Parrish"
+      },
+      {
+        "display_name": "Lemon",
+        "field": "C",
+        "given": "Chet",
+        "original_full_name": "Chet Lemon",
+        "player_id": "SYN-DET-5",
+        "slot": 5,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Chet Lemon",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Lemon"
+      },
+      {
+        "display_name": "Evans",
+        "field": "2B",
+        "given": "Darrell",
+        "original_full_name": "Darrell Evans",
+        "player_id": "SYN-DET-6",
+        "slot": 6,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Darrell Evans",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Evans"
+      },
+      {
+        "display_name": "Herndon",
+        "field": "SS",
+        "given": "Larry",
+        "original_full_name": "Larry Herndon",
+        "player_id": "SYN-DET-7",
+        "slot": 7,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Larry Herndon",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Herndon"
+      },
+      {
+        "display_name": "Brookens",
+        "field": "3B",
+        "given": "Tom",
+        "original_full_name": "Tom Brookens",
+        "player_id": "SYN-DET-8",
+        "slot": 8,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Tom Brookens",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Brookens"
+      },
+      {
+        "display_name": "Morris",
+        "field": "P",
+        "given": "Jack",
+        "original_full_name": "Jack Morris",
+        "player_id": "SYN-DET-9",
+        "slot": 9,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Jack Morris",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Morris"
+      }
+    ],
+    "visitor_pitcher": {
+      "display_name": "Morris",
+      "player_id": "SYN-DET-9",
+      "source_name": "Jack Morris",
+      "source_reference": {
+        "file": "register",
+        "player_id": "SYN-DET-9"
+      }
+    },
+    "visitor_pitcher_id": "SYN-DET-9",
+    "visitor_team_game_number": 1
+  },
+  {
+    "date": "1985-06-12",
+    "day_night": "D",
+    "fixture_id": "F-OFFDAY",
+    "game_id": "SYN-1985-OFF-2",
+    "game_number": 1,
+    "game_type": "Regular Season",
+    "home": "CHW",
+    "home_lineup": [
+      {
+        "display_name": "Baines",
+        "field": "LF",
+        "given": "Harold",
+        "original_full_name": "Harold Baines",
+        "player_id": "SYN-CHW-1",
+        "slot": 1,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Harold Baines",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Baines"
+      },
+      {
+        "display_name": "Fisk",
+        "field": "CF",
+        "given": "Carlton",
+        "original_full_name": "Carlton Fisk",
+        "player_id": "SYN-CHW-2",
+        "slot": 2,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Carlton Fisk",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Fisk"
+      },
+      {
+        "display_name": "Walker",
+        "field": "RF",
+        "given": "Greg",
+        "original_full_name": "Greg Walker",
+        "player_id": "SYN-CHW-3",
+        "slot": 3,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Greg Walker",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Walker"
+      },
+      {
+        "display_name": "Guillen",
+        "field": "1B",
+        "given": "Ozzie",
+        "original_full_name": "Ozzie Guillen",
+        "player_id": "SYN-CHW-4",
+        "slot": 4,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Ozzie Guillen",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Guillen"
+      },
+      {
+        "display_name": "Cruz",
+        "field": "C",
+        "given": "Julio",
+        "original_full_name": "Julio Cruz",
+        "player_id": "SYN-CHW-5",
+        "slot": 5,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Julio Cruz",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Cruz"
+      },
+      {
+        "display_name": "Law",
+        "field": "2B",
+        "given": "Rudy",
+        "original_full_name": "Rudy Law",
+        "player_id": "SYN-CHW-6",
+        "slot": 6,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Rudy Law",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Law"
+      },
+      {
+        "display_name": "Boston",
+        "field": "SS",
+        "given": "Daryl",
+        "original_full_name": "Daryl Boston",
+        "player_id": "SYN-CHW-7",
+        "slot": 7,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Daryl Boston",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Boston"
+      },
+      {
+        "display_name": "Hulett",
+        "field": "3B",
+        "given": "Tim",
+        "original_full_name": "Tim Hulett",
+        "player_id": "SYN-CHW-8",
+        "slot": 8,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Tim Hulett",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Hulett"
+      },
+      {
+        "display_name": "Seaver",
+        "field": "P",
+        "given": "Tom",
+        "original_full_name": "Tom Seaver",
+        "player_id": "SYN-CHW-9",
+        "slot": 9,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Tom Seaver",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Seaver"
+      }
+    ],
+    "home_pitcher": {
+      "display_name": "Seaver",
+      "player_id": "SYN-CHW-9",
+      "source_name": "Tom Seaver",
+      "source_reference": {
+        "file": "register",
+        "player_id": "SYN-CHW-9"
+      }
+    },
+    "home_pitcher_id": "SYN-CHW-9",
+    "home_team_game_number": 2,
+    "season": 1985,
+    "series_game_count": 2,
+    "series_game_index": 2,
+    "series_id": "S0006",
+    "series_start_date": "1985-06-10",
+    "source": {
+      "class": "synthetic",
+      "file": "tools/skeetersoft/pilot_data.py"
+    },
+    "visitor": "DET",
+    "visitor_lineup": [
+      {
+        "display_name": "Whitaker",
+        "field": "LF",
+        "given": "Lou",
+        "original_full_name": "Lou Whitaker",
+        "player_id": "SYN-DET-1",
+        "slot": 1,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Lou Whitaker",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Whitaker"
+      },
+      {
+        "display_name": "Trammell",
+        "field": "CF",
+        "given": "Alan",
+        "original_full_name": "Alan Trammell",
+        "player_id": "SYN-DET-2",
+        "slot": 2,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Alan Trammell",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Trammell"
+      },
+      {
+        "display_name": "Gibson",
+        "field": "RF",
+        "given": "Kirk",
+        "original_full_name": "Kirk Gibson",
+        "player_id": "SYN-DET-3",
+        "slot": 3,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Kirk Gibson",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Gibson"
+      },
+      {
+        "display_name": "Parrish",
+        "field": "1B",
+        "given": "Lance",
+        "original_full_name": "Lance Parrish",
+        "player_id": "SYN-DET-4",
+        "slot": 4,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Lance Parrish",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Parrish"
+      },
+      {
+        "display_name": "Lemon",
+        "field": "C",
+        "given": "Chet",
+        "original_full_name": "Chet Lemon",
+        "player_id": "SYN-DET-5",
+        "slot": 5,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Chet Lemon",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Lemon"
+      },
+      {
+        "display_name": "Evans",
+        "field": "2B",
+        "given": "Darrell",
+        "original_full_name": "Darrell Evans",
+        "player_id": "SYN-DET-6",
+        "slot": 6,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Darrell Evans",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Evans"
+      },
+      {
+        "display_name": "Herndon",
+        "field": "SS",
+        "given": "Larry",
+        "original_full_name": "Larry Herndon",
+        "player_id": "SYN-DET-7",
+        "slot": 7,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Larry Herndon",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Herndon"
+      },
+      {
+        "display_name": "Brookens",
+        "field": "3B",
+        "given": "Tom",
+        "original_full_name": "Tom Brookens",
+        "player_id": "SYN-DET-8",
+        "slot": 8,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Tom Brookens",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Brookens"
+      },
+      {
+        "display_name": "Morris",
+        "field": "P",
+        "given": "Jack",
+        "original_full_name": "Jack Morris",
+        "player_id": "SYN-DET-9",
+        "slot": 9,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Jack Morris",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Morris"
+      }
+    ],
+    "visitor_pitcher": {
+      "display_name": "Morris",
+      "player_id": "SYN-DET-9",
+      "source_name": "Jack Morris",
+      "source_reference": {
+        "file": "register",
+        "player_id": "SYN-DET-9"
+      }
+    },
+    "visitor_pitcher_id": "SYN-DET-9",
+    "visitor_team_game_number": 2
+  },
+  {
+    "date": "1985-07-01",
+    "day_night": "D",
+    "fixture_id": "F-SPLIT-OPP",
+    "game_id": "SYN-1985-SPLIT-1",
+    "game_number": 1,
+    "game_type": "Regular Season",
+    "home": "KCA",
+    "home_lineup": [
+      {
+        "display_name": "Wilson",
+        "field": "LF",
+        "given": "Willie",
+        "original_full_name": "Willie Wilson",
+        "player_id": "SYN-KCA-1",
+        "slot": 1,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Willie Wilson",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Wilson"
+      },
+      {
+        "display_name": "Brett",
+        "field": "CF",
+        "given": "George",
+        "original_full_name": "George Brett",
+        "player_id": "SYN-KCA-2",
+        "slot": 2,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "George Brett",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Brett"
+      },
+      {
+        "display_name": "McRae",
+        "field": "RF",
+        "given": "Hal",
+        "original_full_name": "Hal McRae",
+        "player_id": "SYN-KCA-3",
+        "slot": 3,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Hal McRae",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "McRae"
+      },
+      {
+        "display_name": "Balboni",
+        "field": "1B",
+        "given": "Steve",
+        "original_full_name": "Steve Balboni",
+        "player_id": "SYN-KCA-4",
+        "slot": 4,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Steve Balboni",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Balboni"
+      },
+      {
+        "display_name": "White",
+        "field": "C",
+        "given": "Frank",
+        "original_full_name": "Frank White",
+        "player_id": "SYN-KCA-5",
+        "slot": 5,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Frank White",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "White"
+      },
+      {
+        "display_name": "Motley",
+        "field": "2B",
+        "given": "Darryl",
+        "original_full_name": "Darryl Motley",
+        "player_id": "SYN-KCA-6",
+        "slot": 6,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Darryl Motley",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Motley"
+      },
+      {
+        "display_name": "Orta",
+        "field": "SS",
+        "given": "Jorge",
+        "original_full_name": "Jorge Orta",
+        "player_id": "SYN-KCA-7",
+        "slot": 7,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Jorge Orta",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Orta"
+      },
+      {
+        "display_name": "Sundberg",
+        "field": "3B",
+        "given": "Jim",
+        "original_full_name": "Jim Sundberg",
+        "player_id": "SYN-KCA-8",
+        "slot": 8,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Jim Sundberg",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Sundberg"
+      },
+      {
+        "display_name": "Black",
+        "field": "P",
+        "given": "Bud",
+        "original_full_name": "Bud Black",
+        "player_id": "SYN-KCA-9",
+        "slot": 9,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Bud Black",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Black"
+      }
+    ],
+    "home_pitcher": {
+      "display_name": "Black",
+      "player_id": "SYN-KCA-9",
+      "source_name": "Bud Black",
+      "source_reference": {
+        "file": "register",
+        "player_id": "SYN-KCA-9"
+      }
+    },
+    "home_pitcher_id": "SYN-KCA-9",
+    "home_team_game_number": 2,
+    "season": 1985,
+    "series_game_count": 1,
+    "series_game_index": 1,
+    "series_id": "S0007",
+    "series_start_date": "1985-07-01",
+    "source": {
+      "class": "synthetic",
+      "file": "tools/skeetersoft/pilot_data.py"
+    },
+    "visitor": "TOR",
+    "visitor_lineup": [
+      {
+        "display_name": "Bell",
+        "field": "LF",
+        "given": "George",
+        "original_full_name": "George Bell",
+        "player_id": "SYN-TOR-1",
+        "slot": 1,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "George Bell",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Bell"
+      },
+      {
+        "display_name": "Moseby",
+        "field": "CF",
+        "given": "Lloyd",
+        "original_full_name": "Lloyd Moseby",
+        "player_id": "SYN-TOR-2",
+        "slot": 2,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Lloyd Moseby",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Moseby"
+      },
+      {
+        "display_name": "Barfield",
+        "field": "RF",
+        "given": "Jesse",
+        "original_full_name": "Jesse Barfield",
+        "player_id": "SYN-TOR-3",
+        "slot": 3,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Jesse Barfield",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Barfield"
+      },
+      {
+        "display_name": "Upshaw",
+        "field": "1B",
+        "given": "Willie",
+        "original_full_name": "Willie Upshaw",
+        "player_id": "SYN-TOR-4",
+        "slot": 4,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Willie Upshaw",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Upshaw"
+      },
+      {
+        "display_name": "Whitt",
+        "field": "C",
+        "given": "Ernie",
+        "original_full_name": "Ernie Whitt",
+        "player_id": "SYN-TOR-5",
+        "slot": 5,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Ernie Whitt",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Whitt"
+      },
+      {
+        "display_name": "Garcia",
+        "field": "2B",
+        "given": "Damaso",
+        "original_full_name": "Damaso Garcia",
+        "player_id": "SYN-TOR-6",
+        "slot": 6,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Damaso Garcia",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Garcia"
+      },
+      {
+        "display_name": "Fernandez",
+        "field": "SS",
+        "given": "Tony",
+        "original_full_name": "Tony Fernandez",
+        "player_id": "SYN-TOR-7",
+        "slot": 7,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Tony Fernandez",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Fernandez"
+      },
+      {
+        "display_name": "Iorg",
+        "field": "3B",
+        "given": "Garth",
+        "original_full_name": "Garth Iorg",
+        "player_id": "SYN-TOR-8",
+        "slot": 8,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Garth Iorg",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Iorg"
+      },
+      {
+        "display_name": "Stieb",
+        "field": "P",
+        "given": "Dave",
+        "original_full_name": "Dave Stieb",
+        "player_id": "SYN-TOR-9",
+        "slot": 9,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Dave Stieb",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Stieb"
+      }
+    ],
+    "visitor_pitcher": {
+      "display_name": "Stieb",
+      "player_id": "SYN-TOR-9",
+      "source_name": "Dave Stieb",
+      "source_reference": {
+        "file": "register",
+        "player_id": "SYN-TOR-9"
+      }
+    },
+    "visitor_pitcher_id": "SYN-TOR-9",
+    "visitor_team_game_number": 2
+  },
+  {
+    "date": "1985-07-02",
+    "day_night": "D",
+    "fixture_id": "F-SPLIT-OPP",
+    "game_id": "SYN-1985-SPLIT-MID",
+    "game_number": 1,
+    "game_type": "Regular Season",
+    "home": "BOS",
+    "home_lineup": [
+      {
+        "display_name": "Boggs",
+        "field": "LF",
+        "given": "Wade",
+        "original_full_name": "Wade Boggs",
+        "player_id": "SYN-BOS-1",
+        "slot": 1,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Wade Boggs",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Boggs"
+      },
+      {
+        "display_name": "Rice",
+        "field": "CF",
+        "given": "Jim",
+        "original_full_name": "Jim Rice",
+        "player_id": "SYN-BOS-2",
+        "slot": 2,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Jim Rice",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Rice"
+      },
+      {
+        "display_name": "Evans",
+        "field": "RF",
+        "given": "Dwight",
+        "original_full_name": "Dwight Evans",
+        "player_id": "SYN-BOS-3",
+        "slot": 3,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Dwight Evans",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Evans"
+      },
+      {
+        "display_name": "Buckner",
+        "field": "1B",
+        "given": "Bill",
+        "original_full_name": "Bill Buckner",
+        "player_id": "SYN-BOS-4",
+        "slot": 4,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Bill Buckner",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Buckner"
+      },
+      {
+        "display_name": "Armas",
+        "field": "C",
+        "given": "Tony",
+        "original_full_name": "Tony Armas",
+        "player_id": "SYN-BOS-5",
+        "slot": 5,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Tony Armas",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Armas"
+      },
+      {
+        "display_name": "Barrett",
+        "field": "2B",
+        "given": "Marty",
+        "original_full_name": "Marty Barrett",
+        "player_id": "SYN-BOS-6",
+        "slot": 6,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Marty Barrett",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Barrett"
+      },
+      {
+        "display_name": "Hoffman",
+        "field": "SS",
+        "given": "Glenn",
+        "original_full_name": "Glenn Hoffman",
+        "player_id": "SYN-BOS-7",
+        "slot": 7,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Glenn Hoffman",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Hoffman"
+      },
+      {
+        "display_name": "Gedman",
+        "field": "3B",
+        "given": "Rich",
+        "original_full_name": "Rich Gedman",
+        "player_id": "SYN-BOS-8",
+        "slot": 8,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Rich Gedman",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Gedman"
+      },
+      {
+        "display_name": "Can",
+        "field": "P",
+        "given": "Oil",
+        "original_full_name": "Oil Can",
+        "player_id": "SYN-BOS-9",
+        "slot": 9,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Oil Can",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Can"
+      }
+    ],
+    "home_pitcher": {
+      "display_name": "Can",
+      "player_id": "SYN-BOS-9",
+      "source_name": "Oil Can",
+      "source_reference": {
+        "file": "register",
+        "player_id": "SYN-BOS-9"
+      }
+    },
+    "home_pitcher_id": "SYN-BOS-9",
+    "home_team_game_number": 4,
+    "season": 1985,
+    "series_game_count": 1,
+    "series_game_index": 1,
+    "series_id": "S0008",
+    "series_start_date": "1985-07-02",
+    "source": {
+      "class": "synthetic",
+      "file": "tools/skeetersoft/pilot_data.py"
+    },
+    "visitor": "TOR",
+    "visitor_lineup": [
+      {
+        "display_name": "Bell",
+        "field": "LF",
+        "given": "George",
+        "original_full_name": "George Bell",
+        "player_id": "SYN-TOR-1",
+        "slot": 1,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "George Bell",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Bell"
+      },
+      {
+        "display_name": "Moseby",
+        "field": "CF",
+        "given": "Lloyd",
+        "original_full_name": "Lloyd Moseby",
+        "player_id": "SYN-TOR-2",
+        "slot": 2,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Lloyd Moseby",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Moseby"
+      },
+      {
+        "display_name": "Barfield",
+        "field": "RF",
+        "given": "Jesse",
+        "original_full_name": "Jesse Barfield",
+        "player_id": "SYN-TOR-3",
+        "slot": 3,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Jesse Barfield",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Barfield"
+      },
+      {
+        "display_name": "Upshaw",
+        "field": "1B",
+        "given": "Willie",
+        "original_full_name": "Willie Upshaw",
+        "player_id": "SYN-TOR-4",
+        "slot": 4,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Willie Upshaw",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Upshaw"
+      },
+      {
+        "display_name": "Whitt",
+        "field": "C",
+        "given": "Ernie",
+        "original_full_name": "Ernie Whitt",
+        "player_id": "SYN-TOR-5",
+        "slot": 5,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Ernie Whitt",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Whitt"
+      },
+      {
+        "display_name": "Garcia",
+        "field": "2B",
+        "given": "Damaso",
+        "original_full_name": "Damaso Garcia",
+        "player_id": "SYN-TOR-6",
+        "slot": 6,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Damaso Garcia",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Garcia"
+      },
+      {
+        "display_name": "Fernandez",
+        "field": "SS",
+        "given": "Tony",
+        "original_full_name": "Tony Fernandez",
+        "player_id": "SYN-TOR-7",
+        "slot": 7,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Tony Fernandez",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Fernandez"
+      },
+      {
+        "display_name": "Iorg",
+        "field": "3B",
+        "given": "Garth",
+        "original_full_name": "Garth Iorg",
+        "player_id": "SYN-TOR-8",
+        "slot": 8,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Garth Iorg",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Iorg"
+      },
+      {
+        "display_name": "Stieb",
+        "field": "P",
+        "given": "Dave",
+        "original_full_name": "Dave Stieb",
+        "player_id": "SYN-TOR-9",
+        "slot": 9,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Dave Stieb",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Stieb"
+      }
+    ],
+    "visitor_pitcher": {
+      "display_name": "Stieb",
+      "player_id": "SYN-TOR-9",
+      "source_name": "Dave Stieb",
+      "source_reference": {
+        "file": "register",
+        "player_id": "SYN-TOR-9"
+      }
+    },
+    "visitor_pitcher_id": "SYN-TOR-9",
+    "visitor_team_game_number": 3
+  },
+  {
+    "date": "1985-07-03",
+    "day_night": "D",
+    "fixture_id": "F-SPLIT-OPP",
+    "game_id": "SYN-1985-SPLIT-2",
+    "game_number": 1,
+    "game_type": "Regular Season",
+    "home": "KCA",
+    "home_lineup": [
+      {
+        "display_name": "Wilson",
+        "field": "LF",
+        "given": "Willie",
+        "original_full_name": "Willie Wilson",
+        "player_id": "SYN-KCA-1",
+        "slot": 1,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Willie Wilson",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Wilson"
+      },
+      {
+        "display_name": "Brett",
+        "field": "CF",
+        "given": "George",
+        "original_full_name": "George Brett",
+        "player_id": "SYN-KCA-2",
+        "slot": 2,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "George Brett",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Brett"
+      },
+      {
+        "display_name": "McRae",
+        "field": "RF",
+        "given": "Hal",
+        "original_full_name": "Hal McRae",
+        "player_id": "SYN-KCA-3",
+        "slot": 3,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Hal McRae",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "McRae"
+      },
+      {
+        "display_name": "Balboni",
+        "field": "1B",
+        "given": "Steve",
+        "original_full_name": "Steve Balboni",
+        "player_id": "SYN-KCA-4",
+        "slot": 4,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Steve Balboni",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Balboni"
+      },
+      {
+        "display_name": "White",
+        "field": "C",
+        "given": "Frank",
+        "original_full_name": "Frank White",
+        "player_id": "SYN-KCA-5",
+        "slot": 5,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Frank White",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "White"
+      },
+      {
+        "display_name": "Motley",
+        "field": "2B",
+        "given": "Darryl",
+        "original_full_name": "Darryl Motley",
+        "player_id": "SYN-KCA-6",
+        "slot": 6,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Darryl Motley",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Motley"
+      },
+      {
+        "display_name": "Orta",
+        "field": "SS",
+        "given": "Jorge",
+        "original_full_name": "Jorge Orta",
+        "player_id": "SYN-KCA-7",
+        "slot": 7,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Jorge Orta",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Orta"
+      },
+      {
+        "display_name": "Sundberg",
+        "field": "3B",
+        "given": "Jim",
+        "original_full_name": "Jim Sundberg",
+        "player_id": "SYN-KCA-8",
+        "slot": 8,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Jim Sundberg",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Sundberg"
+      },
+      {
+        "display_name": "Black",
+        "field": "P",
+        "given": "Bud",
+        "original_full_name": "Bud Black",
+        "player_id": "SYN-KCA-9",
+        "slot": 9,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Bud Black",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Black"
+      }
+    ],
+    "home_pitcher": {
+      "display_name": "Black",
+      "player_id": "SYN-KCA-9",
+      "source_name": "Bud Black",
+      "source_reference": {
+        "file": "register",
+        "player_id": "SYN-KCA-9"
+      }
+    },
+    "home_pitcher_id": "SYN-KCA-9",
+    "home_team_game_number": 3,
+    "season": 1985,
+    "series_game_count": 1,
+    "series_game_index": 1,
+    "series_id": "S0009",
+    "series_start_date": "1985-07-03",
+    "source": {
+      "class": "synthetic",
+      "file": "tools/skeetersoft/pilot_data.py"
+    },
+    "visitor": "TOR",
+    "visitor_lineup": [
+      {
+        "display_name": "Bell",
+        "field": "LF",
+        "given": "George",
+        "original_full_name": "George Bell",
+        "player_id": "SYN-TOR-1",
+        "slot": 1,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "George Bell",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Bell"
+      },
+      {
+        "display_name": "Moseby",
+        "field": "CF",
+        "given": "Lloyd",
+        "original_full_name": "Lloyd Moseby",
+        "player_id": "SYN-TOR-2",
+        "slot": 2,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Lloyd Moseby",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Moseby"
+      },
+      {
+        "display_name": "Barfield",
+        "field": "RF",
+        "given": "Jesse",
+        "original_full_name": "Jesse Barfield",
+        "player_id": "SYN-TOR-3",
+        "slot": 3,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Jesse Barfield",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Barfield"
+      },
+      {
+        "display_name": "Upshaw",
+        "field": "1B",
+        "given": "Willie",
+        "original_full_name": "Willie Upshaw",
+        "player_id": "SYN-TOR-4",
+        "slot": 4,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Willie Upshaw",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Upshaw"
+      },
+      {
+        "display_name": "Whitt",
+        "field": "C",
+        "given": "Ernie",
+        "original_full_name": "Ernie Whitt",
+        "player_id": "SYN-TOR-5",
+        "slot": 5,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Ernie Whitt",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Whitt"
+      },
+      {
+        "display_name": "Garcia",
+        "field": "2B",
+        "given": "Damaso",
+        "original_full_name": "Damaso Garcia",
+        "player_id": "SYN-TOR-6",
+        "slot": 6,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Damaso Garcia",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Garcia"
+      },
+      {
+        "display_name": "Fernandez",
+        "field": "SS",
+        "given": "Tony",
+        "original_full_name": "Tony Fernandez",
+        "player_id": "SYN-TOR-7",
+        "slot": 7,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Tony Fernandez",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Fernandez"
+      },
+      {
+        "display_name": "Iorg",
+        "field": "3B",
+        "given": "Garth",
+        "original_full_name": "Garth Iorg",
+        "player_id": "SYN-TOR-8",
+        "slot": 8,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Garth Iorg",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Iorg"
+      },
+      {
+        "display_name": "Stieb",
+        "field": "P",
+        "given": "Dave",
+        "original_full_name": "Dave Stieb",
+        "player_id": "SYN-TOR-9",
+        "slot": 9,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Dave Stieb",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Stieb"
+      }
+    ],
+    "visitor_pitcher": {
+      "display_name": "Stieb",
+      "player_id": "SYN-TOR-9",
+      "source_name": "Dave Stieb",
+      "source_reference": {
+        "file": "register",
+        "player_id": "SYN-TOR-9"
+      }
+    },
+    "visitor_pitcher_id": "SYN-TOR-9",
+    "visitor_team_game_number": 4
+  },
+  {
+    "date": "1985-08-01",
+    "day_night": "D",
+    "fixture_id": "F-REVERSE",
+    "game_id": "SYN-1985-REV-1",
+    "game_number": 1,
+    "game_type": "Regular Season",
+    "home": "KCA",
+    "home_lineup": [
+      {
+        "display_name": "Wilson",
+        "field": "LF",
+        "given": "Willie",
+        "original_full_name": "Willie Wilson",
+        "player_id": "SYN-KCA-1",
+        "slot": 1,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Willie Wilson",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Wilson"
+      },
+      {
+        "display_name": "Brett",
+        "field": "CF",
+        "given": "George",
+        "original_full_name": "George Brett",
+        "player_id": "SYN-KCA-2",
+        "slot": 2,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "George Brett",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Brett"
+      },
+      {
+        "display_name": "McRae",
+        "field": "RF",
+        "given": "Hal",
+        "original_full_name": "Hal McRae",
+        "player_id": "SYN-KCA-3",
+        "slot": 3,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Hal McRae",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "McRae"
+      },
+      {
+        "display_name": "Balboni",
+        "field": "1B",
+        "given": "Steve",
+        "original_full_name": "Steve Balboni",
+        "player_id": "SYN-KCA-4",
+        "slot": 4,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Steve Balboni",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Balboni"
+      },
+      {
+        "display_name": "White",
+        "field": "C",
+        "given": "Frank",
+        "original_full_name": "Frank White",
+        "player_id": "SYN-KCA-5",
+        "slot": 5,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Frank White",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "White"
+      },
+      {
+        "display_name": "Motley",
+        "field": "2B",
+        "given": "Darryl",
+        "original_full_name": "Darryl Motley",
+        "player_id": "SYN-KCA-6",
+        "slot": 6,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Darryl Motley",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Motley"
+      },
+      {
+        "display_name": "Orta",
+        "field": "SS",
+        "given": "Jorge",
+        "original_full_name": "Jorge Orta",
+        "player_id": "SYN-KCA-7",
+        "slot": 7,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Jorge Orta",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Orta"
+      },
+      {
+        "display_name": "Sundberg",
+        "field": "3B",
+        "given": "Jim",
+        "original_full_name": "Jim Sundberg",
+        "player_id": "SYN-KCA-8",
+        "slot": 8,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Jim Sundberg",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Sundberg"
+      },
+      {
+        "display_name": "Black",
+        "field": "P",
+        "given": "Bud",
+        "original_full_name": "Bud Black",
+        "player_id": "SYN-KCA-9",
+        "slot": 9,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Bud Black",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Black"
+      }
+    ],
+    "home_pitcher": {
+      "display_name": "Black",
+      "player_id": "SYN-KCA-9",
+      "source_name": "Bud Black",
+      "source_reference": {
+        "file": "register",
+        "player_id": "SYN-KCA-9"
+      }
+    },
+    "home_pitcher_id": "SYN-KCA-9",
+    "home_team_game_number": 4,
+    "season": 1985,
+    "series_game_count": 1,
+    "series_game_index": 1,
+    "series_id": "S0010",
+    "series_start_date": "1985-08-01",
+    "source": {
+      "class": "synthetic",
+      "file": "tools/skeetersoft/pilot_data.py"
+    },
+    "visitor": "TOR",
+    "visitor_lineup": [
+      {
+        "display_name": "Bell",
+        "field": "LF",
+        "given": "George",
+        "original_full_name": "George Bell",
+        "player_id": "SYN-TOR-1",
+        "slot": 1,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "George Bell",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Bell"
+      },
+      {
+        "display_name": "Moseby",
+        "field": "CF",
+        "given": "Lloyd",
+        "original_full_name": "Lloyd Moseby",
+        "player_id": "SYN-TOR-2",
+        "slot": 2,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Lloyd Moseby",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Moseby"
+      },
+      {
+        "display_name": "Barfield",
+        "field": "RF",
+        "given": "Jesse",
+        "original_full_name": "Jesse Barfield",
+        "player_id": "SYN-TOR-3",
+        "slot": 3,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Jesse Barfield",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Barfield"
+      },
+      {
+        "display_name": "Upshaw",
+        "field": "1B",
+        "given": "Willie",
+        "original_full_name": "Willie Upshaw",
+        "player_id": "SYN-TOR-4",
+        "slot": 4,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Willie Upshaw",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Upshaw"
+      },
+      {
+        "display_name": "Whitt",
+        "field": "C",
+        "given": "Ernie",
+        "original_full_name": "Ernie Whitt",
+        "player_id": "SYN-TOR-5",
+        "slot": 5,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Ernie Whitt",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Whitt"
+      },
+      {
+        "display_name": "Garcia",
+        "field": "2B",
+        "given": "Damaso",
+        "original_full_name": "Damaso Garcia",
+        "player_id": "SYN-TOR-6",
+        "slot": 6,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Damaso Garcia",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Garcia"
+      },
+      {
+        "display_name": "Fernandez",
+        "field": "SS",
+        "given": "Tony",
+        "original_full_name": "Tony Fernandez",
+        "player_id": "SYN-TOR-7",
+        "slot": 7,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Tony Fernandez",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Fernandez"
+      },
+      {
+        "display_name": "Iorg",
+        "field": "3B",
+        "given": "Garth",
+        "original_full_name": "Garth Iorg",
+        "player_id": "SYN-TOR-8",
+        "slot": 8,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Garth Iorg",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Iorg"
+      },
+      {
+        "display_name": "Stieb",
+        "field": "P",
+        "given": "Dave",
+        "original_full_name": "Dave Stieb",
+        "player_id": "SYN-TOR-9",
+        "slot": 9,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Dave Stieb",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Stieb"
+      }
+    ],
+    "visitor_pitcher": {
+      "display_name": "Stieb",
+      "player_id": "SYN-TOR-9",
+      "source_name": "Dave Stieb",
+      "source_reference": {
+        "file": "register",
+        "player_id": "SYN-TOR-9"
+      }
+    },
+    "visitor_pitcher_id": "SYN-TOR-9",
+    "visitor_team_game_number": 5
+  },
+  {
+    "date": "1985-08-02",
+    "day_night": "D",
+    "fixture_id": "F-REVERSE",
+    "game_id": "SYN-1985-REV-2",
+    "game_number": 1,
+    "game_type": "Regular Season",
+    "home": "TOR",
+    "home_lineup": [
+      {
+        "display_name": "Bell",
+        "field": "LF",
+        "given": "George",
+        "original_full_name": "George Bell",
+        "player_id": "SYN-TOR-1",
+        "slot": 1,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "George Bell",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Bell"
+      },
+      {
+        "display_name": "Moseby",
+        "field": "CF",
+        "given": "Lloyd",
+        "original_full_name": "Lloyd Moseby",
+        "player_id": "SYN-TOR-2",
+        "slot": 2,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Lloyd Moseby",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Moseby"
+      },
+      {
+        "display_name": "Barfield",
+        "field": "RF",
+        "given": "Jesse",
+        "original_full_name": "Jesse Barfield",
+        "player_id": "SYN-TOR-3",
+        "slot": 3,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Jesse Barfield",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Barfield"
+      },
+      {
+        "display_name": "Upshaw",
+        "field": "1B",
+        "given": "Willie",
+        "original_full_name": "Willie Upshaw",
+        "player_id": "SYN-TOR-4",
+        "slot": 4,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Willie Upshaw",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Upshaw"
+      },
+      {
+        "display_name": "Whitt",
+        "field": "C",
+        "given": "Ernie",
+        "original_full_name": "Ernie Whitt",
+        "player_id": "SYN-TOR-5",
+        "slot": 5,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Ernie Whitt",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Whitt"
+      },
+      {
+        "display_name": "Garcia",
+        "field": "2B",
+        "given": "Damaso",
+        "original_full_name": "Damaso Garcia",
+        "player_id": "SYN-TOR-6",
+        "slot": 6,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Damaso Garcia",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Garcia"
+      },
+      {
+        "display_name": "Fernandez",
+        "field": "SS",
+        "given": "Tony",
+        "original_full_name": "Tony Fernandez",
+        "player_id": "SYN-TOR-7",
+        "slot": 7,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Tony Fernandez",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Fernandez"
+      },
+      {
+        "display_name": "Iorg",
+        "field": "3B",
+        "given": "Garth",
+        "original_full_name": "Garth Iorg",
+        "player_id": "SYN-TOR-8",
+        "slot": 8,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Garth Iorg",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Iorg"
+      },
+      {
+        "display_name": "Stieb",
+        "field": "P",
+        "given": "Dave",
+        "original_full_name": "Dave Stieb",
+        "player_id": "SYN-TOR-9",
+        "slot": 9,
+        "source": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "source_name": "Dave Stieb",
+        "source_reference": {
+          "field": "home_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Stieb"
+      }
+    ],
+    "home_pitcher": {
+      "display_name": "Stieb",
+      "player_id": "SYN-TOR-9",
+      "source_name": "Dave Stieb",
+      "source_reference": {
+        "file": "register",
+        "player_id": "SYN-TOR-9"
+      }
+    },
+    "home_pitcher_id": "SYN-TOR-9",
+    "home_team_game_number": 6,
+    "season": 1985,
+    "series_game_count": 1,
+    "series_game_index": 1,
+    "series_id": "S0011",
+    "series_start_date": "1985-08-02",
+    "source": {
+      "class": "synthetic",
+      "file": "tools/skeetersoft/pilot_data.py"
+    },
+    "visitor": "KCA",
+    "visitor_lineup": [
+      {
+        "display_name": "Wilson",
+        "field": "LF",
+        "given": "Willie",
+        "original_full_name": "Willie Wilson",
+        "player_id": "SYN-KCA-1",
+        "slot": 1,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Willie Wilson",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Wilson"
+      },
+      {
+        "display_name": "Brett",
+        "field": "CF",
+        "given": "George",
+        "original_full_name": "George Brett",
+        "player_id": "SYN-KCA-2",
+        "slot": 2,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "George Brett",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Brett"
+      },
+      {
+        "display_name": "McRae",
+        "field": "RF",
+        "given": "Hal",
+        "original_full_name": "Hal McRae",
+        "player_id": "SYN-KCA-3",
+        "slot": 3,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Hal McRae",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "McRae"
+      },
+      {
+        "display_name": "Balboni",
+        "field": "1B",
+        "given": "Steve",
+        "original_full_name": "Steve Balboni",
+        "player_id": "SYN-KCA-4",
+        "slot": 4,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Steve Balboni",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Balboni"
+      },
+      {
+        "display_name": "White",
+        "field": "C",
+        "given": "Frank",
+        "original_full_name": "Frank White",
+        "player_id": "SYN-KCA-5",
+        "slot": 5,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Frank White",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "White"
+      },
+      {
+        "display_name": "Motley",
+        "field": "2B",
+        "given": "Darryl",
+        "original_full_name": "Darryl Motley",
+        "player_id": "SYN-KCA-6",
+        "slot": 6,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Darryl Motley",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Motley"
+      },
+      {
+        "display_name": "Orta",
+        "field": "SS",
+        "given": "Jorge",
+        "original_full_name": "Jorge Orta",
+        "player_id": "SYN-KCA-7",
+        "slot": 7,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Jorge Orta",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Orta"
+      },
+      {
+        "display_name": "Sundberg",
+        "field": "3B",
+        "given": "Jim",
+        "original_full_name": "Jim Sundberg",
+        "player_id": "SYN-KCA-8",
+        "slot": 8,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Jim Sundberg",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Sundberg"
+      },
+      {
+        "display_name": "Black",
+        "field": "P",
+        "given": "Bud",
+        "original_full_name": "Bud Black",
+        "player_id": "SYN-KCA-9",
+        "slot": 9,
+        "source": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "source_name": "Bud Black",
+        "source_reference": {
+          "field": "visitor_lineup",
+          "file": "input"
+        },
+        "suffix": "",
+        "surname": "Black"
+      }
+    ],
+    "visitor_pitcher": {
+      "display_name": "Black",
+      "player_id": "SYN-KCA-9",
+      "source_name": "Bud Black",
+      "source_reference": {
+        "file": "register",
+        "player_id": "SYN-KCA-9"
+      }
+    },
+    "visitor_pitcher_id": "SYN-KCA-9",
+    "visitor_team_game_number": 5
+  }
+]

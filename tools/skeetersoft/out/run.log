@@ -1,0 +1,14 @@
+Skeetersoft Replay Ledger sandbox pilot
+version: 0.1.0-pilot
+python: 3.11.2 (main, Apr 28 2025, 14:11:48) [GCC 12.2.0]
+tz: UTC
+locale: C
+elapsed_s: 0.006
+accepted: 13
+accepted_exceptions: 0
+failure_rejected: 5
+failure_incorrectly_accepted: []
+invariant_errors: []
+pdf: not produced (HTML is canonical; no pinned headless renderer)
+network: not used
+secrets: none

@@ -84,7 +84,8 @@
         ".prettierrc",
         ".prettierignore",
         ".editorconfig",
-        ".cursor/rules/"
+        ".cursor/rules/",
+        "tools/skeetersoft/"
       ],
       "deny_prefixes": []
     },
