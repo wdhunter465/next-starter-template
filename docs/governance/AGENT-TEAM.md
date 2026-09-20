@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Durable LGFC agent roles, recognized agent products, current member mapping, role work-selection order, approval authority, protected stops, and role-transition state
 Does Not Own: PMO lifecycle/stage semantics, detailed queue-label implementation, delivery-profile mechanics, CI implementation, or Production recovery procedure
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3240, #3629, #3693, #3825, #4074, #4165, #4174
-Last Reviewed: 2026-09-19
+Related Issues: #3240, #3629, #3693, #3825, #4074, #4165, #4173, #4174
+Last Reviewed: 2026-09-20
 ---
 
 # Agent Team
@@ -128,7 +128,7 @@ Governance does not override Product Authority's business/product decisions or p
 | Member/product | Current roles |
 | --- | --- |
 | Bill | Product Authority; Day-2 Operations; default merge approval when available |
-| ChatGPT | **Governance**; Administration & Communications; Day-2 coordination. Not PMO Admin. Not CMO. |
+| ChatGPT | **Retired** (#4173). No current team role, wake path, PMO/Governance/review, or implementation authority. Historical record only (`docs/ops/ai/CHATGPT-RULES.md`). |
 | Grok | **Operations**; authorized implementation |
 | Codex | **Retired** (#4165). No current team role, wake path, or implementation authority. Historical record only (`docs/ops/ai/CODEX-RULES.md`). |
 | Cursor | **Operations during transition**; **PMO Admin** (interim, #4174); authorized implementation; target role is Engineering after Product Authority records the transition |
@@ -165,15 +165,15 @@ Current holders live only in this file:
 
 Product Authority (Bill) remains the default merge approver when available. CMO is the recorded delegate for merge approval only when Product Authority is unavailable and a holder is named.
 
-## ChatGPT dual-role ownership
+## ChatGPT retirement
 
-Product Authority permanently removed OpenAI / Work from the LGFC Agentic Team on 2026-09-03 (#4074) for unreliable PMO/closeout performance. Work holds no current LGFC team role, PMO authority, implementation authority, review authority, closeout authority, or Administration authority. Historical Issue comments, PR authorship, and prior decisions attributing work to Work remain truthful records and are not rewritten.
+Product Authority permanently removed ChatGPT from the LGFC Agentic Team on 2026-09-19 (#4173). ChatGPT holds no current LGFC team role, PMO authority, Governance authority, implementation authority, review authority, closeout authority, Administration authority, or wake/dispatch path.
 
-ChatGPT is not PMO Admin and is not CMO. PMO process execution is **PMO Admin** (current holder in the mapping table). Merge approval when Product Authority is unavailable is **CMO** only after Product Authority records a holder.
+`docs/ops/ai/CHATGPT-RULES.md` is historical only (path retained for bootstrap checks).
 
-ChatGPT currently retains Governance and Administration & Communications where mapped. Holding Governance does not collapse builder/reviewer separation: no implementer may independently approve protected work it implemented.
+Work was already retired (#4074). Codex was already retired (#4165). Historical Issue comments, PR authorship, and prior decisions attributing work to ChatGPT remain truthful records and are not rewritten.
 
-A product may assist another role only through explicit repository authority; the primary mapping above determines normal responsibility and work selection.
+Successor coverage until Product names a permanent PMO/Governance holder: Cursor Local already has Product-authorized Operations + PMO + Governance routing; Claude Code remains Engineering and independent review for work it did not implement; Bill remains Product Authority. Interim PMO Admin remains Cursor per #4174.
 
 ## Priority and hierarchy dependency
 
@@ -248,6 +248,7 @@ This document supersedes earlier agent-team language that:
 - treats merge approval as only a named person instead of Product Authority by default and **CMO** when Product Authority is unavailable and a holder is recorded;
 - treats Cursor as permanently Operations-only or permanently Engineering before the recorded transition;
 - treats retired Codex (#4165) as a live Operations/implementation role;
+- treats retired ChatGPT (#4173) as a live Governance/Administration/PMO role;
 - defines one universal normal-work queue order for every agent regardless of role;
 - allows an agent to halt after one task while other eligible work exists;
 - conflates team ownership with the current agent claim.
