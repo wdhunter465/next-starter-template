@@ -141,7 +141,7 @@ if (mode === 'print') {
 // Production is the top-level `lgfc_lite` D1 database (wrangler.toml).
 // Local/preview dev uses the `DB` binding under env.preview (`lgfc-litedev`).
 const d1Args = isRemote
-  ? ['wrangler', 'd1', 'execute', 'lgfc_lite', '--remote']
+  ? ['wrangler', 'd1', 'execute', 'lgfc_lite', '--remote', '--yes']
   : ['wrangler', 'd1', 'execute', 'DB', '--local', '--env', 'preview'];
 
 const tmpFile = path.join(__dirname, '..', `.club-home-pilot-${mode}.sql`);
