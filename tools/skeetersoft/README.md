@@ -34,4 +34,4 @@ HTML/JSON next to those files are working intermediates. Copy the PDFs wherever 
 
 ## Rollback
 
-Delete or revert `tools/skeetersoft/**` on `sandbox/skeetersoft-replay-ledger`.
+Revert or delete `tools/skeetersoft/**` on `main` (or revert the merge commit that landed this folder). The older sandbox branch `sandbox/skeetersoft-replay-ledger` is historical only after this lands.

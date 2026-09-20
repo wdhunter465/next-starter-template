@@ -31,6 +31,7 @@ from skeetersoft.ingest import YEARS, event_games_to_records, ingest_years
 from skeetersoft.pilot_data import ACCEPTED_GAMES, FAILURE_GAMES
 from skeetersoft.render import render_ledger
 from skeetersoft.pdf import render_ledger_pdf
+from skeetersoft.teams import merge_aliases
 from skeetersoft.validate import validate_print_stream
 
 
@@ -179,14 +180,14 @@ def write_manifest(out_dir: Path, repo_root: Path) -> None:
             continue
         if any(part in skip_parts for part in path.parts):
             continue
-            rel = path.relative_to(repo_root).as_posix()
-            files.append(
-                {
-                    "path": rel,
-                    "sha256": sha256_file(path),
-                    "bytes": path.stat().st_size,
-                }
-            )
+        rel = path.relative_to(repo_root).as_posix()
+        files.append(
+            {
+                "path": rel,
+                "sha256": sha256_file(path),
+                "bytes": path.stat().st_size,
+            }
+        )
     payload = {
         "project": "Skeetersoft Replay Ledger sandbox pilot",
         "source_issue": "#3970",
