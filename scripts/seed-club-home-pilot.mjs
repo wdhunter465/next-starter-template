@@ -37,7 +37,8 @@ function sqlInteger(value) {
 }
 
 function nowIso() {
-  return new Date().toISOString().replace(/\.\d+Z$/, (m) => m).replace('Z', '000Z').slice(0, 24);
+  // ISO-8601 with trailing Z (matches D1 timestamp convention).
+  return new Date().toISOString();
 }
 
 // #4191: content_inventory_media.media_id REFERENCES photos(id) ON DELETE
