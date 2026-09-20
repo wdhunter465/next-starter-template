@@ -40,6 +40,15 @@ function nowIso() {
   return new Date().toISOString().replace(/\.\d+Z$/, (m) => m).replace('Z', '000Z').slice(0, 24);
 }
 
+// #4191: content_inventory_media.media_id REFERENCES photos(id) ON DELETE
+// RESTRICT (migration 0038). INSERT OR REPLACE deletes-then-reinserts, which
+// fails that RESTRICT once a pilot re-run's own media associations already
+// reference this photo. Upsert in place instead -- no delete, no violation.
+function upsertClause(columns, excludeFromUpdate) {
+  const updateCols = columns.filter((c) => c !== 'id' && !excludeFromUpdate.includes(c));
+  return `ON CONFLICT(id) DO UPDATE SET ${updateCols.map((c) => `${c} = excluded.${c}`).join(', ')}`;
+}
+
 function photoInsert(record) {
   const columns = [
     'id', 'photo_id', 'url', 'title', 'description', 'year', 'source',
@@ -51,7 +60,7 @@ function photoInsert(record) {
     }
     return sqlString(record[c] ?? null);
   });
-  return `INSERT OR REPLACE INTO photos (${columns.join(', ')}) VALUES (${values.join(', ')});`;
+  return `INSERT INTO photos (${columns.join(', ')}) VALUES (${values.join(', ')}) ${upsertClause(columns, [])};`;
 }
 
 function inventoryInsert(record) {
@@ -70,7 +79,11 @@ function inventoryInsert(record) {
     }
     return sqlString(row[c] ?? null);
   });
-  return `INSERT OR REPLACE INTO content_inventory (${columns.join(', ')}) VALUES (${values.join(', ')});`;
+  // content_inventory_media.story_id REFERENCES content_inventory(id) ON
+  // DELETE CASCADE -- a plain REPLACE would silently wipe this story's media
+  // associations before the script's own later statements re-add them.
+  // Upserting (and keeping created_at) avoids the churn.
+  return `INSERT INTO content_inventory (${columns.join(', ')}) VALUES (${values.join(', ')}) ${upsertClause(columns, ['created_at'])};`;
 }
 
 function mediaAssociationInsert(record) {
