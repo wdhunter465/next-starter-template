@@ -1,8 +1,8 @@
 # Skeetersoft Replay Ledger (#3124)
 
-Isolated one-time utility. All paths in this folder only. Do **not** merge to `main`.
+Isolated one-time utility. All paths in this folder only. Do **not** merge to `main` unless Product later gives an explicit `main` Go.
 
-Retrosheet notice: see `NOTICE`. Event archives stay in `input/cache/` and are not committed.
+**This app runs on your machine from the git checkout.** It does not run from Google Drive. Drive is only an optional place to store the finished PDF files after they are generated.
 
 ## Commands
 
@@ -13,15 +13,24 @@ PYTHONPATH=tools python3 tools/skeetersoft/run.py test
 PYTHONPATH=tools python3 tools/skeetersoft/run.py compile --out tools/skeetersoft/out
 PYTHONPATH=tools python3 tools/skeetersoft/run.py pilot --out tools/skeetersoft/out
 PYTHONPATH=tools python3 tools/skeetersoft/run.py full
+PYTHONPATH=tools python3 tools/skeetersoft/run.py pdf
 ```
 
-`pilot` runs unit tests, compiles the synthetic #3969 fixture set, writes evidence under `out/`, and repeats the compile for a byte-identical reproducibility check.
+`pilot` runs unit tests and the synthetic 1985 fixtures.
 
-`full` downloads Retrosheet regular-season event files for 1976–1985 into `input/cache/`, compiles starting lineups, and writes per-season HTML/JSON under `out/full/` plus a small committed summary at `evidence/1976-1985-coverage.md`.
+`full` downloads Retrosheet 1976–1985 event files into `input/cache/` (not committed), compiles starting lineups, and writes the print PDFs under `out/full/ledger-YYYY.pdf`.
 
-## Pilot vs full range
+`pdf` rebuilds those PDFs from already-compiled season JSON without downloading again.
 
-The sandbox children (#3969–#3971) used **synthetic 1985 fixtures**. Product Authority GO 2026-09-19 authorized Active continuation of the licensed 1976–1985 run. HTML is the canonical print source. PDF is not produced until a pinned headless renderer is authorized.
+## Print output
+
+The print deliverable is **PDF**, one file per season:
+
+- `tools/skeetersoft/out/full/ledger-1976.pdf`
+- …
+- `tools/skeetersoft/out/full/ledger-1985.pdf`
+
+HTML/JSON next to those files are working intermediates. Copy the PDFs wherever you print or archive them. Google Drive is not required to create or open them.
 
 ## Rollback
 

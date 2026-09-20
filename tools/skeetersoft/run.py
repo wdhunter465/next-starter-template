@@ -30,7 +30,7 @@ from skeetersoft.compile import compile_records, coverage_report
 from skeetersoft.ingest import YEARS, event_games_to_records, ingest_years
 from skeetersoft.pilot_data import ACCEPTED_GAMES, FAILURE_GAMES
 from skeetersoft.render import render_ledger
-from skeetersoft.teams import merge_aliases
+from skeetersoft.pdf import render_ledger_pdf
 from skeetersoft.validate import validate_print_stream
 
 
@@ -275,12 +275,14 @@ def compile_full(out_dir: Path) -> dict:
     evidence_dir.mkdir(parents=True, exist_ok=True)
     (evidence_dir / "1976-1985-coverage.md").write_text(coverage_md, encoding="utf-8", newline="\n")
 
+    pdf_paths = []
     by_season: dict[str, list] = {}
     for game in compiled["accepted"]:
         by_season.setdefault(str(game["season"]), []).append(game)
     for year, games in sorted(by_season.items()):
         dump_json(out_dir / f"master_print_stream-{year}.json", games)
         (out_dir / f"ledger-{year}.html").write_text(render_ledger(games), encoding="utf-8", newline="\n")
+        pdf_paths.append(render_ledger_pdf(games, out_dir / f"ledger-{year}.pdf"))
 
     seasons_present = set(coverage["seasons"])
     complete_ok = (
@@ -288,6 +290,8 @@ def compile_full(out_dir: Path) -> dict:
         and coverage["accepted_games"] > 0
         and all(str(year) in seasons_present for year in YEARS)
         and not ingested["unavailable"]
+        and len(pdf_paths) == len(YEARS)
+        and all(path.exists() and path.stat().st_size > 0 for path in pdf_paths)
     )
     if complete_ok:
         (out_dir / "COMPLETE").write_text("full-1976-1985-retrosheet\n", encoding="utf-8")
@@ -312,6 +316,7 @@ def compile_full(out_dir: Path) -> dict:
             f"rejected: {coverage['rejected_games']}",
             f"invariant_errors: {invariant_errors}",
             f"download_failures: {ingested['unavailable']}",
+            f"pdf_files: {[path.name for path in pdf_paths]}",
             ingested["notice"],
         ],
     )
@@ -320,7 +325,7 @@ def compile_full(out_dir: Path) -> dict:
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(prog="skeetersoft")
-    parser.add_argument("command", choices=["test", "compile", "pilot", "inventory", "full"])
+    parser.add_argument("command", choices=["test", "compile", "pilot", "inventory", "full", "pdf"])
     parser.add_argument("--out", default=str(ROOT / "out"))
     args = parser.parse_args(argv)
     out_dir = Path(args.out)
@@ -359,6 +364,21 @@ def main(argv: list[str] | None = None) -> int:
             )
         )
         return 0 if result["ok"] else 1
+
+    if args.command == "pdf":
+        if Path(args.out) == ROOT / "out":
+            out_dir = ROOT / "out" / "full"
+        written = []
+        for year in YEARS:
+            stream_path = out_dir / f"master_print_stream-{year}.json"
+            if not stream_path.exists():
+                print(f"missing {stream_path}; run full first", file=sys.stderr)
+                return 1
+            games = json.loads(stream_path.read_text(encoding="utf-8"))
+            pdf_path = render_ledger_pdf(games, out_dir / f"ledger-{year}.pdf")
+            written.append({"year": year, "pages": len(games), "path": pdf_path.as_posix(), "bytes": pdf_path.stat().st_size})
+        print(json.dumps({"ok": True, "pdfs": written}, indent=2))
+        return 0
 
     test_rc = run_tests()
     if test_rc != 0:
