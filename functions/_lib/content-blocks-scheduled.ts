@@ -26,6 +26,8 @@ export type DueContentBlock = {
   title: string;
   body_md: string;
   social_caption: string | null;
+  image_url: string | null;
+  image_alt: string | null;
   scheduled_publish_at: string;
   version: number;
 };
@@ -49,7 +51,7 @@ export function nowInNewYork(): string {
 export async function findDueScheduledBlocks(db: any): Promise<DueContentBlock[]> {
   const rows = await db
     .prepare(
-      `SELECT key, page, section, title, body_md, social_caption, scheduled_publish_at, version
+      `SELECT key, page, section, title, body_md, social_caption, image_url, image_alt, scheduled_publish_at, version
        FROM content_blocks
        WHERE status = 'draft'
          AND scheduled_publish_at IS NOT NULL

@@ -76,6 +76,8 @@ login as the rest of `/admin`):
   "publish_time": "10:00",
   "title": "Grand prize announced!",
   "body_md": "Today we reveal the grand prize...",
+  "image_url": "https://<your-b2-public-base>/path/to/photo.jpg",
+  "image_alt": "The grand prize trophy on display",
   "social_caption": "Grand prize day! 🎉 See the full details on LGFC.com"
 }
 ```
@@ -84,11 +86,27 @@ login as the rest of `/admin`):
 - One post per `publish_date` — resubmitting the same date overwrites the
   still-draft row (upsert); once a date has published, resubmitting it is
   refused (`409`) rather than silently overwritten, since `content_blocks`
-  publication is meant to be append-only for a live post.
+  publication is meant to be append-only for a live post. Delete it first
+  (see below) if you need to replace an already-published date.
+- `image_url` is optional — a direct, already-resolved public URL. This
+  endpoint does not upload images itself: upload the photo first through the
+  existing `/admin/media-assets` B2 flow (or reuse a `photos.url` already in
+  the system) and paste the resulting URL here. `image_alt` is **required**
+  whenever `image_url` is set (`400` if missing) — the post has no image if
+  you omit both.
 - `social_caption` is optional; if omitted, the Zapier payload falls back to
   `title`.
 - `GET /api/admin/fundraiser-details/list` shows every queued/published post
   for review before its date arrives.
+
+## Removing a post (e.g. after a pilot test)
+
+`POST /api/admin/fundraiser-details/delete` with `{ "key": "home.fundraiser-daily-details.2027-02-01" }`
+(admin session required). This is a real delete, not an unpublish — it
+removes the `content_blocks` row and its `content_revisions` history
+entirely, and works on a draft **or already-published** post. This is the
+intended way to run a pilot post through the full publish trigger to confirm
+it works, then remove it before the real 2027 content is populated.
 
 ## How the automated publish works
 
@@ -108,8 +126,10 @@ That endpoint:
    bumped, a `content_revisions` row written).
 3. Fires one webhook per published post to
    `SCHEDULED_CONTENT_ZAPIER_WEBHOOK_URL` with `{ title, caption, body,
-   published_at, site_origin, ... }`. A Zapier failure is logged but never
-   rolls back the website publish — the two are independent.
+   image_url, image_alt, published_at, site_origin, ... }` (`image_url`/
+   `image_alt` are `null` when the post has no image). A Zapier failure is
+   logged but never rolls back the website publish — the two are
+   independent.
 
 The sweep is idempotent: calling it twice in the same day (both cron ticks)
 only ever publishes each due row once, since the second call finds nothing

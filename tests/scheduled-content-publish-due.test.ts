@@ -36,6 +36,8 @@ function dueRow(overrides: Partial<ContentBlockRow> = {}): ContentBlockRow {
     updated_by: 'admin',
     scheduled_publish_at: PAST,
     social_caption: 'Grand prize day! 🎉',
+    image_url: null,
+    image_alt: null,
     ...overrides,
   };
 }
@@ -100,6 +102,24 @@ describe('POST /api/scheduled-content/publish-due (#4253)', () => {
     expect(payload.caption).toBe('Grand prize day! 🎉');
   });
 
+  it('includes image_url and image_alt in the Zapier payload when the post has an image', async () => {
+    const db = makeScheduledContentDb([
+      dueRow({ image_url: 'https://b2.example.com/photo.jpg', image_alt: 'The trophy' }),
+    ]);
+    const env = {
+      DB: db,
+      SCHEDULED_CONTENT_BRIDGE_TOKEN: BRIDGE_TOKEN,
+      SCHEDULED_CONTENT_ZAPIER_WEBHOOK_URL: 'https://hooks.zapier.com/hooks/catch/test',
+    };
+
+    await publishDue({ request: postRequest(BRIDGE_TOKEN), env });
+
+    const [, init] = fetchMock.mock.calls[0];
+    const payload = JSON.parse(init.body);
+    expect(payload.image_url).toBe('https://b2.example.com/photo.jpg');
+    expect(payload.image_alt).toBe('The trophy');
+  });
+
   it('does not publish a row scheduled for the future', async () => {
     const db = makeScheduledContentDb([dueRow({ scheduled_publish_at: FUTURE })]);
     const env = { DB: db, SCHEDULED_CONTENT_BRIDGE_TOKEN: BRIDGE_TOKEN };
@@ -142,6 +162,8 @@ describe('POST /api/scheduled-content/publish-due (#4253)', () => {
       title: 'Grand prize announced!',
       body_md: 'Today we reveal the grand prize.',
       social_caption: 'Grand prize day! 🎉',
+      image_url: null,
+      image_alt: null,
       scheduled_publish_at: PAST,
       version: 1,
     };

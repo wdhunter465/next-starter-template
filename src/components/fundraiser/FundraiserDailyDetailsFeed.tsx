@@ -7,6 +7,8 @@ export type FundraiserDailyDetailItem = {
   key: string;
   title: string;
   body_md: string | null;
+  image_url: string | null;
+  image_alt: string | null;
   published_at: string;
 };
 
@@ -73,6 +75,13 @@ export default function FundraiserDailyDetailsFeed({
             >
               <div style={{ fontSize: 13, color: 'rgba(0,0,0,0.6)' }}>{formatPublishedDate(item.published_at)}</div>
               <div style={{ fontWeight: 700, fontSize: 17, marginTop: 2 }}>{item.title}</div>
+              {item.image_url ? (
+                <img
+                  src={item.image_url}
+                  alt={item.image_alt || ''}
+                  style={{ maxWidth: '100%', height: 'auto', borderRadius: 8, marginTop: 8, display: 'block' }}
+                />
+              ) : null}
               {item.body_md ? (
                 <div style={{ fontSize: 14, color: 'rgba(0,0,0,0.8)', marginTop: 6, whiteSpace: 'pre-wrap' }}>
                   {item.body_md}

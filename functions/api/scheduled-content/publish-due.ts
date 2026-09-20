@@ -67,6 +67,8 @@ export const onRequestPost = async (context: any): Promise<Response> => {
         title: block.title,
         caption: block.social_caption || block.title,
         body: block.body_md,
+        image_url: block.image_url,
+        image_alt: block.image_alt,
         published_at: result.published_at,
         site_origin: publicUrl.origin,
       });

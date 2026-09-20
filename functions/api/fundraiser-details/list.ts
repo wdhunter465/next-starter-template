@@ -30,7 +30,7 @@ export const onRequestGet = async (context: any): Promise<Response> => {
     const limit = parseLimit(url.searchParams.get('limit'));
 
     const rows = await env.DB.prepare(
-      `SELECT key, title, published_body_md, published_at
+      `SELECT key, title, published_body_md, image_url, image_alt, published_at
        FROM content_blocks
        WHERE page = ? AND section = ? AND status = 'published'
        ORDER BY published_at DESC
@@ -43,6 +43,8 @@ export const onRequestGet = async (context: any): Promise<Response> => {
       key: row.key,
       title: row.title,
       body_md: row.published_body_md,
+      image_url: row.image_url || null,
+      image_alt: row.image_alt || null,
       published_at: row.published_at,
     }));
 

@@ -21,7 +21,7 @@ export const onRequestGet = async (context: any): Promise<Response> => {
 
   try {
     const rows = await env.DB.prepare(
-      `SELECT key, title, body_md, social_caption, status, scheduled_publish_at, published_at, version, updated_at, updated_by
+      `SELECT key, title, body_md, image_url, image_alt, social_caption, status, scheduled_publish_at, published_at, version, updated_at, updated_by
        FROM content_blocks
        WHERE page = ? AND section = ?
        ORDER BY COALESCE(scheduled_publish_at, published_at, updated_at) DESC`,

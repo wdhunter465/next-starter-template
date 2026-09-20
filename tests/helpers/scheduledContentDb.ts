@@ -1,6 +1,6 @@
 // Shared hand-rolled D1 test double for content_blocks scheduled-publish
 // tests (#4253). Mutable, unlike the read-only mocks used elsewhere, because
-// these routes actually INSERT/UPDATE content_blocks and content_revisions.
+// these routes actually INSERT/UPDATE/DELETE content_blocks and content_revisions.
 
 export type ContentBlockRow = {
   key: string;
@@ -16,6 +16,8 @@ export type ContentBlockRow = {
   updated_by: string;
   scheduled_publish_at: string | null;
   social_caption: string | null;
+  image_url: string | null;
+  image_alt: string | null;
 };
 
 export function makeScheduledContentDb(initialRows: ContentBlockRow[] = [], now = '2027-02-01 15:00:00') {
@@ -27,6 +29,10 @@ export function makeScheduledContentDb(initialRows: ContentBlockRow[] = [], now 
       first: async () => {
         if (sql.includes("datetime('now')")) return { now };
         if (sql.includes('SELECT key, version, status FROM content_blocks')) {
+          const [key] = args;
+          return rows.get(String(key)) || null;
+        }
+        if (sql.includes('SELECT key, page, section FROM content_blocks')) {
           const [key] = args;
           return rows.get(String(key)) || null;
         }
@@ -59,7 +65,8 @@ export function makeScheduledContentDb(initialRows: ContentBlockRow[] = [], now 
       },
       run: async () => {
         if (sql.includes('INSERT INTO content_blocks')) {
-          const [key, page, section, title, body_md, updated_at, updated_by, scheduled_publish_at, social_caption] = args;
+          const [key, page, section, title, body_md, updated_at, updated_by, scheduled_publish_at, social_caption, image_url, image_alt] =
+            args;
           rows.set(String(key), {
             key: String(key),
             page: String(page),
@@ -74,11 +81,13 @@ export function makeScheduledContentDb(initialRows: ContentBlockRow[] = [], now 
             updated_by: String(updated_by),
             scheduled_publish_at: (scheduled_publish_at as string) ?? null,
             social_caption: (social_caption as string) ?? null,
+            image_url: (image_url as string) ?? null,
+            image_alt: (image_alt as string) ?? null,
           });
           return { meta: { changes: 1 } };
         }
         if (sql.includes('UPDATE content_blocks') && sql.includes('SET title')) {
-          const [title, body_md, version, updated_at, updated_by, scheduled_publish_at, social_caption, key] = args;
+          const [title, body_md, version, updated_at, updated_by, scheduled_publish_at, social_caption, image_url, image_alt, key] = args;
           const existing = rows.get(String(key));
           if (!existing) return { meta: { changes: 0 } };
           Object.assign(existing, {
@@ -90,6 +99,8 @@ export function makeScheduledContentDb(initialRows: ContentBlockRow[] = [], now 
             updated_by: String(updated_by),
             scheduled_publish_at: (scheduled_publish_at as string) ?? null,
             social_caption: (social_caption as string) ?? null,
+            image_url: (image_url as string) ?? null,
+            image_alt: (image_alt as string) ?? null,
           });
           return { meta: { changes: 1 } };
         }
@@ -111,6 +122,14 @@ export function makeScheduledContentDb(initialRows: ContentBlockRow[] = [], now 
         if (sql.includes('INSERT INTO content_revisions')) {
           revisions.push(args);
           return { meta: { changes: 1 } };
+        }
+        if (sql.includes('DELETE FROM content_revisions')) {
+          return { meta: { changes: 0 } };
+        }
+        if (sql.includes('DELETE FROM content_blocks')) {
+          const [key] = args;
+          const existed = rows.delete(String(key));
+          return { meta: { changes: existed ? 1 : 0 } };
         }
         return { meta: { changes: 0 } };
       },

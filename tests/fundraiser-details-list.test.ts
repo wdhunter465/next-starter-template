@@ -22,6 +22,8 @@ function publishedRow(overrides: Partial<ContentBlockRow> = {}): ContentBlockRow
     updated_by: 'scheduled-content-bridge',
     scheduled_publish_at: null,
     social_caption: null,
+    image_url: null,
+    image_alt: null,
     ...overrides,
   };
 }
@@ -64,5 +66,29 @@ describe('GET /api/fundraiser-details/list (#4253)', () => {
     const limited = await listFundraiserDetails({ request: getRequest('?limit=1'), env });
     const body = await limited.json();
     expect(body.items).toHaveLength(1);
+  });
+
+  it('includes image_url and image_alt when present', async () => {
+    const db = makeScheduledContentDb([
+      publishedRow({ image_url: 'https://b2.example.com/photo.jpg', image_alt: 'The trophy' }),
+    ]);
+    const env = { DB: db };
+
+    const response = await listFundraiserDetails({ request: getRequest(), env });
+    const body = await response.json();
+    expect(body.items[0]).toMatchObject({
+      image_url: 'https://b2.example.com/photo.jpg',
+      image_alt: 'The trophy',
+    });
+  });
+
+  it('returns null image fields when no image was set', async () => {
+    const db = makeScheduledContentDb([publishedRow()]);
+    const env = { DB: db };
+
+    const response = await listFundraiserDetails({ request: getRequest(), env });
+    const body = await response.json();
+    expect(body.items[0].image_url).toBeNull();
+    expect(body.items[0].image_alt).toBeNull();
   });
 });

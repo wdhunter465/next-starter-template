@@ -41,6 +41,13 @@ export default function FundraiserDailyDetailsTeaser() {
           {formatPublishedDate(item.published_at)}
         </div>
         <h3 style={{ margin: '6px 0 8px 0' }}>{item.title}</h3>
+        {item.image_url ? (
+          <img
+            src={item.image_url}
+            alt={item.image_alt || ''}
+            style={{ maxWidth: '100%', height: 'auto', borderRadius: 8, marginBottom: 8, display: 'block' }}
+          />
+        ) : null}
         {item.body_md ? (
           <p style={{ margin: '0 0 12px 0', color: 'rgba(0,0,0,0.8)', whiteSpace: 'pre-wrap' }}>{item.body_md}</p>
         ) : null}

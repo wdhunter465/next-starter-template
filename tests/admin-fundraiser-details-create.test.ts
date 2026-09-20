@@ -38,6 +38,34 @@ describe('POST /api/admin/fundraiser-details/create (#4253)', () => {
     expect(await response.json()).toMatchObject({ ok: false, error: 'publish_date must be YYYY-MM-DD.' });
   });
 
+  it('rejects image_url without image_alt', async () => {
+    const env = { DB: withAdminSession(makeScheduledContentDb([])) };
+    const response = await createFundraiserDetail({
+      request: postRequest({ ...VALID_BODY, image_url: 'https://b2.example.com/photo.jpg' }),
+      env,
+    });
+    expect(response.status).toBe(400);
+    expect(await response.json()).toMatchObject({ ok: false, error: 'image_alt is required whenever image_url is set.' });
+  });
+
+  it('accepts and persists image_url with image_alt', async () => {
+    const db = makeScheduledContentDb([]);
+    const env = { DB: withAdminSession(db) };
+    const response = await createFundraiserDetail({
+      request: postRequest({
+        ...VALID_BODY,
+        image_url: 'https://b2.example.com/photo.jpg',
+        image_alt: 'The grand prize trophy on display',
+      }),
+      env,
+    });
+    expect(response.status).toBe(200);
+
+    const row = db._rows.get('home.fundraiser-daily-details.2027-02-01')!;
+    expect(row.image_url).toBe('https://b2.example.com/photo.jpg');
+    expect(row.image_alt).toBe('The grand prize trophy on display');
+  });
+
   it('rejects an impossible publish_time like 99:99', async () => {
     const env = { DB: withAdminSession(makeScheduledContentDb([])) };
     const response = await createFundraiserDetail({
@@ -116,6 +144,8 @@ describe('POST /api/admin/fundraiser-details/create (#4253)', () => {
       updated_by: 'scheduled-content-bridge',
       scheduled_publish_at: null,
       social_caption: null,
+      image_url: null,
+      image_alt: null,
     };
     const db = makeScheduledContentDb([publishedRow]);
     const env = { DB: withAdminSession(db) };

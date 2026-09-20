@@ -25,6 +25,8 @@ function row(overrides: Partial<ContentBlockRow> = {}): ContentBlockRow {
     updated_by: 'admin',
     scheduled_publish_at: '2027-02-01 10:00:00',
     social_caption: null,
+    image_url: null,
+    image_alt: null,
     ...overrides,
   };
 }
@@ -49,5 +51,19 @@ describe('GET /api/admin/fundraiser-details/list (#4253)', () => {
     const body = await response.json();
     expect(body.ok).toBe(true);
     expect(body.items).toHaveLength(2);
+  });
+
+  it('includes image_url and image_alt in the listed items', async () => {
+    const db = makeScheduledContentDb([
+      row({ image_url: 'https://b2.example.com/photo.jpg', image_alt: 'The trophy' }),
+    ]);
+    const env = { DB: withAdminSession(db) };
+
+    const response = await listAdminFundraiserDetails({ request: getRequest(), env });
+    const body = await response.json();
+    expect(body.items[0]).toMatchObject({
+      image_url: 'https://b2.example.com/photo.jpg',
+      image_alt: 'The trophy',
+    });
   });
 });
