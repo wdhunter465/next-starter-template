@@ -59,7 +59,7 @@ const USER_AGENT = 'LGFC-ClubHome-Pilot/1.0 (lougehrigfanclub.com; contact via s
 const PHOTOS = [
   { mediaId: 9401, commonsTitle: 'File:Lou Gehrig 1925.jpg' },
   { mediaId: 9402, commonsTitle: 'File:Lou Gehrig as a new Yankee 11 Jun 1923.jpg' },
-  { mediaId: 9403, commonsTitle: 'File:1923 Lou Gehrig.png' },
+  { mediaId: 9403, commonsTitle: 'File:LouGehrig1934Goudeycard.jpg' },
   { mediaId: 9404, commonsTitle: 'File:GehrigCU.jpg' },
 ];
 
@@ -91,6 +91,13 @@ async function fetchValidatedPhoto(commonsTitle) {
   const contentType = (sourceResponse.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
   const contentTypeCheck = validateIngestContentType(contentType);
   if (!contentTypeCheck.ok) throw new Error(contentTypeCheck.error);
+  // The persisted rendition contract is JPEG-only -- renditionObjectKey() always
+  // produces a .jpg key and RENDITION_OUTPUT_CONTENT_TYPE is image/jpeg. Fail
+  // fast on any other (otherwise-valid) image type instead of silently writing
+  // a mismatched content_type under a .jpg key (#4218 Copilot review).
+  if (contentType !== 'image/jpeg') {
+    throw new Error(`${commonsTitle}: source is ${contentType}, not image/jpeg -- the rendition pipeline is JPEG-only. Pick a JPEG Commons source instead.`);
+  }
 
   const bytes = new Uint8Array(await sourceResponse.arrayBuffer());
   const sizeCheck = validateIngestSize(bytes.byteLength);
