@@ -64,6 +64,38 @@ export const clubHomeMutedText = {
   fontSize: 14,
 };
 
+/**
+ * Real-photo framing for a large, center-column posting space (lead story,
+ * featured photo). Matches the placeholder's navy-rule frame so a real image
+ * drops into the same visual slot once one is available (#4180).
+ */
+export const clubHomeStoryHeroImage = {
+  width: '100%',
+  // Fixed (not max) height, matching clubHomePhotoPlaceholder(300)'s height exactly, with
+  // objectFit: 'cover' to crop rather than letterbox -- any aspect ratio still renders at
+  // this exact height, so swapping placeholder -> real image never shifts layout.
+  height: 300,
+  objectFit: 'cover' as const,
+  display: 'block',
+  border: `2px solid ${clubHomeColors.navy}`,
+  boxSizing: 'border-box' as const,
+};
+
+/**
+ * Small square thumbnail framing for a margin posting space (story rail,
+ * archive spotlight) — deliberately smaller than the hero frame so picture
+ * size communicates editorial prominence by placement (#4180).
+ */
+export const clubHomeStoryThumbImage = (size = 72) => ({
+  width: size,
+  height: size,
+  objectFit: 'cover' as const,
+  display: 'block',
+  flexShrink: 0,
+  border: `2px solid ${clubHomeColors.navy}`,
+  boxSizing: 'border-box' as const,
+});
+
 /** Vintage halftone placeholder for a photo slot with no real image yet. */
 export const clubHomePhotoPlaceholder = (height: number) => ({
   width: '100%',

@@ -27,8 +27,9 @@ export default function ClubHomeStoryRail({ stories }: ClubHomeStoryRailProps) {
           summary: story.summary || '',
           credit: story.credit,
           sourceName: story.source_name,
+          image: story.image,
         }))
-      : STATIC_RAIL_ITEMS.map((item) => ({ ...item, credit: null, sourceName: null }));
+      : STATIC_RAIL_ITEMS.map((item) => ({ ...item, credit: null, sourceName: null, image: null }));
 
   return (
     <section aria-label="Secondary story rail">
@@ -43,6 +44,7 @@ export default function ClubHomeStoryRail({ stories }: ClubHomeStoryRailProps) {
             summary={item.summary}
             credit={item.credit}
             sourceName={item.sourceName}
+            image={item.image}
             compact
           />
         ))}
