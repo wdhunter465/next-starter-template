@@ -5,8 +5,8 @@ Authority Level: Navigation
 Owns: Read order, authority routing, lane/profile identification, execution entry point
 Does Not Own: Role policy, execution rules, design authority, communication policy, delivery policy, or governance decisions
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2640, #2641, #2686, #2690, #3052, #3138, #3142, #3693, #3755, #3815, #4126
-Last Reviewed: 2026-09-18
+Related Issues: #2640, #2641, #2686, #2690, #3052, #3138, #3142, #3693, #3755, #3815, #4126, #4173
+Last Reviewed: 2026-09-20
 ---
 
 # Agent.md
@@ -49,7 +49,7 @@ Before repository work—including exploration, design, Sandbox, implementation,
 3. `docs/governance/AGENT-TEAM.md`
 4. `docs/ops/ai/CORE-RULES.md`
 5. Applicable tool-specific pointer:
-   - `docs/ops/ai/CHATGPT-RULES.md`
+   - `docs/ops/ai/CHATGPT-RULES.md` (retired #4173; historical only)
    - `docs/ops/ai/WORK-RULES.md` (retired #4074; historical only)
    - `docs/ops/ai/CURSOR-RULES.md`
    - `docs/ops/ai/CODEX-RULES.md` (retired #4165; historical only)
@@ -61,6 +61,8 @@ Before repository work—including exploration, design, Sandbox, implementation,
 8. Task-linked design, plan, procedure, and skill files
 
 Prompts, comments, external notifications, and agent memory do not override this chain.
+
+When shared execution detail in `docs/ops/ai/CORE-RULES.md` still contains older live-agent language that conflicts with current member mapping, `docs/governance/AGENT-TEAM.md` is the authoritative current-state role map. Treat conflicting CORE-RULES ChatGPT role assertions as stale until CORE-RULES is reconciled under #4173.
 
 ## Identify role, lane, and profile
 
@@ -164,7 +166,7 @@ Administration & Communications spans all steps.
 
 When Product Authority says `run startup`, the literal command resolves according to the active product. Each recognized product identifies itself and performs its own product-specific orientation-only startup, then stops:
 
-- ChatGPT: `docs/ops/ai/CHATGPT-RULES.md`
+- ChatGPT: `docs/ops/ai/CHATGPT-RULES.md` (retired #4173; historical only)
 - Work: `docs/ops/ai/WORK-RULES.md` (retired #4074; historical only)
 - Codex: `docs/ops/ai/CODEX-RULES.md` (retired #4165; historical only)
 - Claude Code: `docs/ops/ai/CLAUDE-CODE-RULES.md`
