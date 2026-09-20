@@ -5,7 +5,7 @@ Authority Level: Controlled
 Owns: #2270 strategy reconciliation — overlapping-contract disposition, frozen source/candidate/submission/publication model, human-review boundaries, safe-publication interfaces, pilot/cost/retention/incident sequencing, and successor map
 Does Not Own: D1 migrations, B2 configuration, crawler/runtime publishing, admin UI implementation, member-upload runtime, or Product publication Go
 Canonical Reference: /docs/reference/content/lgfc-content-candidate-model.md
-Related Issues: #2270, #3867, #3868, #3869, #3870, #3871, #3872, #1738, #2273, #2286, #2312, #2040, #2073, #2292, #3551
+Related Issues: #2270, #3867, #3868, #3869, #3870, #3871, #3872, #1738, #2273, #2286, #2312, #2040, #2073, #2292, #3551, #2085
 Last Reviewed: 2026-09-20
 ---
 
