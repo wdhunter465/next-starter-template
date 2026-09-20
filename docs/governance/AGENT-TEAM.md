@@ -128,7 +128,7 @@ Governance does not override Product Authority's business/product decisions or p
 | Member/product | Current roles |
 | --- | --- |
 | Bill | Product Authority; Day-2 Operations; default merge approval when available |
-| ChatGPT | **Retired** (#4173). No current team role, wake path, PMO/Governance/review, or implementation authority. Historical record only (`docs/ops/ai/CHATGPT-RULES.md`). |
+| ChatGPT | **Retired** (#4173). No current team role, wake path, PMO authority, Governance authority, review authority, or implementation authority. Historical record only (`docs/ops/ai/CHATGPT-RULES.md`). |
 | Grok | **Operations**; authorized implementation |
 | Codex | **Retired** (#4165). No current team role, wake path, or implementation authority. Historical record only (`docs/ops/ai/CODEX-RULES.md`). |
 | Cursor | **Operations during transition**; **PMO Admin** (interim, #4174); authorized implementation; target role is Engineering after Product Authority records the transition |
@@ -173,7 +173,7 @@ Product Authority permanently removed ChatGPT from the LGFC Agentic Team on 2026
 
 Work was already retired (#4074). Codex was already retired (#4165). Historical Issue comments, PR authorship, and prior decisions attributing work to ChatGPT remain truthful records and are not rewritten.
 
-Successor coverage until Product names a permanent PMO/Governance holder: Cursor Local already has Product-authorized Operations + PMO + Governance routing; Claude Code remains Engineering and independent review for work it did not implement; Bill remains Product Authority. Interim PMO Admin remains Cursor per #4174.
+Successor coverage until Product names permanent holders: Cursor Local continues Product-authorized Operations and interim PMO Admin (#4174); Claude Code remains Engineering and independent review for work it did not implement; Bill remains Product Authority. The Governance durable role has no active product holder in the mapping table after ChatGPT retirement (#4173) until Product records a permanent assignment.
 
 ## Priority and hierarchy dependency
 
