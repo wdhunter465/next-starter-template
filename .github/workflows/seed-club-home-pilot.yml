@@ -79,3 +79,9 @@ jobs:
             "SELECT id, title, status FROM content_inventory WHERE tag LIKE 'lgfc-clubhome-pilot-%' ORDER BY id"
           npx wrangler d1 execute lgfc_lite --remote --yes --command \
             "SELECT edition_id, activated_at FROM content_inventory_club_home_active_edition WHERE singleton = 1"
+          npx wrangler d1 execute lgfc_lite --remote --yes --command \
+            "SELECT id, url, rights_hold, publication_eligible, rights_status FROM photos WHERE id = 9401"
+          npx wrangler d1 execute lgfc_lite --remote --yes --command \
+            "SELECT id, story_id, media_id, media_role, alt_text FROM content_inventory_media WHERE story_id IN (9401,9402,9403,9404) ORDER BY story_id"
+          npx wrangler d1 execute lgfc_lite --remote --yes --command \
+            "SELECT media_id, size, url, status FROM content_inventory_media_renditions WHERE media_id = 9401 ORDER BY size"
