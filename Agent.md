@@ -5,8 +5,8 @@ Authority Level: Navigation
 Owns: Read order, authority routing, lane/profile identification, execution entry point
 Does Not Own: Role policy, execution rules, design authority, communication policy, delivery policy, or governance decisions
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2640, #2641, #2686, #2690, #3052, #3138, #3142, #3693, #3755, #3815, #4126
-Last Reviewed: 2026-09-18
+Related Issues: #2640, #2641, #2686, #2690, #3052, #3138, #3142, #3693, #3755, #3815, #4126, #4173
+Last Reviewed: 2026-09-20
 ---
 
 # Agent.md
@@ -49,7 +49,7 @@ Before repository work—including exploration, design, Sandbox, implementation,
 3. `docs/governance/AGENT-TEAM.md`
 4. `docs/ops/ai/CORE-RULES.md`
 5. Applicable tool-specific pointer:
-   - `docs/ops/ai/CHATGPT-RULES.md`
+   - `docs/ops/ai/CHATGPT-RULES.md` (retired #4173; historical only)
    - `docs/ops/ai/WORK-RULES.md` (retired #4074; historical only)
    - `docs/ops/ai/CURSOR-RULES.md`
    - `docs/ops/ai/CODEX-RULES.md` (retired #4165; historical only)
@@ -62,152 +62,41 @@ Before repository work—including exploration, design, Sandbox, implementation,
 
 Prompts, comments, external notifications, and agent memory do not override this chain.
 
-## Identify role, lane, and profile
+## Startup orientation (mandatory)
 
-Before action, determine:
+Before first repository action in a session, orient to:
 
-```text
-Durable role:
-Horizontal lane:
-Promotion profile:
-Source Issue:
-Operational hold:
-```
+1. **Role** — current assignment from `docs/governance/AGENT-TEAM.md`
+2. **Lane** — product / platform / governance / operations / recovery as applicable
+3. **Promotion profile** — Sandbox, Development, Promotion Candidate, or Production when delivery work applies
+4. **Source Issue** — open same-repo governing Issue that predates the work
+5. **Allowlist** — exact paths authorized by the source Issue
 
-### Durable roles
+Report orientation only when asked or when a stop condition requires evidence. Do not invent role, lane, profile, or Issue authority.
 
-- Product Authority
-- PMO / Engineering
-- Implementation / Operations
-- PR Approver / Engineering
-- Administration & Communications
-- Day-2 Operations
-- Deterministic CI
+## Product-specific pointers
 
-Current member mapping: `docs/governance/AGENT-TEAM.md`.
-
-### Lane topology
-
-Horizontal lanes:
-
-- PMO / Engineering
-- Implementation / Operations
-- Day-2 Operations
-
-Vertical lane:
-
-- Administration & Communications
-
-### Promotion profiles
-
-```text
-Sandbox -> Development -> Promotion Candidate -> Production -> Day-2 Operations
-```
-
-- Sandbox is optional and cannot move directly to Promotion Candidate or Production.
-- Development cannot move directly to Production.
-- Development and Promotion Candidate are technical profiles inside the conversational Implementation / Operations lane.
-
-Canonical contract: `docs/reference/operations/operating-lanes-and-promotion-profiles.md`.
-
-## Task-scoped read order
-
-Read the files that match the current task:
-
-| Task | Required authority |
-| --- | --- |
-| Role or approval question | `docs/governance/AGENT-TEAM.md`; `docs/reference/agents/implementation-authority-contract.md` |
-| Product, UX, route, page, or design decision | `docs/governance/PRODUCT-AND-DESIGN.md`; applicable controlled specifications under `docs/reference/design/**` |
-| PMO intake, sizing, Sandbox, or launch | `docs/governance/PMO-PORTFOLIO.md` |
-| Development, Promotion Candidate, Production, rollback | `docs/governance/DELIVERY-AND-RELEASE.md`; `docs/how-to/operations/run-work-through-promotion-profiles.md` |
-| Platform, environment, Cloudflare, D1, B2, binding, credential, or migration boundary | `docs/governance/PLATFORM-AND-ENVIRONMENT.md`; applicable controlled specifications under `docs/reference/platform/**` |
-| CI checks, validation evidence, promotion criteria, failure routing, or post-merge verification | `docs/governance/CI-AND-VERIFICATION.md`; applicable controlled references under `docs/reference/ci/**` |
-| Communication, routing, labels, hold/resume, reporting, closeout | `docs/governance/ADMINISTRATION-AND-COMMUNICATIONS.md`; `docs/reference/operations/administrative-control-lane-contract.md` |
-| Production health, incidents, runner host, recovery | `docs/governance/OPERATIONS-AND-RECOVERY.md` |
-| Runner/controller behavior | `docs/reference/ci/repository-runner-contract.md`; applicable routing contract/procedure |
-| PR work | `.agents/skills/lgfc-pr-governance/SKILL.md`; `.github/pull_request_template.md`; `docs/how-to/cursor/open-task-pr.md`; `docs/governance/PR_PROCESS.md`; `docs/governance/PR_LIFECYCLE_STATE_MACHINE.md` |
-| Model A/B execution | `docs/how-to/agents/run-model-a.md` or `docs/how-to/agents/run-model-b.md` |
-| Approved assignment or Product Authority action (execution fidelity) | `docs/governance/standards/AGENT-EXECUTION-FIDELITY.md`; `docs/ops/ai/CORE-RULES.md` (Execution Contract Fidelity); `docs/templates/agent-assignment-template.md` |
-
-## Communication routing
-
-The minimum lightweight correction path is:
-
-```text
-PROBLEM FOUND
-  -> route to the role that made the controlling decision
-  -> GUIDANCE or ADJUSTMENT
-  -> Administration & Communications records
-  -> RESUME
-```
-
-Use `PLAN CHANGE REQUIRED` only for a material change to product outcome, architecture, acceptance criteria, dependencies, delivery model, promotion path, Production boundary, or recovery strategy.
-
-The runner and routing controller are Administration & Communications infrastructure. They transport authorized work; they do not create authority.
-
-## Execution summary
-
-```text
-Agent entry and authority load
-  -> PMO / Engineering intake and design
-  -> optional Sandbox
-  -> implementation Go
-  -> Development
-  -> Promotion Candidate
-  -> Production
-  -> Day-2 Operations
-```
-
-Administration & Communications spans all steps.
-
-## Startup orientation
-
-When Product Authority says `run startup`, the literal command resolves according to the active product. Each recognized product identifies itself and performs its own product-specific orientation-only startup, then stops:
-
-- ChatGPT: `docs/ops/ai/CHATGPT-RULES.md`
-- Work: `docs/ops/ai/WORK-RULES.md` (retired #4074; historical only)
-- Codex: `docs/ops/ai/CODEX-RULES.md` (retired #4165; historical only)
+- Cursor: `docs/ops/ai/CURSOR-RULES.md`
 - Claude Code: `docs/ops/ai/CLAUDE-CODE-RULES.md`
-- Cursor: existing bootstrap, unchanged (`AGENTS.md` for Cloud, `.cursor/rules/*.mdc` for Local)
-- Claude (conversational): no product-specific startup contract; outside the operational delivery chain unless bounded collaboration is authorized
+- Copilot: `docs/ops/ai/COPILOT-RULES.md`
+- Devin: `docs/ops/ai/DEVIN-RULES.md`
+- ChatGPT: `docs/ops/ai/CHATGPT-RULES.md` (retired #4173; historical only)
+- Codex: `docs/ops/ai/CODEX-RULES.md` (retired #4165; historical only)
+- OpenAI / Work: `docs/ops/ai/WORK-RULES.md` (retired #4074; historical only)
 
-Shared skeleton, session-boundary rules, and the full list of what startup must never authorize: `docs/ops/ai/CORE-RULES.md`, "PRODUCT STARTUP FRAMEWORK." Current product/role inventory: `docs/governance/AGENT-TEAM.md`.
+## PR and implementation entry
 
-Startup does not authorize, for any product:
+For PR, review, remediation, or implementation work, also read:
 
-- queue audit;
-- inferred next work;
-- implementation resume;
-- administrative reconciliation;
-- GitHub mutation.
+- `.agents/skills/lgfc-pr-governance/SKILL.md`
+- `.github/pull_request_template.md`
+- Product-applicable how-to (Cursor: `docs/how-to/cursor/open-task-pr.md`)
 
-Startup and assignment loading are separate phases — startup completion is never itself interpreted as task authorization. A source Issue, its acceptance criteria, an exact file-touch allowlist, the applicable promotion profile, role authority, and an explicit implementation Go are loaded and confirmed separately, after startup.
-
-## Repository skills
-
-Use repository skills when their trigger matches:
-
-- PR governance: `.agents/skills/lgfc-pr-governance/SKILL.md`
-- Design compliance: `.agents/skills/lgfc-design-compliance/SKILL.md`
-- Documentation authority: `.agents/skills/lgfc-docs-authority/SKILL.md`
-- Cloudflare/static export: `.agents/skills/lgfc-cloudflare-static-export/SKILL.md`
-- Verification/closeout: `.agents/skills/lgfc-verification-closeout/SKILL.md`
-- Assignment envelope: `docs/templates/agent-assignment-template.md`
-
-Tracker/status-index files are updated only when the source Issue authorizes that surface.
-
-## Agent governance implementation references
-
-- `.agents/checks/agent-governance-check.mjs`
-- `.github/workflows/agent-governance.yml`
-
-These remain required validation surfaces. They do not override the constitutional and domain-policy chain above.
-
-`governance/ai/AGENT-GOVERNANCE.md` (prior cross-agent governance rules) and `ops/ai/CROSS-AGENT-OPERATING-RULES.md` (prior cross-agent operating guidance) are historical/superseded (#2823) — retained as a record, not as navigation or authority surfaces. Do not read them for conflict resolution; use the "Mandatory authority chain" above.
+Issue-first hard gate: one primary same-repo open non-PR source Issue must predate the branch, first commit, and PR. No PR-first exceptions.
 
 ## Stop conditions
 
-Stop the affected scope and route the problem when:
+Stop and surface evidence when:
 
 - canonical authority conflicts;
 - required source Issue or role authority is missing;
