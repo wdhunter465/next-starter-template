@@ -5,14 +5,30 @@ Authority Level: Canonical
 Owns: Diataxis folder usage rules and no-drift documentation model
 Does Not Own: Design specifications; operational task details; application behavior
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3752
-Last Reviewed: 2026-08-26
+Related Issues: #3752, #4138, #4196, #4137
+Last Reviewed: 2026-09-21
 ---
 
 # DIÁTAXIS FOLDER AUTHORITY (NO-DRIFT MODEL)
 
 ## Purpose
 Defines strict folder usage rules. No drift allowed.
+
+## Scope
+
+In scope: which top-level `docs/` folders are DIATAXIS core, which are authorized adjacent, and which remain undecided pending later #4138 children.
+
+Out of scope: mass file moves; deleting live docs; CI wiring; Task-4 binding-rule moves.
+
+## Current known truth
+
+- Structure now includes `templates/`, which Model C already treats as an approved write surface.
+- `docs/archive/` is a permanent top-level sibling, not nested under a DIATAXIS type.
+- Folder freeze evidence: `docs/ops/reports/diataxis-folder-classification-4138.md` (#4196). No moves in that child.
+
+## Intended final state
+
+Every top-level `docs/` folder is either a retained core/adjacent folder or has an explicit later-child disposition. Migration complete is declared only after later children finish and an audit reports zero remaining undecided folders.
 
 ## Authority Resolution
 
@@ -33,6 +49,20 @@ That document defines:
 - governance/
 - ops/
 - archive/
+- templates/
+
+## Folder classification (#4138 / #4196)
+
+| Folder | Classification | Disposition |
+| --- | --- | --- |
+| `tutorials/`, `how-to/`, `reference/`, `explanation/` | DIATAXIS core | Retain |
+| `governance/`, `ops/`, `archive/` | Authorized adjacent, permanent | Retain; `archive/` stays a top-level sibling |
+| `templates/` | Authorized Model C write surface | Retain; listed in Structure |
+| `as-built/` | Undecided | Later: fold into `reference/`. No move in #4196. |
+| `postmortems/` | Undecided | Later: fold into `ops/incident-response/`. No move in #4196. |
+| `reports/` | Undecided; duplicates `ops/reports/` | Later: merge into `ops/reports/`. No move in #4196. |
+
+Canonical freeze record: `docs/ops/reports/diataxis-folder-classification-4138.md`.
 
 ## Rules
 
@@ -62,6 +92,10 @@ That document defines:
 
 ### archive
 - allowed: deprecated content only
+
+### templates
+- allowed: reusable document skeletons
+- prohibited: live policy, as-built facts, or operational evidence
 
 ## Model C write surfaces
 
