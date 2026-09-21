@@ -23,6 +23,16 @@ This document makes **no Production promotion**, does not reopen #2546, and does
 `docs/ops/reports/pmo-cursor-delivery-promotion-decision-brief.md`, per #4209's declared
 writable-file scope.
 
+## Scope and non-goals
+
+In scope: revalidating #2546's need/compatibility against the current `lgfc-cursor-dispatch`
+as-built, and rendering #2872's required keep/subset/not-planned decision on this basis.
+
+Non-goals (also reaffirmed at the end of this brief): reopening #2546; treating the historical
+promotion package (`pmo-project-autonomous-delivery-promotion-package-2554.md`) as a Go
+decision; merging `component/pmo-project-autonomous-delivery` to `main`; any Production
+routing change; a second concurrent task-materializer project.
+
 ## What #2546 delivered
 
 Per #2546's own closeout record (completed 2026-07-25, component branch
@@ -43,7 +53,7 @@ authors a manifest file, and a validator + materializer turn it into the actual 
 Issues for a project, idempotently. It was never merged past its own component branch —
 Production promotion was deferred to this project (#2872) from the start.
 
-## Current live as-built (verified 2026-09-21)
+## Current known truth
 
 Per `docs/governance/standards/CURSOR-RUNTIME-ROUTING.md` (binding) and this session's own
 direct verification:
