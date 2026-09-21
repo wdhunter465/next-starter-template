@@ -6,7 +6,7 @@ Owns: #2270 strategy reconciliation — overlapping-contract disposition, frozen
 Does Not Own: D1 migrations, B2 configuration, crawler/runtime publishing, admin UI implementation, member-upload runtime, or Product publication Go
 Canonical Reference: /docs/reference/content/lgfc-content-candidate-model.md
 Related Issues: #2270, #3867, #3868, #3869, #3870, #3871, #3872, #1738, #2273, #2274, #2286, #2312, #2040, #2073, #2291, #2292, #3551, #2085
-Last Reviewed: 2026-09-20
+Last Reviewed: 2026-09-21
 ---
 
 # Content Pipeline Strategy Reconciliation (#2270)
@@ -15,7 +15,7 @@ Last Reviewed: 2026-09-20
 
 Finalize one authoritative content discovery, intake, human review, rights/privacy, provenance, publication-preparation, retention, and controlled-automation strategy for parent [#2270](https://github.com/wdhunter465/next-starter-template/issues/2270).
 
-This report is the Model A strategy-reconciliation deliverable for work units [#3867](https://github.com/wdhunter465/next-starter-template/issues/3867)–[#3872](https://github.com/wdhunter465/next-starter-template/issues/3872). It does not authorize D1/B2 mutation, admin UI, member-upload changes, broad crawling, or automatic publication.
+This report is the Model A strategy-reconciliation deliverable for work units [#3867](https://github.com/wdhunter465/next-starter-template/issues/3867)–[#3872](https://github.com/wdhunter465/next-starter-template/issues/3872). It does not authorize D1/B2 mutation, admin UI, member-upload changes, broad crawling, or automatic publication. The matching AS-BUILT is `docs/ops/as-built/content-pipeline-strategy-2270-as-built.md`.
 
 ## Current known truth
 
