@@ -23,7 +23,7 @@ Out of scope: migrating the ~621-file tree; deleting live docs; wiring CI (#4197
 
 ## Current known truth
 
-- Product Graduation **GO** 2026-09-20 placed parent #4138 Active at `pmo:priority:6` with Cursor as implementation owner. First executable child is #4196.
+- Product Graduation **GO** 2026-09-20 placed parent #4138 Active at `pmo:priority:6` with Implementation / Operations as implementation owner (current product mapping in `docs/governance/AGENT-TEAM.md`). First executable child is #4196.
 - Product assignment of #4138 on 2026-09-21 authorizes this freeze using the launch-package table. No amendment is recorded on #4196.
 - Live inventory on 2026-09-21: `docs/as-built/` 7 files, `docs/postmortems/` 2 files, `docs/reports/` 3 files, `docs/archive/` 11 files, `docs/templates/` 12 files. DIATAXIS cores `tutorials/`, `how-to/`, `reference/`, `explanation/` are present.
 - `docs/archive/` remains a permanent top-level sibling. It is not nested inside a DIATAXIS type folder.
