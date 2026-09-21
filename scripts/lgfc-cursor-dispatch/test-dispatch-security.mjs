@@ -141,6 +141,99 @@ test('exclusive lock rejects second acquisition', () => {
   }
 });
 
+test('lock held by a live process is never reclaimed regardless of age override', () => {
+  const lockPath = path.join(os.tmpdir(), `lgfc-cursor-dispatch-live-${process.pid}.lock`);
+  fs.rmSync(lockPath, { force: true });
+  const first = acquireDispatchLock(lockPath);
+  assert.equal(first.ok, true);
+  try {
+    // Even an aggressively small staleness ceiling must not steal a lock
+    // whose recorded pid is confirmed alive.
+    const second = acquireDispatchLock(lockPath, { staleAfterMs: 1 });
+    assert.equal(second.ok, false);
+    assert.equal(second.error, 'dispatch_lock_held');
+  } finally {
+    first.release();
+    fs.rmSync(lockPath, { force: true });
+  }
+});
+
+test('stale lock left by a dead process is reclaimed automatically', () => {
+  const lockPath = path.join(os.tmpdir(), `lgfc-cursor-dispatch-dead-${process.pid}.lock`);
+  fs.rmSync(lockPath, { force: true });
+  // A short-lived child that has already exited by the time spawnSync
+  // returns -- its pid is guaranteed dead, deterministically, no timing games.
+  const child = spawnSync(process.execPath, ['-e', 'process.exit(0)']);
+  fs.mkdirSync(path.dirname(lockPath), { recursive: true });
+  fs.writeFileSync(
+    lockPath,
+    JSON.stringify({ pid: child.pid, startedAt: new Date().toISOString() }, null, 2) + '\n',
+  );
+  try {
+    const result = acquireDispatchLock(lockPath);
+    assert.equal(result.ok, true);
+    assert.equal(result.reclaimedStaleLock, true);
+    result.release();
+    assert.equal(fs.existsSync(lockPath), false);
+  } finally {
+    fs.rmSync(lockPath, { force: true });
+  }
+});
+
+test('corrupt lock with no readable pid falls back to age-based staleness', () => {
+  const lockPath = path.join(os.tmpdir(), `lgfc-cursor-dispatch-corrupt-${process.pid}.lock`);
+  fs.rmSync(lockPath, { force: true });
+  fs.mkdirSync(path.dirname(lockPath), { recursive: true });
+  fs.writeFileSync(lockPath, 'not json');
+  // Backdate mtime explicitly rather than relying on real elapsed wall time,
+  // which can be shorter than filesystem mtime resolution on some hosts.
+  const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+  fs.utimesSync(lockPath, oneHourAgo, oneHourAgo);
+
+  try {
+    // Recent-relative-to-ceiling corrupt lock, default (large) ceiling: still held.
+    const stillHeld = acquireDispatchLock(lockPath);
+    assert.equal(stillHeld.ok, false);
+    assert.equal(stillHeld.error, 'dispatch_lock_held');
+
+    // Same file, ceiling shorter than its (backdated) age: reclaimed.
+    const reclaimed = acquireDispatchLock(lockPath, { staleAfterMs: 1000 });
+    assert.equal(reclaimed.ok, true);
+    assert.equal(reclaimed.reclaimedStaleLock, true);
+    reclaimed.release();
+  } finally {
+    fs.rmSync(lockPath, { force: true });
+  }
+});
+
+test('reclaim is serialized: an in-progress reclaim guard blocks a second reclaimer', () => {
+  const lockPath = path.join(os.tmpdir(), `lgfc-cursor-dispatch-guarded-${process.pid}.lock`);
+  const guardPath = `${lockPath}.reclaiming`;
+  fs.rmSync(lockPath, { force: true });
+  fs.rmSync(guardPath, { force: true });
+  const child = spawnSync(process.execPath, ['-e', 'process.exit(0)']);
+  fs.mkdirSync(path.dirname(lockPath), { recursive: true });
+  fs.writeFileSync(
+    lockPath,
+    JSON.stringify({ pid: child.pid, startedAt: new Date().toISOString() }, null, 2) + '\n',
+  );
+  // Simulate another process already mid-reclaim of this exact lock.
+  fs.writeFileSync(guardPath, '');
+  try {
+    const result = acquireDispatchLock(lockPath);
+    assert.equal(result.ok, false);
+    assert.equal(result.error, 'dispatch_lock_held');
+    // Must not have deleted the stale lock out from under the process that
+    // holds the reclaim guard -- that's the exact race Copilot flagged on
+    // review-comment:4065910427 (a bare unlink-then-recreate lets a second
+    // reclaimer delete the first reclaimer's freshly created live lock).
+    assert.equal(fs.existsSync(lockPath), true);
+  } finally {
+    fs.rmSync(guardPath, { force: true });
+    fs.rmSync(lockPath, { force: true });
+  }
+});
+
 test('dispatch.mjs --dry-run succeeds on clean workspace', () => {
   const result = spawnSync(
     process.execPath,
