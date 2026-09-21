@@ -34,6 +34,20 @@ secret or environment-variable change; user-account migration; an authentication
 Production authentication change. Any of these remains a **protected stop** and requires a
 separately approved issue plus an explicit unlock of `docs/reference/design/auth-model.md`.
 
+## Current known truth
+
+| Field | Value |
+| --- | --- |
+| Source issue | #2442 |
+| Ordered child work units | #4192 → #4193 → #4194 → #4195 (all four implemented in this document) |
+| Delivery model (project launch package) | Model A — single documentation deliverable |
+| Working branch | `claude/great-mccarthy-fpizfd` |
+| Deliverable | This file only: `docs/ops/reports/identity-provider-auth-growth-decision-brief.md` |
+| Evaluation claim under review | "Only email/password authentication is prebuilt; Google, GitHub, or other OAuth providers would require additional implementation." |
+| Claim verdict | **Rejected as stated** — see Work unit 1 |
+| Canonical auth lock | `docs/reference/design/auth-model.md` (LOCKED) — external auth providers, magic links, localStorage-as-source-of-truth, and `ADMIN_EMAILS`-as-primary-gate are all prohibited |
+| Recommendation | **Retain** the Day-1 lock now; revisit only on a defined trigger — see Work unit 4 |
+
 ---
 
 ## Work unit 1 (#4192) — Current-state inventory and claim validation
@@ -55,7 +69,7 @@ separately approved issue plus an explicit unlock of `docs/reference/design/auth
 | Rate limiting | `migrations/0012_login_attempts.sql` | `login_attempts(ip, email, ok, created_at)` with indexes on `(ip, created_at)` and `(email, created_at)`; enforced in `functions/api/login.ts`. |
 | Dependency manifest | `package.json` (dependencies + devDependencies) | No NextAuth, Auth.js, Clerk, Auth0, Passport, `bcrypt`/`argon2`, or any Google/GitHub/Apple/Microsoft OAuth SDK is present. Runtime deps are limited to Next.js/React/Cloudflare tooling plus a handful of unrelated libraries (`@cf-wasm/photon`, `@pinecone-database/pinecone`, `next-elfsight-widget`, `yet-another-react-lightbox`). |
 | Legacy routes | `docs/reference/design/auth-model.md` redirect policy | `/login` and `/auth` are legacy compatibility redirects to `/` and `/join` respectively; the canonical join/login surface is `/join` (`/join?mode=login` for the login tab). |
-| `ADMIN_EMAILS` usage | repo-wide search | Only reference is `functions/api/env/check.ts` (an env-presence diagnostic), not an auth gate. Consistent with the lock's prohibition on using it as the primary auth gate. |
+| `ADMIN_EMAILS` usage | repo-wide search | `ADMIN_EMAILS` appears in `.env.example` (sample value), `README.md` (states it must not be the primary member-auth gate), and `docs/reference/design/auth-model.md` (listed as prohibited-as-primary-gate). The **only application/runtime-code reference** is `functions/api/env/check.ts`, an env-presence diagnostic — it is not read or evaluated anywhere as an auth gate. Consistent with the lock's prohibition on using it as the primary auth gate. |
 
 ### Validation verdict
 
