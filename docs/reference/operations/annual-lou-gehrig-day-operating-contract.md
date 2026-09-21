@@ -19,7 +19,7 @@ Define the durable, year-independent operating contract for the Annual Lou Gehri
 
 In scope: durable annual roles, decision rights, recurring checklist, inputs, outputs, and the annual-instance schema.
 
-Out of scope: year-specific copy; public dates other than the June 2 anchor; website routes; automatic posting; Production mutation; fundraiser, partner, or recognition commitments.
+Out of scope: year-specific copy; owning or approving public dates other than the June 2 anchor (the annual-instance schema still records Product-approved `additional_public_windows`); website routes; automatic posting; Production mutation; fundraiser, partner, or recognition commitments.
 
 ## Current known truth
 
