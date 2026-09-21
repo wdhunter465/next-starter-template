@@ -316,7 +316,6 @@ export const ORIGINATING_AGENT_CATALOG = {
 	claude: { id: 'claude', label: 'agent:claude', display: 'Claude Code' },
 	work: { id: 'work', label: 'agent:Work', display: 'WORK' },
 	chatgpt: { id: 'chatgpt', label: 'agent:ChatGPT', display: 'ChatGPT' },
-	codex: { id: 'codex', label: 'agent:codex', display: 'Codex' },
 };
 
 function ambiguousOriginatingAgent(reason) {
@@ -336,7 +335,6 @@ function agentIdFromBranch(ref = '') {
 	if (name.startsWith('cursor/') || name.startsWith('cursor-')) return 'cursor';
 	if (name.startsWith('claude/') || name.startsWith('claude-')) return 'claude';
 	if (name.startsWith('work/') || name.startsWith('work-')) return 'work';
-	if (name.startsWith('codex/') || name.startsWith('codex-')) return 'codex';
 	return null;
 }
 
@@ -347,7 +345,6 @@ function agentIdFromImplementationLine(body = '') {
 	if (!value || value === 'not-applicable' || value === 'n/a') return null;
 	if (/\bcursor\b/.test(value)) return 'cursor';
 	if (/\bclaude\b/.test(value)) return 'claude';
-	if (/\bcodex\b/.test(value)) return 'codex';
 	if (/\bwork\b/.test(value)) return 'work';
 	if (/\bchatgpt\b/.test(value)) return 'chatgpt';
 	return null;
@@ -372,7 +369,6 @@ function normalizeExplicitAgent(value) {
 	if (ORIGINATING_AGENT_CATALOG[raw]) return raw;
 	if (raw.includes('cursor')) return 'cursor';
 	if (raw.includes('claude')) return 'claude';
-	if (raw.includes('codex')) return 'codex';
 	if (raw.includes('work')) return 'work';
 	if (raw.includes('chatgpt')) return 'chatgpt';
 	return null;
