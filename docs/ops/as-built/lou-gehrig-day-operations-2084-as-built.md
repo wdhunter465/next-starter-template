@@ -30,7 +30,7 @@ Out of scope: public launch; automatic posting; new website routes; payment proc
 
 ## Intended final state
 
-The reusable annual operating package exists on the Model B component branch `component/lou-gehrig-day-operations`. Promotion to `main` / Production remains separately authorized. Parent #2084 stays OPEN until independent project/master closeout.
+The reusable annual operating package is promoted onto `main` by PR #4276 from `component/lou-gehrig-day-operations`. Website and social publication Go remain separately authorized. Parent #2084 stays OPEN until independent project/master closeout.
 
 ## Record identity
 
@@ -42,11 +42,11 @@ The reusable annual operating package exists on the Model B component branch `co
 - PMO / Engineering: Cursor Local implementer; independent review required
 - Implementer(s): Cursor Local
 - Independent reviewer: not this implementer
-- Implementation PR(s): https://github.com/wdhunter465/next-starter-template/pull/4273
-- Final candidate SHA: `a3d571d65d04f88c8472878edfcc267763eb2094` (merge of PR #4273 into `component/lou-gehrig-day-operations`)
-- Production PR: Not applicable
-- Merge SHA: `a3d571d65d04f88c8472878edfcc267763eb2094` on the component branch; not a `main` merge
-- Deployment identity: Not applicable
+- Implementation PR(s): https://github.com/wdhunter465/next-starter-template/pull/4273 , https://github.com/wdhunter465/next-starter-template/pull/4275
+- Final candidate SHA: tip of `component/lou-gehrig-day-operations` promoted by PR #4276
+- Production PR: https://github.com/wdhunter465/next-starter-template/pull/4276
+- Merge SHA: the #4276 merge commit on `main` after independent review
+- Deployment identity: Not applicable — documentation only; no website deploy of Lou Gehrig Day content
 - Completion date: 2026-09-21 (package authored; not published)
 
 ## Delivered outcome
@@ -103,7 +103,7 @@ No paid tools, no new credentials, no rights acquisition. Public items cannot sh
 
 ## Rollback and recovery
 
-Revert the component-branch integration. `main` and Production remain untouched by this child. After a later authorized publication, use the takedown/restore how-to.
+Revert PR #4276 on `main`. After a later authorized publication, use the takedown/restore how-to.
 
 ## Monitoring and Day-2 ownership
 
@@ -111,7 +111,6 @@ No standing Day-2 service is created. Operations owns evidence capture when a fu
 
 ## Known limitations and separately authorized future work
 
-- Production/`main` promotion of this component
 - Product publication Go for 2027
 - Additional public dates from #2093
 - Any website route, scheduler, or automatic post
@@ -139,4 +138,4 @@ Not applicable — no prior Lou Gehrig Day operations package existed.
 
 ## Final closeout assertion
 
-This AS-BUILT matches the documentation implementation in this Model B child. Runtime, publication, and `main` promotion are not claimed. Parent #2084 must not be closed solely by the implementing agent.
+This AS-BUILT matches the documentation package promoted onto `main` by PR #4276. Website publication is not claimed. Parent #2084 must not be closed solely by the implementing agent.

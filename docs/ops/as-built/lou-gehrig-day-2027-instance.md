@@ -58,11 +58,7 @@ evidence_report_path: not-started
 
 ## Public-item register (2027)
 
-No public items are authorized yet. When Product approves an item, add a row using the content-package fields. Until then the register is empty on purpose.
-
-| item_id | channel | window | status |
-| --- | --- | --- | --- |
-| — | — | 2027-06-02 | not-authorized |
+No public items are authorized. The register has zero rows. When Product approves an item, add a row using the content-package fields.
 
 ## Protected gates still open
 
