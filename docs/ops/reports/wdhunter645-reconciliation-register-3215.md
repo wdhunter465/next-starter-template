@@ -17,6 +17,8 @@ This register's core premise — that `wdhunter645` was a second, still-valid "P
 
 Consequently, the 22 occurrences (13 files) classified `USER_ACCOUNT_CORRECT` in the **B** table below were reclassified and corrected to `wdhunter465` under #4258. This section is an errata addition only; the search results, classification totals, and per-file register below are preserved unmodified as the historical record of #3215's original (incorrect) audit, per this repository's own historical-evidence-preservation convention. Do not treat the **B** table below as describing current file contents — see #4258 for the corrected state.
 
+Every section below this point, including "Purpose" and "Current known truth," still narrates #3215's original two-identity premise (e.g. describing `wdhunter645` as a distinct, current "Product Authority GitHub user account") exactly as it read on 2026-08-08. That premise is superseded by this errata; do not read those sections as current truth on the identity question, only as a record of what #3215 believed at the time.
+
 ## Purpose
 
 Full classification register for every occurrence of `wdhunter645` on the default branch, produced per the audit procedure in #3215. Two identities exist and must never be conflated:
