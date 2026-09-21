@@ -5,8 +5,8 @@ Authority Level: Operational
 Owns: Host registration and verification procedure for the dedicated `lgfc-cursor` GitHub Actions runner used by #3212 dispatch (primary after Phase 4)
 Does Not Own: Historical Cursor Bridge package internals or Production website deployment
 Canonical Reference: /docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md
-Related Issues: #3212, #3347
-Last Reviewed: 2026-08-11
+Related Issues: #3212, #3347, #2636
+Last Reviewed: 2026-09-21
 ---
 
 # Configure the LGFC Cursor dispatch runner
@@ -88,7 +88,7 @@ before starting the runner so label-driven wakes exercise the wrapper without in
 
 7. Run the GitHub-hosted health workflow (`LGFC Cursor Runner Health`) with confirmation `CURSOR_RUNNER_HEALTH`.
 
-   Note: as of Phase 3 evidence, manual `workflow_dispatch` for health/dispatch is gated to actor `wdhunter645` in workflow YAML. If the live Product Authority login differs, use the issues/label dry-run path and/or API runner status until that allowlist is reconciled.
+   Note: manual `workflow_dispatch` for health/dispatch is gated to actor `wdhunter465` (live Product Authority login). The retired `wdhunter645` login is not a trusted dispatch actor.
 
 8. Run `LGFC Cursor Dispatch` via `workflow_dispatch` with:
    - `issue_number`: a Cursor-owned Issue carrying `agent:cursor` + `handoff:ready`
