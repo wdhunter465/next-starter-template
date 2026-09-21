@@ -1,0 +1,157 @@
+name: OPS — Gehrig Retrosheet Ingest (#4263)
+
+# Manual GitHub-hosted ingest of Lou Gehrig career games + AL standings
+# snapshots from retrosheet.org into Production D1. The ingest script needs
+# real internet egress (retrosheet.org); hosted ubuntu-latest provides that.
+# This workflow does not run on pull_request or schedule. First apply should
+# be watched; default mode is dry-run (download/parse/print, no D1 writes).
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm_write:
+        description: 'Type "confirm" to run this workflow at all (dry-run or apply)'
+        required: true
+        type: string
+      mode:
+        description: 'dry-run (default, no D1 write) or apply (writes to Production D1 lgfc_lite)'
+        required: true
+        type: choice
+        default: dry-run
+        options:
+          - dry-run
+          - apply
+
+concurrency:
+  group: ops-gehrig-retrosheet-ingest-4263
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  ingest:
+    if: >-
+      github.repository == 'wdhunter465/next-starter-template' &&
+      github.actor == 'wdhunter465'
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - name: Require explicit confirmation
+        env:
+          CONFIRM_WRITE: ${{ github.event.inputs.confirm_write }}
+          MODE: ${{ github.event.inputs.mode }}
+        run: |
+          set -euo pipefail
+          if [ "$CONFIRM_WRITE" != "confirm" ]; then
+            echo "confirm_write must be exactly 'confirm' — refusing to run."
+            exit 1
+          fi
+          echo "Mode: $MODE"
+
+      - name: Checkout
+        id: checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify Cloudflare D1 credentials
+        if: github.event.inputs.mode == 'apply'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DATABASE_NAME: lgfc_lite
+        run: node scripts/ci/verify_cloudflare_d1_auth.mjs
+
+      - name: Ingest Retrosheet Gehrig data
+        id: ingest
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          MODE: ${{ github.event.inputs.mode }}
+        run: |
+          set -euo pipefail
+          if [ "$MODE" = "apply" ]; then
+            node scripts/ingest-gehrig-retrosheet-data.mjs --apply --remote
+          else
+            node scripts/ingest-gehrig-retrosheet-data.mjs --print
+          fi
+
+      - name: Verify Production D1 row counts
+        if: github.event.inputs.mode == 'apply'
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          parse_n() {
+            python3 -c 'import json,sys
+text=sys.stdin.read()
+start=text.find("[")
+if start < 0:
+    raise SystemExit("wrangler stdout had no JSON array")
+payload=json.loads(text[start:])
+row=(payload[0] if isinstance(payload, list) else payload)["results"][0]
+print(int(row["n"]))'
+          }
+          games=$(npx wrangler d1 execute lgfc_lite --remote --yes --json --command "SELECT COUNT(*) AS n FROM retrosheet_gehrig_games;" | parse_n)
+          lines=$(npx wrangler d1 execute lgfc_lite --remote --yes --json --command "SELECT COUNT(*) AS n FROM retrosheet_box_score_lines;" | parse_n)
+          standings=$(npx wrangler d1 execute lgfc_lite --remote --yes --json --command "SELECT COUNT(*) AS n FROM retrosheet_al_standings_snapshots;" | parse_n)
+          echo "games=$games lines=$lines standings=$standings"
+          if [ "$games" -lt 2000 ] || [ "$games" -gt 2300 ]; then
+            echo "Gehrig game count $games is outside the documented ~2164 window." >&2
+            exit 1
+          fi
+          min_standings=$((games * 7))
+          max_standings=$((games * 8))
+          if [ "$standings" -lt "$min_standings" ] || [ "$standings" -gt "$max_standings" ]; then
+            echo "Standings snapshot count $standings is outside 7-8 AL teams x $games games." >&2
+            exit 1
+          fi
+          if [ "$lines" -lt "$games" ]; then
+            echo "Box-score line count $lines is below game count $games." >&2
+            exit 1
+          fi
+          {
+            echo "<!-- gehrig-retrosheet-ingest-4263 -->"
+            echo "## #4263 Retrosheet ingest — Production D1 row counts"
+            echo
+            echo "- Mode: apply"
+            echo "- retrosheet_gehrig_games: $games (expect ~2164)"
+            echo "- retrosheet_box_score_lines: $lines"
+            echo "- retrosheet_al_standings_snapshots: $standings (expect 8 AL teams × game dates)"
+            echo
+            echo "The information used here was obtained free of charge from and is copyrighted by Retrosheet."
+          } | tee "$RUNNER_TEMP/gehrig-retrosheet-ingest-4263.md"
+
+      - name: Record result on #4263
+        if: always() && steps.checkout.outcome == 'success'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          JOB_STATUS: ${{ job.status }}
+          MODE: ${{ github.event.inputs.mode }}
+        run: |
+          set -euo pipefail
+          if [ -f "$RUNNER_TEMP/gehrig-retrosheet-ingest-4263.md" ]; then
+            gh issue comment 4263 --body-file "$RUNNER_TEMP/gehrig-retrosheet-ingest-4263.md"
+            exit 0
+          fi
+          if [ "$JOB_STATUS" = "success" ]; then
+            body="<!-- gehrig-retrosheet-ingest-4263 -->
+          ## #4263 Retrosheet ingest — ${MODE} complete
+
+          Hosted-runner ingest finished without a D1 write (dry-run). See the workflow run logs."
+          else
+            body="<!-- gehrig-retrosheet-ingest-4263 -->
+          ## #4263 Retrosheet ingest — FAILED (fail-closed)
+
+          Mode: \`${MODE}\`. See the workflow run logs. Do not treat Club Home box-score/standings as populated until apply succeeds."
+          fi
+          gh issue comment 4263 --body "$body"

@@ -5,8 +5,8 @@ Authority Level: Operational Authority
 Owns: Operator-facing GitHub Actions inventory routing and current workflow disposition summary
 Does Not Own: CI domain policy, merge-protection settings, workflow YAML implementation, or competing check classification
 Canonical Reference: /docs/governance/CI-AND-VERIFICATION.md
-Related Issues: #2769, #3746, #2469, #2175, #2208
-Last Reviewed: 2026-09-14
+Related Issues: #2769, #3746, #2469, #2175, #2208, #4263
+Last Reviewed: 2026-09-21
 ---
 
 # GitHub Actions Workflows Inventory
@@ -99,6 +99,7 @@ These are `workflow_dispatch` only (or manual backfill). They are **not** merge 
 | `pr-triage-zip-taint.yml` | PR Triage - ZIP Taint Classification | Manual triage remnant |
 | `preview-invariants.yml` | Preview Invariants (Cloudflare Pages) | Manual preview checks |
 | `lgfc-d1-migrate.yml` | LGFC D1 Migrate (remote) | Manual remote migrate |
+| `ops-gehrig-retrosheet-ingest-4263.yml` | OPS — Gehrig Retrosheet Ingest (#4263) | Manual hosted-runner ingest of Retrosheet Gehrig games + AL standings into Production D1; default dry-run |
 | `ai_review.yml` | AI Code Review | Manual AI review |
 | `ops-cf-pages-retry.yml` | OPS — Cloudflare Pages Auto-Retry | Manual retry |
 | `ops-agent-doctrine-issue-closeout.yml` | OPS — Agent Doctrine Issue Closeout | Manual closeout helper |
@@ -269,6 +270,7 @@ Every current `.github/workflows/*` file as of 2026-09-14 (`HEAD` at inventory r
 | `ops-d1-dev-migration-drift-fix.yml` | OPS — D1 Development Migration Drift Fix |
 | `ops-d1-prod-dev-refresh.yml` | OPS — D1 Prod→Dev Refresh (#3359) |
 | `ops-design-compliance-audit.yml` | OPS — Design Compliance Audit |
+| `ops-gehrig-retrosheet-ingest-4263.yml` | OPS — Gehrig Retrosheet Ingest (#4263) |
 | `ops-main-change-monitor.yml` | OPS — Main Change Monitor |
 | `ops-post-merge-self-healing.yml` | OPS — Post-Merge Self-Healing |
 | `ops-pr-issue-accounting.yml` | GATE — PR Issue Accounting |
