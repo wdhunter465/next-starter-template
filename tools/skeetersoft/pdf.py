@@ -172,8 +172,8 @@ def _linescore_block(visitor: str, home: str, y: float) -> tuple[str, float]:
 def _pitching_column(x0: float, team: str, starter: str, y: float, col_w: float) -> str:
     cmds = [_text(x0, y - 9, f"{team} Pitching", size=8, font="F2")]
     stat_w = 24.0
-    name_w = col_w - stat_w * 6
     stats = ["IP", "H", "BB", "K", "R", "ER"]
+    name_w = col_w - stat_w * len(stats)
 
     x = x0 + name_w
     for label in stats:
@@ -181,7 +181,8 @@ def _pitching_column(x0: float, team: str, starter: str, y: float, col_w: float)
         x += stat_w
 
     row_top = y - PITCH_HEADER_H
-    for i, name in enumerate([starter, "", "", ""]):
+    pitcher_rows = [starter] + [""] * (PITCH_ROWS - 1)
+    for i, name in enumerate(pitcher_rows):
         row_bottom = row_top - PITCH_ROW_H * (i + 1)
         x = x0
         cmds.append(_rect(x, row_bottom, name_w, PITCH_ROW_H))
