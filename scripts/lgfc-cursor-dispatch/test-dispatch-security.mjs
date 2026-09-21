@@ -206,6 +206,34 @@ test('corrupt lock with no readable pid falls back to age-based staleness', () =
   }
 });
 
+test('reclaim is serialized: an in-progress reclaim guard blocks a second reclaimer', () => {
+  const lockPath = path.join(os.tmpdir(), `lgfc-cursor-dispatch-guarded-${process.pid}.lock`);
+  const guardPath = `${lockPath}.reclaiming`;
+  fs.rmSync(lockPath, { force: true });
+  fs.rmSync(guardPath, { force: true });
+  const child = spawnSync(process.execPath, ['-e', 'process.exit(0)']);
+  fs.mkdirSync(path.dirname(lockPath), { recursive: true });
+  fs.writeFileSync(
+    lockPath,
+    JSON.stringify({ pid: child.pid, startedAt: new Date().toISOString() }, null, 2) + '\n',
+  );
+  // Simulate another process already mid-reclaim of this exact lock.
+  fs.writeFileSync(guardPath, '');
+  try {
+    const result = acquireDispatchLock(lockPath);
+    assert.equal(result.ok, false);
+    assert.equal(result.error, 'dispatch_lock_held');
+    // Must not have deleted the stale lock out from under the process that
+    // holds the reclaim guard -- that's the exact race Copilot flagged on
+    // review-comment:4065910427 (a bare unlink-then-recreate lets a second
+    // reclaimer delete the first reclaimer's freshly created live lock).
+    assert.equal(fs.existsSync(lockPath), true);
+  } finally {
+    fs.rmSync(guardPath, { force: true });
+    fs.rmSync(lockPath, { force: true });
+  }
+});
+
 test('dispatch.mjs --dry-run succeeds on clean workspace', () => {
   const result = spawnSync(
     process.execPath,

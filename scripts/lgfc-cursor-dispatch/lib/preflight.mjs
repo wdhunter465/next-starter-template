@@ -147,17 +147,47 @@ export function acquireDispatchLock(lockPath, options = {}) {
   const first = attempt();
   if (first.ok || first.error !== 'dispatch_lock_held') return first;
   if (!isLockStale(lockPath, maxAgeMs)) return first;
+  if (!tryReclaimStaleLock(lockPath, maxAgeMs)) return first;
 
-  // Reclaim exactly once: remove the confirmed-stale lock and retry. If a
-  // concurrent process wins the recreate in between, fall through to its
-  // (fresh, non-stale) failure rather than looping.
-  try {
-    fs.unlinkSync(lockPath);
-  } catch {
-    // Another process may have already cleared it; retry regardless.
-  }
   const second = attempt();
   return second.ok ? { ...second, reclaimedStaleLock: true } : second;
+}
+
+// Two concurrent callers can both observe the same lock as stale and both
+// decide to reclaim it. A plain unlink-then-recreate is not exclusive: the
+// second caller's unlink can delete the *fresh* lock the first caller just
+// created, letting both proceed and defeating the whole point of the lock.
+// Serialize the reclaim itself through a second, short-lived exclusive-create
+// guard, and re-verify staleness of the *current* lock contents inside that
+// single-reclaimer section -- by the time we get in, it may have already been
+// replaced by a live one.
+function tryReclaimStaleLock(lockPath, maxAgeMs) {
+  const guardPath = `${lockPath}.reclaiming`;
+  let guardFd;
+  try {
+    guardFd = fs.openSync(guardPath, 'wx');
+  } catch {
+    // Someone else is already reclaiming this lock; don't race them for it.
+    return false;
+  }
+  try {
+    if (!isLockStale(lockPath, maxAgeMs)) return false;
+    fs.unlinkSync(lockPath);
+    return true;
+  } catch {
+    return false;
+  } finally {
+    try {
+      fs.closeSync(guardFd);
+    } catch {
+      // ignore
+    }
+    try {
+      fs.unlinkSync(guardPath);
+    } catch {
+      // ignore
+    }
+  }
 }
 
 export function resolveAgentBinary() {
