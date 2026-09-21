@@ -5,6 +5,7 @@ name: OPS — Gehrig Retrosheet Ingest (#4263)
 # real internet egress (retrosheet.org); hosted ubuntu-latest provides that.
 # This workflow does not run on pull_request or schedule. First apply should
 # be watched; default mode is dry-run (download/parse/print, no D1 writes).
+# Model A PRs that add this file still use Approval profile: work-bill-production.
 
 on:
   workflow_dispatch:
