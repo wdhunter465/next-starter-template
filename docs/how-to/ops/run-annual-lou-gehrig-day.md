@@ -15,6 +15,12 @@ Last Reviewed: 2026-09-21
 
 Walk operators through one annual cycle using the durable contract and that year's instance. Rehearsal and live execution both use this procedure. Rehearsal must not post or mutate Production.
 
+## Scope
+
+In scope: T-minus/T-plus calendar interfaces, freeze/change rules, readiness gates, smoke tests, rollback/unpublish, incident routing, and evidence retention for rehearsal and live years.
+
+Out of scope: Product publication Go; public copy; automatic posting; new website routes; Production mutation. Rehearsal must not post or mutate Production.
+
 ## Current known truth
 
 - Durable contract: `docs/reference/operations/annual-lou-gehrig-day-operating-contract.md`

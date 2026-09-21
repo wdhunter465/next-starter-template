@@ -15,6 +15,12 @@ Last Reviewed: 2026-09-21
 
 Instantiate the durable #2084 contract for calendar year 2027. Only the June 2 Lou Gehrig Day anchor is treated as an approved public date. Every other public window stays Product-gated via #2093 / Product Authority.
 
+## Scope
+
+In scope: the first 2027 annual instance using only Product-approved dates (`2027-06-02`).
+
+Out of scope: additional 2027 public dates; public copy; publication Go; automatic posting; Production mutation. Unapproved fields stay Product-gated.
+
 ## Current known truth
 
 - `lou_gehrig_day_date`: 2027-06-02

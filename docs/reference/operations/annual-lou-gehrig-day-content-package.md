@@ -15,6 +15,12 @@ Last Reviewed: 2026-09-21
 
 Define the reusable content packet that every Lou Gehrig Day instance must complete before rehearsal. This packet is documentation and operator procedure. It does not publish anything.
 
+## Scope
+
+In scope: reusable content, rights/credit, website spotlight, social/newsletter export, fundraiser-boundary, and partner/recognition packet fields, plus package-level fallbacks.
+
+Out of scope: public copy authorship; Product approval; automatic posting; new website routes; rights acquisition; partner or sponsor contracts.
+
 ## Current known truth
 
 - Homepage and Club Home spotlight eligibility is already defined in `docs/reference/website/editorial-placement-and-rotation.md` (`homepage_spotlight`, `club_home`).

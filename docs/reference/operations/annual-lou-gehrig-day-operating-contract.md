@@ -15,6 +15,12 @@ Last Reviewed: 2026-09-21
 
 Define the durable, year-independent operating contract for the Annual Lou Gehrig Day operations package (#2084). Year-specific dates and copy live in a separate annual instance record. This contract does not authorize public launch, automatic posting, new website routes, or Production mutation.
 
+## Scope
+
+In scope: durable annual roles, decision rights, recurring checklist, inputs, outputs, and the annual-instance schema.
+
+Out of scope: year-specific copy; public dates other than the June 2 anchor; website routes; automatic posting; Production mutation; fundraiser, partner, or recognition commitments.
+
 ## Current known truth
 
 - Product Graduation **GO** 2026-09-20 placed parent #2084 Active at `pmo:priority:3` with Cursor as implementation owner. Entry gate #2782 is closed complete.

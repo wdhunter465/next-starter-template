@@ -15,6 +15,12 @@ Last Reviewed: 2026-09-21
 
 Hand the qualified package to Operations for the next year, and provide the evidence-report template every instance must complete.
 
+## Scope
+
+In scope: operator handoff steps and the annual evidence-report template.
+
+Out of scope: filling Product approvals; publication Go; automatic posting; Production mutation. This how-to is a template and handoff procedure. It does not authorize execution.
+
 ## Current known truth
 
 - Durable contract, content packet, run how-to, 2027 instance, and 2027 rehearsal now exist under #2084.
