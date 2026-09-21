@@ -17,7 +17,6 @@ on:
 permissions:
   contents: read
   actions: read
-  administration: read
 
 concurrency:
   group: lgfc-cursor-runner-health
