@@ -54,46 +54,110 @@ export function resolveAndValidateWorkspace(explicitWorkspace) {
   return { ok: false, error: 'workspace_not_found' };
 }
 
+// Only used as a fallback when a held lock's owning pid can't be determined
+// (corrupt or legacy lock file) -- a lock with a live, confirmed pid is never
+// reclaimed by age alone, no matter how old, to avoid stealing it out from
+// under a genuinely long-running dispatch.
+const DEFAULT_STALE_LOCK_MAX_AGE_MS = 2 * 60 * 60 * 1000;
+
+function isProcessAlive(pid) {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    if (error && error.code === 'ESRCH') return false;
+    // EPERM (owned by another user) or anything unexpected: assume alive, fail closed.
+    return true;
+  }
+}
+
+function readLockOwnerPid(lockPath) {
+  try {
+    const parsed = JSON.parse(fs.readFileSync(lockPath, 'utf8'));
+    return Number.isInteger(parsed.pid) && parsed.pid > 0 ? parsed.pid : null;
+  } catch {
+    return null;
+  }
+}
+
+// A lock left behind by a process that crashed, was killed, or lost its host
+// before it could call release() blocks every future dispatch forever --
+// there is no other recovery path. Reclaim it only when we can positively
+// confirm the original owner is gone (or, lacking that, once it's old enough
+// that continuing to honor it is worse than the small risk of reclaiming it).
+function isLockStale(lockPath, maxAgeMs) {
+  const pid = readLockOwnerPid(lockPath);
+  if (pid !== null) {
+    return !isProcessAlive(pid);
+  }
+  let stat;
+  try {
+    stat = fs.statSync(lockPath);
+  } catch {
+    return true; // Lock vanished since the failed open attempt.
+  }
+  return Date.now() - stat.mtimeMs > maxAgeMs;
+}
+
 /**
  * Exclusive local lock to prevent parallel Cursor dispatch writers.
  */
-export function acquireDispatchLock(lockPath) {
+export function acquireDispatchLock(lockPath, options = {}) {
+  const maxAgeMs = options.staleAfterMs ?? DEFAULT_STALE_LOCK_MAX_AGE_MS;
   const dir = path.dirname(lockPath);
   fs.mkdirSync(dir, { recursive: true });
-  try {
-    const fd = fs.openSync(lockPath, 'wx');
-    fs.writeFileSync(
-      fd,
-      JSON.stringify(
-        {
-          pid: process.pid,
-          startedAt: new Date().toISOString(),
+
+  const attempt = () => {
+    try {
+      const fd = fs.openSync(lockPath, 'wx');
+      fs.writeFileSync(
+        fd,
+        JSON.stringify(
+          {
+            pid: process.pid,
+            startedAt: new Date().toISOString(),
+          },
+          null,
+          2,
+        ) + '\n',
+      );
+      return {
+        ok: true,
+        release() {
+          try {
+            fs.closeSync(fd);
+          } catch {
+            // ignore
+          }
+          try {
+            fs.unlinkSync(lockPath);
+          } catch {
+            // ignore
+          }
         },
-        null,
-        2,
-      ) + '\n',
-    );
-    return {
-      ok: true,
-      release() {
-        try {
-          fs.closeSync(fd);
-        } catch {
-          // ignore
-        }
-        try {
-          fs.unlinkSync(lockPath);
-        } catch {
-          // ignore
-        }
-      },
-    };
-  } catch (error) {
-    if (error && error.code === 'EEXIST') {
-      return { ok: false, error: 'dispatch_lock_held' };
+      };
+    } catch (error) {
+      if (error && error.code === 'EEXIST') {
+        return { ok: false, error: 'dispatch_lock_held' };
+      }
+      return { ok: false, error: `dispatch_lock_failed:${error}` };
     }
-    return { ok: false, error: `dispatch_lock_failed:${error}` };
+  };
+
+  const first = attempt();
+  if (first.ok || first.error !== 'dispatch_lock_held') return first;
+  if (!isLockStale(lockPath, maxAgeMs)) return first;
+
+  // Reclaim exactly once: remove the confirmed-stale lock and retry. If a
+  // concurrent process wins the recreate in between, fall through to its
+  // (fresh, non-stale) failure rather than looping.
+  try {
+    fs.unlinkSync(lockPath);
+  } catch {
+    // Another process may have already cleared it; retry regardless.
   }
+  const second = attempt();
+  return second.ok ? { ...second, reclaimedStaleLock: true } : second;
 }
 
 export function resolveAgentBinary() {

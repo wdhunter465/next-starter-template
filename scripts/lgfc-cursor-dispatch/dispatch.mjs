@@ -76,6 +76,9 @@ function main(argv = process.argv.slice(2)) {
     process.exitCode = 4;
     return;
   }
+  if (lock.reclaimedStaleLock) {
+    log('warn', 'stale_dispatch_lock_reclaimed', { lockPath: defaultLockPath() });
+  }
 
   try {
     const prompt = buildIdentifiersOnlyPrompt(values);
