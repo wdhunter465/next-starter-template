@@ -71,19 +71,18 @@ jobs:
           D1_DATABASE_NAME: lgfc_lite
         run: node scripts/ci/verify_cloudflare_d1_auth.mjs
 
-      - name: Ingest Retrosheet Gehrig data
-        id: ingest
+      - name: Ingest Retrosheet Gehrig data (dry-run)
+        id: ingest_dry_run
+        if: github.event.inputs.mode != 'apply'
+        run: node scripts/ingest-gehrig-retrosheet-data.mjs --print
+
+      - name: Ingest Retrosheet Gehrig data (apply)
+        id: ingest_apply
+        if: github.event.inputs.mode == 'apply'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          MODE: ${{ github.event.inputs.mode }}
-        run: |
-          set -euo pipefail
-          if [ "$MODE" = "apply" ]; then
-            node scripts/ingest-gehrig-retrosheet-data.mjs --apply --remote
-          else
-            node scripts/ingest-gehrig-retrosheet-data.mjs --print
-          fi
+        run: node scripts/ingest-gehrig-retrosheet-data.mjs --apply --remote
 
       - name: Verify Production D1 row counts
         if: github.event.inputs.mode == 'apply'
@@ -93,14 +92,16 @@ jobs:
         run: |
           set -euo pipefail
           parse_n() {
-            python3 -c 'import json,sys
-text=sys.stdin.read()
-start=text.find("[")
-if start < 0:
-    raise SystemExit("wrangler stdout had no JSON array")
-payload=json.loads(text[start:])
-row=(payload[0] if isinstance(payload, list) else payload)["results"][0]
-print(int(row["n"]))'
+            python3 -c '
+          import json,sys
+          text=sys.stdin.read()
+          start=text.find("[")
+          if start < 0:
+              raise SystemExit("wrangler stdout had no JSON array")
+          payload=json.loads(text[start:])
+          row=(payload[0] if isinstance(payload, list) else payload)["results"][0]
+          print(int(row["n"]))
+          '
           }
           games=$(npx wrangler d1 execute lgfc_lite --remote --yes --json --command "SELECT COUNT(*) AS n FROM retrosheet_gehrig_games;" | parse_n)
           lines=$(npx wrangler d1 execute lgfc_lite --remote --yes --json --command "SELECT COUNT(*) AS n FROM retrosheet_box_score_lines;" | parse_n)
@@ -145,14 +146,18 @@ print(int(row["n"]))'
             exit 0
           fi
           if [ "$JOB_STATUS" = "success" ]; then
-            body="<!-- gehrig-retrosheet-ingest-4263 -->
-          ## #4263 Retrosheet ingest — ${MODE} complete
-
-          Hosted-runner ingest finished without a D1 write (dry-run). See the workflow run logs."
+            printf '%s\n' \
+              "<!-- gehrig-retrosheet-ingest-4263 -->" \
+              "## #4263 Retrosheet ingest — ${MODE} complete" \
+              "" \
+              "Hosted-runner ingest finished without a D1 write (dry-run). See the workflow run logs." \
+              > "$RUNNER_TEMP/fallback-body.md"
           else
-            body="<!-- gehrig-retrosheet-ingest-4263 -->
-          ## #4263 Retrosheet ingest — FAILED (fail-closed)
-
-          Mode: \`${MODE}\`. See the workflow run logs. Do not treat Club Home box-score/standings as populated until apply succeeds."
+            printf '%s\n' \
+              "<!-- gehrig-retrosheet-ingest-4263 -->" \
+              "## #4263 Retrosheet ingest — FAILED (fail-closed)" \
+              "" \
+              "Mode: \`${MODE}\`. See the workflow run logs. Do not treat Club Home box-score/standings as populated until apply succeeds." \
+              > "$RUNNER_TEMP/fallback-body.md"
           fi
-          gh issue comment 4263 --body "$body"
+          gh issue comment 4263 --body-file "$RUNNER_TEMP/fallback-body.md"
