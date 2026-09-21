@@ -458,7 +458,7 @@ A local always-on tick with `fresh=0` is not an idle cycle when the poller resum
 - A stale `RESUME` does not override a numbered Operations interrupt or explicit hold.
 - Monitoring and Hold records are stale when their required update interval passes without evidence.
 - Source-Issue-first detection of unanswered `COLLABORATION REQUEST`, `PR REVIEW REQUEST`, `PROBLEM FOUND`, and `IMPLEMENTATION HANDOFF` events is performed by `scripts/ops/detect-stale-communication.mjs` (#3188).
-- The detector uses a 5-minute SLO aligned with #2679 T3, posts at most one `COMMUNICATION EXCEPTION` per `lgfc-stale-communication:<issue>:<comment-id>` marker, and caps posts per run to prevent alert storms.
+- The detector uses a 5-minute SLO, posts at most one `COMMUNICATION EXCEPTION` per `lgfc-stale-communication:<issue>:<comment-id>` marker, and caps posts per run to prevent alert storms.
 - The detector does not acknowledge, reassign, or create role decisions. PR comments are not routing authority.
 - Protected Product Authority escalations are classified, not treated as stale agent-to-agent communication.
 - Target role holders acknowledge pending required communication before claiming unrelated lower-priority work; numbered Operations interrupts retain precedence.
