@@ -2,7 +2,7 @@
 Doc Type: Operations
 Audience: Bill, ChatGPT, Cursor, Claude Code, LGFC maintainers, and reviewers
 Authority Level: Controlled
-Owns: Project #2871 (Chromebook Runner and Dispatcher Capability Expansion) as-built reconciliation, the #2637 RETAIN/DEFER/NOT-PLANNED decision, and the #2638 terminal closeout
+Owns: Project #2871 (Chromebook Runner and Dispatcher Capability Expansion) as-built reconciliation, the #2637 RETAIN/DEFER/NOT PLANNED decision, and the #2638 terminal closeout
 Does Not Own: Production routing, protected-branch automation, secret-bearing workloads, or reopening completed Project #2294
 Canonical Reference: docs/governance/standards/CURSOR-RUNTIME-ROUTING.md
 Related Issues: #2871, #2636, #2637, #2638, #2694, #3212, #3424, #4257, #4259, #4260
@@ -26,7 +26,7 @@ reopen completed Project #2294. It is a docs-only deliverable on
 ## Scope and non-goals
 
 In scope: as-built reconciliation of #2636 against later evidence; the #2637 RETAIN / DEFER /
-NOT-PLANNED decision; the #2638 terminal closeout record.
+NOT PLANNED decision; the #2638 terminal closeout record.
 
 Out of scope (non-goals): reopening #2294; Production routing or protected-branch automation;
 automatic `main` merge; secret-bearing workloads; paid relay, cloud-agent, or OpenAI API
@@ -86,7 +86,7 @@ pending Bill's direct application or explicit sign-off (workflow permission chan
 something this session pushes autonomously). Items 4 and 5 are recorded as non-blocking. Close
 #2636 once item 3 merges and one clean health run is observed.
 
-## #2637 — RETAIN / DEFER / NOT-PLANNED decision
+## #2637 — RETAIN / DEFER / NOT PLANNED decision
 
 #2637's own decision gate offers exactly three outcomes. Evaluated against current evidence:
 
@@ -114,9 +114,9 @@ authorized project rather than reopening this one.
 3. Allowed runner workload classes remain unchanged: manual repository-runner health execution
    and identifiers-only wake-packet dispatch. No mutation, no Production routing, no
    protected-branch automation, no secret-bearing workload.
-4. Rollback/disable/recovery evidence: proven historically against `lgfc-chromebook-linux` (2026
-   -07-20 handoff) and reconciled against the current runner `lgfc-cursor-chromebook` above; no
-   retained expansion scope requires new rollback evidence since #2637 is NOT PLANNED.
+4. Rollback/disable/recovery evidence: proven historically against `lgfc-chromebook-linux`
+   (2026-07-20 handoff) and reconciled against the current runner `lgfc-cursor-chromebook` above;
+   no retained expansion scope requires new rollback evidence since #2637 is NOT PLANNED.
 5. **Terminal decision: complete**, contingent only on the #2636 workflow-permission item being
    applied. Production routing remains **NO-GO** and stays Bill's separate decision for any
    future project.
