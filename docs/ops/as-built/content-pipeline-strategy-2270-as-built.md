@@ -15,6 +15,18 @@ Last Reviewed: 2026-09-21
 
 Record what parent [#2270](https://github.com/wdhunter465/next-starter-template/issues/2270) actually delivered after Graduation GO 2026-09-20 and merged PR #4251. This is the mandatory AS-BUILT for that Model A strategy package. It describes the implemented documentation state, not a planned crawler, admin UI, or publication runtime.
 
+## Current known truth
+
+- Product Graduation **GO** 2026-09-20 placed #2270 Active at `pmo:priority:2`. Entry HOLDs #1738 and #2312 are closed complete.
+- Children #3867–#3872 are closed complete. Strategy delivery is merged PR [#4251](https://github.com/wdhunter465/next-starter-template/pull/4251) at `9bc90cf907616cf1ae2193331cf4dc1a678e29ee`.
+- The merged file is `docs/ops/reports/content-pipeline-strategy-reconciliation-2270.md`. No D1, B2, `/admin/*`, crawler, or publication-runtime mutation landed from this parent.
+- Post-merge parent closeout of #2270 failed as #4252 (`too_many_source_issue_candidates`) and that exception is closed. The parent remains OPEN.
+- Until this PR, no durable AS-BUILT existed under `docs/ops/as-built/` for #2270, which blocked project-documentation closeout.
+
+## Intended final state
+
+The Model A strategy package is recorded as implemented documentation, with this AS-BUILT as the completion record. Parent #2270 stays OPEN until an independent project/master closeout that did not solely implement the children. No runtime, crawler, admin UI, member-upload, automatic publication, or Production is started from this parent.
+
 ## Final objective and delivered outcome
 
 **Objective:** one authoritative content discovery, intake, human review, rights/privacy, provenance, publication-preparation, retention, and controlled-automation strategy.
