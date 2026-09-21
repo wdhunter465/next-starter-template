@@ -263,7 +263,9 @@ export function validateCursorReviewCheckpoint({ issueComments }) {
 // DRAFT / FUTURE — NOT IMPLEMENTED
 // Proposed path: scripts/ci/governance_stop_gate_authorization_validator.mjs
 
-const AUTHORIZED_ACTORS = ['wdhunter645', 'Bill', 'ChatGPT']; // configurable allowlist
+// Matched against comment.author.login (a GitHub username) below, so every
+// entry must be a real GitHub login -- not a display name or agent label.
+const AUTHORIZED_ACTORS = ['wdhunter465']; // configurable allowlist, GitHub logins only
 
 const ASSIGNMENT_PATTERNS = [
   /assign(?:ed|ment)?\s+(?:to\s+)?(?:Cursor|Codex)/i,

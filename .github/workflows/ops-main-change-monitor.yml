@@ -107,7 +107,7 @@ jobs:
               admins = variable.value.split(',').map(u => u.trim()).filter(u => u);
             } catch (error) {
               console.log('ADMIN_GITHUB_LOGINS variable not found, using default');
-              admins = ['wdhunter645']; // Default admin
+              admins = ['wdhunter465']; // Default admin
             }
             
             const mentions = admins.map(u => `@${u}`).join(' ');

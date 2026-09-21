@@ -19,7 +19,7 @@ jobs:
   health:
     if: >-
       github.repository == 'wdhunter465/next-starter-template' &&
-      github.actor == 'wdhunter645' &&
+      github.actor == 'wdhunter465' &&
       github.ref == 'refs/heads/main' &&
       inputs.confirmation == 'RUNNER_HEALTH'
     runs-on: [self-hosted, linux, x64, lgfc-repo-runner]
@@ -35,7 +35,7 @@ jobs:
           test "$EVENT_NAME" = "workflow_dispatch"
           test "$REPOSITORY" = "wdhunter465/next-starter-template"
           test "$REF_NAME" = "refs/heads/main"
-          test "$ACTOR" = "wdhunter645"
+          test "$ACTOR" = "wdhunter465"
 
       - name: Checkout trusted main
         uses: actions/checkout@v4
@@ -86,8 +86,8 @@ jobs:
           }
           if (!Array.isArray(security.trustedActors) ||
               security.trustedActors.length !== 1 ||
-              security.trustedActors[0] !== 'wdhunter645') {
-            throw new Error('Trusted actors must be exactly wdhunter645');
+              security.trustedActors[0] !== 'wdhunter465') {
+            throw new Error('Trusted actors must be exactly wdhunter465');
           }
           for (const flag of denyFlags) {
             if (security[flag] !== false) {

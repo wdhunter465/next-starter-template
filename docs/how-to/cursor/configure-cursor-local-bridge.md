@@ -156,7 +156,7 @@ There is no comment-marker requirement (#3013): mechanical eligibility is decide
 ## Verify wake delivery without launch
 
 ```bash
-bash scripts/cursor-bridge/write-wake-packet.sh <mechanically-ineligible-issue-number> manual-test-1 manual wdhunter645
+bash scripts/cursor-bridge/write-wake-packet.sh <mechanically-ineligible-issue-number> manual-test-1 manual wdhunter465
 node ~/lgfc-cursor-bridge/scripts/bridge.mjs once
 ```
 

@@ -357,7 +357,7 @@ describe('cursor-only wake ingress / packet boundary (label-driven)', () => {
       shouldDeliverCursorWake({
         repository: repo,
         eventName: 'workflow_dispatch',
-        actor: 'wdhunter645',
+        actor: 'wdhunter465',
         issueLabels: ['agent:cursor'],
       }).deliver,
     ).toBe(true);
@@ -366,7 +366,7 @@ describe('cursor-only wake ingress / packet boundary (label-driven)', () => {
       shouldDeliverCursorWake({
         repository: repo,
         eventName: 'workflow_dispatch',
-        actor: 'wdhunter645',
+        actor: 'wdhunter465',
         issueLabels: ['agent:ChatGPT'],
       }).deliver,
     ).toBe(false);

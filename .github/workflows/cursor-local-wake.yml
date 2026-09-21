@@ -5,7 +5,7 @@ name: Cursor Local Wake Delivery
 # on the dedicated `lgfc-cursor` runner.
 #
 # Approved diagnostic fallback only: trusted manual workflow_dispatch
-# (actor `wdhunter645`) may still write a Bridge packet if Product Authority
+# (actor `wdhunter465`) may still write a Bridge packet if Product Authority
 # explicitly authorizes temporary Bridge diagnostics. Automatic `issues`
 # labeled delivery is disabled.
 #
@@ -37,7 +37,7 @@ jobs:
     if: >-
       github.repository == 'wdhunter465/next-starter-template' &&
       github.event_name == 'workflow_dispatch' &&
-      github.actor == 'wdhunter645' &&
+      github.actor == 'wdhunter465' &&
       inputs.confirmation == 'CURSOR_WAKE_DIAGNOSTIC'
     runs-on: [self-hosted, linux, x64, lgfc-repo-runner]
     timeout-minutes: 5
