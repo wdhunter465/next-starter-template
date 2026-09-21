@@ -26,11 +26,11 @@ Rehearse the #2084 package against the 2027 instance without posting, scheduling
 
 The operating candidate is qualified as unchanged: the durable contract, content packet, how-to, instance schema, and evidence template can be copied to a later year. Live publication remains a separate Product Go.
 
-## Rehearsal scope
+## Scope
 
 In scope: schema completeness, freeze mark, readiness-gate logic, smoke-test design, rollback path citation, fallback behavior when channels are `not-authorized`.
 
-Out of scope: calling `/api/scheduled-content/publish-due`, Zapier, wrangler, D1 execute, admin publish, or any social API.
+Out of scope: calling `/api/scheduled-content/publish-due`, Zapier, wrangler, D1 execute, admin publish, or any social API. This record is not publication Go.
 
 ## Checklist results
 

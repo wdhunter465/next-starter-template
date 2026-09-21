@@ -15,6 +15,12 @@ Last Reviewed: 2026-09-21
 
 Record what parent [#2084](https://github.com/wdhunter465/next-starter-template/issues/2084) delivered after Graduation GO 2026-09-20 and Product direction on 2026-09-21 to implement the full remaining graph. This is documentation implementation. It is not website or social Go.
 
+## Scope
+
+In scope: delivered #2084 Model B operations-package identities, files, child map, and documentation inventory.
+
+Out of scope: public launch; automatic posting; new website routes; payment processing; sponsor commitments; rights acquisition; paid tools; credentials; Production mutation; independent project/master close of parent #2084.
+
 ## Current known truth
 
 - Parent #2084 is OPEN, Active, `pmo:priority:3`, `agent:cursor`. Entry gate #2782 is closed complete.
@@ -36,10 +42,10 @@ The reusable annual operating package exists on the Model B component branch `co
 - PMO / Engineering: Cursor Local implementer; independent review required
 - Implementer(s): Cursor Local
 - Independent reviewer: not this implementer
-- Implementation PR(s): this Model B child PR targeting `component/lou-gehrig-day-operations`
-- Final candidate SHA: the merge commit on the component branch after integration
+- Implementation PR(s): https://github.com/wdhunter465/next-starter-template/pull/4273
+- Final candidate SHA: `a3d571d65d04f88c8472878edfcc267763eb2094` (merge of PR #4273 into `component/lou-gehrig-day-operations`)
 - Production PR: Not applicable
-- Merge SHA: Not applicable until component integration, and not a `main` merge
+- Merge SHA: `a3d571d65d04f88c8472878edfcc267763eb2094` on the component branch; not a `main` merge
 - Deployment identity: Not applicable
 - Completion date: 2026-09-21 (package authored; not published)
 
