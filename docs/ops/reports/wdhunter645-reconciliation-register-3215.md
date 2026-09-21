@@ -5,11 +5,17 @@ Authority Level: Task Evidence
 Owns: Classification register and remediation accounting for the `wdhunter645` repository-owner/user-account reconciliation audit (#3215)
 Does Not Own: Repository authority itself (see `docs/governance/REPOSITORY-AUTHORITY.md`); future changes to CODEOWNERS or actor allowlists
 Canonical Reference: /docs/ops/reports/wdhunter645-reconciliation-register-3215.md
-Related Issues: #3215
+Related Issues: #3215, #4258
 Last Reviewed: 2026-08-08
 ---
 
 # `wdhunter645` reconciliation register — #3215
+
+## Errata (#4258, 2026-09-21)
+
+This register's core premise — that `wdhunter645` was a second, still-valid "Product Authority GitHub user account" distinct from the repository owner `wdhunter465` — is factually wrong. Product Authority has confirmed directly: there was only ever one account; `wdhunter645` was a typo'd username later renamed, via GitHub's own rename prompt, to `wdhunter465`. It has been out of use since that rename.
+
+Consequently, the 22 occurrences (13 files) classified `USER_ACCOUNT_CORRECT` in the **B** table below were reclassified and corrected to `wdhunter465` under #4258. This section is an errata addition only; the search results, classification totals, and per-file register below are preserved unmodified as the historical record of #3215's original (incorrect) audit, per this repository's own historical-evidence-preservation convention. Do not treat the **B** table below as describing current file contents — see #4258 for the corrected state.
 
 ## Purpose
 

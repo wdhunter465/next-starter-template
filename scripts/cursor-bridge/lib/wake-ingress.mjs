@@ -113,7 +113,7 @@ export function shouldDeliverCursorWake(event = {}) {
   }
 
   if (event.eventName === 'workflow_dispatch') {
-    if (event.actor !== 'wdhunter645') {
+    if (event.actor !== 'wdhunter465') {
       return { deliver: false, reason: 'dispatch_actor_not_authorized' };
     }
     if (!labels.includes(CURSOR_AGENT_LABEL)) {

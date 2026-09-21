@@ -87,7 +87,7 @@ The initial health workflow is valid only when:
 
 - event is `workflow_dispatch`;
 - ref is `refs/heads/main`;
-- actor is `wdhunter645`;
+- actor is `wdhunter465`;
 - confirmation is `RUNNER_HEALTH`;
 - permissions remain `contents: read`;
 - checkout credentials are not persisted.

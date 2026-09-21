@@ -50,7 +50,7 @@ Observed on `wdhunter465/next-starter-template` as of 2026-08-15:
 | PR merges by Product Authority | Bill merges when acting as Product Authority | Bill (correct when Bill merges) |
 | GitHub Actions | `github-actions[bot]` or workflow `GITHUB_TOKEN` | Bot / Deterministic CI |
 | Copilot review comments | GitHub Copilot app | App/bot |
-| `CODEOWNERS` | `/docs/` paths → `@wdhunter645` | Related human identity, not per-agent |
+| `CODEOWNERS` | `/docs/` paths → `@wdhunter465` | Related human identity, not per-agent |
 | Logical agent identity | `agent:*` labels + governance docs only | Label / docs, not GitHub user |
 
 **Core defect:** Logical LGFC agents (Grok, Claude, Cursor, Chat, Work (OpenAI), Codex) do not map to distinct GitHub users. Almost all agent-performed API and git activity is attributable to Bill.
@@ -236,7 +236,7 @@ Complete offline. Return **usernames only** on the source Issue or secure channe
 2. **Grok / Work labels:** Add `agent:grok` and `agent:work` to the orchestrator registry?
 3. **Pilot agent:** Confirm Cursor first.
 4. **Org versus user accounts:** Personal GitHub users versus a future LGFC organization (organization may trigger paid-plan stop).
-5. **CODEOWNERS:** Replace `@wdhunter645` with team/agent users after accounts exist?
+5. **CODEOWNERS:** Replace `@wdhunter465` with team/agent users after accounts exist? (`@wdhunter645` was corrected to `@wdhunter465` under #4258 — that string was stale rename residue, not a distinct pending identity.)
 
 ## Stop conditions (unchanged from #3407)
 

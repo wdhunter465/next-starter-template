@@ -49,15 +49,15 @@ Covers operator behavior for `~/.cursor/github-poller/` while working in `wdhunt
 | Trigger | Rule |
 | --- | --- |
 | Cursor handoff queue | Open issue labeled `agent:cursor` **and** `handoff:ready` |
-| Assigned issue | Open issue assigned to `GITHUB_POLL_LOGIN` (default `wdhunter645`) |
+| Assigned issue | Open issue assigned to `GITHUB_POLL_LOGIN` (default `wdhunter465`) |
 | Assigned PR | Open PR assigned to `GITHUB_POLL_LOGIN` |
 
 The preferred routing bundle uses all available paths:
 
 1. Open source issue.
 2. `agent:cursor` + `handoff:ready`.
-3. Assign source issue to `wdhunter645`.
-4. If revising a PR, assign the open PR to `wdhunter645`.
+3. Assign source issue to `wdhunter465`.
+4. If revising a PR, assign the open PR to `wdhunter465`.
 5. Post exactly one canonical `CHATGPT RESPONSE` or `CHATGPT CLOSEOUT` on the source issue.
 6. Post exactly one separate `LOCAL CURSOR RESUME` on the source issue referencing that response.
 

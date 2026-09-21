@@ -263,7 +263,7 @@ export function validateCursorReviewCheckpoint({ issueComments }) {
 // DRAFT / FUTURE — NOT IMPLEMENTED
 // Proposed path: scripts/ci/governance_stop_gate_authorization_validator.mjs
 
-const AUTHORIZED_ACTORS = ['wdhunter645', 'Bill', 'ChatGPT']; // configurable allowlist
+const AUTHORIZED_ACTORS = ['wdhunter465', 'Bill', 'ChatGPT']; // configurable allowlist
 
 const ASSIGNMENT_PATTERNS = [
   /assign(?:ed|ment)?\s+(?:to\s+)?(?:Cursor|Codex)/i,

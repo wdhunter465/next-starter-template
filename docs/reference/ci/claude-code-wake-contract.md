@@ -40,8 +40,8 @@ This workflow is **delivery only**. It does not:
 | Trigger | Condition | Effect |
 | --- | --- | --- |
 | `pull_request` | `opened`, `reopened`, or `ready_for_review`; the PR is not a draft; and the head repo is this repo (not a fork) | Alert comment on the PR |
-| `issue_comment` | Created on an open **issue** (not a PR) by `wdhunter645`, with a body starting with `CLAUDE CODE RESUME` | Alert comment on the issue |
-| `workflow_dispatch` | Manual, restricted to `github.actor == 'wdhunter645'` | Alert comment on the given issue/PR number |
+| `issue_comment` | Created on an open **issue** (not a PR) by `wdhunter465`, with a body starting with `CLAUDE CODE RESUME` | Alert comment on the issue |
+| `workflow_dispatch` | Manual, restricted to `github.actor == 'wdhunter465'` | Alert comment on the given issue/PR number |
 
 Every PR eventually needs PR Approver / Engineering review, so the `pull_request`
 trigger covers that class without requiring a label. Issue-side routing

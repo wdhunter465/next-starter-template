@@ -47,7 +47,7 @@ When explicitly authorized, a dispatcher watcher may:
 1. Comment on issues/PRs.
 2. Consume `CHATGPT HANDOFF` with one `CHATGPT RESPONSE` or `CHATGPT CLOSEOUT`.
 3. Optionally post a resume-style comment referencing that response/closeout. That comment is context-only and is **not** a gating wake or dispatch requirement. Cursor Local Bridge eligibility is labels/status only (#3013); there is no comment-marker protocol.
-4. Assign source issue / active PR to `wdhunter645`.
+4. Assign source issue / active PR to `wdhunter465`.
 5. Restore approved Cursor wake labels `agent:cursor` + `handoff:ready`.
 6. Clear stale completed-predecessor blockers.
 7. Create/update bounded Ops remediation issues.
