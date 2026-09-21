@@ -31,7 +31,7 @@ jobs:
         github.event_name == 'schedule' ||
         (
           github.event_name == 'workflow_dispatch' &&
-          github.actor == 'wdhunter645' &&
+          github.actor == 'wdhunter465' &&
           inputs.confirmation == 'CURSOR_RUNNER_HEALTH'
         )
       )

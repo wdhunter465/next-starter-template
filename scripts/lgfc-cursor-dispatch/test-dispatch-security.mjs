@@ -33,6 +33,11 @@ function baseArgs(extra = []) {
   ];
 }
 
+function assertTrustedDispatchActor(wf) {
+  assert.match(wf, /github\.actor\s*==\s*['"]wdhunter465['"]/);
+  assert.doesNotMatch(wf, /github\.actor\s*==\s*['"]wdhunter645['"]/);
+}
+
 function test(name, fn) {
   try {
     fn();
@@ -163,6 +168,7 @@ test('workflow YAML must not use pull_request triggers', () => {
   assert.doesNotMatch(onBlock, /^\s*pull_request(_target)?\s*:/m);
   assert.match(wf, /runs-on:\s*\[self-hosted,\s*linux,\s*x64,\s*lgfc-cursor\]/);
   assert.match(onBlock, /workflow_dispatch:/);
+  assertTrustedDispatchActor(wf);
 });
 
 test('health workflow must run on GitHub-hosted ubuntu-latest', () => {
@@ -172,6 +178,7 @@ test('health workflow must run on GitHub-hosted ubuntu-latest', () => {
   );
   assert.match(wf, /runs-on:\s*ubuntu-latest/);
   assert.doesNotMatch(wf, /runs-on:\s*\[self-hosted/);
+  assertTrustedDispatchActor(wf);
 });
 
 if (!process.exitCode) {
