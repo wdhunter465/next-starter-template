@@ -2,8 +2,8 @@
 Doc Type: Operations
 Audience: Human + AI
 Authority Level: Controlled
-Owns: Project #2815 CI qualification brief — live surface inventory (#4229) and candidate contract plus scorecard (#4230)
-Does Not Own: Branch-protection mutation; adding or removing required checks; workflow YAML; #4089 consolidation implementation; paid CI services
+Owns: Project #2815 CI qualification brief — inventory (#4229), contract/scorecard (#4230), and repeated-pilot matrix (#4231)
+Does Not Own: Branch-protection mutation; adding or removing required checks; workflow YAML; executing live pilot rounds; paid CI services
 Canonical Reference: .github/CI_GUARDRAILS_MAP.md
 Related Issues: #2815, #4229, #4230, #4231, #4232, #4089, #4200, #3771, #3746
 Last Reviewed: 2026-09-22
@@ -13,11 +13,11 @@ Last Reviewed: 2026-09-22
 
 ## Purpose
 
-Publish how a new CI candidate must be qualified, scored, piloted, and separately admitted before it can become a required Production check. #4229 inventories the live surface. This revision (#4230) publishes the reusable candidate contract, scorecard, and disposition vocabulary. Pilot design and the admission recommendation remain later children.
+Publish how a new CI candidate must be qualified, scored, piloted, and separately admitted before it can become a required Production check. #4229 inventories the live surface. #4230 publishes the contract and scorecard. This revision (#4231) designs the repeated-pilot matrix and names the representative pilot. Executing rounds is a later separately authorized source Issue.
 
 ## Scope
 
-In scope: live merge-protection classification inventory plus the candidate admission contract, scorecard, and disposition vocabulary added in this #4230 revision.
+In scope: live merge-protection classification inventory, candidate contract and scorecard, and the repeated-pilot matrix plus representative pilot identity added in this #4231 revision.
 
 Out of scope: `.github/workflows/**` edits; GitHub ruleset changes; duplicating #4089 keep/consolidate/retire implementation; paid CI or new credentials.
 
@@ -127,4 +127,32 @@ Each candidate receives exactly one:
 | RETIRE | Existing workflow is duplicate, obsolete, misleading, or more costly than its value. |
 
 No candidate may silently remain active without a disposition and owner. This child does not implement a new workflow and does not promote a check to required.
+
+## Repeated-pilot matrix (#4231)
+
+Executing these rounds is **not** authorized by this child. A later source Issue must own live runs. This parent does not change branch protection, create a competing post-merge mutation owner, or use paid runners.
+
+### Representative pilot identity
+
+**Name:** `sandbox/2815-ci-admission-pilot`  
+**Kind:** synthetic Model A documentation change (one file under `docs/ops/reports/**`), opened as a throwaway PR that never edits `.github/workflows/**` and never mutates GitHub rulesets.  
+**Why this identity:** it is non-Production architecture, cheap to reset, and still exercises the real required surface (`quality`, `gitleaks`, `reviewer-response-completion`) plus advisory `pr-hygiene` / `diff-scope`.  
+**Version identity per round:** record candidate SHA, workflow file SHA, input fixture name, started/finished timestamps, duration, findings, and whether a human intervened.
+
+### Nine required cases
+
+| # | Case | Expected disposition for a well-formed candidate |
+| --- | --- | --- |
+| 1 | Fully conforming change that should pass | Pass |
+| 2 | Known scope or contract violation that should fail | Fail, with an actionable owner |
+| 3 | Transient infrastructure failure | Not misclassified as a code defect |
+| 4 | Agent communication or acknowledgment gap | Detected or explicitly out of scope in the contract |
+| 5 | Stale or superseded event | Ignored or superseded; not a false required block |
+| 6 | Duplicate delivery or retry | Idempotent; no double-close or double-mutate |
+| 7 | Legitimate advisory finding | Must not become a false required blocker |
+| 8 | Clean recovery and rerun | Later success on the same head restores merge eligibility |
+| 9 | Disablement of the candidate | Required delivery path (`quality` / `gitleaks` / `reviewer-response-completion`) still works |
+
+Use repeated rounds, not a single demonstration. Each round preserves exact candidate version, configuration, test inputs, outputs, duration, findings, and required human intervention.
+
 
