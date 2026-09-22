@@ -5,8 +5,8 @@ Authority Level: Binding
 Owns: Cross-agent execution fidelity — approved-action contracts, literal execution of agreed elements, end-state reconciliation, blocker handling, and completion semantics for live LGFC agents and future members mapped in AGENT-TEAM.md
 Does Not Own: Role mapping, merge authority, Product direction, assignment priority, PR process redesign, or incidental implementation details intentionally left open inside an approved contract
 Canonical Reference: /Agent.md
-Related Issues: #3138
-Last Reviewed: 2026-09-22 (retired-member name removal, #4320)
+Related Issues: #3138, #4213, #4320
+Last Reviewed: 2026-09-22
 ---
 
 # Agent Execution Fidelity

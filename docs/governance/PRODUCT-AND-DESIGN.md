@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Product behavior ownership, UX and functional-requirement decision rules, design freeze and deviation policy, and product/design escalation boundaries
 Does Not Own: Agent team approval routing, delivery Model A/B selection, platform/runtime isolation, CI gate implementation, or page-level visual specifications
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2687, #2686, #4174
-Last Reviewed: 2026-09-22 (role-name reconciliation, #4213)
+Related Issues: #2687, #2686, #4174, #4213
+Last Reviewed: 2026-09-22
 ---
 
 # Product and Design

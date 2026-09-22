@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Production health, degraded-service routing, incident classification, containment, recovery strategy, operational hold release, component recovery, stabilization-first boundaries, and Operations queue completion criteria
 Does Not Own: Cross-team queue semantics, Administration & Communications policy, delivery-model selection, PMO sizing, PR approval roles, CI implementation, project objectives, or daily operator checklists
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2495, #2640, #2641, #2695, #2699
-Last Reviewed: 2026-09-22 (role-name reconciliation, #4213)
+Related Issues: #2495, #2640, #2641, #2695, #2699, #4213
+Last Reviewed: 2026-09-22
 ---
 
 # Operations and Recovery
