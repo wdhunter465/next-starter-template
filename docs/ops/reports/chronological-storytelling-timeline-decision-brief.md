@@ -2,7 +2,7 @@
 Doc Type: Operations
 Audience: Human + AI
 Authority Level: Controlled
-Owns: Project #3162 chronological storytelling timeline decision brief — live surface inventory (#4241)
+Owns: Project #3162 chronological storytelling timeline decision brief — inventory (#4241) and TimelineJS3-versus-custom comparison (#4242)
 Does Not Own: TimelineJS3 npm or iframe add; new Production timeline route; visual-system rewrite; vendoring TimelineJS internals; OpenAI-name sweep
 Canonical Reference: /docs/reference/design/home-milestones.md
 Related Issues: #3162, #4241, #4242, #4243, #4244, #2878
@@ -17,7 +17,7 @@ Record live-main chronological surfaces so later #3162 children can compare Time
 
 ## Scope
 
-In scope for this revision (#4241): inventory of live timeline and milestones surfaces.
+In scope for this revision (#4242): comparison of TimelineJS3 iframe/embed versus extending the existing custom timeline, on top of the #4241 inventory.
 
 Out of scope: npm or iframe add; a new Production timeline route; restyling the homepage; embedding TimelineJS3.
 
@@ -34,7 +34,7 @@ The idea-coherence claim that LGFC has no dedicated timeline is **partially stal
 
 ## Intended final state
 
-This file remains a decision brief. Later children record comparison, license notes, and the adopt-versus-extend recommendation. This revision does not authorize TimelineJS3.
+This file remains a decision brief. TimelineJS3 stays a documented non-chosen library unless a later source Issue re-opens adopt. This revision does not add npm or iframe chrome.
 
 ## Live timeline and milestones surfaces (#4241)
 
@@ -44,6 +44,15 @@ This file remains a decision brief. Later children record comparison, license no
 | Homepage milestones | `home-milestones.md` / `MilestonesSection.tsx` / `#milestones` |
 | Calendar | `CalendarSection.tsx` — no external timeline library |
 | npm | No TimelineJS3 in `package.json` |
+
+## TimelineJS3 embed versus extending the custom timeline (#4242)
+
+| Approach | Visual language | Cost against the style guide |
+| --- | --- | --- |
+| Embed TimelineJS3 (iframe / library shell) | Knight Lab chrome, not LGFC | Significant CSS override; iframe isolation fights `docs/reference/design/style-guide.md` |
+| Extend `GehrigTimeline` / milestones / CalendarSection precedent | Already matches LGFC components | Stays in existing React/CSS modules; no MPL embed chrome |
+
+Pending-brief preference: **extend the custom component** rather than add MPL-licensed embed chrome. TimelineJS3 UX ideas (dated navigation, media pairing) may inform a later custom extension. This comparison does not add the npm or iframe dependency and does not rewrite the visual system.
 
 ## Protected stops
 
