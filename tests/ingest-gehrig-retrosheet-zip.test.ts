@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import {
   createCsvRowParser,
   parseCsv,
+  resolveColumn,
   resolveMasterCsvZipUrl,
 } from '../scripts/ingest-gehrig-retrosheet-data.mjs';
 
@@ -15,6 +16,26 @@ describe('Retrosheet master CSV zip selection (#4263)', () => {
     ];
     expect(resolveMasterCsvZipUrl(hrefs, 'https://www.retrosheet.org/downloads/csvdownloads.html')).toBe(
       'https://www.retrosheet.org/downloads/csvdownloads.zip',
+    );
+  });
+
+  it('maps Retrosheet gameinfo vruns/hruns to visitor and home scores', () => {
+    const header = [
+      'gid',
+      'visteam',
+      'hometeam',
+      'site',
+      'date',
+      'number',
+      'daynight',
+      'vruns',
+      'hruns',
+    ];
+    expect(resolveColumn(header, ['visscore', 'vis_score', 'awayscore', 'vruns', 'visruns', 'vis_runs', 'v_score'], 'gameinfo.csv')).toBe(
+      'vruns',
+    );
+    expect(resolveColumn(header, ['homescore', 'home_score', 'hruns', 'h_score'], 'gameinfo.csv')).toBe(
+      'hruns',
     );
   });
 

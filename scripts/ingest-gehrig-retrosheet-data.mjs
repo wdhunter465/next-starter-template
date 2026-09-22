@@ -235,7 +235,7 @@ async function loadCsv(extractedDir, filename) {
 // verifiable from this environment. Throws with the real header list if
 // none of the candidates match, so a wrong guess fails loudly in CI logs
 // instead of silently reading undefined.
-function resolveColumn(header, candidates, context) {
+export function resolveColumn(header, candidates, context) {
   const lower = header.map((h) => h.toLowerCase());
   for (const candidate of candidates) {
     const idx = lower.indexOf(candidate.toLowerCase());
@@ -337,8 +337,16 @@ async function main() {
       site: resolveColumn(gameinfo.header, ['site'], 'gameinfo.csv'),
       number: resolveColumn(gameinfo.header, ['number', 'game_number', 'gamenum'], 'gameinfo.csv'),
       daynight: resolveColumn(gameinfo.header, ['daynight', 'day_night'], 'gameinfo.csv'),
-      visscore: resolveColumn(gameinfo.header, ['visscore', 'vis_score', 'awayscore'], 'gameinfo.csv'),
-      homescore: resolveColumn(gameinfo.header, ['homescore', 'home_score'], 'gameinfo.csv'),
+      visscore: resolveColumn(
+        gameinfo.header,
+        ['visscore', 'vis_score', 'awayscore', 'vruns', 'visruns', 'vis_runs', 'v_score'],
+        'gameinfo.csv',
+      ),
+      homescore: resolveColumn(
+        gameinfo.header,
+        ['homescore', 'home_score', 'hruns', 'h_score'],
+        'gameinfo.csv',
+      ),
     };
     const battingCols = {
       gid: null,
@@ -361,7 +369,7 @@ async function main() {
         battingCols.gid = resolveColumn(header, ['gid', 'gameid', 'game_id'], 'batting.csv');
         battingCols.team = resolveColumn(header, ['team'], 'batting.csv');
         battingCols.playerid = resolveColumn(header, ['playerid', 'player_id', 'id'], 'batting.csv');
-        battingCols.battingorder = resolveColumn(header, ['battingorder', 'batting_order', 'bat_order'], 'batting.csv');
+        battingCols.battingorder = resolveColumn(header, ['battingorder', 'batting_order', 'bat_order', 'batting'], 'batting.csv');
       }
       if (rec[battingCols.playerid] === GEHRIG_PLAYER_ID && rec[battingCols.team] === GEHRIG_TEAM) {
         gehrigGidsFromBatting.add(rec[battingCols.gid]);
