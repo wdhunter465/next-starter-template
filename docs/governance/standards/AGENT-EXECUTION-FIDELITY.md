@@ -6,7 +6,7 @@ Owns: Cross-agent execution fidelity — approved-action contracts, literal exec
 Does Not Own: Role mapping, merge authority, Product direction, assignment priority, PR process redesign, or incidental implementation details intentionally left open inside an approved contract
 Canonical Reference: /Agent.md
 Related Issues: #3138
-Last Reviewed: 2026-09-22 (role-name reconciliation, #4213)
+Last Reviewed: 2026-09-22 (retired-member name removal, #4320)
 ---
 
 # Agent Execution Fidelity
@@ -29,7 +29,7 @@ This standard is the single, stable source of the execution-fidelity contract fo
 
 ## Scope
 
-Applies to every live LGFC agent and runtime that executes repository work under the mandatory authority chain, per the current role holders mapped in `docs/governance/AGENT-TEAM.md`. Retired products (WORK #4074, Codex #4165, ChatGPT #4173) are not live executors.
+Applies to every live LGFC agent and runtime that executes repository work under the mandatory authority chain, per the current role holders mapped in `docs/governance/AGENT-TEAM.md`. Retired members (#4074, #4165, #4173) are not live executors.
 
 Does not redesign agent-team roles, merge authority, assignment priority, or unrelated PR governance.
 
