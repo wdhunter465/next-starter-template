@@ -6,7 +6,7 @@ Owns: Repository queue watch, Operations interrupt dispatch, peer PMO and Engine
 Does Not Own: Product or priority decisions, queue ownership decisions, Engineering design decisions, PR approval, Production authorization, recovery strategy, workflow implementation, credentials, or project objectives
 Canonical Reference: /docs/governance/ADMINISTRATION-AND-COMMUNICATIONS.md
 Related Issues: #2396, #2492, #2640, #2641, #2639, #2695, #2699, #2709, #3055, #3113, #3069, #3188, #3605, #3611, #3629, #3642
-Last Reviewed: 2026-08-23
+Last Reviewed: 2026-09-22 (role-name reconciliation, #4214)
 ---
 
 # Queue Watch and Dispatch Protocol
@@ -152,8 +152,8 @@ When a numbered Operations Issue is actionable:
 3. direct each affected owner to the nearest safe checkpoint;
 4. preserve source Issue, branch, head SHA, claim, check, review, deployment, blocker, and next action;
 5. assign the next required remediation capacity to the highest eligible Operations Issue;
-6. route Cursor as the normal remediation implementer;
-7. route ChatGPT through universal collaboration when Tier 2 design, architecture, acceptance, recovery planning, Engineering judgment, or independent review is needed;
+6. route Implementation / Operations (current holder in `docs/governance/AGENT-TEAM.md`) as the normal remediation implementer;
+7. route Engineering (current holder in `docs/governance/AGENT-TEAM.md`) through universal collaboration when Tier 2 design, architecture, acceptance, recovery planning, Engineering judgment, or independent review is needed;
 8. retain `team:operations` and the Operations priority throughout collaboration;
 9. follow applicable Development, Promotion Candidate, Production, validation, approval, and rollback controls;
 10. resume peer normal-work dispatch when no numbered Operations Issue remains actionable and no separate explicit hold applies.
@@ -517,7 +517,7 @@ The dispatcher must prevent:
 - queue-wide freeze caused by one gated final step when collision-safe increments remain executable;
 - treating ordinary predecessor or advisory conditions as universal execution denial;
 - delaying eligible-agent self-claim after deterministic predecessor completion when the successor package is complete;
-- treating a post-merge closeout exception as new `handoff:ready` competition or as ChatGPT/Bill owner-assignment when originating ownership is determinable;
+- treating a post-merge closeout exception as new `handoff:ready` competition or as PMO/Bill owner-assignment when originating ownership is determinable;
 - closing the original source Issue while an exception in its originating-delivery chain remains unresolved;
 - ending the originating-delivery cycle on remediation merge alone, without re-entering the same post-merge verification/closeout workflow.
 
