@@ -70,7 +70,7 @@ export const onRequestGet = async (context: any): Promise<Response> => {
       'retrosheet_al_standings_snapshots',
     ]);
     if (!tables.ok) {
-      return jsonResponse({ ok: true, game: null }, 200);
+      return jsonResponse(tables.body, tables.status);
     }
 
     const game = await auth.db

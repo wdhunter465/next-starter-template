@@ -116,6 +116,25 @@ describe('GET /api/fanclub/gehrig-box-score (#4263)', () => {
     expect(body).toEqual({ ok: true, game: null });
   });
 
+  it('returns 503 when the Retrosheet tables are missing', async () => {
+    const sqlite = new DatabaseSync(':memory:');
+    applyRepoMigrations(sqlite);
+    seedMemberSession(sqlite);
+    sqlite.exec(`
+      DROP TABLE retrosheet_al_standings_snapshots;
+      DROP TABLE retrosheet_box_score_lines;
+      DROP TABLE retrosheet_gehrig_games;
+    `);
+    const response = await onRequestGet({
+      env: { DB: wrapSqliteAsD1(sqlite) },
+      request: getRequest('lgfc_session=session-4263'),
+    });
+    expect(response.status).toBe(503);
+    const body = await response.json();
+    expect(body.ok).toBe(false);
+    expect(body.error).toBe('Database schema incomplete');
+  });
+
   it('returns one random game with batting lines and matching standings', async () => {
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
