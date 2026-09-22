@@ -33,6 +33,7 @@ Observed 2026-09-22 on `origin/main` (`5ce9495c` at fetch time for this inventor
 - Retired merge-protection filename `gate-zip-safety.yml` is absent; ZIP checks belong inside `gate-quality.yml`.
 - `.github/workflows` contains **106** YAML workflow files.
 - #4200 (PR #4293, merged 2026-09-22) is the docs lock for the three-check surface. This inventory does not edit those two files.
+- #4201 (PR #4294, merged 2026-09-22) landed the inventory-only revision of this brief. This revision adds ranked recommendations only.
 
 ## Intended final state
 
