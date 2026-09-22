@@ -2,7 +2,7 @@
 Doc Type: Operations
 Audience: Human + AI
 Authority Level: Controlled
-Owns: Project #3160 deep-zoom archival viewer decision brief — live presentation inventory (#4233)
+Owns: Project #3160 deep-zoom archival viewer decision brief — inventory (#4233), tiling (#4234), and rights/privacy (#4235)
 Does Not Own: npm add of OpenSeadragon; tile generation; B2 layout change; paid image CDN; Production viewer; rights-hold mutation; OpenAI-name sweep
 Canonical Reference: /docs/governance/PMO-PORTFOLIO.md
 Related Issues: #3160, #4233, #4234, #4235, #4236, #2860, #2878, #2857
@@ -17,7 +17,7 @@ Record live-main photo and media presentation facts so later #3160 children can 
 
 ## Scope
 
-In scope for this revision (#4233): inventory of live photo/media presentation versus deep-zoom needs.
+In scope for this revision (#4235): rights, privacy, and original-file exposure rules for any later deep-zoom presentation, on top of #4233 inventory and #4234 tiling.
 
 Out of scope: adding `openseadragon`; generating DZI/IIIF tiles; changing B2 keys; a Production pan-and-zoom route; `/admin` or public route edits.
 
@@ -32,7 +32,7 @@ Observed 2026-09-22 on `origin/main` (`cfa7eb1d`):
 
 ## Intended final state
 
-This file remains a decision brief. A later child records tiling, rights, and the adopt-versus-defer recommendation. This revision does not authorize npm adoption or tile generation.
+This file remains a decision brief. OpenSeadragon npm adoption waits on a chosen tiling path. This revision does not generate tiles or authorize a live processing service.
 
 ## Live presentation versus deep-zoom needs (#4233)
 
@@ -45,9 +45,29 @@ This file remains a decision brief. A later child records tiling, rights, and th
 
 Deep-zoom would be presentation on top of existing media assets, not a new DAM. #2857-style photo-detail is the current integration shape; this parent does not extend that route.
 
+## Tiling strategies under zero recurring cost (#4234)
+
+OpenSeadragon needs a DZI or IIIF-style pyramid, not a single JPEG. Live B2 objects are flat. The three strategies:
+
+| Strategy | What it does | Recurring cost | Fit |
+| --- | --- | --- | --- |
+| Upload-time tiling | Generate pyramid when media is ingested | Pipeline always-on compute unless strictly one-shot and operator-run | Reject as a Day-1 always-on ingest service |
+| On-demand tiling | Generate tiles when a visitor zooms | Live image-processing service | Reject under zero-recurring-cost |
+| Hand-picked / manual or build-time DZI | Curated archival set, tiles produced once (operator machine or a later authorized build step) | Storage of static tiles only; no live processor | Prefer for any later implementation Issue |
+
+Pending-brief recommendation: **hand-picked archival items with one-time/manual or build-time DZI**. Do not invent a Product vendor spend or paid image CDN. OpenSeadragon adoption waits on that tiling choice plus a named, rights-cleared set (rights and recommendation children).
+
+This comparison is design only. No tiles are generated here.
+
+## Rights, privacy, and original-file exposure (#4235)
+
+Zoomable archival images remain content-pipeline objects. Holds and unreviewed media stay out of public deep-zoom. Tile derivatives are still rights-bearing; a DZI/IIIF pyramid is not a rights-clearance. Public deep-zoom must not bypass `/admin/rights-review`. Unreviewed originals must not leak as tile sources or as downloadable full-resolution fallbacks from a viewer.
+
+This child does not change rights-hold behavior and does not authorize hard-delete.
+
 ## Protected stops
 
 - No viewer implementation.
-- No tile generation.
-- No paid image-processing service.
-- No leak of unreviewed originals (rights child #4235).
+- No tile generation in this parent.
+- No paid image-processing service or paid CDN.
+- No leak of unreviewed originals; no bypass of `/admin/rights-review`.
