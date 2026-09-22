@@ -24,6 +24,8 @@ import {
   acquireDispatchLock,
   resolveAndValidateWorkspace,
   resolveAgentBinary,
+  probeCursorCliAuth,
+  postCliAuthRequiredComment,
 } from './lib/preflight.mjs';
 
 function log(level, message, extra = {}) {
@@ -103,6 +105,17 @@ function main(argv = process.argv.slice(2)) {
     if (!binary) {
       log('error', 'cli_binary_missing');
       process.exitCode = 6;
+      return;
+    }
+
+    const auth = probeCursorCliAuth(binary);
+    if (!auth.ok) {
+      log('error', 'preflight_failed', { error: auth.error });
+      const commented = postCliAuthRequiredComment(values.issueNumber);
+      if (!commented.ok) {
+        log('error', 'cli_auth_comment_failed', { error: commented.error });
+      }
+      process.exitCode = 9;
       return;
     }
 
