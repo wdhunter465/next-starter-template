@@ -517,7 +517,7 @@ The dispatcher must prevent:
 - queue-wide freeze caused by one gated final step when collision-safe increments remain executable;
 - treating ordinary predecessor or advisory conditions as universal execution denial;
 - delaying eligible-agent self-claim after deterministic predecessor completion when the successor package is complete;
-- treating a post-merge closeout exception as new `handoff:ready` competition or as PMO/Bill owner-assignment when originating ownership is determinable;
+- treating a post-merge closeout exception as new `handoff:ready` competition or as PMO / Product Authority owner-assignment when originating ownership is determinable;
 - closing the original source Issue while an exception in its originating-delivery chain remains unresolved;
 - ending the originating-delivery cycle on remediation merge alone, without re-entering the same post-merge verification/closeout workflow.
 
@@ -530,7 +530,7 @@ Required cycle (full closeout contract): `docs/ops/pmo/github-issue-closeout-pro
 Dispatcher rules:
 
 1. Route the new exception Issue to the originating implementation agent (`agent:*` + `status:active`) immediately.
-2. Do not add `handoff:ready` for that exception. Do not wait for PMO/Bill reassignment when ownership is determinable.
+2. Do not add `handoff:ready` for that exception. Do not wait for PMO / Product Authority reassignment when ownership is determinable.
 3. Pause only that agent's next assigned project successor at `status:queued`. Do not pause unrelated agent lanes.
 4. After each remediation merge, require the same post-merge verification/closeout workflow to run again.
 5. If verification fails again, expect another new exception Issue in the same lineage and the same owner; continue without an arbitrary retry limit.
