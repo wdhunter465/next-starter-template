@@ -83,6 +83,34 @@ A single static image (illustrated or a simplified geographic graphic) with abso
 
 **Recommendation carried into #4240:** prefer the static-hotspot approach for #3161's stated scope. Leaflet remains a later option only if Product later names a specific, policy-compliant, zero-cost-compatible tile source and the location list grows beyond what a static hotspot map can reasonably serve — that would be a new source Issue's decision, not this brief's.
 
+## Place-authority fields (#4239 / `#3161-006`)
+
+This section records the place-authority-record field proposal already drafted on #3161 so Product can accept or amend the fields in review. It does **not** migrate D1, edit `data/research/lou-gehrig-content-candidates.schema.json`, or add a place table. Schema merge and any `content_inventory` migration require a **later source Issue after Product accepts these fields**.
+
+The inventory (#4237) established that `location_tags` is a free-text `string[]` with no stable identity. A map (or any later location-aware surface, including timeline #3162 or archive filters) needs a place *entity*. The table below follows the existing candidate-schema conventions in `data/research/lou-gehrig-content-candidates.schema.json`.
+
+| Field | Type | Purpose |
+| --- | --- | --- |
+| `place_id` | string | Stable internal ID (mirrors the `candidate_id` convention) |
+| `canonical_name` | string | Display name, for example "Yankee Stadium (original, 1923–2008)" |
+| `aliases` | string[] | Alternate names a source might use |
+| `place_type` | enum | `ballpark`, `hometown`, `landmark`, `institution`, `event_venue`, `other` |
+| `era_note` | string (optional) | Disambiguation for places that moved, were demolished, or were renamed |
+| `coordinates` | `{ lat: number, lng: number }` or null | Nullable so the registry can exist before coordinates are confirmed; required only if a later Issue chooses a tile-provider approach |
+| `description` | string | Short factual description, same tone/length convention as candidate `summary` |
+| `source_url` / `provenance_notes` | string (optional) | Same provenance pattern as the candidate schema |
+| `related_candidate_ids` | string[] | Links back to `content_inventory` candidates tied to this place |
+| `review_status` | enum | Reuse the candidate schema values (`pending_review`, `approved_internal_reference`, `approved_public_candidate`, `approved_citation_reference_only`, `deferred_source_verification`, `deferred_rights_review`, `deferred_privacy_review`, `rejected`, `private_internal_only`) |
+| `created_at` / `updated_at` | string (date-time) | Same as the candidate schema |
+
+Design choices left for Product review rather than decided here:
+
+- `coordinates` is nullable so the registry can be populated before the slippy-map versus static-hotspot implementation choice.
+- `review_status` reuses the candidate enum; this brief does not invent a parallel state machine.
+- Coordinates stay optional on a static-hotspot path; they become required only if a later Issue adopts a tile provider.
+
+**Protected stop:** this child does not alter the runtime `content_inventory` schema.
+
 ---
 
-_Sections below are added by later children in this same Issue chain (#4239, #4240) and do not exist until each child's own PR merges._
+_The closing recommendation is added by #4240 and does not exist until that child's own PR merges._
