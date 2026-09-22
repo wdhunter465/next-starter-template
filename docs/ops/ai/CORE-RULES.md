@@ -5,7 +5,7 @@ Authority Level: Core
 Owns: Shared execution rules, enforcement model, PR discipline, stop conditions, shared product-startup framework
 Does Not Own: Design authority, platform configuration, tracker content
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3055, #3113, #3117, #3134, #3138, #3142, #3145, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4074, #4099, #4131, #4165
+Related Issues: #3055, #3113, #3117, #3134, #3138, #3142, #3145, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4074, #4099, #4131, #4165, #4314
 Last Reviewed: 2026-09-22 (role-name reconciliation, #4214)
 ---
 
@@ -71,13 +71,15 @@ After packaging one assignment (PR opened, HOLD, or PACKAGE-INCOMPLETE recorded 
 - Issues assigned to the operator;
 - open authored PRs with failing or pending gates;
 - Cursor-owned `post-merge-failure`;
-- `agent:cursor` + `status:active` claims.
+- `agent:cursor` + `status:active` claims that are assigned to Cursor or that Product Authority named as this session's work.
 
 Do not treat `fresh=0` or “brief status + keep looping” as permission to stop while that resume queue is non-empty. One Issue → one PR; do not mix remaining queue items into the just-opened PR. `handoff:ready` is not website Go. Do not self-merge.
 
 Waiting on independent review, merge approval, or another long-running process for a packaged assignment is still not idle (#3611). An item is *waiting* when its linked open authored PR has latest checks SUCCESS, or when it is `handoff:ready` (labels/status only — not website Go). Keep waiting items for gate, reviewer, and post-merge follow-through. Immediately continue `nextExecutable` — the next eligible item that is not merely waiting. If `nextExecutable` is absent, keep looping for follow-through on waiting items; do not idle and do not self-merge. Do not occupy the session with standing-queue status while other assigned or `agent:cursor` work remains.
 
 The always-on poller persists the resume queue at `/tmp/lgfc-cursor-resume-queue.json` and includes `waiting` plus `nextExecutable`.
+
+Cursor operator-facing status and always-on ticks must not list Issues or PRs that are not assigned Cursor work or related to that assigned work. Canonical reporting bound: `docs/ops/ai/CURSOR-RULES.md` (#4314). This does not relax assigned-queue continuation for work that is actually assigned.
 
 ## Accepted-assignment continuity (#3693)
 
@@ -318,7 +320,7 @@ A PR must not be handed off for review while any required gate, reviewer comment
 - PR creation is NOT delegated unless explicitly instructed.
 - Merge authority remains human/operator only.
 
-Current role holders for PMO / Governance, PR Approver / Engineering, Administration & Communications, and Day-2 Operations coordination authority are recorded in `docs/governance/AGENT-TEAM.md`. ChatGPT was permanently removed from the LGFC Agentic Team on 2026-09-19 (#4173) and holds no current role; historical record only (`CHATGPT-RULES.md`). OpenAI / Work was permanently removed on 2026-09-03 (#4074) and holds no current role; `WORK-RULES.md` is retired/historical only.
+Current role holders for PMO / Governance, PR Approver / Engineering, Administration & Communications, and Day-2 Operations coordination authority are recorded in `docs/governance/AGENT-TEAM.md`. Two members were permanently removed from the LGFC Agentic Team and hold no current role (#4173, #4074); see `docs/governance/AGENT-TEAM.md` for the retirement records and each member's product-specific rules file (`CHATGPT-RULES.md`, `WORK-RULES.md`) for historical-only detail.
 
 ---
 
@@ -331,11 +333,11 @@ All LGFC implementation tasks (website, repository, ops, CI, and docs implementa
 1. **Cursor Local** and **Claude Code** = co-equal active LGFC standing implementation executors relative to each other, each assigned bounded work through its own source Issue; neither is sole executor as of the 2026-08 multi-agent parallel-operation decision (#3052). A single task is assigned to exactly one executor; parallel operation means concurrent, non-overlapping assignments, not shared ownership of the same Issue.
    - **Cursor Local** is a normal standing executor for `team:operations`, `team:pmo`, and `team:governance` work, and is **not** a normal `team:engineering` executor.
    - **Claude Code** is a normal standing executor for `team:pmo` and `team:engineering` work (and Governance when explicitly assigned). Claude is **not** a normal Operations executor; Claude may join a bounded Operations Issue only when explicitly escalated for additional engineering support. Escalation does not create a Tier-2 Operations Team and does not change Team ownership (`#3152` four-Team topology: Operations, Governance, PMO, Engineering).
-2. **ChatGPT** = retired (#4173). No current team role, PMO authority, Governance authority, review authority, Administration authority, or Day-2 Operations coordination authority. Historical record only (see [`CHATGPT-RULES.md`](./CHATGPT-RULES.md)). Successor coverage until Product names permanent holders: Cursor Local continues Product-authorized Operations and interim PMO Admin (#4174); Claude Code remains Engineering and independent review for work it did not implement; Bill remains Product Authority (`docs/governance/AGENT-TEAM.md`). OpenAI / Work was permanently removed from the LGFC Agentic Team on 2026-09-03 (#4074) and holds no current role.
-3. **Codex** = **retired** (#4165). Codex is not a live Implementation / Operations executor, first responder, or wake target. `CODEX-RULES.md` is historical only. Do not assign `agent:codex` or invoke a Codex dispatch path.
+2. **Retired member (#4173)** = no current team role, PMO authority, Governance authority, review authority, Administration authority, or Day-2 Operations coordination authority. Historical record only (see `docs/governance/AGENT-TEAM.md` and [`CHATGPT-RULES.md`](./CHATGPT-RULES.md)). Successor coverage until Product names permanent holders: Cursor Local continues Product-authorized Operations and interim PMO Admin (#4174); Claude Code remains Engineering and independent review for work it did not implement; Bill remains Product Authority (`docs/governance/AGENT-TEAM.md`). A second retired member (#4074) also holds no current role.
+3. **Retired member (#4165)** = not a live Implementation / Operations executor, first responder, or wake target. `CODEX-RULES.md` is historical only. Do not assign `agent:codex` or invoke that dispatch path.
 4. All other agents, including **Claude** (conversational) and **Notion** (controlled-document workspace), = tertiary/support agents only by explicit bounded routing need; neither holds a durable repository role or GitHub mutation authority. See `docs/governance/AGENT-TEAM.md`.
 
-Prior documentation that listed Codex as a standing executor, first responder, or isolated configuration-pilot consumer is superseded for LGFC work by this section, `docs/governance/AGENT-TEAM.md`, and `#4165`.
+Prior documentation that listed the member retired under #4165 as a standing executor, first responder, or isolated configuration-pilot consumer is superseded for LGFC work by this section, `docs/governance/AGENT-TEAM.md`, and `#4165`.
 
 Routing priority controls assignment preference only. It does not override design authority, scope limits, PR discipline, separation-of-duty (an executor does not approve its own protected work), or merge approval.
 
@@ -422,7 +424,7 @@ STOP immediately if:
 
 # PRODUCT STARTUP FRAMEWORK
 
-Shared skeleton for every recognized LGFC agent product's mandatory `run startup` procedure (#3052 / #3693). Product-specific rule files (`CHATGPT-RULES.md`, `CLAUDE-CODE-RULES.md`) are additive to this skeleton; they do not replace it. `WORK-RULES.md` is retired/historical since OpenAI / Work was permanently removed (#4074). `CODEX-RULES.md` is retired/historical since Codex was permanently terminated (#4165).
+Shared skeleton for every recognized LGFC agent product's mandatory `run startup` procedure (#3052 / #3693). Product-specific rule files (`CHATGPT-RULES.md`, `CLAUDE-CODE-RULES.md`) are additive to this skeleton; they do not replace it. `WORK-RULES.md` and `CODEX-RULES.md` are retired/historical; see `docs/governance/AGENT-TEAM.md` for the underlying retirement records (#4074, #4165).
 
 ## When startup is mandatory
 
