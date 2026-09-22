@@ -113,6 +113,23 @@ Design choices left for Product review rather than decided here:
 
 **Protected stop:** this child does not alter the runtime `content_inventory` schema.
 
----
+## Adopt versus defer (#4240 / `#3161-007`)
 
-_The closing recommendation is added by #4240 and does not exist until that child's own PR merges._
+**Recommendation: defer-slippy-map / keep-static-hotspot as the design-ready candidate.**
+
+Do not add the `leaflet` npm package. Do not authorize a Production map route. Do not treat OpenStreetMap public tiles as a Production CDN. Do not migrate `content_inventory` from this parent.
+
+The closing Product choice this brief records:
+
+1. **Slippy map (Leaflet + tile provider):** defer. Tile-source policy and zero-recurring-cost (comparison, #4238) rule it out unless Product later names a specific, policy-compliant, zero-cost-compatible tile source and the location list outgrows a static map.
+2. **Static illustrated map with clickable hotspots:** this is the design-ready candidate for a short, curated Lou Gehrig / Fan Club location list. It is not implemented here.
+3. **Place-authority fields (#4239):** design-only until Product accepts the field list. Schema merge, D1/`content_inventory` migration, and a concrete place list are a **later source Issue**, not opened from this child.
+
+This brief does not authorize that later Issue. Independent review of this recommendation is the GitHub PR review on the #4240 change.
+
+## Protected stops
+
+- Do not `npm install` `leaflet` or any map-tile client.
+- Do not add tile-provider API keys or accounts.
+- Do not ship a Production map route.
+- Do not run an OpenAI-name sweep from this parent.
