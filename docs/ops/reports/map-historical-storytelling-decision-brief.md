@@ -47,6 +47,42 @@ This brief holds all four sections listed under Purpose. It is not phased beyond
 
 **Conclusion:** the repository currently has zero map-stack footprint and no place-record entity. Any future implementation starts from nothing already committed — this inventory does not find partial/abandoned work to reconcile against.
 
+## Approach comparison (#4238 / `#3161-005`)
+
+Two candidate approaches for a future map feature, compared under LGFC's zero-recurring-cost constraint:
+
+### Option A — Leaflet plus a tile provider
+
+A slippy (pan/zoom) map using the Leaflet client library over a raster or vector tile source.
+
+- **Tile-source risk is the deciding factor, not the client library.** Leaflet itself is a thin, free, permissively-licensed rendering layer — it is not the cost or policy concern. Every tile source behind it is. OpenStreetMap's own public tile servers (`tile.openstreetmap.org`) publish a usage policy that is explicitly not meant for arbitrary Production traffic: it requires a valid HTTP `User-Agent`, prohibits bulk/automated downloading, and reserves the right to rate-limit or block traffic that doesn't fit a small-scale/development use pattern — it is not a CDN a Production site can depend on for guaranteed uptime.
+- Commercial tile providers with a free tier (e.g., MapTiler, Stadia Maps, Thunderforest) exist, but every free tier LGFC could evaluate comes with a request-volume ceiling, requires an account and an API key (a credential to manage), and converts to a paid tier past that ceiling — which conflicts with the zero-recurring-cost constraint unless traffic is bounded and monitored indefinitely.
+- Bundle/dependency cost: adds a runtime dependency (`leaflet` plus its CSS) and, on a static-export/Cloudflare Pages deployment, a client-side-only rendering path (Leaflet requires a DOM and `window`, so it cannot render at build time the way the rest of this mostly-static site does).
+- Capability: true pan/zoom/geolocation-style interaction, standard for a general map product; overkill for a short, fixed location list.
+
+### Option B — Static illustrated map with clickable hotspots
+
+A single static image (illustrated or a simplified geographic graphic) with absolutely positioned, clickable regions over named locations — no tile server, no pan/zoom.
+
+- **Zero-recurring-cost-compatible by construction.** The image is a static asset served from the same origin as the rest of the site (or the existing B2/Cloudflare asset pipeline already used elsewhere in this repository) — no third-party tile requests, no API key, no usage policy to stay under, no account to manage.
+- No new runtime dependency: implementable with plain HTML/CSS (an image plus absolutely-positioned `<button>`/`<a>` hotspots) or a small amount of first-party React — no client library addition.
+- Fully compatible with static export: it's just an image and DOM elements, no client-only rendering escape hatch required.
+- Capability ceiling: works well for a small, fixed, curated location list (ballparks, hometown, landmarks — the scope #3161 itself describes); does not scale to an open-ended or user-contributed location set, and offers no real-world geographic accuracy (a stylized map, not a true-to-scale one) — acceptable for a storytelling feature, not for a general-purpose GIS need.
+
+### Comparison summary
+
+| Dimension | Leaflet + tile provider | Static hotspot map |
+| --- | --- | --- |
+| Zero-recurring-cost compatible | Conditional — only while traffic stays under a compliant free tier's volume cap, monitored indefinitely; OSM's own public tiles are not Production-compliant at any volume | Yes, unconditionally — no third-party request at all |
+| New runtime dependency | Yes (`leaflet` + CSS) | No |
+| Static-export compatible | Requires a client-only rendering path | Yes, natively |
+| Credential/account management | Yes, if using a compliant provider (API key) | No |
+| Scales to open-ended/growing location set | Yes | No — fixed, curated list only |
+| True geographic pan/zoom | Yes | No |
+| Fit for #3161's stated scope (short Lou Gehrig location list) | Over-provisioned for the stated scope | Matches the stated scope |
+
+**Recommendation carried into #4240:** prefer the static-hotspot approach for #3161's stated scope. Leaflet remains a later option only if Product later names a specific, policy-compliant, zero-cost-compatible tile source and the location list grows beyond what a static hotspot map can reasonably serve — that would be a new source Issue's decision, not this brief's.
+
 ---
 
-_Sections below are added by later children in this same Issue chain (#4238, #4239, #4240) and do not exist until each child's own PR merges._
+_Sections below are added by later children in this same Issue chain (#4239, #4240) and do not exist until each child's own PR merges._
