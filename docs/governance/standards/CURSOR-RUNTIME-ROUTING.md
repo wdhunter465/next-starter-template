@@ -5,7 +5,7 @@ Authority Level: Binding
 Owns: LGFC Cursor runtime selection, local-versus-cloud invocation boundary, assignment runtime metadata, and local resume routing
 Does Not Own: Cursor product configuration, local poller implementation, implementation scope, merge approval, or cloud billing
 Canonical Reference: /Agent.md
-Related Issues: #2477, #2489, #2667, #2997, #3013, #3212, #3424, #3605, #3611, #4296
+Related Issues: #2477, #2489, #2667, #2997, #3013, #3212, #3424, #3605, #3611, #4296, #4311
 Last Reviewed: 2026-09-22
 ---
 
@@ -19,7 +19,7 @@ Define which Cursor runtime may execute LGFC repository work and prevent local e
 
 In scope: local versus cloud invocation, label routing, auto-start versus in-session awareness, and what counts as evidence that Cursor is actually receiving GitHub state.
 
-Out of scope: Chromebook sleep policy, runner-scoped API keys, and host watchdog implementation (tracked on #4296 as host-side items).
+Out of scope: Chromebook sleep policy, creating the `CURSOR_RUNNER_HEALTH_TOKEN` GitHub secret, runner-scoped Cursor API keys, and host watchdog implementation (host-side items on #4296; secret provisioning is Product on #4311).
 
 ## Current known truth
 
@@ -28,11 +28,11 @@ Two local transports exist and they do different jobs (#4296):
 1. **In-session awareness (open Composer Agent chat):** the 1-minute loop from `~/.cursor/lgfc-always-on-loop.sh` must run **inside that chat** with `notify_on_output` on `^AGENT_LOOP_TICK_lgfc_always_on`. Bind with `~/.cursor/lgfc-wake-ctl.sh rebind --session "$CURSOR_CONVERSATION_ID"`. Bare `bind` does not steal a named live session. A systemd/`nohup` loop writing `/tmp/lgfc-always-on-loop.log` can be `poller_ok` while remaining `composer_inject_ok=false`.
 2. **Cold auto-start (no live Composer session):** GitHub Actions `lgfc-cursor-dispatch` on runner label `lgfc-cursor` still launches identifiers-only `agent -p`. That starts a **new** Agent in the runner worktree. It does not inject into an already-open Composer chat. Dispatch preflight must round-trip `agent -p`; `agent status` is not sufficient (#4296).
 
-`lgfc-cursor-runner-health.yml` must use `administration: read` so daily ONLINE/OFFLINE is not a 403 false alarm.
+`lgfc-cursor-runner-health.yml` must stay parse-valid GitHub Actions YAML. `permissions:` must not declare `administration` (invalid key; HTTP 422; empty-job failure on every push — #4311). `GITHUB_TOKEN` cannot call `listSelfHostedRunnersForRepo`. ONLINE/OFFLINE observation uses repository secret `CURSOR_RUNNER_HEALTH_TOKEN` (fine-grained PAT or GitHub App with Administration: Read). If that secret is absent, the job must succeed with `AUTH_NOT_CONFIGURED` and must not claim OFFLINE.
 
 ## Intended final state
 
-Operators use the Composer loop for awareness in a live local session, and dispatch only to spawn Cursor when no such session exists. Docs, dispatch preflight, and runner health agree on that split. Host sleep and API-key storage remain operator items on #4296.
+Operators use the Composer loop for awareness in a live local session, and dispatch only to spawn Cursor when no such session exists. Docs, dispatch preflight, and runner health agree on that split. Runner-health failures mean OFFLINE/UNREGISTERED or AUTH_DENIED, never an unparseable workflow file. Host sleep, Cursor API-key storage, and creating `CURSOR_RUNNER_HEALTH_TOKEN` remain operator items (#4296 / #4311).
 
 ## Default runtime
 
