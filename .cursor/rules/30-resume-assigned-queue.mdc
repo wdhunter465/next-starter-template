@@ -18,7 +18,7 @@ An item is *waiting* when:
 2. Assigned open Issues that are not merely waiting on review
 3. Open authored PRs with failing or pending gates
 4. Cursor-owned `post-merge-failure`
-5. `agent:cursor` + `status:active` that is not merely waiting on review
+5. Assigned `agent:cursor` + `status:active` that Product named or assigned, not merely waiting on review
 
 If `nextExecutable` is absent, keep looping for follow-through on waiting items. Do not idle and do not self-merge.
 
@@ -26,4 +26,6 @@ Waiting is follow-through only. Do not occupy the session with standing-queue st
 
 Do not mix remaining queue items into the just-opened PR. `handoff:ready` is not website Go. Do not self-merge.
 
-Canonical: `docs/ops/ai/CORE-RULES.md` assigned-queue continuation.
+Ticks and status reports name only assigned Cursor work and Issues/PRs related to that work (`docs/ops/ai/CURSOR-RULES.md` assigned-work reporting, #4314). Do not include unassigned Issues/PRs, other agents' work, or label-only `agent:cursor` inventory.
+
+Canonical: `docs/ops/ai/CORE-RULES.md` assigned-queue continuation; Cursor reporting bound: `docs/ops/ai/CURSOR-RULES.md`.
