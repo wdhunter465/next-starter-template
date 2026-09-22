@@ -17,7 +17,7 @@ Publish how a new CI candidate must be qualified, scored, piloted, and separatel
 
 ## Scope
 
-In scope: docs inventory of the live merge-protection classification.
+In scope: live merge-protection classification inventory plus the candidate admission contract, scorecard, and disposition vocabulary added in this #4230 revision.
 
 Out of scope: `.github/workflows/**` edits; GitHub ruleset changes; duplicating #4089 keep/consolidate/retire implementation; paid CI or new credentials.
 
