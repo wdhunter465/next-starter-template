@@ -17,7 +17,7 @@ Publish how a new CI candidate must be qualified, scored, piloted, and separatel
 
 ## Scope
 
-In scope: docs inventory of the live merge-protection classification.
+In scope: live merge-protection classification inventory, candidate contract and scorecard, repeated-pilot matrix, and the Production-admission recommendation added in this #4232 revision.
 
 Out of scope: `.github/workflows/**` edits; GitHub ruleset changes; duplicating #4089 keep/consolidate/retire implementation; paid CI or new credentials.
 
@@ -136,7 +136,7 @@ Executing these rounds is **not** authorized by this child. A later source Issue
 
 **Name:** `sandbox/2815-ci-admission-pilot`  
 **Kind:** synthetic Model A documentation change (one file under `docs/ops/reports/**`), opened as a throwaway PR that never edits `.github/workflows/**` and never mutates GitHub rulesets.  
-**Why this identity:** it is non-Production architecture, cheap to reset, and still exercises the real required surface (`quality`, `gitleaks`, `reviewer-response-completion`) plus advisory `pr-hygiene` / `diff-scope` without targeting fundraiser runtime.  
+**Why this identity:** it is non-Production architecture, cheap to reset, and still exercises the real required surface (`quality`, `gitleaks`, `reviewer-response-completion`) plus advisory `pr-hygiene` / `diff-scope`.  
 **Version identity per round:** record candidate SHA, workflow file SHA, input fixture name, started/finished timestamps, duration, findings, and whether a human intervened.
 
 ### Nine required cases
