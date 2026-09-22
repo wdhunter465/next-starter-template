@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Gate profiles, check classification, deterministic evidence, validation ownership, promotion verification criteria, failure routing, remediation boundaries, and post-merge verification ownership
 Does Not Own: Delivery Model A/B selection, agent approval routing, branch-protection UI settings, workflow YAML implementation, product/UX behavior, or platform isolation claims
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2689, #2686, #3668, #3671, #3807, #3746, #2769, #4174
-Last Reviewed: 2026-09-19
+Related Issues: #2689, #2686, #3668, #3671, #3807, #3746, #3751, #3771, #2769, #4174, #4089, #4200
+Last Reviewed: 2026-09-22
 ---
 
 # CI and Verification
@@ -18,6 +18,20 @@ This document is the canonical **CI and Verification** domain policy. It defines
 Detailed workflow inventories, classification matrices, merge-protection surfaces, preflight contracts, and as-built CI notes live under `docs/reference/ci/**`. Those files are **supporting specifications**, not co-owners of this domain policy. The deterministic PMO failure-remediation routing contract is documented at `docs/reference/pmo/failure-remediation-routing-contract.md`. The deterministic-versus-judgment gate inventory and eligibility-signal contract is documented at `docs/reference/pmo/deterministic-approval-inventory-contract.md`.
 
 Delivery model selection and promotion-profile policy remain in `docs/governance/DELIVERY-AND-RELEASE.md` and `docs/governance/PMO-PORTFOLIO.md`. Agent roles and protected-stop contracts remain in `docs/governance/AGENT-TEAM.md`. PR process procedure remains in `docs/governance/PR_PROCESS.md`. Operations degradation remains in `docs/governance/OPERATIONS-AND-RECOVERY.md`.
+
+## Scope
+
+In scope: required versus advisory versus manual-only versus retired classification for merge and integration; the live `main` required-check set; evidence that counts; failure routing; and post-merge verification ownership.
+
+Out of scope: workflow YAML rewrites; GitHub ruleset UI mutation; restoring retired May-gate parsers; a second test-catalog project; and removing `reviewer-response-completion` to match older two-check prose.
+
+## Current known truth
+
+The machine-readable required set in `scripts/ci/merge_protection_surface.mjs` is `quality`, `gitleaks`, and `reviewer-response-completion`. That three-check surface is current. #3746 / PR #3751 made reviewer-response event-conditional enforcement a merge gate. #3771 recorded adding `reviewer-response-completion` as a required Main ruleset check. A cancelled `reviewer-response-completion` run is still a required-gate failure until a later success on the same head replaces it. PR hygiene and diff-scope remain advisory; they are not a substitute for the three required jobs.
+
+## Intended final state
+
+Domain policy, the merge-protection supporting surface, and live Main required checks stay aligned on those three jobs. Docs must not regress to a quality-plus-gitleaks-only model or treat reviewer-response as advisory. Further CI efficiency changes require a later source Issue (#4201 / #4202 record recommendations only).
 
 ## Role-based ownership
 
