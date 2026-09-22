@@ -66,7 +66,7 @@ Three future-state models, compared against the live inventory. No library is in
 
 Keep CSS modules plus CSS custom properties as they are, including the two live `--lgfc-blue` values and the unused `src/styles/**` copies.
 
-- **Velocity:** lowest short-term change cost (zero migration). Feature work keeps copying module patterns. New public, Fan Club, and admin screens continue to restyle the same controls independently.
+- **Velocity:** highest near-term velocity because there is no migration. Later-feature velocity is lowest because new public, Fan Club, and admin screens keep copying module patterns instead of sharing primitives.
 - **Accessibility:** existing `@axe-core/playwright` and Playwright coverage stay the safety net. There is no shared primitive for dialogs, forms, or tables, so keyboard and focus behavior is rebuilt per screen.
 - **Bundle / maintenance:** no new npm surface. Maintenance cost is duplication: 63 `src/components/**` files and 23 CSS modules with no token single-source. Catalog copy in `.github/REPOSITORY_METADATA.md` still advertises Tailwind, which continues to mislead contributors.
 - **Surfaces:** public, Fan Club (member), and admin already share the same hand-built stack. Fundraising/store experiences are not a separate component system on `main`; they would inherit the same drift if added later.
@@ -84,7 +84,7 @@ Keep first-party React and CSS modules. Collapse live tokens to one imported sou
 
 A later Product-authorized Issue would add something such as shadcn/ui, Radix primitives, or Headless UI (almost always with Tailwind). This project does not perform that add.
 
-- **Velocity:** high after the kit is in, expensive during coexistence: 63 existing components would wrap or be replaced incrementally.
+- **Velocity:** lowest near-term velocity during coexistence (wrap or replace 63 existing components). Highest later-feature velocity after cutover, if Product later accepts a kit.
 - **Accessibility:** Radix/Headless-class primitives typically ship keyboard behavior; LGFC would still need axe/Playwright against the wrapped public, Fan Club, and admin routes, plus visual-regression coverage the kit does not provide.
 - **Bundle / maintenance:** new dependency, upgrade, and customization cost. Tailwind configuration would have to be introduced from nothing (inventory: Tailwind is absent, not "present without a component library"). Conflicts with zero-recurring-cost only if a paid design-system vendor is chosen; open-source kits are license-cost-free but not maintenance-free.
 - **Surfaces:** a kit helps most on dense admin tables/dialogs and least on the already-shipped public storytelling pages unless those pages are rewritten to the kit.
