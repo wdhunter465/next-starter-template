@@ -38,14 +38,18 @@ to this child.
 Repository-wide, tool-assisted search across 9 terms × 8 areas (docs/governance, docs/how-to,
 docs/ops, docs/reference, docs/explanation, root governance files, `.github/workflows/**`,
 templates), run against the current tree (2026-09-22). Counts below are **files with at
-least one hit**, not line counts. `docs/archive/**` was searched only to confirm presence and
-is deliberately **not enumerated** — it is preserved history, per #4135's own carry-forward
-register from #3627. Files that read as historical/closeout artifacts (PR-body templates,
-closeout evidence) are flagged separately rather than folded into "current-state" counts.
+least one hit**, not line counts — **except the Root column**, which has only three possible
+files (`AGENTS.md`, `CLAUDE.md`, `Agent.md`) and instead reports **per-file occurrence counts**
+(e.g. "AGENTS.md 14" means 14 occurrences within that one file), since a 0-3 file-count range
+there would carry no useful signal. `docs/archive/**` was searched only to confirm presence
+and is deliberately **not enumerated** — it is preserved history, per #4135's own
+carry-forward register from #3627. Files that read as historical/closeout artifacts (PR-body
+templates, closeout evidence) are flagged separately rather than folded into "current-state"
+counts.
 
 ## Current known truth
 
-### Summary count table (files with ≥1 hit, per term × area)
+### Summary count table (files with ≥1 hit per term × area, except Root — see Methodology)
 
 | Term | Governance | How-to | Ops | Reference | Explanation | Root (AGENTS/CLAUDE/Agent.md) | Workflows | Templates | Archive (present, not enumerated) |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
