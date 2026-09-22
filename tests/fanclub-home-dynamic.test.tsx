@@ -156,4 +156,77 @@ describe('Fan Club home dynamic content (#1690 Task 005)', () => {
       );
     });
   });
+
+  it('renders the random Gehrig box score and matching AL standings from one API payload', async () => {
+    mockFetch.mockImplementation(async (input: RequestInfo) => {
+      const url = String(input);
+      if (url.includes('/api/fanclub/gehrig-box-score')) {
+        return {
+          ok: true,
+          json: async () => ({
+            ok: true,
+            game: {
+              game_id: 'NYA192706150',
+              game_date: '1927-06-15',
+              vis_team: 'BOS',
+              home_team: 'NYA',
+              vis_score: 3,
+              home_score: 7,
+              site: 'NYC16',
+              batting: [
+                {
+                  player_id: 'gehrl101',
+                  player_label: 'Gehrig',
+                  team: 'NYA',
+                  batting_order: 4,
+                  is_gehrig: true,
+                  ab: 4,
+                  r: 2,
+                  h: 3,
+                  hr: 1,
+                  rbi: 2,
+                },
+              ],
+              standings: [
+                {
+                  team: 'NYA',
+                  team_label: 'New York',
+                  wins: 40,
+                  losses: 15,
+                  ties: 0,
+                  win_pct: 0.7273,
+                  games_back: 0,
+                  league_rank: 1,
+                  is_yankees: true,
+                },
+              ],
+              source_credit: 'The information used here was obtained free of charge from and is copyrighted by Retrosheet.',
+            },
+          }),
+        };
+      }
+      return {
+        ok: true,
+        json: async () => ({
+          ok: true,
+          source: 'static',
+          lead_story: null,
+          rail_stories: [],
+          archive_spotlight: null,
+          media_feature: null,
+        }),
+      };
+    });
+
+    render(<MemberHomePage />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Gehrig')).toBeInTheDocument();
+      expect(screen.getByText('Boston 3 at New York 7')).toBeInTheDocument();
+    });
+    const standings = screen.getByLabelText('American League standings');
+    expect(within(standings).getByText('New York')).toBeInTheDocument();
+    expect(screen.getByLabelText('Lead story')).toBeInTheDocument();
+    expect(screen.getByLabelText('Secondary story rail')).toBeInTheDocument();
+  });
 });
