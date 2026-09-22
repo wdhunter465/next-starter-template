@@ -38,8 +38,8 @@ hardcoded across **45 files** under `scripts/`, `.github/workflows/`, and `confi
 
 - `scripts/lgfc-cursor-dispatch/lib/preflight.mjs:5` — `EXPECTED_REPO` constant, checked
   fail-closed before any dispatch workspace is trusted.
-- `.github/workflows/lgfc-cursor-dispatch.yml` — `github.repository == 'wdhunter465/next-
-  starter-template'` gates both the security-test job and the dispatch job themselves
+- `.github/workflows/lgfc-cursor-dispatch.yml` gates both the security-test job and the
+  dispatch job themselves on `github.repository == 'wdhunter465/next-starter-template'`
   (lines 38, 71), plus a second shell-level check (`test "$REPOSITORY" = ...`, line 98) and
   a literal `--repo` flag passed to the dispatch script (line 193).
 - The wake-ingress predicate (`scripts/cursor-bridge/lib/wake-ingress.mjs`) and the Chatterbox
@@ -64,10 +64,10 @@ aggregation or routing layer.
 `wrangler.toml` declares exactly two D1 bindings, both with hardcoded `database_id` values
 tied to specific Cloudflare account resources:
 
-- Production: `database_name = "lgfc_lite"`, `database_id = "22d0dc3e-ad34-43af-8e6a-
-  2063df1a1e04"` (line 12-13).
-- Development: `database_name = "lgfc-litedev"`, `database_id = "35232809-b4c1-4df9-9f39-
-  2f178b13c378"` (line 20-21).
+- Production: `database_name = "lgfc_lite"`, `database_id = "22d0dc3e-ad34-43af-8e6a-2063df1a1e04"`
+  (line 12-13).
+- Development: `database_name = "lgfc-litedev"`, `database_id = "35232809-b4c1-4df9-9f39-2f178b13c378"`
+  (line 20-21).
 
 Chatterbox (#3415) and every other D1-backed feature in this repository read/write through
 these same two bindings. There is no per-repository or per-tenant database namespace —
