@@ -231,8 +231,9 @@ Rationale, drawn directly from #4203 and #4204:
   pre-2027-launch dependency on multi-repository operation is evidenced.
 - **Every examined artifact works correctly today *because* it assumes a single repository.**
   The 45-site hardcoded-slug pattern is deliberate fail-closed security posture, not an
-  oversight that happens to also block scaling (confirmed directly against `wake-ingress.mjs`
-  and `dispatch.mjs` this session).
+  oversight that happens to also block scaling (confirmed against
+  `scripts/cursor-bridge/lib/wake-ingress.mjs` and `scripts/lgfc-cursor-dispatch/dispatch.mjs`
+  per #4203's inventory above).
 - **The one existing reusable-later property (PMO dashboard env-var fallback) already covers
   the only capability that has any multi-repo readiness today,** and it required no dedicated
   project to get there — it was a side effect of ordinary parameterization, not built for this
