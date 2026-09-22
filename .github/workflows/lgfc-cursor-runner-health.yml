@@ -14,11 +14,11 @@ on:
     # Low-noise daily check (zero incremental cost beyond public Actions minutes).
     - cron: "17 11 * * *"
 
+# GITHUB_TOKEN cannot list self-hosted runners. Do not add permissions.administration
+# (#4311): that key is invalid Actions YAML (HTTP 422) and aborts parse on every push.
 permissions:
   contents: read
   actions: read
-  # listSelfHostedRunnersForRepo requires administration:read (#4296).
-  administration: read
 
 concurrency:
   group: lgfc-cursor-runner-health
@@ -40,9 +40,16 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     steps:
+      - name: Record AUTH_NOT_CONFIGURED
+        if: ${{ secrets.CURSOR_RUNNER_HEALTH_TOKEN == '' }}
+        run: |
+          echo "::notice title=AUTH_NOT_CONFIGURED::CURSOR_RUNNER_HEALTH_TOKEN is not set. ONLINE/OFFLINE not observed. Workflow parsed."
+
       - name: Query dedicated Cursor runner presence
+        if: ${{ secrets.CURSOR_RUNNER_HEALTH_TOKEN != '' }}
         uses: actions/github-script@v7
         with:
+          github-token: ${{ secrets.CURSOR_RUNNER_HEALTH_TOKEN }}
           script: |
             const expectedLabel = 'lgfc-cursor';
             const expectedRepo = 'wdhunter465/next-starter-template';
@@ -50,14 +57,32 @@ jobs:
               throw new Error(`Unexpected repository ${context.repo.owner}/${context.repo.repo}`);
             }
 
-            const runners = await github.paginate(
-              github.rest.actions.listSelfHostedRunnersForRepo,
-              {
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                per_page: 100,
+            let runners;
+            try {
+              runners = await github.paginate(
+                github.rest.actions.listSelfHostedRunnersForRepo,
+                {
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  per_page: 100,
+                }
+              );
+            } catch (err) {
+              const status = err.status || err.response?.status;
+              if (status === 401 || status === 403) {
+                const summary = [
+                  '## LGFC Cursor runner health',
+                  '- Result: **AUTH_DENIED**',
+                  `- HTTP: ${status}`,
+                ];
+                await core.summary.addRaw(summary.join('\n')).write();
+                core.setFailed(
+                  `AUTH_DENIED: health token cannot list self-hosted runners (HTTP ${status})`,
+                );
+                return;
               }
-            );
+              throw err;
+            }
 
             const matches = runners.filter((runner) =>
               (runner.labels || []).some((label) => label.name === expectedLabel)
