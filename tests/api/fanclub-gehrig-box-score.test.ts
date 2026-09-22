@@ -154,7 +154,55 @@ describe('GET /api/fanclub/gehrig-box-score (#4263)', () => {
       'gehrl101',
     ]);
     expect(body.game.batting.find((row: { is_gehrig: boolean }) => row.is_gehrig).player_label).toBe('Gehrig');
+    expect(body.game.batting.find((row: { is_gehrig: boolean }) => row.is_gehrig)).toMatchObject({
+      ab: 4,
+      r: 2,
+      h: 3,
+      hr: 1,
+      rbi: 2,
+    });
     expect(body.game.standings[0]).toMatchObject({ team: 'NYA', is_yankees: true, league_rank: 1 });
     expect(body.game.source_credit).toMatch(/Retrosheet/);
+  });
+
+  it('reads Retrosheet batting.csv b_* keys from line_json', async () => {
+    const sqlite = new DatabaseSync(':memory:');
+    applyRepoMigrations(sqlite);
+    seedMemberSession(sqlite);
+    sqlite.exec(`
+      INSERT INTO retrosheet_gehrig_games (
+        game_id, game_date, season_year, game_number, vis_team, home_team, vis_score, home_score,
+        site, day_night, gehrig_team, gehrig_opponent, created_at, source
+      ) VALUES (
+        'NYA192706150', '1927-06-15', 1927, 0, 'BOS', 'NYA', 3, 7,
+        'NYC16', 'D', 'NYA', 'BOS', datetime('now'), 'retrosheet'
+      );
+      INSERT INTO retrosheet_box_score_lines (
+        game_id, team, stat_type, player_id, player_name, batting_order, line_json, created_at
+      ) VALUES (
+        'NYA192706150', 'NYA', 'batting', 'gehrl101', NULL, 4,
+        '{"id":"gehrl101","team":"NYA","b_lp":4,"b_ab":4,"b_r":2,"b_h":3,"b_hr":1,"b_rbi":2}',
+        datetime('now')
+      );
+      INSERT INTO retrosheet_al_standings_snapshots (
+        game_id, team, wins, losses, ties, win_pct, games_back, league_rank, created_at
+      ) VALUES (
+        'NYA192706150', 'NYA', 40, 15, 0, 0.7273, 0, 1, datetime('now')
+      );
+    `);
+    const response = await onRequestGet({
+      env: { DB: wrapSqliteAsD1(sqlite) },
+      request: getRequest('lgfc_session=session-4263'),
+    });
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.game.batting[0]).toMatchObject({
+      player_id: 'gehrl101',
+      ab: 4,
+      r: 2,
+      h: 3,
+      hr: 1,
+      rbi: 2,
+    });
   });
 });

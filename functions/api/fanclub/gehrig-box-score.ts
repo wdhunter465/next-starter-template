@@ -121,11 +121,11 @@ export const onRequestGet = async (context: any): Promise<Response> => {
           team: String(row.team || ''),
           batting_order: battingOrder,
           is_gehrig: isGehrig,
-          ab: pickStat(line, ['ab']),
-          r: pickStat(line, ['r']),
-          h: pickStat(line, ['h']),
-          hr: pickStat(line, ['hr']),
-          rbi: pickStat(line, ['rbi']),
+          ab: pickStat(line, ['ab', 'b_ab']),
+          r: pickStat(line, ['r', 'b_r']),
+          h: pickStat(line, ['h', 'b_h']),
+          hr: pickStat(line, ['hr', 'b_hr']),
+          rbi: pickStat(line, ['rbi', 'b_rbi']),
         };
       })
       .filter(Boolean)

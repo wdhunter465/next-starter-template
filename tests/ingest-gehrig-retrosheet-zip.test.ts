@@ -39,6 +39,26 @@ describe('Retrosheet master CSV zip selection (#4263)', () => {
     );
   });
 
+  it('maps Retrosheet batting.csv b_lp as batting order', () => {
+    const header = [
+      'gid',
+      'id',
+      'team',
+      'b_lp',
+      'b_seq',
+      'stattype',
+      'b_ab',
+      'b_r',
+      'b_h',
+      'b_hr',
+      'b_rbi',
+    ];
+    expect(
+      resolveColumn(header, ['battingorder', 'batting_order', 'bat_order', 'batting', 'b_lp', 'lp'], 'batting.csv'),
+    ).toBe('b_lp');
+    expect(resolveColumn(header, ['playerid', 'player_id', 'id'], 'batting.csv')).toBe('id');
+  });
+
   it('fails closed when the main bundle is missing', () => {
     expect(() =>
       resolveMasterCsvZipUrl(

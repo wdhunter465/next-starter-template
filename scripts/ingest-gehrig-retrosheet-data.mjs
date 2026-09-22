@@ -369,7 +369,11 @@ async function main() {
         battingCols.gid = resolveColumn(header, ['gid', 'gameid', 'game_id'], 'batting.csv');
         battingCols.team = resolveColumn(header, ['team'], 'batting.csv');
         battingCols.playerid = resolveColumn(header, ['playerid', 'player_id', 'id'], 'batting.csv');
-        battingCols.battingorder = resolveColumn(header, ['battingorder', 'batting_order', 'bat_order', 'batting'], 'batting.csv');
+        battingCols.battingorder = resolveColumn(
+          header,
+          ['battingorder', 'batting_order', 'bat_order', 'batting', 'b_lp', 'lp'],
+          'batting.csv',
+        );
       }
       if (rec[battingCols.playerid] === GEHRIG_PLAYER_ID && rec[battingCols.team] === GEHRIG_TEAM) {
         gehrigGidsFromBatting.add(rec[battingCols.gid]);
