@@ -98,10 +98,12 @@ The inventory (#4237) established that `location_tags` is a free-text `string[]`
 | `era_note` | string (optional) | Disambiguation for places that moved, were demolished, or were renamed |
 | `coordinates` | `{ lat: number, lng: number }` or null | Nullable so the registry can exist before coordinates are confirmed; required only if a later Issue chooses a tile-provider approach |
 | `description` | string | Short factual description, same tone/length convention as candidate `summary` |
-| `source_url` / `provenance_notes` | string (optional) | Same provenance pattern as the candidate schema |
+| `source_url` | string (optional, URI) | Same source-URI pattern as the candidate schema |
+| `provenance_notes` | string (optional) | Same provenance-notes pattern as the candidate schema |
 | `related_candidate_ids` | string[] | Links back to `content_inventory` candidates tied to this place |
 | `review_status` | enum | Reuse the candidate schema values (`pending_review`, `approved_internal_reference`, `approved_public_candidate`, `approved_citation_reference_only`, `deferred_source_verification`, `deferred_rights_review`, `deferred_privacy_review`, `rejected`, `private_internal_only`) |
-| `created_at` / `updated_at` | string (date-time) | Same as the candidate schema |
+| `created_at` | string (date-time) | Same as the candidate schema |
+| `updated_at` | string (date-time) | Same as the candidate schema |
 
 Design choices left for Product review rather than decided here:
 
