@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Platform architecture ownership, environment classification, preview/component/production boundaries, credentials and external-service decision rules, deployment/migration/rollback platform boundaries, and platform escalation
 Does Not Own: Delivery Model A/B selection, agent approval routing, CI gate implementation, product/UX behavior, or day-to-day operator checklists
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2688, #2686, #4174
-Last Reviewed: 2026-09-22 (role-name reconciliation, #4213)
+Related Issues: #2688, #2686, #4174, #4213
+Last Reviewed: 2026-09-22
 ---
 
 # Platform and Environment

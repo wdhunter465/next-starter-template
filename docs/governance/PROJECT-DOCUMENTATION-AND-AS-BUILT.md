@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Mandatory project documentation lifecycle, AS-BUILT requirements, documentation completeness, closeout evidence, and documentation defect routing
 Does Not Own: Product priorities, implementation authority, Production approval, or technical design decisions
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #1719
-Last Reviewed: 2026-09-22 (role-name reconciliation, #4213)
+Related Issues: #1719, #4213
+Last Reviewed: 2026-09-22
 ---
 
 # Project Documentation and AS-BUILT Policy
