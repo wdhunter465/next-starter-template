@@ -20,7 +20,7 @@
 //   node scripts/ingest-gehrig-retrosheet-data.mjs --apply --remote
 //   node scripts/ingest-gehrig-retrosheet-data.mjs --apply --local
 
-import { mkdtempSync, readFileSync, rmSync, existsSync, readdirSync, createWriteStream } from 'node:fs';
+import { mkdtempSync, rmSync, existsSync, readdirSync, createWriteStream, createReadStream } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import os from 'node:os';
@@ -95,43 +95,89 @@ function findFileRecursive(rootDir, filename) {
 
 // Minimal RFC4180-ish CSV parser: handles quoted fields containing commas/
 // quotes/newlines. Retrosheet's CSVs are machine-generated and well-formed.
-function parseCsv(text) {
-  const rows = [];
+// batting.csv in the main bundle exceeds Node's max string length, so ingest
+// streams the file instead of readFileSync.
+export function createCsvRowParser(onRow) {
   let row = [];
   let field = '';
   let inQuotes = false;
-  for (let i = 0; i < text.length; i += 1) {
-    const c = text[i];
-    if (inQuotes) {
-      if (c === '"') {
-        if (text[i + 1] === '"') {
-          field += '"';
-          i += 1;
+  let hold = '';
+
+  function emitRow() {
+    if (row.length > 1 || row[0] !== '') onRow(row);
+    row = [];
+    field = '';
+  }
+
+  function feed(chunk) {
+    const text = hold + chunk;
+    hold = '';
+    for (let i = 0; i < text.length; i += 1) {
+      const c = text[i];
+      if (inQuotes) {
+        if (c === '"') {
+          if (i + 1 >= text.length) {
+            hold = '"';
+            return;
+          }
+          if (text[i + 1] === '"') {
+            field += '"';
+            i += 1;
+          } else {
+            inQuotes = false;
+          }
         } else {
-          inQuotes = false;
+          field += c;
         }
+      } else if (c === '"') {
+        inQuotes = true;
+      } else if (c === ',') {
+        row.push(field);
+        field = '';
+      } else if (c === '\n' || c === '\r') {
+        if (c === '\r') {
+          if (i + 1 >= text.length) {
+            hold = '\r';
+            return;
+          }
+          if (text[i + 1] === '\n') i += 1;
+        }
+        row.push(field);
+        field = '';
+        emitRow();
       } else {
         field += c;
       }
-    } else if (c === '"') {
-      inQuotes = true;
-    } else if (c === ',') {
-      row.push(field);
-      field = '';
-    } else if (c === '\n' || c === '\r') {
-      if (c === '\r' && text[i + 1] === '\n') i += 1;
-      row.push(field);
-      field = '';
-      if (row.length > 1 || row[0] !== '') rows.push(row);
-      row = [];
-    } else {
-      field += c;
     }
   }
-  if (field !== '' || row.length) {
-    row.push(field);
-    rows.push(row);
+
+  function end() {
+    if (hold === '\r') {
+      row.push(field);
+      field = '';
+      emitRow();
+      hold = '';
+    } else if (hold === '"') {
+      inQuotes = false;
+      hold = '';
+    }
+    if (inQuotes) {
+      throw new Error('CSV ended inside a quoted field');
+    }
+    if (field !== '' || row.length) {
+      row.push(field);
+      emitRow();
+    }
   }
+
+  return { feed, end };
+}
+
+export function parseCsv(text) {
+  const rows = [];
+  const parser = createCsvRowParser((row) => rows.push(row));
+  parser.feed(text);
+  parser.end();
   if (!rows.length) return { header: [], records: [] };
   const header = rows[0].map((h) => h.trim());
   const records = rows.slice(1).map((r) => {
@@ -144,12 +190,43 @@ function parseCsv(text) {
   return { header, records };
 }
 
-function loadCsv(extractedDir, filename) {
+async function streamCsvFile(filePath, onRecord) {
+  let header = null;
+  let count = 0;
+  const parser = createCsvRowParser((row) => {
+    if (!header) {
+      header = row.map((h) => h.trim());
+      return;
+    }
+    const rec = {};
+    header.forEach((h, idx) => {
+      rec[h] = row[idx] ?? '';
+    });
+    count += 1;
+    onRecord(rec, header);
+  });
+  const stream = createReadStream(filePath, { encoding: 'utf8', highWaterMark: 1024 * 1024 });
+  for await (const chunk of stream) {
+    parser.feed(chunk);
+  }
+  parser.end();
+  if (!header) throw new Error(`No header row in ${filePath}`);
+  return { header, count };
+}
+
+function csvPath(extractedDir, filename) {
   const filePath = findFileRecursive(extractedDir, filename);
   if (!filePath) throw new Error(`${filename} not found anywhere under ${extractedDir} after unzip.`);
-  const text = readFileSync(filePath, 'utf8');
-  const { header, records } = parseCsv(text);
-  console.log(`Loaded ${filename}: ${records.length} rows, columns: ${header.join(', ')}`);
+  return filePath;
+}
+
+async function loadCsv(extractedDir, filename) {
+  const filePath = csvPath(extractedDir, filename);
+  const records = [];
+  const { header, count } = await streamCsvFile(filePath, (rec) => {
+    records.push(rec);
+  });
+  console.log(`Loaded ${filename}: ${count} rows, columns: ${header.join(', ')}`);
   return { header, records };
 }
 
@@ -178,20 +255,6 @@ function sqlInt(value) {
   if (value === null || value === undefined || value === '') return 'NULL';
   const n = Number(value);
   return Number.isFinite(n) ? String(Math.trunc(n)) : 'NULL';
-}
-
-// Groups CSV records by game id once, up front, so per-game box-score
-// lookups are O(1) map reads instead of an O(games x total rows) .filter()
-// scan repeated for every one of Gehrig's 2,164 games.
-function groupByGid(records, gidColumn) {
-  const map = new Map();
-  for (const record of records) {
-    const gid = record[gidColumn];
-    const bucket = map.get(gid);
-    if (bucket) bucket.push(record);
-    else map.set(gid, [record]);
-  }
-  return map;
 }
 
 // Streams SQL statements straight to disk instead of buffering all of them
@@ -262,9 +325,9 @@ async function main() {
     console.log('Unzipping...');
     unzip(zipPath, extractDir);
 
-    const gameinfo = loadCsv(extractDir, 'gameinfo.csv');
-    const batting = loadCsv(extractDir, 'batting.csv');
-    const pitching = loadCsv(extractDir, 'pitching.csv');
+    const gameinfo = await loadCsv(extractDir, 'gameinfo.csv');
+    const battingPath = csvPath(extractDir, 'batting.csv');
+    const pitchingPath = csvPath(extractDir, 'pitching.csv');
 
     const giCols = {
       gid: resolveColumn(gameinfo.header, ['gid', 'gameid', 'game_id'], 'gameinfo.csv'),
@@ -278,30 +341,39 @@ async function main() {
       homescore: resolveColumn(gameinfo.header, ['homescore', 'home_score'], 'gameinfo.csv'),
     };
     const battingCols = {
-      gid: resolveColumn(batting.header, ['gid', 'gameid', 'game_id'], 'batting.csv'),
-      team: resolveColumn(batting.header, ['team'], 'batting.csv'),
-      playerid: resolveColumn(batting.header, ['playerid', 'player_id', 'id'], 'batting.csv'),
-      battingorder: resolveColumn(batting.header, ['battingorder', 'batting_order', 'bat_order'], 'batting.csv'),
+      gid: null,
+      team: null,
+      playerid: null,
+      battingorder: null,
     };
     const pitchingCols = {
-      gid: resolveColumn(pitching.header, ['gid', 'gameid', 'game_id'], 'pitching.csv'),
-      team: resolveColumn(pitching.header, ['team'], 'pitching.csv'),
-      playerid: resolveColumn(pitching.header, ['playerid', 'player_id', 'id'], 'pitching.csv'),
+      gid: null,
+      team: null,
+      playerid: null,
     };
 
     const gameinfoByGid = new Map(gameinfo.records.map((r) => [r[giCols.gid], r]));
-    const battingByGid = groupByGid(batting.records, battingCols.gid);
-    const pitchingByGid = groupByGid(pitching.records, pitchingCols.gid);
 
-    // 1. Gehrig's own games: filter batting.csv by his player id, within
-    //    his documented career date range, on the Yankees.
-    const gehrigBattingRows = batting.records.filter(
-      (r) => r[battingCols.playerid] === GEHRIG_PLAYER_ID && r[battingCols.team] === GEHRIG_TEAM,
-    );
-    const gehrigGameIds = [...new Set(gehrigBattingRows.map((r) => r[battingCols.gid]))].filter((gid) => {
+    console.log('Streaming batting.csv for Gehrig game ids...');
+    const gehrigGidsFromBatting = new Set();
+    const battingPass1 = await streamCsvFile(battingPath, (rec, header) => {
+      if (!battingCols.gid) {
+        battingCols.gid = resolveColumn(header, ['gid', 'gameid', 'game_id'], 'batting.csv');
+        battingCols.team = resolveColumn(header, ['team'], 'batting.csv');
+        battingCols.playerid = resolveColumn(header, ['playerid', 'player_id', 'id'], 'batting.csv');
+        battingCols.battingorder = resolveColumn(header, ['battingorder', 'batting_order', 'bat_order'], 'batting.csv');
+      }
+      if (rec[battingCols.playerid] === GEHRIG_PLAYER_ID && rec[battingCols.team] === GEHRIG_TEAM) {
+        gehrigGidsFromBatting.add(rec[battingCols.gid]);
+      }
+    });
+    console.log(`Scanned batting.csv: ${battingPass1.count} rows, columns: ${battingPass1.header.join(', ')}`);
+
+    const gehrigGameIds = [...gehrigGidsFromBatting].filter((gid) => {
       const gi = gameinfoByGid.get(gid);
       return gi && inCareerRange(gi[giCols.date]);
     });
+    const gehrigGameIdSet = new Set(gehrigGameIds);
 
     console.log(`Found ${gehrigGameIds.length} Gehrig games in range ${CAREER_START}..${CAREER_END} (expect 2,164).`);
     if (gehrigGameIds.length < 2000 || gehrigGameIds.length > 2300) {
@@ -309,6 +381,32 @@ async function main() {
         `Gehrig game count (${gehrigGameIds.length}) is far from the documented 2,164 -- refusing to proceed. Check GEHRIG_PLAYER_ID/GEHRIG_TEAM/date range and the batting.csv column resolution above.`,
       );
     }
+
+    console.log('Streaming batting.csv for box-score lines on those games...');
+    const battingByGid = new Map();
+    await streamCsvFile(battingPath, (rec) => {
+      const gid = rec[battingCols.gid];
+      if (!gehrigGameIdSet.has(gid)) return;
+      const bucket = battingByGid.get(gid);
+      if (bucket) bucket.push(rec);
+      else battingByGid.set(gid, [rec]);
+    });
+
+    console.log('Streaming pitching.csv for those games...');
+    const pitchingByGid = new Map();
+    const pitchingScan = await streamCsvFile(pitchingPath, (rec, header) => {
+      if (!pitchingCols.gid) {
+        pitchingCols.gid = resolveColumn(header, ['gid', 'gameid', 'game_id'], 'pitching.csv');
+        pitchingCols.team = resolveColumn(header, ['team'], 'pitching.csv');
+        pitchingCols.playerid = resolveColumn(header, ['playerid', 'player_id', 'id'], 'pitching.csv');
+      }
+      const gid = rec[pitchingCols.gid];
+      if (!gehrigGameIdSet.has(gid)) return;
+      const bucket = pitchingByGid.get(gid);
+      if (bucket) bucket.push(rec);
+      else pitchingByGid.set(gid, [rec]);
+    });
+    console.log(`Scanned pitching.csv: ${pitchingScan.count} rows, columns: ${pitchingScan.header.join(', ')}`);
 
     // 2. AL standings: walk every AL-vs-AL game across the career span in
     //    date order once per season, building a cumulative W/L snapshot
