@@ -6,7 +6,7 @@ Owns: Current LGFC repo/program status routing
 Does Not Own: Detailed implementation scope, PR evidence, or Drive planning authority
 Source Issue: #2086
 Canonical Reference: /docs/ops/pmo/PMO-JULY-2026-OPERATING-MODEL.md
-Last Reviewed: 2026-08-11
+Last Reviewed: 2026-09-22 (role-name reconciliation, #4214)
 ---
 
 # LGFC Current State
@@ -86,8 +86,8 @@ Current active PMO implementation assignments (reconcile against live Issues):
 
 | Project | Status | Implementer | Current task | PMO owner |
 | --- | --- | --- | --- | --- |
-| #2615 | Active | Cursor | #2622 | ChatGPT / Atlas |
-| #2784 | Active | Claude | #2918 | ChatGPT / Atlas |
+| #2615 | Active | Cursor | #2622 | PMO Admin (interim, per `docs/governance/AGENT-TEAM.md`) |
+| #2784 | Active | Claude | #2918 | PMO Admin (interim, per `docs/governance/AGENT-TEAM.md`) |
 | #2086 | Active | Grok | This dashboard | Product Authority |
 
 Bill retains Product and Production authority. Post-merge exceptions return to the implementer of the originating PR.
@@ -173,7 +173,7 @@ Stop and escalate (do not continue) when:
 
 | Role | Responsibility |
 | --- | --- |
-| Owner | Product Authority (Bill) or delegated PMO (ChatGPT / Atlas) |
+| Owner | Product Authority (Bill) or delegated PMO Admin (per `docs/governance/AGENT-TEAM.md`) |
 | Cadence | On material change to active programs, blockers, or maturity-gap status; at minimum when a major program starts/stops or closeout disposition changes |
 | Updater | Any agent closing or materially advancing work in the tables above must open a follow-up PR or include an update to this file in the same docs PR when the change is in-scope |
 | Reconciliation | After update, confirm consistency with `pmo-backlog.md` and `program-registry.md` |
