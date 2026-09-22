@@ -21,7 +21,7 @@ Determine, from live-repository evidence rather than the original evaluation cla
 
 In scope: current-state UI/CSS inventory; validation of the original "no component library, styling from scratch" claim against live `main`; comparison of retain-custom, internal-standardize, and later-adopt-a-library approaches; accessibility/performance/migration/coexistence risk; a Product-discussion-ready recommendation.
 
-Out of scope: `npm install` of any component library or CSS framework; Tailwind configuration (none present to configure); editing any file under `src/**` other than this brief's own path; Production UI replacement; a follow-on implementation project (requires its own source Issue after Product decides).
+Out of scope: `npm install` of any component library or CSS framework; Tailwind configuration (none present to configure); editing any file outside this brief's own path (this brief lives under `docs/ops/reports/**`; no `src/**` file is edited by this project); Production UI replacement; a follow-on implementation project (requires its own source Issue after Product decides).
 
 ## Current known truth
 
