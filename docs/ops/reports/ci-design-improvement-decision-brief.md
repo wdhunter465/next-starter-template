@@ -119,7 +119,7 @@ These files are overlapping **documentation**, not competing GitHub rulesets. Do
 | #1055 | CLOSED | Stabilize PR gate checks |
 | #1029 | CLOSED | Enforcement standard and CI strategy |
 
-Carry-forward Issues #3839, #3797, #3790, and #2769 are **closed**. This inventory does not reopen them. Residual operator friction that still appears in later PRs (cancelled `reviewer-response-completion` looking like a required-gate failure; `gh pr edit` GraphQL Projects classic errors; hygiene failing on the literal tokens `TODO` / `TBD` / `placeholder` in PR bodies) is recorded as observed process cost, not as a new Issue created here.
+Carry-forward Issues #3839, #3797, #3790, and #2769 are **closed**. This inventory does not reopen them. Residual operator friction that still appears in later PRs (cancelled `reviewer-response-completion` looking like a required-gate failure; `gh pr edit` GraphQL Projects classic errors; GATE PR Hygiene failing when a PR body names the job's forbidden-token list) is recorded as observed process cost, not as a new Issue created here.
 
 ## #4202 handoff
 
