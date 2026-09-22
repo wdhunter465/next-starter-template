@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: Editorial placement fields, allowed section values, rotation rules, and dynamic population invariants for content inventory
 Does Not Own: Runtime query implementation, visual layout, component behavior, or editorial content approval
 Canonical Reference: /docs/reference/website/content-inventory-model.md
-Related issues: #1256, #824, #819, #1137, #1689, #1685
-Last Reviewed: 2026-06-23
+Related issues: #1256, #824, #819, #1137, #1689, #1685, #4263
+Last Reviewed: 2026-09-22
 ---
 
 # Editorial Placement and Rotation
@@ -88,6 +88,8 @@ editorial placement intent only.
 | Archive spotlight | `content_inventory` | Tag/anniversary-driven; `club_home` + optional `archive` |
 | Feature links (Gallery / Library / Memorabilia) | routes + counts optional | Navigation cards; not inventory rows |
 | Campaign / events / recognition | `page_content`, `events`, future config | Fail-closed until display rules exist |
+| Lou Gehrig box score | `retrosheet_gehrig_games` + `retrosheet_box_score_lines` | Left-margin bottom; random game on each Club Home load (#4263) |
+| AL standings as of game date | `retrosheet_al_standings_snapshots` | Right-margin bottom; same random game as the box score (#4263) |
 | Submission CTA | route `/fanclub/submit` | Intake only; see unified workflow reference |
 
 See `docs/reference/website/unified-content-workflow.md` for lane boundaries between

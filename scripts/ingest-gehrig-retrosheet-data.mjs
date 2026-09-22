@@ -44,21 +44,30 @@ function inCareerRange(dateIso) {
   return dateIso >= CAREER_START && dateIso <= CAREER_END;
 }
 
+// The CSV downloads page lists many zips. Matching /all|main|full/ incorrectly
+// prefers allplayers.zip (player bios, no gameinfo.csv). The full seven-file
+// bundle is advertised as "Main CSV Download" and ships as csvdownloads.zip.
+export function resolveMasterCsvZipUrl(hrefs, pageUrl) {
+  if (!hrefs.length) {
+    throw new Error(
+      `Could not find a .zip link on ${pageUrl} -- Retrosheet may have restructured this page. Inspect it manually and update resolveMasterCsvZipUrl().`,
+    );
+  }
+  const urls = hrefs.map((h) => new URL(h, pageUrl).toString());
+  const main = urls.find((u) => /\/csvdownloads\.zip$/i.test(u));
+  if (main) return main;
+  throw new Error(
+    `Could not find csvdownloads.zip on ${pageUrl}. Zips found: ${urls.join(', ')}. Update resolveMasterCsvZipUrl() if Retrosheet renamed the main bundle.`,
+  );
+}
+
 async function discoverCsvZipUrl() {
   const pageUrl = 'https://www.retrosheet.org/downloads/csvdownloads.html';
   const res = await fetch(pageUrl, { headers: { 'User-Agent': USER_AGENT } });
   if (!res.ok) throw new Error(`Fetching ${pageUrl} -> HTTP ${res.status}`);
   const html = await res.text();
   const hrefs = [...html.matchAll(/href\s*=\s*"([^"]+\.zip)"/gi)].map((m) => m[1]);
-  if (!hrefs.length) {
-    throw new Error(
-      `Could not find a .zip link on ${pageUrl} -- Retrosheet may have restructured this page. Inspect it manually and update discoverCsvZipUrl().`,
-    );
-  }
-  // Prefer a link whose surrounding text/filename suggests the full "main" set over
-  // a partial/other release; fall back to the first .zip found.
-  const preferred = hrefs.find((h) => /all|main|full/i.test(h)) ?? hrefs[0];
-  return new URL(preferred, pageUrl).toString();
+  return resolveMasterCsvZipUrl(hrefs, pageUrl);
 }
 
 function downloadFile(url, destPath) {
@@ -445,7 +454,10 @@ async function main() {
   }
 }
 
-main().catch((err) => {
-  console.error(err?.stack || err);
-  process.exit(1);
-});
+const isDirectRun = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (isDirectRun) {
+  main().catch((err) => {
+    console.error(err?.stack || err);
+    process.exit(1);
+  });
+}

@@ -5,8 +5,8 @@ Authority Level: Canonical Design Specification
 Owns: FanClub home route purpose, section contracts, data dependencies
 Does Not Own: FanClub subpage specs; API schema details; implementation internals
 Canonical Reference: /docs/reference/design/fanclub.md
-Related issues: #1685, #1688, #1690, #1962
-Last Reviewed: 2026-06-23
+Related issues: #1685, #1688, #1690, #1962, #4263
+Last Reviewed: 2026-09-22
 ---
 
 # `/fanclub` — FanClub Home Page Specification
@@ -34,9 +34,11 @@ Newspaper-style order (fail-closed static fallbacks when inventory is empty):
 | 5 | Photo / memorabilia feature | `ClubHomeMediaFeature` |
 | 6 | Member prompt | `ClubHomeMemberPrompt` (links to `/fanclub/chat`) |
 | 7 | Archive spotlight | `ClubHomeArchiveSpotlight` |
-| 8–10 | Campaign / events / recognition | `ClubHomeDeferredModule` (fail-closed) |
-| 11 | Submission CTA | `ClubHomeSubmissionCta` (links to `/fanclub/submit`) |
-| 12 | Admin link (conditional) | `AdminLink` |
+| 8–10 | Campaign / events / recognition | `ClubHomeEventsModule`, `ClubHomeRecognitionModule`, `ClubHomeDeferredModule` (campaign fail-closed) |
+| 11 | Lou Gehrig box score (left margin, bottom) | `ClubHomeGehrigBoxScore` |
+| 12 | AL standings as of that game (right margin, bottom) | `ClubHomeAlStandings` |
+| 13 | Submission CTA | `ClubHomeSubmissionCta` (links to `/fanclub/submit`) |
+| 14 | Admin link (conditional) | `AdminLink` |
 
 Page shell: `src/app/fanclub/page.tsx`
 
@@ -52,6 +54,7 @@ The following legacy dashboard modules are **not** part of the newspaper Club Ho
 
 - Member session state from `useMemberSession`
 - Dynamic Club Home inventory: `GET /api/fanclub/home` (`club_home` section in `content_inventory`)
+- Random Gehrig box score + AL standings: `GET /api/fanclub/gehrig-box-score` (member session; one random `retrosheet_gehrig_games` row plus batting lines and standings snapshot; fail-closed empty copy when ingest tables are empty)
 - Feature-link card targets: `/fanclub/photo`, `/fanclub/library`, `/fanclub/memorabilia`
 - Discussion workflows: `/fanclub/chat` and discussion APIs
 - Editorial submission intake: `/fanclub/submit` → `submission_queue`
