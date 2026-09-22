@@ -58,6 +58,51 @@ This brief holds all four sections listed under Purpose. It is not phased beyond
 
 **Conclusion:** the original evaluation claim's literal premise (Tailwind present, no component library) does not match live `main` — there is no Tailwind at all. The claim's underlying concern (no prebuilt component library; styling built by hand) is accurate. Token drift is real and live between exactly two files (`src/app/globals.css` and `styles/variables.css`), both imported into the same page; the third file sharing the name and stale value (`src/styles/variables.css`) is orphaned, not a second live conflict.
 
+## Three-model comparison (#4187 / `#2443-005`)
+
+Three future-state models, compared against the live inventory. No library is installed by this child.
+
+### Model 1 — Retain current custom CSS
+
+Keep CSS modules plus CSS custom properties as they are, including the two live `--lgfc-blue` values and the unused `src/styles/**` copies.
+
+- **Velocity:** highest near-term velocity because there is no migration. Later-feature velocity is lowest because new public, Fan Club, and admin screens keep copying module patterns instead of sharing primitives.
+- **Accessibility:** existing `@axe-core/playwright` and Playwright coverage stay the safety net. There is no shared primitive for dialogs, forms, or tables, so keyboard and focus behavior is rebuilt per screen.
+- **Bundle / maintenance:** no new npm surface. Maintenance cost is duplication: 63 `src/components/**` files and 23 CSS modules with no token single-source. Catalog copy in `.github/REPOSITORY_METADATA.md` still advertises Tailwind, which continues to mislead contributors.
+- **Surfaces:** public, Fan Club (member), and admin already share the same hand-built stack. Fundraising/store experiences are not a separate component system on `main`; they would inherit the same drift if added later.
+
+### Model 2 — Internal-standardize on existing tokens and components
+
+Keep first-party React and CSS modules. Collapse live tokens to one imported source, delete or quarantine dead `src/styles/**`, and extract a small set of repo-native primitives (buttons, forms, navigation, feedback) used by public, Fan Club, and admin. Still no Tailwind and no shadcn/Radix/Headless UI.
+
+- **Velocity:** one-time cleanup plus documentation of primitives, then faster later screens because new UI starts from named tokens and shared components instead of copying a nearby module.
+- **Accessibility:** primitives can carry the keyboard/focus conventions that axe/Playwright already test at the page level. Does not replace those tests.
+- **Bundle / maintenance:** still zero new UI library. Shrinks token-file conflict and CSS-module duplication. Fits static export: no client-only library shell.
+- **Surfaces:** public, Fan Club, and admin stay one visual language without wrapping an external kit. Matches the Graduation pending-brief direction.
+
+### Model 3 — Adopt an external library later
+
+A later Product-authorized Issue would add something such as shadcn/ui, Radix primitives, or Headless UI (almost always with Tailwind). This project does not perform that add.
+
+- **Velocity:** lowest near-term velocity during coexistence (wrap or replace 63 existing components). Highest later-feature velocity after cutover, if Product later accepts a kit.
+- **Accessibility:** Radix/Headless-class primitives typically ship keyboard behavior; LGFC would still need axe/Playwright against the wrapped public, Fan Club, and admin routes, plus visual-regression coverage the kit does not provide.
+- **Bundle / maintenance:** new dependency, upgrade, and customization cost. Tailwind configuration would have to be introduced from nothing (inventory: Tailwind is absent, not "present without a component library"). Conflicts with zero-recurring-cost only if a paid design-system vendor is chosen; open-source kits are license-cost-free but not maintenance-free.
+- **Surfaces:** a kit helps most on dense admin tables/dialogs and least on the already-shipped public storytelling pages unless those pages are rewritten to the kit.
+
+### Comparison summary
+
+| Dimension | Retain-custom | Internal-standardize | Later-adopt a library |
+| --- | --- | --- | --- |
+| Velocity (near term) | Highest (no migration) | Medium (token/primitive cleanup) | Lowest (coexistence + Tailwind introduction) |
+| Velocity (later features) | Lowest (copy-paste modules) | Highest among first-party options | High after cutover, if the kit is accepted |
+| Accessibility | Page-level tests only | Shared primitives plus existing tests | Kit primitives plus required LGFC tests |
+| Bundle / npm | No new UI library | No new UI library | New UI library; Tailwind would be new |
+| Token drift (`--lgfc-blue`) | Unchanged, still live | Directly addressed | Addressed only if the kit becomes the token source |
+| Public / Fan Club / admin | Same stack, more drift | Same stack, one token/primitive set | Kit wrap or rewrite |
+| Fit for #2443 | Leaves the documented gap in place | Matches pending-brief direction | Requires a new source Issue after Product chooses it |
+
+**Carried into #4188 / #4189:** prefer internal-standardize. Retain-custom is acceptable only as a temporary holding pattern. Later-adopt is not authorized from this parent.
+
 ---
 
-_Sections below are added by later children in this same Issue chain (#4187, #4188, #4189) and do not exist until each child's own PR merges._
+_Risks (#4188) and the closing recommendation (#4189) are added by later children and do not exist until each child's own PR merges._
