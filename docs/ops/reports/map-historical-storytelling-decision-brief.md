@@ -73,7 +73,7 @@ A single static image (illustrated or a simplified geographic graphic) with abso
 
 | Dimension | Leaflet + tile provider | Static hotspot map |
 | --- | --- | --- |
-| Zero-recurring-cost compatible | No — free tiers have volume ceilings or usage-policy limits | Yes — no third-party request at all |
+| Zero-recurring-cost compatible | Conditional — only while traffic stays under a compliant free tier's volume cap, monitored indefinitely; OSM's own public tiles are not Production-compliant at any volume | Yes, unconditionally — no third-party request at all |
 | New runtime dependency | Yes (`leaflet` + CSS) | No |
 | Static-export compatible | Requires a client-only rendering path | Yes, natively |
 | Credential/account management | Yes, if using a compliant provider (API key) | No |
