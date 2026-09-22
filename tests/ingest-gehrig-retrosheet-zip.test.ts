@@ -29,7 +29,7 @@ describe('Retrosheet master CSV zip selection (#4263)', () => {
 });
 
 describe('Retrosheet CSV streaming parser (#4263)', () => {
-  it('parses quoted commas without loading a single giant string in the caller', () => {
+  it('parses quoted commas', () => {
     const { header, records } = parseCsv('gid,team\n"NYA,1927",NYA\n');
     expect(header).toEqual(['gid', 'team']);
     expect(records[0]).toEqual({ gid: 'NYA,1927', team: 'NYA' });
@@ -42,5 +42,20 @@ describe('Retrosheet CSV streaming parser (#4263)', () => {
     parser.feed('lo, world"\n');
     parser.end();
     expect(rows[1]).toEqual(['G1', 'hello, world']);
+  });
+
+  it('treats a closing quote at EOF as end of field, not a parse error', () => {
+    const { records } = parseCsv('gid,note\nG1,"hello"');
+    expect(records[0]).toEqual({ gid: 'G1', note: 'hello' });
+    const rows: string[][] = [];
+    const parser = createCsvRowParser((row: string[]) => rows.push(row));
+    parser.feed('gid,note\nG1,"hel');
+    parser.feed('lo"');
+    parser.end();
+    expect(rows[1]).toEqual(['G1', 'hello']);
+  });
+
+  it('fails closed when EOF is inside an unclosed quoted field', () => {
+    expect(() => parseCsv('gid,note\nG1,"hello')).toThrow(/quoted field/);
   });
 });

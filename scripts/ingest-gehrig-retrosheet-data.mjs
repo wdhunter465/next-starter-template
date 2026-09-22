@@ -158,7 +158,11 @@ export function createCsvRowParser(onRow) {
       emitRow();
       hold = '';
     } else if (hold === '"') {
-      throw new Error('CSV ended inside an escaped quote');
+      inQuotes = false;
+      hold = '';
+    }
+    if (inQuotes) {
+      throw new Error('CSV ended inside a quoted field');
     }
     if (field !== '' || row.length) {
       row.push(field);
