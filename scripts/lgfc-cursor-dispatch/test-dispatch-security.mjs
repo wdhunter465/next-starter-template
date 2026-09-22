@@ -273,7 +273,9 @@ test('health workflow must run on GitHub-hosted ubuntu-latest', () => {
   );
   assert.match(wf, /runs-on:\s*ubuntu-latest/);
   assert.doesNotMatch(wf, /runs-on:\s*\[self-hosted/);
-  assert.match(wf, /administration:\s*read/);
+  assert.doesNotMatch(wf, /^\s*administration:\s*/m);
+  assert.match(wf, /CURSOR_RUNNER_HEALTH_TOKEN/);
+  assert.match(wf, /AUTH_NOT_CONFIGURED/);
   assertTrustedDispatchActor(wf);
 });
 
