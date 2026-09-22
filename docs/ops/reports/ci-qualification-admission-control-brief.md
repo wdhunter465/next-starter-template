@@ -2,8 +2,8 @@
 Doc Type: Operations
 Audience: Human + AI
 Authority Level: Controlled
-Owns: Project #2815 CI qualification brief — inventory (#4229), contract/scorecard (#4230), and repeated-pilot matrix (#4231)
-Does Not Own: Branch-protection mutation; adding or removing required checks; workflow YAML; executing live pilot rounds; paid CI services
+Owns: Project #2815 CI qualification brief — inventory (#4229), contract/scorecard (#4230), repeated-pilot matrix (#4231), and Production-admission recommendation (#4232)
+Does Not Own: Branch-protection mutation; adding or removing required checks; workflow YAML; executing live pilot rounds; paid CI services; OpenAI-name sweep
 Canonical Reference: .github/CI_GUARDRAILS_MAP.md
 Related Issues: #2815, #4229, #4230, #4231, #4232, #4089, #4200, #3771, #3746
 Last Reviewed: 2026-09-22
@@ -13,11 +13,11 @@ Last Reviewed: 2026-09-22
 
 ## Purpose
 
-Publish how a new CI candidate must be qualified, scored, piloted, and separately admitted before it can become a required Production check. #4229 inventories the live surface. #4230 publishes the contract and scorecard. This revision (#4231) designs the repeated-pilot matrix and names the representative pilot. Executing rounds is a later separately authorized source Issue.
+Publish how a new CI candidate must be qualified, scored, piloted, and separately admitted before it can become a required Production check. #4229 inventories the live surface. #4230 publishes the contract and scorecard. #4231 designs the repeated-pilot matrix. This revision (#4232) publishes the Production-admission recommendation as a design statement only.
 
 ## Scope
 
-In scope: live merge-protection classification inventory, candidate contract and scorecard, and the repeated-pilot matrix plus representative pilot identity added in this #4231 revision.
+In scope: live merge-protection classification inventory, candidate contract and scorecard, repeated-pilot matrix, and the Production-admission recommendation added in this #4232 revision.
 
 Out of scope: `.github/workflows/**` edits; GitHub ruleset changes; duplicating #4089 keep/consolidate/retire implementation; paid CI or new credentials.
 
@@ -154,5 +154,23 @@ Executing these rounds is **not** authorized by this child. A later source Issue
 | 9 | Disablement of the candidate | Required delivery path (`quality` / `gitleaks` / `reviewer-response-completion`) still works |
 
 Use repeated rounds, not a single demonstration. Each round preserves exact candidate version, configuration, test inputs, outputs, duration, findings, and required human intervention.
+
+## Production-admission recommendation (#4232)
+
+**Recommendation (design statement only):** keep the current required surface. This parent does **not** change required checks, branch protection, credentials, or workflow YAML.
+
+| Live job | Recommended posture | Notes |
+| --- | --- | --- |
+| `quality` | ADMIT — REQUIRED | Keep. Class-aware deterministic routing already in `merge_protection_surface.mjs`. |
+| `gitleaks` | ADMIT — REQUIRED | Keep. Secret-exposure blocker. |
+| `reviewer-response-completion` | ADMIT — REQUIRED | Keep. Do not regress to a two-check surface. |
+| `pr-hygiene` | ADMIT — ADVISORY | Keep advisory. Do not promote without a later Issue plus repeated-pilot evidence. |
+| `diff-scope` | ADMIT — ADVISORY | Keep advisory. Same bar. |
+| Manual-only / paused PR-process jobs listed in #4229 | ADMIT — MANUAL OR SCHEDULED | Do not restore auto-triggers from this parent. #4089 already owns consolidation ranking. |
+
+Any required-check add, remove, or swap needs **a later source Issue** plus Product/Engineering authorization and independent review. Admission remains a separate controlled transition.
+
+Independent review of this brief is required. Parent #2815 stays open for PMO closeout after these docs merge. This wave does not authorize branch-protection edits, new credentials, or an OpenAI-name sweep.
+
 
 
