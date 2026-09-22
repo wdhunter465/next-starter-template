@@ -5,8 +5,8 @@ Authority Level: Operational Authority
 Owns: Verified PMO program status, active implementation assignment, launch-state control, and terminal program disposition
 Does Not Own: Product priority decisions, task implementation detail, Production approval, or undocumented inferred status
 Canonical Reference: /docs/governance/PMO-PORTFOLIO.md
-Related Issues: #1255, #1719, #2615, #2678, #2779, #2784
-Last Reviewed: 2026-08-04
+Related Issues: #1255, #1719, #2615, #2678, #2779, #2784, #4214
+Last Reviewed: 2026-09-22 (role-name reconciliation, #4214)
 ---
 
 # PMO Program Registry
@@ -21,10 +21,10 @@ Documentation completeness and a final AS-BUILT record are mandatory project clo
 
 | Project | Status | Implementer | Current task | PMO owner |
 | --- | --- | --- | --- | --- |
-| #2615 | Active | Cursor | #2622 | ChatGPT / Atlas |
-| #2784 | Active | Claude | #2918 | ChatGPT / Atlas |
+| #2615 | Active | Cursor | #2622 | PMO Admin (interim, per `docs/governance/AGENT-TEAM.md`) |
+| #2784 | Active | Claude | #2918 | PMO Admin (interim, per `docs/governance/AGENT-TEAM.md`) |
 
-Cursor and Claude are implementers. ChatGPT / Atlas is PMO / Engineering. Bill is Product and Production Authority.
+Cursor and Claude are implementers. PMO Admin (interim, per `docs/governance/AGENT-TEAM.md`) coordinates PMO administration for these projects. Bill is Product and Production Authority.
 
 Post-merge exceptions return immediately to the implementer of the originating PR. PMO defines, routes, independently reviews, verifies, and closes the remediation.
 
