@@ -2,7 +2,7 @@
 Doc Type: Operations
 Audience: Human + AI
 Authority Level: Controlled
-Owns: Project #3160 deep-zoom archival viewer decision brief — live presentation inventory (#4233) and tiling comparison (#4234)
+Owns: Project #3160 deep-zoom archival viewer decision brief — inventory (#4233), tiling (#4234), and rights/privacy (#4235)
 Does Not Own: npm add of OpenSeadragon; tile generation; B2 layout change; paid image CDN; Production viewer; rights-hold mutation; OpenAI-name sweep
 Canonical Reference: /docs/governance/PMO-PORTFOLIO.md
 Related Issues: #3160, #4233, #4234, #4235, #4236, #2860, #2878, #2857
@@ -17,7 +17,7 @@ Record live-main photo and media presentation facts so later #3160 children can 
 
 ## Scope
 
-In scope for this revision (#4234): three-way tiling comparison under zero recurring cost, on top of the #4233 inventory.
+In scope for this revision (#4235): rights, privacy, and original-file exposure rules for any later deep-zoom presentation, on top of #4233 inventory and #4234 tiling.
 
 Out of scope: adding `openseadragon`; generating DZI/IIIF tiles; changing B2 keys; a Production pan-and-zoom route; `/admin` or public route edits.
 
@@ -59,9 +59,15 @@ Pending-brief recommendation: **hand-picked archival items with one-time/manual 
 
 This comparison is design only. No tiles are generated here.
 
+## Rights, privacy, and original-file exposure (#4235)
+
+Zoomable archival images remain content-pipeline objects. Holds and unreviewed media stay out of public deep-zoom. Tile derivatives are still rights-bearing; a DZI/IIIF pyramid is not a rights-clearance. Public deep-zoom must not bypass `/admin/rights-review`. Unreviewed originals must not leak as tile sources or as downloadable full-resolution fallbacks from a viewer.
+
+This child does not change rights-hold behavior and does not authorize hard-delete.
+
 ## Protected stops
 
 - No viewer implementation.
 - No tile generation in this parent.
 - No paid image-processing service or paid CDN.
-- No leak of unreviewed originals (rights child #4235).
+- No leak of unreviewed originals; no bypass of `/admin/rights-review`.
