@@ -2,7 +2,7 @@
 Doc Type: Operations
 Audience: Human + AI
 Authority Level: Controlled
-Owns: Project #3160 deep-zoom archival viewer decision brief — inventory (#4233), tiling (#4234), and rights/privacy (#4235)
+Owns: Project #3160 deep-zoom archival viewer decision brief — inventory (#4233), tiling (#4234), rights/privacy (#4235), and adopt-versus-defer recommendation (#4236)
 Does Not Own: npm add of OpenSeadragon; tile generation; B2 layout change; paid image CDN; Production viewer; rights-hold mutation; OpenAI-name sweep
 Canonical Reference: /docs/governance/PMO-PORTFOLIO.md
 Related Issues: #3160, #4233, #4234, #4235, #4236, #2860, #2878, #2857
@@ -17,7 +17,7 @@ Record live-main photo and media presentation facts so later #3160 children can 
 
 ## Scope
 
-In scope for this revision (#4235): rights, privacy, and original-file exposure rules for any later deep-zoom presentation, on top of #4233 inventory and #4234 tiling.
+In scope for this revision (#4236): the closing adopt-versus-defer recommendation, on top of inventory, tiling, and rights.
 
 Out of scope: adding `openseadragon`; generating DZI/IIIF tiles; changing B2 keys; a Production pan-and-zoom route; `/admin` or public route edits.
 
@@ -32,7 +32,7 @@ Observed 2026-09-22 on `origin/main` (`cfa7eb1d`):
 
 ## Intended final state
 
-This file remains a decision brief. OpenSeadragon npm adoption waits on a chosen tiling path. This revision does not generate tiles or authorize a live processing service.
+This file is the complete #3160 decision brief. OpenSeadragon is deferred. This revision does not add the library or a Production viewer.
 
 ## Live presentation versus deep-zoom needs (#4233)
 
@@ -65,9 +65,22 @@ Zoomable archival images remain content-pipeline objects. Holds and unreviewed m
 
 This child does not change rights-hold behavior and does not authorize hard-delete.
 
+## Adopt versus defer (#4236)
+
+**Recommendation: defer implementation.** Do not add the `openseadragon` npm package from #3160. Do not ship a Production viewer from this parent.
+
+Defer until all of the following exist:
+
+1. A zero-recurring-cost tiling path matching the #4234 preference (hand-picked archival set, one-time/manual or build-time DZI).
+2. A named, rights-cleared archival set that satisfies #4235 (held/unreviewed media excluded; `/admin/rights-review` not bypassed).
+3. A new Product-authorized implementation Issue whose allowlist explicitly includes the library add and the viewer route. That Issue is the first later source Issue that may add OpenSeadragon. This child does not open it. #3160 does not grant npm authorization.
+
+Independent review of this recommendation is the GitHub PR review on the #4236 change, not a self-approval.
+
 ## Protected stops
 
 - No viewer implementation.
 - No tile generation in this parent.
 - No paid image-processing service or paid CDN.
 - No leak of unreviewed originals; no bypass of `/admin/rights-review`.
+- No `openseadragon` npm add from this parent.
