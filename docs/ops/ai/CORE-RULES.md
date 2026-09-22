@@ -6,7 +6,7 @@ Owns: Shared execution rules, enforcement model, PR discipline, stop conditions,
 Does Not Own: Design authority, platform configuration, tracker content
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
 Related Issues: #3055, #3113, #3117, #3134, #3138, #3142, #3145, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4074, #4099, #4131, #4165, #4314
-Last Reviewed: 2026-09-22
+Last Reviewed: 2026-09-22 (role-name reconciliation, #4214)
 ---
 
 # CORE-RULES.md
@@ -81,9 +81,9 @@ The always-on poller persists the resume queue at `/tmp/lgfc-cursor-resume-queue
 
 Cursor operator-facing status and always-on ticks must not list Issues or PRs that are not assigned Cursor work or related to that assigned work. Canonical reporting bound: `docs/ops/ai/CURSOR-RULES.md` (#4314). This does not relax assigned-queue continuation for work that is actually assigned.
 
-## Accepted-assignment continuity for ChatGPT (#3693)
+## Accepted-assignment continuity (#3693)
 
-Once ChatGPT accepts an assignment, that assignment remains active until it reaches its authorized completion/stop point, Product Authority explicitly says to stop/cancel/abandon it, or a governing repository stop condition requires a halt.
+Once an agent accepts an assignment, that assignment remains active until it reaches its authorized completion/stop point, Product Authority explicitly says to stop/cancel/abandon it, or a governing repository stop condition requires a halt.
 
 Other Product Authority messages are **interruptions, not cancellation**. Handle the interruption as needed, then immediately resume the accepted assignment without requiring another `resume`, `continue`, or restatement instruction.
 
@@ -145,7 +145,7 @@ All agents must follow the execution pattern that has produced the lowest-fricti
 8. Do not include unrelated tracker, documentation, runtime, workflow, or cleanup edits.
 9. When the scoped PR is ready for review or blocked by a documented gate, stop *that Issue's implementation* and immediately return to the remaining assigned/resume queue (#3605). Select `nextExecutable`; do not wait silently on independent review (#3611). Do not idle the session.
 
-This standard applies to Cursor, ChatGPT, Copilot, Claude Code, and any future implementation agent.
+This standard applies to every live LGFC implementation agent per the current role holders mapped in `docs/governance/AGENT-TEAM.md`.
 
 ---
 
@@ -291,7 +291,7 @@ Defaults:
 
 - PR = draft
 - Implementation agents stop the scoped implementation at the PR handoff boundary unless their assignment says otherwise.
-- ChatGPT control-plane assignments continue through the authorized assignment lifecycle and are not cancelled by conversational interruptions (#3693).
+- Accepted assignments continue through the authorized assignment lifecycle and are not cancelled by conversational interruptions (#3693).
 
 ---
 
@@ -308,19 +308,19 @@ The agent's task is complete only when all of the following are true:
 5. The PR status is changed from DRAFT/BLOCKED to READY FOR REVIEW, or the agent explicitly reports the exact blocker preventing readiness.
 6. The agent's final report includes the current head SHA, exact checks run, gate status, reviewer disposition status, and whether the PR is READY FOR REVIEW.
 
-A PR must not be handed to ChatGPT/Bill for review while any required gate, reviewer comment, bot comment, review thread, PR-body section, or source-issue accounting item still requires agent action.
+A PR must not be handed off for review while any required gate, reviewer comment, bot comment, review thread, PR-body section, or source-issue accounting item still requires agent action.
 
 ---
 
 # CAPABILITIES
 
-- ChatGPT owns Issue and PR creation under standing operator permission when acting within its mapped roles.
-- ChatGPT may create, comment on, label, update, and organize Issues and Pull Requests when task scope is clear.
+- The PMO / Governance role holder owns Issue and PR creation under standing operator permission when acting within its mapped roles (`docs/governance/AGENT-TEAM.md`).
+- Any agent acting in that role may create, comment on, label, update, and organize Issues and Pull Requests when task scope is clear.
 - Issue-first hard gate remains mandatory for all work; no PR-first operations, incident, CI, or emergency exception exists.
 - PR creation is NOT delegated unless explicitly instructed.
 - Merge authority remains human/operator only.
 
-ChatGPT holds PMO / Governance, PR Approver / Engineering, Administration & Communications, and Day-2 Operations coordination authority in `docs/governance/AGENT-TEAM.md`. OpenAI / Work was permanently removed from the LGFC Agentic Team on 2026-09-03 (#4074) and holds no current role. Product-specific execution detail lives in `CHATGPT-RULES.md`; `WORK-RULES.md` is retired/historical only.
+Current role holders for PMO / Governance, PR Approver / Engineering, Administration & Communications, and Day-2 Operations coordination authority are recorded in `docs/governance/AGENT-TEAM.md`. Two members were permanently removed from the LGFC Agentic Team and hold no current role (#4173, #4074); see `docs/governance/AGENT-TEAM.md` for the retirement records and each member's product-specific rules file (`CHATGPT-RULES.md`, `WORK-RULES.md`) for historical-only detail.
 
 ---
 
@@ -333,11 +333,11 @@ All LGFC implementation tasks (website, repository, ops, CI, and docs implementa
 1. **Cursor Local** and **Claude Code** = co-equal active LGFC standing implementation executors relative to each other, each assigned bounded work through its own source Issue; neither is sole executor as of the 2026-08 multi-agent parallel-operation decision (#3052). A single task is assigned to exactly one executor; parallel operation means concurrent, non-overlapping assignments, not shared ownership of the same Issue.
    - **Cursor Local** is a normal standing executor for `team:operations`, `team:pmo`, and `team:governance` work, and is **not** a normal `team:engineering` executor.
    - **Claude Code** is a normal standing executor for `team:pmo` and `team:engineering` work (and Governance when explicitly assigned). Claude is **not** a normal Operations executor; Claude may join a bounded Operations Issue only when explicitly escalated for additional engineering support. Escalation does not create a Tier-2 Operations Team and does not change Team ownership (`#3152` four-Team topology: Operations, Governance, PMO, Engineering).
-2. **ChatGPT** = permanent PMO owner (#4074) and Governance owner, plus PR Approver / Engineering, Administration & Communications, and Day-2 Operations coordination; does not perform routine scoped file implementation unless the source Issue explicitly assigns it. OpenAI / Work was permanently removed from the LGFC Agentic Team on 2026-09-03 (#4074) and holds no current role. See [`CHATGPT-RULES.md`](./CHATGPT-RULES.md) and `#3693`.
-3. **Codex** = **retired** (#4165). Codex is not a live Implementation / Operations executor, first responder, or wake target. `CODEX-RULES.md` is historical only. Do not assign `agent:codex` or invoke a Codex dispatch path.
+2. **Retired member (#4173)** = no current team role, PMO authority, Governance authority, review authority, Administration authority, or Day-2 Operations coordination authority. Historical record only (see `docs/governance/AGENT-TEAM.md` and [`CHATGPT-RULES.md`](./CHATGPT-RULES.md)). Successor coverage until Product names permanent holders: Cursor Local continues Product-authorized Operations and interim PMO Admin (#4174); Claude Code remains Engineering and independent review for work it did not implement; Bill remains Product Authority (`docs/governance/AGENT-TEAM.md`). A second retired member (#4074) also holds no current role.
+3. **Retired member (#4165)** = not a live Implementation / Operations executor, first responder, or wake target. `CODEX-RULES.md` is historical only. Do not assign `agent:codex` or invoke that dispatch path.
 4. All other agents, including **Claude** (conversational) and **Notion** (controlled-document workspace), = tertiary/support agents only by explicit bounded routing need; neither holds a durable repository role or GitHub mutation authority. See `docs/governance/AGENT-TEAM.md`.
 
-Prior documentation that listed Codex as a standing executor, first responder, or isolated configuration-pilot consumer is superseded for LGFC work by this section, `docs/governance/AGENT-TEAM.md`, and `#4165`.
+Prior documentation that listed the member retired under #4165 as a standing executor, first responder, or isolated configuration-pilot consumer is superseded for LGFC work by this section, `docs/governance/AGENT-TEAM.md`, and `#4165`.
 
 Routing priority controls assignment preference only. It does not override design authority, scope limits, PR discipline, separation-of-duty (an executor does not approve its own protected work), or merge approval.
 
@@ -377,7 +377,7 @@ No speculative redesign.
 
 # INBOUND COMMUNICATION CHECKPOINT (#3188)
 
-Before claiming new work, starting a successor, declaring blocked or waiting, or ending a work cycle where another agent response may be pending, ChatGPT, Cursor Local, and Claude Code must inspect communications addressed to their role on GitHub source Issues.
+Before claiming new work, starting a successor, declaring blocked or waiting, or ending a work cycle where another agent response may be pending, every live role holder (per `docs/governance/AGENT-TEAM.md`) must inspect communications addressed to their role on GitHub source Issues.
 
 The checkpoint covers at minimum:
 
@@ -424,7 +424,7 @@ STOP immediately if:
 
 # PRODUCT STARTUP FRAMEWORK
 
-Shared skeleton for every recognized LGFC agent product's mandatory `run startup` procedure (#3052 / #3693). Product-specific rule files (`CHATGPT-RULES.md`, `CLAUDE-CODE-RULES.md`) are additive to this skeleton; they do not replace it. `WORK-RULES.md` is retired/historical since OpenAI / Work was permanently removed (#4074). `CODEX-RULES.md` is retired/historical since Codex was permanently terminated (#4165).
+Shared skeleton for every recognized LGFC agent product's mandatory `run startup` procedure (#3052 / #3693). Product-specific rule files (`CHATGPT-RULES.md`, `CLAUDE-CODE-RULES.md`) are additive to this skeleton; they do not replace it. `WORK-RULES.md` and `CODEX-RULES.md` are retired/historical; see `docs/governance/AGENT-TEAM.md` for the underlying retirement records (#4074, #4165).
 
 ## When startup is mandatory
 
@@ -491,7 +491,7 @@ For a graduated Project or Program, the exact prepared child graph is standing a
 
 Missing package fields produce `PACKAGE-INCOMPLETE`; a substantive dependency or protected boundary produces an evidence-specific `HOLD` scoped to the affected action — not queue-wide freeze for ordinary sequencing. A valid `HOLD` records affected scope, evidence, why continuation is unsafe or unauthorized, mitigation owner, release condition, parallel-safe work, and the disputed-risk decision owner (`docs/governance/PMO-PORTFOLIO.md`, #3134). Generic `BLOCKED` / `waiting on PMO` language is not a hold. Disputed risk uses `RISK IDENTIFIED` and a recorded `HOLD` | `MITIGATE AND CONTINUE` | `BOUNDED EXCEPTION` | `RESEQUENCE` decision. Merge alone is not substantive acceptance. Current role ownership for preparation, monitoring, assurance, exception handling, and parent/program acceptance in this workflow is defined in [`docs/governance/AGENT-TEAM.md`](../../governance/AGENT-TEAM.md), not restated here. No implementer may be the sole independent reviewer/approver of its own protected work.
 
-PMO defines sequencing and readiness coordination, not a general execution gate (#3113 / #3134 / #3145). Ordinary predecessor and advisory conditions are comments, package notes, and order metadata. Administrative incompleteness (missing repeat dispatch or preferred review timing) does not suppress an otherwise executable package. When only part of a task is gated, split bounded increments and continue collision-safe work. ChatGPT prepares successor packages before implementer idle time. Product-authorized agent routing (Cursor Local for Operations + PMO + Governance; Claude Code for PMO + Engineering, and Governance when assigned) is preserved per Team eligibility and claim (#3152).
+PMO defines sequencing and readiness coordination, not a general execution gate (#3113 / #3134 / #3145). Ordinary predecessor and advisory conditions are comments, package notes, and order metadata. Administrative incompleteness (missing repeat dispatch or preferred review timing) does not suppress an otherwise executable package. When only part of a task is gated, split bounded increments and continue collision-safe work. PMO (current holder per `docs/governance/AGENT-TEAM.md`) prepares successor packages before implementer idle time. Product-authorized agent routing (Cursor Local for Operations + PMO + Governance; Claude Code for PMO + Engineering, and Governance when assigned) is preserved per Team eligibility and claim (#3152).
 
 ## Execution Contract Fidelity (#3138)
 
