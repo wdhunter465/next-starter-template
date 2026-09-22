@@ -6,7 +6,7 @@ Owns: Production health, degraded-service routing, incident classification, cont
 Does Not Own: Cross-team queue semantics, Administration & Communications policy, delivery-model selection, PMO sizing, PR approval roles, CI implementation, project objectives, or daily operator checklists
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
 Related Issues: #2495, #2640, #2641, #2695, #2699
-Last Reviewed: 2026-07-21
+Last Reviewed: 2026-09-22 (role-name reconciliation, #4213)
 ---
 
 # Operations and Recovery
@@ -112,9 +112,9 @@ Tracker-only, duplicate, bookkeeping, advisory, and evidence-only records do not
 
 ## Primary and Tier 2 ownership
 
-Cursor Local is the normal primary owner for Operations remediation implementation.
+Implementation / Operations (current holder in `docs/governance/AGENT-TEAM.md`) is the normal primary owner for Operations remediation implementation.
 
-ChatGPT participates as Tier 2 specialist support when the Issue requires:
+Engineering (current holder in `docs/governance/AGENT-TEAM.md`) participates as Tier 2 specialist support when the Issue requires:
 
 - original design interpretation;
 - architecture or dependency analysis;
@@ -126,7 +126,7 @@ ChatGPT participates as Tier 2 specialist support when the Issue requires:
 
 Tier 2 participation uses the universal collaboration method on the same Operations source Issue. The Issue remains owned by `team:operations`, retains its Operations priority/state, and does not receive an Engineering team or priority label.
 
-ChatGPT does not take over the branch or PR merely because Tier 2 support is active. Cursor applies the response and resumes remediation unless an explicit ownership handoff or formal review responsibility is separately recorded.
+Engineering does not take over the branch or PR merely because Tier 2 support is active. Implementation / Operations applies the response and resumes remediation unless an explicit ownership handoff or formal review responsibility is separately recorded.
 
 ## Detection and incident creation
 

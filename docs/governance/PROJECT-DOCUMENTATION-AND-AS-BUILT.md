@@ -6,7 +6,7 @@ Owns: Mandatory project documentation lifecycle, AS-BUILT requirements, document
 Does Not Own: Product priorities, implementation authority, Production approval, or technical design decisions
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
 Related Issues: #1719
-Last Reviewed: 2026-08-04
+Last Reviewed: 2026-09-22 (role-name reconciliation, #4213)
 ---
 
 # Project Documentation and AS-BUILT Policy
@@ -71,7 +71,7 @@ A project may state that a DIATAXIS quadrant is not applicable only with a writt
 
 ## PMO responsibilities
 
-ChatGPT, acting as PMO / Engineering, is accountable for ensuring before closure that:
+PMO / Engineering (current holder in `docs/governance/AGENT-TEAM.md`) is accountable for ensuring before closure that:
 
 - the documentation inventory was defined at project preparation;
 - each child Issue identifies its documentation impacts;
@@ -87,7 +87,7 @@ PMO may not close a project based on percentage, merged code, closed child Issue
 
 ## Implementer responsibilities
 
-Cursor or Claude, whichever implements the PR, must update all documentation affected by that PR in the same delivery transaction. The implementer must not defer documentation to PMO or a later project.
+Whichever agent implements the PR must update all documentation affected by that PR in the same delivery transaction. The implementer must not defer documentation to PMO or a later project.
 
 If a post-merge documentation exception is found, it is assigned immediately to the implementer of the PR where the exception occurred. PMO defines and routes the defect, independently reviews remediation, verifies the repository, and controls final closeout.
 

@@ -6,7 +6,7 @@ Owns: Platform architecture ownership, environment classification, preview/compo
 Does Not Own: Delivery Model A/B selection, agent approval routing, CI gate implementation, product/UX behavior, or day-to-day operator checklists
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
 Related Issues: #2688, #2686, #4174
-Last Reviewed: 2026-09-19
+Last Reviewed: 2026-09-22 (role-name reconciliation, #4213)
 ---
 
 # Platform and Environment
@@ -151,7 +151,7 @@ Routine inventory wording fixes, reference routing corrections, validation remed
 | Material isolation, binding, credential, or hosting change | Yes | Product Authority go/no-go when material, then PMO Admin review/merge |
 | Component-child drafting under an authorized Model B program | Per child allowlist | Component auto-integration only when the child profile allows it; does not activate `main` policy alone |
 
-Cursor never self-approves platform authority.
+Implementation / Operations never self-approves platform authority.
 
 ## Supporting specification map
 
