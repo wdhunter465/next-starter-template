@@ -36,8 +36,8 @@ describe('Retrosheet CSV streaming parser (#4263)', () => {
   });
 
   it('resumes across chunk boundaries in the middle of a quoted field', () => {
-    const rows = [];
-    const parser = createCsvRowParser((row) => rows.push(row));
+    const rows: string[][] = [];
+    const parser = createCsvRowParser((row: string[]) => rows.push(row));
     parser.feed('gid,note\nG1,"hel');
     parser.feed('lo, world"\n');
     parser.end();
