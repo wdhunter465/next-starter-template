@@ -103,6 +103,54 @@ A later Product-authorized Issue would add something such as shadcn/ui, Radix pr
 
 **Carried into #4188 / #4189:** prefer internal-standardize. Retain-custom is acceptable only as a temporary holding pattern. Later-adopt is not authorized from this parent.
 
+## Risks (#4188 / `#2443-006`)
+
+Risks for each compared model. No runtime, workflow, or `src/**` file is edited here.
+
+### Accessibility
+
+Existing coverage is `@axe-core/playwright` plus Playwright e2e (mobile nav, homepage structure). That is page-level testing, not a component library.
+
+- **Retain-custom:** every new dialog, form, or table re-implements keyboard and focus. Axe catches regressions only on routes already in the test set.
+- **Internal-standardize:** shared primitives can carry the conventions those tests already enforce; the tests stay required. Does not replace axe/Playwright.
+- **Later-adopt:** Radix/Headless-class kits usually ship keyboard behavior, but wrapped public, Fan Club, and admin routes still need the same axe/Playwright (and visual-regression) coverage. A kit is not a substitute for LGFC tests.
+
+### CSS-module duplication and token-file conflict
+
+Inventory: 23 CSS modules; 63 `src/components/**` files; two live `--lgfc-blue` values (`src/app/globals.css` `#0033cc` and `styles/variables.css` `#002868`, both imported); `src/styles/variables.css` is unused dead copy.
+
+- **Retain-custom:** leaves duplication and the live token conflict in place. Contributors can keep editing the wrong `variables.css`.
+- **Internal-standardize:** this is the model that directly shrinks both risks (one imported token source; drop or quarantine dead `src/styles/**`; fewer one-off modules).
+- **Later-adopt:** token conflict is resolved only if the kit becomes the token source. Until cutover, duplication and the two live blues remain.
+
+### Static export / Cloudflare Pages
+
+The site is a static export on Cloudflare Pages. Leaflet-class client-only shells are out of scope for this UI project, but the same constraint applies to a component kit: anything that requires `window` at build time, a Node CSS pipeline LGFC does not have, or a paid design-system vendor fails the current deploy model or the zero-recurring-cost constraint.
+
+- **Retain-custom and internal-standardize:** already static-export compatible (CSS modules and custom properties, no Tailwind).
+- **Later-adopt:** introducing Tailwind from nothing is a new build-time toolchain. Coexistence with 63 hand-built components during a spike must keep the static export green; a failed Pages build is a stop, not a Production UI change.
+
+### Coexistence and rollback if a later library spike is authorized
+
+A later Product-authorized Sandbox Issue (not this parent) would add a kit next to the current stack.
+
+- Keep first-party CSS modules as the default for public storytelling pages during any spike.
+- Limit kit usage to a bounded admin or form island so a revert is `git revert` of that Issue's PR plus uninstall of the added packages.
+- Do not mix Tailwind utilities into existing CSS modules in the same file; that makes rollback a visual rewrite instead of a package removal.
+- Rollback of *this* brief is revert of the documentation PR only. No runtime rollback is required for #2443 itself.
+
+### Risk summary
+
+| Risk | Retain-custom | Internal-standardize | Later-adopt |
+| --- | --- | --- | --- |
+| Accessibility | Page tests only; rebuilt per screen | Primitives plus existing tests | Kit primitives plus required LGFC tests |
+| CSS-module duplication | Unchanged | Reduced | Unchanged until cutover |
+| Token-file conflict | Unchanged (two live blues) | Directly addressed | Addressed only if the kit owns tokens |
+| Static export / Pages | Compatible | Compatible | New toolchain; spike must stay export-green |
+| Coexistence / rollback | No migration to roll back | Docs-and-token cleanup; revert those PRs | Revert spike PR and uninstall packages; do not mix utilities into modules |
+
+**Carried into #4189:** these risks support internal-standardize as the Product-discussion recommendation. Later-adopt remains a new source Issue after Product decides.
+
 ---
 
-_Risks (#4188) and the closing recommendation (#4189) are added by later children and do not exist until each child's own PR merges._
+_The closing recommendation is added by #4189 and does not exist until that child's own PR merges._
