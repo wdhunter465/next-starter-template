@@ -2,14 +2,14 @@
 Doc Type: Operations
 Audience: Bill, ChatGPT, Cursor, Claude Code, LGFC maintainers
 Authority Level: Controlled
-Owns: #2459-004 single-repository assumption inventory (first executable child of #2459)
+Owns: #2459-004 single-repository assumption inventory and #2459-005 reusable-vs-premature classification (first two executable children of #2459)
 Does Not Own: Any repository split, multi-repo cutover, shared-infrastructure platform build, or Production routing change
 Canonical Reference: docs/governance/REPOSITORY-AUTHORITY.md
 Related Issues: #2459, #2449, #2460, #4203, #4204, #4205
 Last Reviewed: 2026-09-22
 ---
 
-# Repository Scalability Decision Brief — Single-Repository Assumption Inventory (#2459-004)
+# Repository Scalability Decision Brief — Single-Repository Assumption Inventory (#2459-004 / #2459-005)
 
 ## Purpose
 
@@ -17,15 +17,21 @@ Answer #4203's exact question: which current artifacts assume one repository, on
 or one owner? Inventory those assumptions with concrete evidence, without proposing a
 multi-repo cutover — that decision is explicitly out of scope for this child task.
 
+Answer #4204's exact question: of the assumptions #4203 inventoried, which are reusable
+patterns worth templating later versus premature platform engineering with no current need,
+and does any of them constitute a genuine pre-2027-launch exception?
+
 ## Scope and non-goals
 
 In scope: inventorying single-repository/single-website/single-owner assumptions across
 GitHub repo identity, the Pages deployment, D1/storage bindings, the PMO dashboard, and the
-self-hosted runner label, per #4203's acceptance criteria.
+self-hosted runner label, per #4203's acceptance criteria; classifying each as
+reusable-later, repo-specific-now, or pre-launch exception, per #4204's acceptance criteria.
 
 Non-goals: proposing or implementing a repository split; diverting Active website delivery
-capacity; weakening single-repository authority; building shared multi-repo infrastructure.
-Those remain explicitly out of scope per #2459's own guardrails and #4203's protected stops.
+capacity; weakening single-repository authority; building shared multi-repo infrastructure;
+creating additional GitHub organizations or repositories. Those remain explicitly out of
+scope per #2459's own guardrails and #4203/#4204's protected stops.
 
 ## Current known truth
 
@@ -113,12 +119,75 @@ dependency on multi-repository operation. Every artifact examined works correctl
 deliberate fail-closed security posture (confirmed directly in this session's own work on
 `wake-ingress.mjs` and `dispatch.mjs`), not an oversight that happens to also block scaling.
 
-## Recommendation (inventory only — #4204/#4205 own classification and final recommendation)
+## Classification: reusable versus premature platform engineering (#2459-005)
 
-This brief's acceptance criteria is the inventory itself, not the retain/split decision
-(that belongs to #4205 per the child graph). Based on the evidence above: no named
-pre-launch exception exists. Every examined artifact would require explicit, reviewed
-changes — not configuration — to support a second repository.
+Each of the five inventoried areas, tagged **reusable-later**, **repo-specific-now**, or
+**pre-launch exception**, with the evidence the tag rests on:
+
+### 1. GitHub repository identity (45 hardcoded sites) — repo-specific-now
+
+The fail-closed `EXPECTED_REPO`/`github.repository ==` pattern is a deliberate security
+control, not an accidental limitation. Centralizing it into one shared constant would be a
+minor reusable-later cleanup (fewer places to update, same behavior), but the 45 call sites
+already agree with each other today and nothing currently depends on more than one value. No
+current capability needs this to be repo-agnostic. **Not a pre-launch exception** — no named
+2027 dependency touches this.
+
+### 2. Cloudflare Pages (one project, one repo binding) — repo-specific-now
+
+This is Cloudflare's own GitHub-integration model, not a choice this repository made and can
+unilaterally change. A multi-project routing/aggregation layer would be genuine platform
+engineering with no current consumer. **Not a pre-launch exception.**
+
+### 3. D1 database bindings (two hardcoded `database_id` values) — repo-specific-now
+
+Same shape as PMO dashboard's env-var pattern would be a possible reusable-later template
+(parameterize `database_id` by environment variable instead of a literal), but every current
+D1 consumer (Chatterbox included) already works correctly against the two fixed bindings, and
+no named feature needs a third. **Not a pre-launch exception.**
+
+### 4. PMO dashboard (`OWNER`/`REPO` env fallback) — reusable-later (partial, already exists)
+
+This is the one artifact that is *already* templated: `GITHUB_REPOSITORY_OWNER`/
+`GITHUB_REPOSITORY` are read from the environment rather than hardcoded, so pointing the
+script at a second repository requires no code change — only a second invocation. What it
+does **not** do, and what would be premature to build now, is cross-repository aggregation
+into one combined dashboard; there is no current consumer asking for a unified multi-repo
+view. **Not a pre-launch exception** — the existing partial parameterization is sufficient for
+any near-term need.
+
+### 5. Self-hosted runner label (one runner, one repo registration) — repo-specific-now
+
+GitHub's own runner registration model ties a self-hosted runner to one repository (or org,
+which this repository deliberately does not use). Moving to an org-level runner would be a
+security-posture change with its own review, not a documentation-only reusable pattern, and
+nothing currently requires a second repository's dispatch capacity. **Not a pre-launch
+exception.**
+
+### Classification summary
+
+| Area | Tag |
+| --- | --- |
+| GitHub repository identity | repo-specific-now |
+| Cloudflare Pages | repo-specific-now |
+| D1 database bindings | repo-specific-now |
+| PMO dashboard | reusable-later (partial, already exists) |
+| Self-hosted runner label | repo-specific-now |
+
+**No pre-launch exception is named in any of the five areas** — consistent with #4203's own
+finding and with #2459's design package default. The only artifact with any existing
+reusable-later property (the PMO dashboard's env-var fallback) already has that property live
+on `main` today; it requires no further work to remain usable if a second repository is ever
+authorized.
+
+## Recommendation (#4205 owns the final retain/split-later publication)
+
+This brief's #4203/#4204 acceptance criteria are the inventory and the classification
+themselves, not the retain/split decision (that belongs to #4205 per the child graph). Based
+on the evidence above: no named pre-launch exception exists in any of the five areas. Every
+examined artifact would require explicit, reviewed changes — not configuration — to support a
+second repository, and none of those changes is reusable infrastructure sitting idle for lack
+of a template; they are unbuilt because nothing today asks for them.
 
 ## Non-goals reaffirmed
 
