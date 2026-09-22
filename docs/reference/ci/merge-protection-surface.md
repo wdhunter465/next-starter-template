@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: LGFC merge-protection required check surface, consolidated deterministic blockers, and branch-protection naming alignment as a supporting specification
 Does Not Own: CI and Verification Domain Policy; GitHub branch protection settings UI; reviewer lifecycle policy; PR hygiene policy; OPS runtime workflows
 Canonical Reference: /docs/governance/CI-AND-VERIFICATION.md
-Related Issues: #2689, #2175, #2184, #2208, #2228, #2657, #2271, #3746, #2769
-Last Reviewed: 2026-09-14
+Related Issues: #2689, #2175, #2184, #2208, #2228, #2657, #2271, #3746, #3751, #3771, #2769, #4089, #4200
+Last Reviewed: 2026-09-22
 ---
 
 # LGFC Merge Protection Surface
@@ -14,6 +14,24 @@ Last Reviewed: 2026-09-14
 This document is the **supporting merge-protection surface** under the CI and Verification Domain Policy (`docs/governance/CI-AND-VERIFICATION.md`).
 
 It documents the expected required-check surface for `main` after #2228 closeout and the #3746 reviewer-lifecycle promotion. It is **not** a Domain Policy co-owner. Conflicts with domain policy resolve through `docs/governance/CI-AND-VERIFICATION.md`. PR lifecycle procedure remains in `docs/governance/PR_PROCESS.md`.
+
+## Purpose
+
+Record the expected required, advisory, manual-only, and retired merge-protection job names for `main` so operators and agents do not reconstruct a two-check surface from older inventories.
+
+## Scope
+
+In scope: the supporting required-check table and operator verification steps for `main`.
+
+Out of scope: mutating GitHub Settings; rewriting workflows; promoting hygiene or diff-scope to required; removing `reviewer-response-completion`.
+
+## Current known truth
+
+`scripts/ci/merge_protection_surface.mjs` lists three required jobs: `quality`, `gitleaks`, and `reviewer-response-completion`. #3771 is the ruleset-addition record. #3746 / PR #3751 is the late-review race repair. Do not treat reviewer-response as advisory. A cancelled required `reviewer-response-completion` run is a gate failure.
+
+## Intended final state
+
+Live Main required checks and this table remain the same three jobs. Later keep/consolidate/retire ideas belong on #4201 / #4202, not in this surface rewrite.
 
 ## Required checks
 

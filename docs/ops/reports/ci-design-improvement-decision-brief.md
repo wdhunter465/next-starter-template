@@ -32,7 +32,7 @@ Observed 2026-09-22 on `origin/main` (`5ce9495c` at fetch time for this inventor
 - Manual-only PR-process jobs still present as `workflow_dispatch` files: intent labeler, PR issue accounting, drift, branch freshness, docs guardrails, design-compliance warn, post-merge-readiness.
 - Retired merge-protection filename `gate-zip-safety.yml` is absent; ZIP checks belong inside `gate-quality.yml`.
 - `.github/workflows` contains **106** YAML workflow files.
-- #4200 (PR #4293) is the docs lock for the three-check surface; this inventory does not wait on that merge and does not edit those two files.
+- #4200 (PR #4293, merged 2026-09-22) is the docs lock for the three-check surface. This inventory does not edit those two files.
 
 ## Intended final state
 
@@ -68,13 +68,13 @@ OPS runtime and post-merge workflows are not required status checks (`docs/refer
 | --- | --- | --- |
 | `ops-` | 28 | Runtime, D1 backup, Chatterbox, Gehrig ingest, stale communication |
 | `gate-` | 9 | Merge and PR-process gates including paused manual-only files |
-| `post-merge-*` | 7 | Closeout, remediation, late-review reaudit, Model C, intent verification |
+| `post-merge-*` | 6 | Closeout, remediation, late-review reaudit, Model C, intent verification. Count is files named `post-merge-*.yml` only; `ops-post-merge-self-healing.yml` is in the `ops-` family |
 | `orchestrator-` plus `project-implementation-orchestrator.yml` | 6 | Issue factory, queue, draft PR, agent trigger, state sync |
 | `gehrig-` | 5 | Content/rights jobs, not merge protection |
 | `library-` | 5 | Content production/preflight, not merge protection |
 | `cursor-` | 4 | Review, bridge, local wake |
 | `diataxis-` | 3 | Folder authority plus post-merge validate |
-| remaining unique names | 39 | Includes `gitleaks.yml`, `reviewer-response-completion.yml`, PMO dashboard, Claude wake, Copilot setup, and one-off ops |
+| remaining unique names | 40 | Includes `gitleaks.yml`, `reviewer-response-completion.yml`, PMO dashboard, Claude wake, Copilot setup, and one-off ops |
 
 Overlapping YAML pairs observed by name (inventory only):
 
@@ -103,7 +103,7 @@ These files are overlapping **documentation**, not competing GitHub rulesets. Do
 
 ## Overlapping programs (GitHub live state 2026-09-22)
 
-| Issue | State | Overlap with #4089 |
+| GitHub record | State | Overlap with #4089 |
 | --- | --- | --- |
 | #4089 | OPEN | This project. Model A docs-only. First executable #4200, then #4201, then #4202 |
 | #2815 | OPEN | PROJECT: CI qualification, repeated pilot testing, and Production admission control. Adjacent; not a substitute for #4089 docs inventory |
