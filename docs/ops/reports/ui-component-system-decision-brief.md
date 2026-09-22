@@ -151,6 +151,24 @@ A later Product-authorized Sandbox Issue (not this parent) would add a kit next 
 
 **Carried into #4189:** these risks support internal-standardize as the Product-discussion recommendation. Later-adopt remains a new source Issue after Product decides.
 
----
+## Recommendation (#4189 / `#2443-007`)
 
-_The closing recommendation is added by #4189 and does not exist until that child's own PR merges._
+**Recommendation for Product discussion: internal-standardize.** Do not install shadcn/ui, Radix, Headless UI, or Tailwind from #2443. Do not authorize a Production UI replacement. A follow-on implementation project requires a new source Issue after Product decides.
+
+The original evaluation claim ("Tailwind is included, but no component library is prebuilt") is **rejected as stated**. Live `main` has no Tailwind. The underlying gap is real: 63 first-party components, 23 CSS modules, and two live `--lgfc-blue` values.
+
+Answers to the five parent deliverable questions:
+
+1. **Does the current UI foundation materially limit growth?** Yes, as a maintenance and consistency limit, not as a missing Tailwind kit. Feature velocity stays copy-paste of CSS modules; token drift is already live.
+2. **Which capabilities are most affected?** Shared controls (dialogs, forms, tables, navigation, feedback) across public, Fan Club, and admin. Dense admin surfaces pay the highest duplication cost. Public storytelling pages already match the hand-built stack.
+3. **Retain, internal-standardize, or later-adopt?** Internal-standardize. Retain-custom leaves the documented gap. Later-adopt is a new Issue after Product chooses a kit and accepts Tailwind-from-nothing plus coexistence risk.
+4. **Migration scope, sequencing, and risk?** Sequence for a later implementation Issue, not this brief: one imported token source; quarantine dead `src/styles/**`; extract a small primitive set; keep axe/Playwright. That later work is first-party `src/**` plus CSS only — no new npm dependency. This #2443 brief stays docs-only. A later kit spike, if authorized, stays a Sandbox island with `git revert` plus uninstall as rollback.
+5. **Trigger conditions for future adoption?** Product names a kit and a Sandbox source Issue **and** either (a) admin/form density outgrows first-party primitives, or (b) a policy-compatible, zero-recurring-cost kit is accepted after a green static-export spike. Neither trigger is met by this brief.
+
+This brief does not authorize that later Issue. Independent review of this recommendation is the GitHub PR review on the #4189 change.
+
+## Protected stops
+
+- Do not `npm install` a component library or Tailwind.
+- Do not edit `src/**` or replace Production UI from this parent.
+- Do not treat this recommendation as website Go.
