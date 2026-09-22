@@ -6,7 +6,7 @@ Owns: Product behavior ownership, UX and functional-requirement decision rules, 
 Does Not Own: Agent team approval routing, delivery Model A/B selection, platform/runtime isolation, CI gate implementation, or page-level visual specifications
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
 Related Issues: #2687, #2686, #4174
-Last Reviewed: 2026-09-19
+Last Reviewed: 2026-09-22 (role-name reconciliation, #4213)
 ---
 
 # Product and Design
@@ -121,7 +121,7 @@ Routine wording fixes, reference routing corrections, validation remediation, an
 | Material product/UX change | Yes | Product Authority go/no-go, then PMO Admin review/merge |
 | Component-child drafting under an authorized Model B program | Per child allowlist | Component auto-integration only when the child profile allows it; does not activate `main` policy alone |
 
-Cursor never self-approves product or design authority.
+Implementation / Operations never self-approves product or design authority.
 
 ## Supporting specification map
 

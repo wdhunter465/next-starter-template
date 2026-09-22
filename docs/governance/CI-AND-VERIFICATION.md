@@ -6,7 +6,7 @@ Owns: Gate profiles, check classification, deterministic evidence, validation ow
 Does Not Own: Delivery Model A/B selection, agent approval routing, branch-protection UI settings, workflow YAML implementation, product/UX behavior, or platform isolation claims
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
 Related Issues: #2689, #2686, #3668, #3671, #3807, #3746, #3751, #3771, #2769, #4174, #4089, #4200
-Last Reviewed: 2026-09-22
+Last Reviewed: 2026-09-22 (role-name reconciliation, #4213)
 ---
 
 # CI and Verification
@@ -217,7 +217,7 @@ Routine inventory wording fixes, reference routing corrections, and allowlisted 
 | Required-check or Production verification meaning change | Yes | PMO / Engineering; Product Authority when material |
 | Component-child drafting under an authorized Model B program | Per child allowlist | Component auto-integration only when the child profile allows it; does not activate `main` policy alone |
 
-Cursor never self-approves CI or verification authority for protected or Production boundaries.
+Implementation / Operations never self-approves CI or verification authority for protected or Production boundaries.
 
 ## Supporting specification map
 
