@@ -117,7 +117,7 @@ Design choices left for Product review rather than decided here:
 
 **Recommendation: defer-slippy-map / keep-static-hotspot as the design-ready candidate.**
 
-Do not add Leaflet. Do not authorize a Production map route. Do not treat OpenStreetMap public tiles as a Production CDN. Do not migrate `content_inventory` from this parent.
+Do not add the `leaflet` npm package. Do not authorize a Production map route. Do not treat OpenStreetMap public tiles as a Production CDN. Do not migrate `content_inventory` from this parent.
 
 The closing Product choice this brief records:
 
@@ -129,7 +129,7 @@ This brief does not authorize that later Issue. Independent review of this recom
 
 ## Protected stops
 
-- Do not `npm install` Leaflet or any map-tile client.
+- Do not `npm install` `leaflet` or any map-tile client.
 - Do not add tile-provider API keys or accounts.
 - Do not ship a Production map route.
 - Do not run an OpenAI-name sweep from this parent.
