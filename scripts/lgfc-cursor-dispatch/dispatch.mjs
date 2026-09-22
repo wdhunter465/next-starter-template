@@ -111,9 +111,11 @@ function main(argv = process.argv.slice(2)) {
     const auth = probeCursorCliAuth(binary);
     if (!auth.ok) {
       log('error', 'preflight_failed', { error: auth.error });
-      const commented = postCliAuthRequiredComment(values.issueNumber);
-      if (!commented.ok) {
-        log('error', 'cli_auth_comment_failed', { error: commented.error });
+      if (auth.error === 'cli_auth_required') {
+        const commented = postCliAuthRequiredComment(values.issueNumber);
+        if (!commented.ok) {
+          log('error', 'cli_auth_comment_failed', { error: commented.error });
+        }
       }
       process.exitCode = 9;
       return;

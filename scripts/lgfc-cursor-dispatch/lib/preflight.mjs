@@ -240,7 +240,7 @@ export function probeCursorCliAuth(binary, options = {}) {
     return { ok: false, error: 'cli_auth_timeout' };
   }
   if (result.status !== 0 && !/\bpong\b/i.test(combined)) {
-    return { ok: false, error: 'cli_auth_required' };
+    return { ok: false, error: 'cli_probe_failed' };
   }
   return { ok: true };
 }

@@ -289,6 +289,18 @@ test('CLI auth probe fails closed on Authentication required', () => {
   assert.equal(result.error, 'cli_auth_required');
 });
 
+test('CLI probe non-auth failure is not classified as login required', () => {
+  const fakeSpawn = () => ({
+    status: 1,
+    stdout: '',
+    stderr: 'agent: unknown flag --trust\n',
+    error: null,
+  });
+  const result = probeCursorCliAuth({ kind: 'agent', bin: 'agent' }, { spawnSync: fakeSpawn });
+  assert.equal(result.ok, false);
+  assert.equal(result.error, 'cli_probe_failed');
+});
+
 test('CLI auth comment is skipped when explicitly disabled', () => {
   const prev = process.env.LGFC_CURSOR_DISPATCH_SKIP_ISSUE_COMMENT;
   process.env.LGFC_CURSOR_DISPATCH_SKIP_ISSUE_COMMENT = '1';
