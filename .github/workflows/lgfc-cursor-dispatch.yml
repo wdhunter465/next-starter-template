@@ -25,7 +25,7 @@ on:
 
 permissions:
   contents: read
-  issues: read
+  issues: write
 
 concurrency:
   group: lgfc-cursor-dispatch
@@ -183,6 +183,9 @@ jobs:
           DRY_RUN: ${{ steps.meta.outputs.dry_run }}
           RUN_ID: ${{ github.run_id }}
           EVENT_NAME: ${{ github.event_name }}
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
         run: |
           set -euo pipefail
           EXTRA=()

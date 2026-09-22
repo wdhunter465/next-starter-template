@@ -208,3 +208,65 @@ export function resolveAgentBinary() {
   }
   return null;
 }
+
+const CLI_AUTH_PROBE_PROMPT = 'Reply with exactly: pong';
+const CLI_AUTH_COMMENT =
+  'Cursor CLI login required on the lgfc-cursor host. `agent status` can look logged in while `agent -p` still fails. Run `agent login`, then confirm with a round-trip `agent -p`. Dispatch will not invoke Cursor until that probe succeeds. (#4296)';
+
+/**
+ * `agent status` is not a round trip. Probe `agent -p` (or `cursor agent -p`)
+ * so a stale GUI login fails in preflight instead of inside the real invoke.
+ */
+export function probeCursorCliAuth(binary, options = {}) {
+  if (process.env.LGFC_CURSOR_DISPATCH_SKIP_CLI_AUTH === '1') {
+    return { ok: true, skipped: true };
+  }
+  if (!binary?.bin) {
+    return { ok: false, error: 'cli_binary_missing' };
+  }
+  const spawn = options.spawnSync ?? spawnSync;
+  const timeout = options.timeoutMs ?? 25_000;
+  const commonArgs = ['-p', CLI_AUTH_PROBE_PROMPT, '--output-format', 'text', '--trust'];
+  const args = binary.kind === 'cursor-agent' ? ['agent', ...commonArgs] : commonArgs;
+  const result = spawn(binary.bin, args, {
+    encoding: 'utf8',
+    timeout,
+  });
+  const combined = `${result.stdout || ''}${result.stderr || ''}${result.error ? String(result.error) : ''}`;
+  if (/Authentication required/i.test(combined) || /agent login/i.test(combined)) {
+    return { ok: false, error: 'cli_auth_required' };
+  }
+  if (result.error && (result.error.code === 'ETIMEDOUT' || /ETIMEDOUT/i.test(String(result.error)))) {
+    return { ok: false, error: 'cli_auth_timeout' };
+  }
+  if (result.status !== 0 && !/\bpong\b/i.test(combined)) {
+    return { ok: false, error: 'cli_probe_failed' };
+  }
+  return { ok: true };
+}
+
+export function postCliAuthRequiredComment(issueNumber, options = {}) {
+  if (process.env.LGFC_CURSOR_DISPATCH_SKIP_ISSUE_COMMENT === '1') {
+    return { ok: true, skipped: true };
+  }
+  const n = Number(issueNumber);
+  if (!Number.isInteger(n) || n <= 0) {
+    return { ok: false, error: 'invalid_issue' };
+  }
+  const repo = options.repo || process.env.GITHUB_REPOSITORY || EXPECTED_REPO;
+  const spawn = options.spawnSync ?? spawnSync;
+  const payload = JSON.stringify({ body: CLI_AUTH_COMMENT });
+  const result = spawn(
+    'gh',
+    ['api', '-X', 'POST', `repos/${repo}/issues/${n}/comments`, '--input', '-'],
+    {
+      encoding: 'utf8',
+      input: payload,
+      env: process.env,
+    },
+  );
+  if (result.status !== 0) {
+    return { ok: false, error: 'issue_comment_failed' };
+  }
+  return { ok: true };
+}

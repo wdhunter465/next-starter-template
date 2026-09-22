@@ -17,6 +17,8 @@ on:
 permissions:
   contents: read
   actions: read
+  # listSelfHostedRunnersForRepo requires administration:read (#4296).
+  administration: read
 
 concurrency:
   group: lgfc-cursor-runner-health

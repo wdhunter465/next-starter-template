@@ -11,7 +11,7 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { parseDispatchArgv, buildIdentifiersOnlyPrompt } from './lib/argv.mjs';
-import { acquireDispatchLock } from './lib/preflight.mjs';
+import { acquireDispatchLock, probeCursorCliAuth, postCliAuthRequiredComment } from './lib/preflight.mjs';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(here, '../..');
@@ -244,6 +244,8 @@ test('dispatch.mjs --dry-run succeeds on clean workspace', () => {
         ...process.env,
         LGFC_CURSOR_DISPATCH_LOCK: path.join(os.tmpdir(), `lgfc-dry-${process.pid}.lock`),
         LGFC_CURSOR_DISPATCH_ALLOW_DIRTY: '1',
+        LGFC_CURSOR_DISPATCH_SKIP_CLI_AUTH: '1',
+        LGFC_CURSOR_DISPATCH_SKIP_ISSUE_COMMENT: '1',
       },
     },
   );
@@ -271,7 +273,57 @@ test('health workflow must run on GitHub-hosted ubuntu-latest', () => {
   );
   assert.match(wf, /runs-on:\s*ubuntu-latest/);
   assert.doesNotMatch(wf, /runs-on:\s*\[self-hosted/);
+  assert.match(wf, /administration:\s*read/);
   assertTrustedDispatchActor(wf);
+});
+
+test('CLI auth probe fails closed on Authentication required', () => {
+  const fakeSpawn = () => ({
+    status: 1,
+    stdout: '',
+    stderr: "Error: Authentication required. Please run 'agent login' first.\n",
+    error: null,
+  });
+  const result = probeCursorCliAuth({ kind: 'agent', bin: 'agent' }, { spawnSync: fakeSpawn });
+  assert.equal(result.ok, false);
+  assert.equal(result.error, 'cli_auth_required');
+});
+
+test('CLI probe non-auth failure is not classified as login required', () => {
+  const fakeSpawn = () => ({
+    status: 1,
+    stdout: '',
+    stderr: 'agent: unknown flag --trust\n',
+    error: null,
+  });
+  const result = probeCursorCliAuth({ kind: 'agent', bin: 'agent' }, { spawnSync: fakeSpawn });
+  assert.equal(result.ok, false);
+  assert.equal(result.error, 'cli_probe_failed');
+});
+
+test('CLI auth comment is skipped when explicitly disabled', () => {
+  const prev = process.env.LGFC_CURSOR_DISPATCH_SKIP_ISSUE_COMMENT;
+  process.env.LGFC_CURSOR_DISPATCH_SKIP_ISSUE_COMMENT = '1';
+  try {
+    const result = postCliAuthRequiredComment(4296, {
+      spawnSync: () => {
+        throw new Error('gh must not run when skip is set');
+      },
+    });
+    assert.equal(result.ok, true);
+    assert.equal(result.skipped, true);
+  } finally {
+    if (prev === undefined) delete process.env.LGFC_CURSOR_DISPATCH_SKIP_ISSUE_COMMENT;
+    else process.env.LGFC_CURSOR_DISPATCH_SKIP_ISSUE_COMMENT = prev;
+  }
+});
+
+test('dispatch workflow may write Issue comments after CLI auth preflight', () => {
+  const wf = fs.readFileSync(
+    path.join(repoRoot, '.github/workflows/lgfc-cursor-dispatch.yml'),
+    'utf8',
+  );
+  assert.match(wf, /issues:\s*write/);
 });
 
 if (!process.exitCode) {
