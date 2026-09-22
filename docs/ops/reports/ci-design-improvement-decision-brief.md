@@ -2,8 +2,8 @@
 Doc Type: Operations
 Audience: Human + AI
 Authority Level: Controlled
-Owns: Project #4089 inventory of overlapping CI workflows, docs, and programs as recorded on #4201
-Does Not Own: Ranked keep/consolidate/retire recommendations (#4202); workflow YAML; GitHub ruleset mutation; test-catalog rebuild; Production admission
+Owns: Project #4089 CI design inventory (#4201) and ranked keep/consolidate/retire recommendations (#4202)
+Does Not Own: Workflow YAML; GitHub ruleset mutation; test-catalog rebuild; Production admission; implementing the recommendations
 Canonical Reference: docs/governance/CI-AND-VERIFICATION.md
 Related Issues: #4089, #4200, #4201, #4202, #3771, #3746, #3751, #2769, #2815, #3633, #3153, #3839, #3797, #3790, #1055, #1029
 Last Reviewed: 2026-09-22
@@ -13,13 +13,13 @@ Last Reviewed: 2026-09-22
 
 ## Purpose
 
-Inventory overlapping CI workflows, supporting CI documents, and related programs so Product and PMO can later rank keep / consolidate / retire work without rewriting YAML in this file.
+Inventory overlapping CI workflows, supporting CI documents, and related programs, then rank keep / consolidate / retire recommendations for Product and PMO.
 
-This file is the #4201 inventory. Ranked recommendations belong on #4202 in a later revision of this same path.
+#4201 owns the inventory tables. #4202 owns the ranked recommendation table on this same path. Neither child implements those recommendations.
 
 ## Scope
 
-In scope: live merge-protection classification; workflow-file family counts; overlapping `docs/reference/ci/**` inventories; overlapping CI programs still visible in GitHub; carry-forward Issues named on #4089.
+In scope: live merge-protection classification; workflow-file family counts; overlapping `docs/reference/ci/**` inventories; overlapping CI programs still visible in GitHub; carry-forward Issues named on #4089; ranked keep / consolidate / retire recommendations with benefit, risk, and later-Issue requirement.
 
 Out of scope: implementing any recommendation; deleting or adding workflows; changing required checks; restoring retired May-gate parsers; duplicating #3633 as a second test-catalog project; closing #4089.
 
@@ -36,7 +36,7 @@ Observed 2026-09-22 on `origin/main` (`5ce9495c` at fetch time for this inventor
 
 ## Intended final state
 
-After #4202, this brief also holds ranked keep / consolidate / retire rows. Until then it is inventory only. Live required merge checks stay the three jobs above unless a later source Issue changes them.
+This brief holds both the inventory and the ranked recommendations. Live required merge checks stay `quality`, `gitleaks`, and `reviewer-response-completion` unless a later source Issue changes them. No recommendation in this file is authorization to edit YAML or GitHub Settings.
 
 ## Live merge-protection surface (inventory)
 
@@ -121,10 +121,25 @@ These files are overlapping **documentation**, not competing GitHub rulesets. Do
 
 Carry-forward Issues #3839, #3797, #3790, and #2769 are **closed**. This inventory does not reopen them. Residual operator friction that still appears in later PRs (cancelled `reviewer-response-completion` looking like a required-gate failure; `gh pr edit` GraphQL Projects classic errors; GATE PR Hygiene failing when a PR body names the job's forbidden-token list) is recorded as observed process cost, not as a new Issue created here.
 
-## #4202 handoff
+## Ranked recommendations (#4202)
 
-#4202 must add ranked keep / consolidate / retire recommendations to this file only. Each row must name benefit, risk, and whether a later Issue is required. #4202 must not implement those recommendations.
+Rank 1 is highest. None of these rows is implemented in this PR.
+
+| Rank | Disposition | Subject | Benefit | Risk | Later Issue required |
+| --- | --- | --- | --- | --- | --- |
+| 1 | Keep | Required jobs `quality`, `gitleaks`, `reviewer-response-completion` | Matches `merge_protection_surface.mjs`, #3771, and #3746 / PR #3751. Stops two-check regression | Cancelled reviewer-response runs still fail the required gate | No for the keep. Yes only if Product later wants cancelled-run handling changed in workflow code |
+| 2 | Keep | Advisory `pr-hygiene` and `diff-scope` | Catches allowlist and unchecked-acceptance failures without adding ruleset required checks | Operators can misread a red advisory job as a missing required check | No |
+| 3 | Keep | `post-merge-closeout.yml` as the only automatic source-issue closeout owner | Preserves the #2469 single-owner closeout contract | Sibling closeout/remediation workflows can still confuse operators | No unless a later audit shows a mutation race |
+| 4 | Keep | Manual-only paused gates (`workflow_dispatch` only) | Avoids restoring retired May auto-triggers | Stale filenames remain in the 106-file tree | Yes if Product later chooses delete-versus-keep-as-dispatch for a named subset |
+| 5 | Keep separate | OPEN #2815 (qualification / Production admission) versus #4089 | Prevents folding Production admission into a docs-only CI design project | Two CI-adjacent OPEN projects remain on the PMO board | No from this graph. PMO ownership review already planned separately |
+| 6 | Keep closed | #3633 test-catalog project | Honors #4089 stop: do not recreate a second test-catalog | Agents may still cite #3633 as if it were live work | No |
+| 7 | Defer | OPEN #3153 Skills/runtime CI design | Adjacent design; not merge-protection surface | Idle design Issue can look like #4089 follow-on | No new Issue. Continue only under #3153 if Product GOs that program |
+| 8 | Consolidate (docs later) | Overlapping required-check restatements in `docs/reference/ci/lgfc-ci-workflow-classification-matrix.md`, `pr-workflow-ci-inventory.md`, and `merge-protection-surface.md` | One Last Reviewed date and one table of record after #4200 | Protected-path and multi-file docs PRs | Yes. New docs-only Issue after #4200 merges. Do not mix into #4200 / #4201 / #4202 |
+| 9 | Consolidate (YAML later) | `diataxis-folder-authority.yml` versus `diataxis-folder-authority-check.yml` | Fewer duplicate Diataxis Actions runs | Dropping the wrong file could miss a required path | Yes. Workflow Issue. Not this PR |
+| 10 | Defer | Broad cut of the 28 `ops-*` workflows | Would shrink Actions noise if a named subset is redundant | Blind deletion can break D1 backup, Chatterbox, or Gehrig ingest | Yes, and only after Product names the subset. Not a blanket retire |
+| 11 | Do not reopen | Closed carry-forwards #3839, #3797, #3790, #2769 | Avoids duplicate exception-policy projects | Residual operator cost (cancelled required checks, `gh pr edit` Projects classic errors, hygiene token false positives) remains | Yes only if Product wants a new bounded Issue for one residual, not a reopen of those four |
+| 12 | Keep retired | `gate-zip-safety.yml` absent; ZIP inside `quality` | Matches machine-readable retired list | Restoring a ZIP required check would split the surface again | No |
 
 ## Rollback
 
-Deleting or reverting this file removes the inventory. It does not change GitHub required checks.
+One-step revert of the #4202 delta removes the ranked table and restores the #4201 inventory-only brief. It does not change GitHub required checks.
