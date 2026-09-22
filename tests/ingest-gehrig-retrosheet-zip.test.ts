@@ -1,9 +1,15 @@
+import { mkdtempSync, rmSync, writeFileSync, readFileSync } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 import {
   createCsvRowParser,
+  D1_EXECUTE_CHUNK_SIZE,
+  d1ExecuteChunkCount,
   parseCsv,
   resolveColumn,
   resolveMasterCsvZipUrl,
+  splitSqlFileIntoChunks,
 } from '../scripts/ingest-gehrig-retrosheet-data.mjs';
 
 describe('Retrosheet master CSV zip selection (#4263)', () => {
@@ -98,5 +104,30 @@ describe('Retrosheet CSV streaming parser (#4263)', () => {
 
   it('fails closed when EOF is inside an unclosed quoted field', () => {
     expect(() => parseCsv('gid,note\nG1,"hello')).toThrow(/quoted field/);
+  });
+});
+
+describe('D1 execute chunking (#4263)', () => {
+  it('counts chunks for empty, exact, and remainder sizes', () => {
+    expect(d1ExecuteChunkCount(0)).toBe(0);
+    expect(d1ExecuteChunkCount(D1_EXECUTE_CHUNK_SIZE)).toBe(1);
+    expect(d1ExecuteChunkCount(D1_EXECUTE_CHUNK_SIZE + 1)).toBe(2);
+    expect(d1ExecuteChunkCount(2164 * 29, 80)).toBe(Math.ceil((2164 * 29) / 80));
+  });
+
+  it('splits a statement-per-line SQL file into sized chunk files', async () => {
+    const tmp = mkdtempSync(path.join(os.tmpdir(), 'd1-chunks-'));
+    try {
+      const src = path.join(tmp, 'all.sql');
+      writeFileSync(src, 'INSERT 0;\nINSERT 1;\nINSERT 2;\nINSERT 3;\nINSERT 4;\n');
+      const dest = path.join(tmp, 'out');
+      const chunks = await splitSqlFileIntoChunks(src, dest, 2);
+      expect(chunks).toHaveLength(3);
+      expect(readFileSync(chunks[0], 'utf8')).toBe('INSERT 0;\nINSERT 1;\n');
+      expect(readFileSync(chunks[1], 'utf8')).toBe('INSERT 2;\nINSERT 3;\n');
+      expect(readFileSync(chunks[2], 'utf8')).toBe('INSERT 4;\n');
+    } finally {
+      rmSync(tmp, { recursive: true, force: true });
+    }
   });
 });

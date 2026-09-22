@@ -37,7 +37,10 @@ jobs:
       github.repository == 'wdhunter465/next-starter-template' &&
       github.actor == 'wdhunter465'
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    # Remote D1 apply is tens of thousands of upserts. One wrangler --file of
+    # the whole script exceeded 90 minutes (run 35789896770). Chunked execute
+    # plus this cap lets apply finish; hosted jobs still stop at 6 hours.
+    timeout-minutes: 360
     steps:
       - name: Require explicit confirmation
         env:

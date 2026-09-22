@@ -20,7 +20,8 @@
 //   node scripts/ingest-gehrig-retrosheet-data.mjs --apply --remote
 //   node scripts/ingest-gehrig-retrosheet-data.mjs --apply --local
 
-import { mkdtempSync, rmSync, existsSync, readdirSync, createWriteStream, createReadStream } from 'node:fs';
+import { mkdtempSync, rmSync, existsSync, readdirSync, createWriteStream, createReadStream, mkdirSync, writeFileSync } from 'node:fs';
+import { createInterface } from 'node:readline';
 import { fileURLToPath } from 'node:url';
 import path from 'node:path';
 import os from 'node:os';
@@ -260,6 +261,72 @@ function sqlInt(value) {
 // Streams SQL statements straight to disk instead of buffering all of them
 // (tens of thousands, across 2,164 games) in memory before a single final
 // join+write.
+// Remote D1 rejects oversized SQL payloads, and a single wrangler --file of
+// the full Gehrig career script timed out at 90 minutes. Keep each execute
+// file small; 80 statements stays well under typical D1 request size.
+export const D1_EXECUTE_CHUNK_SIZE = 80;
+
+export function d1ExecuteChunkCount(statementCount, chunkSize = D1_EXECUTE_CHUNK_SIZE) {
+  if (!Number.isInteger(statementCount) || statementCount < 0) {
+    throw new Error(`statementCount must be a non-negative integer, got ${statementCount}`);
+  }
+  if (!Number.isInteger(chunkSize) || chunkSize < 1) {
+    throw new Error(`chunkSize must be a positive integer, got ${chunkSize}`);
+  }
+  if (statementCount === 0) return 0;
+  return Math.ceil(statementCount / chunkSize);
+}
+
+export async function splitSqlFileIntoChunks(srcPath, destDir, chunkSize = D1_EXECUTE_CHUNK_SIZE) {
+  mkdirSync(destDir, { recursive: true });
+  const paths = [];
+  let buffer = [];
+  let index = 0;
+
+  const flush = () => {
+    if (!buffer.length) return;
+    const chunkPath = path.join(destDir, `chunk-${String(index).padStart(4, '0')}.sql`);
+    index += 1;
+    writeFileSync(chunkPath, `${buffer.join('\n')}\n`, { encoding: 'utf8' });
+    paths.push(chunkPath);
+    buffer = [];
+  };
+
+  const rl = createInterface({
+    input: createReadStream(srcPath, { encoding: 'utf8' }),
+    crlfDelay: Infinity,
+  });
+  for await (const line of rl) {
+    if (!line) continue;
+    buffer.push(line);
+    if (buffer.length >= chunkSize) flush();
+  }
+  flush();
+  return paths;
+}
+
+function wranglerD1FileArgs(isRemote) {
+  return isRemote
+    ? ['wrangler', 'd1', 'execute', 'lgfc_lite', '--remote', '--yes']
+    : ['wrangler', 'd1', 'execute', 'DB', '--local', '--env', 'preview'];
+}
+
+function executeSqlFiles(filePaths, isRemote) {
+  const d1Args = wranglerD1FileArgs(isRemote);
+  const total = filePaths.length;
+  for (let i = 0; i < filePaths.length; i += 1) {
+    const sqlFile = filePaths[i];
+    console.log(`Executing D1 chunk ${i + 1}/${total}: ${path.basename(sqlFile)}`);
+    const result = spawnSync('npx', [...d1Args, '--file', sqlFile], {
+      stdio: 'inherit',
+      cwd: path.join(__dirname, '..'),
+    });
+    if (result.status !== 0) {
+      throw new Error(`wrangler d1 execute exited ${result.status} for ${sqlFile}`);
+    }
+  }
+}
+
 function createStatementWriter(filePath) {
   const stream = createWriteStream(filePath, { encoding: 'utf8' });
   let streamError = null;
@@ -547,14 +614,12 @@ async function main() {
       return;
     }
 
-    const d1Args = isRemote
-      ? ['wrangler', 'd1', 'execute', 'lgfc_lite', '--remote', '--yes']
-      : ['wrangler', 'd1', 'execute', 'DB', '--local', '--env', 'preview'];
-    const result = spawnSync('npx', [...d1Args, '--file', sqlFile], {
-      stdio: 'inherit',
-      cwd: path.join(__dirname, '..'),
-    });
-    if (result.status !== 0) throw new Error(`wrangler d1 execute exited ${result.status}`);
+    const chunkDir = path.join(tmpRoot, 'd1-chunks');
+    const chunkPaths = await splitSqlFileIntoChunks(sqlFile, chunkDir);
+    console.log(
+      `Split ${writer.count} statements into ${chunkPaths.length} D1 execute files (chunk size ${D1_EXECUTE_CHUNK_SIZE}).`,
+    );
+    executeSqlFiles(chunkPaths, isRemote);
   } finally {
     try {
       if (existsSync(tmpRoot)) rmSync(tmpRoot, { recursive: true, force: true });
