@@ -30,7 +30,7 @@
   margin: 0;
   text-align: center;
   font-size: 1rem;
-  color: var(--lgfc-text-muted, rgba(0, 0, 0, 0.6));
+  color: var(--lgfc-text-muted, #666666);
   padding: 2rem 1rem;
 }
 
@@ -123,7 +123,7 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--lgfc-text-muted, rgba(0, 0, 0, 0.5));
+  color: var(--lgfc-text-muted, #666666);
 }
 
 .dayGrid {
@@ -149,7 +149,8 @@
 .dayCellInactive {
   border: 1px dashed color-mix(in srgb, var(--lgfc-border-soft) 80%, transparent);
   background: color-mix(in srgb, var(--lgfc-bg-subtle) 55%, transparent);
-  color: var(--lgfc-text-muted, rgba(0, 0, 0, 0.45));
+  /* #666666 ≈ 5.74:1 on white; rgba(0,0,0,0.45) was ~3.36:1 (fails WCAG AA). */
+  color: var(--lgfc-text-muted, #666666);
 }
 
 .dayNum {
@@ -220,7 +221,7 @@
   margin: 0.85rem 0 0;
   font-size: 0.82rem;
   line-height: 1.4;
-  color: var(--lgfc-text-muted, rgba(0, 0, 0, 0.55));
+  color: var(--lgfc-text-muted, #666666);
   text-align: center;
 }
 
@@ -244,7 +245,7 @@
   margin: 0;
   font-size: 0.95rem;
   line-height: 1.5;
-  color: var(--lgfc-text-muted, rgba(0, 0, 0, 0.6));
+  color: var(--lgfc-text-muted, #666666);
 }
 
 .detailsList {
@@ -268,7 +269,7 @@
 .detailsMeta {
   margin-top: 0.2rem;
   font-size: 0.82rem;
-  color: var(--lgfc-text-muted, rgba(0, 0, 0, 0.65));
+  color: var(--lgfc-text-muted, #666666);
 }
 
 .detailsDesc {

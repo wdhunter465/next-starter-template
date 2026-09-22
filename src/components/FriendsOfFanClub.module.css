@@ -65,7 +65,8 @@
 }
 
 .mediaBare {
-  color: var(--lgfc-text-muted, rgba(0, 0, 0, 0.45));
+  /* Avoid rgba(0,0,0,0.45) (~3.36:1); match canonical muted token at ~5.74:1. */
+  color: var(--lgfc-text-muted, #666666);
   font-size: var(--lgfc-font-size-small, 0.875rem);
   font-weight: 600;
   letter-spacing: 0.04em;
@@ -86,7 +87,7 @@
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--lgfc-text-muted, rgba(0, 0, 0, 0.55));
+  color: var(--lgfc-text-muted, #666666);
 }
 
 .name {
@@ -139,6 +140,6 @@
 
 .ctaMuted {
   font-size: 0.875rem;
-  color: var(--lgfc-text-muted, rgba(0, 0, 0, 0.5));
+  color: var(--lgfc-text-muted, #666666);
   font-weight: 600;
 }
