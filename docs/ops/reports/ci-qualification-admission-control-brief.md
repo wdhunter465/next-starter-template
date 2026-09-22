@@ -50,7 +50,7 @@ The live three required jobs stay the admission baseline until a later source Is
 | --- | --- | --- |
 | `gate-quality.yml` | `quality` | Required |
 | `gitleaks.yml` | `gitleaks` | Required |
-| `reviewer-response-completion.yml` | `reviewer-response-completion` | Required (#3746 / #3771). A cancelled run remains a gate failure until a later success on the same head |
+| `reviewer-response-completion.yml` | `reviewer-response-completion` | Required. `.github/CI_GUARDRAILS_MAP.md` records event-conditional enforcement (#3746). `docs/governance/CI-AND-VERIFICATION.md` records that a cancelled run remains a required-gate failure until a later success on the same head (#3771 / PR #3751) |
 
 ## Live advisory surface
 
