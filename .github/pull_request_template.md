@@ -57,7 +57,7 @@ Emergency recovery:
 - Approval profile: <!-- component-auto-integration / work-bill-production / protected-change-review / emergency-approval -->
 - Gate profile: <!-- component-child / production-candidate / component-promotion / emergency-recovery -->
 - Rollback profile: <!-- one-step / multi-step / emergency-stabilization -->
-- Implementation agent: <!-- required for Model B-child and B-promotion — e.g. Cursor Local -->
+- Implementation agent: <!-- required for Model B-child and B-promotion — the current role holder per docs/governance/AGENT-TEAM.md -->
 - Component branch: <!-- component/<release-unit> / not-applicable -->
 - Component master: <!-- #<program-issue> / not-applicable -->
 - Promotion PR: <!-- #<promotion-pr-number> / not-applicable -->
