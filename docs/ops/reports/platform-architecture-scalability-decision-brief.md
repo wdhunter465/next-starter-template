@@ -125,7 +125,7 @@ Related Active/Pipeline reviews stay on their own Issues. #2460 does not absorb 
 
 | Related Issue | State (2026-09-22) | Sequence relative to this brief |
 | --- | --- | --- |
-| #2459 Repository Scalability Review | OPEN | Continue on its own child graph (#4203 inventory already on `docs/ops/reports/repository-scalability-decision-brief.md`). Do not copy that inventory here. |
+| #2459 Repository Scalability Review | CLOSED (completed 2026-09-22) | Children #4203–#4205 already published `docs/ops/reports/repository-scalability-decision-brief.md`. Do not copy that inventory here. |
 | #2442 Identity Provider and Authentication Growth Review | CLOSED | Already published retain recommendation on `docs/ops/reports/identity-provider-auth-growth-decision-brief.md`. Do not reopen OAuth work from #2460. |
 | #2443 UI Component-System and Design-Foundation Review | OPEN | After website Active delivery, not inside this Program. |
 | #2445 Data schema governance and relational-growth constraints | OPEN | Child of #2441; Pipeline discovery. Not a #2460 deploy change. |
