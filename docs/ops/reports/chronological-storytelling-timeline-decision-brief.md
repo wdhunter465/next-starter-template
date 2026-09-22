@@ -2,7 +2,7 @@
 Doc Type: Operations
 Audience: Human + AI
 Authority Level: Controlled
-Owns: Project #3162 chronological storytelling timeline decision brief — inventory (#4241) and TimelineJS3-versus-custom comparison (#4242)
+Owns: Project #3162 chronological storytelling timeline decision brief — inventory (#4241), comparison (#4242), and TimelineJS3 license/release/accessibility notes (#4243)
 Does Not Own: TimelineJS3 npm or iframe add; new Production timeline route; visual-system rewrite; vendoring TimelineJS internals; OpenAI-name sweep
 Canonical Reference: /docs/reference/design/home-milestones.md
 Related Issues: #3162, #4241, #4242, #4243, #4244, #2878
@@ -17,7 +17,7 @@ Record live-main chronological surfaces so later #3162 children can compare Time
 
 ## Scope
 
-In scope for this revision (#4242): comparison of TimelineJS3 iframe/embed versus extending the existing custom timeline, on top of the #4241 inventory.
+In scope for this revision (#4243): TimelineJS3 license, release, and accessibility verification notes, on top of inventory and comparison.
 
 Out of scope: npm or iframe add; a new Production timeline route; restyling the homepage; embedding TimelineJS3.
 
@@ -54,8 +54,15 @@ This file remains a decision brief. TimelineJS3 stays a documented non-chosen li
 
 Pending-brief preference: **extend the custom component** rather than add MPL-licensed embed chrome. TimelineJS3 UX ideas (dated navigation, media pairing) may inform a later custom extension. This comparison does not add the npm or iframe dependency and does not rewrite the visual system.
 
+## TimelineJS3 license, release, and accessibility (#4243)
+
+TimelineJS3 (`NUKnightLab/TimelineJS3`) is **MPL-2.0**. File-level copyleft applies to modified MPL-licensed files. Using the unmodified library as a dependency does not copyleft the rest of the LGFC app. The archived predecessor `TimelineJS` repo is **not** a candidate.
+
+#2878 left current-release cadence, dependency footprint, and accessibility unverified (collection log 2026-07-25). A later implementation Issue that re-opens adopt must re-verify the current TimelineJS3 release and accessibility before any add. This child does not vendor TimelineJS3 source.
+
 ## Protected stops
 
 - Do not restyle the Production homepage.
 - Do not embed an iframe timeline.
 - Do not add TimelineJS3.
+- Do not copy TimelineJS3 source into the repo.
