@@ -2,14 +2,14 @@
 Doc Type: Operations
 Audience: Bill, ChatGPT, Cursor, Claude Code, LGFC maintainers
 Authority Level: Controlled
-Owns: #2459-004 single-repository assumption inventory and #2459-005 reusable-vs-premature classification (first two executable children of #2459)
+Owns: #2459-004 single-repository assumption inventory, #2459-005 reusable-vs-premature classification, and #2459-006 the final retain/split-later recommendation (all three executable children of #2459)
 Does Not Own: Any repository split, multi-repo cutover, shared-infrastructure platform build, or Production routing change
 Canonical Reference: docs/governance/REPOSITORY-AUTHORITY.md
 Related Issues: #2459, #2449, #2460, #4203, #4204, #4205
 Last Reviewed: 2026-09-22
 ---
 
-# Repository Scalability Decision Brief — Single-Repository Assumption Inventory (#2459-004 / #2459-005)
+# Repository Scalability Decision Brief — Single-Repository Assumption Inventory and Recommendation (#2459-004 / #2459-005 / #2459-006)
 
 ## Purpose
 
@@ -21,17 +21,24 @@ Answer #4204's exact question: of the assumptions #4203 inventoried, which are r
 patterns worth templating later versus premature platform engineering with no current need,
 and does any of them constitute a genuine pre-2027-launch exception?
 
+Answer #4205's exact question, and #2459's own: should the single-repository operating
+model be retained through the 2027 fundraiser launch, or is a split warranted now — and if
+retained, what post-launch discovery (if any) is worth scoping later?
+
 ## Scope and non-goals
 
 In scope: inventorying single-repository/single-website/single-owner assumptions across
 GitHub repo identity, the Pages deployment, D1/storage bindings, the PMO dashboard, and the
 self-hosted runner label, per #4203's acceptance criteria; classifying each as
-reusable-later, repo-specific-now, or pre-launch exception, per #4204's acceptance criteria.
+reusable-later, repo-specific-now, or pre-launch exception, per #4204's acceptance criteria;
+publishing an explicit retain-vs-split recommendation and a bounded post-launch discovery
+scope, per #4205's acceptance criteria.
 
 Non-goals: proposing or implementing a repository split; diverting Active website delivery
 capacity; weakening single-repository authority; building shared multi-repo infrastructure;
-creating additional GitHub organizations or repositories. Those remain explicitly out of
-scope per #2459's own guardrails and #4203/#4204's protected stops.
+creating additional GitHub organizations or repositories; authorizing any post-launch
+discovery work to start now. Those remain explicitly out of scope per #2459's own guardrails
+and #4203/#4204/#4205's protected stops.
 
 ## Current known truth
 
@@ -180,14 +187,79 @@ reusable-later property (the PMO dashboard's env-var fallback) already has that 
 on `main` today; it requires no further work to remain usable if a second repository is ever
 authorized.
 
-## Recommendation (#4205 owns the final retain/split-later publication)
+## Future scalability risks (#2459-006)
 
-This brief's #4203/#4204 acceptance criteria are the inventory and the classification
-themselves, not the retain/split decision (that belongs to #4205 per the child graph). Based
-on the evidence above: no named pre-launch exception exists in any of the five areas. Every
-examined artifact would require explicit, reviewed changes — not configuration — to support a
-second repository, and none of those changes is reusable infrastructure sitting idle for lack
-of a template; they are unbuilt because nothing today asks for them.
+What would concretely break if the operating model ever expanded to a second repository,
+website, or owner, based on #4203's inventory:
+
+1. **Security fail-closed checks would need coordinated, reviewed edits across 45 files.**
+   Every one of those sites currently agrees on one literal repository slug. Adding a second
+   trusted repository means editing all 45 in a reviewed change, not a config flip — get one
+   site wrong and either the new repository's dispatch fails closed (safe but broken) or, far
+   worse, the check is weakened in a way that lets an untrusted repository's workflow through.
+2. **Cloudflare Pages and D1 bindings are one-to-one with this repository's Cloudflare
+   account resources.** A second repository needs its own Pages project and its own D1
+   databases (or a deliberate decision to share the existing ones, which raises a data-
+   isolation question Chatterbox and every other D1 consumer would need to answer first).
+3. **The self-hosted runner cannot silently serve two repositories.** Re-registering
+   `lgfc-cursor-chromebook` for a second repository's dispatch workflow would break this
+   repository's dispatch in the process (confirmed in #4203) unless a second, dedicated
+   runner is provisioned — itself a cost and a host-management decision, not a documentation
+   change.
+4. **The PMO dashboard would produce N separate dashboards, not one portfolio view.** Its
+   `OWNER`/`REPO` env-var fallback (the one reusable-later property found in #4204) means a
+   second repository's dashboard needs no code change to generate — but nothing today merges
+   two dashboards into a single cross-repository PMO view, so a real multi-repo portfolio need
+   would still require new aggregation work.
+
+None of these risks is evidenced as a live, near-term problem. They are named so that if a
+concrete multi-repository need is ever raised, its cost is already on record rather than
+discovered mid-migration.
+
+## Recommendation — retain the single-repository model through the 2027 launch (#2459-006)
+
+**Decision: RETAIN.** Keep one GitHub repository, one Cloudflare Pages project, one pair of
+D1 databases, and one Product Authority through the 2027 fundraiser launch. Do not split the
+repository, do not stand up shared multi-repo infrastructure, and do not weaken the
+single-repository authority model documented in `docs/governance/REPOSITORY-AUTHORITY.md`.
+
+Rationale, drawn directly from #4203 and #4204:
+
+- **No named pre-launch exception exists in any of the five inventoried areas.** #4203
+  inventoried GitHub repo identity, Cloudflare Pages, D1 bindings, the PMO dashboard, and the
+  self-hosted runner label; #4204 classified all five and found zero cases where a
+  pre-2027-launch dependency on multi-repository operation is evidenced.
+- **Every examined artifact works correctly today *because* it assumes a single repository.**
+  The 45-site hardcoded-slug pattern is deliberate fail-closed security posture, not an
+  oversight that happens to also block scaling (confirmed directly against `wake-ingress.mjs`
+  and `dispatch.mjs` this session).
+- **The one existing reusable-later property (PMO dashboard env-var fallback) already covers
+  the only capability that has any multi-repo readiness today,** and it required no dedicated
+  project to get there — it was a side effect of ordinary parameterization, not built for this
+  purpose.
+
+This satisfies #2459's own guardrail: preserve the single-repository authority model until a
+replacement is approved, and do not divert active delivery capacity into hypothetical scale.
+
+## Recommended post-launch discovery scope
+
+**Not authorized to start now.** If, after the 2027 launch, a genuine multi-repository need is
+raised and approved by Product Authority, discovery should be scoped narrowly to the four
+risk areas named above, in this order, rather than a general platform rebuild:
+
+1. Centralize the 45-site repository-identity check behind one shared constant/module
+   (mechanical, lowest risk, makes every future step safer to review).
+2. Decide the D1/Pages resource-sharing question explicitly (shared vs. per-repository
+   databases and Pages projects) before any second repository is provisioned — this is a
+   data-isolation and cost decision, not a code change.
+3. Evaluate org-level self-hosted runner registration as its own security-reviewed change,
+   separate from any repository-scalability work, given its blast radius on the existing
+   `lgfc-cursor` dispatch path.
+4. Only then consider PMO dashboard cross-repository aggregation, since running the existing
+   script twice already produces per-repository dashboards with zero code change today.
+
+This is a discovery scope for a future, separately authorized project — not work authorized by
+this brief, and not a commitment that any of it will ever be needed.
 
 ## Non-goals reaffirmed
 
@@ -195,3 +267,4 @@ of a template; they are unbuilt because nothing today asks for them.
 - Does not divert Active website delivery capacity.
 - Does not weaken single-repository authority.
 - Does not build shared multi-repo infrastructure.
+- Does not authorize any post-launch discovery work to start now.
