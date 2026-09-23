@@ -34,4 +34,14 @@ describe('socialFallbacks (#2044)', () => {
     widget.appendChild(document.createElement('iframe'));
     expect(hasRenderedSocialWidget(root)).toBe(true);
   });
+
+  it('detects Elfsight content painted into an open shadow root', () => {
+    const root = document.createElement('div');
+    const widget = document.createElement('div');
+    widget.className = SOCIAL_WALL_WIDGET_ID;
+    root.appendChild(widget);
+    const shadow = widget.attachShadow({ mode: 'open' });
+    shadow.appendChild(document.createElement('iframe'));
+    expect(hasRenderedSocialWidget(root)).toBe(true);
+  });
 });
