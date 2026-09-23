@@ -247,3 +247,63 @@ describe("homepage D1/B2 media responses", () => {
     });
   });
 });
+
+describe("#4344 friends list surfaces", () => {
+  const catalog = [
+    { id: 6, name: "I AM ALS", url: "https://www.iamals.org/" },
+    { id: 2, name: "Live Like Lou Foundation", url: "https://www.livelikelou.org" },
+    { id: 7, name: "LouGehrig.com", url: "https://lougehrig.com/" },
+    { id: 1, name: "Luckiest Man: The Life and Death of Lou Gehrig", url: "https://www.jonathaneig.com/luckiest-man-the-life-and-death-of-lou-gehrig" },
+    { id: 5, name: "Phi Delta Theta — Lou Gehrig Award", url: "https://museum.phideltatheta.org/lou-gehrig-award/" },
+    { id: 3, name: "ALS Cure Project", url: "https://www.alscure.org" },
+    { id: 4, name: "They Played In Color", url: "https://www.theyplayedincolor.com/" },
+    { id: 8, name: "The Lou Gehrig Society", url: "https://www.thelougehrigsociety.org/" },
+  ];
+
+  function friendsDb() {
+    return createD1((sql) => {
+      if (sql.includes("sqlite_master")) {
+        return { results: [{ name: "friends" }] };
+      }
+      return { results: catalog };
+    });
+  }
+
+  it("replaces LouGehrig.com with The Lou Gehrig Society on the homepage surface", async () => {
+    const response = await getFriends({
+      env: { DB: friendsDb() },
+      request: createRequest("/api/friends/list?surface=homepage"),
+    });
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.items.map((row: { name: string }) => row.name)).toEqual([
+      "ALS Cure Project",
+      "I AM ALS",
+      "Live Like Lou Foundation",
+      "The Lou Gehrig Society",
+      "Luckiest Man: The Life and Death of Lou Gehrig",
+      "Phi Delta Theta — Lou Gehrig Award",
+      "They Played In Color",
+    ]);
+  });
+
+  it("inserts The Lou Gehrig Society second on Club Home and keeps LouGehrig.com", async () => {
+    const response = await getFriends({
+      env: { DB: friendsDb() },
+      request: createRequest("/api/friends/list?surface=club-home"),
+    });
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.items.map((row: { name: string }) => row.name)).toEqual([
+      "ALS Cure Project",
+      "The Lou Gehrig Society",
+      "I AM ALS",
+      "Live Like Lou Foundation",
+      "LouGehrig.com",
+      "Luckiest Man: The Life and Death of Lou Gehrig",
+      "Phi Delta Theta — Lou Gehrig Award",
+      "They Played In Color",
+    ]);
+  });
+});
+
