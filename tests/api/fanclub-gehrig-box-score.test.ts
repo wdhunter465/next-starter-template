@@ -97,6 +97,10 @@ function getRequest(cookie: string | null): Request {
 }
 
 describe('GET /api/fanclub/gehrig-box-score (#4263)', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   it('requires a member session', async () => {
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
@@ -232,23 +236,26 @@ describe('GET /api/fanclub/gehrig-box-score (#4263)', () => {
     `);
 
     vi.useFakeTimers();
-    vi.setSystemTime(new Date('2026-09-23T16:00:00.000Z'));
-    const first = await onRequestGet({
-      env: { DB: wrapSqliteAsD1(sqlite) },
-      request: getRequest('lgfc_session=session-4263'),
-    });
-    vi.setSystemTime(new Date('2026-09-24T03:59:00.000Z'));
-    const second = await onRequestGet({
-      env: { DB: wrapSqliteAsD1(sqlite) },
-      request: getRequest('lgfc_session=session-4263'),
-    });
-    const a = await first.json();
-    const b = await second.json();
-    expect(a.game.game_id).toBe(b.game.game_id);
-    expect(a.game.game_id).toBe(
-      ['BOS192304180', 'NYA192706150', 'NYA193904300'][dailyGameOffset(clubHomeDayKey(), 3)],
-    );
-    vi.useRealTimers();
+    try {
+      vi.setSystemTime(new Date('2026-09-23T16:00:00.000Z'));
+      const first = await onRequestGet({
+        env: { DB: wrapSqliteAsD1(sqlite) },
+        request: getRequest('lgfc_session=session-4263'),
+      });
+      vi.setSystemTime(new Date('2026-09-24T03:59:00.000Z'));
+      const second = await onRequestGet({
+        env: { DB: wrapSqliteAsD1(sqlite) },
+        request: getRequest('lgfc_session=session-4263'),
+      });
+      const a = await first.json();
+      const b = await second.json();
+      expect(a.game.game_id).toBe(b.game.game_id);
+      expect(a.game.game_id).toBe(
+        ['BOS192304180', 'NYA192706150', 'NYA193904300'][dailyGameOffset(clubHomeDayKey(), 3)],
+      );
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 
@@ -259,7 +266,7 @@ describe('Club Home Gehrig daily offset (#4263)', () => {
 
   it('is stable for a day key and does not walk consecutive game_id offsets', () => {
     expect(dailyGameOffset('2026-09-23', 2190)).toBe(dailyGameOffset('2026-09-23', 2190));
-    const offsets = [];
+    const offsets: number[] = [];
     for (let day = 1; day <= 30; day += 1) {
       const key = `2026-09-${String(day).padStart(2, '0')}`;
       offsets.push(dailyGameOffset(key, 2190));
