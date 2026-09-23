@@ -86,7 +86,7 @@ Every resource below has exactly one primary classification.
 | Resource | Class | Evidence | Blocking rule |
 | --- | --- | --- | --- |
 | Google Analytics 4 (`NEXT_PUBLIC_GA_ID`) | **disabled** (default / Preview) | `src/lib/gaMeasurementId.ts`, `src/components/GoogleAnalytics.tsx`, `.env.example` | Empty id skips script load. Cloudflare Pages **non-`main`** builds force empty even if env is set. |
-| GA on Production `main` Pages build | **production-shared** | Same; Product id `G-BRV48J1VEJ` (#4350) | `main` bakes env or the Product Measurement ID. Consent still required before gtag runs. **Preview must not emit this id.** |
+| GA on Production `main` Pages build | **production-shared** | Same; Product id `G-BRV48J1VEJ` (#4350) | `main` always bakes `G-BRV48J1VEJ` (truncated Cloudflare env cannot win). Consent still required before gtag runs. **Preview must not emit this id.** |
 
 ### Admin credentials
 

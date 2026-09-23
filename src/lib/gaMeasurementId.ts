@@ -4,7 +4,8 @@ export const PRODUCTION_GA_MEASUREMENT_ID = 'G-BRV48J1VEJ';
 /**
  * Resolve the GA4 Measurement ID for a static export build.
  * Preview Cloudflare Pages branches never emit an id (even if env is set).
- * Production `main` Pages builds use env when set, otherwise the Product id.
+ * Production `main` Pages builds always bake the Product id so a truncated
+ * Cloudflare env value cannot win.
  * Local/dev builds omit GA unless NEXT_PUBLIC_GA_ID is set explicitly.
  */
 export function resolveGaMeasurementId(
@@ -15,9 +16,8 @@ export function resolveGaMeasurementId(
   if (onPages && branch !== 'main') {
     return '';
   }
+  if (branch === 'main') return PRODUCTION_GA_MEASUREMENT_ID;
 
   const explicit = String(env.NEXT_PUBLIC_GA_ID || '').trim();
-  if (explicit) return explicit;
-  if (branch === 'main') return PRODUCTION_GA_MEASUREMENT_ID;
-  return '';
+  return explicit;
 }
