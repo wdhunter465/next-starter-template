@@ -47,16 +47,7 @@ function elementLooksRendered(node: Element): boolean {
   const host = node as HTMLElement;
   if (host.clientHeight >= 80 || host.scrollHeight >= 80) return true;
   const shadow = host.shadowRoot;
-  if (shadow) {
-    if (shadow.childElementCount > 0) return true;
-    for (const child of Array.from(shadow.children)) {
-      if (elementLooksRendered(child)) return true;
-    }
-  }
-  for (const child of Array.from(node.children)) {
-    if (elementLooksRendered(child)) return true;
-  }
-  return false;
+  return Boolean(shadow && shadow.childElementCount > 0);
 }
 
 export function hasRenderedSocialWidget(root: ParentNode = document): boolean {

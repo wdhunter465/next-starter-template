@@ -50,7 +50,6 @@ export default function SocialWall() {
         return;
       }
       setStatus('error');
-      pollForRender();
     };
 
     const pollForRender = () => {
@@ -59,6 +58,7 @@ export default function SocialWall() {
         markReady();
         return;
       }
+      if (pollId) clearTimeout(pollId);
       pollId = setTimeout(pollForRender, POLL_MS);
     };
 
@@ -69,7 +69,6 @@ export default function SocialWall() {
     const init = () => {
       if (cancelled) return;
       window.elfsight?.reload?.();
-      pollForRender();
     };
 
     if (!existingScript) {
