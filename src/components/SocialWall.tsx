@@ -50,6 +50,7 @@ export default function SocialWall() {
         return;
       }
       setStatus('error');
+      pollForRender();
     };
 
     const pollForRender = () => {

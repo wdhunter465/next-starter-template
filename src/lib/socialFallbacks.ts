@@ -44,7 +44,9 @@ export function getSocialFallbackPlatforms(): SocialFallbackPlatform[] {
 function elementLooksRendered(node: Element): boolean {
   if (node.tagName === 'IFRAME' || node.tagName === 'IMG' || node.tagName === 'A') return true;
   if (node.childElementCount > 0) return true;
-  const shadow = (node as HTMLElement).shadowRoot;
+  const host = node as HTMLElement;
+  if (host.clientHeight >= 80 || host.scrollHeight >= 80) return true;
+  const shadow = host.shadowRoot;
   if (shadow) {
     if (shadow.childElementCount > 0) return true;
     for (const child of Array.from(shadow.children)) {

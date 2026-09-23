@@ -52,4 +52,21 @@ describe('SocialWall (#2044 / #4346)', () => {
     expect(screen.queryByRole('region', { name: /Follow the Lou Gehrig Fan Club/i })).not.toBeInTheDocument();
     expect(screen.queryByText('Loading social wall content...')).not.toBeInTheDocument();
   });
+
+  it('hides the fail-safe list if Elfsight paints after the fail timer (Chromebook-slow path)', () => {
+    render(<SocialWall />);
+
+    act(() => {
+      vi.advanceTimersByTime(15000);
+    });
+    expect(screen.getByRole('region', { name: /Follow the Lou Gehrig Fan Club/i })).toBeInTheDocument();
+
+    const widget = document.querySelector(`.${SOCIAL_WALL_WIDGET_ID}`);
+    widget!.appendChild(document.createElement('iframe'));
+
+    act(() => {
+      vi.advanceTimersByTime(500);
+    });
+    expect(screen.queryByRole('region', { name: /Follow the Lou Gehrig Fan Club/i })).not.toBeInTheDocument();
+  });
 });
