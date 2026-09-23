@@ -54,7 +54,7 @@ The following legacy dashboard modules are **not** part of the newspaper Club Ho
 
 - Member session state from `useMemberSession`
 - Dynamic Club Home inventory: `GET /api/fanclub/home` (`club_home` section in `content_inventory`)
-- Random Gehrig box score + AL standings: `GET /api/fanclub/gehrig-box-score` (member session; one random `retrosheet_gehrig_games` row plus batting lines and standings snapshot; fail-closed empty copy when ingest tables are empty)
+- Daily Gehrig box score + AL standings: `GET /api/fanclub/gehrig-box-score` (member session; one hashed-random `retrosheet_gehrig_games` row for the America/New_York calendar day, plus batting lines and standings snapshot; fail-closed empty copy when ingest tables are empty)
 - Recognition & Partners: `GET /api/friends/list?surface=club-home` (posted partners; The Lou Gehrig Society is second, immediately below ALS Cure Project; LouGehrig.com remains; no partner is dropped for a four-item cap)
 - Feature-link card targets: `/fanclub/photo`, `/fanclub/library`, `/fanclub/memorabilia`
 - Discussion workflows: `/fanclub/chat` and discussion APIs
