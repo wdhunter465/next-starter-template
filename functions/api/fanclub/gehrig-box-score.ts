@@ -1,5 +1,6 @@
 import { jsonResponse, requireTables } from '../../_lib/d1';
 import { requireMember } from '../../_lib/session';
+import { clubHomeDayKey, dailyGameOffset } from './gehrig-club-home-day';
 
 const GEHRIG_PLAYER_ID = 'gehrl101';
 const SOURCE_CREDIT =
@@ -73,13 +74,21 @@ export const onRequestGet = async (context: any): Promise<Response> => {
       return jsonResponse(tables.body, tables.status);
     }
 
+    const countRow = await auth.db.prepare('SELECT COUNT(*) AS n FROM retrosheet_gehrig_games').first();
+    const count = asInt(countRow?.n) ?? 0;
+    if (count <= 0) {
+      return jsonResponse({ ok: true, game: null }, 200);
+    }
+
+    const offset = dailyGameOffset(clubHomeDayKey(), count);
     const game = await auth.db
       .prepare(
         `SELECT game_id, game_date, vis_team, home_team, vis_score, home_score, site
          FROM retrosheet_gehrig_games
-         ORDER BY RANDOM()
-         LIMIT 1`,
+         ORDER BY game_id
+         LIMIT 1 OFFSET ?1`,
       )
+      .bind(offset)
       .first();
 
     if (!game) {

@@ -6,7 +6,7 @@ Owns: FanClub home route purpose, section contracts, data dependencies
 Does Not Own: FanClub subpage specs; API schema details; implementation internals
 Canonical Reference: /docs/reference/design/fanclub.md
 Related issues: #1685, #1688, #1690, #1962, #4263
-Last Reviewed: 2026-09-22
+Last Reviewed: 2026-09-23
 ---
 
 # `/fanclub` — FanClub Home Page Specification
@@ -54,7 +54,7 @@ The following legacy dashboard modules are **not** part of the newspaper Club Ho
 
 - Member session state from `useMemberSession`
 - Dynamic Club Home inventory: `GET /api/fanclub/home` (`club_home` section in `content_inventory`)
-- Random Gehrig box score + AL standings: `GET /api/fanclub/gehrig-box-score` (member session; one random `retrosheet_gehrig_games` row plus batting lines and standings snapshot; fail-closed empty copy when ingest tables are empty)
+- Daily Gehrig box score + AL standings: `GET /api/fanclub/gehrig-box-score` (member session; one hashed-random `retrosheet_gehrig_games` row for the America/New_York calendar day, plus batting lines and standings snapshot; fail-closed empty copy when ingest tables are empty)
 - Feature-link card targets: `/fanclub/photo`, `/fanclub/library`, `/fanclub/memorabilia`
 - Discussion workflows: `/fanclub/chat` and discussion APIs
 - Editorial submission intake: `/fanclub/submit` → `submission_queue`
