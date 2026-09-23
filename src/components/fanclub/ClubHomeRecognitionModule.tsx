@@ -19,7 +19,7 @@ export default function ClubHomeRecognitionModule() {
 
     const load = async () => {
       try {
-        const res = await fetch('/api/friends/list?limit=4', { cache: 'no-store' });
+        const res = await fetch('/api/friends/list?surface=club-home', { cache: 'no-store' });
         const data = await res.json().catch(() => ({}));
         if (!cancelled) setFriends(res.ok && data?.ok && Array.isArray(data.items) ? data.items : []);
       } catch {

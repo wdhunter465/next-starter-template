@@ -56,10 +56,10 @@ const DEFAULT_FRIENDS: Friend[] = [
   },
   {
     id: -6,
-    name: 'LouGehrig.com',
+    name: 'The Lou Gehrig Society',
     kind: 'Friend',
-    url: 'https://lougehrig.com/',
-    blurb: 'A dedicated archive of Lou Gehrig history, statistics, and memorabilia.',
+    url: 'https://www.thelougehrigsociety.org/',
+    blurb: 'Supporting research and programs to conquer ALS and other neuromuscular diseases.',
     photo_url: null,
   },
 ];
@@ -73,7 +73,7 @@ export default function FriendsOfFanClub() {
 
     (async () => {
       try {
-        const data = await apiGet<{ ok: boolean; items: Friend[] }>(`/api/friends/list`);
+        const data = await apiGet<{ ok: boolean; items: Friend[] }>(`/api/friends/list?surface=homepage`);
         if (!alive) return;
 
         const list = Array.isArray(data.items) && data.items.length > 0 ? data.items : DEFAULT_FRIENDS;
