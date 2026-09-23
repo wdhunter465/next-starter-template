@@ -150,4 +150,15 @@ describe('preview isolation inventory', () => {
     expect(envExample).toContain(`MAILCHANNELS_ENABLED=${manifest.safeDefaults.MAILCHANNELS_ENABLED}`);
     expect(envExample).toMatch(/NEXT_PUBLIC_GA_ID=\s*$/m);
   });
+
+  it('forces empty GA Measurement ID on Cloudflare Pages preview branches (#4350)', async () => {
+    const { resolveGaMeasurementId } = await import('../src/lib/gaMeasurementId');
+    expect(
+      resolveGaMeasurementId({
+        CF_PAGES: '1',
+        CF_PAGES_BRANCH: 'preview-branch',
+        NEXT_PUBLIC_GA_ID: 'G-LEAK',
+      }),
+    ).toBe('');
+  });
 });
