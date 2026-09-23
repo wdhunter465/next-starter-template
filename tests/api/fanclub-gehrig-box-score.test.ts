@@ -3,9 +3,10 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { DatabaseSync, type SQLInputValue } from 'node:sqlite';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import { onRequestGet } from '../../functions/api/fanclub/gehrig-box-score';
+import { clubHomeDayKey, dailyGameOffset } from '../../functions/api/fanclub/gehrig-club-home-day';
 
 function applyRepoMigrations(db: DatabaseSync) {
   const migrationsDir = path.join(process.cwd(), 'migrations');
@@ -135,7 +136,7 @@ describe('GET /api/fanclub/gehrig-box-score (#4263)', () => {
     expect(body.error).toBe('Database schema incomplete');
   });
 
-  it('returns one random game with batting lines and matching standings', async () => {
+  it('returns one hashed-random daily game with batting lines and matching standings', async () => {
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
     seedMemberSession(sqlite);
@@ -205,4 +206,73 @@ describe('GET /api/fanclub/gehrig-box-score (#4263)', () => {
       rbi: 2,
     });
   });
+
+  it('keeps the same hashed game for one America/New_York calendar day', async () => {
+    const sqlite = new DatabaseSync(':memory:');
+    applyRepoMigrations(sqlite);
+    seedMemberSession(sqlite);
+    seedGehrigGame(sqlite);
+    sqlite.exec(`
+      INSERT INTO retrosheet_gehrig_games (
+        game_id, game_date, season_year, game_number, vis_team, home_team, vis_score, home_score,
+        site, day_night, gehrig_team, gehrig_opponent, created_at, source
+      ) VALUES
+        ('BOS192304180', '1923-04-18', 1923, 0, 'BOS', 'NYA', 1, 4, 'NYC16', 'D', 'NYA', 'BOS', datetime('now'), 'retrosheet'),
+        ('NYA193904300', '1939-04-30', 1939, 0, 'WAS', 'NYA', 2, 0, 'NYC16', 'D', 'NYA', 'WAS', datetime('now'), 'retrosheet');
+      INSERT INTO retrosheet_box_score_lines (
+        game_id, team, stat_type, player_id, player_name, batting_order, line_json, created_at
+      ) VALUES
+        ('BOS192304180', 'NYA', 'batting', 'gehrl101', NULL, 4, '{"ab":3,"r":1,"h":1,"hr":0,"rbi":1}', datetime('now')),
+        ('NYA193904300', 'NYA', 'batting', 'gehrl101', NULL, 4, '{"ab":2,"r":0,"h":0,"hr":0,"rbi":0}', datetime('now'));
+      INSERT INTO retrosheet_al_standings_snapshots (
+        game_id, team, wins, losses, ties, win_pct, games_back, league_rank, created_at
+      ) VALUES
+        ('BOS192304180', 'NYA', 1, 0, 0, 1.0, 0, 1, datetime('now')),
+        ('NYA193904300', 'NYA', 3, 1, 0, 0.75, 0, 1, datetime('now'));
+    `);
+
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-09-23T16:00:00.000Z'));
+    const first = await onRequestGet({
+      env: { DB: wrapSqliteAsD1(sqlite) },
+      request: getRequest('lgfc_session=session-4263'),
+    });
+    vi.setSystemTime(new Date('2026-09-24T03:59:00.000Z'));
+    const second = await onRequestGet({
+      env: { DB: wrapSqliteAsD1(sqlite) },
+      request: getRequest('lgfc_session=session-4263'),
+    });
+    const a = await first.json();
+    const b = await second.json();
+    expect(a.game.game_id).toBe(b.game.game_id);
+    expect(a.game.game_id).toBe(
+      ['BOS192304180', 'NYA192706150', 'NYA193904300'][dailyGameOffset(clubHomeDayKey(), 3)],
+    );
+    vi.useRealTimers();
+  });
 });
+
+describe('Club Home Gehrig daily offset (#4263)', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it('is stable for a day key and does not walk consecutive game_id offsets', () => {
+    expect(dailyGameOffset('2026-09-23', 2190)).toBe(dailyGameOffset('2026-09-23', 2190));
+    const offsets = [];
+    for (let day = 1; day <= 30; day += 1) {
+      const key = `2026-09-${String(day).padStart(2, '0')}`;
+      offsets.push(dailyGameOffset(key, 2190));
+    }
+    const walksCareerOrder = offsets.every(
+      (offset, index) => index === 0 || offset === (offsets[index - 1] + 1) % 2190,
+    );
+    expect(walksCareerOrder).toBe(false);
+  });
+
+  it('uses America/New_York calendar days', () => {
+    expect(clubHomeDayKey(new Date('2026-09-24T03:59:00.000Z'))).toBe('2026-09-23');
+    expect(clubHomeDayKey(new Date('2026-09-24T04:00:00.000Z'))).toBe('2026-09-24');
+  });
+});
+
