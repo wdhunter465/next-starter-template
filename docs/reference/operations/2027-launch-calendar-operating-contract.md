@@ -2,8 +2,8 @@
 Doc Type: Reference
 Audience: Product Authority, Operations, PMO, editors, and implementation agents
 Authority Level: Controlled
-Owns: Durable 2027 launch-calendar milestone taxonomy, owners, evidence types, sequence, and freeze/exception rules for parent #2093
-Does Not Own: Inventing public dates; website or fundraiser launch; public announcements; Production mutation; paid services; credentials; replacing source-project acceptance on #1700, #2039, #2084, or #2782
+Owns: Durable 2027 launch-calendar milestone taxonomy and the Product-approved absolute calendar of record for parent #2093
+Does Not Own: Inventing public dates; publishing this calendar on the public website events calendar; website or fundraiser launch; public announcements; Production mutation; paid services; credentials; replacing source-project acceptance on #1700, #2039, #2084, or #2782
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
 Related Issues: #2093, #3861, #3862, #3863, #3864, #3865, #3866, #1700, #2039, #2084, #2782, #2089
 Last Reviewed: 2026-09-23
@@ -13,24 +13,25 @@ Last Reviewed: 2026-09-23
 
 ## Purpose
 
-Define the durable milestone taxonomy for the 2027 integrated launch calendar and Go/No-Go process (#2093). This contract names classes, owners, evidence, sequence, and change rules. It does not authorize public launch, automatic posting, or Production mutation.
+Define the durable milestone taxonomy and the Product-approved absolute calendar of record for the 2027 integrated launch calendar and Go/No-Go process (#2093). This contract does not authorize public launch, automatic posting, Production mutation, or publication of these rows on the Fan Club Events Calendar.
 
 ## Scope
 
-In scope: milestone classes for website, fundraiser, Lou Gehrig Day, freeze, rehearsal, deployment, rollback, announcement, and Day-2 monitoring; owner roles; source-Issue families; required evidence; predecessor/successor relations; freeze and exception rules.
+In scope: milestone classes for website, fundraiser, Lou Gehrig Day, freeze, rehearsal, deployment, rollback, announcement, and Day-2 monitoring; owner roles; source-Issue families; required evidence; predecessor/successor relations; freeze and exception rules; the absolute calendar generated from Product 2026-09-20 anchors.
 
-Out of scope: choosing protected dates (Product Authority on #2093); generating the absolute calendar table (#3862); launching the website or fundraiser; publishing announcements; Production writes; purchasing services; credentials.
+Out of scope: choosing new protected dates; seeding D1 `events` or the public Fan Club Events Calendar; launching the website or fundraiser; publishing announcements; Production writes; purchasing services; credentials.
 
 ## Current known truth
 
-- Product recorded Project Graduation **GO** for parent #2093 on 2026-09-23. Implementation owner is Cursor Local. First executable child is #3861.
-- Product-approved 2026-09-20 anchors already exist on #2093. This child does not add, move, or infer dates. Absolute calendar generation is #3862.
+- Product recorded Project Graduation **GO** for parent #2093 on 2026-09-23. Implementation owner is Cursor Local.
+- Child #3861 (PR #4348) delivered the taxonomy. Child #3862 records the absolute calendar from Product 2026-09-20 anchors only.
+- Product 2026-09-23: **#2093 dates are administrative for PMO only. Do not publish them on the public Fan Club Events Calendar.**
 - This calendar coordinates source programs. It does not grant their implementation or Production Go.
-- #2089 remains OPEN as a Production-release evidence-model gap. It is not a date inventor and is not a blocker for taxonomy.
+- #2089 remains OPEN as a Production-release evidence-model gap. It is not a date inventor.
 
 ## Intended final state
 
-Every 2027 launch-window row can be classified against this taxonomy with an owner, source-Issue family, evidence requirement, predecessor/successor, and freeze/exception rule before it is treated as a public date.
+Every 2027 PMO launch-window row is classified against the taxonomy and listed in the calendar of record below. Those rows are not public website events.
 
 ## Roles and decision rights
 
@@ -83,10 +84,29 @@ A later class must not silently authorize an earlier class. A dependency slip is
 - A No-Go preserves rollback/cancellation and communications-hold behavior.
 - Stop for missing Product dates, unresolved source-project readiness, failed rehearsal, rights/privacy uncertainty, fundraiser commitment, paid service, credential need, active Operations interrupt, or treating this calendar as Production Go.
 
-## Calendar of record
+## Calendar of record (#3862)
 
-The Product-specified 2026-09-20 table on #2093 is the date source. This taxonomy does not copy or alter those dates. #3862 generates the operator-facing absolute calendar from that table.
+Source: Product-specified table on #2093 dated 2026-09-20. No date below is inferred from labels or chat. Derived windows use only those anchors.
+
+**Publication:** PMO / Issue / this contract only. Not D1 `events`. Not `/api/events/*`. Not the Fan Club Events Calendar.
+
+| Date / window | Event | Taxonomy class | Owner | Evidence class |
+| --- | --- | --- | --- | --- |
+| 2026-12-31 | Final Go/No-Go decision | Deployment / Day-2 (decision gate) | Bill | Recorded GO, NO-GO, HOLD, or ADJUSTMENT on #2093 |
+| 2026-12-31 | Repository and website change freeze begins, assuming Go | Content freeze | Bill declares; Bill approves emergency changes | Freeze declaration on #2093; exception log |
+| 2027-01-01 | Website LIVE in Production; launch announcements on social platforms | Website completion; Announcement | Bill for Go; Operations for smoke; #2039/#1700 for announcement mechanism | Separate Production Go and announcement authorization; this row is not itself that Go |
+| 2027-02-01 | Fundraiser “coming soon” announcement; participant registration opens | Fundraiser readiness; Announcement | Bill; #1700 | Product-approved copy and channel list |
+| 2027-02-01 → 2027-03-01 | Daily “Fundraiser Details” posts (homepage-linked page, newest first); each day’s post also to every LGFC social platform | Fundraiser readiness; Announcement | Bill; #1700/#2039 | 10:00 AM website-then-social auto-publish remains a #1700/#2039 flag, not this contract’s runtime |
+| 2027-02-15 | Repeat call-to-action: join the fundraiser as a participant | Announcement | Bill; #1700 | Authorization record |
+| 2027-03-01 | Repeat call-to-action: join as a participant (also last day of daily Fundraiser Details posts) | Announcement | Bill; #1700 | Authorization record |
+| 2027-03-25 | Fundraiser launches (donations open); coincides with MLB Opening Day | Fundraiser readiness | Bill; #1700 | Donation-window boundaries; no unapproved sponsor claim |
+| 2027-03-25 → 2027-06-02 | Daily leaderboard and progress toward $10,000 total donation goal on LGFC.com and social | Fundraiser readiness; Day-2 monitoring | Bill; Operations; #1700 | Daily status vocabulary after #3866 handoff |
+| 2027-06-02, 9:00 PM | Lou Gehrig Day evening closeout: close fundraiser → determine winners → publish final report on LGFC.com → announce on social with URL → thank-you messages | Lou Gehrig Day; Announcement | Bill; #2084; #1700 | Annual instance and rehearsal; this PMO closeout time is not a new public `events` row |
+
+The public Fan Club Events Calendar may independently show **Lou Gehrig Day 2027-06-02** from the #2084/#2859 seed. That posted event is not publication of this PMO table.
+
+A date not in this table is rejected until Product records a replacement revision on #2093.
 
 ## Protected stops
 
-Stop and escalate to Product when any of the following is true: missing or disputed Product date; invented public date; unapproved announcement; unresolved rights or privacy; sponsor, donor, or fundraiser commitment beyond #2093; paid service or new credential; Production mutation from this package; failed rollback rehearsal; active numbered Operations interrupt; using a taxonomy row without owner or evidence as a public date.
+Stop and escalate to Product when any of the following is true: missing or disputed Product date; invented public date; seeding this table into D1 `events`; unapproved announcement; unresolved rights or privacy; sponsor, donor, or fundraiser commitment beyond #2093; paid service or new credential; Production mutation from this package; failed rollback rehearsal; active numbered Operations interrupt; using a taxonomy row without owner or evidence as a public date.

@@ -2,8 +2,8 @@
 Doc Type: AS-BUILT
 Audience: Product Authority, PMO, Operations, editors, and implementation agents
 Authority Level: Operational Implementation Record
-Owns: Delivered #2093-001 / #3861 taxonomy evidence — identities, files, and current child-graph state
-Does Not Own: Absolute calendar generation; source-program integration; Go/No-Go packet; tabletop rehearsal; freeze/reporting handoff; public launch; Production mutation
+Owns: Delivered #2093-001 / #3861 taxonomy and #2093-002 / #3862 calendar-of-record evidence
+Does Not Own: Source-program integration; Go/No-Go packet; tabletop rehearsal; freeze/reporting handoff; public events calendar rows; Production mutation
 Canonical Reference: /docs/reference/operations/2027-launch-calendar-operating-contract.md
 Related Issues: #2093, #3861, #3862, #3863, #3864, #3865, #3866, #1700, #2039, #2084, #2782, #2089
 Last Reviewed: 2026-09-23
@@ -13,31 +13,32 @@ Last Reviewed: 2026-09-23
 
 ## Purpose
 
-Record what child [#3861](https://github.com/wdhunter465/next-starter-template/issues/3861) delivered after Product Graduation GO on 2026-09-23. This is documentation implementation. It is not website, fundraiser, or announcement Go.
+Record what children [#3861](https://github.com/wdhunter465/next-starter-template/issues/3861) and [#3862](https://github.com/wdhunter465/next-starter-template/issues/3862) delivered after Product Graduation GO on 2026-09-23. This is PMO documentation. It is not website, fundraiser, or announcement Go.
 
 ## Scope
 
-In scope: delivered milestone taxonomy, owners, evidence types, sequence, and freeze/exception rules for parent #2093.
+In scope: taxonomy plus the Product 2026-09-20 absolute calendar of record, including the 2026-09-23 rule that these dates stay PMO-administrative.
 
-Out of scope: new public dates; #3862–#3866 deliverables until those children land; Production mutation; paid tools; credentials.
+Out of scope: D1 `events` / public Fan Club Events Calendar; #3863–#3866 until those children land; Production mutation.
 
 ## Current known truth
 
 - Parent #2093 is OPEN, Active, `pmo:priority:1`, implementation owner Cursor Local.
-- Starting target SHA for #3861: `02e093a781cd286131a570278ce54fe8959ed89a` (`origin/main` after PR #4347).
-- Product-approved 2026-09-20 anchors remain on #2093. This child did not invent dates.
-- Children #3862–#3866 remain OPEN. Their outputs are not claimed complete here.
+- #3861 merged on `main` as PR #4348 (`7752c3e1f6394ce865b36c8e468413a68e75955e`).
+- Starting target SHA for #3862: `7752c3e1f6394ce865b36c8e468413a68e75955e`.
+- Calendar rows match the Product 2026-09-20 anchors on #2093. No new public date was created.
+- Product 2026-09-23: do not publish #2093 dates on the public calendar.
 - #2089 remains OPEN as an evidence-model gap for later Production Go.
 
 ## Intended final state
 
-Operators classify every 2027 launch-window row against the taxonomy before treating it as a public date. Absolute calendar, integration, packet, rehearsal, and freeze handoff follow in #3862–#3866.
+PMO operators use the contract table as the calendar of record. Public website events remain a separate Product publication surface.
 
 ## Record identity
 
 - Project Issue: #2093
-- Child Issue: #3861 (task #2093-001)
-- Successor: #3862
+- Children: #3861, #3862
+- Successor: #3863
 - Product Authority: Bill
 - Implementer: Cursor Local
 - Independent reviewer: not this implementer
@@ -47,30 +48,25 @@ Operators classify every 2027 launch-window row against the taxonomy before trea
 
 | Child | Deliverable |
 | --- | --- |
-| #3861 | `docs/reference/operations/2027-launch-calendar-operating-contract.md` taxonomy, owners, evidence, sequence, freeze/exception rules |
-| #3862 | not delivered |
-| #3863 | not delivered |
-| #3864 | not delivered |
-| #3865 | not delivered |
-| #3866 | not delivered |
-
-## Taxonomy coverage
-
-The operating contract includes owner and evidence for website, fundraiser, Lou Gehrig Day, freeze, rehearsal, deployment, rollback, announcement, and Day-2 classes. A row without owner or evidence is rejected.
+| #3861 | Taxonomy, owners, evidence, sequence, freeze/exception rules |
+| #3862 | Absolute calendar of record; PMO-only publication rule |
+| #3863 | remaining |
+| #3864 | remaining |
+| #3865 | remaining |
+| #3866 | remaining |
 
 ## Final repository surfaces
 
 | Surface | Result |
 | --- | --- |
 | Routes / APIs / workflows | Unchanged |
-| D1 / B2 / credentials | Unchanged |
+| D1 `events` | Unchanged (no #2093 seed) |
 | Website copy | Unchanged |
-| Public dates | Unchanged; still Product-owned on #2093 |
 
 ## Rollback
 
-Revert the #3861 docs PR or restore the previous Issue revision. Do not change Production or public dates.
+Revert the #3862 docs PR. Restore the last Product-approved calendar revision on #2093. Do not roll back unrelated technical work.
 
 ## Next recommended action
 
-Independent review and merge of the #3861 PR, then execute #3862 (record Product anchors and generate the absolute calendar).
+Independent review of the #3862 PR, then #3863 (integrate source-program milestones onto this calendar).
