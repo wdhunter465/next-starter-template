@@ -305,5 +305,15 @@ describe("#4344 friends list surfaces", () => {
       "They Played In Color",
     ]);
   });
+
+  it("treats a non-numeric limit as the default 40 and still returns friends", async () => {
+    const response = await getFriends({
+      env: { DB: friendsDb() },
+      request: createRequest("/api/friends/list?limit=abc"),
+    });
+    expect(response.status).toBe(200);
+    const body = await response.json();
+    expect(body.items.length).toBe(catalog.length);
+  });
 });
 

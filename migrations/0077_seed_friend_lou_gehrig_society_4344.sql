@@ -14,7 +14,7 @@ WHERE NOT EXISTS (
   WHERE url IN (
     'https://www.thelougehrigsociety.org/',
     'https://www.thelougehrigsociety.org',
-    'https://theloungehrigsociety.org/',
-    'https://theloungehrigsociety.org'
+    'https://thelougehrigsociety.org/',
+    'https://thelougehrigsociety.org'
   )
 );

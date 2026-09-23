@@ -78,7 +78,10 @@ export const onRequestGet = async (context: any): Promise<Response> => {
     const url = new URL(request.url);
     const kind = (url.searchParams.get("kind") || "").trim();
     const surface = (url.searchParams.get("surface") || "").trim();
-    const limit = Math.max(1, Math.min(100, Number(url.searchParams.get("limit") || "40")));
+    const parsedLimit = Number(url.searchParams.get("limit") || "40");
+    const limit = Number.isFinite(parsedLimit) ? Math.max(1, Math.min(100, Math.trunc(parsedLimit))) : 40;
+    const usesEditorialSurface = surface === "homepage" || surface === "club-home";
+    const fetchLimit = usesEditorialSurface ? 100 : limit;
 
     let sql = "SELECT id, name, kind, blurb, url, photo_url FROM friends WHERE status='posted'";
     const args: any[] = [];
@@ -87,7 +90,7 @@ export const onRequestGet = async (context: any): Promise<Response> => {
       args.push(kind);
     }
     sql += " ORDER BY name ASC LIMIT ?";
-    args.push(100);
+    args.push(fetchLimit);
 
     const rows = await d1.db.prepare(sql).bind(...args).all();
     const mapped = ((rows.results ?? []) as Array<Record<string, unknown>>).map((row) => ({
