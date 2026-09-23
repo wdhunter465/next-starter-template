@@ -16,14 +16,14 @@ describe('resolveGaMeasurementId (#4350)', () => {
     expect(PRODUCTION_GA_MEASUREMENT_ID).toBe('G-BRV48J1VEJ');
   });
 
-  it('honors an explicit Production env override on main', () => {
+  it('ignores a truncated or other Cloudflare env id on main', () => {
     expect(
       resolveGaMeasurementId({
         CF_PAGES: '1',
         CF_PAGES_BRANCH: 'main',
-        NEXT_PUBLIC_GA_ID: 'G-OVERRIDE1',
+        NEXT_PUBLIC_GA_ID: 'G-BRV48J1VE',
       }),
-    ).toBe('G-OVERRIDE1');
+    ).toBe(PRODUCTION_GA_MEASUREMENT_ID);
   });
 
   it('never emits an id on Preview Pages branches', () => {
