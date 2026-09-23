@@ -37,7 +37,7 @@ Out of scope: redesign, Production remediation, design-doc rewrites, design arch
 | D1 binding | Production `DB` → `lgfc_lite`; Preview/Dev `DB` → `lgfc-litedev` (#3357) |
 | Health | `GET /api/health` returned `{"ok":true,"db_ok":true}` |
 | Media | Photo URLs observed on Backblaze B2 (`s3.us-east-005.backblazeb2.com/LouGehrigFanClub/...`) |
-| Analytics | GA4 measurement ID / gtag identifier `G-BRV48J1VE` present in Production HTML |
+| Analytics | GA4 Measurement ID `G-BRV48J1VEJ` on Production `main` builds; gtag loads only after Accept (#4350). Preview builds omit the id. |
 
 ## Intended final state
 
