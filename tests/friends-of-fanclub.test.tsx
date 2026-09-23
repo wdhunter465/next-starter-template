@@ -50,6 +50,16 @@ describe('FriendsOfFanClub', () => {
     });
 
     expect(screen.getByRole('heading', { name: 'ALS Cure Project' })).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'The Lou Gehrig Society' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'LouGehrig.com' })).not.toBeInTheDocument();
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
+  });
+
+  it('requests the homepage friends surface so LouGehrig.com is not a homepage Friend', async () => {
+    mockedApiGet.mockResolvedValue({ ok: true, items: [] } as never);
+    render(<FriendsOfFanClub />);
+    await waitFor(() => {
+      expect(mockedApiGet).toHaveBeenCalledWith('/api/friends/list?surface=homepage');
+    });
   });
 });

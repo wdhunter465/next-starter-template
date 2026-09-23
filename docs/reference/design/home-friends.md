@@ -1,11 +1,12 @@
 ---
-Doc Type: Specification
+Doc Type: Reference
 Audience: Human + AI
 Authority Level: Canonical Design Specification
 Owns: Homepage Friends section contract and integration expectations
 Does Not Own: Partner onboarding process; third-party legal approvals
 Canonical Reference: /docs/reference/design/home.md
-Last Reviewed: 2026-03-27
+Related issues: #4344, #2859
+Last Reviewed: 2026-09-23
 ---
 
 # Homepage Section Spec — Friends of the Fan Club
@@ -23,8 +24,9 @@ Define the Friends section on `/` that highlights partner/supporter entities.
 - Styling owner: `src/components/FriendsOfFanClub.module.css`
 
 ## Data Dependencies
-- Reads friend entries from site data/API used by `FriendsOfFanClub`.
-- Must render a deterministic loading and empty fallback state.
+- Reads posted `friends` rows from `GET /api/friends/list?surface=homepage`.
+- Homepage surface omits LouGehrig.com and places The Lou Gehrig Society (`https://www.thelougehrigsociety.org/`) in that partner slot (#4344).
+- Must render a deterministic loading and empty fallback state. Static fallback matches the homepage replacement (Society present; LouGehrig.com absent).
 
 ## Auth / Access Expectations
 - Publicly visible.
@@ -32,4 +34,4 @@ Define the Friends section on `/` that highlights partner/supporter entities.
 
 ## Key UX / Behavior Notes
 - Section title is fixed: “Friends of the Fan Club”.
-- Cards/entries should remain scannable and consistent with homepage spacing rhythm.
+- Cards/entries remain scannable and consistent with homepage spacing rhythm.
