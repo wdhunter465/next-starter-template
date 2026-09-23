@@ -41,8 +41,17 @@ export function getSocialFallbackPlatforms(): SocialFallbackPlatform[] {
   return SOCIAL_FALLBACK_PLATFORMS.map((platform) => ({ ...platform }));
 }
 
+function elementLooksRendered(node: Element): boolean {
+  if (node.tagName === 'IFRAME' || node.tagName === 'IMG' || node.tagName === 'A') return true;
+  if (node.childElementCount > 0) return true;
+  const host = node as HTMLElement;
+  if (host.clientHeight >= 80 || host.scrollHeight >= 80) return true;
+  const shadow = host.shadowRoot;
+  return Boolean(shadow && shadow.childElementCount > 0);
+}
+
 export function hasRenderedSocialWidget(root: ParentNode = document): boolean {
   const widget = root.querySelector(`.${SOCIAL_WALL_WIDGET_ID}`);
   if (!widget) return false;
-  return Boolean(widget.querySelector('iframe') || widget.childElementCount > 0);
+  return elementLooksRendered(widget);
 }

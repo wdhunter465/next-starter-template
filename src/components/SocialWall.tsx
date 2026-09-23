@@ -10,8 +10,8 @@ import {
 import styles from './social-wall.module.css';
 
 const PLATFORM_SRC = 'https://elfsightcdn.com/platform.js';
-const LOAD_TIMEOUT_MS = 8000;
-const RENDER_CHECK_DELAY_MS = 3000;
+const FAIL_AFTER_MS = 15000;
+const POLL_MS = 500;
 
 declare global {
   interface Window {
@@ -27,33 +27,48 @@ export default function SocialWall() {
 
   useEffect(() => {
     let cancelled = false;
-    let timeoutId: ReturnType<typeof setTimeout> | null = null;
-    let renderCheckId: ReturnType<typeof setTimeout> | null = null;
+    let pollId: ReturnType<typeof setTimeout> | null = null;
+    let failId: ReturnType<typeof setTimeout> | null = null;
+
+    const clearTimers = () => {
+      if (pollId) clearTimeout(pollId);
+      if (failId) clearTimeout(failId);
+      pollId = null;
+      failId = null;
+    };
+
+    const markReady = () => {
+      if (cancelled) return;
+      clearTimers();
+      setStatus('ready');
+    };
+
+    const markError = () => {
+      if (cancelled) return;
+      if (hasRenderedSocialWidget()) {
+        markReady();
+        return;
+      }
+      setStatus('error');
+    };
+
+    const pollForRender = () => {
+      if (cancelled) return;
+      if (hasRenderedSocialWidget()) {
+        markReady();
+        return;
+      }
+      if (pollId) clearTimeout(pollId);
+      pollId = setTimeout(pollForRender, POLL_MS);
+    };
 
     const existingScript = document.querySelector<HTMLScriptElement>(
       `script[src="${PLATFORM_SRC}"]`,
     );
 
-    const markError = () => {
-      if (cancelled) return;
-      if (timeoutId) clearTimeout(timeoutId);
-      if (renderCheckId) clearTimeout(renderCheckId);
-      setStatus('error');
-    };
-
-    const verifyWidgetRendered = () => {
-      if (cancelled) return;
-      if (!hasRenderedSocialWidget()) {
-        markError();
-      }
-    };
-
     const init = () => {
       if (cancelled) return;
-      if (timeoutId) clearTimeout(timeoutId);
       window.elfsight?.reload?.();
-      setStatus('ready');
-      renderCheckId = setTimeout(verifyWidgetRendered, RENDER_CHECK_DELAY_MS);
     };
 
     if (!existingScript) {
@@ -70,16 +85,16 @@ export default function SocialWall() {
       existingScript.addEventListener('error', markError, { once: true });
     }
 
-    timeoutId = setTimeout(markError, LOAD_TIMEOUT_MS);
+    failId = setTimeout(markError, FAIL_AFTER_MS);
+    pollForRender();
 
     return () => {
       cancelled = true;
-      if (timeoutId) clearTimeout(timeoutId);
-      if (renderCheckId) clearTimeout(renderCheckId);
+      clearTimers();
     };
   }, []);
 
-  const showFallback = status === 'error';
+  const showFallback = status === 'error' && !hasRenderedSocialWidget();
 
   return (
     <section id="social-wall" className={styles.section}>
