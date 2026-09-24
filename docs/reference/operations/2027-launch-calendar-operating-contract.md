@@ -143,9 +143,9 @@ Source: #2093 launch-package “Validation and acceptance” plus parent accepta
 | Date-driven launch calendar exists | Calendar of record | pass | Calendar of record section; Product 2026-09-20 table on #2093 | none |
 | Dependencies listed with owners | Integration matrix | pass | Integrated source-program milestones (#3863) | none |
 | Final Go/No-Go criteria are explicit | This packet | pass | This section | none |
-| Content freeze window is defined | Freeze | pass as definition; freeze itself not-ready | Calendar row 2026-12-31 freeze; freeze packet row | none |
-| Smoke-test window is defined | Website / Production | pass as definition; smoke itself not-ready | Website completion class; 2027-01-01 live claim | none |
-| Public announcement timing is controlled | Announcement authorization | pass as rule; authorization itself not-ready | Announcement class; calendar announcement rows | none |
+| Content freeze window is defined | Freeze | pass | Calendar row 2026-12-31 defines the window. Freeze declaration itself is the Freeze named row below (not-ready). | none |
+| Smoke-test window is defined | Website / Production | pass | 2027-01-01 live claim is the smoke window. Smoke result itself is the Website / Production named row below (not-ready). | none |
+| Public announcement timing is controlled | Announcement authorization | pass | Calendar announcement rows define timing. Per-window authorization itself is the Announcement named row below (not-ready). | none |
 | Every milestone has owner, source Issue, dependency, window, evidence, fallback | Integration matrix | pass | #3863 matrix | none |
 | No date inferred from labels or chat | Calendar of record | pass | Publication rule; rejected-date rule | none |
 | Calendar math is deterministic from approved anchors | Calendar of record | pass | Product 2026-09-20 anchors only | none |
@@ -156,9 +156,9 @@ Source: #2093 launch-package “Validation and acceptance” plus parent accepta
 | Go requires rights/privacy evidence | Rights / privacy | not-ready | Stop if unresolved; #2084 instance rights/privacy | none |
 | Go requires communications evidence | Communications | not-ready | Channel list; #1700/#2039 flag only | none |
 | Go requires Operations evidence | Operations | not-ready | Smoke, window health, Day-2 capture; #3866 vocabulary after handoff | none |
-| Waivers name authority, scope, expiry, residual risk | Waiver register | pass as rule; no active waiver | Waiver register below | none |
-| No-Go preserves rollback and communications-hold | Rollback; communications hold | pass as rule | Rollback class; announcement stop | none |
-| Public announcement cannot precede Product authorization | Announcement authorization | pass as rule | Announcement class | none |
+| Waivers name authority, scope, expiry, residual risk | Waiver register | pass | Waiver register below requires all four fields; no active waiver | none |
+| No-Go preserves rollback and communications-hold | Rollback; communications hold | pass | Rollback class and announcement stop; no live rollback executed | none |
+| Public announcement cannot precede Product authorization | Announcement authorization | pass | Announcement class forbids pre-Go public post | none |
 | Daily reporting uses blocked / at risk / ready / go / no-go / deployed / verified / monitoring | Operations (Day-2 vocabulary) | not-ready | #3866 handoff | none |
 
 ### Required evidence classes (#3864 named rows)
