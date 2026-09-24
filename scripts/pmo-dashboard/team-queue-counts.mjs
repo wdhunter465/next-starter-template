@@ -49,7 +49,8 @@ export function classifyTeamQueue(issue) {
 }
 
 function issueSearchUrl(owner, repo, queue) {
-  const query = ['is:open'];
+  // is:issue excludes pull requests so the link matches classifyTeamQueue (which omits PRs).
+  const query = ['is:open', 'is:issue'];
   if (queue.id === 'operations') {
     // Operations row includes exclusive team:operations owners and escalated PR/closeout work.
     query.push(`label:${queue.teamLabel},ops-pr-escalation`);

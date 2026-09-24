@@ -77,21 +77,25 @@ assert(counts.queues.map((queue) => queue.count).join(',') === '4,1,1', 'team ex
 assert(counts.pmoOrder.join(',') === 'pmoTracked,pmoPipeline,pmoActive', 'pmo row order');
 assert(counts.pmoQueues.map((queue) => queue.title).join(',') === 'PMO tracked,PMO Pipeline,PMO Active', 'pmo display titles');
 assert(counts.pmoQueues.map((queue) => queue.count).join(',') === '4,3,1', 'pmo parent counts: tracked = pipeline + active');
+
+const expectedOpsQuery = encodeURIComponent('is:open is:issue label:team:operations,ops-pr-escalation');
 assert(
   counts.queues[0].issueSearchUrl ===
-    'https://github.com/wdhunter465/next-starter-template/issues?q=is%3Aopen%20label%3Ateam%3Aoperations%2Cops-pr-escalation',
-  'operations search URL includes ops-pr-escalation'
+    `https://github.com/wdhunter465/next-starter-template/issues?q=${expectedOpsQuery}`,
+  'operations search URL includes ops-pr-escalation and is:issue'
 );
 assert(
   counts.pmoQueues[2].issueSearchUrl.includes('label%3Apmo%3Aactive') &&
     counts.pmoQueues[2].issueSearchUrl.includes('label%3Apmo%3Aparent') &&
-    counts.pmoQueues[2].issueSearchUrl.includes('-label%3Apmo%3Atask'),
-  'pmo active search includes parent, lifecycle, and omits tasks'
+    counts.pmoQueues[2].issueSearchUrl.includes('-label%3Apmo%3Atask') &&
+    counts.pmoQueues[2].issueSearchUrl.includes('is%3Aissue'),
+  'pmo active search includes parent, lifecycle, is:issue, and omits tasks'
 );
 assert(
   counts.pmoQueues[0].issueSearchUrl.includes('label%3Apmo%3Aparent') &&
-    counts.pmoQueues[0].issueSearchUrl.includes('-label%3Apmo%3Atask'),
-  'pmo tracked search includes parent and omits tasks'
+    counts.pmoQueues[0].issueSearchUrl.includes('-label%3Apmo%3Atask') &&
+    counts.pmoQueues[0].issueSearchUrl.includes('is%3Aissue'),
+  'pmo tracked search includes parent, is:issue, and omits tasks'
 );
 
 console.log('team-queue count contract passed');
