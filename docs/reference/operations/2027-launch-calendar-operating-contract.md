@@ -24,7 +24,7 @@ Out of scope: choosing new protected dates; seeding D1 `events` or the public Fa
 ## Current known truth
 
 - Product recorded Project Graduation **GO** for parent #2093 on 2026-09-23. Implementation owner is Cursor Local.
-- Child #3861 (PR #4348) delivered the taxonomy. Child #3862 (PR #4352) delivered the calendar of record. Child #3863 (PR #4354, `daf7d7f228fe16e6fd71985035add433fb9e9fd1`) delivered the integration matrix. Child #3864 adds the Go/No-Go evidence packet. The packet does not declare Go.
+- Child #3861 (PR #4348) delivered the taxonomy. Child #3862 (PR #4352) delivered the calendar of record. Child #3863 (PR #4354) delivered the integration matrix. Child #3864 (PR #4357, `213b3255`) delivered the Go/No-Go evidence packet. Child #3865 records the tabletop rehearsal in `docs/ops/as-built/2027-launch-calendar-rehearsal.md`. The packet and this rehearsal do not declare Go.
 - Product 2026-09-23: **#2093 dates are administrative for PMO only. Do not publish them on the public Fan Club Events Calendar.**
 - This calendar coordinates source programs. **No row in this contract grants Production Go or announcement Go.**
 - 10:00 AM website-then-social auto-publish remains a #1700/#2039 mechanism flag, not this contract's runtime.
@@ -173,7 +173,7 @@ Source: #2093 launch-package “Validation and acceptance” plus parent accepta
 | Operations | Operations | not-ready | Window-health owner named; smoke owner named; incident/rollback owner named | Absence of Go is a stop |
 | Freeze | Bill declares | not-ready | Declaration on #2093; emergency-change owner is Bill | Do not start freeze from this packet |
 | Announcement authorization | Bill | not-ready | Per-window authorization on #2093 | No pre-Go public post |
-| Rehearsal (#3865 input) | Operations executes; PMO records | not-ready | Tabletop covering delay, No-Go, rollback, communications-hold | Failed or missing rehearsal is a stop; do not fabricate |
+| Rehearsal (#3865 input) | Operations executes; PMO records | pass | `docs/ops/as-built/2027-launch-calendar-rehearsal.md` — delay, No-Go, rollback/cancellation, communications-hold tabletop 2026-09-24; no live send | Failed or missing rehearsal is a stop; this pass is not calendar Go |
 
 ### Waiver register
 
