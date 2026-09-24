@@ -2,7 +2,7 @@
 Doc Type: Reference
 Audience: Product Authority, Operations, PMO, editors, and implementation agents
 Authority Level: Controlled
-Owns: Durable 2027 launch-calendar taxonomy, Product-approved calendar of record, integrated source-program milestone matrix, and 2026-12-31 Go/No-Go evidence packet for parent #2093
+Owns: Durable 2027 launch-calendar taxonomy, Product-approved calendar of record, integrated source-program milestone matrix, 2026-12-31 Go/No-Go evidence packet, tabletop rehearsal record, and freeze/reporting handoff for parent #2093
 Does Not Own: Inventing public dates; publishing this calendar on the public website events calendar; website or fundraiser launch; public announcements; Production mutation; paid services; credentials; replacing source-project acceptance on #1700, #2039, #2084, or #2782
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
 Related Issues: #2093, #3861, #3862, #3863, #3864, #3865, #3866, #1700, #2039, #2084, #2782, #2089
@@ -24,7 +24,7 @@ Out of scope: choosing new protected dates; seeding D1 `events` or the public Fa
 ## Current known truth
 
 - Product recorded Project Graduation **GO** for parent #2093 on 2026-09-23. Implementation owner is Cursor Local.
-- Child #3861 (PR #4348) delivered the taxonomy. Child #3862 (PR #4352) delivered the calendar of record. Child #3863 (PR #4354) delivered the integration matrix. Child #3864 (PR #4357) delivered the Go/No-Go evidence packet. Child #3865 (PR #4363, `03412d374b482fa5d70c42a867dc2a0af243cd3d`) delivered the tabletop. Child #3866 records freeze and daily reporting handoff. None of these children declare calendar Go, Production Go, or announcement Go.
+- Child #3861 (PR #4348) delivered the taxonomy. Child #3862 (PR #4352) delivered the calendar of record. Child #3863 (PR #4354) delivered the integration matrix. Child #3864 (PR #4357) delivered the Go/No-Go evidence packet. Child #3865 (PR #4363, `03412d374b482fa5d70c42a867dc2a0af243cd3d`) delivered the tabletop. Child #3866 (PR #4364, `58d92f1a2e08dc933ecbdb9b03a3e322fb2cacd6`) delivered freeze and daily reporting handoff. None of these children declare calendar Go, Production Go, or announcement Go.
 - #3234 hold is not a reason to skip Product Graduation or this freeze handoff.
 - Product 2026-09-23: **#2093 dates are administrative for PMO only. Do not publish them on the public Fan Club Events Calendar.**
 - This calendar coordinates source programs. **No row in this contract grants Production Go or announcement Go.**
