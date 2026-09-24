@@ -6,7 +6,7 @@ Owns: Operator procedure for Lou Gehrig Day T-minus/T-plus calendar interfaces, 
 Does Not Own: Product publication Go; public copy; automatic posting; new website routes; Production mutation
 Canonical Reference: /docs/reference/operations/annual-lou-gehrig-day-operating-contract.md
 Related Issues: #2084, #3857, #2093
-Last Reviewed: 2026-09-21
+Last Reviewed: 2026-09-24
 ---
 
 # Run the annual Lou Gehrig Day operations package
@@ -93,6 +93,10 @@ Do not call scheduled-content publish, Zapier, or D1 apply during this how-to.
 ## Evidence retention
 
 Keep the instance, rehearsal, and evidence report in `docs/ops/as-built/` and the how-to template. Do not put secrets, donor personal data, or unapproved partner terms in those files.
+
+## Launch-window reporting (parent #2093)
+
+Daily PMO launch-window status for the 2027 integrated calendar uses the vocabulary in `docs/reference/operations/2027-launch-calendar-operating-contract.md` (#3866): blocked / at risk / ready / go / no-go / deployed / verified / monitoring. Record those states on #2093. They are not Lou Gehrig Day publication Go and are not a website deploy.
 
 ## Steps (live year)
 
