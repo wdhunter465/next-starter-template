@@ -2,7 +2,7 @@
 Doc Type: Reference
 Audience: Product Authority, Operations, PMO, editors, and implementation agents
 Authority Level: Controlled
-Owns: Durable 2027 launch-calendar milestone taxonomy and the Product-approved absolute calendar of record for parent #2093
+Owns: Durable 2027 launch-calendar taxonomy, Product-approved calendar of record, and integrated source-program milestone matrix for parent #2093
 Does Not Own: Inventing public dates; publishing this calendar on the public website events calendar; website or fundraiser launch; public announcements; Production mutation; paid services; credentials; replacing source-project acceptance on #1700, #2039, #2084, or #2782
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
 Related Issues: #2093, #3861, #3862, #3863, #3864, #3865, #3866, #1700, #2039, #2084, #2782, #2089
@@ -17,17 +17,18 @@ Define the durable milestone taxonomy and the Product-approved absolute calendar
 
 ## Scope
 
-In scope: milestone classes for website, fundraiser, Lou Gehrig Day, freeze, rehearsal, deployment, rollback, announcement, and Day-2 monitoring; owner roles; source-Issue families; required evidence; predecessor/successor relations; freeze and exception rules; the absolute calendar generated from Product 2026-09-20 anchors.
+In scope: milestone classes; owner roles; source-Issue families; required evidence; predecessor/successor relations; freeze and exception rules; the absolute calendar generated from Product 2026-09-20 anchors; the #3863 source-program integration matrix.
 
 Out of scope: choosing new protected dates; seeding D1 `events` or the public Fan Club Events Calendar; launching the website or fundraiser; publishing announcements; Production writes; purchasing services; credentials.
 
 ## Current known truth
 
 - Product recorded Project Graduation **GO** for parent #2093 on 2026-09-23. Implementation owner is Cursor Local.
-- Child #3861 (PR #4348) delivered the taxonomy. Child #3862 records the absolute calendar from Product 2026-09-20 anchors only.
+- Child #3861 (PR #4348) delivered the taxonomy. Child #3862 (PR #4352, `34cfb0e3e8889ce4f43e8e3e60cdaf32217e4927`) delivered the calendar of record. Child #3863 adds the source-program integration matrix.
 - Product 2026-09-23: **#2093 dates are administrative for PMO only. Do not publish them on the public Fan Club Events Calendar.**
-- This calendar coordinates source programs. It does not grant their implementation or Production Go.
-- #2089 remains OPEN as a Production-release evidence-model gap. It is not a date inventor.
+- This calendar coordinates source programs. **No row in this contract grants Production Go or announcement Go.**
+- 10:00 AM website-then-social auto-publish remains a #1700/#2039 mechanism flag, not this contract's runtime.
+- #2089 remains OPEN as a Production-release evidence-model gap. It is not a date inventor and is not a silent calendar rewrite.
 
 ## Intended final state
 
@@ -106,6 +107,26 @@ Source: Product-specified table on #2093 dated 2026-09-20. No date below is infe
 The public Fan Club Events Calendar may independently show **Lou Gehrig Day 2027-06-02** from the #2084/#2859 seed. That posted event is not publication of this PMO table.
 
 A date not in this table is rejected until Product records a replacement revision on #2093.
+
+## Integrated source-program milestones (#3863)
+
+Each row is PMO coordination only. A row that would grant Production or announcement Go is rejected. Fallback never invents a public date.
+
+| Milestone | Owner | Source Issue | Depends on | Due window | Evidence | Fallback |
+| --- | --- | --- | --- | --- | --- | --- |
+| Website completion for 2027-01-01 live claim | Bill for Go; Operations for smoke | #2039 / #1685 | Freeze declared or Product waiver; #2782 deployment evidence | 2026-12-31 freeze through 2027-01-01 | Production-ready website evidence; smoke; no open protected stop | Slip visible on #2093; do not move the public live date |
+| Fundraiser readiness for coming-soon and launch | Bill; Operations | #1700 | Website homepage-linked surfaces if used; Product copy | 2027-02-01 coming-soon; 2027-03-25 launch | Registration/launch packet; donation-window boundaries | Hold the PMO row; do not open donations early |
+| Annual Lou Gehrig Day package | Bill for copy; Operations for checklist | #2084 | Fundraiser closeout coupling; June 2 public event remains #2084/#2859 | 2027-06-02 (day); 2027-06-02, 9:00 PM PMO closeout | Annual instance; rehearsal; rights/privacy | Keep June 2 public event; do not add PMO closeout to D1 `events` |
+| Content freeze | Bill declares | #2093; #2039/#1700 content owners | Rehearsal complete or Product waiver | 2026-12-31 assuming Go | Freeze declaration; exception log | Missing freeze is a stop, not a guessed date |
+| Communications / auto-publish flag | Bill authorizes; #1700/#2039 own mechanism | #1700; #2039 | Product announcement Go per window | 10:00 AM on each Product-authorized announcement day | Channel list; authorization record | Flag only; this child does not implement cron or Zapier |
+| Rehearsal | Operations executes; PMO records | #2093 / #3865; #2084 pattern | Taxonomy + calendar of record | Before freeze declaration | Tabletop covering delay, No-Go, rollback, communications-hold | Failed rehearsal is a stop; no live sends |
+| Deployment identity | Bill for Production Go; Operations execute | #2782 | Freeze; rehearsal; #2089 when Production Go is claimed | Before 2027-01-01 live claim | Deployment identity; smoke; rollback path | This matrix does not authorize Production |
+| Rollback / cancellation | Operations execute; Bill decides | #2782; website takedown how-to; #2093 No-Go | Any class that reached public or Production state | As directed on No-Go | Restore evidence; communications-hold | Schedule rollback does not unwind completed technical work |
+| Announcement authorization | Bill | #2093; channels via #1700/#2039 | Product Go for that window | Each calendar announcement row | Authorization on #2093 | No pre-Go public post |
+| Day-2 monitoring | Operations; PMO records vocabulary | #2093 / #3866 | Deployment or announcement as applicable | 2027-01-01 onward as Go allows | blocked / at risk / ready / go / no-go / deployed / verified / monitoring | Absence of Go is a stop |
+| #2089 evidence model | Engineering / #2089 owner | #2089 | Required before claiming Production Go | Before any Production Go claim | Evidence-ownership model | Do not rewrite calendar dates to paper over the gap |
+
+Dependency order for PMO reporting: website and freeze before 2027-01-01 live claim; fundraiser before 2027-03-25 launch; #2084 before 2027-06-02 closeout; rehearsal before freeze; #2782 and #2089 before Production Go; announcement only after Product authorization.
 
 ## Protected stops
 
