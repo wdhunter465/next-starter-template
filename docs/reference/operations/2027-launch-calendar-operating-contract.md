@@ -17,14 +17,15 @@ Define the durable milestone taxonomy and the Product-approved absolute calendar
 
 ## Scope
 
-In scope: milestone classes; owner roles; source-Issue families; required evidence; predecessor/successor relations; freeze and exception rules; the absolute calendar generated from Product 2026-09-20 anchors; the #3863 source-program integration matrix; the #3864 Go/No-Go evidence packet (pass / fail / waiver / not-ready only).
+In scope: milestone classes; owner roles; source-Issue families; required evidence; predecessor/successor relations; freeze and exception rules; the absolute calendar generated from Product 2026-09-20 anchors; the #3863 source-program integration matrix; the #3864 Go/No-Go evidence packet (pass / fail / waiver / not-ready only); the #3865 tabletop; the #3866 freeze and launch-window reporting handoff.
 
 Out of scope: choosing new protected dates; seeding D1 `events` or the public Fan Club Events Calendar; launching the website or fundraiser; publishing announcements; Production writes; purchasing services; credentials.
 
 ## Current known truth
 
 - Product recorded Project Graduation **GO** for parent #2093 on 2026-09-23. Implementation owner is Cursor Local.
-- Child #3861 (PR #4348) delivered the taxonomy. Child #3862 (PR #4352) delivered the calendar of record. Child #3863 (PR #4354) delivered the integration matrix. Child #3864 (PR #4357, `213b3255`) delivered the Go/No-Go evidence packet. Child #3865 records the tabletop rehearsal in `docs/ops/as-built/2027-launch-calendar-rehearsal.md`. The packet and this rehearsal do not declare Go.
+- Child #3861 (PR #4348) delivered the taxonomy. Child #3862 (PR #4352) delivered the calendar of record. Child #3863 (PR #4354) delivered the integration matrix. Child #3864 (PR #4357) delivered the Go/No-Go evidence packet. Child #3865 (PR #4363, `03412d374b482fa5d70c42a867dc2a0af243cd3d`) delivered the tabletop. Child #3866 records freeze and daily reporting handoff. None of these children declare calendar Go, Production Go, or announcement Go.
+- #3234 hold is not a reason to skip Product Graduation or this freeze handoff.
 - Product 2026-09-23: **#2093 dates are administrative for PMO only. Do not publish them on the public Fan Club Events Calendar.**
 - This calendar coordinates source programs. **No row in this contract grants Production Go or announcement Go.**
 - 10:00 AM website-then-social auto-publish remains a #1700/#2039 mechanism flag, not this contract's runtime.
@@ -187,6 +188,20 @@ No active waiver. To add one, record all four fields on #2093 and copy them here
 
 On #2093 only, record exactly one of: GO, NO-GO, HOLD, ADJUSTMENT. That comment is the decision. This packet is supporting evidence, not the decision.
 
+## Freeze and launch-window reporting handoff (#3866)
+
+This section documents the freeze **start** and reporting vocabulary. **It does not declare freeze in force, Production Go, or public announcement.**
+
+| Control | Owner | Rule |
+| --- | --- | --- |
+| Freeze start | Bill declares on #2093 | **2026-12-31**, only if Bill has recorded calendar GO on #2093. This child does not start freeze. |
+| Emergency change during freeze | Bill approves | Editors/operations do not bypass Bill. Missing Bill approval is a stop. |
+| Freeze lift | Bill | Restore the last unfrozen calendar revision on #2093 only when Bill lifts freeze. |
+| Daily launch-window reporting | Operations captures; PMO records | After freeze declaration (or earlier if Bill directs), use exactly: blocked / at risk / ready / go / no-go / deployed / verified / monitoring |
+| Reporting is not Go | PMO / Operations | A `ready` or `go` status row is not website Go, Production Go, or announcement Go |
+
+Daily reporting lives on #2093 (and later Day-2 notes). It does not publish to the Fan Club Events Calendar or social channels.
+
 ## Protected stops
 
-Stop and escalate to Product when any of the following is true: missing or disputed Product date; invented public date; seeding this table into D1 `events`; unapproved announcement; unresolved rights or privacy; sponsor, donor, or fundraiser commitment beyond #2093; paid service or new credential; Production mutation from this package; failed rollback rehearsal; active numbered Operations interrupt; using a taxonomy row without owner or evidence as a public date; treating the #3864 packet as Production or calendar Go; a blank packet row; a waiver missing authority, scope, expiry, or residual risk; fabricating #3865 rehearsal evidence.
+Stop and escalate to Product when any of the following is true: missing or disputed Product date; invented public date; seeding this table into D1 `events`; unapproved announcement; unresolved rights or privacy; sponsor, donor, or fundraiser commitment beyond #2093; paid service or new credential; Production mutation from this package; failed rollback rehearsal; active numbered Operations interrupt; using a taxonomy row without owner or evidence as a public date; treating the #3864 packet as Production or calendar Go; a blank packet row; a waiver missing authority, scope, expiry, or residual risk; fabricating #3865 rehearsal evidence; declaring freeze without Bill; emergency change that bypasses Bill; treating daily reporting as website Go.
