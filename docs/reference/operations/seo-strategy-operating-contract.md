@@ -26,7 +26,7 @@ Out of scope: competing as a generic ALS medical site, Yankees news site, MLB hi
 - Product Authority 2026-09-24 placed #2291 Active at `pmo:priority:4` with Cursor as implementation owner (due 2026-10-31). Claude ownership is withdrawn.
 - Design Ready evidence already lives on #2291. Sandbox Testing is not required for this documentation packet.
 - Live public crawl control today: `src/app/robots.ts` allows `/` and disallows `/admin/`, `/fanclub/`, `/api/`, `/_ai-review/`; `src/app/sitemap.ts` emits `PUBLIC_SITEMAP_ROUTES` only. This packet does not change those files.
-- Image/asset SEO fields (filename, alt text, caption, credit, tags) consume the approved metadata set in `docs/reference/operations/ai-assisted-tagging-operating-contract.md` (#2292). Unreviewed candidate tags are not SEO-eligible.
+- Image/asset SEO fields (filename, alt text, caption, credit, tags) consume the approved metadata set defined on #2292 (Launch Packet in PR #4371). Unreviewed candidate tags are not SEO-eligible.
 - Runtime SEO implementation remains No-Go until Product records an explicit later Go on a file-allowlisted child Issue.
 
 ## Intended final state
