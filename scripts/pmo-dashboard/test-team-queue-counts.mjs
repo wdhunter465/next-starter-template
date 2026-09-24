@@ -14,6 +14,14 @@ function issue(number, { state = 'open', labels = [], pull_request } = {}) {
 }
 
 assert(classifyTeamQueue(issue(1, { labels: ['team:operations', 'ops:priority:1'] })) === 'operations', 'operations');
+assert(
+  classifyTeamQueue(issue(15, { labels: ['ops-pr-escalation'] })) === 'operations',
+  'ops-pr-escalation alone counts as operations'
+);
+assert(
+  classifyTeamQueue(issue(16, { labels: ['ops-pr-escalation', 'team:pmo', 'pmo:active'] })) === 'operations',
+  'ops-pr-escalation takes precedence for Operations count'
+);
 assert(classifyTeamQueue(issue(2, { labels: ['team:pmo', 'pmo:active', 'pmo:priority:1'] })) === 'pmoActive', 'pmo active');
 assert(
   classifyTeamQueue(issue(12, { labels: ['team:pmo', 'pmo:active', 'pmo:task'] })) === null,
@@ -39,6 +47,10 @@ assert(
 assert(classifyTeamQueue(issue(9, { labels: ['team:pmo', 'pmo:priority:3'] })) === null, 'team:pmo without lifecycle omitted');
 assert(classifyTeamQueue(issue(10, { labels: ['pmo:active'] })) === null, 'no team omitted');
 assert(classifyTeamQueue(issue(11, { labels: ['team:operations'], pull_request: {} })) === null, 'pull requests omitted');
+assert(
+  classifyTeamQueue(issue(17, { state: 'closed', labels: ['ops-pr-escalation'] })) === null,
+  'closed ops-pr-escalation omitted'
+);
 
 const counts = buildTeamQueueCounts(
   [
@@ -52,20 +64,46 @@ const counts = buildTeamQueueCounts(
     issue(8, { labels: ['team:pmo', 'pmo:pipeline'] }),
     issue(9, { state: 'closed', labels: ['team:operations'] }),
     issue(10, { labels: ['team:operations', 'team:engineering'] }),
-    issue(14, { labels: ['team:pmo', 'pmo:active', 'pmo:task'] })
+    issue(14, { labels: ['team:pmo', 'pmo:active', 'pmo:task'] }),
+    issue(15, { labels: ['ops-pr-escalation'] }),
+    issue(16, { labels: ['ops-pr-escalation', 'post-merge-failure'] })
   ],
   { owner: 'wdhunter465', repo: 'next-starter-template' }
 );
 
 assert(counts.order.join(',') === 'operations,engineering,governance', 'team row order');
 assert(counts.queues.map((queue) => queue.title).join(',') === 'Operations,Engineering,Governance', 'team display titles');
-assert(counts.queues.map((queue) => queue.count).join(',') === '2,1,1', 'team exclusive open counts');
+assert(counts.queues.map((queue) => queue.count).join(',') === '4,1,1', 'team exclusive open counts including ops-pr-escalation');
 assert(counts.pmoOrder.join(',') === 'pmoTracked,pmoPipeline,pmoActive', 'pmo row order');
 assert(counts.pmoQueues.map((queue) => queue.title).join(',') === 'PMO tracked,PMO Pipeline,PMO Active', 'pmo display titles');
 assert(counts.pmoQueues.map((queue) => queue.count).join(',') === '4,3,1', 'pmo parent counts: tracked = pipeline + active');
+
+const expectedOpsQuery = encodeURIComponent('is:open is:issue label:team:operations,ops-pr-escalation');
 assert(
-  counts.queues[0].issueSearchUrl === 'https://github.com/wdhunter465/next-starter-template/issues?q=is%3Aopen%20label%3Ateam%3Aoperations',
-  'operations search URL'
+  counts.queues[0].issueSearchUrl ===
+    `https://github.com/wdhunter465/next-starter-template/issues?q=${expectedOpsQuery}`,
+  'operations search URL includes ops-pr-escalation and is:issue'
+);
+
+// Every queue search must exclude PRs (is:issue) so links match classifyTeamQueue.
+for (const queue of [...counts.queues, ...counts.pmoQueues]) {
+  assert(
+    queue.issueSearchUrl.includes('is%3Aissue'),
+    `${queue.id} search URL must include is:issue`
+  );
+}
+
+assert(
+  counts.queues[1].issueSearchUrl.includes('label%3Ateam%3Aengineering'),
+  'engineering search includes team:engineering'
+);
+assert(
+  counts.queues[2].issueSearchUrl.includes('label%3Ateam%3Agovernance'),
+  'governance search includes team:governance'
+);
+assert(
+  counts.pmoQueues[1].issueSearchUrl.includes('label%3Apmo%3Apipeline'),
+  'pmo pipeline search includes lifecycle'
 );
 assert(
   counts.pmoQueues[2].issueSearchUrl.includes('label%3Apmo%3Aactive') &&
