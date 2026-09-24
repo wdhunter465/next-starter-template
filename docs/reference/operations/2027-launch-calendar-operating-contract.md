@@ -2,11 +2,11 @@
 Doc Type: Reference
 Audience: Product Authority, Operations, PMO, editors, and implementation agents
 Authority Level: Controlled
-Owns: Durable 2027 launch-calendar taxonomy, Product-approved calendar of record, and integrated source-program milestone matrix for parent #2093
+Owns: Durable 2027 launch-calendar taxonomy, Product-approved calendar of record, integrated source-program milestone matrix, and 2026-12-31 Go/No-Go evidence packet for parent #2093
 Does Not Own: Inventing public dates; publishing this calendar on the public website events calendar; website or fundraiser launch; public announcements; Production mutation; paid services; credentials; replacing source-project acceptance on #1700, #2039, #2084, or #2782
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
 Related Issues: #2093, #3861, #3862, #3863, #3864, #3865, #3866, #1700, #2039, #2084, #2782, #2089
-Last Reviewed: 2026-09-23
+Last Reviewed: 2026-09-24
 ---
 
 # 2027 launch calendar operating contract
@@ -17,14 +17,14 @@ Define the durable milestone taxonomy and the Product-approved absolute calendar
 
 ## Scope
 
-In scope: milestone classes; owner roles; source-Issue families; required evidence; predecessor/successor relations; freeze and exception rules; the absolute calendar generated from Product 2026-09-20 anchors; the #3863 source-program integration matrix.
+In scope: milestone classes; owner roles; source-Issue families; required evidence; predecessor/successor relations; freeze and exception rules; the absolute calendar generated from Product 2026-09-20 anchors; the #3863 source-program integration matrix; the #3864 Go/No-Go evidence packet (pass / fail / waiver / not-ready only).
 
 Out of scope: choosing new protected dates; seeding D1 `events` or the public Fan Club Events Calendar; launching the website or fundraiser; publishing announcements; Production writes; purchasing services; credentials.
 
 ## Current known truth
 
 - Product recorded Project Graduation **GO** for parent #2093 on 2026-09-23. Implementation owner is Cursor Local.
-- Child #3861 (PR #4348) delivered the taxonomy. Child #3862 (PR #4352, `34cfb0e3e8889ce4f43e8e3e60cdaf32217e4927`) delivered the calendar of record. Child #3863 adds the source-program integration matrix.
+- Child #3861 (PR #4348) delivered the taxonomy. Child #3862 (PR #4352) delivered the calendar of record. Child #3863 (PR #4354, `daf7d7f228fe16e6fd71985035add433fb9e9fd1`) delivered the integration matrix. Child #3864 adds the Go/No-Go evidence packet. The packet does not declare Go.
 - Product 2026-09-23: **#2093 dates are administrative for PMO only. Do not publish them on the public Fan Club Events Calendar.**
 - This calendar coordinates source programs. **No row in this contract grants Production Go or announcement Go.**
 - 10:00 AM website-then-social auto-publish remains a #1700/#2039 mechanism flag, not this contract's runtime.
@@ -128,6 +128,65 @@ Each row is PMO coordination only. A row that would grant Production or announce
 
 Dependency order for PMO reporting: website and freeze before 2027-01-01 live claim; fundraiser before 2027-03-25 launch; #2084 before 2027-06-02 closeout; rehearsal before freeze; #2782 and #2089 before Production Go; announcement only after Product authorization.
 
+## Go/No-Go evidence packet (#3864)
+
+This packet is what Bill uses for the **2026-12-31** calendar Go/No-Go recorded on #2093. Rows are pass, fail, waiver, or not-ready. **This packet does not declare Go, No-Go, HOLD, or ADJUSTMENT.** It cannot publish, deploy, or mutate Production. A blank row is rejected. A waiver without authority, scope, expiry, and residual risk is rejected. Rehearsal evidence is owned by #3865; do not invent a rehearsal result here.
+
+**Protected decision:** only Bill records GO, NO-GO, HOLD, or ADJUSTMENT on #2093. PMO/implementers may only update row status and evidence pointers.
+
+### #2093 Go criteria → packet rows
+
+Source: #2093 launch-package “Validation and acceptance” plus parent acceptance criteria. Every criterion has a row.
+
+| Criterion (from #2093) | Packet row | Status 2026-09-24 | Evidence pointer | Waiver |
+| --- | --- | --- | --- | --- |
+| Date-driven launch calendar exists | Calendar of record | pass | Calendar of record section; Product 2026-09-20 table on #2093 | none |
+| Dependencies listed with owners | Integration matrix | pass | Integrated source-program milestones (#3863) | none |
+| Final Go/No-Go criteria are explicit | This packet | pass | This section | none |
+| Content freeze window is defined | Freeze | pass as definition; freeze itself not-ready | Calendar row 2026-12-31 freeze; freeze packet row | none |
+| Smoke-test window is defined | Website / Production | pass as definition; smoke itself not-ready | Website completion class; 2027-01-01 live claim | none |
+| Public announcement timing is controlled | Announcement authorization | pass as rule; authorization itself not-ready | Announcement class; calendar announcement rows | none |
+| Every milestone has owner, source Issue, dependency, window, evidence, fallback | Integration matrix | pass | #3863 matrix | none |
+| No date inferred from labels or chat | Calendar of record | pass | Publication rule; rejected-date rule | none |
+| Calendar math is deterministic from approved anchors | Calendar of record | pass | Product 2026-09-20 anchors only | none |
+| Dependency slips are visible without a new public date | Integration matrix fallbacks | pass | Fallbacks on #3863 rows; slips on #2093 | none |
+| Go requires website/Production evidence | Website / Production | not-ready | Separate Production Go; #2782; #2039 | none |
+| Go requires rollback evidence | Rollback | not-ready | Rollback class; #2782; website takedown how-to | none |
+| Go requires content evidence | Content | not-ready | Freeze/exception log; source-program content owners | none |
+| Go requires rights/privacy evidence | Rights / privacy | not-ready | Stop if unresolved; #2084 instance rights/privacy | none |
+| Go requires communications evidence | Communications | not-ready | Channel list; #1700/#2039 flag only | none |
+| Go requires Operations evidence | Operations | not-ready | Smoke, window health, Day-2 capture; #3866 vocabulary after handoff | none |
+| Waivers name authority, scope, expiry, residual risk | Waiver register | pass as rule; no active waiver | Waiver register below | none |
+| No-Go preserves rollback and communications-hold | Rollback; communications hold | pass as rule | Rollback class; announcement stop | none |
+| Public announcement cannot precede Product authorization | Announcement authorization | pass as rule | Announcement class | none |
+| Daily reporting uses blocked / at risk / ready / go / no-go / deployed / verified / monitoring | Operations (Day-2 vocabulary) | not-ready | #3866 handoff | none |
+
+### Required evidence classes (#3864 named rows)
+
+| Packet row | Owner of evidence | Status 2026-09-24 | What “pass” requires | Fallback if not pass |
+| --- | --- | --- | --- | --- |
+| Website / Production | Bill for Production Go; Operations for smoke | not-ready | Production-ready website evidence; smoke; no open protected stop; #2089 model before claiming Production Go | Do not claim 2027-01-01 live; do not treat this packet as Production Go |
+| Rollback | Operations execute; Bill decides cancel vs restore | not-ready | Rollback/cancellation window named; restore path; communications-hold | No-Go still preserves rollback; do not unwind completed technical work |
+| Content | Bill freeze; editors stop unapproved change | not-ready | Freeze declaration on #2093 when Bill declares it; exception log | Missing freeze is a stop, not a guessed date |
+| Rights / privacy | Product / #2084 instance | not-ready | Disposition recorded; no unresolved publication-rights stop | Stop; do not announce |
+| Communications | Bill authorizes; #1700/#2039 own mechanism | not-ready | Authorization record; channel list; no pre-Go public post | 10:00 AM auto-publish remains a flag; this packet does not run it |
+| Operations | Operations | not-ready | Window-health owner named; smoke owner named; incident/rollback owner named | Absence of Go is a stop |
+| Freeze | Bill declares | not-ready | Declaration on #2093; emergency-change owner is Bill | Do not start freeze from this packet |
+| Announcement authorization | Bill | not-ready | Per-window authorization on #2093 | No pre-Go public post |
+| Rehearsal (#3865 input) | Operations executes; PMO records | not-ready | Tabletop covering delay, No-Go, rollback, communications-hold | Failed or missing rehearsal is a stop; do not fabricate |
+
+### Waiver register
+
+No active waiver. To add one, record all four fields on #2093 and copy them here:
+
+| Waiver id | Authority | Scope | Expiry | Residual risk |
+| --- | --- | --- | --- | --- |
+| (none) | — | — | — | — |
+
+### How Bill records the 2026-12-31 decision
+
+On #2093 only, record exactly one of: GO, NO-GO, HOLD, ADJUSTMENT. That comment is the decision. This packet is supporting evidence, not the decision.
+
 ## Protected stops
 
-Stop and escalate to Product when any of the following is true: missing or disputed Product date; invented public date; seeding this table into D1 `events`; unapproved announcement; unresolved rights or privacy; sponsor, donor, or fundraiser commitment beyond #2093; paid service or new credential; Production mutation from this package; failed rollback rehearsal; active numbered Operations interrupt; using a taxonomy row without owner or evidence as a public date.
+Stop and escalate to Product when any of the following is true: missing or disputed Product date; invented public date; seeding this table into D1 `events`; unapproved announcement; unresolved rights or privacy; sponsor, donor, or fundraiser commitment beyond #2093; paid service or new credential; Production mutation from this package; failed rollback rehearsal; active numbered Operations interrupt; using a taxonomy row without owner or evidence as a public date; treating the #3864 packet as Production or calendar Go; a blank packet row; a waiver missing authority, scope, expiry, or residual risk; fabricating #3865 rehearsal evidence.
