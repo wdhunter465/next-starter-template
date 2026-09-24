@@ -57,6 +57,7 @@ describe('Fan Club home newspaper shell (#1688 Task 003)', () => {
     expect(screen.getByLabelText('Archive spotlight')).toBeInTheDocument();
     expect(screen.getByLabelText('Campaign module')).toBeInTheDocument();
     expect(screen.getByLabelText('Events & Calendar')).toBeInTheDocument();
+    expect(screen.getByLabelText('Gehrig timeline')).toBeInTheDocument();
     expect(screen.getByLabelText('Recognition & Partners')).toBeInTheDocument();
     expect(screen.getByLabelText('Lou Gehrig box score')).toBeInTheDocument();
     expect(screen.getByLabelText('American League standings')).toBeInTheDocument();

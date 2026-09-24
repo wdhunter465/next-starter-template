@@ -8,6 +8,7 @@ import ClubHomeArchiveSpotlight from '@/components/fanclub/ClubHomeArchiveSpotli
 import ClubHomeDeferredModule from '@/components/fanclub/ClubHomeDeferredModule';
 import ClubHomeEventsModule from '@/components/fanclub/ClubHomeEventsModule';
 import ClubHomeGehrigBoxScore from '@/components/fanclub/ClubHomeGehrigBoxScore';
+import GehrigTimeline from '@/components/fanclub/GehrigTimeline';
 import ClubHomeMasthead from '@/components/fanclub/ClubHomeMasthead';
 import ClubHomeMediaFeature from '@/components/fanclub/ClubHomeMediaFeature';
 import ClubHomeMemberPrompt from '@/components/fanclub/ClubHomeMemberPrompt';
@@ -61,6 +62,7 @@ export default function MemberHomePage() {
 
           <div className={clubHomeColumnClassName.left}>
             <ClubHomeEventsModule />
+            <GehrigTimeline />
             <ClubHomeArchiveSpotlight story={clubHome.archiveSpotlight} />
             <ClubHomeRecognitionModule />
             <ClubHomeGehrigBoxScore load={gehrigGame} />
