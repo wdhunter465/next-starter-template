@@ -25,7 +25,7 @@ Out of scope: D1 `events`; Production mutation; Product recording GO/NO-GO/HOLD/
 
 - Parent #2093 is OPEN, Active, `pmo:priority:1`.
 - #3861 PR #4348. #3862 PR #4352. #3863 PR #4354. #3864 PR #4357. #3865 PR #4363 (`03412d374b482fa5d70c42a867dc2a0af243cd3d`).
-- Starting target SHA for #3866: `03412d374b482fa5d70c42a867dc2a0af243cd3d`.
+- #3866 PR #4364 (`58d92f1a2e08dc933ecbdb9b03a3e322fb2cacd6`).
 - Freeze start **2026-12-31** is documented assuming calendar Go; Bill must declare freeze. Emergency-change owner is Bill.
 - Daily reporting states: blocked / at risk / ready / go / no-go / deployed / verified / monitoring. Those states are not website Go.
 - #3234 hold is not a reason to skip this handoff.
@@ -62,8 +62,8 @@ Out of scope: D1 `events`; Production mutation; Product recording GO/NO-GO/HOLD/
 
 ## Rollback
 
-Revert the #3866 docs PR. Freeze lift requires Bill. Restoring docs is not a Production rollback.
+Revert PR #4364 (source #3866). Freeze lift requires Bill. Restoring docs is not a Production rollback.
 
 ## Next recommended action
 
-Independent review of the #3866 PR. Parent #2093 stays OPEN for Bill's 2026-12-31 decision and PMO closeout. This child graph is terminal for implementation docs.
+Parent #2093 stays OPEN for Bill's 2026-12-31 decision and PMO closeout. The #3866 implementation docs landed in PR #4364. This child graph is terminal for implementation docs.
