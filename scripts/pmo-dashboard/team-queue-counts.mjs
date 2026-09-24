@@ -53,7 +53,7 @@ function issueSearchUrl(owner, repo, queue) {
   const query = ['is:open', 'is:issue'];
   if (queue.id === 'operations') {
     // Operations row includes exclusive team:operations owners and escalated PR/closeout work.
-    query.push(`label:${queue.teamLabel},ops-pr-escalation`);
+    query.push(`label:${queue.teamLabel},${OPS_PR_ESCALATION_LABEL}`);
   } else {
     query.push(`label:${queue.teamLabel}`);
   }

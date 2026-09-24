@@ -84,18 +84,37 @@ assert(
     `https://github.com/wdhunter465/next-starter-template/issues?q=${expectedOpsQuery}`,
   'operations search URL includes ops-pr-escalation and is:issue'
 );
+
+// Every queue search must exclude PRs (is:issue) so links match classifyTeamQueue.
+for (const queue of [...counts.queues, ...counts.pmoQueues]) {
+  assert(
+    queue.issueSearchUrl.includes('is%3Aissue'),
+    `${queue.id} search URL must include is:issue`
+  );
+}
+
+assert(
+  counts.queues[1].issueSearchUrl.includes('label%3Ateam%3Aengineering'),
+  'engineering search includes team:engineering'
+);
+assert(
+  counts.queues[2].issueSearchUrl.includes('label%3Ateam%3Agovernance'),
+  'governance search includes team:governance'
+);
+assert(
+  counts.pmoQueues[1].issueSearchUrl.includes('label%3Apmo%3Apipeline'),
+  'pmo pipeline search includes lifecycle'
+);
 assert(
   counts.pmoQueues[2].issueSearchUrl.includes('label%3Apmo%3Aactive') &&
     counts.pmoQueues[2].issueSearchUrl.includes('label%3Apmo%3Aparent') &&
-    counts.pmoQueues[2].issueSearchUrl.includes('-label%3Apmo%3Atask') &&
-    counts.pmoQueues[2].issueSearchUrl.includes('is%3Aissue'),
-  'pmo active search includes parent, lifecycle, is:issue, and omits tasks'
+    counts.pmoQueues[2].issueSearchUrl.includes('-label%3Apmo%3Atask'),
+  'pmo active search includes parent, lifecycle, and omits tasks'
 );
 assert(
   counts.pmoQueues[0].issueSearchUrl.includes('label%3Apmo%3Aparent') &&
-    counts.pmoQueues[0].issueSearchUrl.includes('-label%3Apmo%3Atask') &&
-    counts.pmoQueues[0].issueSearchUrl.includes('is%3Aissue'),
-  'pmo tracked search includes parent, is:issue, and omits tasks'
+    counts.pmoQueues[0].issueSearchUrl.includes('-label%3Apmo%3Atask'),
+  'pmo tracked search includes parent and omits tasks'
 );
 
 console.log('team-queue count contract passed');
