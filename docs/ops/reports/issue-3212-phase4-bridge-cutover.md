@@ -7,8 +7,8 @@ Source Issue: #3212
 Owns: Phase 4 cutover evidence retiring Bridge/poll-wake as Cursor execution dependencies and promoting lgfc-cursor dispatch
 Does Not Own: Deleting the entire Bridge package/tests, actor-allowlist expansion to wdhunter465, or durable `svc.sh` install
 Canonical Reference: /docs/ops/reports/issue-3212-phase4-bridge-cutover.md
-Related Issues: #3212
-Last Reviewed: 2026-08-09
+Related Issues: #3212, #4362
+Last Reviewed: 2026-09-25
 Executor: Cursor Local
 ---
 
@@ -32,7 +32,7 @@ Retire the Cursor Local Bridge automatic wake path and the local 12-minute poll-
 **Out of scope**
 
 - Deleting `scripts/cursor-bridge/**` (wake-ingress still required by dispatch)
-- Changing trusted actor allowlist (`wdhunter645`)
+- Changing trusted actor allowlist (`wdhunter465`)
 - Live non-dry-run Cursor invoke policy change
 
 ## Delivered changes
@@ -49,7 +49,7 @@ Retire the Cursor Local Bridge automatic wake path and the local 12-minute poll-
 
 ## Diagnostic fallback (explicitly approved)
 
-Trusted actor `wdhunter645` may run `cursor-local-wake.yml` with confirmation `CURSOR_WAKE_DIAGNOSTIC` for temporary Bridge packet diagnostics. This is **not** an automatic execution path.
+Trusted actor `wdhunter465` may run `cursor-local-wake.yml` with confirmation `CURSOR_WAKE_DIAGNOSTIC` for temporary Bridge packet diagnostics. This is **not** an automatic execution path.
 
 ## Host evidence (2026-08-09)
 

@@ -15,12 +15,37 @@ ingest paths (`scripts/content-pipeline/ingest-batch.mjs`, the admin ingest
 endpoint), not by this script.
 
 **`b2_d1_deletion_reconcile.sh` (the deletion-reconciliation side) covers
-both models as of #3718 phase 2b:** it soft-retires `photos` rows
-(`is_matchup_eligible = -1`) *and* soft-deletes `content_items` rows whose
-linked `media_assets.b2_key` is missing from B2 (via `deleted_at` /
-`retention_reason`), reusing the same B2 listing for both. It skips the
+both models as of #3718 phase 2b (fixed for #4261):** it soft-retires
+`photos` rows (`is_matchup_eligible = -1`, and `publication_eligible = 0`
+when that column exists — see below) *and* soft-deletes `content_items`
+rows whose linked `media_assets.b2_key` is missing from B2 (via `deleted_at`
+/ `retention_reason`), reusing the same B2 listing for both. It skips the
 `content_items`/`media_assets` reconciliation gracefully when those tables
 are absent from the target database (e.g. `lgfc-litedev`).
+
+`content_items.media_asset_id` is a free-text reference that can be stored
+as either `b2://<key>` or `media_uid:<media_uid>` (see
+`functions/_lib/content-pipeline-media-reference.ts`) — there is no real
+foreign key to `media_assets`. The reconcile job matches **both** forms for
+a stale asset, not just `b2://<key>`.
+
+**Soft-retiring a photo also clears `publication_eligible`.** `is_matchup_eligible`
+only gates the Weekly Matchup rotation; every other public/member-facing
+surface (fan-club photo/memorabilia galleries, search, the club-home lead-photo
+picker) gates on `rightsClearedClause()` (`rights_hold = 0 AND
+publication_eligible = 1`), which is otherwise independent of
+`is_matchup_eligible`. Without also clearing `publication_eligible`, a photo
+whose B2 object is confirmed missing would stop rotating into Weekly Matchup
+but keep rendering a dead `<img>` everywhere else. This does not set
+`rights_hold` — a missing object is not a rights problem.
+
+**The daily job's own matchup-repair replacement picker uses the exact same
+gate as the live `/api/matchup/current` eligibility check**
+(`is_matchup_eligible = 1 AND rights_hold = 0 AND publication_eligible = 1`),
+not just "not excluded" (`>= 0`). Picking a merely-unreviewed (`0`) or
+rights-held photo used to get immediately re-flagged and re-healed by the
+next live `GET`, so the cron run's own `repaired_matchups` count didn't
+guarantee a stable pair.
 
 **Maintenance requirement: if a table that stores photo-library rows backed
 by B2 objects is ever added, removed, or renamed — in either the legacy
@@ -126,6 +151,22 @@ The script inserts into the `photos` table with the following mapping:
 | `is_memorabilia` | Hardcoded | Set to `0` |
 | `description` | Hardcoded | Empty string (for future use) |
 | `created_at` | Object `LastModified` | Upload timestamp |
+
+## Governed admin cleanup (#4261)
+
+Soft-retired rows are never hard-deleted automatically. An admin reviews and
+purges them explicitly via two endpoints (session-gated, `members.role='admin'`):
+
+- `GET /api/admin/photos/purge-eligible` — lists `photos` rows with
+  `is_matchup_eligible = -1` and a `PURGE_ELIGIBLE` `rights_notes` marker,
+  flagging each as `purgeable` or blocked by an existing reference
+  (`content_inventory_media`, `weekly_matchups`, `milestones.photo_id`).
+- `POST /api/admin/photos/purge` — body `{ "ids": [123], "confirm": "PURGE" }`.
+  Hard-deletes only rows that are (a) already PURGE_ELIGIBLE-flagged and (b)
+  unreferenced anywhere; a referenced row is reported back as
+  `blocked_referenced` rather than silently unlinked or cascade-deleted.
+  There is no "purge everything eligible" mode — ids must be named explicitly,
+  so this can never run as an unattended bulk job.
 
 ## Workflow
 

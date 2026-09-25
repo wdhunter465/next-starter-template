@@ -20,6 +20,13 @@ export const onRequestGet = async (context: any): Promise<Response> => {
     const candidateDateColumns = ['milestone_date', 'date', 'event_date', 'date_iso', 'occurred_on', 'year'];
     const selectedDateColumn = candidateDateColumns.find((column) => milestoneColumns.has(column)) ?? 'year';
 
+    // #3161: the public homepage timeline shows headline milestones only.
+    // The full researched life timeline (extra rows + detail_body/source_url)
+    // is served to members via /api/fanclub/timeline instead.
+    const visibilityClause = milestoneColumns.has('visibility')
+      ? `AND (m.visibility IS NULL OR m.visibility = 'public')`
+      : '';
+
     const selectDateSql = selectedDateColumn === 'year'
       ? `NULL AS milestone_date`
       : `m.${selectedDateColumn} AS milestone_date`;
@@ -40,7 +47,7 @@ export const onRequestGet = async (context: any): Promise<Response> => {
                         p.url as photo_url
                  FROM milestones m
                  LEFT JOIN photos p ON p.id = m.photo_id AND ${rightsClearedClause("p")}
-                 WHERE m.status='posted'
+                 WHERE m.status='posted' ${visibilityClause}
                  ORDER BY ${orderBySql}
                  LIMIT ?;`;
 

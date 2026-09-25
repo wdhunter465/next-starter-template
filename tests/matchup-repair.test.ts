@@ -120,6 +120,9 @@ function makeRepairDb(options: {
       if (target) {
         target.is_matchup_eligible = Number(args[0]);
         target.rights_notes = String(args[1]);
+        if (sql.includes('publication_eligible = 0')) {
+          (target as { publication_eligible?: number }).publication_eligible = 0;
+        }
       }
       return { meta: { changes: 1 } };
     }
@@ -304,6 +307,10 @@ describe('matchup broken-image repair', () => {
     expect(body.items[0].id).toBe(10);
     expect(body.items.map((item: { id: number }) => item.id)).not.toContain(20);
     expect(photos.find((row) => row.id === 20)?.is_matchup_eligible).toBe(MATCHUP_EXCLUDED_ELIGIBILITY);
+    // #4261: excluding a confirmed-broken photo from Weekly Matchup must also
+    // clear publication_eligible so galleries/search/club-home (which gate on
+    // rightsClearedClause, independent of is_matchup_eligible) stop serving it.
+    expect(photos.find((row) => row.id === 20)?.publication_eligible).toBe(0);
     expect(matchups[0].photo_b_id).not.toBe(20);
     expect(votes).toHaveLength(0);
 
