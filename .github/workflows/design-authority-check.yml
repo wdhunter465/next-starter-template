@@ -4,6 +4,11 @@ on:
   pull_request:
     paths:
       - "docs/**/*.md"
+      # #4376 review: a baseline-only or list-only change (no .md content
+      # touched) must still trigger the hash-lock verify step below, or a
+      # bad baseline could land without it ever running.
+      - "docs/reference/design/.canonical-hashes.sha256"
+      - "docs/reference/design/.canonical-files.txt"
 
 jobs:
   check-design-authority:
