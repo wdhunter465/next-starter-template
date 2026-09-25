@@ -5,8 +5,8 @@ Authority Level: Canonical Design Specification
 Owns: FanClub home route purpose, section contracts, data dependencies
 Does Not Own: FanClub subpage specs; API schema details; implementation internals
 Canonical Reference: /docs/reference/design/fanclub.md
-Related issues: #1685, #1688, #1690, #1962, #4263, #4344
-Last Reviewed: 2026-09-23
+Related issues: #1685, #1688, #1690, #1962, #4263, #4344, #4349
+Last Reviewed: 2026-09-24
 ---
 
 # `/fanclub` — FanClub Home Page Specification
@@ -35,6 +35,7 @@ Newspaper-style order (fail-closed static fallbacks when inventory is empty):
 | 6 | Member prompt | `ClubHomeMemberPrompt` (links to `/fanclub/chat`) |
 | 7 | Archive spotlight | `ClubHomeArchiveSpotlight` |
 | 8–10 | Campaign / events / recognition | `ClubHomeEventsModule`, `ClubHomeRecognitionModule`, `ClubHomeDeferredModule` (campaign fail-closed) |
+| 10a | Gehrig timeline (left column, below Events) | `GehrigTimeline` (Club Home only; fail-closed empty copy; not TimelineJS3) |
 | 11 | Lou Gehrig box score (left margin, bottom) | `ClubHomeGehrigBoxScore` |
 | 12 | AL standings as of that game (right margin, bottom) | `ClubHomeAlStandings` |
 | 13 | Submission CTA | `ClubHomeSubmissionCta` (links to `/fanclub/submit`) |
@@ -48,13 +49,13 @@ The following legacy dashboard modules are **not** part of the newspaper Club Ho
 
 - Inline discussion posting (`PostCreation`) → `/fanclub/chat`
 - Discussion feed (`DiscussionFeed`) → `/fanclub/chat`
-- Gehrig timeline (`GehrigTimeline`) → deferred; not a Club Home section
 
 ## Data Dependencies
 
 - Member session state from `useMemberSession`
 - Dynamic Club Home inventory: `GET /api/fanclub/home` (`club_home` section in `content_inventory`)
 - Daily Gehrig box score + AL standings: `GET /api/fanclub/gehrig-box-score` (member session; one hashed-random `retrosheet_gehrig_games` row for the America/New_York calendar day, plus batting lines and standings snapshot; fail-closed empty copy when ingest tables are empty)
+- Gehrig timeline: `GET /api/milestones/list?limit=12` (Club Home left column below Events; not rendered on public `/`)
 - Recognition & Partners: `GET /api/friends/list?surface=club-home` (posted partners; The Lou Gehrig Society is second, immediately below ALS Cure Project; LouGehrig.com remains; no partner is dropped for a four-item cap)
 - Feature-link card targets: `/fanclub/photo`, `/fanclub/library`, `/fanclub/memorabilia`
 - Discussion workflows: `/fanclub/chat` and discussion APIs
