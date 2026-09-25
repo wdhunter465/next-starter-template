@@ -57,10 +57,26 @@ describe('Fan Club home newspaper shell (#1688 Task 003)', () => {
     expect(screen.getByLabelText('Archive spotlight')).toBeInTheDocument();
     expect(screen.getByLabelText('Campaign module')).toBeInTheDocument();
     expect(screen.getByLabelText('Events & Calendar')).toBeInTheDocument();
+    expect(screen.getByLabelText('Gehrig timeline')).toBeInTheDocument();
     expect(screen.getByLabelText('Recognition & Partners')).toBeInTheDocument();
     expect(screen.getByLabelText('Lou Gehrig box score')).toBeInTheDocument();
     expect(screen.getByLabelText('American League standings')).toBeInTheDocument();
     expect(screen.getByLabelText('Submission call to action')).toBeInTheDocument();
+  });
+
+  it('places Gehrig timeline in the left column below Events and above Archive spotlight (#4349)', () => {
+    render(<MemberHomePage />);
+
+    const events = screen.getByLabelText('Events & Calendar');
+    const timeline = screen.getByLabelText('Gehrig timeline');
+    const archive = screen.getByLabelText('Archive spotlight');
+    const recognition = screen.getByLabelText('Recognition & Partners');
+    const boxScore = screen.getByLabelText('Lou Gehrig box score');
+
+    expect(events.compareDocumentPosition(timeline) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(timeline.compareDocumentPosition(archive) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(archive.compareDocumentPosition(recognition) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(recognition.compareDocumentPosition(boxScore) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
   it('uses Gallery, Library, and Memorabilia feature link labels', () => {
