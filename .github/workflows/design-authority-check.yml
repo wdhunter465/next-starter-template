@@ -23,3 +23,7 @@ jobs:
             echo "ERROR: Header definitions must only exist in LGFC-Production-Design-and-Standards.md"
             exit 1
           fi
+
+      - name: Verify canonical design-doc hash lock (#4376)
+        run: |
+          bash scripts/ci/docs_canonical_hashes_verify.sh .
