@@ -354,7 +354,7 @@ function UnreviewedCard(props: { item: UnreviewedItem; onResolved: () => void })
       <div>
         <div style={{ fontWeight: 700, fontSize: 16 }}>{item.title}</div>
         <div style={{ fontSize: 12, opacity: 0.75, marginTop: 2 }}>
-          {item.candidate_id} · discovered {new Date(item.created_at).toLocaleDateString()}
+          {item.candidate_id} · created {new Date(item.created_at).toLocaleDateString()}
         </div>
       </div>
 
@@ -439,8 +439,8 @@ export default function AdminRightsReviewPage() {
           <div style={{ display: 'grid', gap: 10 }}>
             <h2 style={{ fontSize: 18, margin: 0 }}>Never reviewed ({unreviewedItems.length})</h2>
             <p style={{ opacity: 0.75, fontSize: 13, margin: 0 }}>
-              Discovered candidates with no rights_evidence row at all yet -- distinct from the hold queue below,
-              which already has an explicit hold decision.
+              Candidates with no rights_evidence row at all yet (any input stream) -- distinct from the hold queue
+              below, which already has an explicit hold decision.
             </p>
             <div style={{ display: 'grid', gap: 14 }}>
               {unreviewedItems.map((item) => (
