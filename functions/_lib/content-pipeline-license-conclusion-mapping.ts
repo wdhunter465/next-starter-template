@@ -116,6 +116,11 @@ export function mapConclusionToRightsStatus(conclusion: RightsEvidenceConclusion
       return 'permission_granted';
     case 'lgfc_member_owned_item_photo':
       return 'lgfc_owned_confirmed';
+    case 'rights_undetermined':
+      // #4374 Q2: must never land in PREP_ACCEPTABLE_RIGHTS_STATUSES.
+      // 'unknown' is content_items.rights_status's own "not yet determined"
+      // value and is already excluded from that allowlist.
+      return 'unknown';
     default: {
       const exhaustive: never = conclusion;
       throw new Error(`mapConclusionToRightsStatus: unhandled conclusion "${exhaustive}"`);
