@@ -10,16 +10,25 @@ vi.mock('@/lib/api', () => ({
 
 const mockedApiGet = vi.mocked(apiGet);
 
-describe('Club Home GehrigTimeline (#4349)', () => {
+describe('Club Home GehrigTimeline (#3161)', () => {
   beforeEach(() => {
     mockedApiGet.mockReset();
   });
 
-  it('renders milestone rows from the milestones list API', async () => {
+  it('renders the full detailed timeline from the members-only endpoint', async () => {
     mockedApiGet.mockResolvedValue({
       ok: true,
       items: [
-        { id: 1, year: 1925, title: 'Yankees debut', description: 'First game in pinstripes.' },
+        {
+          id: 1,
+          year: 1925,
+          event_date: '1925-06-01',
+          event_type: 'career',
+          title: 'Begins the historic consecutive-games streak',
+          description: 'Short summary.',
+          detail_body: 'Longer, well-researched narrative for members.',
+          source_url: 'https://sabr.org/bioproj/person/lou-gehrig/',
+        },
         { id: 2, year: 1939, title: 'Farewell', description: null },
       ],
     } as never);
@@ -28,12 +37,13 @@ describe('Club Home GehrigTimeline (#4349)', () => {
 
     await waitFor(() => {
       expect(screen.getByLabelText('Gehrig timeline')).toBeInTheDocument();
-      expect(screen.getByText(/1925: Yankees debut/)).toBeInTheDocument();
-      expect(screen.getByText('First game in pinstripes.')).toBeInTheDocument();
+      expect(screen.getByText(/June 1, 1925: Begins the historic consecutive-games streak/)).toBeInTheDocument();
+      expect(screen.getByText('Longer, well-researched narrative for members.')).toBeInTheDocument();
+      expect(screen.getByText('Source')).toBeInTheDocument();
       expect(screen.getByText(/1939: Farewell/)).toBeInTheDocument();
     });
 
-    expect(mockedApiGet).toHaveBeenCalledWith('/api/milestones/list?limit=12');
+    expect(mockedApiGet).toHaveBeenCalledWith('/api/fanclub/timeline?limit=100');
   });
 
   it('shows fail-closed empty copy when no rows are returned', async () => {

@@ -9,8 +9,30 @@ type Milestone = {
   year: number | null;
   title: string;
   description?: string | null;
-  milestone_date?: string | null;
+  detail_body?: string | null;
+  event_date?: string | null;
+  event_type?: string | null;
+  source_url?: string | null;
 };
+
+const EVENT_TYPE_LABELS: Record<string, string> = {
+  birth: 'Birth',
+  death: 'Death',
+  marriage: 'Marriage',
+  graduation: 'School',
+  public_appearance: 'Public appearance',
+  career: 'Career',
+};
+
+function formatWhen(entry: Milestone): string {
+  if (entry.event_date) {
+    const parsed = new Date(`${entry.event_date}T00:00:00Z`);
+    if (!Number.isNaN(parsed.getTime())) {
+      return parsed.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric', timeZone: 'UTC' });
+    }
+  }
+  return entry.year != null ? String(entry.year) : '—';
+}
 
 export default function GehrigTimeline() {
   const [items, setItems] = useState<Milestone[] | null>(null);
@@ -21,7 +43,7 @@ export default function GehrigTimeline() {
 
     (async () => {
       try {
-        const data = await apiGet<{ ok: boolean; items: Milestone[] }>('/api/milestones/list?limit=12');
+        const data = await apiGet<{ ok: boolean; items: Milestone[] }>('/api/fanclub/timeline?limit=100');
         if (!alive) return;
 
         const normalized = Array.isArray(data?.items)
@@ -53,17 +75,27 @@ export default function GehrigTimeline() {
       ) : items.length === 0 ? (
         <p style={{ ...clubHomeMutedText, margin: 0 }}>No timeline entries are available yet.</p>
       ) : (
-        <ol style={{ margin: 0, paddingLeft: 20, display: 'grid', gap: 10 }}>
-          {items.map((entry) => (
-            <li key={entry.id} style={{ lineHeight: 1.5 }}>
-              <strong>
-                {entry.year ?? entry.milestone_date ?? '—'}: {entry.title}
-              </strong>
-              {entry.description ? (
-                <p style={{ ...clubHomeMutedText, margin: '6px 0 0' }}>{entry.description}</p>
-              ) : null}
-            </li>
-          ))}
+        <ol style={{ margin: 0, paddingLeft: 20, display: 'grid', gap: 14 }}>
+          {items.map((entry) => {
+            const typeLabel = entry.event_type ? EVENT_TYPE_LABELS[entry.event_type] ?? null : null;
+            const narrative = entry.detail_body ?? entry.description;
+            return (
+              <li key={entry.id} style={{ lineHeight: 1.5 }}>
+                <strong>
+                  {formatWhen(entry)}: {entry.title}
+                  {typeLabel ? <span style={{ ...clubHomeMutedText, fontWeight: 400 }}> · {typeLabel}</span> : null}
+                </strong>
+                {narrative ? (
+                  <p style={{ ...clubHomeMutedText, margin: '6px 0 0' }}>{narrative}</p>
+                ) : null}
+                {entry.source_url ? (
+                  <a href={entry.source_url} target="_blank" rel="noreferrer" style={{ fontSize: '0.85em' }}>
+                    Source
+                  </a>
+                ) : null}
+              </li>
+            );
+          })}
         </ol>
       )}
     </section>

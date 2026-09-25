@@ -1,15 +1,24 @@
 ---
 Doc Type: Operations
 Audience: Bill, Atlas, ChatGPT, Cursor, LGFC maintainers, and reviewers
-Authority Level: Controlled
-Owns: Task #2647 Promotion Candidate synchronization evidence, conflict dispositions, validation results, and Go/No-Go recommendation for Program #1719
+Authority Level: Superseded
+Owns: Historical #2647 Promotion Candidate synchronization evidence only — superseded for current Program #1719 promotion status
 Does Not Own: Production promotion to main, Cursor self-approve/self-merge, unauthorized issue mutation, workflow YAML redesign, or secret/credential changes
-Canonical Reference: /docs/ops/pmo/pmo-governance-workflow-automation-completion-readiness.md
-Related Issues: #2647, #1719, #1727, #2640
-Last Reviewed: 2026-07-19
+Canonical Reference: /docs/ops/reports/pmo-governance-workflow-automation-promotion-candidate-qualification-2775.md
+Related Issues: #2647, #1719, #1727, #2640, #2775
+Last Reviewed: 2026-09-25
 ---
 
 # Program #1719 Promotion Candidate Qualification (#2647)
+
+## Status
+
+**Superseded by [#2775](./pmo-governance-workflow-automation-promotion-candidate-qualification-2775.md).**
+The candidate this report qualified (`9d6db7d`) went stale against `main`
+before Production review; #2775 records the replacement resynchronization and
+is the current Promotion Candidate evidence for Program #1719. This report is
+retained as historical evidence of the original conflict dispositions and is
+not itself actionable.
 
 ## Purpose
 
