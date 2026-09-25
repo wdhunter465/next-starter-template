@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { apiGet } from '@/lib/api';
+import { clubHomeMutedText, clubHomeSectionCard, clubHomeSectionTitle } from './clubHomeStyles';
 
 type Milestone = {
   id: number;
@@ -12,8 +13,7 @@ type Milestone = {
 };
 
 export default function GehrigTimeline() {
-  const [items, setItems] = useState<Milestone[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [items, setItems] = useState<Milestone[] | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -34,8 +34,6 @@ export default function GehrigTimeline() {
         if (!alive) return;
         setItems([]);
         setError('Unable to load Gehrig timeline entries right now.');
-      } finally {
-        if (alive) setLoading(false);
       }
     })();
 
@@ -45,23 +43,15 @@ export default function GehrigTimeline() {
   }, []);
 
   return (
-    <section
-      aria-label="Gehrig timeline"
-      style={{
-        padding: 16,
-        border: '1px solid rgba(0,0,0,0.12)',
-        borderRadius: 12,
-        background: '#fff',
-      }}
-    >
-      <h2 style={{ margin: '0 0 12px 0', fontSize: 22 }}>Gehrig Timeline</h2>
+    <section aria-label="Gehrig timeline" style={clubHomeSectionCard}>
+      <h2 style={clubHomeSectionTitle}>Gehrig Timeline</h2>
 
-      {loading ? (
-        <p style={{ margin: 0, color: 'rgba(0,0,0,0.72)' }}>Loading timeline…</p>
-      ) : error ? (
-        <p style={{ margin: 0, color: '#b00020' }}>{error}</p>
+      {error ? (
+        <p style={{ ...clubHomeMutedText, margin: 0 }}>{error}</p>
+      ) : items === null ? (
+        <p style={{ ...clubHomeMutedText, margin: 0 }}>Loading timeline.</p>
       ) : items.length === 0 ? (
-        <p style={{ margin: 0, color: 'rgba(0,0,0,0.72)' }}>No timeline entries are available yet.</p>
+        <p style={{ ...clubHomeMutedText, margin: 0 }}>No timeline entries are available yet.</p>
       ) : (
         <ol style={{ margin: 0, paddingLeft: 20, display: 'grid', gap: 10 }}>
           {items.map((entry) => (
@@ -70,7 +60,7 @@ export default function GehrigTimeline() {
                 {entry.year ?? entry.milestone_date ?? '—'}: {entry.title}
               </strong>
               {entry.description ? (
-                <p style={{ margin: '6px 0 0', color: 'rgba(0,0,0,0.75)' }}>{entry.description}</p>
+                <p style={{ ...clubHomeMutedText, margin: '6px 0 0' }}>{entry.description}</p>
               ) : null}
             </li>
           ))}
