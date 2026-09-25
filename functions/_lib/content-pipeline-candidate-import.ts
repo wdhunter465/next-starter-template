@@ -29,6 +29,7 @@ export const CONTENT_PIPELINE_CORE_TABLES = [
   'member_submissions',
   'publication_candidates',
   'moderation_events',
+  'rights_evidence',
 ] as const;
 
 export type ContentPipelineCoreTable = (typeof CONTENT_PIPELINE_CORE_TABLES)[number];
@@ -593,6 +594,45 @@ ON CONFLICT(content_item_id) DO UPDATE SET
   };
 }
 
+// #4374 Q2: scheduled_discovery candidates get zero rights_evidence rows
+// today -- the discovery workflow only ever writes content_items metadata
+// (rights_status='unknown'), so a freshly-discovered item is invisible to
+// any rights queue until a human happens to look at it. Recording a
+// 'rights_undetermined' row makes "not yet determined" a real, queryable
+// state instead of silence. This is safe for automation to write with no
+// human in the loop -- "we don't know yet" asserts nothing about rights,
+// unlike an approving conclusion (see rights-evidence-repository.ts's
+// recordUndeterminedRightsEvidence, which this mirrors in raw-SQL form for
+// the CLI import path). Only fires for scheduled_discovery -- member
+// submissions have their own separate rights model (#2270) and must not
+// gain an extra evidence row from this path.
+function buildUndeterminedRightsEvidenceInsert(candidate: CandidateRecord): ImportSqlStatement | null {
+  if (candidate.input_stream !== 'scheduled_discovery') {
+    return null;
+  }
+
+  const sql = `INSERT INTO rights_evidence (
+  content_item_id, evidence_type, reviewer, conclusion, conclusion_rationale,
+  channel, usage_decision
+)
+SELECT
+  ci.id, 'other', 'automated:discovery-import',
+  'rights_undetermined',
+  'Rights could not be determined automatically at discovery time; awaiting curator review.',
+  'internal_archive_only', 'hold'
+FROM content_items ci
+WHERE ci.candidate_id = ${sqlString(candidate.candidate_id)}
+  AND NOT EXISTS (
+    SELECT 1 FROM rights_evidence re WHERE re.content_item_id = ci.id
+  );`;
+
+  return {
+    table: 'rights_evidence',
+    sql,
+    description: `Record rights_undetermined evidence for ${candidate.candidate_id} (first import only)`,
+  };
+}
+
 function buildPublicationCandidateUpsert(candidate: CandidateRecord): ImportSqlStatement | null {
   if (candidate.publication_status !== 'approved_for_publish' || !candidate.publication_target) {
     return null;
@@ -648,6 +688,11 @@ export function buildCandidateImportPlan(registry: CandidateRegistry): ImportPla
     const publicationStatement = buildPublicationCandidateUpsert(candidate);
     if (publicationStatement) {
       statements.push(publicationStatement);
+    }
+
+    const rightsUndeterminedStatement = buildUndeterminedRightsEvidenceInsert(candidate);
+    if (rightsUndeterminedStatement) {
+      statements.push(rightsUndeterminedStatement);
     }
   }
 
