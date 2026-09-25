@@ -91,4 +91,33 @@ describe('GET /api/milestones/list visibility filtering (#3161)', () => {
       expect(row).not.toHaveProperty('source_url');
     }
   });
+
+  it('interleaves year-only rows chronologically instead of sorting them after every dated row', async () => {
+    // Regression for a Copilot review finding on #4375: migration 0078 seeds
+    // two public rows with no event_date (1927 AL MVP, 1934 Triple Crown).
+    // Those must sort between their neighboring dated rows (1925, 1939), not
+    // all the way to the end of the list.
+    const sqlite = new DatabaseSync(':memory:');
+    applyRepoMigrations(sqlite);
+
+    const response = await onRequestGet({
+      env: { DB: wrapSqliteAsD1(sqlite) },
+      request: getRequest(),
+    });
+    const body = await response.json();
+
+    const titles: string[] = body.items.map((row: { title: string }) => row.title);
+    const streakIndex = titles.indexOf('Begins the historic consecutive-games streak'); // 1925-06-01
+    const mvpIndex = titles.indexOf('AL MVP, anchors the "Murderers\' Row" Yankees'); // 1927, no event_date
+    const tripleCrownIndex = titles.indexOf('Wins the Triple Crown'); // 1934, no event_date
+    const streakEndsIndex = titles.indexOf('Voluntarily ends the 2,130-game streak'); // 1939-05-02
+
+    expect(streakIndex).toBeGreaterThanOrEqual(0);
+    expect(mvpIndex).toBeGreaterThanOrEqual(0);
+    expect(tripleCrownIndex).toBeGreaterThanOrEqual(0);
+    expect(streakEndsIndex).toBeGreaterThanOrEqual(0);
+    expect(streakIndex).toBeLessThan(mvpIndex);
+    expect(mvpIndex).toBeLessThan(tripleCrownIndex);
+    expect(tripleCrownIndex).toBeLessThan(streakEndsIndex);
+  });
 });

@@ -31,11 +31,13 @@ export const onRequestGet = async (context: any): Promise<Response> => {
       ? `NULL AS milestone_date`
       : `m.${selectedDateColumn} AS milestone_date`;
 
+    // A year-only row (event_date NULL) must interleave by year, not sort
+    // after every dated row -- coalesce to Jan 1 of that year as a
+    // placeholder sort key instead of using a separate "no date" tier.
     const orderBySql = selectedDateColumn === 'year'
       ? `CASE WHEN m.year IS NULL THEN 1 ELSE 0 END ASC, m.year ASC, m.id ASC`
-      : `CASE WHEN m.${selectedDateColumn} IS NULL OR trim(m.${selectedDateColumn}) = '' THEN 1 ELSE 0 END ASC,
-         date(m.${selectedDateColumn}) ASC,
-         m.${selectedDateColumn} ASC,
+      : `CASE WHEN COALESCE(NULLIF(trim(m.${selectedDateColumn}), ''), m.year) IS NULL THEN 1 ELSE 0 END ASC,
+         COALESCE(date(NULLIF(trim(m.${selectedDateColumn}), '')), date(m.year || '-01-01')) ASC,
          m.id ASC`;
 
     const sql = `SELECT m.id,

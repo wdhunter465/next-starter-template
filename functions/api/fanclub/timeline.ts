@@ -36,10 +36,8 @@ export const onRequestGet = async (context: any): Promise<Response> => {
                  FROM milestones m
                  LEFT JOIN photos p ON p.id = m.photo_id AND ${rightsClearedClause("p")}
                  WHERE m.status='posted'
-                 ORDER BY CASE WHEN m.event_date IS NULL OR trim(m.event_date) = '' THEN 1 ELSE 0 END ASC,
-                          date(m.event_date) ASC,
-                          CASE WHEN m.year IS NULL THEN 1 ELSE 0 END ASC,
-                          m.year ASC,
+                 ORDER BY CASE WHEN COALESCE(NULLIF(trim(m.event_date), ''), m.year) IS NULL THEN 1 ELSE 0 END ASC,
+                          COALESCE(date(NULLIF(trim(m.event_date), '')), date(m.year || '-01-01')) ASC,
                           m.id ASC
                  LIMIT ?;`;
 
