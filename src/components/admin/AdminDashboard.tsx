@@ -92,6 +92,14 @@ export default function AdminDashboard() {
           <div className={styles.cardBody}>Inspect ingested media in D1 (Backblaze B2 keys, size, etag).</div>
         </a>
 
+        <a className={styles.card} href="/admin/rights-review">
+          <div className={styles.cardTitle}>Rights Review</div>
+          <div className={styles.cardBody}>
+            Curator queue for discovered candidates awaiting a rights decision (#4374): items on hold and items
+            never yet reviewed.
+          </div>
+        </a>
+
         <a className={styles.card} href="/admin/cms">
           <div className={styles.cardTitle}>CMS</div>
           <div className={styles.cardBody}>Admin tools (work in progress).</div>
