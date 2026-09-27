@@ -68,6 +68,12 @@ describe('LEGACY_PHOTOS_CLEANUP_STATEMENTS (#3552)', () => {
   it('running the statements in the declared order succeeds and leaves every dependent table empty', () => {
     const db = new DatabaseSync(':memory:');
     applyRepoMigrations(db);
+
+    // Baseline before seeding: migrations may ship their own milestone rows
+    // (e.g. #3161's researched life-timeline seed), so the assertions below
+    // compare deltas rather than assuming the table starts empty.
+    const baselineMilestones = db.prepare('SELECT COUNT(*) AS n FROM milestones').get() as { n: number };
+
     seedOnePhotoWithDependents(db);
 
     for (const statement of LEGACY_PHOTOS_CLEANUP_STATEMENTS) {
@@ -88,7 +94,9 @@ describe('LEGACY_PHOTOS_CLEANUP_STATEMENTS (#3552)', () => {
     expect(votes.n).toBe(0);
     expect(milestonesWithPhoto.n).toBe(0);
 
+    // The one milestone row this test seeded survives (only its photo_id is
+    // cleared, above); nothing else touches unrelated milestone rows.
     const milestoneRow = db.prepare('SELECT COUNT(*) AS n FROM milestones').get() as { n: number };
-    expect(milestoneRow.n).toBe(1);
+    expect(milestoneRow.n).toBe(baselineMilestones.n + 1);
   });
 });
