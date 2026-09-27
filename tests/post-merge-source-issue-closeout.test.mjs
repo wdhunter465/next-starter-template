@@ -562,6 +562,7 @@ describe('source issue closeout evidence', () => {
 			'status:post-merge-verify',
 			'status:pr-draft',
 			'status:review',
+			'status:needs-review',
 			'status:implementation',
 			'status:implementation-ready',
 			'status:ready-for-cursor',
