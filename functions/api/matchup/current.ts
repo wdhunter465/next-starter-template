@@ -546,8 +546,16 @@ export async function repairBrokenActiveMatchupPhoto(options: {
     statements.push(
       db
         .prepare(
+          // #4261: also clear publication_eligible. is_matchup_eligible only
+          // gates the Weekly Matchup rotation; every other public/member
+          // surface (galleries, search, club-home lead-photo picker) gates on
+          // rightsClearedClause() (rights_hold=0 AND publication_eligible=1),
+          // which is independent of is_matchup_eligible. Without this, a photo
+          // this probe just confirmed is missing/unreachable would stop
+          // rotating here but keep rendering a dead <img> everywhere else.
           `UPDATE photos
            SET is_matchup_eligible = ?,
+               publication_eligible = 0,
                rights_notes = CASE
                  WHEN rights_notes IS NULL OR TRIM(rights_notes) = '' THEN ?
                  ELSE rights_notes || ' | ' || ?
