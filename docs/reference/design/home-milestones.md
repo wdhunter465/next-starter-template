@@ -1,5 +1,5 @@
 ---
-Doc Type: Specification
+Doc Type: Reference
 Audience: Human + AI
 Authority Level: Canonical Design Specification
 Owns: Homepage milestones section purpose, layout contract, and behavior
