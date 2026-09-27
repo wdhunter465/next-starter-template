@@ -17,7 +17,8 @@ const APPROVED_TEAMS = new Set([
   'team:governance'
 ]);
 
-const OPS_PR_ESCALATION_LABEL = 'ops-pr-escalation';
+/** Post-merge / closeout exception labels that count toward Operations (no team:* required). */
+const OPERATIONS_EXCEPTION_LABELS = ['ops-pr-escalation', 'post-merge-failure'];
 
 function normalizeLabels(input) {
   return (input || [])
@@ -31,11 +32,15 @@ function exclusiveApprovedTeam(labels) {
   return APPROVED_TEAMS.has(teams[0]) ? teams[0] : null;
 }
 
+function isOperationsException(labels) {
+  return OPERATIONS_EXCEPTION_LABELS.some((label) => labels.includes(label));
+}
+
 export function classifyTeamQueue(issue) {
   if (!issue || issue.pull_request || issue.state !== 'open') return null;
   const labels = normalizeLabels(issue.labels);
-  // Escalated post-merge / closeout work counts in Operations regardless of team:* exclusivity.
-  if (labels.includes(OPS_PR_ESCALATION_LABEL)) return 'operations';
+  // Exception / escalated closeout work counts in Operations regardless of team:* exclusivity.
+  if (isOperationsException(labels)) return 'operations';
   const team = exclusiveApprovedTeam(labels);
   if (!team) return null;
   if (team === 'team:operations') return 'operations';
@@ -52,8 +57,9 @@ function issueSearchUrl(owner, repo, queue) {
   // is:issue excludes pull requests so the link matches classifyTeamQueue (which omits PRs).
   const query = ['is:open', 'is:issue'];
   if (queue.id === 'operations') {
-    // Operations row includes exclusive team:operations owners and escalated PR/closeout work.
-    query.push(`label:${queue.teamLabel},${OPS_PR_ESCALATION_LABEL}`);
+    // Operations: exclusive team:operations owners plus exception labels.
+    const opsLabels = [queue.teamLabel, ...OPERATIONS_EXCEPTION_LABELS].join(',');
+    query.push(`label:${opsLabels}`);
   } else {
     query.push(`label:${queue.teamLabel}`);
   }
