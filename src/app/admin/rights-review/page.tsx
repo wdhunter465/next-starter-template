@@ -53,7 +53,24 @@ type HoldQueueItem = {
   latest_evidence: LatestEvidence;
 };
 
-type QueueResponse = { ok: true; count: number; items: unknown[] };
+type UnreviewedItem = {
+  content_item_id: number;
+  candidate_id: string;
+  title: string;
+  source_name: string | null;
+  source_url: string | null;
+  source_domain: string | null;
+  review_status: string;
+  created_at: string;
+};
+
+type QueueResponse = {
+  ok: true;
+  count: number;
+  items: unknown[];
+  unreviewed_count: number;
+  unreviewed_items: unknown[];
+};
 
 function asString(value: unknown): string | null {
   return typeof value === 'string' ? value : null;
@@ -120,6 +137,27 @@ function normalizeItem(raw: unknown): HoldQueueItem | null {
   };
 }
 
+function normalizeUnreviewedItem(raw: unknown): UnreviewedItem | null {
+  if (!isRecord(raw)) return null;
+  const contentItemId = raw.content_item_id;
+  const candidateId = asString(raw.candidate_id);
+  const title = asString(raw.title);
+  const reviewStatus = asString(raw.review_status);
+  const createdAt = asString(raw.created_at);
+  if (typeof contentItemId !== 'number' || !candidateId || !title || !reviewStatus || !createdAt) return null;
+
+  return {
+    content_item_id: contentItemId,
+    candidate_id: candidateId,
+    title,
+    source_name: asString(raw.source_name),
+    source_url: asString(raw.source_url),
+    source_domain: asString(raw.source_domain),
+    review_status: reviewStatus,
+    created_at: createdAt,
+  };
+}
+
 function cardStyle(): React.CSSProperties {
   return {
     border: '1px solid rgba(0,0,0,0.12)',
@@ -152,7 +190,9 @@ function buttonStyle(disabled = false, tone: 'permit' | 'deny' | 'default' = 'de
   };
 }
 
-function ResolveForm(props: { item: HoldQueueItem; onResolved: () => void }) {
+// Only reads `candidate_id`, so it's shared by both the hold queue
+// (HoldQueueItem) and the never-reviewed queue (UnreviewedItem) below.
+function ResolveForm(props: { item: { candidate_id: string }; onResolved: () => void }) {
   const { item, onResolved } = props;
   const [reviewer, setReviewer] = useState('');
   const [rationale, setRationale] = useState('');
@@ -306,19 +346,47 @@ function QueueCard(props: { item: HoldQueueItem; onResolved: () => void }) {
   );
 }
 
+function UnreviewedCard(props: { item: UnreviewedItem; onResolved: () => void }) {
+  const { item, onResolved } = props;
+
+  return (
+    <div style={cardStyle()}>
+      <div>
+        <div style={{ fontWeight: 700, fontSize: 16 }}>{item.title}</div>
+        <div style={{ fontSize: 12, opacity: 0.75, marginTop: 2 }}>
+          {item.candidate_id} · created {new Date(item.created_at).toLocaleDateString()}
+        </div>
+      </div>
+
+      <div style={{ fontSize: 13, display: 'grid', gap: 4 }}>
+        {item.source_name ? <div>Source: {item.source_name}</div> : null}
+        {item.source_url ? (
+          <div>
+            Source URL: <ExternalLink url={item.source_url} />
+          </div>
+        ) : null}
+      </div>
+
+      <ResolveForm item={item} onResolved={onResolved} />
+    </div>
+  );
+}
+
 export default function AdminRightsReviewPage() {
   const [status, setStatus] = useState('Idle.');
   const [loading, setLoading] = useState(false);
   const [items, setItems] = useState<HoldQueueItem[]>([]);
+  const [unreviewedItems, setUnreviewedItems] = useState<UnreviewedItem[]>([]);
 
   const load = useCallback(async () => {
     setLoading(true);
-    setStatus('Loading hold queue…');
+    setStatus('Loading rights review queues…');
 
     const result = await adminJson<QueueResponse>('/api/admin/content-pipeline/rights-evidence/queue?limit=100');
 
     if (!result.ok) {
       setItems([]);
+      setUnreviewedItems([]);
       setStatus(`Error: ${result.error}`);
       setLoading(false);
       return;
@@ -327,7 +395,16 @@ export default function AdminRightsReviewPage() {
     const raw = Array.isArray(result.data?.items) ? result.data.items : [];
     const normalized = raw.map(normalizeItem).filter((x): x is HoldQueueItem => x !== null);
     setItems(normalized);
-    setStatus(normalized.length ? `${normalized.length} item(s) on hold.` : 'Hold queue is empty.');
+
+    const rawUnreviewed = Array.isArray(result.data?.unreviewed_items) ? result.data.unreviewed_items : [];
+    const normalizedUnreviewed = rawUnreviewed
+      .map(normalizeUnreviewedItem)
+      .filter((x): x is UnreviewedItem => x !== null);
+    setUnreviewedItems(normalizedUnreviewed);
+
+    setStatus(
+      `${normalized.length} item(s) on hold · ${normalizedUnreviewed.length} never reviewed.`,
+    );
     setLoading(false);
   }, []);
 
@@ -358,15 +435,33 @@ export default function AdminRightsReviewPage() {
           <AdminStatusText message={status} />
         </div>
 
-        {items.length === 0 && !loading ? (
-          <p style={{ opacity: 0.8 }}>Nothing on hold right now.</p>
-        ) : (
-          <div style={{ display: 'grid', gap: 14 }}>
-            {items.map((item) => (
-              <QueueCard key={`${item.content_item_id}:${item.latest_evidence.id}`} item={item} onResolved={() => void load()} />
-            ))}
+        {unreviewedItems.length > 0 ? (
+          <div style={{ display: 'grid', gap: 10 }}>
+            <h2 style={{ fontSize: 18, margin: 0 }}>Never reviewed ({unreviewedItems.length})</h2>
+            <p style={{ opacity: 0.75, fontSize: 13, margin: 0 }}>
+              Candidates with no rights_evidence row at all yet (any input stream) -- distinct from the hold queue
+              below, which already has an explicit hold decision.
+            </p>
+            <div style={{ display: 'grid', gap: 14 }}>
+              {unreviewedItems.map((item) => (
+                <UnreviewedCard key={item.content_item_id} item={item} onResolved={() => void load()} />
+              ))}
+            </div>
           </div>
-        )}
+        ) : null}
+
+        <div style={{ display: 'grid', gap: 10 }}>
+          <h2 style={{ fontSize: 18, margin: 0 }}>On hold ({items.length})</h2>
+          {items.length === 0 && !loading ? (
+            <p style={{ opacity: 0.8 }}>Nothing on hold right now.</p>
+          ) : (
+            <div style={{ display: 'grid', gap: 14 }}>
+              {items.map((item) => (
+                <QueueCard key={`${item.content_item_id}:${item.latest_evidence.id}`} item={item} onResolved={() => void load()} />
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </PageShell>
   );
