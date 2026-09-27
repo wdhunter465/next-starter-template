@@ -22,6 +22,15 @@ assert(
   classifyTeamQueue(issue(16, { labels: ['ops-pr-escalation', 'team:pmo', 'pmo:active'] })) === 'operations',
   'ops-pr-escalation takes precedence for Operations count'
 );
+assert(
+  classifyTeamQueue(issue(18, { labels: ['post-merge-failure', 'status:active', 'agent:claude'] })) ===
+    'operations',
+  'post-merge-failure exception (e.g. #4381) counts as operations'
+);
+assert(
+  classifyTeamQueue(issue(19, { labels: ['post-merge-failure', 'ops-pr-escalation'] })) === 'operations',
+  'both exception labels still count once as operations'
+);
 assert(classifyTeamQueue(issue(2, { labels: ['team:pmo', 'pmo:active', 'pmo:priority:1'] })) === 'pmoActive', 'pmo active');
 assert(
   classifyTeamQueue(issue(12, { labels: ['team:pmo', 'pmo:active', 'pmo:task'] })) === null,
@@ -51,6 +60,10 @@ assert(
   classifyTeamQueue(issue(17, { state: 'closed', labels: ['ops-pr-escalation'] })) === null,
   'closed ops-pr-escalation omitted'
 );
+assert(
+  classifyTeamQueue(issue(20, { state: 'closed', labels: ['post-merge-failure'] })) === null,
+  'closed post-merge-failure omitted'
+);
 
 const counts = buildTeamQueueCounts(
   [
@@ -66,23 +79,29 @@ const counts = buildTeamQueueCounts(
     issue(10, { labels: ['team:operations', 'team:engineering'] }),
     issue(14, { labels: ['team:pmo', 'pmo:active', 'pmo:task'] }),
     issue(15, { labels: ['ops-pr-escalation'] }),
-    issue(16, { labels: ['ops-pr-escalation', 'post-merge-failure'] })
+    issue(16, { labels: ['ops-pr-escalation', 'post-merge-failure'] }),
+    issue(18, { labels: ['post-merge-failure', 'status:active', 'agent:claude'] })
   ],
   { owner: 'wdhunter465', repo: 'next-starter-template' }
 );
 
 assert(counts.order.join(',') === 'operations,engineering,governance', 'team row order');
 assert(counts.queues.map((queue) => queue.title).join(',') === 'Operations,Engineering,Governance', 'team display titles');
-assert(counts.queues.map((queue) => queue.count).join(',') === '4,1,1', 'team exclusive open counts including ops-pr-escalation');
+assert(
+  counts.queues.map((queue) => queue.count).join(',') === '5,1,1',
+  'team open counts including exception labels'
+);
 assert(counts.pmoOrder.join(',') === 'pmoTracked,pmoPipeline,pmoActive', 'pmo row order');
 assert(counts.pmoQueues.map((queue) => queue.title).join(',') === 'PMO tracked,PMO Pipeline,PMO Active', 'pmo display titles');
 assert(counts.pmoQueues.map((queue) => queue.count).join(',') === '4,3,1', 'pmo parent counts: tracked = pipeline + active');
 
-const expectedOpsQuery = encodeURIComponent('is:open is:issue label:team:operations,ops-pr-escalation');
+const expectedOpsQuery = encodeURIComponent(
+  'is:open is:issue label:team:operations,ops-pr-escalation,post-merge-failure'
+);
 assert(
   counts.queues[0].issueSearchUrl ===
     `https://github.com/wdhunter465/next-starter-template/issues?q=${expectedOpsQuery}`,
-  'operations search URL includes ops-pr-escalation and is:issue'
+  'operations search URL includes exception labels and is:issue'
 );
 
 // Every queue search must exclude PRs (is:issue) so links match classifyTeamQueue.
