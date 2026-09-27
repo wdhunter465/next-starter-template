@@ -11,11 +11,19 @@ Last Reviewed: 2026-09-27
 
 # Production release evidence ownership
 
-Pull-request checks and post-merge closeout are not the same thing as production release evidence. This file separates those evidence types so a current-state record can point at the right one. It does not implement #2047 and it does not authorize a deploy.
+## Purpose
+
+Pull-request checks and post-merge closeout are not the same thing as production release evidence. This file separates those evidence types for #2089 so a current-state record can point at the right one. It does not implement #2047 and it does not authorize a deploy.
+
+## Scope
+
+This file owns the reusable distinction among preview, production, smoke, rollback, and closeout evidence, and the rules below for when each is missing or complete. It does not own the #2039 launch checklist (that stays #2047's), Cloudflare configuration, CI workflow behavior, or permission to deploy.
 
 #2047 remains the immediate launch-checklist owner for #2039. This file is the reusable model those records should follow.
 
-## Evidence types
+## Current known truth
+
+### Evidence types
 
 | Evidence | Question it answers | Owner | Not the same as |
 | --- | --- | --- | --- |
@@ -25,7 +33,7 @@ Pull-request checks and post-merge closeout are not the same thing as production
 | Rollback | Can the previous production revision be restored, and was it restored if the smoke failed? | Day-2 Operations | A git revert of an unreleased branch |
 | Source-issue closeout | Did the merged pull request meet the Issue's acceptance, including doc updates? | The post-merge closeout record for that pull request | A production Go decision |
 
-## Rules
+### Rules
 
 - A green preview check does not close production, smoke, or rollback evidence.
 - Production Go stays with Product Authority. This model does not grant it.
@@ -33,6 +41,10 @@ Pull-request checks and post-merge closeout are not the same thing as production
 - Current-state and PMO surfaces link to the evidence record. They do not copy it into a second authority.
 - Closeout may finish while production evidence is still open. Those are different states. Do not conflate them with pull-request `READY FOR REVIEW`.
 
-## What stays unchanged
+### What stays unchanged
 
 Cloudflare configuration and CI workflows are out of scope. If #2047 already specifies a checklist item, follow #2047 for that launch. Use this table only to classify the evidence.
+
+## Intended final state
+
+This model stays reusable and generic. As #2047 (or later launch-checklist work) records evidence in practice, its records should reference this file's evidence types rather than inventing new ones; this file does not expect to gain per-launch specifics of its own.
