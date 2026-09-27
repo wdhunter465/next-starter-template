@@ -5,8 +5,8 @@ Authority Level: supporting
 Owns: legacy-to-DIATAXIS migration planning for project #1132
 Does Not Own: implementation code or archival execution
 Canonical Reference: docs/reference/documentation-gap-analysis-1132.md
-Related issues: #1132, #1134, #1342
-Last Reviewed: 2026-06-05
+Related issues: #1132, #1134, #1342, #3155
+Last Reviewed: 2026-09-27
 ---
 
 # Legacy to DIATAXIS Migration Matrix
@@ -50,9 +50,9 @@ Legacy roots audited for Phase 1 closeout:
 | Legacy root | Mapping status | Execution |
 |---|---|---|
 | `docs/ops/ai/` | Migrated | Retain canonical agent rules |
-| `ops/ai/` | Mapped | Deferred Program 3 — cross-agent file move |
-| `governance/ai/` | Mapped | Deferred Program 3 — governance standard rewrite |
-| `PROMPTS/` | Mapped | Deferred Program 3 — route to `docs/ops/ai/` and retire |
+| `ops/ai/` | Mapped | Retired #3155 — archived; authority is `docs/ops/ai/CORE-RULES.md` |
+| `governance/ai/` | Mapped | Retired #3155 — archived; authority is `docs/governance/AGENT-TEAM.md` |
+| `PROMPTS/` | Mapped | Retired #3155 — archived with canonical headers |
 | Split trackers | Mapped | Retain with routing to as-built reconciliation |
 
 Authoritative row-level table: `docs/reference/DIATAXIS-MAPPING.md`.

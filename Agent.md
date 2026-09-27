@@ -205,7 +205,7 @@ Tracker/status-index files are updated only when the source Issue authorizes tha
 
 These remain required validation surfaces. They do not override the constitutional and domain-policy chain above.
 
-`governance/ai/AGENT-GOVERNANCE.md` (prior cross-agent governance rules) and `ops/ai/CROSS-AGENT-OPERATING-RULES.md` (prior cross-agent operating guidance) are historical/superseded (#2823) — retained as a record, not as navigation or authority surfaces. Do not read them for conflict resolution; use the "Mandatory authority chain" above.
+`docs/archive/superseded/governance/ai/AGENT-GOVERNANCE.md` (prior cross-agent governance rules) and `docs/archive/superseded/ops/ai/CROSS-AGENT-OPERATING-RULES.md` (prior cross-agent operating guidance) are historical/superseded (#2823, archived #3155) — retained as a record, not as navigation or authority surfaces. Do not read them for conflict resolution; use the "Mandatory authority chain" above.
 
 ## Stop conditions
 

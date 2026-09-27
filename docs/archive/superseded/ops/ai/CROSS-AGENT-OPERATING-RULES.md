@@ -1,11 +1,13 @@
 ---
-Doc Type: Operations
+Doc Type: Archived Operations
 Audience: AI agents and repository maintainers
-Authority Level: Operational
-Owns: Cross-agent operating rules and handoff expectations
-Does Not Own: Canonical product design, source Issue scope, or CI implementation details
-Canonical Reference: Agent.md
-Last Reviewed: 2026-05-11
+Authority Level: Historical
+Owns: Historical cross-agent operating record only
+Does Not Own: Current execution law or a live copy of this policy under docs/ops/ai
+Canonical Reference: /docs/ops/ai/CORE-RULES.md
+Archived From: /ops/ai/CROSS-AGENT-OPERATING-RULES.md
+Archived Reason: Superseded by #2823; archived under #3155 instead of copying the file into docs/ops/ai
+Last Reviewed: 2026-09-27
 ---
 
 > **SUPERSEDED (#2823, 2026-09-17):** This document is historical/non-authoritative. It is not part of the canonical agent authority chain and must not be used for conflict resolution. Current authority: `Agent.md` (mandatory authority chain) → `docs/governance/REPOSITORY-AUTHORITY.md` (constitutional) → `docs/governance/AGENT-TEAM.md` → `docs/ops/ai/CORE-RULES.md`. Retained only as a historical record of prior cross-agent operating guidance.

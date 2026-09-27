@@ -1,11 +1,13 @@
 ---
-Doc Type: Governance
+Doc Type: Archived Governance
 Audience: AI agents and repository maintainers
-Authority Level: Operational
-Owns: Cross-agent governance rules for LGFC repository work
-Does Not Own: Canonical product design, runtime architecture, or PR template structure
-Canonical Reference: Agent.md
-Last Reviewed: 2026-06-02
+Authority Level: Historical
+Owns: Historical cross-agent governance record only
+Does Not Own: Current agent-team policy, repository authority, or a second governance standard
+Canonical Reference: /docs/governance/AGENT-TEAM.md
+Archived From: /governance/ai/AGENT-GOVERNANCE.md
+Archived Reason: Superseded by #2823; archived under #3155 without authoring a replacement standard
+Last Reviewed: 2026-09-27
 ---
 
 > **SUPERSEDED (#2823, 2026-09-17):** This document is historical/non-authoritative. It is not part of the canonical agent authority chain and must not be used for conflict resolution. Current authority: `Agent.md` (mandatory authority chain) → `docs/governance/REPOSITORY-AUTHORITY.md` (constitutional) → `docs/governance/AGENT-TEAM.md` → `docs/ops/ai/CORE-RULES.md`. Retained only as a historical record of prior cross-agent governance rules.

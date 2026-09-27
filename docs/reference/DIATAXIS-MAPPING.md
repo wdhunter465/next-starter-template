@@ -53,8 +53,8 @@ DIATAXIS is considered 100% complete for Phase 1 when:
 | `docs/ops/ai/COPILOT-RULES.md` | `docs/ops/ai/COPILOT-RULES.md` | Reference (ops) | **Migrated** | Retain — Copilot tool rules |
 | `docs/ops/ai/DEVIN-RULES.md` | `docs/ops/ai/DEVIN-RULES.md` | Reference (ops) | **Migrated** | Retain — Devin tool rules |
 | `docs/ops/ai/pr-lifecycle-standard.md` | — | Operations | **Retired (#4091)** | Deleted — contradicted `PR_PROCESS.md` / `AGENT-TEAM.md` (ChatGPT-as-universal-PR-owner) |
-| `ops/ai/CROSS-AGENT-OPERATING-RULES.md` | `docs/ops/ai/CROSS-AGENT-OPERATING-RULES.md` | Operations | **Deferred Program 3** | Migrate — move live file into `docs/ops/ai/`; retire repo-root path |
-| `governance/ai/AGENT-GOVERNANCE.md` | `docs/governance/standards/agent-governance.md` | Governance | **Deferred Program 3** | Rewrite + migrate — create DIATAXIS standard; retire repo-root path |
+| `ops/ai/CROSS-AGENT-OPERATING-RULES.md` | `docs/ops/ai/CORE-RULES.md` | Operations | **Retired (#3155)** | Archived with Historical header at `docs/archive/superseded/ops/ai/CROSS-AGENT-OPERATING-RULES.md`; not copied into `docs/ops/ai/` |
+| `governance/ai/AGENT-GOVERNANCE.md` | `docs/governance/AGENT-TEAM.md` | Governance | **Retired (#3155)** | Archived with Historical header at `docs/archive/superseded/governance/ai/AGENT-GOVERNANCE.md`; no second governance standard authored |
 | `docs/governance/ai/AI-GUIDE.md` | `docs/archive/superseded/governance/ai/AI-GUIDE.md` *(planned)* | Governance | **Retain** | Route — historical build prompt; not agent routing authority |
 | `PROMPTS/Cursor-Rules.md` | `docs/ops/ai/CURSOR-RULES.md` | How-To / Reference | **Retired (#3155)** | Archived with canonical header at `docs/archive/superseded/PROMPTS/Cursor-Rules.md` |
 | `PROMPTS/Codex-Rules.md` | `docs/ops/ai/CODEX-RULES.md` | How-To / Reference | **Removed (#4165)** | Deleted with Codex decommission |
@@ -76,8 +76,8 @@ One recommended canonical target per topic (details in status report):
 | Topic | Canonical target |
 |---|---|
 | Shared agent law | `docs/ops/ai/CORE-RULES.md` |
-| Cross-agent handoff | `docs/ops/ai/CROSS-AGENT-OPERATING-RULES.md` *(after Program 3 move)* |
-| Long-form agent governance | `docs/governance/standards/agent-governance.md` *(after Program 3 authoring)* |
+| Cross-agent handoff | `docs/ops/ai/CORE-RULES.md` |
+| Long-form agent governance | `docs/governance/AGENT-TEAM.md` |
 | Cursor program execution | `docs/reference/pmo/lgfc-cursor-execution-contract.md` |
 
 ---
