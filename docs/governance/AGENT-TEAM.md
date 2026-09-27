@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Durable LGFC agent roles, recognized agent products, current member mapping, role work-selection order, approval authority, protected stops, and role-transition state
 Does Not Own: PMO lifecycle/stage semantics, detailed queue-label implementation, delivery-profile mechanics, CI implementation, or Production recovery procedure
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3240, #3629, #3693, #3825, #4074, #4165, #4173, #4174
-Last Reviewed: 2026-09-22 (retired-member name removal, #4320)
+Related Issues: #3240, #3629, #3693, #3825, #4074, #4165, #4173, #4174, #4399
+Last Reviewed: 2026-09-27
 ---
 
 # Agent Team
@@ -174,6 +174,13 @@ The associated product-specific rules file is historical only (path retained for
 Two earlier retirements are on record (#4074, #4165). Historical Issue comments, PR authorship, and prior decisions attributing work to the member covered by this record remain truthful records and are not rewritten.
 
 Successor coverage until Product names permanent holders: Cursor Local continues Product-authorized Operations and interim PMO Admin (#4174); Claude Code remains Engineering and independent review for work it did not implement; Bill remains Product Authority. The Governance durable role has no active product holder in the mapping table after the retirement recorded in #4173 until Product records a permanent assignment.
+
+## Copilot and Devin — #4399
+
+Product Authority, 2026-09-27 (#4399):
+
+- Copilot remains in use. `docs/ops/ai/COPILOT-RULES.md` stays a live tool-specific pointer. Copilot is not a durable role holder in the mapping table above.
+- Devin is no longer in use. Devin holds no current team role, implementation authority, or wake path. `docs/ops/ai/DEVIN-RULES.md` is a historical pointer only.
 
 ## Priority and hierarchy dependency
 
