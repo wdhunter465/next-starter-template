@@ -34,7 +34,7 @@ Status report: `docs/reports/program-1-diataxis-transition-status.md`
 
 - Total legacy root groups mapped: **6** (agent rules, cross-agent ops, governance ai, prompts, split trackers, archive candidates)
 - Total DIATAXIS targets referenced: **15+** canonical paths across `docs/ops/ai/`, `docs/governance/standards/`, `docs/how-to/cursor/`, `docs/reference/website/`, and `docs/ops/trackers/`
-- Coverage status: **Phase 1 status complete** — row-level retirement execution deferred Program 3
+- Coverage status: **Phase 1 status complete** — remaining retirement execution is owned by #3155. Historical rows below keep their original status words.
 
 DIATAXIS is considered 100% complete for Phase 1 when:
 

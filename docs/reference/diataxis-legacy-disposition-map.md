@@ -19,6 +19,22 @@ No row here authorizes a deploy, a new policy owner, or closure of #3155.
 
 Every legacy file a package moves or archives receives the canonical documentation header in that same change: Doc Type, Audience, Authority Level, Owns, Does Not Own, Canonical Reference, and Last Reviewed. Archived files use an archived Doc Type and Authority Level Historical, following `docs/archive/reference/orchestration/startup-governance.md`. Files that already have a header keep it, and the package corrects a live authority claim to Historical when the file is archived. `PROMPTS/` has no header today. The two superseded root files already have a header, and it still says Operational.
 
+## Scope
+
+In scope: the per-file disposition of the remaining legacy roots and `docs/ops/ai/` files owned by #3155.
+Out of scope: entry-chain consolidation, a document-asset registry, deploy authorization, and non-migration product work.
+
+## Current known truth
+
+- This file is the package-1 inventory. It does not close #3155.
+- The three `PROMPTS/` files and the two superseded root files are the archive-now rows. That archive is open in #4398.
+- `AI-GUIDE.md`, the recovery-era plan, and the stale ChatGPT sentence in `WORK-RULES.md` stay for a later package.
+- `COPILOT-RULES.md` and `DEVIN-RULES.md` stay until Product records a retirement.
+
+## Intended final state
+
+Each remaining legacy file is archived, retained, or corrected according to the table below, with the canonical documentation header applied in the same change. #3155 closes only after that required migration work is accepted and every residual #1132 obligation is evidenced complete or explicitly owned.
+
 ## Obligation reconciliation
 
 #1132 transferred these obligations. Predecessor closure is not completion evidence.
