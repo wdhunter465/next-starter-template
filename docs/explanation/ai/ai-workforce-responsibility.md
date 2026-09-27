@@ -11,9 +11,17 @@ Last Reviewed: 2026-09-27
 
 # AI and human responsibilities
 
-This matrix copies no new roles. If it disagrees with `docs/governance/AGENT-TEAM.md`, that file wins. The older split that named Atlas as governance, Cursor as the sole implementer, and Codex as merely inactive is not the current map.
+## Purpose
 
-## Current matrix
+This file reads the live role map into a single responsibility matrix and human-only decision list for #2456, so a reader does not have to reconstruct it from scattered role records.
+
+## Scope
+
+This file owns the current responsibility matrix and the human-only decision list below. It does not own role assignment — the live map is `docs/governance/AGENT-TEAM.md`, and this file copies no new roles. If it disagrees with `AGENT-TEAM.md`, that file wins. The older split that named Atlas as governance, Cursor as the sole implementer, and Codex as merely inactive is not the current map.
+
+## Current known truth
+
+### Current matrix
 
 | Holder | Responsibility | Does not do |
 | --- | --- | --- |
@@ -25,13 +33,13 @@ This matrix copies no new roles. If it disagrees with `docs/governance/AGENT-TEA
 | Codex | None. Retired (#4165) | Any current role |
 | Governance role | Final governance disposition when a holder is recorded | The role has no active product holder until Product Authority names one |
 
-## Gap
+### Gap
 
 The Governance durable role has no active holder after the ChatGPT retirement. That is an unowned control, not a reason to invent a new agent. Product Authority records the holder. Until then, Governance Issues are not self-assigned by an implementer.
 
 Overlap to avoid: Cursor's interim PMO Admin work and Claude Code's Engineering review must not become two copies of merge authority. Merge stays with Bill, or with CMO only when Product Authority is unavailable and a CMO holder is recorded.
 
-## Human-only decisions
+### Human-only decisions
 
 These stay human:
 
@@ -42,7 +50,7 @@ These stay human:
 - Naming or retiring an agent role
 - Accepting a risk or a debt row as tolerable
 
-## Work that can be delegated
+### Work that can be delegated
 
 Only work already inside a role's authority and a source Issue:
 
@@ -51,6 +59,10 @@ Only work already inside a role's authority and a source Issue:
 - PMO label and dashboard hygiene by the recorded PMO Admin
 - Independent review by someone who did not implement the change
 
-## Adding a role
+### Adding a role
 
 Add a role only when a source Issue shows a repeated gap the current holders cannot cover, names the decisions that stay human, and records how failure of the new holder is detected. A proposed organization chart is not that evidence. No new role is adopted here.
+
+## Intended final state
+
+This matrix is expected to change only when `docs/governance/AGENT-TEAM.md` records a role change (a new holder, a retirement, or a Governance-role assignment). This file does not anticipate its own structure changing; it is superseded in full only if the underlying role-map file itself is restructured.
