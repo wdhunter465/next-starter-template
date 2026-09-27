@@ -11,15 +11,23 @@ Last Reviewed: 2026-09-27
 
 # 2027 fundraiser: risk, debt, and launch readiness
 
-Parent session record #2449 named eleven strategic PMO topics. This file records three sibling topics from that list — Program Risk Model (#2451), Technical Debt Registry (#2452), and Launch Readiness Framework (#2453) — as one reference document instead of three, so the documentation set does not regrow immediately after a consolidation pass. Each part below independently satisfies its own source Issue's acceptance criteria; combining them changes file count only, not content or decisions.
+## Purpose
 
-None of the three parts creates a second authority hierarchy, authorizes remediation, accepts a risk or debt row, or authorizes deployment. Each stays subordinate to `docs/governance/PMO-PORTFOLIO.md` and to Product Authority.
+Record three sibling PMO strategic topics from parent session #2449 — the Program Risk Model (#2451), the Technical Debt Registry (#2452), and the Launch Readiness Framework (#2453) — as one reference document instead of three, so the documentation set does not regrow immediately after this repository's documentation-consolidation pass. Each part independently satisfies its own source Issue's acceptance criteria; combining them into one file changes file count only, not content or decisions.
 
-## Part 1 — Program risk model (#2451)
+## Scope
+
+This file owns the risk field model and initial risk register (#2451), the launch-debt taxonomy and initial debt register (#2452), and the launch-readiness evidence matrix, gate model, and Go/No-Go rule (#2453).
+
+It does not own a second authority hierarchy, permission to remediate a risk or debt row, acceptance of any row as mitigated or closed, or replacement of the existing launch-readiness checks under `scripts/launch-readiness/` and `tests/e2e/launch-readiness-*.spec.ts`. Each part stays subordinate to `docs/governance/PMO-PORTFOLIO.md` and to Product Authority.
+
+## Current known truth
+
+### Part 1 — Program risk model (#2451)
 
 This is the risk record for threats to the website components and repository-support work required for the 2027 fundraiser. It does not create a second portfolio. A risk becomes executable work only when Product Authority names a source Issue for it.
 
-### Fields
+#### Fields
 
 Every risk row uses these fields:
 
@@ -35,19 +43,19 @@ Every risk row uses these fields:
 - Deadline: a date, a phase gate, or `none`
 - Release impact: blocks a phase gate, blocks merge, blocks deploy, blocks launch, or advisory
 
-### When a risk blocks
+#### When a risk blocks
 
 A risk blocks a phase gate, merge, deploy, or launch only when its release impact says so and Product Authority has accepted that row. An advisory row never blocks by itself. This document does not accept any row as a new block.
 
-### Closure
+#### Closure
 
 Close or downgrade a risk only with evidence: a merged fix, an executed control, or a Product Authority decision that the impact is accepted. Clearing the row without that evidence is not closure.
 
-### Review
+#### Review
 
 Review open rows when a related source Issue merges, and again before a launch Go / No-Go. Owners do not self-approve closure of a risk they also implemented.
 
-### Initial risk register
+#### Initial risk register
 
 These domains are open. Owners are unassigned until Product Authority records one. None of these rows authorize remediation.
 
@@ -63,11 +71,11 @@ These domains are open. Owners are unassigned until Product Authority records on
 
 Escalation is an Issue that names the risk ID. This register does not open those Issues.
 
-## Part 2 — Launch technical debt registry (#2452)
+### Part 2 — Launch technical debt registry (#2452)
 
 Record only debt that threatens or slows a named website component or repository-support project for the 2027 fundraiser. Do not list general cleanup.
 
-### Taxonomy
+#### Taxonomy
 
 | Kind | Meaning |
 | --- | --- |
@@ -76,7 +84,7 @@ Record only debt that threatens or slows a named website component or repository
 | Documentation | An active document that contradicts its canonical owner |
 | Governance | A control that is duplicated, temporary, or pointing at a retired path |
 
-### Fields
+#### Fields
 
 - Description
 - Kind
@@ -86,7 +94,7 @@ Record only debt that threatens or slows a named website component or repository
 - Owner, or `unassigned`
 - Retirement evidence: what must be true before the row is removed
 
-### Severity
+#### Severity
 
 Order work by launch impact, not by how old the debt is.
 
@@ -97,7 +105,7 @@ Order work by launch impact, not by how old the debt is.
 
 A tolerable row stays visible. It is not deleted to shorten the list.
 
-### Disposition
+#### Disposition
 
 - **Remediate** when the impact blocks a named launch path and a source Issue exists.
 - **Defer** when the impact is real and explicitly tolerable until after launch.
@@ -105,7 +113,7 @@ A tolerable row stays visible. It is not deleted to shorten the list.
 
 This file does not assign those dispositions to new work. Action still requires a source Issue.
 
-### Initial debt register
+#### Initial debt register
 
 | ID | Kind | Domain | Launch impact | Disposition | Owner |
 | --- | --- | --- | --- | --- | --- |
@@ -120,11 +128,11 @@ This file does not assign those dispositions to new work. Action still requires 
 
 D8 is watched with the monitored-documentation model in #2087. Rows stay deferred until a source Issue names a component and a disposition. No row here is accepted.
 
-## Part 3 — Fundraiser launch readiness contract (#2453)
+### Part 3 — Fundraiser launch readiness contract (#2453)
 
 Production readiness is a set of pass or fail evidence items tied to a named component. It is not a score. This contract does not authorize deployment. Existing launch-readiness checks under `scripts/launch-readiness/` and `tests/e2e/launch-readiness-*.spec.ts` remain the implemented checks. This section classifies evidence; it does not add a runner.
 
-### Evidence matrix
+#### Evidence matrix
 
 | Area | Component | Blocking or advisory | Evidence | Freshness |
 | --- | --- | --- | --- | --- |
@@ -142,7 +150,7 @@ Production readiness is a set of pass or fail evidence items tied to a named com
 
 Advisory rows do not block. A blocking row with missing or stale evidence is a fail.
 
-### Gates and sign-off
+#### Gates and sign-off
 
 | Gate | Who signs | What they are signing |
 | --- | --- | --- |
@@ -153,6 +161,16 @@ Advisory rows do not block. A blocking row with missing or stale evidence is a f
 
 A builder does not sign off work they implemented. `READY FOR REVIEW` on a pull request is not a launch signature.
 
-### Go / No-Go
+#### Go / No-Go
 
 Go only when every blocking row for the components in scope has fresh pass evidence. No-Go when any blocking row is missing, failed, or tied to a different revision. This checklist does not itself perform the Go.
+
+## Intended final state
+
+Each register starts advisory/deferred with unassigned owners, as recorded above. As the program matures:
+
+- A risk or debt row gains an owner and a real mitigation only through its own source Issue, never by editing this file directly.
+- A risk's release impact escalates from advisory to a blocking classification only with an explicit Product Authority decision, recorded here as a follow-up edit citing that decision.
+- A debt row's disposition moves from `defer` to `remediate` or `accept` only when a source Issue names the component and, for `accept`, Product Authority records the residual impact as acceptable.
+- The Part 3 evidence matrix's advisory rows (accessibility/visual validation, performance/reliability, content/admin operations) become blocking once a source Issue names the concrete threshold or check that replaces "advisory until named."
+- This file is superseded, not further split, if a later reorganization of `docs/reference/pmo/` changes where PMO reference material lives; it is not expected to regrow into three files.
