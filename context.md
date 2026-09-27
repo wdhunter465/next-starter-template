@@ -42,7 +42,7 @@ Member authentication is the cookie `lgfc_session` plus D1 `member_sessions`. Me
 - `/join` is the canonical join and login page.
 - `/join?mode=login` opens the login tab.
 - `/fanclub` and `/fanclub/**` are protected.
-- `/auth` and `/login` are legacy compatibility routes that redirect to the canonical join flow.
+- `/login` and `/auth` are legacy compatibility routes; they do not redirect the same way. See `docs/reference/design/auth-model.md`'s Redirect Policy for the exact target of each.
 
 The controlling description is `docs/reference/design/auth-model.md`.
 
@@ -50,7 +50,7 @@ Store stays an external Bonfire destination. There is no `/store` route unless t
 
 ## Authority and roles
 
-All agent work routes through `Agent.md` and its mandatory documentation chain. Current role holders are recorded only in `docs/governance/AGENT-TEAM.md`.
+All agent work routes through `Agent.md` and its mandatory documentation chain. `docs/governance/AGENT-TEAM.md` is the current, authoritative record of role holders. The boundaries below are a non-authoritative summary for orientation only; when they disagree with `AGENT-TEAM.md`, `AGENT-TEAM.md` wins.
 
 Stable boundaries:
 
