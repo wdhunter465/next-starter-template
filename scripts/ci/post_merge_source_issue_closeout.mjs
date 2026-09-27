@@ -13,6 +13,7 @@ export const STALE_SOURCE_ISSUE_LABELS = [
 	'status:post-merge-verify',
 	'status:pr-draft',
 	'status:review',
+	'status:needs-review',
 	'status:implementation',
 	'status:implementation-ready',
 	'status:ready-for-cursor',
