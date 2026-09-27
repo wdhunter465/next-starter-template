@@ -11,7 +11,17 @@ Last Reviewed: 2026-09-27
 
 # Review documentation drift
 
+## Purpose
+
 Use this procedure when a change, closeout, or reading shows that an operational document may not match as-built behavior or its canonical owner.
+
+## Scope
+
+This file owns the repeatable steps used to find documentation drift and open a follow-up Issue. It does not own the authority hierarchy, permission to waive documentation impact, or CI implementation — see `docs/explanation/operations/documentation-monitored-assets.md` for the model this procedure implements.
+
+## Current known truth
+
+This is the current, single review procedure for documentation drift. It has no variant forms.
 
 ## Steps
 
@@ -29,3 +39,7 @@ Use this procedure when a change, closeout, or reading shows that an operational
 ## Execution
 
 Stop when the finding is recorded on an Issue or corrected in the same pull request that caused it. This procedure does not authorize the remediation Issue's implementation.
+
+## Intended final state
+
+This procedure is not expected to change shape. It may gain a step once #2217's machine-readable asset registry exists, if that registry changes how a canonical owner is looked up in step 2.
