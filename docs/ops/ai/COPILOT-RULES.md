@@ -5,12 +5,15 @@ Authority Level: Agent-Specific
 Owns: Copilot execution behavior
 Does Not Own: Shared rules, design authority, governance
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Last Reviewed: 2026-06-04
+Related Issues: #4399
+Last Reviewed: 2026-09-27
 ---
 
 # COPILOT-RULES.md
 
 Purpose: Defines Copilot-specific execution behavior.
+
+Product Authority confirmed on 2026-09-27 (#4399) that Copilot is still in use. This file stays a live tool pointer. Copilot is not a durable role in `docs/governance/AGENT-TEAM.md`.
 
 Shared execution law: [`CORE-RULES.md`](./CORE-RULES.md). Role mapping: [`docs/governance/AGENT-TEAM.md`](../../governance/AGENT-TEAM.md).
 

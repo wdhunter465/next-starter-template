@@ -77,8 +77,8 @@ Until migrated under an explicit delivery-system child issue, these interim cano
 - `CHATGPT-RULES.md`
 - `CURSOR-RULES.md`
 - `CODEX-RULES.md` (retired #4165; historical pointer only)
-- `COPILOT-RULES.md`
-- `DEVIN-RULES.md`
+- `COPILOT-RULES.md` (still in use, #4399)
+- `DEVIN-RULES.md` (retired #4399; historical pointer only)
 
 Do not add new binding policy under `docs/ops/ai/`.
 

@@ -54,8 +54,8 @@ Before repository work—including exploration, design, Sandbox, implementation,
    - `docs/ops/ai/CURSOR-RULES.md`
    - `docs/ops/ai/CODEX-RULES.md` (retired #4165; historical only)
    - `docs/ops/ai/CLAUDE-CODE-RULES.md`
-   - `docs/ops/ai/COPILOT-RULES.md`
-   - `docs/ops/ai/DEVIN-RULES.md`
+   - `docs/ops/ai/COPILOT-RULES.md` (still in use, #4399)
+   - `docs/ops/ai/DEVIN-RULES.md` (retired #4399; historical only)
 6. Applicable domain policy and reference contracts
 7. Source GitHub Issue
 8. Task-linked design, plan, procedure, and skill files

@@ -5,7 +5,7 @@ Authority Level: Informational
 Owns: Per-file disposition of the remaining legacy-to-Diátaxis paths owned by #3155
 Does Not Own: Entry-chain consolidation, continuous stewardship, document-asset registry, or non-migration product implementation
 Canonical Reference: /docs/reference/DIATAXIS-MAPPING.md
-Related Issues: #3155, #1132, #2823
+Related Issues: #3155, #1132, #2823, #4399
 Last Reviewed: 2026-09-27
 ---
 
@@ -27,9 +27,9 @@ Out of scope: entry-chain consolidation, a document-asset registry, deploy autho
 ## Current known truth
 
 - This file is the package-1 inventory. It does not close #3155.
-- The three `PROMPTS/` files and the two superseded root files are the archive-now rows. That archive is open in #4398.
+- The three `PROMPTS/` files and the two superseded root files are the archive-now rows. That archive merged in #4398.
 - `AI-GUIDE.md`, the recovery-era plan, and the stale ChatGPT sentence in `WORK-RULES.md` stay for a later package.
-- `COPILOT-RULES.md` and `DEVIN-RULES.md` stay until Product records a retirement.
+- Product Authority confirmed on 2026-09-27 (#4399) that Copilot is still in use and Devin is no longer in use.
 
 ## Intended final state
 
@@ -83,8 +83,8 @@ Action words: migrate, rewrite, route, retain, archive, delete.
 | `docs/ops/ai/CHATGPT-RULES.md` | Retired pointer | `docs/governance/AGENT-TEAM.md` | Retired #4173 | retain | Bootstrap/history pointer. Not live policy. | Existing path | None | — | — |
 | `docs/ops/ai/CODEX-RULES.md` | Retired pointer | `docs/governance/AGENT-TEAM.md` | Retired #4165 | retain | The governance check still requires this path. | Existing path | Do not delete while the check requires it | — | — |
 | `docs/ops/ai/WORK-RULES.md` | Retired pointer | `docs/governance/AGENT-TEAM.md` | Retired #4074 | retain | Body still says ChatGPT is permanent PMO. That sentence is stale. Correct it in a later hygiene package; do not treat the body as current. | #3155 later hygiene | None for this map | — | — |
-| `docs/ops/ai/COPILOT-RULES.md` | Agent-specific rules | `docs/governance/AGENT-TEAM.md` | Path retained; not in the current role table | retain | No Product retirement record was verified here. Do not treat the file as a live role. | Later Product disposition | None | — | — |
-| `docs/ops/ai/DEVIN-RULES.md` | Agent-specific rules | `docs/governance/AGENT-TEAM.md` | Path retained; not in the current role table | retain | Same as Copilot. | Later Product disposition | None | — | — |
+| `docs/ops/ai/COPILOT-RULES.md` | Agent-specific rules | `docs/governance/AGENT-TEAM.md` | Live tool; not a durable role | retain | Product Authority confirmed on 2026-09-27 that Copilot is still in use. | #4399 | None | Header stays Agent-Specific | — |
+| `docs/ops/ai/DEVIN-RULES.md` | Retired pointer | `docs/governance/AGENT-TEAM.md` | Retired #4399 | retain | Product Authority confirmed on 2026-09-27 that Devin is no longer in use. Path stays because the authority chain cites it. | #4399 | None | Header is retired; not live policy | — |
 | `docs/ops/ai/AI-REVIEW-ACCESS.md` | Operator reference | This path | Current | retain | Review-access configuration. ChatGPT wording is later hygiene, not a move. | Existing path | None | — | — |
 | `docs/ops/ai/chatgpt-cursor-handoff-workflow.md` | Procedure | `docs/governance/ADMINISTRATION-AND-COMMUNICATIONS.md` | Current procedure; ChatGPT in the title | retain | Keep the procedure. Title hygiene is later. It does not create role authority. | Existing path | None | — | — |
 | `docs/ops/ai/.gitkeep` | Placeholder | — | Empty | retain | Not a document. | Existing path | None | — | — |

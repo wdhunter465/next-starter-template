@@ -1,16 +1,27 @@
 ---
 Doc Type: Operational Rules
-Audience: AI (Devin)
-Authority Level: Agent-Specific
-Owns: Devin execution behavior
-Does Not Own: Shared rules, design authority, governance
+Audience: AI (Devin) — historical only
+Authority Level: Agent-Specific (retired)
+Owns: Historical Devin product pointer
+Does Not Own: Live agent-team policy, implementation authority, or wake/dispatch
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Last Reviewed: 2026-06-04
+Related Issues: #4399
+Last Reviewed: 2026-09-27
 ---
 
 # DEVIN-RULES.md
 
-Purpose: Defines Devin-specific execution behavior.
+## Status
+
+**Retired (#4399).** Product Authority recorded on 2026-09-27 that Devin is no longer in use.
+
+This file is a historical pointer only. It grants no live role, implementation authority, or wake path. Do not run Devin as a live LGFC product.
+
+The sections below are the pre-retirement record. They are not current operating policy.
+
+Live role mapping: `docs/governance/AGENT-TEAM.md`. Copilot remains in use; this retirement does not apply to Copilot.
+
+Purpose: Historical record of Devin-specific execution behavior.
 
 Shared execution law: [`CORE-RULES.md`](./CORE-RULES.md). Role mapping: [`docs/governance/AGENT-TEAM.md`](../../governance/AGENT-TEAM.md).
 
