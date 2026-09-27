@@ -5,8 +5,8 @@ Authority Level: Canonical
 Owns: Diataxis mapping coverage and transition model
 Does Not Own: Design authority; execution details
 Canonical Reference: /docs/governance/DOCUMENT-ARCHITECTURE.md
-Related Issues: #1342, #1132, #1134
-Last Reviewed: 2026-06-05
+Related Issues: #1342, #1132, #1134, #3155
+Last Reviewed: 2026-09-27
 ---
 
 # DIATAXIS MAPPING
@@ -21,8 +21,10 @@ This document is the single source of truth for:
 - migration status
 - routing vs full-document decisions
 
-Program 1 Task 004 (`#1342`) populated legacy root rows below. Full per-file
-migration execution remains deferred to Program 3 unless promoted.
+Program 1 Task 004 (`#1342`) populated legacy root rows below. That deferral
+to Program 3 / `#1132` is historical. Remaining execution is owned by `#3155`.
+The per-file dispositions, including the header requirement for each legacy
+file, are in `docs/reference/diataxis-legacy-disposition-map.md`.
 
 Status report: `docs/reports/program-1-diataxis-transition-status.md`
 
@@ -129,4 +131,6 @@ Legacy vocabulary (still used in `#1132` matrix):
 ## Notes
 
 Population completed in Program 1 Task 004 (`#1342`). Prior scaffold rows replaced.
-Full per-file inventory expansion remains Program 3 scope.
+The per-file inventory for remaining legacy roots is
+`docs/reference/diataxis-legacy-disposition-map.md` (`#3155`). Rows below
+keep their original Program 3 status words as history.
