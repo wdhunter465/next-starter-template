@@ -2,8 +2,8 @@
 Doc Type: Explanation
 Audience: Human + AI
 Authority Level: Informational
-Owns: The minimum read path and the human-versus-agent route for #2088
-Does Not Own: The text of mandatory safety rules, CI behavior, or a second copy of the authority chain
+Owns: An explanation of the minimum read path and the human-versus-agent route for #2088, as a routing aid
+Does Not Own: The read-order/authority-routing policy itself (owned by `Agent.md`), the text of mandatory safety rules, CI behavior, or a second copy of the authority chain
 Canonical Reference: /Agent.md
 Related Issues: #2088
 Last Reviewed: 2026-09-27
