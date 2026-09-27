@@ -6,7 +6,7 @@
 // Protected by an authenticated D1 admin member session (requireAdmin).
 
 import { requireContentPipelineCandidateTables } from '../../../../_lib/content-pipeline-candidate-repository';
-import { listHoldQueue, requireRightsEvidenceTables } from '../../../../_lib/rights-evidence-repository';
+import { listHoldQueue, listUnreviewedQueue, requireRightsEvidenceTables } from '../../../../_lib/rights-evidence-repository';
 import { requireAdmin } from '../../../../_lib/auth';
 import { jsonResponse, requireD1 } from '../../../../_lib/d1';
 
@@ -42,8 +42,20 @@ export const onRequestGet = async (context: any): Promise<Response> => {
     const offset = parseNonNegativeInt(url.searchParams.get('offset'), 0);
 
     const items = await listHoldQueue(d1.db, { limit, offset });
+    // #4374 Q3: a separate, never-reviewed backlog -- distinct from `items`
+    // above (which all already carry an explicit 'hold' decision).
+    const unreviewedItems = await listUnreviewedQueue(d1.db, { limit, offset });
 
-    return jsonResponse({ ok: true, count: items.length, items }, 200);
+    return jsonResponse(
+      {
+        ok: true,
+        count: items.length,
+        items,
+        unreviewed_count: unreviewedItems.length,
+        unreviewed_items: unreviewedItems,
+      },
+      200,
+    );
   } catch (err: any) {
     console.error('admin rights-evidence hold queue error:', err);
     return jsonResponse({ ok: false, error: 'Hold queue query failed.' }, 500);

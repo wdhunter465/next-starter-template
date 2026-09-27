@@ -24,6 +24,11 @@ export const RIGHTS_EVIDENCE_CONCLUSIONS = [
   'public_domain_confirmed',
   'permission_granted',
   'lgfc_member_owned_item_photo',
+  // #4374 Q2: rights genuinely could not be determined. Not a "yes" --
+  // pairs with usage_decision='hold', channel='internal_archive_only'.
+  // Written by discovery import itself (no human decision asserted, so no
+  // #2312 concern), never by content-pipeline-batch-rights-approval.ts.
+  'rights_undetermined',
 ] as const;
 
 export type RightsEvidenceType = (typeof RIGHTS_EVIDENCE_TYPES)[number];
@@ -232,6 +237,37 @@ export async function recordGovernedRightsEvidence(
   return recordRightsEvidence(db, input);
 }
 
+// #4374 Q2: the safe, automation-writable counterpart to
+// content-pipeline-batch-rights-approval.ts's approving writes. Asserts
+// nothing about rights ("we don't know" is not a rights claim), so unlike
+// an approving conclusion this is fine for automation to write with no
+// human in the loop -- it can never satisfy PREP_ACCEPTABLE_RIGHTS_STATUSES
+// (see mapConclusionToRightsStatus) and channel is always
+// 'internal_archive_only', never a public-facing one.
+export async function recordUndeterminedRightsEvidence(
+  db: any,
+  input: {
+    content_item_id: number;
+    evidence_type: RightsEvidenceType;
+    evidence_text?: string | null;
+    evidence_url?: string | null;
+    reviewer: string;
+    conclusion_rationale: string;
+  },
+): Promise<StoredRightsEvidence> {
+  return recordGovernedRightsEvidence(db, {
+    content_item_id: input.content_item_id,
+    evidence_type: input.evidence_type,
+    evidence_text: input.evidence_text ?? null,
+    evidence_url: input.evidence_url ?? null,
+    reviewer: input.reviewer,
+    conclusion: 'rights_undetermined',
+    conclusion_rationale: input.conclusion_rationale,
+    channel: 'internal_archive_only',
+    usage_decision: 'hold',
+  });
+}
+
 export async function listRightsEvidenceForCandidate(
   db: any,
   contentItemId: number,
@@ -391,6 +427,58 @@ function pickRightsEvidenceRowFields(row: RightsEvidenceRow): RightsEvidenceRow 
     tagging_requirements: row.tagging_requirements,
     usage_decision: row.usage_decision,
   };
+}
+
+export type UnreviewedQueueEntry = {
+  content_item_id: number;
+  candidate_id: string;
+  title: string;
+  source_name: string | null;
+  source_url: string | null;
+  source_domain: string | null;
+  review_status: string;
+  created_at: string;
+};
+
+// #4374 Q3: candidates discovery has imported that NOBODY has looked at for
+// rights purposes yet -- distinct from listHoldQueue above (which requires
+// an existing evidence row on 'hold'). These are items with zero
+// rights_evidence rows at all. Kept as a separate query/section rather than
+// merged into the hold queue, since "never reviewed" and "reviewed once and
+// explicitly held" are different states that would otherwise be impossible
+// to tell apart in the UI.
+export async function listUnreviewedQueue(
+  db: any,
+  options: { limit?: number; offset?: number } = {},
+): Promise<UnreviewedQueueEntry[]> {
+  const limit = Math.min(Math.max(options.limit ?? 50, 1), 200);
+  const offset = Math.max(options.offset ?? 0, 0);
+
+  const result = await db
+    .prepare(
+      `SELECT ci.id AS content_item_id, ci.candidate_id, ci.title,
+              ci.source_name, ci.source_url, ci.source_domain,
+              ci.review_status, ci.created_at
+       FROM content_items ci
+       WHERE ci.review_status = 'pending_review'
+         AND ci.deleted_at IS NULL
+         AND NOT EXISTS (SELECT 1 FROM rights_evidence re WHERE re.content_item_id = ci.id)
+       ORDER BY ci.created_at ASC, ci.id ASC
+       LIMIT ? OFFSET ?`,
+    )
+    .bind(limit, offset)
+    .all();
+
+  return ((result.results ?? []) as UnreviewedQueueEntry[]).map((row) => ({
+    content_item_id: Number(row.content_item_id),
+    candidate_id: String(row.candidate_id),
+    title: String(row.title),
+    source_name: row.source_name ?? null,
+    source_url: row.source_url ?? null,
+    source_domain: row.source_domain ?? null,
+    review_status: String(row.review_status),
+    created_at: String(row.created_at),
+  }));
 }
 
 // Authoritative resolver for gating: the most recent conclusion recorded
