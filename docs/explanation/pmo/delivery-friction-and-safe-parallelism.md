@@ -11,9 +11,17 @@ Last Reviewed: 2026-09-27
 
 # Delivery friction and safe parallelism
 
-This review covers only controls that protect the 2027 fundraiser delivery path. It is not a PMO redesign. Full portfolio maturity stays in `docs/governance/PMO-PORTFOLIO.md`.
+## Purpose
 
-## Disposition
+This review covers only controls that protect the 2027 fundraiser delivery path, for #2454. It is not a PMO redesign. Full portfolio maturity stays in `docs/governance/PMO-PORTFOLIO.md`.
+
+## Scope
+
+This file owns the keep-or-change disposition of the controls below and the safe-parallelism boundary. It does not own a new PMO design, permission to relax a kept control, or a second priority system.
+
+## Current known truth
+
+### Disposition
 
 | Control | Disposition | Why |
 | --- | --- | --- |
@@ -26,7 +34,7 @@ This review covers only controls that protect the 2027 fundraiser delivery path.
 
 No control in this table is retired. No lighter path is approved. A later change needs its own source Issue, a stated delivery benefit, and a stated risk. Benefit is not claimed here because this review did not measure cycle time.
 
-## Safe parallelism
+### Safe parallelism
 
 These may proceed beside an in-flight implementation without a new implementation Go:
 
@@ -41,10 +49,14 @@ These may not proceed in parallel as if they were authorized:
 - Merging, deploying, or closing an Issue as accepted
 - Treating a handoff-ready label as a website Go
 
-## Low-risk path
+### Low-risk path
 
 There is no approved shortcut around one Issue and one pull request. A documentation-only change still uses one source Issue, one allowlist, and human merge. The smaller scope is the allowlist, not a waived review.
 
-## Safeguard
+### Safeguard
 
 Any future relaxation must say which row above it changes, what defect that row has prevented, what evidence shows the overhead, and how builder separation, human merge, and launch evidence stay intact. Until that Issue exists, the disposition is keep.
+
+## Intended final state
+
+Every control in the disposition table stays "Keep" until a future Issue meets the Safeguard section's bar. This file does not expect its own disposition to change; it expects to be superseded in full only if `docs/governance/PMO-PORTFOLIO.md` itself changes the underlying control set.
