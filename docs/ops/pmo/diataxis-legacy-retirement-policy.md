@@ -6,7 +6,7 @@ Owns: DIATAXIS legacy retirement rules, archive non-authority policy, and migrat
 Does Not Own: Individual legacy file moves, deletions, or portfolio task implementation sequencing
 Canonical Reference: /docs/governance/standards/DIATAXIS-AUTHORITY-RESOLUTION.md
 Related issues: #1353, #1076, #1134, #2140
-Last Reviewed: 2026-07-02
+Last Reviewed: 2026-09-27
 ---
 
 # DIATAXIS Legacy Retirement Policy
@@ -37,9 +37,10 @@ This document does not own:
 - DIATAXIS folders (`docs/tutorials/`, `docs/how-to/`, `docs/reference/`,
   `docs/explanation/`, `docs/governance/`, `docs/ops/`) are **current authority**
   for active operational guidance.
-- Legacy live folders (for example `ops/ai/`, `governance/ai/`, `PROMPTS/`, split
-  tracker roots, and other transitional paths documented in transition audits) are
-  **transitional only**.
+- Repo-root folders `ops/ai/` and `governance/ai/`, and `PROMPTS/`, were archived
+  under #3155. `docs/governance/ai/AI-GUIDE.md` is still live and is not part of
+  that archive. Remaining transitional examples are split tracker roots and other
+  paths documented in transition audits. Those paths are **transitional only**.
 - If a DIATAXIS document and a legacy live document conflict on the same topic,
   **DIATAXIS wins**.
 - See also `/docs/governance/standards/DIATAXIS-AUTHORITY-RESOLUTION.md` and

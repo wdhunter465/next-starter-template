@@ -72,8 +72,8 @@ const requiredFiles = [
   '.agents/skills/lgfc-cloudflare-static-export/SKILL.md',
   '.agents/skills/lgfc-verification-closeout/SKILL.md',
   '.github/workflows/agent-governance.yml',
-  'governance/ai/AGENT-GOVERNANCE.md',
-  'ops/ai/CROSS-AGENT-OPERATING-RULES.md',
+  'docs/archive/superseded/governance/ai/AGENT-GOVERNANCE.md',
+  'docs/archive/superseded/ops/ai/CROSS-AGENT-OPERATING-RULES.md',
   'docs/ops/ai/CORE-RULES.md',
   'docs/ops/ai/CODEX-RULES.md',
 ];
@@ -90,17 +90,14 @@ const requiredAgentText = [
   '.github/workflows/agent-governance.yml',
 ];
 
-// #2823: governance/ai/AGENT-GOVERNANCE.md and ops/ai/CROSS-AGENT-OPERATING-RULES.md
-// are retired as authority surfaces (they previously defined a competing authority
-// order that never referenced REPOSITORY-AUTHORITY.md). They still exist as
-// historical record, and Agent.md still names them as historical/superseded, but
-// Agent.md must no longer cite them as required reading — enforce the retirement
-// marker instead of the old citation requirement.
+// #2823 retired these as authority surfaces. #3155 archived them. Agent.md names
+// the archive paths as historical/superseded, not as required reading. Enforce
+// the retirement marker at the archive paths.
 const SUPERSEDED_MARKER = 'SUPERSEDED (#2823';
 
 const LEGACY_MARKDOWN_FILES = [
-  'governance/ai/AGENT-GOVERNANCE.md',
-  'ops/ai/CROSS-AGENT-OPERATING-RULES.md',
+  'docs/archive/superseded/governance/ai/AGENT-GOVERNANCE.md',
+  'docs/archive/superseded/ops/ai/CROSS-AGENT-OPERATING-RULES.md',
 ];
 
 function filePath(root, relativePath) {

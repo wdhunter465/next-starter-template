@@ -1,3 +1,19 @@
+---
+Doc Type: Archived Reference
+Audience: Human + AI
+Authority Level: Historical
+Owns: Historical PR-as-ticket prompt only
+Does Not Own: Current assignment templates or Codex execution
+Canonical Reference: /docs/templates/agent-assignment-template.md
+Archived From: /PROMPTS/PR-as-ticket-template.md
+Archived Reason: Replaced by the current assignment template; Codex execution in this prompt is retired; archived under #3155
+Last Reviewed: 2026-09-27
+---
+
+# PR-as-ticket
+
+> Archived under #3155 on 2026-09-27. Not current authority. Use `docs/templates/agent-assignment-template.md`.
+
 ### PR-AS-TICKET
 
 ## OBJECTIVE
