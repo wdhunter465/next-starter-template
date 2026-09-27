@@ -114,6 +114,59 @@ describe('content pipeline candidate import (#2288)', () => {
     expect(batch.endsWith('COMMIT;')).toBe(true);
   });
 
+  it('records rights_undetermined evidence for scheduled_discovery candidates only (#4374)', () => {
+    const registry = minimalRegistry([
+      minimalCandidate({ candidate_id: 'lgfc-gehrig-2026-901', input_stream: 'scheduled_discovery' }),
+      minimalCandidate({ candidate_id: 'lgfc-gehrig-2026-902', input_stream: 'admin_seed' }),
+    ]);
+    const plan = buildCandidateImportPlan(registry);
+
+    const rightsStatements = plan.statements.filter((statement) => statement.table === 'rights_evidence');
+    expect(rightsStatements).toHaveLength(1);
+    expect(rightsStatements[0].sql).toContain("'lgfc-gehrig-2026-901'");
+    expect(rightsStatements[0].sql).toContain("'rights_undetermined'");
+    expect(rightsStatements[0].sql).toContain("'internal_archive_only'");
+    expect(rightsStatements[0].sql).toContain("'hold'");
+    expect(rightsStatements[0].sql).toContain('NOT EXISTS');
+
+    const sqlite = new DatabaseSync(':memory:');
+    applyRepoMigrations(sqlite);
+    sqlite.exec(buildImportSqlBatch(plan));
+
+    const discoveryRow = sqlite
+      .prepare(
+        `SELECT re.conclusion, re.usage_decision, re.channel
+         FROM rights_evidence re JOIN content_items ci ON ci.id = re.content_item_id
+         WHERE ci.candidate_id = 'lgfc-gehrig-2026-901'`,
+      )
+      .get() as { conclusion: string; usage_decision: string; channel: string } | undefined;
+    expect(discoveryRow).toMatchObject({
+      conclusion: 'rights_undetermined',
+      usage_decision: 'hold',
+      channel: 'internal_archive_only',
+    });
+
+    const adminSeedRow = sqlite
+      .prepare(
+        `SELECT COUNT(*) AS n FROM rights_evidence re
+         JOIN content_items ci ON ci.id = re.content_item_id
+         WHERE ci.candidate_id = 'lgfc-gehrig-2026-902'`,
+      )
+      .get() as { n: number };
+    expect(adminSeedRow.n).toBe(0);
+
+    // Re-running the import (idempotent re-import) must not add a second row.
+    sqlite.exec(buildImportSqlBatch(plan));
+    const countAfterRerun = sqlite
+      .prepare(
+        `SELECT COUNT(*) AS n FROM rights_evidence re
+         JOIN content_items ci ON ci.id = re.content_item_id
+         WHERE ci.candidate_id = 'lgfc-gehrig-2026-901'`,
+      )
+      .get() as { n: number };
+    expect(countAfterRerun.n).toBe(1);
+  });
+
   it('produces stable statement counts for repeated import plan builds', () => {
     const first = buildCandidateImportPlan(fixtureRegistry as CandidateRegistry);
     const second = buildCandidateImportPlan(fixtureRegistry as CandidateRegistry);
