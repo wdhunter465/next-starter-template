@@ -18,8 +18,8 @@ Do not merely report that these files are required. Read them before making any 
    - Codex → `docs/ops/ai/CODEX-RULES.md` (retired #4165; historical only — do not run as a live product)
    - ChatGPT → `docs/ops/ai/CHATGPT-RULES.md` (retired #4173; historical only — do not run as a live product)
    - Claude Code → `docs/ops/ai/CLAUDE-CODE-RULES.md`
-   - Copilot → `docs/ops/ai/COPILOT-RULES.md`
-   - Devin → `docs/ops/ai/DEVIN-RULES.md`
+   - Copilot → `docs/ops/ai/COPILOT-RULES.md` (still in use, #4399)
+   - Devin → `docs/ops/ai/DEVIN-RULES.md` (retired #4399; historical only — do not run as a live product)
    - OpenAI / Work → `docs/ops/ai/WORK-RULES.md` (retired #4074; historical only — do not run as a live product)
 
 For PR, issue, review, remediation, or implementation work, also read:
