@@ -17,7 +17,7 @@ Last Reviewed: 2026-09-27
 
 This file is a historical pointer only. It grants no live role, implementation authority, or wake path. Do not run Devin as a live LGFC product.
 
-The sections below are the pre-retirement record. They are not current operating policy.
+The sections below are the pre-retirement record. Every MUST, Allowed, and Not allowed statement in those sections is historical. Do not treat that language as current policy.
 
 Live role mapping: `docs/governance/AGENT-TEAM.md`. Copilot remains in use; this retirement does not apply to Copilot.
 

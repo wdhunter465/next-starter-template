@@ -6,7 +6,7 @@ Owns: Durable LGFC agent roles, recognized agent products, current member mappin
 Does Not Own: PMO lifecycle/stage semantics, detailed queue-label implementation, delivery-profile mechanics, CI implementation, or Production recovery procedure
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
 Related Issues: #3240, #3629, #3693, #3825, #4074, #4165, #4173, #4174, #4399
-Last Reviewed: 2026-09-27 (#4399)
+Last Reviewed: 2026-09-27
 ---
 
 # Agent Team
