@@ -178,7 +178,12 @@ emit_github_outputs() {
 
 pick_eligible_photo_id() {
   local exclude_sql="$1"
-  local q="SELECT id FROM photos WHERE url IS NOT NULL AND TRIM(url) != '' AND is_matchup_eligible >= 0 AND id NOT IN (${exclude_sql}) ORDER BY RANDOM() LIMIT 1;"
+  # #4261: match the live /api/matchup/current eligibility gate exactly
+  # (is_matchup_eligible = 1 AND rights_hold = 0 AND publication_eligible = 1),
+  # not just "not excluded" (>= 0). A cron repair that picked an unreviewed
+  # (0) or rights-held photo used to get immediately re-flagged and re-healed
+  # by the next live GET; this keeps the cron's own repair stable.
+  local q="SELECT id FROM photos WHERE url IS NOT NULL AND TRIM(url) != '' AND is_matchup_eligible = 1 AND rights_hold = 0 AND publication_eligible = 1 AND id NOT IN (${exclude_sql}) ORDER BY RANDOM() LIMIT 1;"
   local out id
   out="$(wrangler_exec command "$q")" || return 1
   id="$(echo "$out" | extract_d1_rows id | jq -r '.[0].id // empty')"
@@ -237,6 +242,16 @@ fi
 
 HAS_RIGHTS=0
 has_col "rights_notes" && HAS_RIGHTS=1
+
+# #4261: a B2 object confirmed missing must also stop rendering everywhere
+# else -- fan-club photo/memorabilia galleries, search, and the club-home
+# lead-photo picker all gate on rightsClearedClause() (rights_hold=0 AND
+# publication_eligible=1), which is independent of is_matchup_eligible.
+# Soft-retiring only is_matchup_eligible left those surfaces serving a
+# confirmed-dead image with no fallback. Clearing publication_eligible closes
+# that gap without touching rights_hold (this isn't a rights problem).
+HAS_PUB_ELIGIBLE=0
+has_col "publication_eligible" && HAS_PUB_ELIGIBLE=1
 
 log "Using KEY_MODE=$KEY_MODE KEY_COL=$KEY_COL URL_COL=$URL_COL"
 
@@ -346,12 +361,15 @@ SQL_HEADER
     esc_key="$(sql_escape "$stale_key")"
     esc_note="$(sql_escape "$NOTE_BASE; key=$stale_key")"
 
+    pub_set=""
+    [[ "$HAS_PUB_ELIGIBLE" -eq 1 ]] && pub_set=", publication_eligible = 0"
+
     if [[ "$HAS_RIGHTS" -eq 1 ]]; then
-      printf "UPDATE photos SET is_matchup_eligible = -1, rights_notes = CASE WHEN rights_notes IS NULL OR TRIM(rights_notes) = '' THEN '%s' ELSE rights_notes || ' | ' || '%s' END WHERE \"%s\" = '%s' AND is_matchup_eligible >= 0;\n" \
-        "$esc_note" "$esc_note" "$KEY_COL" "$esc_key" >> "$SQL_FILE"
+      printf "UPDATE photos SET is_matchup_eligible = -1%s, rights_notes = CASE WHEN rights_notes IS NULL OR TRIM(rights_notes) = '' THEN '%s' ELSE rights_notes || ' | ' || '%s' END WHERE \"%s\" = '%s' AND is_matchup_eligible >= 0;\n" \
+        "$pub_set" "$esc_note" "$esc_note" "$KEY_COL" "$esc_key" >> "$SQL_FILE"
     else
-      printf "UPDATE photos SET is_matchup_eligible = -1 WHERE \"%s\" = '%s' AND is_matchup_eligible >= 0;\n" \
-        "$KEY_COL" "$esc_key" >> "$SQL_FILE"
+      printf "UPDATE photos SET is_matchup_eligible = -1%s WHERE \"%s\" = '%s' AND is_matchup_eligible >= 0;\n" \
+        "$pub_set" "$KEY_COL" "$esc_key" >> "$SQL_FILE"
     fi
   done < "$STALE_KEYS_FILE"
 
@@ -408,7 +426,11 @@ else
   jq -r '.objects[].external_id' "$OBJECTS_FILE" | LC_ALL=C sort -u > "$RAW_B2_KEYS_FILE"
 
   log "Querying D1 for media_assets.b2_key..."
-  MEDIA_D1_OUT="$(wrangler_exec command "SELECT b2_key AS k FROM media_assets WHERE b2_key IS NOT NULL AND TRIM(b2_key) != '';")" || {
+  # #4261 bug fix: also fetch media_uid so phase 2b can soft-delete content_items
+  # rows that reference a stale asset via the 'media_uid:<uid>' form -- the
+  # original query only matched the literal 'b2://<key>' form, silently
+  # leaving media_uid:-referenced rows live against a confirmed-missing object.
+  MEDIA_D1_OUT="$(wrangler_exec command "SELECT b2_key AS k, media_uid AS u FROM media_assets WHERE b2_key IS NOT NULL AND TRIM(b2_key) != '';")" || {
     log "ERROR: Failed SELECT media_assets.b2_key"
     log "$MEDIA_D1_OUT"
     exit 3
@@ -424,6 +446,18 @@ else
     | .[]?
     | .k? // empty
   ' 2>/dev/null >> "$MEDIA_EXISTING_KEYS_FILE" || true
+
+  # key\tuid lookup so the stale-key loop below can also target media_uid: rows.
+  MEDIA_KEY_TO_UID_FILE="$WORKDIR/media_key_to_uid.tsv"
+  : > "$MEDIA_KEY_TO_UID_FILE"
+  echo "$MEDIA_D1_OUT" | jq -r '
+    [.. | arrays?] as $arrs
+    | ($arrs | map(select((.[0]?|type)=="object" and (.[0]?|has("k"))))) as $cands
+    | ($cands[0] // [])
+    | .[]?
+    | select(.u != null and (.u | tostring | length) > 0)
+    | [.k, .u] | @tsv
+  ' 2>/dev/null >> "$MEDIA_KEY_TO_UID_FILE" || true
   LC_ALL=C sort -u "$MEDIA_EXISTING_KEYS_FILE" | grep -v '^$' > "$MEDIA_EXISTING_KEYS_FILE.sorted" || true
   mv "$MEDIA_EXISTING_KEYS_FILE.sorted" "$MEDIA_EXISTING_KEYS_FILE" 2>/dev/null || true
   MEDIA_EXISTING_COUNT="$(wc -l < "$MEDIA_EXISTING_KEYS_FILE" | tr -d ' ')"
@@ -445,6 +479,16 @@ else
       esc_key="$(sql_escape "$stale_key")"
       printf "UPDATE content_items SET deleted_at = strftime('%%Y-%%m-%%dT%%H:%%M:%%fZ','now'), retention_reason = '%s: key=%s' WHERE media_asset_id = 'b2://%s' AND deleted_at IS NULL;\n" \
         "$MEDIA_NOTE_BASE" "$esc_key" "$esc_key" >> "$MEDIA_SQL_FILE"
+
+      # #4261 bug fix: same stale asset may be referenced as 'media_uid:<uid>'
+      # instead of 'b2://<key>' -- cover both forms so no content_items row
+      # is left pointing at a confirmed-missing object.
+      stale_uid="$(awk -F'\t' -v k="$stale_key" '$1 == k { print $2; exit }' "$MEDIA_KEY_TO_UID_FILE")"
+      if [[ -n "${stale_uid:-}" ]]; then
+        esc_uid="$(sql_escape "$stale_uid")"
+        printf "UPDATE content_items SET deleted_at = strftime('%%Y-%%m-%%dT%%H:%%M:%%fZ','now'), retention_reason = '%s: key=%s' WHERE media_asset_id = 'media_uid:%s' AND deleted_at IS NULL;\n" \
+          "$MEDIA_NOTE_BASE" "$esc_key" "$esc_uid" >> "$MEDIA_SQL_FILE"
+      fi
     done < "$MEDIA_STALE_KEYS_FILE"
 
     log "Stale media_assets key sample (up to 20):"

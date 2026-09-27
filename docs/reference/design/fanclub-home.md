@@ -5,8 +5,8 @@ Authority Level: Canonical Design Specification
 Owns: FanClub home route purpose, section contracts, data dependencies
 Does Not Own: FanClub subpage specs; API schema details; implementation internals
 Canonical Reference: /docs/reference/design/fanclub.md
-Related issues: #1685, #1688, #1690, #1962, #4263, #4344, #4349
-Last Reviewed: 2026-09-24
+Related issues: #1685, #1688, #1690, #1962, #4263, #4344, #4349, #3161
+Last Reviewed: 2026-09-25
 ---
 
 # `/fanclub` — FanClub Home Page Specification
@@ -55,7 +55,7 @@ The following legacy dashboard modules are **not** part of the newspaper Club Ho
 - Member session state from `useMemberSession`
 - Dynamic Club Home inventory: `GET /api/fanclub/home` (`club_home` section in `content_inventory`)
 - Daily Gehrig box score + AL standings: `GET /api/fanclub/gehrig-box-score` (member session; one hashed-random `retrosheet_gehrig_games` row for the America/New_York calendar day, plus batting lines and standings snapshot; fail-closed empty copy when ingest tables are empty)
-- Gehrig timeline: `GET /api/milestones/list?limit=12` (Club Home left column below Events; not rendered on public `/`)
+- Gehrig timeline: `GET /api/fanclub/timeline?limit=100` (member session required; Club Home left column below Events; not rendered on public `/`). Returns the full researched life timeline — birth, death, marriage, school, public appearances, and career milestones — with narrative detail and sourcing. The public homepage's `#milestones` section (`GET /api/milestones/list`) shows headline-only entries (`visibility='public'`); see `docs/reference/design/home-milestones.md`.
 - Recognition & Partners: `GET /api/friends/list?surface=club-home` (posted partners; The Lou Gehrig Society is second, immediately below ALS Cure Project; LouGehrig.com remains; no partner is dropped for a four-item cap)
 - Feature-link card targets: `/fanclub/photo`, `/fanclub/library`, `/fanclub/memorabilia`
 - Discussion workflows: `/fanclub/chat` and discussion APIs
