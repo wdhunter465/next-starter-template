@@ -1,52 +1,80 @@
-# context.md — Repository Context (LGFC)
-
-Effective Date: 2026-01-21
-
-This is the high-level, human-readable summary of this repository. It is intended to orient any contributor, Agent, or AI system quickly and correctly.
-
+---
+Doc Type: Explanation
+Audience: Human + AI
+Authority Level: Informational
+Owns: Short orientation to this repository's identity, platform, authority routing, startup stop boundary, and stable execution discipline
+Does Not Own: Product design invariants, authentication rules, agent role mapping, PMO priority, PR lifecycle, or any live Issue, PR, branch, or queue state
+Canonical Reference: /Agent.md
+Related Issues: #2466
+Last Reviewed: 2026-09-27
 ---
 
-## Purpose
+# context.md — Repository orientation (LGFC)
 
-- Operate the **Lou Gehrig Fan Club** website (public site + FanClub authenticated area).
-- Maintain strict design + navigation invariants as the primary product requirement.
+This file orients contributors and agents. It does not define rules. When it disagrees with a canonical document, the canonical document wins. Start at `Agent.md` and follow that file's authority chain.
 
----
+Durable orientation belongs here. Current Issue, PR, branch, queue, watcher, program, implementation, and tool-version state does not.
 
-## Stack
+## Repository
 
-- Next.js (App Router) + TypeScript
-- Cloudflare Pages deployment (static export build)
-- Cloudflare D1 for content/data (FAQs, quotes, membership-related data, etc.)
-- Backblaze B2 for media (Store is external; B2 is for images/assets)
+This repository is the official Lou Gehrig Fan Club public website and authenticated FanClub member area.
 
----
+The production objective recorded for this orientation is to complete and production-harden the website for the 2027 fundraiser. Product priority is not a single repository-wide rank. `docs/governance/PMO-PORTFOLIO.md` defines priority as the order among sibling work under the same parent. Bill, as Product Authority, makes the final priority decision.
 
-## Auth Model (current implementation)
+Repository documents and GitHub Issues and pull requests outrank chat memory, Drive drafts, dashboard snapshots, application UI, and inferred context. Live GitHub and repository evidence controls operational and readiness claims. An assumption is not current state.
 
-- Login state is represented client-side via `localStorage` key: `lgfc_member_email`.
-- FanClub routes (`/fanclub/**`) are protected by redirecting unauthenticated traffic to `/`.
-- Admin privilege is determined by `/api/member/role?email=...`.
+## Platform
 
----
+- Next.js App Router and TypeScript
+- Cloudflare Pages static export
+- Cloudflare Pages Functions for runtime APIs
+- Cloudflare D1
+- Backblaze B2 for media
 
-## Canonical Routes (Day 1)
+The site is not purely static. Authentication, membership, content, administration, and other data-backed behavior depend on Pages Functions and D1.
 
-Authoritative list is in `/docs/reference/design/LGFC-Production-Design-and-Standards.md`.
+Exact routes, navigation, footer, homepage order, floating logo, and other product invariants live in `docs/reference/design/LGFC-Production-Design-and-Standards.md`. Do not treat a route list in this file as that authority.
 
-High-level:
-- Public: `/`, `/about`, `/contact`, `/terms`, `/privacy`, `/search`, `/join`, `/login`, `/logout`, `/faq`, `/health`
-- FanClub (auth required): `/fanclub` and `/fanclub/**` subpages
-- Admin: `/admin/**`
-- Store: external Bonfire link only (no `/store` route)
+## Authentication
 
----
+Member authentication is the cookie `lgfc_session` plus D1 `member_sessions`. Member identity and role come from D1 `members`. `localStorage` is not the member-auth source of truth.
 
-## Design Sources of Truth
+- `/join` is the canonical join and login page.
+- `/join?mode=login` opens the login tab.
+- `/fanclub` and `/fanclub/**` are protected.
+- `/login` and `/auth` are legacy compatibility routes; they do not redirect the same way. See `docs/reference/design/auth-model.md`'s Redirect Policy for the exact target of each.
 
-- `/docs/reference/design/LGFC-Production-Design-and-Standards.md`
-- `/docs/reference/design/fanclub.md`
+The controlling description is `docs/reference/design/auth-model.md`.
 
-If any code or other doc conflicts with these, these win.
+Store stays an external Bonfire destination. There is no `/store` route unless that design authority changes.
 
----
+## Authority and roles
+
+All agent work routes through `Agent.md` and its mandatory documentation chain. `docs/governance/AGENT-TEAM.md` is the current, authoritative record of role holders. The boundaries below are a non-authoritative summary for orientation only; when they disagree with `AGENT-TEAM.md`, `AGENT-TEAM.md` wins.
+
+Stable boundaries:
+
+- Bill is Product Authority and the default merge approver when available. He decides requirements, priority, gates, and launch authorization.
+- Claude Code is Engineering. It may independently review work it did not implement.
+- Cursor is Operations during the recorded transition, interim PMO Admin, and an authorized implementer. That mapping is not a completed move into Engineering.
+- ChatGPT and Codex are retired. They have no current team role.
+- The Governance role has no active product holder until Product Authority records one.
+- A builder does not approve its own work.
+
+PMO lifecycle terms and pull-request lifecycle states are different systems. PMO portfolio rules are in `docs/governance/PMO-PORTFOLIO.md`. Pull-request states are in `docs/governance/PR_LIFECYCLE_STATE_MACHINE.md`.
+
+`READY FOR REVIEW` is not `READY FOR MERGE`. Only the human operator may merge.
+
+## Run startup
+
+`run startup` is an orientation command. Each recognized product identifies itself, reads its own startup contract, reports orientation, and stops. The shared stop boundary is in `docs/ops/ai/CORE-RULES.md`. The product list is in `Agent.md` and `docs/governance/AGENT-TEAM.md`.
+
+Startup does not authorize a queue audit, inferred next work, GitHub mutation, PMO advance, work packaging, or implementation. Startup completion is not task authorization. A source Issue, its acceptance criteria, an exact file allowlist, and an explicit implementation Go are loaded separately, after startup.
+
+## Execution discipline
+
+- One task, one thread, one deliverable.
+- One task, one open source Issue, one pull request.
+- No mixed intent, scope expansion, opportunistic cleanup, or routine tracker edits.
+- An exact file allowlist is required before implementation.
+- Planning notes, merged preparation docs, watcher or poller awareness, and prior chat context do not authorize implementation.
