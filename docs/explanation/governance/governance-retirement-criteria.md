@@ -13,6 +13,27 @@ Last Reviewed: 2026-09-27
 
 A control may be retired only after its replacement is operating and evidenced, and only with a written rationale and a rollback. Speed during website build-out is not a retirement reason. This file retires nothing.
 
+## Purpose
+
+State the test for retiring a temporary governance control, and record the current candidate list for #2458.
+
+## Scope
+
+In scope: the retirement test, who may authorize a retirement, and the candidates that stay in force now.
+
+Out of scope: retiring a control, changing GitHub Issues or pull requests as the executable authority, or changing builder and reviewer separation.
+
+## Current known truth
+
+- This file retires nothing. Every candidate disposition is Keep.
+- No row names a replacement that is already operating and evidenced.
+- #3155 is still open, so transitional Diátaxis artifacts stay.
+- Speed during website build-out is not a retirement reason.
+
+## Intended final state
+
+A control leaves service only after the test below passes, a named replacement is already in use, and Product Authority or the recorded Governance holder authorizes the retirement. Until that evidence exists, every candidate stays.
+
 ## Test
 
 All of these must be true:
