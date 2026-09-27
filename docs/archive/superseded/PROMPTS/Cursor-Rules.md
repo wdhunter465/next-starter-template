@@ -1,4 +1,18 @@
+---
+Doc Type: Archived Reference
+Audience: Human + AI
+Authority Level: Historical
+Owns: Historical Cursor prompt summary only
+Does Not Own: Current Cursor rules, role assignment, or pull-request creation
+Canonical Reference: /docs/ops/ai/CURSOR-RULES.md
+Archived From: /PROMPTS/Cursor-Rules.md
+Archived Reason: Contradicted current roles and was a duplicate of CURSOR-RULES.md; retired under #3155
+Last Reviewed: 2026-09-27
+---
+
 # CURSOR RULES
+
+> Archived under #3155 on 2026-09-27. Not current authority. Role mapping is `docs/governance/AGENT-TEAM.md`. Cursor product rules are `docs/ops/ai/CURSOR-RULES.md`.
 
 ## CORE MODEL
 - Cursor = file editor
