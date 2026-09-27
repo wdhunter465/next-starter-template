@@ -98,4 +98,4 @@ export function buildTeamQueueCounts(issues, { owner, repo } = {}) {
   };
 }
 
-export { TEAM_QUEUE_ORDER, PMO_QUEUE_ORDER, OPERATIONS_EXCEPTION_LABELS };
+export { TEAM_QUEUE_ORDER, PMO_QUEUE_ORDER };
