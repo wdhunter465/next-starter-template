@@ -8,7 +8,7 @@ Owns: Column-by-column definitions and provenance for content_items, rights_evid
 Does Not Own: Publication-prep gating logic (content-pipeline-publication-prep.ts);
   legacy photos/media_assets quarantine remediation (#3658 itself)
 Canonical Reference: /docs/reference/lgfc-content-schema-reference.md
-Last Reviewed: 2026-08-26
+Last Reviewed: 2026-09-28
 ---
 
 # Content Pipeline Rights Data Dictionary
@@ -199,7 +199,7 @@ endpoint).
 | `title` | Source-derived | The file's real name/title as given by the source platform, verbatim (e.g. `File:GehrigCU.jpg`). |
 | `source_url` | Source-derived | The exact page the item was found at. Also the dedupe key at import time — see "Source-URL dedupe guard" above. |
 | `source_name` | Source-derived | Human-readable source name (e.g. "Wikimedia Commons"). |
-| `source_owner` | Source-derived | Owning institution/org if the source states one. |
+| `source_owner` | Source-derived | The actual creator/photographer/rights holder the source reports (e.g. Openverse `creator`, LOC `contributor`, Commons `Artist`), not the hosting platform/institution — that distinction matters because this is who a curator contacts for a permission request. Falls back to the custodian institution only when the source gives no creator at all (#4402). |
 | `source_domain` | Source-derived | Domain the item was found on. |
 | `source_type` | System | Fixed category of the source (`archive`, `library`, etc.) — set once when the source itself was allowlisted. |
 | `content_type` | System | LGFC's classification of the media type (`photo`, `article`, ...). |
@@ -231,9 +231,10 @@ proposal; see `lgfc-content-schema-reference.md` for the full existing set.)*
 | `rights_holder` | Source-derived | The asserted creator/rights holder (e.g. "New York Daily News"), taken directly from the source's own artist/creator field. |
 | `repository_or_collection` | Source-derived | Which platform/collection this came from (e.g. "Wikimedia Commons"). |
 | `usage_decision` | LGFC-derived | Per-photo triage: `permit` (copyright found allows public/free usage), `deny` (a photo was found but requires payment/written permission), or `hold` (unknown/unclear — the default for a newly-recorded row). See "Usage-decision workflow" below. |
-| `conclusion` | LGFC-derived | LGFC's classification of the evidence into `public_domain_confirmed` / `permission_granted` / `lgfc_member_owned_item_photo`. `NULL` until a human sets it (or `usage_decision` is `hold`/`deny`, which never carries a conclusion) — nothing sets this automatically today. |
+| `conclusion` | LGFC-derived | LGFC's classification of the evidence into `public_domain_confirmed` / `permission_granted` / `lgfc_member_owned_item_photo` / `rights_undetermined`. `NULL` until set (or `usage_decision` is `hold`/`deny`, which never carries a conclusion). **#4402:** discovery import itself now sets this automatically, but only for the narrow band of unambiguous, machine-readable source license signals — a clean Openverse/Commons CC0 or Public Domain Mark (`public_domain_confirmed`), or an attribution-only CC-BY/CC-BY-SA (`permission_granted`, since the license itself is the creator's standing permission). This still records what the source itself already asserts, never a new legal judgment; anything restrictive, free-text (LOC/DPLA), or absent gets no automated conclusion and lands on the owner-contact worklist (`listOwnerContactWorklist`) instead. A human conclusion (via the admin rights-evidence API or `content-pipeline-batch-rights-approval.ts`) always remains reviewer `!= 'automated:discovery-classifier'`. |
 | `conclusion_rationale` | LGFC-derived | Plain-English explanation of what the conclusion means for LGFC's use of the item. |
-| `reviewer` | LGFC-derived | Who is responsible for the conclusion. |
+| `reviewer` | LGFC-derived | Who is responsible for the conclusion — `'automated:discovery-import'` (evidence only, no conclusion) or `'automated:discovery-classifier'` (auto-recorded conclusion) for machine-written rows (#4402), a person's name otherwise. |
+| `contact_info` | Source-derived / LGFC-derived | How to reach the copyright owner about this item — an email, a profile/contact-page URL (e.g. a Commons uploader's talk page), or `NULL` when no usable contact avenue exists. Captured at discovery time when a source offers one; otherwise recorded by whoever does the outreach (#4402). |
 | `channel` | LGFC-derived | Which use case this conclusion covers (website, social, newsletter, ...) — a conclusion for one channel never authorizes another. |
 
 **Fixed (#3552 phase 3):** the batch-approval writer

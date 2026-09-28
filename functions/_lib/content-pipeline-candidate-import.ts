@@ -65,6 +65,36 @@ export type SourceMetadata = {
   source_citation?: string;
 };
 
+// Raw, source-reported license/rights text captured verbatim at discovery
+// time -- automation-first (see #4402): this is evidence, never a
+// conclusion. It lets a real rights_evidence row exist for a candidate the
+// moment it's discovered instead of only the generic "nothing known yet"
+// placeholder, without asserting any rights determination (conclusion stays
+// NULL; only a human, via the admin rights-evidence API or
+// content-pipeline-batch-rights-approval.ts, may ever record an approving
+// conclusion).
+export type DiscoveryRightsEvidence = {
+  evidence_type: string;
+  evidence_text?: string;
+  evidence_url?: string;
+  // #4402: set ONLY when the source's own structured license field is
+  // unambiguous (see classifyLicenseRights in collect-gehrig-external-
+  // sources.mjs) -- this records what the source itself already asserts, not
+  // a new legal judgment LGFC is making. 'public_domain_confirmed' for a
+  // clean CC0/Public Domain Mark; 'permission_granted' for CC-BY/CC-BY-SA
+  // (the license itself is the creator's standing permission, conditioned on
+  // credit_line being carried through). Any source whose signal is
+  // restrictive (CC-BY-NC/-ND), free text (LOC advisories, DPLA
+  // rightsCategory), or absent gets no conclusion here and stays on the
+  // owner-contact worklist instead.
+  conclusion?: 'public_domain_confirmed' | 'permission_granted';
+  // #4402: how to reach the copyright owner about this item, when the
+  // source offers one (e.g. a Wikimedia uploader's user page). Free text --
+  // an email, a profile/contact URL, or left unset when the source gives no
+  // usable contact avenue at all.
+  contact_info?: string;
+};
+
 export type CandidateRecord = {
   candidate_id: string;
   input_stream: string;
@@ -95,6 +125,7 @@ export type CandidateRecord = {
   review_priority: string;
   admin_notes?: string;
   source_metadata?: SourceMetadata;
+  rights_evidence?: DiscoveryRightsEvidence;
   member_submission?: MemberSubmissionExtension;
   submission_queue_id?: number;
   content_inventory_id?: number;
@@ -606,12 +637,55 @@ ON CONFLICT(content_item_id) DO UPDATE SET
 // the CLI import path). Only fires for scheduled_discovery -- member
 // submissions have their own separate rights model (#2270) and must not
 // gain an extra evidence row from this path.
-function buildUndeterminedRightsEvidenceInsert(candidate: CandidateRecord): ImportSqlStatement | null {
+// #4402: automation-first discovery. When a collector captured real,
+// source-reported license/rights text (candidate.rights_evidence), record it
+// verbatim as its correctly-typed evidence row (openverse_license,
+// loc_statement, commons_license, dpla_rights_statement, ...) instead of the
+// generic placeholder -- this is what actually makes an owner/rights
+// worklist queryable per source claim. conclusion stays NULL: capturing what
+// a source says is not a rights determination, so this remains exactly as
+// safe for automation to write as the placeholder it replaces (only a human,
+// via the admin rights-evidence API or content-pipeline-batch-rights-
+// approval.ts, may ever record an approving conclusion).
+//
+// When no source evidence was captured at all (the common case for LOC/DPLA
+// items with no usable rights statement), falls back to the original
+// generic 'rights_undetermined' placeholder so "nothing known yet" remains a
+// real, queryable state either way.
+function buildDiscoveryRightsEvidenceInsert(candidate: CandidateRecord): ImportSqlStatement | null {
   if (candidate.input_stream !== 'scheduled_discovery') {
     return null;
   }
 
-  const sql = `INSERT INTO rights_evidence (
+  const evidence = candidate.rights_evidence;
+  // #4402: an auto-confirmable signal (evidence.conclusion set) is recorded
+  // as a real conclusion on the 'website' channel with usage_decision
+  // 'permit' -- this is what actually unblocks the existing publication-prep
+  // gate (content-pipeline-publication-prep.ts) and the existing B2 ingest
+  // gate (functions/api/admin/content-pipeline/ingest.ts requires exactly a
+  // recorded rights_evidence conclusion) with no separate human step, for
+  // the narrow band of unambiguous source-asserted licenses. Everything else
+  // keeps recording evidence only (conclusion NULL, channel
+  // 'internal_archive_only', usage_decision 'hold') so it surfaces on the
+  // owner-contact worklist instead.
+  const reviewer = evidence?.conclusion ? 'automated:discovery-classifier' : 'automated:discovery-import';
+  const channel = evidence?.conclusion ? 'website' : 'internal_archive_only';
+  const usageDecision = evidence?.conclusion ? 'permit' : 'hold';
+
+  const sql = evidence
+    ? `INSERT INTO rights_evidence (
+  content_item_id, evidence_type, evidence_text, evidence_url, reviewer,
+  conclusion, channel, usage_decision, contact_info
+)
+SELECT
+  ci.id, ${sqlString(evidence.evidence_type)}, ${sqlString(evidence.evidence_text ?? null)}, ${sqlString(evidence.evidence_url ?? null)},
+  ${sqlString(reviewer)}, ${sqlString(evidence.conclusion ?? null)}, ${sqlString(channel)}, ${sqlString(usageDecision)}, ${sqlString(evidence.contact_info ?? null)}
+FROM content_items ci
+WHERE ci.candidate_id = ${sqlString(candidate.candidate_id)}
+  AND NOT EXISTS (
+    SELECT 1 FROM rights_evidence re WHERE re.content_item_id = ci.id
+  );`
+    : `INSERT INTO rights_evidence (
   content_item_id, evidence_type, reviewer, conclusion, conclusion_rationale,
   channel, usage_decision
 )
@@ -629,7 +703,9 @@ WHERE ci.candidate_id = ${sqlString(candidate.candidate_id)}
   return {
     table: 'rights_evidence',
     sql,
-    description: `Record rights_undetermined evidence for ${candidate.candidate_id} (first import only)`,
+    description: evidence
+      ? `Record ${evidence.evidence_type} evidence for ${candidate.candidate_id} (first import only)`
+      : `Record rights_undetermined evidence for ${candidate.candidate_id} (first import only)`,
   };
 }
 
@@ -690,9 +766,9 @@ export function buildCandidateImportPlan(registry: CandidateRegistry): ImportPla
       statements.push(publicationStatement);
     }
 
-    const rightsUndeterminedStatement = buildUndeterminedRightsEvidenceInsert(candidate);
-    if (rightsUndeterminedStatement) {
-      statements.push(rightsUndeterminedStatement);
+    const rightsEvidenceStatement = buildDiscoveryRightsEvidenceInsert(candidate);
+    if (rightsEvidenceStatement) {
+      statements.push(rightsEvidenceStatement);
     }
   }
 

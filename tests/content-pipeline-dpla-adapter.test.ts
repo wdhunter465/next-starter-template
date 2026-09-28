@@ -59,7 +59,12 @@ describe('mapDplaDocToCandidateFields (#3826)', () => {
     expect(fields.sourceType).toBe('institution');
     expect(fields.sourceName).toBe('DPLA');
     expect(fields.sourceDomain).toBe('dp.la');
-    expect(fields.sourceOwner).toBe('Some Historical Society');
+    // #4402: sourceOwner now prefers the actual creator (who you'd contact
+    // about permission) over the contributing institution -- "Unknown
+    // photographer" is itself real source-reported data, distinct from no
+    // creator being given at all (see the "falls back to safe defaults" case
+    // below, where the institution is used because no creator exists).
+    expect(fields.sourceOwner).toBe('Unknown photographer');
     expect(fields.sourceUrl).toBe('https://example.org/items/abc123hash');
     expect(fields.dateOrPeriod).toBe('1927');
     expect(fields.sourceRecordId).toBe('abc123hash');
@@ -73,6 +78,14 @@ describe('mapDplaDocToCandidateFields (#3826)', () => {
     expect(fields.provenanceNotes).toContain('Contributing institution: Some Historical Society.');
     expect(fields.provenanceNotes).toContain('pure aggregator');
     expect(fields.summary).toContain('Some Historical Society');
+
+    // #4402: also surfaced as structured, queryable evidence (not just prose)
+    // -- still evidence, never a conclusion.
+    expect(fields.rightsEvidence).toEqual({
+      evidence_type: 'dpla_rights_statement',
+      evidence_text: expect.stringContaining('http://rightsstatements.org/vocab/NoC-US/1.0/'),
+      evidence_url: 'https://example.org/items/abc123hash',
+    });
   });
 
   it('handles array-typed sourceResource fields (a known DPLA provider inconsistency)', () => {
@@ -106,6 +119,20 @@ describe('mapDplaDocToCandidateFields (#3826)', () => {
     expect(fields.provenanceNotes).toContain('Contributing institution: unknown.');
     expect(fields.provenanceNotes).toContain('DPLA rightsCategory: unknown.');
     expect(fields.summary).toContain('Discovered via DPLA search for "Lou Gehrig"');
+    // No rights signal at all (both rights fields at their "nothing given"
+    // defaults) -- no evidence row is manufactured out of pure defaults.
+    expect(fields.rightsEvidence).toBeUndefined();
+  });
+
+  it('falls back to the contributing institution for sourceOwner only when no creator is given', () => {
+    const doc = {
+      id: 'inst-only',
+      dataProvider: 'Another Archive',
+    };
+
+    const fields = mapDplaDocToCandidateFields(doc, query);
+
+    expect(fields.sourceOwner).toBe('Another Archive');
   });
 
   it('does not crash when sourceResource.date.begin/displayDate is array-typed (#4163 live-API regression)', () => {

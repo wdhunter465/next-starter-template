@@ -186,6 +186,26 @@
         "source_citation": { "type": "string" }
       }
     },
+    "rights_evidence": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Raw, source-reported license/rights text captured verbatim at discovery time (#4402). Evidence only, never a conclusion -- see functions/_lib/content-pipeline-candidate-import.ts.",
+      "required": ["evidence_type"],
+      "properties": {
+        "evidence_type": {
+          "type": "string",
+          "enum": ["openverse_license", "loc_statement", "commons_license", "dpla_rights_statement", "other"]
+        },
+        "evidence_text": { "type": "string" },
+        "evidence_url": { "type": "string" },
+        "contact_info": { "type": "string" },
+        "conclusion": {
+          "type": "string",
+          "enum": ["public_domain_confirmed", "permission_granted"],
+          "description": "Set only when the source's own structured license field is unambiguous (#4402) -- recording what the source asserts, not a new judgment."
+        }
+      }
+    },
     "member_submission": {
       "type": "object",
       "additionalProperties": false,
@@ -281,6 +301,7 @@
         "review_priority": { "$ref": "#/$defs/review_priority" },
         "admin_notes": { "type": "string" },
         "source_metadata": { "$ref": "#/$defs/source_metadata" },
+        "rights_evidence": { "$ref": "#/$defs/rights_evidence" },
         "member_submission": { "$ref": "#/$defs/member_submission" },
         "submission_queue_id": { "type": "integer", "minimum": 1 },
         "content_inventory_id": { "type": "integer", "minimum": 1 },

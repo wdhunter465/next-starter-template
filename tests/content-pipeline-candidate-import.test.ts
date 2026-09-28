@@ -167,6 +167,86 @@ describe('content pipeline candidate import (#2288)', () => {
     expect(countAfterRerun.n).toBe(1);
   });
 
+  it('#4402: records structured, evidence-only rights_evidence (no conclusion) when a candidate carries raw license text but no auto-classification', () => {
+    const registry = minimalRegistry([
+      minimalCandidate({
+        candidate_id: 'lgfc-gehrig-2026-910',
+        input_stream: 'scheduled_discovery',
+        rights_evidence: {
+          evidence_type: 'loc_statement',
+          evidence_text: 'Rights advisory: no known restrictions.',
+        },
+      }),
+    ]);
+    const plan = buildCandidateImportPlan(registry);
+
+    const rightsStatements = plan.statements.filter((statement) => statement.table === 'rights_evidence');
+    expect(rightsStatements).toHaveLength(1);
+    expect(rightsStatements[0].sql).toContain("'loc_statement'");
+
+    const sqlite = new DatabaseSync(':memory:');
+    applyRepoMigrations(sqlite);
+    sqlite.exec(buildImportSqlBatch(plan));
+
+    const row = sqlite
+      .prepare(
+        `SELECT re.evidence_type, re.evidence_text, re.conclusion, re.channel, re.usage_decision, re.reviewer
+         FROM rights_evidence re JOIN content_items ci ON ci.id = re.content_item_id
+         WHERE ci.candidate_id = 'lgfc-gehrig-2026-910'`,
+      )
+      .get() as Record<string, unknown> | undefined;
+
+    expect(row).toMatchObject({
+      evidence_type: 'loc_statement',
+      evidence_text: 'Rights advisory: no known restrictions.',
+      conclusion: null,
+      channel: 'internal_archive_only',
+      usage_decision: 'hold',
+      reviewer: 'automated:discovery-import',
+    });
+  });
+
+  it('#4402: auto-records a website-channel permit conclusion when the source license is unambiguous (public domain)', () => {
+    const registry = minimalRegistry([
+      minimalCandidate({
+        candidate_id: 'lgfc-gehrig-2026-911',
+        input_stream: 'scheduled_discovery',
+        rights_status: 'public_domain_candidate',
+        rights_evidence: {
+          evidence_type: 'openverse_license',
+          evidence_text: 'License: cc0.',
+          evidence_url: 'https://creativecommons.org/publicdomain/zero/1.0/',
+          conclusion: 'public_domain_confirmed',
+        },
+      }),
+    ]);
+    const plan = buildCandidateImportPlan(registry);
+
+    const sqlite = new DatabaseSync(':memory:');
+    applyRepoMigrations(sqlite);
+    sqlite.exec(buildImportSqlBatch(plan));
+
+    const row = sqlite
+      .prepare(
+        `SELECT re.conclusion, re.channel, re.usage_decision, re.reviewer
+         FROM rights_evidence re JOIN content_items ci ON ci.id = re.content_item_id
+         WHERE ci.candidate_id = 'lgfc-gehrig-2026-911'`,
+      )
+      .get() as Record<string, unknown> | undefined;
+
+    expect(row).toMatchObject({
+      conclusion: 'public_domain_confirmed',
+      channel: 'website',
+      usage_decision: 'permit',
+      reviewer: 'automated:discovery-classifier',
+    });
+
+    const item = sqlite
+      .prepare(`SELECT rights_status FROM content_items WHERE candidate_id = 'lgfc-gehrig-2026-911'`)
+      .get() as { rights_status: string };
+    expect(item.rights_status).toBe('public_domain_candidate');
+  });
+
   it('produces stable statement counts for repeated import plan builds', () => {
     const first = buildCandidateImportPlan(fixtureRegistry as CandidateRegistry);
     const second = buildCandidateImportPlan(fixtureRegistry as CandidateRegistry);
