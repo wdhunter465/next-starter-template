@@ -18,13 +18,11 @@ Normative rules for the LGFC **queue-status** reporting surface (not the PMO por
 
 Do **not** overload `classifyTeamQueue`’s `null`. Queue-status returns one of:
 
-- `team` — place on Operations, Engineering, or Governance table  
-- `dataQuality` — missing-team or multi-team (surface under Data quality)  
-- `excluded` — closed, pull request, `team:pmo`, or `pmo:task` (omit from all sections)  
+- `team` — Operations, Engineering, or Governance table  
+- `dataQuality` — missing-team or multi-team  
+- `excluded` — closed, pull request, `team:pmo`, or `pmo:task`  
 
 ## Classification order
-
-Open Issues only for `team` / `dataQuality`.
 
 1. Closed → `excluded`  
 2. Pull request → `excluded`  
@@ -43,12 +41,12 @@ Exactly one `agent:*` → display name; zero → `Unassigned`; multiple → conf
 
 ## Sections
 
-Operations, Engineering, Governance open lists; 10 newest; 20 oldest (duration from `generatedAt − createdAt`); data quality list.
+Operations, Engineering, Governance; 10 newest; 20 oldest (duration from `generatedAt − createdAt`); data quality.
 
 ## JSON
 
-`queue-status-data.json` with `source: github-issues` and ISO `generatedAt`. Full schema in the launch packet.
+`queue-status-data.json` with `source: github-issues` and ISO `generatedAt`. Schema in the launch packet.
 
 ## Refresh
 
-Shared PMO dashboard build workflow. Issue events + `issue_comment` + selected `pull_request` types (**not** `synchronize` in v1). Thirty-minute schedule fallback. Artifact publish only.
+Shared PMO dashboard build workflow. Issue events + `issue_comment` + selected `pull_request` types (**not** `synchronize`; **not** review events in v1). Thirty-minute schedule fallback. Artifact publish only.
