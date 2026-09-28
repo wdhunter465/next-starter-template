@@ -128,7 +128,7 @@ export type DplaCandidateFields = {
   provenanceNotes: string;
   sourceRecordId: string | undefined;
   sourceCitation: string;
-  // #4402: raw rights_category/rights text, captured verbatim as evidence --
+  // #4405: raw rights_category/rights text, captured verbatim as evidence --
   // never a conclusion (see the "never produces a rights_status or
   // conclusion field" test below, which this field does not violate: it is
   // source-reported evidence, exactly like provenanceNotes already was,
@@ -171,7 +171,7 @@ export function mapDplaDocToCandidateFields(doc: DplaDoc, query: string): DplaCa
   const dplaItemId = orUndefined(firstScalar(doc.id));
   const dateOrPeriod = orUndefined(dplaDisplayDate(sourceResource.date));
 
-  // #4402: prefer the actual creator (the person/entity to eventually
+  // #4405: prefer the actual creator (the person/entity to eventually
   // contact about permission) over the contributing institution -- matching
   // the same owner-capture fix applied to the Openverse/LOC/Commons
   // collectors. Only falls back to the institution when DPLA gave no

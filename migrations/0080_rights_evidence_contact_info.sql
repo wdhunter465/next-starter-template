@@ -1,5 +1,5 @@
 -- 0080_rights_evidence_contact_info.sql
--- #4402: purely additive -- no existing column or CHECK constraint is
+-- #4405: purely additive -- no existing column or CHECK constraint is
 -- altered. Free-text "how to reach the copyright owner about this item"
 -- (an email, a profile/contact-page URL, or a note that no direct contact
 -- exists), captured alongside the rest of a rights_evidence row so the

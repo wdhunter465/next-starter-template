@@ -59,7 +59,7 @@ describe('mapDplaDocToCandidateFields (#3826)', () => {
     expect(fields.sourceType).toBe('institution');
     expect(fields.sourceName).toBe('DPLA');
     expect(fields.sourceDomain).toBe('dp.la');
-    // #4402: sourceOwner now prefers the actual creator (who you'd contact
+    // #4405: sourceOwner now prefers the actual creator (who you'd contact
     // about permission) over the contributing institution -- "Unknown
     // photographer" is itself real source-reported data, distinct from no
     // creator being given at all (see the "falls back to safe defaults" case
@@ -79,7 +79,7 @@ describe('mapDplaDocToCandidateFields (#3826)', () => {
     expect(fields.provenanceNotes).toContain('pure aggregator');
     expect(fields.summary).toContain('Some Historical Society');
 
-    // #4402: also surfaced as structured, queryable evidence (not just prose)
+    // #4405: also surfaced as structured, queryable evidence (not just prose)
     // -- still evidence, never a conclusion.
     expect(fields.rightsEvidence).toEqual({
       evidence_type: 'dpla_rights_statement',

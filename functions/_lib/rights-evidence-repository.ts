@@ -86,7 +86,7 @@ export type RightsEvidenceRow = {
   source_filename: string | null;
   tagging_requirements: string | null;
   usage_decision: RightsEvidenceUsageDecision;
-  // #4402: free-text "how to reach the copyright owner about this item" --
+  // #4405: free-text "how to reach the copyright owner about this item" --
   // an email, a profile/contact-page URL, or a note that no direct contact
   // exists. Captured at discovery time when a source offers one (e.g. a
   // Wikimedia uploader's user page); otherwise recorded by whoever does the
@@ -510,7 +510,7 @@ export type OwnerContactWorklistEntry = {
   response: RightsEvidenceUsageDecision | null;
 };
 
-// #4402: automation-first owner-outreach worklist. One row per discovered
+// #4405: automation-first owner-outreach worklist. One row per discovered
 // candidate that still needs a human permission decision, carrying source,
 // copyright status as stated, and contact information together so a curator
 // can work an item without cross-referencing two screens. source_owner is

@@ -189,7 +189,7 @@
     "rights_evidence": {
       "type": "object",
       "additionalProperties": false,
-      "description": "Raw, source-reported license/rights text captured verbatim at discovery time (#4402). Evidence only, never a conclusion -- see functions/_lib/content-pipeline-candidate-import.ts.",
+      "description": "Raw, source-reported license/rights text captured verbatim at discovery time (#4405). Evidence only, never a conclusion -- see functions/_lib/content-pipeline-candidate-import.ts.",
       "required": ["evidence_type"],
       "properties": {
         "evidence_type": {
@@ -202,7 +202,7 @@
         "conclusion": {
           "type": "string",
           "enum": ["public_domain_confirmed", "permission_granted"],
-          "description": "Set only when the source's own structured license field is unambiguous (#4402) -- recording what the source asserts, not a new judgment."
+          "description": "Set only when the source's own structured license field is unambiguous (#4405) -- recording what the source asserts, not a new judgment."
         }
       }
     },

@@ -167,7 +167,7 @@ describe('content pipeline candidate import (#2288)', () => {
     expect(countAfterRerun.n).toBe(1);
   });
 
-  it('#4402: records structured, evidence-only rights_evidence (no conclusion) when a candidate carries raw license text but no auto-classification', () => {
+  it('#4405: records structured, evidence-only rights_evidence (no conclusion) when a candidate carries raw license text but no auto-classification', () => {
     const registry = minimalRegistry([
       minimalCandidate({
         candidate_id: 'lgfc-gehrig-2026-910',
@@ -206,7 +206,7 @@ describe('content pipeline candidate import (#2288)', () => {
     });
   });
 
-  it('#4402: auto-records a website-channel permit conclusion when the source license is unambiguous (public domain)', () => {
+  it('#4405: auto-records a website-channel permit conclusion when the source license is unambiguous (public domain)', () => {
     const registry = minimalRegistry([
       minimalCandidate({
         candidate_id: 'lgfc-gehrig-2026-911',

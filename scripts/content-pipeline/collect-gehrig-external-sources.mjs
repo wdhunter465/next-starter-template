@@ -25,7 +25,7 @@
  * act, per #3551's core safety rule; only the admin rights-evidence API or
  * content-pipeline-batch-rights-approval.ts may ever record one).
  *
- * #4402 (automation-first): this is discovery, not a rights decision LGFC is
+ * #4405 (automation-first): this is discovery, not a rights decision LGFC is
  * making -- it records what each source's own structured license field
  * already asserts about itself (Openverse and Wikimedia Commons only; LOC's
  * rights_advisory and DPLA's rightsCategory are free text / aggregator-
@@ -267,7 +267,7 @@ function absoluteHttpUrl(url) {
  * determination. A wrong or missing tag here is a data-quality issue to
  * correct in review, not a safety issue.
  */
-// #4402: automation-first classification. A "candidate" rights_status is
+// #4405: automation-first classification. A "candidate" rights_status is
 // explicitly NOT an approval -- review_status/publication_status stay
 // pending/not_ready regardless, and actual media (B2 storage) still requires
 // a human-recorded rights_evidence conclusion (see functions/api/admin/
@@ -284,7 +284,7 @@ const PUBLIC_DOMAIN_LICENSE_PATTERN = /^(cc0|pdm|public[\s-]?domain)/i;
 // cannot assume away.
 const ATTRIBUTION_ONLY_LICENSE_PATTERN = /^cc[\s-]?by(-sa)?([\s-]?4\.0)?$/i;
 
-// #4402: classifies a source's own structured license code into what it
+// #4405: classifies a source's own structured license code into what it
 // already asserts about itself -- this is discovery, not a rights decision
 // LGFC is making (see collect-gehrig-external-sources.mjs header). Returns
 // no conclusion at all for anything restrictive, free-text, or absent; those
@@ -383,7 +383,7 @@ async function collectOpenverse(query, limit, nextId) {
       title: item.title || `Openverse image ${item.id}`,
       sourceType: 'other',
       sourceName: 'Openverse',
-      // #4402: the actual creator (who you'd contact about permission) takes
+      // #4405: the actual creator (who you'd contact about permission) takes
       // priority over the provider/platform name -- source/provider is kept
       // only as a fallback when Openverse gives no creator at all.
       sourceOwner: item.creator || item.source || item.provider || undefined,
@@ -393,7 +393,7 @@ async function collectOpenverse(query, limit, nextId) {
       provenanceNotes,
       sourceRecordId: item.id,
       sourceCitation: `Openverse (provider: ${item.provider ?? 'unknown'}), item ${item.id ?? 'unknown'}`,
-      // #4402: attribution text, carried through so a CC-BY-style credit
+      // #4405: attribution text, carried through so a CC-BY-style credit
       // requirement isn't lost once the license auto-qualifies the item.
       creditLine: item.attribution || undefined,
       rightsStatus: license.rightsStatus,
@@ -438,7 +438,7 @@ async function collectLibraryOfCongress(query, limit, nextId) {
       'A rights/advisory statement here is LOC’s own research note, not a legal clearance -- LOC generally does not own copyright in donated/acquired collection material.',
     ].join(' ');
 
-    // #4402: the actual creator/contributor (who you'd contact about
+    // #4405: the actual creator/contributor (who you'd contact about
     // permission) takes priority over "Library of Congress" itself -- LOC is
     // generally the custodian, not the rights holder, of donated/acquired
     // material. Falls back to LOC only when no contributor is given.
@@ -495,7 +495,7 @@ async function collectWikimediaCommons(query, limit, nextId, licenseNotesOut = [
     const titleText = page.title || 'Untitled Commons file';
     const imageDescription = stripHtml(meta.ImageDescription?.value ?? null);
     const creditLine = stripHtml(meta.Credit?.value ?? null) || stripHtml(meta.Attribution?.value ?? null) || undefined;
-    // #4402: the asserted creator (who you'd contact about permission) takes
+    // #4405: the asserted creator (who you'd contact about permission) takes
     // priority; credit/attribution text is the fallback when Commons gives
     // no distinct Artist field. Both are uploader assertions, not verified
     // facts -- captured as-is, same as the rest of this collector's fields.
@@ -557,7 +557,7 @@ async function collectWikimediaCommons(query, limit, nextId, licenseNotesOut = [
             evidence_text: `License template: ${licenseTemplate}. Uploader assertion, not a verified fact -- mislabeled licenses are a known, recurring problem on Commons.`,
             evidence_url: meta.LicenseUrl?.value || undefined,
             conclusion: license.conclusion,
-            // #4402: Commons' own uploader talk page is a real, usable
+            // #4405: Commons' own uploader talk page is a real, usable
             // contact avenue for a permission request -- unlike LOC/DPLA,
             // which don't expose one.
             contact_info: info.user ? `https://commons.wikimedia.org/wiki/User_talk:${encodeURIComponent(info.user)}` : undefined,

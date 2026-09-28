@@ -1,5 +1,5 @@
 // GET /api/admin/content-pipeline/rights-evidence/owner-worklist
-// #4402: automation-first owner-outreach worklist -- discovered candidates
+// #4405: automation-first owner-outreach worklist -- discovered candidates
 // that still need a human permission decision, grouped by the actual
 // copyright owner/creator captured at discovery time, so a curator works
 // down a short list of people/institutions to contact instead of reviewing

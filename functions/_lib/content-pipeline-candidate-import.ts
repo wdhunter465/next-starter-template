@@ -66,7 +66,7 @@ export type SourceMetadata = {
 };
 
 // Raw, source-reported license/rights text captured verbatim at discovery
-// time -- automation-first (see #4402): this is evidence, never a
+// time -- automation-first (see #4405): this is evidence, never a
 // conclusion. It lets a real rights_evidence row exist for a candidate the
 // moment it's discovered instead of only the generic "nothing known yet"
 // placeholder, without asserting any rights determination (conclusion stays
@@ -77,7 +77,7 @@ export type DiscoveryRightsEvidence = {
   evidence_type: string;
   evidence_text?: string;
   evidence_url?: string;
-  // #4402: set ONLY when the source's own structured license field is
+  // #4405: set ONLY when the source's own structured license field is
   // unambiguous (see classifyLicenseRights in collect-gehrig-external-
   // sources.mjs) -- this records what the source itself already asserts, not
   // a new legal judgment LGFC is making. 'public_domain_confirmed' for a
@@ -88,7 +88,7 @@ export type DiscoveryRightsEvidence = {
   // rightsCategory), or absent gets no conclusion here and stays on the
   // owner-contact worklist instead.
   conclusion?: 'public_domain_confirmed' | 'permission_granted';
-  // #4402: how to reach the copyright owner about this item, when the
+  // #4405: how to reach the copyright owner about this item, when the
   // source offers one (e.g. a Wikimedia uploader's user page). Free text --
   // an email, a profile/contact URL, or left unset when the source gives no
   // usable contact avenue at all.
@@ -637,7 +637,7 @@ ON CONFLICT(content_item_id) DO UPDATE SET
 // the CLI import path). Only fires for scheduled_discovery -- member
 // submissions have their own separate rights model (#2270) and must not
 // gain an extra evidence row from this path.
-// #4402: automation-first discovery. When a collector captured real,
+// #4405: automation-first discovery. When a collector captured real,
 // source-reported license/rights text (candidate.rights_evidence), record it
 // verbatim as its correctly-typed evidence row (openverse_license,
 // loc_statement, commons_license, dpla_rights_statement, ...) instead of the
@@ -658,7 +658,7 @@ function buildDiscoveryRightsEvidenceInsert(candidate: CandidateRecord): ImportS
   }
 
   const evidence = candidate.rights_evidence;
-  // #4402: an auto-confirmable signal (evidence.conclusion set) is recorded
+  // #4405: an auto-confirmable signal (evidence.conclusion set) is recorded
   // as a real conclusion on the 'website' channel with usage_decision
   // 'permit' -- this is what actually unblocks the existing publication-prep
   // gate (content-pipeline-publication-prep.ts) and the existing B2 ingest

@@ -1,4 +1,4 @@
-// #4402: automation-first owner-outreach worklist -- listOwnerContactWorklist
+// #4405: automation-first owner-outreach worklist -- listOwnerContactWorklist
 // (repository) and GET /api/admin/content-pipeline/rights-evidence/owner-worklist
 // (admin API). Each row carries source, copyright status as stated, and
 // contact information together; the existing usage_decision column is the
@@ -108,7 +108,7 @@ function adminGetRequest(path: string, cookie: string | null = ADMIN_SESSION_COO
   return new Request(`https://www.lougehrigfanclub.com${path}`, { headers });
 }
 
-describe('listOwnerContactWorklist (#4402)', () => {
+describe('listOwnerContactWorklist (#4405)', () => {
   it('returns one row per candidate carrying source, copyright status as stated, and contact info', async () => {
     const sqlite = new DatabaseSync(':memory:');
     applyRepoMigrations(sqlite);
@@ -241,7 +241,7 @@ describe('listOwnerContactWorklist (#4402)', () => {
   });
 });
 
-describe('GET /api/admin/content-pipeline/rights-evidence/owner-worklist (#4402)', () => {
+describe('GET /api/admin/content-pipeline/rights-evidence/owner-worklist (#4405)', () => {
   it('returns 401 without admin authorization', async () => {
     const response = await ownerWorklistGet({
       env: { DB: {} },
