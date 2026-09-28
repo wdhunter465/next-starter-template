@@ -1,11 +1,11 @@
 ---
 Doc Type: Implementation Plan / Launch Packet
 Audience: Implementers (Grok), PMO, reviewers
-Authority Level: Design lock for #3609 — preparation only until Product Graduation GO
+Authority Level: Design lock for #3609 — preparation only; Engineering No-Go for PMO Active (2026-09-28)
 Owns: Architecture, classification, event matrix, surface contract, child sequence, acceptance, rollback for the LGFC queue-status dashboard
-Does Not Own: PMO portfolio book views, Production Cloudflare site content, priority decisions
-Canonical parent: GitHub Issue #3609
-Related: #3615 (PMO event refresh / agent ownership), PMO dashboard how-to
+Does Not Own: PMO portfolio book views, Production Cloudflare site content, priority decisions, Graduation Go
+Canonical Reference: GitHub Issue #3609; docs/reference/pmo/queue-status-dashboard-contract.md
+Related: #3615 (PMO event refresh / agent ownership), PMO dashboard how-to, PR #4403
 Last Reviewed: 2026-09-28
 ---
 
@@ -13,10 +13,11 @@ Last Reviewed: 2026-09-28
 
 ## Status
 
-**Graduation Candidate ready (design evidence complete).**  
-This packet is sufficient for one implementer to execute start-to-finish after an explicit Product/PMO **Graduation GO**. It does **not** authorize implementation by itself.
+**Design feasible. PMO Graduation into Active: No-Go (Engineering review 2026-09-28).**
 
-Parent Issue remains Engineering-owned (`team:engineering`) per #3609 unless Product reclassifies into PMO Active. Stage language below is the **evidence bar**, not a claim that #3609 currently carries `pmo:stage:graduation-candidate`.
+This packet is the design record for implementation under **Engineering start authority** once Product records that path, or after a future real PMO Pipeline parent carries `pmo:stage:graduation-candidate` and an explicit Graduation Go. It does **not** authorize Active implementation and does **not** claim #3609 currently holds graduation-candidate or Active labels.
+
+Parent Issue remains Engineering-owned (`team:engineering`) per #3609 unless Product reclassifies it.
 
 ## 1. Purpose (locked)
 
@@ -30,11 +31,11 @@ This is **not** the PMO Active/Pipeline portfolio book. Do not apply PMO lifecyc
 | --- | --- |
 | Surface | **Sibling** under GitHub Pages path `/pmo-dashboard/` (reuse CSS/visual language), new page `queue-status.html` |
 | Data | New JSON `queue-status-data.json` generated alongside existing PMO dashboard output |
-| Generator home | `scripts/pmo-dashboard/` (shared fetch/classify helpers; **separate** entry module `queue-status.mjs` + tests) |
+| Generator home | `scripts/pmo-dashboard/` (**separate** module `queue-status.mjs` + tests; may share label helpers, not `classifyTeamQueue` return semantics) |
 | Deploy | Same artifact → Pages path as PMO dashboard (no dashboard commits → no refresh loop) |
-| Primary workflow | Extend **PMO dashboard CI build** (or thin wrapper job in same workflow) so one event matrix rebuilds both surfaces |
+| Primary workflow | Extend **PMO dashboard CI build** so one event matrix rebuilds both surfaces |
 
-**Rationale:** #3615 already solved event refresh, concurrency, artifact publish, and `agent:*` ownership. Duplicating a second workflow would diverge and risk loops. Sibling page keeps PMO book assumptions out of the queue-status UI.
+**Rationale:** #3615 already solved event refresh, concurrency, artifact publish, and `agent:*` ownership. Sibling page keeps PMO book assumptions out of the queue-status UI.
 
 ### Paths (allowlist intent for implementation PRs)
 
@@ -46,28 +47,34 @@ scripts/pmo-dashboard/static/queue-status.js   (optional if inline is simpler)
 scripts/pmo-dashboard/build-dashboard.mjs      (wire generation)
 scripts/pmo-dashboard/run-dashboard-build.mjs  (if needed)
 scripts/pmo-dashboard/validate-dashboard.mjs   (validate new JSON)
-.github/workflows/pmo-dashboard-ci-build.yml   (add PR events if missing)
+.github/workflows/pmo-dashboard-ci-build.yml   (add issue_comment + selected PR types)
 .github/workflows/pmo-dashboard-ci-deploy.yml  (ensure artifact includes new files)
 docs/how-to/pmo/pmo-dashboard.md               (operator section for queue-status)
-docs/reference/pmo/queue-status-dashboard-contract.md  (JSON + classification contract)
+docs/reference/pmo/queue-status-dashboard-contract.md
 ```
 
 ## 3. Classification rules (locked)
 
-Reuse and **extend** `classifyTeamQueue` semantics for the three team lists only (`operations` | `engineering` | `governance`). Ignore PMO parent buckets for list membership.
+**Do not reuse `classifyTeamQueue` null as a catch-all.** That function’s `null` today means excluded (`pmo:task`, closed, PR) *or* non-team. Queue-status must return an explicit result:
 
-| Input | Team list |
+```text
+{ kind: 'team', team: 'operations' | 'engineering' | 'governance' }
+{ kind: 'dataQuality', reason: 'missing-team' | 'multi-team' }
+{ kind: 'excluded', reason: 'closed' | 'pull_request' | 'team-pmo' | 'pmo-task' }
+```
+
+| Input | Result |
 | --- | --- |
-| Open Issue, not a PR | Eligible |
-| Closed / PR | Excluded |
-| Labels include `ops-pr-escalation` **or** `post-merge-failure` | **Operations** (exception path; no `team:*` required) |
-| Exactly one of `team:operations` / `team:engineering` / `team:governance` | That team |
-| `team:pmo` only (Active/Pipeline parents) | **Excluded** from team lists |
-| `pmo:task` | **Excluded** from team lists |
-| Zero `team:*` and not exception | **Malformed** row (data-quality), not silent drop |
-| Multiple `team:*` | **Malformed** row |
+| Closed Issue | `excluded` (`closed`) |
+| Pull request | `excluded` (`pull_request`) |
+| Labels include `ops-pr-escalation` **or** `post-merge-failure` | `team` → **operations** |
+| Exactly one of `team:operations` / `team:engineering` / `team:governance` | `team` → that team |
+| `team:pmo` (and not exception) | `excluded` (`team-pmo`) |
+| `pmo:task` (and not exception) | `excluded` (`pmo-task`) |
+| Zero `team:*` and not exception | `dataQuality` (`missing-team`) |
+| Multiple `team:*` | `dataQuality` (`multi-team`) |
 
-Newest/oldest pools = union of the three team lists **plus** malformed rows that are still open Issues (so data-quality stays visible). Optional: show malformed only in a small banner count; still include them in newest/oldest if classified as open queue-relevant. **Locked default:** malformed appear only under a **Data quality** subsection, not mixed into team tables; newest/oldest use **only** successfully classified team Issues.
+**Locked UI placement:** team tables get only `kind: 'team'`. **Data quality** subsection gets only `kind: 'dataQuality'`. Newest/oldest use **only** `kind: 'team'` Issues. Excluded rows are omitted from all sections.
 
 ### Agent ownership (locked — same as PMO #3615)
 
@@ -81,20 +88,18 @@ Do not use body prose, `owner:*`, or GitHub assignees to invent ownership.
 
 ### Status display (locked)
 
-Show a short status string from labels when present, else GitHub `state`:
-
-Priority order of first match: `status:*` label → `ops:priority:*` / `eng:priority:*` → `post-merge-failure` / `ops-pr-escalation` → empty.
+First match: `status:*` label → `ops:priority:*` / `eng:priority:*` → `post-merge-failure` / `ops-pr-escalation` → empty.
 
 ## 4. Sections and fields (locked)
 
-1. **Operations — open Issues** — table: number (link), title, agent, team, status  
+1. **Operations — open Issues** — number (link), title, agent, team, status  
 2. **Engineering — open Issues** — same  
 3. **Governance — open Issues** — same  
 4. **10 Newest Issues** — number, agent, team, exact `created_at` (ISO)  
-5. **20 Oldest Issues** — number, agent, team, exact `created_at`, **duration open** = `generatedAt − created_at` human-readable (e.g. `12d 4h`)  
-6. **Data quality** — count + rows for multi-team / missing-team open Issues that are not exceptions  
+5. **20 Oldest Issues** — number, agent, team, exact `created_at`, **duration open** = `generatedAt − created_at` (e.g. `12d 4h`)  
+6. **Data quality** — missing-team / multi-team open Issues  
 
-Header must show `generatedAt` (ISO) and source `github-issues`.
+Header: `generatedAt` (ISO), `source: github-issues`.
 
 Sort: team tables by Issue number ascending; newest by `created_at` desc; oldest by `created_at` asc.
 
@@ -118,11 +123,7 @@ Sort: team tables by Issue number ascending; newest by `created_at` desc; oldest
 }
 ```
 
-`QueueIssue`:
-
-```text
-number, title, htmlUrl, team, ownerAgent, statusLabel, createdAt
-```
+`QueueIssue`: `number`, `title`, `htmlUrl`, `team`, `ownerAgent`, `statusLabel`, `createdAt`.
 
 Validator must reject missing identity/URL, non-`github-issues` source without flag, and wrong types.
 
@@ -132,87 +133,72 @@ Validator must reject missing identity/URL, non-`github-issues` source without f
 | --- | --- |
 | `issues`: opened, reopened, closed, labeled, unlabeled, assigned, unassigned, edited | **Yes** (already on PMO build) |
 | `issue_comment`: created | **Yes** (add if absent) |
-| `pull_request`: opened, reopened, closed, labeled, unlabeled, assigned, unassigned, synchronize | **Yes** — queue status can change when PR merges/closes linked work; keep cheap (same full rebuild) |
-| `pull_request_review` / `pull_request_review_comment` | **No** for v1 (comment on Issue path covers most ops need; reviews rarely change team queue membership) |
+| `pull_request`: opened, reopened, closed, labeled, unlabeled, assigned, unassigned | **Yes** |
+| `pull_request`: **synchronize** | **No** (v1) — every push rebuild is waste; does not change queue membership |
+| `pull_request_review` / `pull_request_review_comment` | **No** (v1) — team membership does not change; Product may re-open later |
 | `schedule` `*/30 * * * *` | **Yes** fallback |
 | `workflow_dispatch` | **Yes** repair |
-| `push` to dashboard scripts/docs | Feature-branch fixture validation only (existing pattern) |
+| `push` to dashboard scripts/docs | Feature-branch fixture validation only |
 
-**Loop prevention:** publish via Pages **artifact only** (existing deploy). Never commit generated HTML/JSON on main as part of the build.  
-**Concurrency:** single group `pmo-dashboard-build-${{ github.repository }}`, `cancel-in-progress: true`.
+**Loop prevention:** Pages **artifact only**. Never commit generated HTML/JSON on main as part of the build.  
+**Concurrency:** `pmo-dashboard-build-${{ github.repository }}`, `cancel-in-progress: true`.
 
 ## 7. Implementation plan and sequence
 
-| Order | Child / work unit | Deliverable | Depends |
+| Order | Work unit | Deliverable | Depends |
 | --- | --- | --- | --- |
-| 1 | Classification + unit tests | `queue-status.mjs` + `test-queue-status.mjs` covering team, exception, malformed, newest/oldest, duration | — |
+| 1 | Classification + unit tests | `queue-status.mjs` + tests: team, exception, dataQuality, excluded, newest/oldest, duration | — |
 | 2 | Wire into build + validate | Emit `queue-status-data.json`; validate schema | 1 |
 | 3 | HTML/JS page | `queue-status.html` (+ JS), reuse PMO CSS | 2 |
-| 4 | Workflow event matrix | Add `issue_comment` + selected `pull_request` types; confirm deploy artifact includes new files | 2–3 |
-| 5 | Docs | Reference contract + how-to operator section + link from PMO dashboard how-to | 3 |
-| 6 | Main verify | Manual dispatch build; confirm Pages URL + freshness | 4–5 |
+| 4 | Workflow event matrix | `issue_comment` + selected PR types (**not** synchronize); deploy artifact includes new files | 2–3 |
+| 5 | Docs | How-to operator section + link from PMO dashboard how-to | 3 |
+| 6 | Main verify | Manual dispatch; confirm Pages URL + freshness | 4–5 |
 
-**Intended implementation owner (post-GO):** **Grok** (Issue #3609 historical owner; Product may reassign).  
-**First executable action after GO:** Child/work unit 1 — classification module + tests on a feature branch with source Issue #3609.
-
-### Suggested child Issue titles (create after GO)
-
-1. `TASK: #3609 queue-status classification + tests`  
-2. `TASK: #3609 queue-status build wire + validate`  
-3. `TASK: #3609 queue-status HTML surface`  
-4. `TASK: #3609 queue-status workflow events + deploy paths`  
-5. `TASK: #3609 queue-status Diátaxis docs`  
-
-Implementation may collapse 1–3 into one PR if size stays small and allowlist stays tight; 4–5 may ship in the same PR if gates allow.
+**Intended implementation owner (after start authority):** **Grok**.  
+**First executable action:** Work unit 1 — classification module + tests on a feature branch with source Issue #3609.
 
 ## 8. Acceptance (maps to #3609)
 
 - [ ] Every open Operations / Engineering / Governance Issue (per §3) listed with agent or Unassigned  
 - [ ] 10 newest / 20 oldest with required fields and duration  
 - [ ] Exception labels land under Operations  
-- [ ] Malformed multi-team / no-team surfaced under Data quality  
-- [ ] Issue create/assign/close/label/comment and listed PR events trigger rebuild (or coalesce under concurrency)  
+- [ ] Missing-team / multi-team under Data quality (not silent omit)  
+- [ ] Issue create/assign/close/label/comment and listed PR events trigger rebuild (or coalesce)  
+- [ ] No `synchronize`-driven rebuilds in v1  
 - [ ] Schedule remains fallback; no infinite commit loop  
 - [ ] Live GitHub labels only for team/agent  
-- [ ] Docs updated (reference + how-to)  
-- [ ] Published URL reachable under `/pmo-dashboard/queue-status.html`  
+- [ ] Docs updated  
+- [ ] Published URL under `/pmo-dashboard/queue-status.html`  
 
 ## 9. Rollback / disable
 
 1. Revert the implementation PR(s).  
-2. Or remove `queue-status.*` from the deploy artifact path and stop linking the page.  
-3. PMO book dashboard remains independent and must keep working if queue-status is disabled.
+2. Or omit `queue-status.*` from the deploy artifact and stop linking the page.  
+3. PMO book dashboard must keep working if queue-status is disabled.
 
 ## 10. Operational handoff
 
-- Operators use published `generatedAt` for freshness; GitHub Issues remain authority.  
-- Meeting startup may open queue-status for team workload; PMO books stay on existing URLs.  
-- Failures: check **PMO dashboard CI build** logs; same remediation path as PMO dashboard.
+- Operators use published `generatedAt`; GitHub Issues remain authority.  
+- Failures: **PMO dashboard CI build** logs; same remediation path as PMO dashboard.
 
 ## 11. Protected decisions
 
 - No Production Cloudflare website change.  
-- No live bulk label mutation as part of this project.  
+- No live bulk label mutation.  
 - No inventing ownership from chat.  
-- Reporting-only; does not change queue policy.
+- Reporting-only.
 
-## 12. Graduation checklist (evidence)
+## 12. Graduation / start authority (Engineering review 2026-09-28)
 
-| Requirement | Evidence |
+| Path | Requirement |
 | --- | --- |
-| Design documented | This file + §2–§6 |
-| Linked children / sequence | §7 |
-| Acceptance | §8 / Issue #3609 AC |
-| Rollback | §9 |
-| Handoff | §10 |
-| Intended implementation owner | Grok (post-GO) |
-| First executable action | Classification module + tests |
-| Explicit GO | **Pending Product/PMO** — not granted by this document |
+| **PMO Active graduation** | **No-Go** until: Product chooses PMO path; Issue holds `pmo:stage:graduation-candidate`; at Go: `pmo:active` + `pmo:priority:<n>`; design docs merged on main |
+| **Engineering start** | Product records Engineering start authority on #3609; design PR #4403 merged as design record; first action remains classification + tests (Grok) |
 
-## 13. Same-day implementation guidance (after GO)
+**Explicit Graduation Go is not granted by this document or by PR #4403.**
 
-1. Open feature branch from `main`.  
-2. Implement units 1–3 in one PR if reviewable; else split.  
-3. Keep PR allowlist exact; issue-first #3609.  
-4. Run `node scripts/pmo-dashboard/test-queue-status.mjs` and existing PMO fixture tests.  
-5. Independent review + merge; dispatch build; verify Pages.  
+## 13. Path after Product chooses authority
+
+1. Merge design PR #4403 (design record only).  
+2. Product records Engineering start **or** completes PMO Pipeline labels + Graduation Go.  
+3. Implement units 1–N; independent review; dispatch build; verify Pages.  

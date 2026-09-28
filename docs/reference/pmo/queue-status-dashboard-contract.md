@@ -3,8 +3,8 @@ Doc Type: Reference
 Audience: Implementers and validators
 Authority Level: Contract
 Owns: Queue-status dashboard classification, JSON shape, and section requirements for #3609
-Does Not Own: PMO Active/Pipeline book views, GitHub Issue authority, Pages setup
-Canonical parent: Issue #3609; launch packet `docs/ops/implementation-plans/issue-3609-queue-status-dashboard-launch-packet.md`
+Does Not Own: PMO Active/Pipeline book views, GitHub Issue authority, Pages setup, Graduation Go
+Canonical Reference: GitHub Issue #3609; docs/ops/implementation-plans/issue-3609-queue-status-dashboard-launch-packet.md
 Last Reviewed: 2026-09-28
 ---
 
@@ -14,27 +14,41 @@ Last Reviewed: 2026-09-28
 
 Normative rules for the LGFC **queue-status** reporting surface (not the PMO portfolio books).
 
-## Classification
+## Classifier result kinds
 
-Open Issues only (exclude PRs and closed Issues).
+Do **not** overload `classifyTeamQueue`’s `null`. Queue-status returns one of:
 
-1. If labels include `ops-pr-escalation` or `post-merge-failure` → team `operations`.
-2. Else if exactly one of `team:operations`, `team:engineering`, `team:governance` → that team.
-3. Else if zero team labels or multiple team labels (and not step 1) → **data quality** (do not place on a team table).
-4. `team:pmo` and `pmo:task` Issues are excluded from team tables (not data quality unless multi-team).
+- `team` — place on Operations, Engineering, or Governance table  
+- `dataQuality` — missing-team or multi-team (surface under Data quality)  
+- `excluded` — closed, pull request, `team:pmo`, or `pmo:task` (omit from all sections)  
+
+## Classification order
+
+Open Issues only for `team` / `dataQuality`.
+
+1. Closed → `excluded`  
+2. Pull request → `excluded`  
+3. `ops-pr-escalation` or `post-merge-failure` → `team: operations`  
+4. Exactly one of `team:operations` | `team:engineering` | `team:governance` → that team  
+5. `team:pmo` → `excluded`  
+6. `pmo:task` → `excluded`  
+7. Zero `team:*` → `dataQuality` (`missing-team`)  
+8. Multiple `team:*` → `dataQuality` (`multi-team`)  
+
+Newest and oldest lists use **only** `team` rows.
 
 ## Ownership
 
-Exactly one `agent:*` → display name; zero → `Unassigned`; multiple → conflict string. No body/`owner:*`/assignee override.
+Exactly one `agent:*` → display name; zero → `Unassigned`; multiple → conflict string. No body / `owner:*` / assignee override.
 
 ## Sections
 
-Operations, Engineering, Governance open lists; 10 newest; 20 oldest (with duration from `generatedAt − createdAt`); data quality list.
+Operations, Engineering, Governance open lists; 10 newest; 20 oldest (duration from `generatedAt − createdAt`); data quality list.
 
 ## JSON
 
-Published as `queue-status-data.json` with `source: github-issues` and ISO `generatedAt`. See launch packet for full schema.
+`queue-status-data.json` with `source: github-issues` and ISO `generatedAt`. Full schema in the launch packet.
 
 ## Refresh
 
-Event-driven via the shared PMO dashboard build workflow; 30-minute schedule fallback; artifact publish only.
+Shared PMO dashboard build workflow. Issue events + `issue_comment` + selected `pull_request` types (**not** `synchronize` in v1). Thirty-minute schedule fallback. Artifact publish only.
