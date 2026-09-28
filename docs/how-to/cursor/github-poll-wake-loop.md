@@ -5,8 +5,8 @@ Authority Level: Operational Authority
 Owns: Local Cursor GitHub poll-wake loop operation, watch rules, wake semantics, pickup evidence, and known reliability limits
 Does Not Own: Poller script implementation in `~/.cursor/github-poller/`, merge authority, GitHub webhook configuration, or cloud agent billing
 Canonical Reference: /docs/how-to/cursor/agent-session-bootstrap.md
-Related Issues: #2398, #2492, #2667, #3212, #3424
-Last Reviewed: 2026-08-13
+Related Issues: #2398, #2492, #2667, #3212, #3424, #3607
+Last Reviewed: 2026-09-28
 ---
 
 # Cursor local GitHub poll-wake loop
@@ -28,8 +28,22 @@ Covers operator behavior for `~/.cursor/github-poller/` while working in `wdhunt
 ## Current known truth
 
 - **Primary path (#3212 Phase 4):** `lgfc-cursor-dispatch` → dedicated `lgfc-cursor` runner → identifiers-only wrapper → local Cursor CLI.
-- **Cursor Local Bridge is decommissioned (#3424).** Bridge packet wake and this poller remain retired as execution dependencies.
+- **Cursor Local Bridge is decommissioned (#3424).** Bridge packet wake and `poll-wake-loop.sh` remain retired as execution dependencies.
+- The one-minute always-on loop still runs `poll-github.mjs` as recovery. Assignment selection for that poll is the repository resolver below, not chat memory and not GitHub assignee alone.
 - Historical poller behavior (below) is retained only for forensic/operator archive reference.
+
+## Next-work resolver (#3607)
+
+`scripts/ci/cursor_next_work_resolver.mjs` chooses the next Cursor assignment from live issue records.
+
+- Eligible input is an open `agent:cursor` claim that is not queued, held, blocked, superseded, closed, or forbidden in the issue body.
+- GitHub assignee alone is not implementation authority.
+- Order among eligible issues is the #3629 default: Operations, PMO Active, PMO Pipeline, Engineering, Governance, then `ops:priority`, then issue number.
+- The result is one issue, or `NO_ELIGIBLE_WORK`.
+- An in-flight eligible claim is kept. A second claim is not started.
+- `CURSOR_NEXT_WORK_RESOLVER=0` disables the resolver and restores the poller's previous ranking.
+
+`lgfc-cursor-dispatch` remains the identifiers-only wake transport. This resolver does not merge, approve, or promote Production.
 
 ## Components
 
