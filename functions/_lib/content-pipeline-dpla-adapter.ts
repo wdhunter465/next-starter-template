@@ -109,6 +109,12 @@ export type DplaDoc = {
   rightsCategory?: string;
 };
 
+export type DplaRightsEvidence = {
+  evidence_type: "dpla_rights_statement";
+  evidence_text: string;
+  evidence_url: string | undefined;
+};
+
 export type DplaCandidateFields = {
   title: string;
   sourceType: "institution";
@@ -122,6 +128,12 @@ export type DplaCandidateFields = {
   provenanceNotes: string;
   sourceRecordId: string | undefined;
   sourceCitation: string;
+  // #4405: raw rights_category/rights text, captured verbatim as evidence --
+  // never a conclusion (see the "never produces a rights_status or
+  // conclusion field" test below, which this field does not violate: it is
+  // source-reported evidence, exactly like provenanceNotes already was,
+  // just also surfaced in a structured, queryable shape).
+  rightsEvidence: DplaRightsEvidence | undefined;
 };
 
 function dplaDisplayDate(date: DplaSourceResource["date"]): string {
@@ -159,6 +171,26 @@ export function mapDplaDocToCandidateFields(doc: DplaDoc, query: string): DplaCa
   const dplaItemId = orUndefined(firstScalar(doc.id));
   const dateOrPeriod = orUndefined(dplaDisplayDate(sourceResource.date));
 
+  // #4405: prefer the actual creator (the person/entity to eventually
+  // contact about permission) over the contributing institution -- matching
+  // the same owner-capture fix applied to the Openverse/LOC/Commons
+  // collectors. Only falls back to the institution when DPLA gave no
+  // creator at all; a creator value of literally "unknown" is itself
+  // real source-reported data (not the same as absent), so it is kept as-is
+  // rather than silently replaced.
+  const hasCreator = firstScalar(sourceResource.creator).trim() !== "";
+  const ownerFallback = contributingInstitution === "unknown" ? "" : contributingInstitution;
+  const sourceOwner = orUndefined(hasCreator ? creator : ownerFallback);
+
+  const hasRightsSignal = dplaRights !== "none provided" || rightsCategory !== "unknown";
+  const rightsEvidence: DplaRightsEvidence | undefined = hasRightsSignal
+    ? {
+        evidence_type: "dpla_rights_statement",
+        evidence_text: `DPLA rights statement/URI: ${dplaRights}. DPLA rightsCategory: ${rightsCategory}. DPLA is a pure aggregator -- rights must be verified at the contributing institution's own record.`,
+        evidence_url: isShownAt,
+      }
+    : undefined;
+
   const provenanceNotes = [
     `DPLA discovery for query "${query}".`,
     `DPLA item ID: ${dplaItemId ?? "unknown"}.`,
@@ -176,7 +208,7 @@ export function mapDplaDocToCandidateFields(doc: DplaDoc, query: string): DplaCa
     title,
     sourceType: "institution",
     sourceName: "DPLA",
-    sourceOwner: orUndefined(contributingInstitution === "unknown" ? "" : contributingInstitution),
+    sourceOwner,
     sourceDomain: "dp.la",
     sourceUrl: isShownAt,
     summary: description
@@ -187,5 +219,6 @@ export function mapDplaDocToCandidateFields(doc: DplaDoc, query: string): DplaCa
     provenanceNotes,
     sourceRecordId: dplaItemId,
     sourceCitation: `DPLA (contributing institution: ${contributingInstitution}), item ${dplaItemId ?? "unknown"}`,
+    rightsEvidence,
   };
 }

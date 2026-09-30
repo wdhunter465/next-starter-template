@@ -19,10 +19,33 @@
  * treats it as verification-only, human-run research, not an automated
  * discovery source.
  *
- * Metadata only. Never downloads or stores media bytes. Every candidate is
- * written with rights_status defaulting to 'unknown', review_status
- * 'pending_review', and publication_status 'not_ready' — this script never
- * decides a rights conclusion, per #3551's core safety rule.
+ * Metadata only. Never downloads or stores media bytes. review_status stays
+ * 'pending_review' and publication_status stays 'not_ready' for every
+ * candidate — this script never decides a rights CONCLUSION (a human-only
+ * act, per #3551's core safety rule; only the admin rights-evidence API or
+ * content-pipeline-batch-rights-approval.ts may ever record one).
+ *
+ * #4405 (automation-first): this is discovery, not a rights decision LGFC is
+ * making -- it records what each source's own structured license field
+ * already asserts about itself (Openverse and Wikimedia Commons only; LOC's
+ * rights_advisory and DPLA's rightsCategory are free text / aggregator-
+ * relayed, not a reliable machine-readable signal to key off). See
+ * classifyLicenseRights below:
+ *   - an unambiguous CC0/Public Domain Mark auto-records rights_status
+ *     'public_domain_candidate' and a rights_evidence conclusion of
+ *     'public_domain_confirmed' -- usable immediately, no separate step.
+ *   - CC-BY/CC-BY-SA (attribution required, otherwise unrestricted) auto-
+ *     records rights_status 'permission_granted' and a conclusion of
+ *     'permission_granted' -- the license itself is the creator's standing
+ *     permission -- with the source's attribution text carried through as
+ *     credit_line so the requirement isn't lost.
+ *   - anything restrictive (CC-BY-NC/-ND), free text, or absent gets no
+ *     conclusion and stays rights_status 'unknown', surfacing instead on the
+ *     owner-contact worklist (functions/_lib/rights-evidence-repository.ts's
+ *     listOwnerContactWorklist) for a human to request permission.
+ * Every source's raw license/rights text is captured as a structured
+ * `rights_evidence` object either way, so this is fully queryable instead of
+ * only free-text provenance_notes.
  *
  * Bounded retry with exponential backoff (functions/_lib/bounded-retry.ts)
  * is now in effect on every source fetch: a transient failure (network
@@ -244,6 +267,40 @@ function absoluteHttpUrl(url) {
  * determination. A wrong or missing tag here is a data-quality issue to
  * correct in review, not a safety issue.
  */
+// #4405: automation-first classification. A "candidate" rights_status is
+// explicitly NOT an approval -- review_status/publication_status stay
+// pending/not_ready regardless, and actual media (B2 storage) still requires
+// a human-recorded rights_evidence conclusion (see functions/api/admin/
+// content-pipeline/ingest.ts). It's the machine-readable, unambiguous
+// public-domain/CC0 signals only (Openverse and Wikimedia Commons license
+// fields are structured; LOC's rights_advisory and DPLA's rightsCategory are
+// free text / aggregator-relayed and stay 'unknown' -- see their collectors'
+// own comments on why those two are not reliable enough to auto-classify).
+const PUBLIC_DOMAIN_LICENSE_PATTERN = /^(cc0|pdm|public[\s-]?domain)/i;
+// Attribution-only licenses (no non-commercial/no-derivative restriction) --
+// the license itself is the creator's standing permission to use, provided
+// credit is given. CC-BY-NC/-ND/-NC-SA/-NC-ND deliberately do NOT match:
+// those carry real usage restrictions that "free to use on a public website"
+// cannot assume away.
+const ATTRIBUTION_ONLY_LICENSE_PATTERN = /^cc[\s-]?by(-sa)?([\s-]?4\.0)?$/i;
+
+// #4405: classifies a source's own structured license code into what it
+// already asserts about itself -- this is discovery, not a rights decision
+// LGFC is making (see collect-gehrig-external-sources.mjs header). Returns
+// no conclusion at all for anything restrictive, free-text, or absent; those
+// candidates keep rights_status 'unknown' and surface on the owner-contact
+// worklist for a permission request instead.
+function classifyLicenseRights(licenseCode) {
+  const normalized = String(licenseCode ?? '').trim();
+  if (PUBLIC_DOMAIN_LICENSE_PATTERN.test(normalized)) {
+    return { rightsStatus: 'public_domain_candidate', conclusion: 'public_domain_confirmed' };
+  }
+  if (ATTRIBUTION_ONLY_LICENSE_PATTERN.test(normalized)) {
+    return { rightsStatus: 'permission_granted', conclusion: 'permission_granted' };
+  }
+  return { rightsStatus: 'unknown', conclusion: undefined };
+}
+
 function baseCandidate({
   id,
   title,
@@ -260,6 +317,8 @@ function baseCandidate({
   sourceRecordId,
   sourceCitation,
   topicTags = [],
+  rightsStatus = 'unknown',
+  rightsEvidence,
 }) {
   const candidate = {
     candidate_id: id,
@@ -272,7 +331,7 @@ function baseCandidate({
     people_tags: peopleTags && peopleTags.length > 0 ? [...new Set(peopleTags)] : ['Lou Gehrig'],
     topic_tags: [...new Set(['baseball', ...topicTags])],
     location_tags: [],
-    rights_status: 'unknown',
+    rights_status: rightsStatus,
     source_trust_status: 'trusted', // pre-vetted per #3551's approved allowlist; does NOT imply this item's rights are cleared
     relevance_status: 'pending',
     review_status: 'pending_review',
@@ -291,6 +350,7 @@ function baseCandidate({
   if (sourceDomain) candidate.source_domain = sourceDomain;
   if (dateOrPeriod) candidate.date_or_period = dateOrPeriod;
   if (creditLine) candidate.credit_line = creditLine;
+  if (rightsEvidence) candidate.rights_evidence = rightsEvidence;
 
   const sourceMetadata = {};
   if (sourceRecordId) sourceMetadata.source_record_id = String(sourceRecordId);
@@ -306,6 +366,7 @@ async function collectOpenverse(query, limit, nextId) {
   const data = await fetchJson(url);
   const results = data.results ?? [];
   return results.map((item) => {
+    const license = classifyLicenseRights(item.license);
     const provenanceNotes = [
       `Openverse discovery for query "${query}".`,
       `Provider: ${item.provider ?? 'unknown'}.`,
@@ -322,13 +383,28 @@ async function collectOpenverse(query, limit, nextId) {
       title: item.title || `Openverse image ${item.id}`,
       sourceType: 'other',
       sourceName: 'Openverse',
-      sourceOwner: item.source || item.provider || undefined,
+      // #4405: the actual creator (who you'd contact about permission) takes
+      // priority over the provider/platform name -- source/provider is kept
+      // only as a fallback when Openverse gives no creator at all.
+      sourceOwner: item.creator || item.source || item.provider || undefined,
       sourceDomain: 'openverse.org',
       sourceUrl: item.foreign_landing_url || item.url || undefined,
       summary: `Discovered via Openverse search for "${query}". Provider: ${item.provider ?? 'unknown'}. Treat license metadata as a lead — verify against the originating collection before any rights conclusion.`,
       provenanceNotes,
       sourceRecordId: item.id,
       sourceCitation: `Openverse (provider: ${item.provider ?? 'unknown'}), item ${item.id ?? 'unknown'}`,
+      // #4405: attribution text, carried through so a CC-BY-style credit
+      // requirement isn't lost once the license auto-qualifies the item.
+      creditLine: item.attribution || undefined,
+      rightsStatus: license.rightsStatus,
+      rightsEvidence: item.license
+        ? {
+            evidence_type: 'openverse_license',
+            evidence_text: `License: ${item.license}${item.license_version ? ` ${item.license_version}` : ''}. Openverse's own terms disclaim verification of individual-work licensing.`,
+            evidence_url: item.license_url || undefined,
+            conclusion: license.conclusion,
+          }
+        : undefined,
     });
   });
 }
@@ -362,12 +438,18 @@ async function collectLibraryOfCongress(query, limit, nextId) {
       'A rights/advisory statement here is LOC’s own research note, not a legal clearance -- LOC generally does not own copyright in donated/acquired collection material.',
     ].join(' ');
 
+    // #4405: the actual creator/contributor (who you'd contact about
+    // permission) takes priority over "Library of Congress" itself -- LOC is
+    // generally the custodian, not the rights holder, of donated/acquired
+    // material. Falls back to LOC only when no contributor is given.
+    const contributor = firstScalar(item.contributor);
+
     return baseCandidate({
       id: nextId(),
       title: item.title || 'Untitled Library of Congress item',
       sourceType: 'library',
       sourceName: 'Library of Congress',
-      sourceOwner: 'Library of Congress',
+      sourceOwner: contributor || 'Library of Congress',
       sourceDomain: 'loc.gov',
       sourceUrl: absoluteHttpUrl(item.url),
       summary: `Discovered via loc.gov search for "${query}". A rights/advisory statement here (if present) is LOC's own research note, not a legal clearance.`,
@@ -375,6 +457,16 @@ async function collectLibraryOfCongress(query, limit, nextId) {
       provenanceNotes,
       sourceRecordId: controlNumber,
       sourceCitation: `Library of Congress, control/ID ${controlNumber ?? 'unknown'}`,
+      // Not auto-classified to public_domain_candidate: rights_advisory is
+      // free text, not a structured code like Openverse/Commons licenses,
+      // and LOC's own advisory is a research note, not a legal clearance.
+      rightsEvidence: rightsAdvisory
+        ? {
+            evidence_type: 'loc_statement',
+            evidence_text: `Rights advisory: ${rightsAdvisory}. LOC generally does not own copyright in donated/acquired collection material.`,
+            evidence_url: absoluteHttpUrl(item.url),
+          }
+        : undefined,
     });
   });
 }
@@ -403,6 +495,13 @@ async function collectWikimediaCommons(query, limit, nextId, licenseNotesOut = [
     const titleText = page.title || 'Untitled Commons file';
     const imageDescription = stripHtml(meta.ImageDescription?.value ?? null);
     const creditLine = stripHtml(meta.Credit?.value ?? null) || stripHtml(meta.Attribution?.value ?? null) || undefined;
+    // #4405: the asserted creator (who you'd contact about permission) takes
+    // priority; credit/attribution text is the fallback when Commons gives
+    // no distinct Artist field. Both are uploader assertions, not verified
+    // facts -- captured as-is, same as the rest of this collector's fields.
+    const artist = stripHtml(meta.Artist?.value ?? null);
+    const sourceOwner = artist || creditLine || undefined;
+    const license = classifyLicenseRights(licenseTemplate);
     const dateOrPeriod =
       stripHtml(meta.DateTimeOriginal?.value ?? null) || extractDateOrPeriod(`${titleText} ${imageDescription ?? ''}`);
     const peopleTags = extractPeopleTags(`${titleText} ${imageDescription ?? ''}`);
@@ -439,6 +538,7 @@ async function collectWikimediaCommons(query, limit, nextId, licenseNotesOut = [
       title: titleText,
       sourceType: 'archive',
       sourceName: 'Wikimedia Commons',
+      sourceOwner,
       sourceDomain: 'commons.wikimedia.org',
       sourceUrl: info.descriptionurl || undefined,
       summary: imageDescription
@@ -450,6 +550,19 @@ async function collectWikimediaCommons(query, limit, nextId, licenseNotesOut = [
       provenanceNotes,
       sourceRecordId: page.pageid ?? page.title,
       sourceCitation: `Wikimedia Commons, ${titleText}`,
+      rightsStatus: license.rightsStatus,
+      rightsEvidence: licenseTemplate
+        ? {
+            evidence_type: 'commons_license',
+            evidence_text: `License template: ${licenseTemplate}. Uploader assertion, not a verified fact -- mislabeled licenses are a known, recurring problem on Commons.`,
+            evidence_url: meta.LicenseUrl?.value || undefined,
+            conclusion: license.conclusion,
+            // #4405: Commons' own uploader talk page is a real, usable
+            // contact avenue for a permission request -- unlike LOC/DPLA,
+            // which don't expose one.
+            contact_info: info.user ? `https://commons.wikimedia.org/wiki/User_talk:${encodeURIComponent(info.user)}` : undefined,
+          }
+        : undefined,
     });
   });
 }

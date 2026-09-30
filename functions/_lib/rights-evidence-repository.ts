@@ -86,6 +86,12 @@ export type RightsEvidenceRow = {
   source_filename: string | null;
   tagging_requirements: string | null;
   usage_decision: RightsEvidenceUsageDecision;
+  // #4405: free-text "how to reach the copyright owner about this item" --
+  // an email, a profile/contact-page URL, or a note that no direct contact
+  // exists. Captured at discovery time when a source offers one (e.g. a
+  // Wikimedia uploader's user page); otherwise recorded by whoever does the
+  // outreach.
+  contact_info: string | null;
 };
 
 export type StoredRightsEvidence = Omit<RightsEvidenceRow, 'evidence_metadata'> & {
@@ -111,6 +117,7 @@ export type RightsEvidenceInput = {
   publication_date_source?: string | null;
   source_filename?: string | null;
   tagging_requirements?: string | null;
+  contact_info?: string | null;
   // Defaults to 'hold' (matching the column's DB default) when omitted --
   // an explicit 'permit'/'deny' always requires the caller to have actually
   // made that determination, never inferred.
@@ -174,8 +181,8 @@ export async function recordRightsEvidence(
         evidence_url, evidence_metadata, reviewer, conclusion, conclusion_rationale,
         channel, rights_holder, repository_or_collection, publication_established,
         us_publication_or_uraa_confirmed, publication_date_source,
-        source_filename, tagging_requirements, usage_decision
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        source_filename, tagging_requirements, usage_decision, contact_info
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       input.content_item_id,
@@ -197,6 +204,7 @@ export async function recordRightsEvidence(
       input.source_filename ?? null,
       input.tagging_requirements ?? null,
       input.usage_decision ?? 'hold',
+      input.contact_info ?? null,
     )
     .run();
 
@@ -426,6 +434,7 @@ function pickRightsEvidenceRowFields(row: RightsEvidenceRow): RightsEvidenceRow 
     source_filename: row.source_filename,
     tagging_requirements: row.tagging_requirements,
     usage_decision: row.usage_decision,
+    contact_info: row.contact_info,
   };
 }
 
@@ -478,6 +487,98 @@ export async function listUnreviewedQueue(
     source_domain: row.source_domain ?? null,
     review_status: String(row.review_status),
     created_at: String(row.created_at),
+  }));
+}
+
+export type OwnerContactWorklistEntry = {
+  candidate_id: string;
+  title: string;
+  source_name: string | null;
+  source_domain: string | null;
+  source_owner: string;
+  rights_status: string;
+  // The source's own raw license/rights text, exactly as captured at
+  // discovery time (rights_evidence.evidence_text on the latest row) -- "the
+  // copyright status as stated" by the source, not a conclusion.
+  copyright_status_as_stated: string | null;
+  contact_info: string | null;
+  // The existing usage_decision column IS the Yes/No/pending column: 'permit'
+  // (yes), 'deny' (no), 'hold' (no response recorded yet). Recording an
+  // owner's actual response is done the same way every other rights decision
+  // in this pipeline is recorded -- a new row via the existing rights-
+  // evidence API -- so this always reflects the latest one.
+  response: RightsEvidenceUsageDecision | null;
+};
+
+// #4405: automation-first owner-outreach worklist. One row per discovered
+// candidate that still needs a human permission decision, carrying source,
+// copyright status as stated, and contact information together so a curator
+// can work an item without cross-referencing two screens. source_owner is
+// still included on every row for grouping/sorting client-side (the same
+// owner often covers several items).
+//
+// Deliberately excludes 'public_domain_candidate' (nothing to ask an owner
+// about -- it's a confirm, not a permission request) and 'permission_
+// granted'/'copyright_restricted'/'blocked' (already resolved one way or
+// the other). Read-only: recording an actual owner response still goes
+// through the existing rights-evidence API, exactly like every other rights
+// decision in this pipeline -- this just tells a curator who to contact and
+// shows the latest response already on file.
+export async function listOwnerContactWorklist(
+  db: any,
+  options: { limit?: number; offset?: number } = {},
+): Promise<OwnerContactWorklistEntry[]> {
+  const limit = Math.min(Math.max(options.limit ?? 50, 1), 200);
+  const offset = Math.max(options.offset ?? 0, 0);
+
+  const result = await db
+    .prepare(
+      `SELECT
+         ci.candidate_id,
+         ci.title,
+         ci.source_name,
+         ci.source_domain,
+         COALESCE(NULLIF(TRIM(ci.source_owner), ''), 'Unknown owner') AS source_owner,
+         ci.rights_status,
+         re.evidence_text AS copyright_status_as_stated,
+         re.contact_info,
+         re.usage_decision AS response
+       FROM content_items ci
+       LEFT JOIN rights_evidence re ON re.id = (
+         SELECT re2.id FROM rights_evidence re2
+         WHERE re2.content_item_id = ci.id
+         ORDER BY re2.recorded_at DESC, re2.id DESC
+         LIMIT 1
+       )
+       WHERE ci.deleted_at IS NULL
+         AND ci.input_stream = 'scheduled_discovery'
+         AND ci.rights_status IN ('unknown', 'permission_needed', 'permission_requested')
+       ORDER BY source_owner ASC, ci.created_at ASC
+       LIMIT ? OFFSET ?`,
+    )
+    .bind(limit, offset)
+    .all();
+
+  return ((result.results ?? []) as Array<{
+    candidate_id: string;
+    title: string;
+    source_name: string | null;
+    source_domain: string | null;
+    source_owner: string;
+    rights_status: string;
+    copyright_status_as_stated: string | null;
+    contact_info: string | null;
+    response: RightsEvidenceUsageDecision | null;
+  }>).map((row) => ({
+    candidate_id: row.candidate_id,
+    title: row.title,
+    source_name: row.source_name ?? null,
+    source_domain: row.source_domain ?? null,
+    source_owner: row.source_owner,
+    rights_status: row.rights_status,
+    copyright_status_as_stated: row.copyright_status_as_stated ?? null,
+    contact_info: row.contact_info ?? null,
+    response: row.response ?? null,
   }));
 }
 

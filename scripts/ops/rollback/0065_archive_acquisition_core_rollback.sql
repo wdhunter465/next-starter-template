@@ -260,7 +260,11 @@ CREATE TABLE rights_evidence_prev (
   source_filename TEXT,
   tagging_requirements TEXT,
   usage_decision TEXT NOT NULL DEFAULT 'hold'
-    CHECK (usage_decision IN ('permit', 'deny', 'hold'))
+    CHECK (usage_decision IN ('permit', 'deny', 'hold')),
+  -- #4405/migration 0080: additive column, unrelated to 0065 -- carried over
+  -- verbatim like every other post-0065 column, so this script keeps
+  -- reversing only what 0065 itself changed.
+  contact_info TEXT
 );
 INSERT INTO rights_evidence_prev SELECT * FROM rights_evidence;
 DROP TABLE rights_evidence;
