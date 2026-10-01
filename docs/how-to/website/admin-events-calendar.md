@@ -13,7 +13,7 @@ Last Reviewed: 2026-08-22
 
 ## Purpose
 
-Create, update, and seed events while preserving public calendar read paths
+Create and update events while preserving public calendar read paths
 (`#1124` / T46).
 
 ## Scope
@@ -27,7 +27,7 @@ APIs: `functions/api/admin/events/**`, public reads `functions/api/events/**`.
 1. Sign in as an admin member.
 2. Open **Events**.
 3. Load the event list.
-4. Create or update events; use seed controls only when intentionally backfilling.
+4. Create or update events.
 5. Verify public `events/next` or month views if a production check is required.
 
 ## Procedure
@@ -38,11 +38,9 @@ APIs: `functions/api/admin/events/**`, public reads `functions/api/events/**`.
 2. Select an event or create a new record with required date/title fields.
 3. Save changes; confirm success status.
 
-### Seed next events
+### No placeholder events
 
-1. Use **Seed next 10** (or equivalent control) only per operator policy.
-2. Confirm seeded rows appear in the admin list.
-3. Treat seed as forward-only; rollback requires explicit D1 operator action outside this UI.
+The admin UI has no seed control. Do not add placeholder or sample events to the calendar; the public calendar shows only real events (#4411).
 
 ### Public read stability
 
