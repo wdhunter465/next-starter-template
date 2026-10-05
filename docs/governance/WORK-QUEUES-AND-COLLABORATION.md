@@ -167,7 +167,7 @@ At every safe task boundary the agent:
 3. selects the next executable item;
 4. preserves waiting items for later gate/review/post-merge follow-through.
 
-This applies to Cursor, Claude Code, Grok, and other live role holders according to their mapped eligibility. Codex is retired (#4165) and is not a live role holder.
+This applies to every live role holder according to the mapping in `docs/governance/AGENT-TEAM.md`. Retired members (#4074, #4165, #4173) are not live role holders.
 
 ## Universal collaboration
 
@@ -207,7 +207,7 @@ Queue or role selection never authorizes self-approval. Builders cannot supply t
 This policy supersedes earlier language that:
 
 - assigns one universal normal-work order to every agent;
-- hard-codes Cursor, Claude Code, or Work product-specific queue order inside the queue policy;
+- hard-codes any agent or product-specific queue order inside the queue policy (queue policy names roles only);
 - treats child priorities as prohibited merely because they are not team-global priorities;
 - treats PMO priority integers as repository-global ranks;
 - lets an agent halt after packaging one task while other eligible work exists.

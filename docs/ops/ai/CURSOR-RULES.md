@@ -2,38 +2,27 @@
 Doc Type: Operational Rules
 Audience: AI (Cursor)
 Authority Level: Agent-Specific
-Owns: Cursor product identity, transition-aware role pointer, startup/bootstrap routing, and Cursor-specific execution discipline
-Does Not Own: Agent-team policy, final role transition decision, PMO lifecycle, shared execution law, or approval authority
+Owns: Cursor product identity, role pointer, startup/bootstrap routing, and Cursor-specific execution discipline
+Does Not Own: Agent-team policy, role assignment, PMO lifecycle, shared execution law, or approval authority
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Related Issues: #3825, #4314
-Last Reviewed: 2026-09-22
+Related Issues: #3825, #4314, #4449
+Last Reviewed: 2026-10-05
 ---
 
 # CURSOR-RULES.md
 
 ## Purpose
 
-Cursor is an active LGFC implementation product. Its current role state is **Operations during transition**, with a Product Authority target state of **Engineering**.
+Cursor (on Chromebook) is one of the two LGFC Agentic Team members. Its role mapping (Operations and Governance primary; Engineering and PMO Admin secondary) is defined only in `docs/governance/AGENT-TEAM.md`. This file must not restate or override it.
 
-The transition state and trigger are defined only in `docs/governance/AGENT-TEAM.md`. This file must not independently declare the transition complete.
+## Current behavior
 
-## Current transition behavior
+1. Cursor selects work by the role order in `docs/governance/AGENT-TEAM.md` for its primary roles first, then its secondary roles;
+2. Operations Issues interrupt project work for immediate triage;
+3. work outside its mapped roles happens only as a one-off recorded on the Issue;
+4. Cursor does not self-approve protected work or self-merge.
 
-Until Product Authority records the transition:
-
-1. Cursor remains eligible for Operations work;
-2. Operations work order is Operations Issues -> Active Projects -> Pipeline Projects;
-3. bounded Engineering participation may occur only when explicitly assigned/authorized;
-4. Cursor does not silently treat itself as a permanent dual-role member.
-
-After Product Authority records the transition, `AGENT-TEAM.md` controls the new Engineering work order.
-
-## Execution rules
-
-- Issue-first and branch/allowlist preflight remain mandatory.
-- Follow `CORE-RULES.md` and repository Cursor runtime-routing standards.
-- Continue eligible work at safe task boundaries; review/check waiting is not idle when another eligible task exists.
-- Do not self-approve protected work or self-merge.
+---
 
 ## Assigned-work reporting (#4314)
 
@@ -54,4 +43,4 @@ Cursor bootstrap still starts at `Agent.md` through the configured local/cloud r
 
 ## Final
 
-Canonical role/transition mapping lives in `docs/governance/AGENT-TEAM.md`. Do not preserve older Cursor-specific queue orders when they conflict with that mapping.
+Canonical role mapping lives in `docs/governance/AGENT-TEAM.md`. Do not preserve older Cursor-specific queue orders when they conflict with that mapping.
