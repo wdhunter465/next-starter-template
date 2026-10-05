@@ -1,0 +1,59 @@
+name: OPS — Workflow Failure Exception Issues
+
+# Product Authority direction (2026-10-05, #4444): when a scheduled or post-merge
+# workflow fails on the default branch, open a new Issue assigned to team:operations
+# for immediate review. One open Issue per workflow; later failures add a comment.
+#
+# To watch another workflow, add its exact `name:` to the list below and to
+# docs/how-to/ci/workflow-failure-exception-issues.md.
+
+on:
+  workflow_run:
+    workflows:
+      - "OPS — D1 Backup Scheduled Daily Export (#3268 Phase 3)"
+      - "OPS — D1 Backup Scheduled Quarterly Restore Drill (#3268 Phase 4)"
+      - "OPS — Scheduled Content Publish (#4253)"
+      - "OPS — Snapshot Backup"
+      - "D1 Migrations"
+      - "Repository Runner Health"
+      - "LGFC Cursor Runner Health"
+      - "GATE — Quality Checks"
+      - "GATE — Secret Scan"
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: read
+  issues: write
+
+concurrency:
+  group: ops-exception-${{ github.event.workflow_run.name }}
+  cancel-in-progress: false
+
+jobs:
+  open-exception-issue:
+    if: >-
+      github.event.workflow_run.conclusion == 'failure' &&
+      github.event.workflow_run.head_branch == github.event.repository.default_branch
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Open or update the exception Issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          RUN_ID: ${{ github.event.workflow_run.id }}
+          RUN_NAME: ${{ github.event.workflow_run.name }}
+          RUN_URL: ${{ github.event.workflow_run.html_url }}
+          RUN_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
+          RUN_EVENT: ${{ github.event.workflow_run.event }}
+          RUN_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: node scripts/ci/open_workflow_failure_issue.mjs
