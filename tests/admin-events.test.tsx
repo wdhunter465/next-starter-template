@@ -5,7 +5,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import AdminEventsPage from '@/app/admin/events/page';
 import { onRequestPost as eventsCreatePost } from '../functions/api/admin/events/create';
 import { onRequestGet as eventsListGet } from '../functions/api/admin/events/list';
-import { onRequestPost as eventsSeedPost } from '../functions/api/admin/events/seed-next10';
 import { onRequestPost as eventsUpdatePost } from '../functions/api/admin/events/update';
 import { onRequestGet as publicEventsMonthGet } from '../functions/api/events/month';
 import { onRequestGet as publicEventsNextGet } from '../functions/api/events/next';
@@ -301,33 +300,6 @@ describe('admin events page', () => {
     expect(fetchMock.mock.calls.some(([path]) => path === '/api/admin/events/update')).toBe(true);
   });
 
-  it('shows seed feedback when placeholder seeding fails closed', async () => {
-    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
-      const path = String(input);
-
-      if (path.startsWith('/api/admin/events/list')) {
-        return Promise.resolve(jsonResponse({ ok: true, items: [] }));
-      }
-
-      if (path === '/api/admin/events/seed-next10') {
-        return Promise.resolve(jsonResponse({ ok: false, error: 'Database unavailable' }, 503));
-      }
-
-      return Promise.reject(new Error(`Unexpected fetch: ${path}`));
-    });
-
-    render(<AdminEventsPage />);
-
-    await waitFor(() => {
-      expect(screen.getByText(/No events found for/i)).toBeInTheDocument();
-    });
-
-    fireEvent.click(screen.getByRole('button', { name: 'Seed next 10 placeholders' }));
-
-    await waitFor(() => {
-      expect(screen.getByText('Seed error: Database unavailable')).toBeInTheDocument();
-    });
-  });
 });
 
 describe('admin events APIs', () => {
@@ -433,19 +405,6 @@ describe('admin events APIs', () => {
     });
   });
 
-  it('fails closed when seeding without D1', async () => {
-    const response = await eventsSeedPost({
-      request: adminPostRequest('/api/admin/events/seed-next10'),
-      env: {},
-    });
-
-    expect(response.status).toBe(503);
-    await expect(response.json()).resolves.toMatchObject({
-      ok: false,
-      error: 'Database unavailable',
-    });
-  });
-
   it('rejects invalid month filters instead of returning unrelated rows', async () => {
     const { db } = makeEventsDb([
       {
@@ -488,29 +447,6 @@ describe('admin events APIs', () => {
     });
   });
 
-  it('skips duplicate placeholder seeding when upcoming posted events already exist', async () => {
-    const { db } = makeEventsDb([
-      {
-        id: 1,
-        title: 'Existing Event',
-        start_date: '2026-06-18',
-        end_date: '2026-06-18',
-        status: 'posted',
-      },
-    ]);
-
-    const response = await eventsSeedPost({
-      request: adminPostRequest('/api/admin/events/seed-next10'),
-      env: { DB: withAdminSession(db) },
-    });
-
-    expect(response.status).toBe(200);
-    await expect(response.json()).resolves.toMatchObject({
-      ok: true,
-      inserted: 0,
-      upcoming_posted: 1,
-    });
-  });
 });
 
 describe('public events read paths', () => {

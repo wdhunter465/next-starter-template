@@ -32,13 +32,6 @@ type EventMutationResponse = {
   changed?: number;
 };
 
-type SeedResponse = {
-  ok: true;
-  inserted: number;
-  upcoming_posted: number;
-  note?: string;
-};
-
 type EventDraft = {
   title: string;
   start_date: string;
@@ -106,10 +99,8 @@ function draftFromRecord(record: EventRecord): EventDraft {
 export default function AdminEventsPage() {
   const [month, setMonth] = useState(monthKeyFromDate());
   const [status, setStatus] = useState('Loading events…');
-  const [seedStatus, setSeedStatus] = useState('');
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [seeding, setSeeding] = useState(false);
   const [items, setItems] = useState<EventRecord[]>([]);
   const [selectedId, setSelectedId] = useState<number | null>(null);
   const [draft, setDraft] = useState<EventDraft>(EMPTY_DRAFT);
@@ -201,28 +192,6 @@ export default function AdminEventsPage() {
     setStatus(`Event ${selectedId} updated.`);
   }, [draft, load, selectedId]);
 
-  const seedNextTen = useCallback(async () => {
-    setSeeding(true);
-    setSeedStatus('Seeding placeholder events…');
-
-    const result = await adminJson<SeedResponse>('/api/admin/events/seed-next10', {
-      method: 'POST',
-    });
-
-    if (!result.ok) {
-      setSeedStatus(`Seed error: ${result.error}`);
-      setSeeding(false);
-      return;
-    }
-
-    const data = result.data;
-    setSeedStatus(
-      `Seed complete: inserted ${data?.inserted ?? 0}, upcoming posted ${data?.upcoming_posted ?? 0}.`,
-    );
-    setSeeding(false);
-    await load();
-  }, [load]);
-
   useEffect(() => {
     void load();
   }, [load]);
@@ -230,7 +199,7 @@ export default function AdminEventsPage() {
   return (
     <PageShell
       title="Event Calendar"
-      subtitle="Create, update, and seed events that feed the public /events page and homepage calendar."
+      subtitle="Create and update events that feed the public /events page and homepage calendar."
     >
       <AdminNav />
       <div style={{ display: 'grid', gap: 18, marginTop: 16 }}>
@@ -256,15 +225,6 @@ export default function AdminEventsPage() {
               {loading ? 'Loading…' : 'Refresh'}
             </button>
 
-            <button
-              type="button"
-              onClick={() => void seedNextTen()}
-              disabled={seeding || !tokenReady}
-              style={buttonStyle(seeding || !tokenReady)}
-            >
-              {seeding ? 'Seeding…' : 'Seed next 10 placeholders'}
-            </button>
-
             <button type="button" onClick={resetCreateForm} disabled={!tokenReady} style={buttonStyle(!tokenReady)}>
               New event
             </button>
@@ -272,8 +232,6 @@ export default function AdminEventsPage() {
 
           <AdminStatusText message={status} />
         </div>
-
-        {seedStatus ? <AdminStatusText message={seedStatus} /> : null}
 
         <section style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: 14, padding: 14 }}>
           <h2 style={{ marginTop: 0 }}>{selected ? `Edit event #${selected.id}` : 'Create event'}</h2>
