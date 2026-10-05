@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Durable LGFC agent roles, recognized agent products, current member mapping, role work-selection order, approval authority, protected stops, and role-transition state
 Does Not Own: PMO lifecycle/stage semantics, detailed queue-label implementation, delivery-profile mechanics, CI implementation, or Production recovery procedure
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3240, #3629, #3693, #3825, #4074, #4165, #4173, #4174, #4399
-Last Reviewed: 2026-09-27
+Related Issues: #3240, #3629, #3693, #3825, #4074, #4165, #4173, #4174, #4399, #4449
+Last Reviewed: 2026-10-05
 ---
 
 # Agent Team
@@ -129,26 +129,35 @@ Governance does not override Product Authority's business/product decisions or p
 | --- | --- |
 | Bill | Product Authority; Day-2 Operations; default merge approval when available |
 | Retired member (#4173) | **Retired.** No current team role, wake path, PMO authority, Governance authority, review authority, or implementation authority. Historical record only (see #4173). |
-| Grok | **Operations**; authorized implementation |
+| Claude Code | **Engineering** (primary); **PMO Admin** (primary); Operations and Governance (secondary); authorized implementation; PR Approver only for work Claude Code did not implement |
+| Cursor (on Chromebook) | **Operations** (primary); **Governance** (primary); Engineering and PMO Admin (secondary); authorized implementation; PR Approver only for work Cursor did not implement |
 | Retired member (#4165) | **Retired.** No current team role, wake path, or implementation authority. Historical record only (see #4165). |
-| Cursor | **Operations during transition**; **PMO Admin** (interim, #4174); authorized implementation; target role is Engineering after Product Authority records the transition |
-| Claude Code | **Engineering**; authorized implementation; PR Approver / Engineering only for work Claude Code did not implement |
+| GitHub Copilot | Pull Request review only; not a durable role holder |
+| Grok | Occasional implementation on Issues Product Authority assigns while usage allows; not a durable role holder |
 | Jules | Implementation resource only when explicitly assigned under a compatible role/source Issue |
 | Gemini | Research and repository monitoring/reporting; read-only unless separately authorized |
 | CloudflareAI | Evaluation/support only under recorded access |
 | GitHub Actions / repository automation | Deterministic CI; bounded Administration & Communications transport/evidence |
 | Repository runner/routing controller | Administration & Communications infrastructure; host/service maintained by Day-2 Operations |
 
-## Cursor transition
+## Team assignment (Product Authority, 2026-10-05)
 
-Current transition state:
+The LGFC Agentic Team is **Claude Code** and **Cursor (on Chromebook)**, both paid subscriptions. All work is owned by one of the two. GitHub Copilot (PR review only) and Grok (occasional, Product Authority-assigned Issues) are unpaid supporting tools, not role holders.
 
-- Cursor remains eligible for Operations implementation. The retired member covered by #4165 is not a reliability gate for that eligibility.
-- Cursor is **not yet removed from Operations**.
-- Product Authority #4174 assigned Cursor **interim PMO Admin**. That is an explicit recorded assignment, not a completed Engineering transition.
-- Target state still moves Cursor into Engineering alongside Claude Code after Product Authority records that trigger/disposition.
+| Role | Primary | Secondary |
+| --- | --- | --- |
+| Engineering | Claude Code | Cursor |
+| PMO Admin | Claude Code | Cursor |
+| Operations | Cursor | Claude Code |
+| Governance | Cursor | Claude Code |
 
-Do not treat the Engineering transition as complete. Interim PMO Admin is the #4174 Product decision only.
+Bill reviews and approves Pull Requests and acts as Product Authority. Departures from this assignment are one-offs recorded on the Issue.
+
+This assignment replaces every earlier role holder, interim assignment and transition note (including the #4174 interim PMO Admin assignment). Where older text contradicts it, the older text is legacy.
+
+## Naming rule
+
+Scripts, workflows, dashboards and documents refer to **role names** (Engineering, PMO Admin, Operations, Governance, Product Authority), never to an agent or product name. This file is the only place that maps roles to members, so a change of members or assignments needs one edit here and no repository-wide audit. Historical records in closed Issues, Pull Requests and archived documents keep their original wording.
 
 ## Retirement record — #4165
 
@@ -160,7 +169,7 @@ PMO process documents name **PMO Admin** and **CMO**. They do not name a specifi
 
 Current holders live only in this file:
 
-- **PMO Admin:** Cursor (interim, #4174)
+- **PMO Admin:** Claude Code (primary); Cursor (secondary)
 - **CMO:** unassigned until Product Authority adds CMO to a named member's role list in the mapping table above
 
 Product Authority (Bill) remains the default merge approver when available. CMO is the recorded delegate for merge approval only when Product Authority is unavailable and a holder is named.
@@ -173,7 +182,7 @@ The associated product-specific rules file is historical only (path retained for
 
 Two earlier retirements are on record (#4074, #4165). Historical Issue comments, PR authorship, and prior decisions attributing work to the member covered by this record remain truthful records and are not rewritten.
 
-Successor coverage until Product names permanent holders: Cursor Local continues Product-authorized Operations and interim PMO Admin (#4174); Claude Code remains Engineering and independent review for work it did not implement; Bill remains Product Authority. The Governance durable role has no active product holder in the mapping table after the retirement recorded in #4173 until Product records a permanent assignment.
+Successor coverage is defined in the Team assignment section above. The Governance role is held by Cursor (primary) and Claude Code (secondary).
 
 ## Copilot and Devin — #4399
 
@@ -208,7 +217,7 @@ An agent claim does not permanently transfer role or Team ownership. Claims must
 - PMO Admin may not merge Pull Requests.
 - CMO may not approve its own implementation.
 - Claude Code may approve only work it did not implement.
-- Cursor, Grok, and other implementers do not self-approve protected work.
+- No implementer self-approves protected work.
 - Model C constitutional/domain-policy changes require independent review before merge.
 - Production promotion retains the configured Engineering and Product/Production authority.
 
