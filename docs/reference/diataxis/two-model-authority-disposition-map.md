@@ -6,7 +6,7 @@ Owns: Authority disposition inventory for Delivery System v1 Task 2 (#2486) touc
 Does Not Own: Domain policy content, constitutional precedence, or implementation behavior
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
 Related Issues: #2477, #2486, #2478, #2686, #2687, #2688, #2689, #2690
-Last Reviewed: 2026-07-21
+Last Reviewed: 2026-10-07
 ---
 
 # Two-Model Authority Disposition Map
@@ -42,14 +42,14 @@ Binding material currently under `docs/ops/ai/` conflicts with DIATAXIS ops fold
 
 | Current path | Current owner | Target owner | Action | Replacement / notes | Program child |
 | --- | --- | --- | --- | --- | --- |
-| `docs/ops/ai/SHARED-AGENT-RULES.md` | ops/ai (incorrect for binding policy) | Agent Team governance | migrate | `docs/governance/AGENT-TEAM.md` or split policy index (Task 4) | Task 4 #2486 follow-on |
-| `docs/ops/ai/CORE-RULES.md` | ops/ai | Agent Team governance | migrate | Consolidate into governance agent policy (Task 4) | Task 4 |
-| `docs/ops/ai/CURSOR-RULES.md` | ops/ai | Agent Team governance + reference | migrate | Binding rules → governance; execution facts remain reference-adjacent | Task 4 |
+| `docs/ops/ai/SHARED-AGENT-RULES.md` | ops/ai (incorrect for binding policy) | Agent Team governance | migrate | File is absent. Live role policy is already `docs/governance/AGENT-TEAM.md` | Task 4 #4198 |
+| `docs/ops/ai/CORE-RULES.md` | ops/ai | Agent Team governance | migrated | Canonical text is `docs/governance/AGENT-EXECUTION.md`. This path is a compatibility pointer (#4198) | Task 4 #4198 |
+| `docs/ops/ai/CURSOR-RULES.md` | ops/ai | Agent Team governance + reference | migrated | Role mapping is `docs/governance/AGENT-TEAM.md`. This file keeps Cursor execution discipline only | Task 4 #4198 |
 | `docs/ops/ai/chatgpt-cursor-handoff-workflow.md` | Operations | Operations (procedure) | retain | Procedure stays under ops; constitution links as related | — |
 | `docs/how-to/cursor/github-poll-wake-loop.md` | Operations procedure | Operations procedure | retain | Local runtime procedure; linked from runtime routing standard | — |
 | `docs/governance/standards/CURSOR-RUNTIME-ROUTING.md` | Agent Team governance | Agent Team governance | retain | Already in correct layer from #2489 | — |
 
-Until Task 4 migration completes, legacy `docs/ops/ai/` binding files remain **interim authoritative** for agent execution. New binding policy must not be added under `docs/ops/ai/`.
+`docs/ops/ai/CORE-RULES.md` is no longer binding policy (#4198). Shared execution law is `docs/governance/AGENT-EXECUTION.md`. New binding policy must not be added under `docs/ops/ai/`. Retired product files stay historical and are not live policy.
 
 ## Domain policy disposition
 
