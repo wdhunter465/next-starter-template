@@ -482,7 +482,7 @@ function runSelfTest() {
       {
         id: 30,
         createdAt: isoMinutesAgo(40, now),
-        body: '## COLLABORATION REQUEST\nTarget: Work',
+        body: '## COLLABORATION REQUEST\nTarget: PMO Admin',
       },
       {
         id: 31,

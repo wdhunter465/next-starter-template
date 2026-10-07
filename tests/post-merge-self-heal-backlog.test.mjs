@@ -240,12 +240,12 @@ describe('post-merge self-healing backlog classification', () => {
 			'- Source issue: #2113',
 			'- Validator status: fail',
 			'- Remediation required: yes',
-			'- Queue advancement status: stopped; reviewer exception or remediation issue requires ChatGPT/Bill review',
+			'- Queue advancement status: stopped; reviewer exception or remediation issue requires PMO Admin/Bill review',
 			'',
 			'## Detected failure condition',
 			'- missing_required_section: PR body is missing ## CHANGE SUMMARY.',
 			'',
-			'## Required ChatGPT/Bill decision',
+			'## Required PMO Admin/Bill decision',
 			'- Decide whether the source issue may be closed, corrected, or kept open.',
 			'- Queue advancement remains stopped until the exception is resolved.',
 			'',
@@ -259,7 +259,7 @@ describe('post-merge self-healing backlog classification', () => {
 		}));
 
 		expect(body).toContain('Queue advancement status');
-		expect(body).toContain('Required ChatGPT/Bill decision');
+		expect(body).toContain('Required PMO Admin/Bill decision');
 		expect(extractDetectedFailureConditions(body)).toEqual([
 			expect.objectContaining({ code: 'missing_required_section' }),
 		]);
@@ -304,12 +304,12 @@ describe('post-merge self-healing backlog classification', () => {
 			'- Source issue: #2113',
 			'- Validator status: pass',
 			'- Remediation required: no',
-			'- Queue advancement status: stopped; ChatGPT/Bill review required',
+			'- Queue advancement status: stopped; PMO Admin/Bill review required',
 			'',
 			'## Detected failure condition',
 			'- missing_required_section: PR body is missing ## CHANGE SUMMARY.',
 			'',
-			'## Required ChatGPT/Bill decision',
+			'## Required PMO Admin/Bill decision',
 			'- Decide whether the source issue may be closed, corrected, or kept open.',
 		].join('\n');
 		const report = buildBacklogReport({
