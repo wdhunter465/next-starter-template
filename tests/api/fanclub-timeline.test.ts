@@ -99,6 +99,11 @@ describe('GET /api/fanclub/timeline (#3161)', () => {
     expect(eventTypes.has('birth')).toBe(true);
     expect(eventTypes.has('death')).toBe(true);
 
+    const commerce = body.items.find((row: { title: string }) => row.title === 'Hits a grand slam out of Cubs Park for Commerce High');
+    expect(commerce).toMatchObject({ event_date: '1920-06-26', event_type: 'graduation' });
+    expect(commerce.detail_body).toMatch(/Wrigley Field/);
+    expect(commerce.source_url).toBeTruthy();
+
     const marriage = body.items.find((row: { title: string }) => row.title === 'Marries Eleanor Grace Twitchell');
     expect(marriage).toMatchObject({
       event_date: '1933-09-29',

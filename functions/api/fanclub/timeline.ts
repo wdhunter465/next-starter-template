@@ -1,7 +1,7 @@
-// #3161: full researched Gehrig life timeline for authenticated FanClub members.
-// Public visitors get the headline-only subset from /api/milestones/list;
-// this endpoint returns every milestone row (public + member visibility)
-// with the extended detail_body/source_url narrative.
+// #4349: full Gehrig life timeline for authenticated FanClub members.
+// One milestones table. This endpoint returns every posted row.
+// The public homepage (/api/milestones/list) returns only baseball
+// milestones (event_type career, visibility public), without detail_body.
 
 import { requireD1, requireTables, jsonResponse } from "../../_lib/d1";
 import { requireMember } from "../../_lib/session";

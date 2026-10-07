@@ -1,7 +1,8 @@
 // @vitest-environment node
-// #3161: the public milestones endpoint must only ever return
-// visibility='public' rows, never the member-only detailed timeline entries
-// (and never leak detail_body/source_url, which it doesn't select at all).
+// #4349: the public homepage timeline is baseball milestones only
+// (event_type career, visibility public). Life events stay in the same
+// milestones table for Fan Club and must not appear here. The payload
+// never includes detail_body or source_url.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -77,10 +78,17 @@ describe('GET /api/milestones/list visibility filtering (#3161)', () => {
     expect(body.ok).toBe(true);
 
     const titles = body.items.map((row: { title: string }) => row.title);
-    expect(titles).toContain('Born in New York City');
-    expect(titles).toContain('Dies in Riverdale, New York, at age 37');
+    expect(titles).toContain('Major League debut with the New York Yankees');
+    expect(titles).toContain('Wins the Triple Crown');
+    expect(titles).toContain('Named captain of the Yankees');
+    expect(titles).toContain('Sets the American League record with 184 RBIs');
+    expect(titles).not.toContain('Hits a grand slam out of Cubs Park for Commerce High');
+    expect(titles).not.toContain('Interred at Kensico Cemetery in Valhalla');
+    expect(titles).not.toContain('Born in New York City');
+    expect(titles).not.toContain('Dies in Riverdale, New York, at age 37');
+    expect(titles).not.toContain('"Luckiest Man" farewell speech at Yankee Stadium');
 
-    // Member-only rows must never appear on the public endpoint.
+    // Life events and member-only rows stay off the public homepage.
     expect(titles).not.toContain('Marries Eleanor Grace Twitchell');
     expect(titles).not.toContain('Graduates Commerce High School, enrolls at Columbia University');
     expect(titles).not.toContain('Diagnosed with ALS at the Mayo Clinic');
