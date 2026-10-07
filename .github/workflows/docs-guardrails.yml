@@ -1,13 +1,52 @@
 name: Docs Guardrails
 
-# Manual-only: rebuild as advisory gate in a follow-up issue. Do not restore as auto-trigger marker.
+# #4197: header completeness and canonical-hash verification fail this job
+# on documentation pull requests. Scripts are reused, not rewritten.
+# This job is path-scoped. It is not one of the three ruleset-required
+# checks (quality, gitleaks, reviewer-response-completion) until Product
+# adds the job name to ruleset Main.
 
 on:
   workflow_dispatch: {}
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - "docs/**"
+      - ".github/workflows/docs-guardrails.yml"
+      - "scripts/ci/docs_check_headers.sh"
+      - "scripts/ci/docs_canonical_hashes_verify.sh"
+      - "scripts/ci/docs_canonical_hashes_generate.sh"
+
+permissions:
+  contents: read
 
 jobs:
   docs_guardrails:
+    name: docs_guardrails
     runs-on: ubuntu-latest
     steps:
-      - name: Manual-only marker
-        run: echo "Docs guardrails is manual-only pending rebuild; not a merge blocker."
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Header completeness on changed docs
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          set -euo pipefail
+          if [ -n "${BASE_REF}" ]; then
+            git fetch origin "${BASE_REF}" --depth=1
+            git diff --name-only "origin/${BASE_REF}...HEAD" > /tmp/changed.txt
+          else
+            : > /tmp/changed.txt
+          fi
+          grep -E '^docs/.*\.md$' /tmp/changed.txt > /tmp/docs-md.txt || true
+          if [ ! -s /tmp/docs-md.txt ]; then
+            echo "No changed docs markdown. Header check skipped."
+            exit 0
+          fi
+          DOCS_HEADER_FILE_LIST=/tmp/docs-md.txt bash scripts/ci/docs_check_headers.sh .
+
+      - name: Canonical design hash baseline
+        run: bash scripts/ci/docs_canonical_hashes_verify.sh
