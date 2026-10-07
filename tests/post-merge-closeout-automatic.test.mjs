@@ -461,9 +461,9 @@ describe('closeout fail-safe remediation evidence', () => {
 		expect(body).toContain('- Merge SHA: abc123');
 		expect(body).toContain('- Blocking future PRs: yes');
 		expect(body).toContain('- Linked remediation issue: none recorded');
-		expect(body).toContain('- Requested owner/action: ChatGPT/Bill review');
+		expect(body).toContain('- Requested owner/action: PMO Admin/Bill review');
 		expect(body).toContain('- Originating-agent determination: originating_agent_not_determinable');
-		expect(body).toContain('## Required ChatGPT/Bill decision');
+		expect(body).toContain('## Required PMO Admin/Bill decision');
 		expect(body).toContain('ZIP History Audit (Full History)');
 		expect(body).toContain('run 28957717158');
 		expect(body).toContain('Job 12345: audit (failure); failed steps: Scan full git history for ZIPs (failure)');
@@ -497,7 +497,7 @@ describe('closeout fail-safe remediation evidence', () => {
 		expect(body).toContain('unrelated lanes remain executable');
 		expect(body).toContain('docs/ops/as-built/post-merge-originating-agent-remediation-3069.md');
 		expect(body).not.toContain('then assign a bounded remediation owner');
-		expect(body).not.toContain('## Required ChatGPT/Bill decision');
+		expect(body).not.toContain('## Required PMO Admin/Bill decision');
 	});
 
 	it('routes Claude-originated PR exceptions to Claude without a fresh PMO dispatch', () => {
@@ -520,14 +520,14 @@ describe('closeout fail-safe remediation evidence', () => {
 		expect(body).not.toContain('then assign a bounded remediation owner');
 	});
 
-	it('keeps ChatGPT/Bill review for ambiguous or conflicting originating-agent evidence', () => {
+	it('keeps PMO Admin/Bill review for ambiguous or conflicting originating-agent evidence', () => {
 		const ambiguous = remediationBody({
 			status: 'fail',
 			pr: 1,
 			metadata_failures: [{ code: 'closeout_blocker_declared', message: 'blocked' }],
 		});
-		expect(ambiguous).toContain('ChatGPT/Bill review, then assign a bounded remediation owner');
-		expect(ambiguous).toContain('## Required ChatGPT/Bill decision');
+		expect(ambiguous).toContain('PMO Admin/Bill review, then assign a bounded remediation owner');
+		expect(ambiguous).toContain('## Required PMO Admin/Bill decision');
 		expect(remediationIssueLabels({
 			reviewer_disposition_failures: [{ code: 'undispositioned_reviewer_comment' }],
 		})).toEqual(['post-merge-failure']);
@@ -546,7 +546,7 @@ describe('closeout fail-safe remediation evidence', () => {
 			head_ref: 'cursor/example-2e48',
 			pr_body: '- Implementation agent: Claude Code\n',
 			metadata_failures: [{ code: 'closeout_blocker_declared', message: 'blocked' }],
-		})).toContain('ChatGPT/Bill review, then assign a bounded remediation owner');
+		})).toContain('PMO Admin/Bill review, then assign a bounded remediation owner');
 	});
 
 	it('merges originating-agent labels onto an existing exception without dropping prior labels', () => {

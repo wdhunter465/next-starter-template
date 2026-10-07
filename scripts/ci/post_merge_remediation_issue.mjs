@@ -464,14 +464,14 @@ function requestedOwnerActionLine(owner) {
 	if (owner.determined) {
 		return `- Requested owner/action: ${owner.display} (${owner.label}) — immediate originating-delivery remediation; no new PMO dispatch`;
 	}
-	return '- Requested owner/action: ChatGPT/Bill review, then assign a bounded remediation owner before queue advancement resumes';
+	return '- Requested owner/action: PMO Admin/Bill review, then assign a bounded remediation owner before queue advancement resumes';
 }
 
 function queueAdvancementLine(result, owner) {
 	if (owner.determined) {
 		return '- Queue advancement status: stopped for the originating agent\'s successor only; unrelated lanes remain executable; resume automatically after independent acceptance/closeout';
 	}
-	return `- Queue advancement status: ${result.queue_advancement_status || 'stopped; ChatGPT/Bill review required'}`;
+	return `- Queue advancement status: ${result.queue_advancement_status || 'stopped; PMO Admin/Bill review required'}`;
 }
 
 function requiredActionSection(owner) {
@@ -488,7 +488,7 @@ function requiredActionSection(owner) {
 		];
 	}
 	return [
-		'## Required ChatGPT/Bill decision',
+		'## Required PMO Admin/Bill decision',
 		'- Originating ownership is ambiguous or protected; do not leave this exception without a deterministic owner and next action.',
 		'- Decide whether the source issue may be closed, corrected, or kept open.',
 		'- Authorize any corrective PR or issue mutation through a bounded follow-up issue/PR.',
