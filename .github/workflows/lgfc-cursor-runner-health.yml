@@ -39,17 +39,22 @@ jobs:
       )
     runs-on: ubuntu-latest
     timeout-minutes: 5
+    # secrets is not a valid context in step if: (#4408, #4446). Read it into
+    # env and branch on env so a missing token still parses and records
+    # AUTH_NOT_CONFIGURED instead of failing every push to main.
+    env:
+      CURSOR_RUNNER_HEALTH_TOKEN: ${{ secrets.CURSOR_RUNNER_HEALTH_TOKEN }}
     steps:
       - name: Record AUTH_NOT_CONFIGURED
-        if: ${{ secrets.CURSOR_RUNNER_HEALTH_TOKEN == '' }}
+        if: env.CURSOR_RUNNER_HEALTH_TOKEN == ''
         run: |
           echo "::notice title=AUTH_NOT_CONFIGURED::CURSOR_RUNNER_HEALTH_TOKEN is not set. ONLINE/OFFLINE not observed. Workflow parsed."
 
       - name: Query dedicated Cursor runner presence
-        if: ${{ secrets.CURSOR_RUNNER_HEALTH_TOKEN != '' }}
+        if: env.CURSOR_RUNNER_HEALTH_TOKEN != ''
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.CURSOR_RUNNER_HEALTH_TOKEN }}
+          github-token: ${{ env.CURSOR_RUNNER_HEALTH_TOKEN }}
           script: |
             const expectedLabel = 'lgfc-cursor';
             const expectedRepo = 'wdhunter465/next-starter-template';
