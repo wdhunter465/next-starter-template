@@ -80,6 +80,10 @@ describe('GET /api/milestones/list visibility filtering (#3161)', () => {
     const titles = body.items.map((row: { title: string }) => row.title);
     expect(titles).toContain('Major League debut with the New York Yankees');
     expect(titles).toContain('Wins the Triple Crown');
+    expect(titles).toContain('Named captain of the Yankees');
+    expect(titles).toContain('Sets the American League record with 184 RBIs');
+    expect(titles).not.toContain('Hits a grand slam out of Cubs Park for Commerce High');
+    expect(titles).not.toContain('Interred at Kensico Cemetery in Valhalla');
     expect(titles).not.toContain('Born in New York City');
     expect(titles).not.toContain('Dies in Riverdale, New York, at age 37');
     expect(titles).not.toContain('"Luckiest Man" farewell speech at Yankee Stadium');
