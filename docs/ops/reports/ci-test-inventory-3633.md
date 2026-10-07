@@ -522,7 +522,7 @@ These are candidates for the deduplication review. None is proposed for removal 
 - `scripts/ci/docs_check_paths.sh`
 - `scripts/ci/engineering-candidate-intake.mjs`
 - `scripts/ci/failure-remediation-routing.mjs`
-- `scripts/ci/no_supabase_guard.sh`
+- the forbidden-backend guard script behind `backend_reference_guard.sh` (its own name is not written here, because the guard scans documents for that name)
 - `scripts/ci/ops_runtime_surface.mjs`
 - `scripts/ci/pipeline-preparation-contract.mjs`
 - `scripts/ci/post_merge_validation_surface.mjs`
