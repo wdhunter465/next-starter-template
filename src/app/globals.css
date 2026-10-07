@@ -398,6 +398,32 @@ a:hover {
   border: 2px solid rgba(255, 255, 255, 0.9);
   color: #fff;
 }
+/* "FREE" badge under the Join banner heading (#4460). A span on a white pill:
+   the banner forces h2/h3/h4/p/a text to white, and red on the banner blue fails contrast. */
+.joinBanner .join-banner__free-wrap {
+	display: flex;
+	justify-content: center;
+	margin: 0 0 var(--rhythm-sm) 0;
+}
+
+.joinBanner .join-banner__free {
+	display: inline-block;
+	padding: 2px 20px;
+	border-radius: 999px;
+	background: #fff;
+	color: #d90000;
+	font-size: var(--lgfc-font-size-h1);
+	font-weight: 800;
+	letter-spacing: 0.06em;
+	line-height: 1.2;
+}
+
+@media (min-width: 640px) {
+	.joinBanner .join-banner__free {
+		font-size: var(--lgfc-font-size-hero);
+	}
+}
+
 /* Timeline */
 .timeline {
 	display: grid;
