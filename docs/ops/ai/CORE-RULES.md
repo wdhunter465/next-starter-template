@@ -330,12 +330,10 @@ LGFC implementation routing is defined in [`docs/archive/LGFC-AI-TEAM-OPERATING-
 
 All LGFC implementation tasks (website, repository, ops, CI, and docs implementation):
 
-1. **Cursor Local** and **Claude Code** = co-equal active LGFC standing implementation executors relative to each other, each assigned bounded work through its own source Issue; neither is sole executor as of the 2026-08 multi-agent parallel-operation decision (#3052). A single task is assigned to exactly one executor; parallel operation means concurrent, non-overlapping assignments, not shared ownership of the same Issue.
-   - **Cursor Local** is a normal standing executor for `team:operations`, `team:pmo`, and `team:governance` work, and is **not** a normal `team:engineering` executor.
-   - **Claude Code** is a normal standing executor for `team:pmo` and `team:engineering` work (and Governance when explicitly assigned). Claude is **not** a normal Operations executor; Claude may join a bounded Operations Issue only when explicitly escalated for additional engineering support. Escalation does not create a Tier-2 Operations Team and does not change Team ownership (`#3152` four-Team topology: Operations, Governance, PMO, Engineering).
-2. **Retired member (#4173)** = no current team role, PMO authority, Governance authority, review authority, Administration authority, or Day-2 Operations coordination authority. Historical record only (see `docs/governance/AGENT-TEAM.md` and [`CHATGPT-RULES.md`](./CHATGPT-RULES.md)). Successor coverage until Product names permanent holders: Cursor Local continues Product-authorized Operations and interim PMO Admin (#4174); Claude Code remains Engineering and independent review for work it did not implement; Bill remains Product Authority (`docs/governance/AGENT-TEAM.md`). A second retired member (#4074) also holds no current role.
+1. **Claude Code** and **Cursor (on Chromebook)** = the LGFC Agentic Team. All repository work is owned by one of the two through its own source Issue and `agent:*` claim; a single task is assigned to exactly one of them, and parallel operation means concurrent, non-overlapping assignments. Role primaries and secondaries (Engineering, PMO Admin, Operations, Governance) are defined only in `docs/governance/AGENT-TEAM.md`; Product Authority balances priority across both agents so neither holds a disproportionate share of the top of the queue. Departures from the mapped roles are one-offs recorded on the Issue.
+2. **Retired members (#4173, #4074)** = no current team role, PMO authority, Governance authority, review authority, Administration authority, or Day-2 Operations coordination authority. Historical record only (see `docs/governance/AGENT-TEAM.md`). Role coverage is defined in the Team assignment section of that file.
 3. **Retired member (#4165)** = not a live Implementation / Operations executor, first responder, or wake target. `CODEX-RULES.md` is historical only. Do not assign `agent:codex` or invoke that dispatch path.
-4. All other agents, including **Claude** (conversational) and **Notion** (controlled-document workspace), = tertiary/support agents only by explicit bounded routing need; neither holds a durable repository role or GitHub mutation authority. See `docs/governance/AGENT-TEAM.md`.
+4. All other tools, including GitHub Copilot (PR review only), Grok (occasional Issues Product Authority assigns), and **Notion** (controlled-document workspace), = support only by explicit bounded routing need; none holds a durable repository role. Scripts, workflows and documents refer to role names, never agent names. See `docs/governance/AGENT-TEAM.md`.
 
 Prior documentation that listed the member retired under #4165 as a standing executor, first responder, or isolated configuration-pilot consumer is superseded for LGFC work by this section, `docs/governance/AGENT-TEAM.md`, and `#4165`.
 
@@ -424,7 +422,7 @@ STOP immediately if:
 
 # PRODUCT STARTUP FRAMEWORK
 
-Shared skeleton for every recognized LGFC agent product's mandatory `run startup` procedure (#3052 / #3693). Product-specific rule files (`CHATGPT-RULES.md`, `CLAUDE-CODE-RULES.md`) are additive to this skeleton; they do not replace it. `WORK-RULES.md` and `CODEX-RULES.md` are retired/historical; see `docs/governance/AGENT-TEAM.md` for the underlying retirement records (#4074, #4165).
+Shared skeleton for every recognized LGFC agent product's mandatory `run startup` procedure (#3052 / #3693). Product-specific rule files (`CLAUDE-CODE-RULES.md`, `CURSOR-RULES.md`) are additive to this skeleton; they do not replace it. `CHATGPT-RULES.md`, `WORK-RULES.md` and `CODEX-RULES.md` are retired/historical; see `docs/governance/AGENT-TEAM.md` for the underlying retirement records (#4074, #4165).
 
 ## When startup is mandatory
 
@@ -440,7 +438,7 @@ Startup is not required again for every prompt within the same verified session.
 
 The literal command `run startup` resolves according to the active product. Each product recognizes its own identity and executes its own startup contract:
 
-- In **ChatGPT**: run the ChatGPT startup contract (`docs/ops/ai/CHATGPT-RULES.md`).
+- In **ChatGPT**: do not run startup as a live product. `docs/ops/ai/CHATGPT-RULES.md` is retired (#4173).
 - In **Codex**: do not run startup as a live product. `docs/ops/ai/CODEX-RULES.md` is retired (#4165).
 - In **Claude Code**: run the Claude Code startup contract (`docs/ops/ai/CLAUDE-CODE-RULES.md`).
 - In **Cursor**: existing bootstrap applies (`AGENTS.md` for Cloud, `.cursor/rules/*.mdc` for Local); unchanged by this framework.
