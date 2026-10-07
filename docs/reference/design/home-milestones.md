@@ -6,7 +6,7 @@ Owns: Homepage milestones section purpose, layout contract, and behavior
 Does Not Own: Historical content curation governance; admin CMS workflows
 Canonical Reference: /docs/reference/design/home.md
 Related Issues: #3161
-Last Reviewed: 2026-09-25
+Last Reviewed: 2026-10-07
 ---
 
 # Homepage Section Spec — Milestones
@@ -23,9 +23,9 @@ Define the homepage milestones section that surfaces notable Lou Gehrig / club t
 - Component owner: `src/components/MilestonesSection.tsx`
 
 ## Data Dependencies
-- Reads milestone records via `GET /api/milestones/list` (`milestones` table), filtered to `visibility='public'` — headline life/career events only.
+- Reads milestone records via `GET /api/milestones/list` from the single `milestones` table. Homepage rows are baseball milestones: `event_type='career'` and `visibility='public'`.
 - Provides loading and no-data fallback messaging.
-- The full researched life timeline (marriage, school, public appearances, finer-grained career detail, and narrative `detail_body`/`source_url`) is member-only: see `GehrigTimeline` on FanClub Club Home, served by `GET /api/fanclub/timeline` (`docs/reference/design/fanclub-home.md`). This section must never surface member-tier rows or the `detail_body`/`source_url` fields to public visitors.
+- The same table holds the full life record. Club Home `GehrigTimeline` (`GET /api/fanclub/timeline`) uses every posted row, including birth, school, marriage, public appearances, and death, with `detail_body` and `source_url`. This homepage section must not show those life events or the narrative fields.
 
 ## Auth / Access Expectations
 - Publicly visible.

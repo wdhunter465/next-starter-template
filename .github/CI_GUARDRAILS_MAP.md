@@ -32,6 +32,12 @@ No retired or manual-only workflow may be required by branch protection. Do not 
 
 Advisory checks remain non-blocking until promotion criteria in `PR_PROCESS.md` are satisfied.
 
+## Path-scoped docs checks
+
+| Workflow | Job | Role |
+| --- | --- | --- |
+| `docs-guardrails.yml` | `docs_guardrails` | On docs-path pull requests, fails unless changed `docs/**/*.md` files pass `scripts/ci/docs_check_headers.sh` and `scripts/ci/docs_canonical_hashes_verify.sh` passes. Regenerating the canonical baseline in the same PR is the intentional-drift path. Not a fourth ruleset-required check until Product adds `docs_guardrails` to ruleset `Main`. |
+
 ## Manual-only / paused checks
 
 | Workflow | Disposition |
@@ -40,7 +46,6 @@ Advisory checks remain non-blocking until promotion criteria in `PR_PROCESS.md` 
 | `ops-pr-issue-accounting.yml` | Manual-only while paused |
 | `gate-drift.yml` | Manual-only; rebuild only if current evidence justifies it |
 | `gate-branch-freshness.yml` | Manual-only |
-| `docs-guardrails.yml` | Manual-only |
 | `design-compliance-warn.yml` | Manual-only |
 | `gate-post-merge-readiness.yml` | Manual backfill only |
 
