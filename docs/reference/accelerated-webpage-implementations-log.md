@@ -1,11 +1,11 @@
 ---
-Doc Type: As-Built
+Doc Type: Reference
 Audience: Human + AI
 Authority Level: Historical
 Owns: Historical log of accelerated webpage changes on 2026-02-09
 Does Not Own: Current delivery process or PR governance
 Canonical Reference: /docs/governance/PR_GOVERNANCE.md
-Related Issues: #4138, #4480
+Related Issues: #4138, #4480, #4484
 Last Reviewed: 2026-10-08
 ---
 

@@ -1,5 +1,5 @@
 ---
-Doc Type: As-Built
+Doc Type: Reference
 Audience: Human + AI
 Authority Level: Supporting
 Owns: Runtime note for Weekly Matchup photo URL normalization on read-path APIs
