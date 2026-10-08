@@ -4,7 +4,7 @@ Audience: LGFC operators, maintainers, and AI implementation agents
 Authority Level: Operational Procedure
 Owns: Weekly matchup override/emergency ops and public read-path checks
 Does Not Own: Voting model redesign, photo curation UI, or matchup product policy
-Canonical Reference: /docs/as-built/weekly-matchup-auto-rotation.md
+Canonical Reference: /docs/reference/weekly-matchup-auto-rotation.md
 Related issues: #1258, #1565, #1126, #2157
 Last Reviewed: 2026-08-22
 ---
@@ -15,7 +15,7 @@ Last Reviewed: 2026-08-22
 
 Inspect and override weekly photo matchups when needed, and compare admin state to public read paths (`#1126` / T48).
 
-Normal weekly rollover is **automatic** via `GET /api/matchup/current` (see `/docs/as-built/weekly-matchup-auto-rotation.md`). Use this page for diagnostics, manual overrides, or closing a week — not for routine Monday pair selection.
+Normal weekly rollover is **automatic** via `GET /api/matchup/current` (see `/docs/reference/weekly-matchup-auto-rotation.md`). Use this page for diagnostics, manual overrides, or closing a week — not for routine Monday pair selection.
 
 Photo club-use tagging (`photos.is_matchup_eligible`: `0` / `1` / `-1`) will be curated on `/admin/d1-test/` under a future PMO program. Until then, D1 Inspect is read-only for that column.
 

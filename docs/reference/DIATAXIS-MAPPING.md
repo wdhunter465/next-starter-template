@@ -26,7 +26,7 @@ to Program 3 / `#1132` is historical. Remaining execution is owned by `#3155`.
 The per-file dispositions, including the header requirement for each legacy
 file, are in `docs/reference/diataxis-legacy-disposition-map.md`.
 
-Status report: `docs/reports/program-1-diataxis-transition-status.md`
+Status report: `docs/ops/reports/program-1-diataxis-transition-status.md`
 
 ---
 

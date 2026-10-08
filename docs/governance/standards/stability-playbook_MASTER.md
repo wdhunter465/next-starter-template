@@ -52,5 +52,5 @@ Revert immediately if:
 - A security-sensitive route is exposed or behavior changes unexpectedly.
 
 ## Post-incident follow-up (required)
-- Record a postmortem under `/docs/postmortems/`.
+- Record a postmortem under `/docs/ops/incident-response/`.
 - Add a prevention gate (test, CI rule, invariant, or verification step).

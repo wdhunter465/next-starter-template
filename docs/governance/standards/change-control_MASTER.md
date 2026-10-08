@@ -57,4 +57,4 @@ Rollback is a *normal operation*, not a failure.
 
 ## Auditable record
 - Operations records must be written to repo docs, not chat.
-- Use `/docs/ops/deploy-log.md` and `/docs/postmortems/*` when applicable.
+- Use `/docs/ops/deploy-log.md` and `/docs/ops/incident-response/` when applicable.

@@ -109,7 +109,7 @@ Updated canonical homepage section order:
 
 ### 6. Mobile / Tablet Implementation Status
 
-Per `docs/as-built/DOCS_CLEANUP_RECORD_2026-02-17.md`:
+Per `docs/reference/DOCS_CLEANUP_RECORD_2026-02-17.md`:
 
 > Mobile + tablet implementation is HALTED until further notice.
 > Desktop implementation remains the only active UX target.

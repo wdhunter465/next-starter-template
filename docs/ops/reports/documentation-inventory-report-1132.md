@@ -34,7 +34,7 @@ The program goal is to define Who, What, Where, and Why for each major project a
 | `docs/reference/ci/lgfc-ci-workflow-classification-matrix.md` | Workflow classification | Use for CI workflow ownership mapping |
 | `docs/governance/` | Governance, authority hierarchy, PR rules, verification standards | Use as enforcement and conflict-resolution source |
 | `docs/ops/` | Live operating procedures, worklists, trackers, task records | Use as operational status and sequencing source |
-| `docs/as-built/` | Historical implementation records | Use as as-built reference only, not future design authority |
+| `docs/reference/` (former `docs/as-built/`, #4480) | Historical implementation records | Use as as-built reference only, not future design authority |
 | `docs/archive/` | Legacy and historical material | Use as migration/reference input only |
 | `docs/ops/ai/` | AI/agent operating rules | Use for agent behavior boundaries |
 | `.agents/skills/` | Reusable agent skills | Use for agent workflow support |
@@ -65,7 +65,7 @@ The program goal is to define Who, What, Where, and Why for each major project a
 5. `docs/how-to/` owns task-execution procedures and implementation plans.
 6. `docs/explanation/` owns rationale and context; it must not become the only authority for project requirements.
 7. `docs/ops/` owns live procedures, trackers, and operational sequencing.
-8. `docs/as-built/` owns historical implementation records and should become the landing area for completed agent as-built documentation.
+8. Historical implementation records now live in `docs/reference/` after #4480 folded `docs/as-built/` there. They are not future design authority.
 9. `docs/archive/` and legacy folders must be treated as migration/reference material unless explicitly promoted through governance.
 
 ## Immediate Risks

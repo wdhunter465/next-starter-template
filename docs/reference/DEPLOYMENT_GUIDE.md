@@ -1,3 +1,14 @@
+---
+Doc Type: As-Built
+Audience: Human + AI
+Authority Level: Historical
+Owns: Historical Cloudflare Pages deployment notes for the static-export site
+Does Not Own: Current deployment authority or live workflow configuration
+Canonical Reference: /docs/ops/deployment-model_MASTER.md
+Related Issues: #4138, #4480
+Last Reviewed: 2026-10-08
+---
+
 # Deployment Guide
 
 ## Overview

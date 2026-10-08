@@ -4,7 +4,7 @@ Audience: Human + AI
 Authority Level: Operational
 Owns: Program #2039 production rollback procedure
 Does Not Own: Cloudflare account administration
-Canonical Reference: /docs/as-built/DEPLOYMENT_GUIDE.md
+Canonical Reference: /docs/reference/DEPLOYMENT_GUIDE.md
 Related issues: #2039, #2047
 Last Reviewed: 2026-07-01
 ---
