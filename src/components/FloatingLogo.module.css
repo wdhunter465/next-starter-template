@@ -19,9 +19,9 @@
 
 .img{
   display: block;
-  height: clamp(86px, 10vw, 98px);
+  height: clamp(129px, 15vw, 147px);
   width: auto;
-  max-width: 160px;
+  max-width: 240px;
   object-fit: contain;
   border-radius: 12px;
 }
@@ -33,7 +33,7 @@
   }
 
   .img{
-    height: 48px;
-    max-width: 88px;
+    height: 72px;
+    max-width: 132px;
   }
 }
