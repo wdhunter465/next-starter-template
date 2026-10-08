@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import {
   clubHomeMastheadDateline,
   clubHomeMastheadKicker,
@@ -19,7 +18,7 @@ export default function ClubHomeMasthead({ email }: ClubHomeMastheadProps) {
       <div style={clubHomeMastheadKicker}>
         <span>Club Home</span>
         <span>Member Edition</span>
-        <span>Est. 2026</span>
+        <span>Est. 2017</span>
       </div>
       <h1 style={clubHomeMastheadNameplate}>Lou Gehrig Fan Club</h1>
       <p style={clubHomeMastheadDateline}>&ldquo;I consider myself the luckiest man on the face of the earth.&rdquo;</p>
@@ -28,9 +27,6 @@ export default function ClubHomeMasthead({ email }: ClubHomeMastheadProps) {
         Welcome back{emailHint ? `, ${emailHint}` : ''}. Your member home for Lou Gehrig stories, archives, and club activity as the Fan Club
         prepares for the 2027 public relaunch.
       </p>
-      <Link href="/fanclub/myprofile" style={{ fontWeight: 600 }}>
-        My Profile
-      </Link>
     </header>
   );
 }

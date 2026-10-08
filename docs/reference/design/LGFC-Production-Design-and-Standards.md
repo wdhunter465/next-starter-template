@@ -303,9 +303,9 @@ Feature validation must be based on rendered UI and behavior, not file names or 
 - padding: 8px
 
 ### Size (LOCKED)
-- height: clamp(120px, 28vw, 180px)
+- height: clamp(129px, 15vw, 147px) (superseded 2026-10-08, #4481: 50% larger than the previous built size; the design lock `locks/header-memberheader-logo-banner-design-lock.md` section 3.2 carries the same value)
 - width: auto
-- max-width: none
+- max-width: 240px
 - object-fit: contain
 - border-radius: 12px
 
