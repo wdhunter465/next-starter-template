@@ -1,11 +1,11 @@
 ---
-Doc Type: As-Built
+Doc Type: Reference
 Audience: Human + AI
 Authority Level: Historical
 Owns: Record of the 2026-02-17 documentation cleanup
 Does Not Own: Current folder authority
 Canonical Reference: /docs/governance/standards/DIATAXIS-FOLDER-AUTHORITY.md
-Related Issues: #4138, #4480
+Related Issues: #4138, #4480, #4484
 Last Reviewed: 2026-10-08
 ---
 
