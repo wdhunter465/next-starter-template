@@ -5,8 +5,8 @@ Authority Level: Canonical
 Owns: Diataxis folder usage rules and no-drift documentation model
 Does Not Own: Design specifications; operational task details; application behavior
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3752, #4138, #4196, #4137
-Last Reviewed: 2026-09-21
+Related Issues: #3752, #4138, #4196, #4137, #4480
+Last Reviewed: 2026-10-08
 ---
 
 # DIÁTAXIS FOLDER AUTHORITY (NO-DRIFT MODEL)
@@ -24,7 +24,7 @@ Out of scope: mass file moves; deleting live docs; CI wiring; Task-4 binding-rul
 
 - Structure now includes `templates/`, which Model C already treats as an approved write surface.
 - `docs/archive/` is a permanent top-level sibling, not nested under a DIATAXIS type.
-- Folder freeze evidence: `docs/ops/reports/diataxis-folder-classification-4138.md` (#4196). No moves in that child.
+- Folder freeze evidence: `docs/ops/reports/diataxis-folder-classification-4138.md` (#4196). #4480 then moved `as-built/`, `postmortems/`, and `reports/` to the recorded targets.
 
 ## Intended final state
 
@@ -58,9 +58,9 @@ That document defines:
 | `tutorials/`, `how-to/`, `reference/`, `explanation/` | DIATAXIS core | Retain |
 | `governance/`, `ops/`, `archive/` | Authorized adjacent, permanent | Retain; `archive/` stays a top-level sibling |
 | `templates/` | Authorized Model C write surface | Retain; listed in Structure |
-| `as-built/` | Undecided | Later: fold into `reference/`. No move in #4196. |
-| `postmortems/` | Undecided | Later: fold into `ops/incident-response/`. No move in #4196. |
-| `reports/` | Undecided; duplicates `ops/reports/` | Later: merge into `ops/reports/`. No move in #4196. |
+| `as-built/` | Retired (#4480) | Folded into `reference/`. The top-level folder is gone. |
+| `postmortems/` | Retired (#4480) | Folded into `ops/incident-response/`. The top-level folder is gone. |
+| `reports/` | Retired (#4480) | Merged into `ops/reports/`. The top-level folder is gone. |
 
 Canonical freeze record: `docs/ops/reports/diataxis-folder-classification-4138.md`.
 

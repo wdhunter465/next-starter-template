@@ -1,3 +1,14 @@
+---
+Doc Type: As-Built
+Audience: Human + AI
+Authority Level: Historical
+Owns: Record of the 2026-02-17 documentation cleanup
+Does Not Own: Current folder authority
+Canonical Reference: /docs/governance/standards/DIATAXIS-FOLDER-AUTHORITY.md
+Related Issues: #4138, #4480
+Last Reviewed: 2026-10-08
+---
+
 # Docs Cleanup Record — 2026-02-17
 
 ## Purpose
@@ -9,7 +20,7 @@ Lock the documentation structure after the docs/root cleanup so we do not reintr
   - docs/design/reference/
   - docs/reference/
 - Governance consolidation was completed previously (OPERATING_MODEL_MASTER is authoritative).
-- Broken link in docs/as-built/DEPLOYMENT_GUIDE.md was fixed:
+- Broken link in docs/reference/DEPLOYMENT_GUIDE.md was fixed:
   - Removed reference to missing ./TROUBLESHOOTING.md
   - Replaced with ../incident-response/quickstart_MASTER.md
 
@@ -27,5 +38,5 @@ Lock the documentation structure after the docs/root cleanup so we do not reintr
 - Product authority/spec: docs/design/ (or root only if top-level authority)
 - Governance/process: docs/governance/
 - Architecture deep dives: docs/architecture/
-- As-built logs and platform ops: docs/as-built/
+- As-built logs and platform ops: docs/reference/ (folded from docs/as-built/ in #4480)
 - Reference and historical snapshots: docs/reference/ and docs/design/reference/

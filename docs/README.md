@@ -46,7 +46,7 @@ This repository documentation follows the Diátaxis framework:
 | Governance | docs/governance/ |
 | Operations | docs/ops/ |
 | Templates | docs/templates/ |
-| Historical | docs/as-built/, docs/postmortems/, docs/reports/ |
+| Historical | docs/reference/ (former as-built), docs/ops/incident-response/ (former postmortems), docs/ops/reports/ (former top-level reports) |
 
 Specifications define what the system **is**.  
 How-To defines how to perform tasks.  
@@ -105,14 +105,8 @@ Defines operational procedures and incident response.
 ## docs/templates/
 Reusable structured artifacts.
 
-## docs/as-built/
-Historical deployment snapshots.
-
-## docs/postmortems/
-Incident history.
-
-## docs/reports/
-One-time analyses.
+## Retired top-level folders (#4480)
+`docs/as-built/` now lives under `docs/reference/`. `docs/postmortems/` now lives under `docs/ops/incident-response/`. `docs/reports/` now lives under `docs/ops/reports/`.
 
 ---
 

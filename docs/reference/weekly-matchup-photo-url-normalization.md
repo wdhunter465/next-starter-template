@@ -4,8 +4,8 @@ Audience: Human + AI
 Authority Level: Supporting
 Owns: Runtime note for Weekly Matchup photo URL normalization on read-path APIs
 Does Not Own: Component design, homepage layout, voting behavior, design authority
-Canonical Reference: /docs/as-built/weekly-matchup-photo-url-normalization.md
-Last Reviewed: 2026-07-04
+Canonical Reference: /docs/reference/weekly-matchup-photo-url-normalization.md
+Last Reviewed: 2026-10-08
 ---
 
 # Weekly Matchup photo URL normalization
@@ -17,7 +17,7 @@ Records the runtime behavior added to normalize `photos.url` values before Weekl
 This note covers read-path URL normalization only.
 It does not change homepage layout, voting flow, or component contract.
 
-Weekly pair selection and auto-rotation: `/docs/as-built/weekly-matchup-auto-rotation.md`.
+Weekly pair selection and auto-rotation: `/docs/reference/weekly-matchup-auto-rotation.md`.
 
 Photo club-use curation (`photos.is_matchup_eligible`: `0` unreviewed, `1` approved, `-1` excluded) is defined in `/docs/reference/platform/Backblaze_B2.md`. Admin curation UI is planned for `/admin/d1-test/` (PMO program; inspect-only today).
 

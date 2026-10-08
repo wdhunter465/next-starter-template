@@ -38,7 +38,7 @@ An incident is any event where:
 
 4) Capture evidence (in repo)
 - Add a brief note to `/docs/ops/deploy-log.md` (timestamp + what broke).
-- If major: create a postmortem under `/docs/postmortems/`.
+- If major: create a postmortem under `/docs/ops/incident-response/`.
 
 ## Triage classification
 - Platform incident: Cloudflare build/runtime, routing, headers, environment.

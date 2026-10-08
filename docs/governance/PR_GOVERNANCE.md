@@ -74,7 +74,7 @@ Do not use archived `.html` snapshots as active source-of-truth references.
 
 ## As-Built Documentation Requirement
 
-Any PR that changes Cloudflare-rendered page behavior must update `/docs/as-built/cloudflare-frontend.md` in the same PR.
+Any PR that changes Cloudflare-rendered page behavior must update `/docs/reference/cloudflare-frontend.md` in the same PR.
 
 ---
 

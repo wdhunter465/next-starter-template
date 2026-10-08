@@ -32,7 +32,7 @@ This task is **documentation and classification only**.
 |---|---|---|
 | CI as-built closeout | Task 002 / `#1340` | `docs/ops/program-1-task-002-ci-closeout-evidence.md`, `docs/reference/ci/lgfc-ci-as-built-reconciliation.md` |
 | Website as-built reconciliation | Task 003 / `#1341` | `docs/reference/website/lgfc-website-as-built-reconciliation.md` |
-| DIATAXIS transition status | Task 004 / `#1342` | `docs/reports/program-1-diataxis-transition-status.md` |
+| DIATAXIS transition status | Task 004 / `#1342` | `docs/ops/reports/program-1-diataxis-transition-status.md` |
 | OPS monitoring snapshot | Task 005 / `#1343` | `docs/ops/reports/program-1-ops-monitoring-snapshot.md` |
 | Program 1 plan | `#1335` | `docs/ops/implementation-plans/program-1-phase1-wrapup-rollout.md` |
 

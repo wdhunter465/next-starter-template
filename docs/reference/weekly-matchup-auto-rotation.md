@@ -4,9 +4,9 @@ Audience: Human + AI
 Authority Level: Supporting
 Owns: Runtime behavior for D1-backed weekly photo matchup auto-rotation
 Does Not Own: Component design, voting policy, photo curation UI
-Canonical Reference: /docs/as-built/weekly-matchup-auto-rotation.md
+Canonical Reference: /docs/reference/weekly-matchup-auto-rotation.md
 Related issues: #2157, #2230, #2519, #3028, #3030, #3031
-Last Reviewed: 2026-08-05
+Last Reviewed: 2026-10-08
 ---
 
 # Weekly Photo Matchup auto-rotation
@@ -139,7 +139,7 @@ Votes are stored in D1; winner is computed at read time (not persisted as a colu
 - `tests/matchup-current-rotation.test.ts` — rotation unit tests
 - `tests/matchup-pair-monitor.test.mjs` — CI snapshot/drift helpers (#3031)
 - `.github/workflows/matchup-pair-monitor.yml` — hourly pair monitor (#3031)
-- `docs/as-built/weekly-matchup-photo-url-normalization.md` — URL normalization on read paths
+- `docs/reference/weekly-matchup-photo-url-normalization.md` — URL normalization on read paths
 
 ## Operator surfaces
 
