@@ -47,7 +47,7 @@ Each UI section is encapsulated in its own React component with co-located style
 
 - **Header** (`src/components/Header.tsx`) renders the top navigation, responsive hamburger menu, and logo.
 - **JoinLogin** (`src/components/JoinLogin.tsx`) displays prominent calls to action for prospective or returning members.
-- **WeeklyMatchup** (`src/components/WeeklyMatchup.tsx`) presents the homepage Weekly Photo Matchup: a D1-backed voting card that loads the current week's pair from `GET /api/matchup/current`, accepts votes via `POST /api/matchup/vote`, and reveals totals from `GET /api/matchup/results`. Auto-rotation is documented in `/docs/as-built/weekly-matchup-auto-rotation.md`. Layout uses CSS grid utilities in `src/styles/weekly.css`.
+- **WeeklyMatchup** (`src/components/WeeklyMatchup.tsx`) presents the homepage Weekly Photo Matchup: a D1-backed voting card that loads the current week's pair from `GET /api/matchup/current`, accepts votes via `POST /api/matchup/vote`, and reveals totals from `GET /api/matchup/results`. Auto-rotation is documented in `/docs/reference/weekly-matchup-auto-rotation.md`. Layout uses CSS grid utilities in `src/styles/weekly.css`.
 - **SocialWall** (`src/components/SocialWall.tsx`) hydrates the social feed by loading an external Elfsight script and gracefully handles loading or failure states.
 - **EventsCalendar** (`src/components/EventsCalendar.tsx`) builds a monthly grid with highlighted events sourced from static data in `data/events.json`.
 - **Footer** (`src/components/Footer.tsx`) shows site metadata, deployment information, and key policy links using values from environment variables and `package.json`.

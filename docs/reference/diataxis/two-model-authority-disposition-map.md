@@ -5,7 +5,7 @@ Authority Level: Controlled
 Owns: Authority disposition inventory for Delivery System v1 Task 2 (#2486) touched documents, related agent-policy routing, and the #4138 undecided folder inventory
 Does Not Own: Domain policy content, constitutional precedence, implementation behavior, or the file moves named for later children
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2477, #2486, #2478, #2686, #2687, #2688, #2689, #2690, #4138, #4196, #4199
+Related Issues: #2477, #2486, #2478, #2686, #2687, #2688, #2689, #2690, #4138, #4196, #4199, #4480
 Last Reviewed: 2026-10-08
 ---
 
@@ -69,21 +69,21 @@ Binding material currently under `docs/ops/ai/` conflicts with DIATAXIS ops fold
 
 | Current path | Current owner | Target owner | Action | Replacement / notes | Reference-update scope |
 | --- | --- | --- | --- | --- | --- |
-| `docs/as-built/` | as-built (undecided) | reference | migrate | Folder row for the #4138 table. Later child folds the seven files below into `docs/reference/`. No move in #4199. | docs/reference/ |
-| `docs/postmortems/` | postmortems (undecided) | ops/incident-response | migrate | Folder row for the #4138 table. Later child folds the two files below into `docs/ops/incident-response/`. No move in #4199. | docs/ops/incident-response/ |
-| `docs/reports/` | reports (undecided duplicate) | ops/reports | consolidate | Folder row for the #4138 table. Later child merges the three files below into `docs/ops/reports/` and removes the top-level duplicate. No move in #4199. | docs/ops/reports/ |
-| `docs/as-built/DEPLOYMENT_GUIDE.md` | as-built | reference | migrate | Later child folds this file into `docs/reference/DEPLOYMENT_GUIDE.md`. No move in #4199. | docs/reference/DEPLOYMENT_GUIDE.md |
-| `docs/as-built/DOCS_CLEANUP_RECORD_2026-02-17.md` | as-built | reference | migrate | Later child folds this file into `docs/reference/DOCS_CLEANUP_RECORD_2026-02-17.md`. No move in #4199. | docs/reference/DOCS_CLEANUP_RECORD_2026-02-17.md |
-| `docs/as-built/RECONCILIATION-NOTES_2026-02.md` | as-built | reference | migrate | Later child folds this file into `docs/reference/RECONCILIATION-NOTES_2026-02.md`. No move in #4199. | docs/reference/RECONCILIATION-NOTES_2026-02.md |
-| `docs/as-built/accelerated-webpage-implementations-log.md` | as-built | reference | migrate | Later child folds this file into `docs/reference/accelerated-webpage-implementations-log.md`. No move in #4199. | docs/reference/accelerated-webpage-implementations-log.md |
-| `docs/as-built/cloudflare-frontend.md` | as-built | reference | migrate | Later child folds this file into `docs/reference/cloudflare-frontend.md`. No move in #4199. | docs/reference/cloudflare-frontend.md |
-| `docs/as-built/weekly-matchup-auto-rotation.md` | as-built | reference | migrate | Later child folds this file into `docs/reference/weekly-matchup-auto-rotation.md`. No move in #4199. | docs/reference/weekly-matchup-auto-rotation.md |
-| `docs/as-built/weekly-matchup-photo-url-normalization.md` | as-built | reference | migrate | Later child folds this file into `docs/reference/weekly-matchup-photo-url-normalization.md`. No move in #4199. | docs/reference/weekly-matchup-photo-url-normalization.md |
-| `docs/postmortems/2025-11-white-screen.md` | postmortems | ops/incident-response | migrate | Later child folds this file into `docs/ops/incident-response/2025-11-white-screen.md`. No move in #4199. | docs/ops/incident-response/2025-11-white-screen.md |
-| `docs/postmortems/2026-05-11-reviewer-gate-incident.md` | postmortems | ops/incident-response | migrate | Later child folds this file into `docs/ops/incident-response/2026-05-11-reviewer-gate-incident.md`. No move in #4199. | docs/ops/incident-response/2026-05-11-reviewer-gate-incident.md |
-| `docs/reports/2025-12-28-repo-cleanup.md` | reports | ops/reports | consolidate | Later child merges this file into `docs/ops/reports/2025-12-28-repo-cleanup.md` and removes the top-level duplicate. No move in #4199. | docs/ops/reports/2025-12-28-repo-cleanup.md |
-| `docs/reports/documentation-inventory-report-1132.md` | reports | ops/reports | consolidate | Later child merges this file into `docs/ops/reports/documentation-inventory-report-1132.md` and removes the top-level duplicate. No move in #4199. | docs/ops/reports/documentation-inventory-report-1132.md |
-| `docs/reports/program-1-diataxis-transition-status.md` | reports | ops/reports | consolidate | Later child merges this file into `docs/ops/reports/program-1-diataxis-transition-status.md` and removes the top-level duplicate. No move in #4199. | docs/ops/reports/program-1-diataxis-transition-status.md |
+| `docs/as-built/` | as-built (undecided) | reference | migrate | Folder row for the #4138 table. Later child folds the seven files below into `docs/reference/`. Moved in #4480. | docs/reference/ |
+| `docs/postmortems/` | postmortems (undecided) | ops/incident-response | migrate | Folder row for the #4138 table. Later child folds the two files below into `docs/ops/incident-response/`. Moved in #4480. | docs/ops/incident-response/ |
+| `docs/reports/` | reports (undecided duplicate) | ops/reports | consolidate | Folder row for the #4138 table. Later child merges the three files below into `docs/ops/reports/` and removes the top-level duplicate. Moved in #4480. | docs/ops/reports/ |
+| `docs/as-built/DEPLOYMENT_GUIDE.md` | as-built | reference | migrate | Later child folds this file into `docs/reference/DEPLOYMENT_GUIDE.md`. Moved in #4480. | docs/reference/DEPLOYMENT_GUIDE.md |
+| `docs/as-built/DOCS_CLEANUP_RECORD_2026-02-17.md` | as-built | reference | migrate | Later child folds this file into `docs/reference/DOCS_CLEANUP_RECORD_2026-02-17.md`. Moved in #4480. | docs/reference/DOCS_CLEANUP_RECORD_2026-02-17.md |
+| `docs/as-built/RECONCILIATION-NOTES_2026-02.md` | as-built | reference | migrate | Later child folds this file into `docs/reference/RECONCILIATION-NOTES_2026-02.md`. Moved in #4480. | docs/reference/RECONCILIATION-NOTES_2026-02.md |
+| `docs/as-built/accelerated-webpage-implementations-log.md` | as-built | reference | migrate | Later child folds this file into `docs/reference/accelerated-webpage-implementations-log.md`. Moved in #4480. | docs/reference/accelerated-webpage-implementations-log.md |
+| `docs/as-built/cloudflare-frontend.md` | as-built | reference | migrate | Later child folds this file into `docs/reference/cloudflare-frontend.md`. Moved in #4480. | docs/reference/cloudflare-frontend.md |
+| `docs/as-built/weekly-matchup-auto-rotation.md` | as-built | reference | migrate | Later child folds this file into `docs/reference/weekly-matchup-auto-rotation.md`. Moved in #4480. | docs/reference/weekly-matchup-auto-rotation.md |
+| `docs/as-built/weekly-matchup-photo-url-normalization.md` | as-built | reference | migrate | Later child folds this file into `docs/reference/weekly-matchup-photo-url-normalization.md`. Moved in #4480. | docs/reference/weekly-matchup-photo-url-normalization.md |
+| `docs/postmortems/2025-11-white-screen.md` | postmortems | ops/incident-response | migrate | Later child folds this file into `docs/ops/incident-response/2025-11-white-screen.md`. Moved in #4480. | docs/ops/incident-response/2025-11-white-screen.md |
+| `docs/postmortems/2026-05-11-reviewer-gate-incident.md` | postmortems | ops/incident-response | migrate | Later child folds this file into `docs/ops/incident-response/2026-05-11-reviewer-gate-incident.md`. Moved in #4480. | docs/ops/incident-response/2026-05-11-reviewer-gate-incident.md |
+| `docs/reports/2025-12-28-repo-cleanup.md` | reports | ops/reports | consolidate | Later child merges this file into `docs/ops/reports/2025-12-28-repo-cleanup.md` and removes the top-level duplicate. Moved in #4480. | docs/ops/reports/2025-12-28-repo-cleanup.md |
+| `docs/reports/documentation-inventory-report-1132.md` | reports | ops/reports | consolidate | Later child merges this file into `docs/ops/reports/documentation-inventory-report-1132.md` and removes the top-level duplicate. Moved in #4480. | docs/ops/reports/documentation-inventory-report-1132.md |
+| `docs/reports/program-1-diataxis-transition-status.md` | reports | ops/reports | consolidate | Later child merges this file into `docs/ops/reports/program-1-diataxis-transition-status.md` and removes the top-level duplicate. Moved in #4480. | docs/ops/reports/program-1-diataxis-transition-status.md |
 
 ## Validation checklist (#2486)
 

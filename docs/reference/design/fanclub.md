@@ -86,6 +86,6 @@ The profile and member card are separate pages (linked), not inline sections.
 ## Weekly Photo Matchup Interaction (explicit design note)
 
 - The current Weekly Photo Matchup (Photo A vs Photo B) is displayed as an inline section on the **public home page**.
-- Pairs rotate weekly via D1 auto-rotation (`/docs/as-built/weekly-matchup-auto-rotation.md`).
+- Pairs rotate weekly via D1 auto-rotation (`/docs/reference/weekly-matchup-auto-rotation.md`).
 - Photo club-use tagging uses `photos.is_matchup_eligible` (`0` / `1` / `-1`); curation UI is planned for `/admin/d1-test/` (PMO program).
 - After voting, results are revealed inline on the homepage today. The hidden `/weeklyvote` route remains a planned extraction (`/docs/reference/design/weeklyvote-results.md`).

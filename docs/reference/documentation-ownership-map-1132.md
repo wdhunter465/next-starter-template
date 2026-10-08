@@ -27,7 +27,7 @@ This map identifies where LGFC documentation ownership currently lives so produc
 | CI orchestration design | `docs/explanation/ci/lgfc-ci-production-design.md` | `docs/how-to/ci/`, `docs/reference/ci/`, issues #1075/#1058/#1096/#1131 | Existing CI package appears mature and needs reconciliation |
 | Implementation sequencing | `docs/how-to/` and `docs/ops/trackers/` | GitHub issues | How-to docs and trackers should support plans, not override design |
 | Operational state | `docs/ops/` | GitHub issues and PRs | Live process/status surface |
-| As-built records | `docs/as-built/` | Closed PRs and deployment records | Receives agent-created operational documentation after implementation |
+| As-built records | `docs/reference/` | Closed PRs and deployment records | Receives agent-created operational documentation after implementation |
 | Historical/legacy material | `docs/archive/` and legacy paths | Migration issues #1019/#1039/#1076 | Reference only unless promoted |
 | AI/agent rules | `docs/ops/ai/`, `.agents/skills/`, `ops/ai/` | Agent.md | Must be normalized to avoid split authority |
 
@@ -35,12 +35,12 @@ This map identifies where LGFC documentation ownership currently lives so produc
 
 | Package | Design document location target | Implementation plan location target | As-built destination |
 |---|---|---|---|
-| Fan Club System | `docs/reference/` | `docs/how-to/` | `docs/as-built/` |
-| Admin System | `docs/reference/` | `docs/how-to/` | `docs/as-built/` |
-| Content Collection System | `docs/reference/` | `docs/how-to/` | `docs/as-built/` |
-| CI Orchestration System | `docs/reference/projects/ci-orchestration-production-definition.md`, `docs/explanation/ci/`, `docs/reference/ci/`, `docs/how-to/ci/` | `docs/how-to/ci/ci-orchestration-production-implementation-plan-1138.md` | `docs/as-built/` |
-| DIATAXIS Migration project | `docs/reference/` or `docs/governance/standards/` as applicable | `docs/how-to/` | `docs/as-built/` |
-| Legacy Retirement project | `docs/reference/` | `docs/how-to/` | `docs/as-built/` |
+| Fan Club System | `docs/reference/` | `docs/how-to/` | `docs/reference/` |
+| Admin System | `docs/reference/` | `docs/how-to/` | `docs/reference/` |
+| Content Collection System | `docs/reference/` | `docs/how-to/` | `docs/reference/` |
+| CI Orchestration System | `docs/reference/projects/ci-orchestration-production-definition.md`, `docs/explanation/ci/`, `docs/reference/ci/`, `docs/how-to/ci/` | `docs/how-to/ci/ci-orchestration-production-implementation-plan-1138.md` | `docs/reference/` |
+| DIATAXIS Migration project | `docs/reference/` or `docs/governance/standards/` as applicable | `docs/how-to/` | `docs/reference/` |
+| Legacy Retirement project | `docs/reference/` | `docs/how-to/` | `docs/reference/` |
 
 ## Rule
 

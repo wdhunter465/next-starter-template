@@ -1,3 +1,14 @@
+---
+Doc Type: Postmortem
+Audience: Human + AI
+Authority Level: Historical
+Owns: Postmortem for the 2025-11 production white-screen incident
+Does Not Own: Current incident-response procedure
+Canonical Reference: /docs/ops/incident-response/quickstart_MASTER.md
+Related Issues: #4138, #4480
+Last Reviewed: 2026-10-08
+---
+
 # Postmortem: White Screen on www.LouGehrigFanClub.com (Cloudflare Pages)
 
 **Date:** 2025-11-05  
@@ -194,7 +205,7 @@ These make runtime errors visible instead of silent blank screens.
 - `.diagnostics/analysis.md` - Root cause analysis (kept for traceability)
 - `.diagnostics/cloudflare-env-vars.md` - Environment variable documentation (kept for traceability)
 - `.diagnostics/next-env.txt` - Build configuration details (kept for traceability)
-- `docs/postmortems/2025-11-white-screen.md` - This document
+- `docs/ops/incident-response/2025-11-white-screen.md` - This document
 
 **Note:** .diagnostics files were kept in the repository for traceability and future reference, as permitted by the problem statement.
 

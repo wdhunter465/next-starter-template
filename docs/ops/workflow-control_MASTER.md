@@ -51,5 +51,5 @@ Stop and revert if:
 
 ## Recordkeeping
 - Deploys: `/docs/ops/deploy-log.md`
-- Incidents: `/docs/postmortems/*`
+- Incidents: `/docs/ops/incident-response/`
 - Governance changes: update the relevant `_MASTER` doc in the same PR

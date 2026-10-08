@@ -46,7 +46,7 @@ supporting PMO registry updates.
 | 001 PMO registry | `#1339` | (Task 001 era) | [`docs/ops/pmo/program-registry.md`](/docs/ops/pmo/program-registry.md), [`critical-path.md`](/docs/ops/pmo/critical-path.md), [`parallel-agent-rules.md`](/docs/ops/pmo/parallel-agent-rules.md) | Complete |
 | 002 CI as-built | `#1340` | `#1350` | [`docs/ops/program-1-task-002-ci-closeout-evidence.md`](/docs/ops/program-1-task-002-ci-closeout-evidence.md), [`docs/reference/ci/lgfc-ci-as-built-reconciliation.md`](/docs/reference/ci/lgfc-ci-as-built-reconciliation.md) | Complete |
 | 003 Website as-built | `#1341` | `#1361` | [`docs/reference/website/lgfc-website-as-built-reconciliation.md`](/docs/reference/website/lgfc-website-as-built-reconciliation.md) | Complete |
-| 004 DIATAXIS status | `#1342` | `#1367` | [`docs/reports/program-1-diataxis-transition-status.md`](/docs/reports/program-1-diataxis-transition-status.md) | Complete |
+| 004 DIATAXIS status | `#1342` | `#1367` | [`docs/ops/reports/program-1-diataxis-transition-status.md`](/docs/ops/reports/program-1-diataxis-transition-status.md) | Complete |
 | 005 OPS snapshot | `#1343` | `#1372` | [`docs/ops/reports/program-1-ops-monitoring-snapshot.md`](/docs/ops/reports/program-1-ops-monitoring-snapshot.md) | Complete |
 | 006 Health review | `#1344` | `#1374` | [`docs/ops/reports/program-1-operational-health-review.md`](/docs/ops/reports/program-1-operational-health-review.md) | Complete |
 | 007 Automation backlog | `#1345` | `#1375` | [`docs/ops/reports/program-1-automation-backlog.md`](/docs/ops/reports/program-1-automation-backlog.md) | Complete |

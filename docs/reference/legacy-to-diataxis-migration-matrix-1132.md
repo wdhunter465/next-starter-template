@@ -17,7 +17,7 @@ Define how legacy documentation is evaluated and migrated into the repository do
 
 Program 1 Task 004 (`#1342`) populated legacy root rows in
 `docs/reference/DIATAXIS-MAPPING.md` and recorded Phase 1 status in
-`docs/reports/program-1-diataxis-transition-status.md`. This matrix still owns
+`docs/ops/reports/program-1-diataxis-transition-status.md`. This matrix still owns
 evaluation rules; execution remains Program 3 unless promoted.
 
 | Legacy State | Action | Destination |

@@ -1,3 +1,14 @@
+---
+Doc Type: Report
+Audience: Human + AI
+Authority Level: Historical
+Owns: Verification report for the 2025-12-28 repository cleanup
+Does Not Own: Current repository structure rules
+Canonical Reference: /docs/README.md
+Related Issues: #4138, #4480
+Last Reviewed: 2026-10-08
+---
+
 # Repository Cleanup Verification Report
 
 **Date:** 2025-12-28  
@@ -128,7 +139,7 @@ npm run check:structure # ✅ SUCCESS (all checks passed)
 
 3. **Created:**
    - `scripts/check-repo-structure.mjs` (new invariant checker)
-   - `docs/reports/2025-12-28-repo-cleanup.md` (this report)
+   - `docs/ops/reports/2025-12-28-repo-cleanup.md` (this report)
 
 ### Deployment Impact
 - **Risk Level:** Minimal
