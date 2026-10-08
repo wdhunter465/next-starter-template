@@ -28,7 +28,7 @@ Work was already retired (#4074). Codex was already retired (#4165). This fileâ€
 ## Canonical sources
 
 - Live role mapping: `docs/governance/AGENT-TEAM.md`
-- Shared execution law: `docs/ops/ai/CORE-RULES.md`
+- Shared execution law: `docs/governance/AGENT-EXECUTION.md` (`docs/ops/ai/CORE-RULES.md` is a compatibility pointer)
 - Navigation: `Agent.md`
 
 Historical Issue/PR comments that attribute work to ChatGPT remain truthful records and must not be rewritten.

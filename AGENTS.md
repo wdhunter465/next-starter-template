@@ -12,7 +12,7 @@ Do not merely report that these files are required. Read them before making any 
 1. `Agent.md`
 2. `docs/governance/REPOSITORY-AUTHORITY.md`
 3. `docs/governance/AGENT-TEAM.md`
-4. `docs/ops/ai/CORE-RULES.md`
+4. `docs/governance/AGENT-EXECUTION.md` (canonical shared execution law). Compatibility pointer, not a second policy: `docs/ops/ai/CORE-RULES.md`
 5. The **applicable product-specific pointer** (choose the active product; do not default every product to Cursor):
    - Cursor → `docs/ops/ai/CURSOR-RULES.md`
    - Codex → `docs/ops/ai/CODEX-RULES.md` (retired #4165; historical only — do not run as a live product)
