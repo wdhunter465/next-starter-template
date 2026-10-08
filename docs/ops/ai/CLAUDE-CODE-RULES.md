@@ -37,7 +37,7 @@ Claude Code work order:
 
 ## Startup
 
-The **PRODUCT STARTUP FRAMEWORK** in `docs/ops/ai/CORE-RULES.md` is the canonical shared startup contract. The bullets below are additional Claude Code-specific orientation steps applied within that shared framework.
+The **PRODUCT STARTUP FRAMEWORK** in `docs/governance/AGENT-EXECUTION.md` is the canonical shared startup contract. The bullets below are additional Claude Code-specific orientation steps applied within that shared framework.
 
 When Product Authority says `run startup`, perform orientation only:
 
@@ -50,4 +50,4 @@ When Product Authority says `run startup`, perform orientation only:
 
 ## Final
 
-Role mapping/work order live in `docs/governance/AGENT-TEAM.md`; PMO hierarchy lives in `docs/governance/PMO-PORTFOLIO.md`; shared execution discipline lives in `docs/ops/ai/CORE-RULES.md`.
+Role mapping/work order live in `docs/governance/AGENT-TEAM.md`; PMO hierarchy lives in `docs/governance/PMO-PORTFOLIO.md`; shared execution discipline lives in `docs/governance/AGENT-EXECUTION.md`.
