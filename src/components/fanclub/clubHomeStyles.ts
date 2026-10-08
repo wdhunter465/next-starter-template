@@ -25,7 +25,7 @@ export const clubHomeHeadlineFontFamily = headlineFont;
 export const clubHomeBodyFontFamily = bodyFont;
 
 export const clubHomePageStack = {
-  maxWidth: 1200,
+  maxWidth: 1760,
   margin: '0 auto',
   padding: '24px 20px 40px',
   display: 'flex',
@@ -180,7 +180,8 @@ export const clubHomeFooterRowClassName = 'club-home-footer-row';
  */
 export const clubHomePageLayoutCss = `
 .club-home-page-stack {
-  max-width: 1200px;
+  max-width: 1760px;
+  width: calc(100% - 24px);
   margin: 0 auto;
   padding: 24px 20px 40px;
   display: flex;

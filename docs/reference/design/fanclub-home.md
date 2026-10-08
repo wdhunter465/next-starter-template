@@ -72,4 +72,5 @@ The following legacy dashboard modules are **not** part of the newspaper Club Ho
 - This page is distinct from public home (`/`).
 - Section order is locked per Program #1685 newspaper model.
 - Floating logo remains present and links to `/`.
+- Masthead strip reads "Club Home / Member Edition / Est. 2017". The masthead has no "My Profile" link (the member header carries it). The cream panel is as wide as the window allows (max 1760px, 12px of gray on each side) so the center column is larger and the side rails sit toward the edges (Product Authority, 2026-10-08, #4481).
 - Dynamic modules fail closed to static copy when `club_home` inventory is empty.

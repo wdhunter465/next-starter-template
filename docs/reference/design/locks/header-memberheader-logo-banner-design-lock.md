@@ -125,8 +125,8 @@ This lock owns hamburger layout, grouping, and anchoring only. Hamburger drawer 
 - Above the sticky header (header z-index 50).
 
 ### 3.2 Size (Desktop)
-- `height: 92px` (or similar 86–98px range)
-- `max-width: 160px` (or similar)
+- `height: clamp(129px, 15vw, 147px)` (about 138px; 50% larger than the earlier 86–98px range, Product Authority 2026-10-08, #4481)
+- `max-width: 240px`
 - Must be visually readable (logo text must be legible).
 
 ### 3.3 Click hitbox
