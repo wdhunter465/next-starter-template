@@ -57,7 +57,11 @@ Every deploy, rollback and roll-forward records the same five facts on #2093:
 
 Known gap: the site does not publish its own commit SHA, so the build ID cannot be mapped to a commit without the Pages dashboard. Recommended before the freeze: a small bounded change that writes the commit SHA into a static marker file at build time. It needs its own Issue, allowlist and Product Go.
 
-## Deploy
+## Procedure
+
+Run these in order on the go-live day: Deploy, Verify, then either release the communications hold or Roll back. Takedown is a separate action that can happen at any time.
+
+### Deploy
 
 1. Confirm the preconditions table.
 2. Product Authority records Go on #2093 naming the commit SHA.
@@ -65,7 +69,7 @@ Known gap: the site does not publish its own commit SHA, so the build ID cannot 
 4. Wait for the deployment to show success in the Deployments list. Record the deployment identity facts above.
 5. Do not announce anything. The communications hold applies until verification passes.
 
-## Verify
+### Verify
 
 1. Run the Production smoke test (`docs/how-to/website/website-production-smoke-test.md`): public routes, guest and admin boundaries, launch-readiness surfaces.
 2. Run the launch-readiness specs against Production (`scripts/launch-readiness/manifest.json`, `tests/e2e/launch-readiness-*.spec.ts`), including a phone-width check.
@@ -75,7 +79,7 @@ Known gap: the site does not publish its own commit SHA, so the build ID cannot 
 6. Record each result with the commit SHA in the launch evidence template (`docs/ops/reports/website-public-launch-evidence-template.md`) and link it from #2093.
 7. Status word for the day is `deployed`, then `verified` when steps 1 to 6 pass.
 
-## Communications hold
+### Communications hold
 
 From the Go until Product Authority authorizes the first public message:
 
@@ -84,17 +88,17 @@ From the Go until Product Authority authorizes the first public message:
 - Editors and Operations do not post. A message is released only by a written authorization on #2093.
 - A failed verification keeps the hold in place and moves to rollback or a fix.
 
-## Rollback
+### Rollback
 
 Use when verification fails or a stop condition below appears.
 
-### Decide
+#### Decide
 
 1. Operations sets the status word to `blocked` or `at risk` on #2093 and opens an exception Issue.
 2. Product Authority gives the rollback Go (or the standing rollback Go, if one is recorded).
 3. Operations rolls back. Product Authority decides whether to also hold or cancel the launch.
 
-### Roll back the site (code and static content)
+#### Roll back the site (code and static content)
 
 Fastest path, no repository change:
 
@@ -106,13 +110,13 @@ Fastest path, no repository change:
 
 Fallback if the dashboard rollback is not available: a revert pull request through the freeze exception path, then wait for the deployment, then verify.
 
-### What a site rollback does not undo
+#### What a site rollback does not undo
 
 - Database changes. A schema migration or data written by the site stays as it is. D1 recovery is a separate path (Time Travel bookmark, or a restore from the daily export, both under #3268) and needs its own Go, an exact target and the documented restore steps.
 - Posts already sent to social platforms.
 - Content already published by the 10:00 AM job. Use the takedown steps below.
 
-### Roll forward
+#### Roll forward
 
 After the fix is merged and the new deployment is verified, record the identity and set the status word to `verified`. Product Authority releases the communications hold.
 
