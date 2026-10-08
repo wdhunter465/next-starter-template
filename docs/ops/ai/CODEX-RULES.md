@@ -15,4 +15,4 @@ Last Reviewed: 2026-09-19
 
 Live Codex dispatch workflows, the `lgfc-codex` runner contract, and the #3125/#3126 configuration stack were removed under #4165. Host runner uninstall and secret deletion remain operator/admin work.
 
-Canonical role mapping lives in `docs/governance/AGENT-TEAM.md`. Shared execution discipline lives in `docs/ops/ai/CORE-RULES.md`.
+Canonical role mapping lives in `docs/governance/AGENT-TEAM.md`. Shared execution discipline lives in `docs/governance/AGENT-EXECUTION.md`. This file stays retired and is not live policy.

@@ -19,7 +19,7 @@ This section previously described Work as an active PMO product. That descriptio
 
 ## Startup
 
-The **PRODUCT STARTUP FRAMEWORK** in `docs/ops/ai/CORE-RULES.md` is the canonical shared startup contract. The bullets below are additional Work-specific orientation steps applied within that shared framework.
+The **PRODUCT STARTUP FRAMEWORK** in `docs/governance/AGENT-EXECUTION.md` is the canonical shared startup contract. The bullets below are additional Work-specific orientation steps applied within that shared framework.
 
 When Product Authority says `run startup`, perform orientation only:
 
@@ -36,4 +36,4 @@ Work must not independently approve protected PMO/governance documentation or im
 
 ## Final
 
-Canonical role mapping lives in `docs/governance/AGENT-TEAM.md`. Canonical PMO lifecycle/priority lives in `docs/governance/PMO-PORTFOLIO.md` and its controlled reference. Shared execution discipline lives in `docs/ops/ai/CORE-RULES.md`.
+Canonical role mapping lives in `docs/governance/AGENT-TEAM.md`. Canonical PMO lifecycle/priority lives in `docs/governance/PMO-PORTFOLIO.md` and its controlled reference. Shared execution discipline lives in `docs/governance/AGENT-EXECUTION.md`. This file stays retired and is not live policy.

@@ -125,6 +125,18 @@ describe('navigation auth links', () => {
     render(<JoinCTA />);
     expect(screen.getByRole('link', { name: 'Login' })).toHaveAttribute('href', LOGIN_TAB_ROUTE);
   });
+
+  it('shows FREE as line 2 under the heading and keeps Join and Login (#4460)', () => {
+    render(<JoinCTA />);
+    const heading = screen.getByRole('heading', { name: 'Join the Lou Gehrig Fan Club' });
+    const free = screen.getByText('FREE');
+    expect(free).toHaveClass('join-banner__free');
+    expect(heading.compareDocumentPosition(free) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    const body = screen.getByText(/Join the Fan Club for member archives/);
+    expect(free.compareDocumentPosition(body) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(screen.getByRole('link', { name: 'Join' })).toHaveAttribute('href', '/join');
+    expect(screen.getByRole('link', { name: 'Login' })).toHaveAttribute('href', LOGIN_TAB_ROUTE);
+  });
 });
 
 describe('LGFC header auth invariants', () => {
