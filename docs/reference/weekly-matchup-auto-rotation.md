@@ -1,5 +1,5 @@
 ---
-Doc Type: As-Built
+Doc Type: Reference
 Audience: Human + AI
 Authority Level: Supporting
 Owns: Runtime behavior for D1-backed weekly photo matchup auto-rotation

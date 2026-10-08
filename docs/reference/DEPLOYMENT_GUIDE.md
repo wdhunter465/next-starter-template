@@ -1,11 +1,11 @@
 ---
-Doc Type: As-Built
+Doc Type: Reference
 Audience: Human + AI
 Authority Level: Historical
 Owns: Historical Cloudflare Pages deployment notes for the static-export site
 Does Not Own: Current deployment authority or live workflow configuration
 Canonical Reference: /docs/ops/deployment-model_MASTER.md
-Related Issues: #4138, #4480
+Related Issues: #4138, #4480, #4484
 Last Reviewed: 2026-10-08
 ---
 
@@ -72,7 +72,7 @@ The repository uses GitHub Actions to automatically deploy when code is pushed t
 
 To deploy manually from your local machine:
 
-```bash
+```text
 # Build the application
 npm run build
 
@@ -217,7 +217,7 @@ Available environment variables:
 
 ### Local Development
 
-```bash
+```text
 # Development server
 npm run dev
 

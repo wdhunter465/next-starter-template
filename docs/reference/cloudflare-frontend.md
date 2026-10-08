@@ -1,11 +1,11 @@
 ---
-Doc Type: As-Built
+Doc Type: Reference
 Audience: Human + AI
 Authority Level: Historical
 Owns: Snapshot summary of implemented Cloudflare frontend behaviors at review time
 Does Not Own: Canonical design authority or governance policy
 Canonical Reference: /docs/reference/design/LGFC-Production-Design-and-Standards.md
-Last Reviewed: 2026-03-27
+Last Reviewed: 2026-10-08
 ---
 
 # Cloudflare Frontend — As-Built Snapshot
