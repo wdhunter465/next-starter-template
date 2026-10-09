@@ -5,11 +5,13 @@ Authority Level: Historical
 Status: retired
 Project: issue-1075-ci-phase2-closeout-rollout
 Owner: Historical record
+Owns: Historical record of the retired #1075 CI phase 2 closeout rollout plan
+Does Not Own: Current CI design, workflows, or required checks (see Canonical Reference)
 Source Issue: 1075
 Related Program Issue: 1058
 Canonical Reference: /docs/reference/ci/lgfc-ci-as-built-reconciliation.md
-Related Issues: #1058, #1075, #2469
-Last Reviewed: 2026-07-12
+Related Issues: #1058, #1075, #2469, #4137
+Last Reviewed: 2026-10-09
 ---
 
 # Retired #1075 Phase 2 Closeout and Maintenance Rollout

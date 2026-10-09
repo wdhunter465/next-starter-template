@@ -5,10 +5,12 @@ Authority Level: Historical
 Status: retired
 Project: issue-1075-ci-redesign-rollout
 Owner: Historical record
+Owns: Historical record of the retired #1075 CI redesign rollout plan
+Does Not Own: Current CI design, workflows, or required checks (see Canonical Reference)
 Source Issue: 1075
 Canonical Reference: /docs/reference/ci/lgfc-ci-as-built-reconciliation.md
-Related Issues: #1075, #2469
-Last Reviewed: 2026-07-12
+Related Issues: #1075, #2469, #4137
+Last Reviewed: 2026-10-09
 ---
 
 # Retired #1075 CI Redesign Rollout
