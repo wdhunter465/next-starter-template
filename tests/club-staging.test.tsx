@@ -280,6 +280,13 @@ describe('admin club staging (#2043)', () => {
     render(<AdminClubStagingPage />);
 
     expect(await screen.findByRole('button', { name: 'Save rotation order' })).toBeInTheDocument();
+    // The workspace re-syncs the form from the selected row in an effect that can land
+    // after the button first renders. Wait for the loaded row's values before editing,
+    // or a late sync resets the field mid-edit and the typed 9 becomes 19 (#4505).
+    await waitFor(() => {
+      expect(screen.getByLabelText('Priority')).toHaveValue(1);
+      expect(screen.getByLabelText('Story type')).toHaveValue('primary');
+    });
     await user.clear(screen.getByLabelText('Priority'));
     await user.type(screen.getByLabelText('Priority'), '9');
     await user.selectOptions(screen.getByLabelText('Story type'), 'secondary');
