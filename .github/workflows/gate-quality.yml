@@ -93,6 +93,9 @@ jobs:
         if: steps.quality_plan.outputs.run_test == 'true'
         run: npm test
 
+      - name: Reviewer and post-merge process tests
+        run: npx vitest run --config scripts/ci/vitest.process.config.ts
+
       - name: Production build
         if: steps.quality_plan.outputs.run_build == 'true'
         run: npm run build
