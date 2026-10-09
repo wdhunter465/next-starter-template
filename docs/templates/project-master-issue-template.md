@@ -5,8 +5,8 @@ Authority Level: Controlled Template
 Owns: Required project-master Issue structure, authority identities, documentation inventory, validation, and closeout gates
 Does Not Own: Project-specific product decisions, implementation scope, priority, Production approval, or runtime behavior
 Canonical Reference: /docs/reference/pmo/project-documentation-closeout-contract.md
-Related Issues: #1719, #3050, #3055, #3113, #3134, #3145
-Last Reviewed: 2026-09-18
+Related Issues: #1719, #2366, #3050, #3055, #3113, #3134, #3145
+Last Reviewed: 2026-10-09
 ---
 
 # Project Master Issue Template
@@ -20,6 +20,16 @@ Last Reviewed: 2026-09-18
 - Parent program:
 - Delivery model:
 - Promotion path:
+
+## Lessons-learned intake
+
+Review `docs/ops/pmo/pmo-lessons-learned-and-continuous-improvement.md` before scope, task graph, sequence, or launch conditions are finalized (#2366). Record `none applicable` rather than leaving a field blank.
+
+- Applicable prior lessons (register IDs):
+- Controls adopted for this project:
+- Known friction to avoid:
+- Process improvement this project will test or formalize:
+- Launch decision: ready | not ready | needs PMO decision
 
 ## Objective
 

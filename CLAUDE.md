@@ -26,11 +26,20 @@ documents differ, the documents win.
 1. Package one Issue: open its pull request, or record a real `HOLD` or
    `PACKAGE-INCOMPLETE` on that Issue.
 2. Leave the pull request for review. Do not merge it.
-3. Cycle the queues in the order set by `Agent.md`'s authority chain (Operations
-   interrupts and own failing PRs, Engineering Issues, Active Projects, Governance
-   Issues within Engineering authority, Pipeline Projects, plus PMO Admin duties) and
-   start the next eligible item. Take only Issues Claude Code owns or can claim
-   without colliding with another agent's claim.
+3. Work all queues (Operations, Engineering, Governance, PMO Active and Pipeline),
+   in the priority order `docs/governance/AGENT-TEAM.md` gives Claude Code's roles
+   (read through `Agent.md`'s authority chain): Operations interrupts and own failing
+   PRs first, then Engineering Issues, Active Projects, Governance Issues and
+   Pipeline Projects, plus PMO Admin duties. Operations and Governance are secondary
+   roles, so take them when higher-priority work is waiting or blocked. Cursor works
+   the same queues in its own order; that is how work balances. Start the next
+   eligible item, taking only Issues Claude Code owns or can claim without colliding
+   with another agent's claim.
+   Claim an Issue (`agent:claude`) only when starting work on it, and release the
+   claim when it waits on a review, a Product Authority decision or another agent.
+   Never hold a claim on an Issue nobody is working: an unclaimed Issue lets Cursor
+   and other agents finish the repository's work. A Product Authority reservation is
+   released only by Product Authority.
 4. Come back to a waiting pull request only when a check fails, a reviewer comments,
    or a post-merge failure opens.
 
