@@ -44,7 +44,9 @@ The 2026 campaign used these snapshot frequencies. They are kept for reference o
 - May 26 to June 2: hourly
 - June 3: final standings snapshot
 
-## Publish Conditions
+## Procedure
+
+### Publish conditions
 
 Snapshots publish only if:
 
@@ -56,7 +58,7 @@ Snapshots publish only if:
 
 If validation fails → snapshot not published.
 
-## Final Lock
+### Final lock
 
 At the closeout on 2027-06-02 (9:00 PM):
 
