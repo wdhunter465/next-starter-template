@@ -31,6 +31,11 @@ documents differ, the documents win.
    Issues within Engineering authority, Pipeline Projects, plus PMO Admin duties) and
    start the next eligible item. Take only Issues Claude Code owns or can claim
    without colliding with another agent's claim.
+   Claim an Issue (`agent:claude`) only when starting work on it, and release the
+   claim when it waits on a review, a Product Authority decision or another agent.
+   Never hold a claim on an Issue nobody is working: an unclaimed Issue lets Cursor
+   and other agents finish the repository's work. A Product Authority reservation is
+   released only by Product Authority.
 4. Come back to a waiting pull request only when a check fails, a reviewer comments,
    or a post-merge failure opens.
 
