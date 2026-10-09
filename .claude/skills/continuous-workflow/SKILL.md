@@ -64,6 +64,19 @@ For a graduated Project or Program, the prepared child graph is standing authori
 
 **Stop immediately** if: authority conflicts, scope is unclear, repo state is unclear, the source Issue is missing, the changed-file allowlist is missing, live PR state cannot be verified for a readiness claim, or Product Authority is being asked to relay routinely while GitHub communication is available.
 
+## Queue cycle (Product Authority direction, 2026-10-09)
+
+Cycle through all team and PMO queues. The order comes from `Agent.md` and its authority chain (`Agent.md`, then `REPOSITORY-AUTHORITY.md`, `AGENT-TEAM.md`, `AGENT-EXECUTION.md`, `docs/ops/ai/CLAUDE-CODE-RULES.md`), which put the roles below in this order. Run the cycle at every safe task boundary:
+
+1. **Operations interrupt:** actionable numbered `team:operations` Issues, this agent's own `post-merge-failure` Issues, and own open PRs with failing or pending gates.
+2. **Engineering Issues:** `team:engineering`.
+3. **Active Projects:** `pmo:active`, hierarchy and scoped priority applied.
+4. **Governance Issues:** `team:governance`, only within Engineering authority or an explicit assignment.
+5. **Pipeline Projects:** `pmo:pipeline`, authorized preparation work.
+6. **PMO Admin duties, every cycle:** lifecycle and label reconciliation, current-state records, dashboard hygiene. PMO Admin never merges and never invents Product Go.
+
+Only take an Issue this agent owns (`agent:claude`) or can take ownership of: no valid `agent:*` claim from another agent, `team:*` matches a role this agent holds, and the Issue is package-complete. Skip Issues claimed by another agent; do not collide. Record the claim (`agent:claude`) before starting. Where only one action on an Issue is gated, split a bounded increment and continue the rest.
+
 ## Work order by role
 
 After the Operations interrupt, each role has its own order. There is no single universal queue.
