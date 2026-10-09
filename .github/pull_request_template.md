@@ -11,7 +11,9 @@ state, merge-readiness status, or post-merge closeout status.
 
 Dynamic state lives in GitHub reviews, review threads, labels, required checks,
 and post-merge closeout records. Merge authority remains GitHub branch
-protection and required checks. The ready-for-merge label is a derived
+protection and required checks. Merge approval is Product Authority, or CMO
+when Product Authority is unavailable and a CMO holder is recorded in
+docs/governance/AGENT-TEAM.md. The ready-for-merge label is a derived
 operator-visibility signal only.
 
 Profile examples (stable fields only — replace placeholders before opening):
