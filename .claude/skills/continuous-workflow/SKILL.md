@@ -1,33 +1,72 @@
 ---
 name: continuous-workflow
-description: The LGFC continuous-work model for Claude Code in this repository. Use at the start of a session, whenever the current task is waiting on review, CI or another agent, and at every safe task boundary, to pick the next eligible item without stopping.
+description: The LGFC continuous workflow for Claude Code in this repository. Use at the start of a session, after packaging any assignment, whenever a PR is waiting on review or merge, and at every safe task boundary, to pick the next eligible item without stopping.
 ---
 
-# Continuous-work model (LGFC)
+# Continuous workflow (LGFC)
 
 This skill is a working summary. The authoritative definitions are:
 
-- `docs/governance/AGENT-TEAM.md` (Continuous-work invariant, role work-selection order, protected stops, separation of duties)
-- `docs/governance/WORK-QUEUES-AND-COLLABORATION.md` (Continuous-work invariant, Operations interrupt, claim lifecycle, dependency and stop taxonomy)
+- `docs/governance/AGENT-EXECUTION.md` — **Assigned-queue continuation (#3605 / #3611)**, Accepted-assignment continuity (#3693), Continuous parent-level execution (#3055 / #3145), Execution discipline, Mandatory stop conditions
+- `docs/governance/AGENT-TEAM.md` — Continuous-work invariant, role work-selection order, protected stops, separation of duties
+- `docs/governance/WORK-QUEUES-AND-COLLABORATION.md` — Continuous-work invariant, Operations interrupt, claim lifecycle, dependency and stop taxonomy
 
-If this file and those documents differ, the documents win. Read them when in doubt. Role-to-member mapping lives only in `AGENT-TEAM.md`; look it up there, do not copy it here. Process text names roles (Engineering, Operations, PMO Admin, Governance, Product Authority), not agents.
+If this file and those documents differ, the documents win. Role-to-member mapping lives only in `AGENT-TEAM.md`; look it up, do not copy it here. Process text names roles (Engineering, Operations, PMO Admin, Governance, Product Authority), not agents.
 
-## The invariant
+## What it means
 
-An agent is not idle merely because its current task is waiting on review, checks, another agent, or non-blocking administrative work.
+Continuous workflow means an agent finishes packaging one assignment and immediately starts the next eligible one. Waiting for someone to review or merge the previous pull request is not a stop.
 
-At every safe task boundary:
+1. **Package one Issue.** Open its pull request, or record a real `HOLD` or `PACKAGE-INCOMPLETE` on that Issue.
+2. **Leave the PR for review.** Do not merge it. Do not self-merge.
+3. **Select the next eligible item and start it.** One Issue, one pull request. Do not mix queue items into the PR just opened.
+4. **Return to the waiting PR only when** a check fails, a reviewer comments, or a post-merge failure opens.
 
-1. Re-evaluate the work order for the role you are acting in.
-2. Filter for work that is package-complete, dependency-safe and authority-eligible.
-3. Select the next executable item.
-4. Keep the waiting items for later gate, review and post-merge follow-through.
+A wake with no new GitHub events is not idle while eligible work remains. "Brief status and keep looping" is not permission to stop while the queue has an eligible item.
 
-"Safe task boundary" means: a PR is opened and handed to review, a check or review is pending, a merge landed and post-merge closeout is being verified, or the item hit a protected stop.
+A protected stop applies to that one action. It does not freeze the rest of the queue. Continuous workflow never authorizes work the Issue itself forbids.
+
+## What counts as waiting (#3611)
+
+An item is *waiting* when its linked open authored PR has the latest checks green, or it is `handoff:ready`. `handoff:ready` is a waiting label, not permission to change the website and not Go. Keep waiting items for gate, reviewer and post-merge follow-through. Immediately continue the next eligible item that is not merely waiting. If none exists, keep following through on the waiting items. Do not idle and do not self-merge.
+
+## Where the next item comes from
+
+After packaging, re-evaluate and continue from, in order:
+
+- numbered Operations interrupts;
+- Issues assigned to this role holder;
+- open authored PRs with failing or pending gates;
+- this agent's own `post-merge-failure` Issues (remediate in the same lineage at once);
+- active claims assigned to this agent, or that Product Authority named as this session's work.
+
+Then the role order below.
+
+## Accepted-assignment continuity (#3693)
+
+Once an assignment is accepted it stays active until it reaches its authorized stop point, Product Authority explicitly says to stop, cancel or abandon it, or a governing stop condition requires a halt. Other Product Authority messages are interruptions, not cancellation: handle the interruption, then resume the accepted assignment without being told to continue. Do not silently drop it because the conversation moved to another question.
+
+## Parent-level execution (#3055 / #3145)
+
+For a graduated Project or Program, the prepared child graph is standing authority. Self-claim the next package-complete serial child, one at a time, without routine PMO redispatch. Before editing, record the starting SHA, branch, allowlist confirmation and pre-implementation checkpoint.
+
+- Missing package fields produce `PACKAGE-INCOMPLETE`.
+- A substantive dependency or protected boundary produces an evidence-specific `HOLD` scoped to the affected action, not a queue-wide freeze. A valid `HOLD` records the affected scope, evidence, why continuing is unsafe or unauthorized, mitigation owner, release condition, parallel-safe work and the disputed-risk decision owner.
+- "Blocked" or "waiting on PMO" alone is not a hold.
+- When only part of a task is gated, split a bounded increment and continue collision-safe work.
+- Merge alone is not substantive acceptance.
+
+## Execution discipline
+
+- One task, one Issue, one PR. No mixed intent. No scope expansion.
+- Extra work discovered along the way is logged on the source Issue or PR, not executed.
+- No routine tracker-update PRs for normal implementation.
+
+**Stop immediately** if: authority conflicts, scope is unclear, repo state is unclear, the source Issue is missing, the changed-file allowlist is missing, live PR state cannot be verified for a readiness claim, or Product Authority is being asked to relay routinely while GitHub communication is available.
 
 ## Work order by role
 
-After the Operations interrupt below, each role has its own order. There is no single universal queue.
+After the Operations interrupt, each role has its own order. There is no single universal queue.
 
 | Role | Order |
 | --- | --- |
@@ -35,19 +74,16 @@ After the Operations interrupt below, each role has its own order. There is no s
 | Operations | Operations Issues, Active Projects, Pipeline Projects |
 | PMO Admin | Executes PMO process: lifecycle and label reconciliation, current-state records, dashboard hygiene, Graduation recording, queue administration. Never merges, never invents Product Go |
 
-Priority is execution order among siblings under the same immediate parent. A priority integer has no repository-global meaning. Use the full hierarchy path (see `docs/governance/PMO-PORTFOLIO.md`).
+Priority is execution order among siblings under the same immediate parent. A priority integer has no repository-global meaning (see `docs/governance/PMO-PORTFOLIO.md`).
 
-## Operations interrupt
-
-A qualifying, actionable, numbered Operations Issue takes the next capacity for remediation. In-flight work stops only at the nearest safe checkpoint. Monitoring and Hold states are not actionable and do not interrupt. When the interrupt clears, return to the role order.
+A qualifying, actionable, numbered Operations Issue takes the next capacity. In-flight work stops only at the nearest safe checkpoint. Monitoring and Hold states do not interrupt.
 
 ## Claims and ownership
 
 - `team:*` is durable queue ownership. `agent:*` is the current execution claim.
-- Before starting, record the claim. Do not start an Issue another agent holds a valid claim on.
+- Record the claim before starting. Do not start an Issue another agent holds a valid claim on.
 - At handoff or review wait, release the claim unless remediation or post-merge duties still need it.
-- Stale claims are reconciled so work can continue.
-- Collaboration adds participants. It does not create dual ownership or extra authority. Use the repository record (the source Issue or PR), not Product Authority, as the relay between agents.
+- Collaboration adds participants; it does not create dual ownership or extra authority. Use the source Issue or PR, not Product Authority, as the relay between agents.
 
 ## Dependencies and stops
 
@@ -58,8 +94,6 @@ A qualifying, actionable, numbered Operations Issue takes the next capacity for 
 | Real collision | Blocks only the colliding action or scope |
 | Protected stop | Blocks the protected action until the required authority or evidence exists |
 
-Ordinary dependencies are not queue-wide HOLD or BLOCKED states. Split a bounded increment when only one action is gated. Generic "blocked" or "waiting on PMO" language is invalid unless it is an evidence-backed `HOLD` under `docs/governance/PMO-PORTFOLIO.md`.
-
 ## Protected stops (continuing never crosses these)
 
 - Product and business outcome and priority
@@ -68,24 +102,24 @@ Ordinary dependencies are not queue-wide HOLD or BLOCKED states. Split a bounded
 - Secrets and credentials
 - Cost commitments
 - Destructive or irreversible data or service actions
-- Production promotion and any Production write without an explicit Go
+- Production promotion, and any Production write without an explicit Go
 - Branch, ruleset and governance-enforcement changes where policy requires protected review
 
-Role precedence changes sequencing, not authority. A protected stop blocks that action, not the whole queue: move to the next eligible item and report the stop with its evidence.
+Role precedence changes sequencing, not authority. A protected stop blocks that action: move to the next eligible item and report the stop with its evidence.
 
 ## Separation of duties
 
 No implementer is the sole independent reviewer or approver of its own protected work. PMO Admin does not merge. CMO may not approve its own implementation. Merge approval defaults to Product Authority. Model C (constitutional or domain-policy) changes need independent review before merge.
 
-## Delivery cycle (one Issue, one PR)
+## Delivery cycle
 
 1. Source Issue exists before the branch or PR (issue-first gate).
 2. Claim, implement within the Issue's allowlist, open a PR from the repository template, ready for review.
-3. Required checks and independent review. Do not self-merge.
+3. Required checks and independent review.
 4. After merge, post-merge verification and closeout run. The PR body's POST-MERGE ISSUE DISPOSITION says whether the source Issue closes or stays open.
-5. If closeout produces an exception Issue, remediate it in the same lineage at once; repeat until the original source Issue reaches clean terminal closeout. Exceptions pause only the originating agent's successor.
+5. If closeout produces an exception Issue, remediate it in the same lineage at once and repeat until the original source Issue reaches clean terminal closeout.
 
-Waiting at step 3 or 4 is the moment to apply the invariant: pick the next eligible item instead of idling.
+Waiting at step 3 or 4 is the moment to apply the rule: start the next eligible item instead of idling.
 
 ## Closeout boundaries
 
