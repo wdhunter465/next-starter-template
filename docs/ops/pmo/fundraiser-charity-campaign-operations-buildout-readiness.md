@@ -1,17 +1,19 @@
 ---
 Doc Type: Operations
-Audience: Bill, ChatGPT, Cursor, LGFC maintainers, implementation agents, and reviewers
+Audience: Product Authority, Engineering, PMO Admin, LGFC maintainers, implementation agents, and reviewers
 Authority Level: Operational Authority
-Owns: Priority #2 PMO readiness decision, fundraiser program candidate scope, child-project boundaries, campaign operations design/readiness state, Cursor launch preconditions
+Owns: Priority #2 PMO readiness decision, fundraiser program candidate scope, child-project boundaries, campaign operations design/readiness state, implementer launch preconditions
 Does Not Own: Runtime implementation, issue creation, merge authority, production secrets, vendor configuration, Givebutter account configuration, fundraiser execution launch
 Canonical Reference: /docs/ops/pmo/PMO-JULY-2026-OPERATING-MODEL.md
-Related Issues: #1696, #1379, #1255, #1259, #1685, #1686, #1694
-Last Reviewed: 2026-06-17
+Related Issues: #1696, #1379, #1255, #1259, #1685, #1686, #1694, #4414, #4442
+Last Reviewed: 2026-10-09
 ---
 
 # Fundraiser / Charity Campaign Operations Buildout Readiness
 
-> This program is BLOCKED from execution until ChatGPT/Bill explicitly launch it. Planning, review, and documentation discussion may continue, but Cursor may not execute implementation work from this program until Bill/ChatGPT explicitly launch it.
+> **Status update (2026-10-09, #4442).** This document was written in June 2026, before the 2027 calendar decisions. Dates, launch decisions and build tasks for the 2027 fundraiser now live in the 2027 launch calendar operating contract (`docs/reference/operations/2027-launch-calendar-operating-contract.md`) and the go-live program (#4414). Where this document's "blocked until launch" wording or its preconditions conflict with those, they control. This document remains the reference for the website/vendor ownership boundary, the privacy and donor-recognition rules, and the fail-closed campaign-surface rules below. It authorizes no implementation: each build task needs its own Issue, allowlist and Product Authority Go.
+
+> Original June 2026 wording, kept for history: the program was BLOCKED from execution until Product Authority explicitly launched it.
 
 ## Purpose
 
@@ -31,24 +33,24 @@ This readiness package covers these Priority #2 projects:
 6. Sponsor / donor recognition
 7. Testing package
 
-This document owns the PMO readiness decision, project boundaries, source-of-truth map, missing-decision register, implementation-readiness classification, donor privacy guardrails, and Cursor pre-launch requirements.
+This document owns the PMO readiness decision, project boundaries, source-of-truth map, missing-decision register, implementation-readiness classification, donor privacy guardrails, and pre-launch requirements for the implementing role.
 
-This document does not launch implementation, create child issues, authorize Cursor execution, change runtime behavior, update workflow YAML, configure Givebutter, configure Cloudflare, configure B2, define fundraiser accounting, or supersede canonical production design authority.
+This document does not launch implementation, create child issues, authorize implementation, change runtime behavior, update workflow YAML, configure Givebutter, configure Cloudflare, configure B2, define fundraiser accounting, or supersede canonical production design authority.
 
 ## Current known truth
 
 - PMO Backlog Priority #2 is a future program candidate, not an executable queue by itself.
-- Program #1255 and child #1259 remain ahead of this program unless Bill/ChatGPT explicitly reprioritize.
+- Program #1255 and child #1259 remain ahead of this program unless Product Authority explicitly reprioritizes.
 - Priority #1 Website Completion / Fan Club Product Buildout is parked as #1685 with child issues #1686 through #1694.
 - Givebutter is the likely external campaign platform boundary, but account/vendor configuration is out of scope for this documentation package.
 - The LGFC website should own only internal display, routing, campaign spotlight, deterministic website-side state, privacy-safe recognition, and pre-launch verification rules.
 - Donor/sponsor recognition must not expose public PII by default.
 - Campaign surfaces must fail closed when campaign configuration is missing, disabled, invalid, stale, or unpublished.
-- Cursor is the intended implementation agent after explicit Bill/ChatGPT launch authorization.
+- Implementation is done by the Engineering role holder (`docs/governance/AGENT-TEAM.md`) after explicit Product Authority authorization on the task Issue.
 
 ## Intended final state
 
-After this readiness package is approved, Priority #2 should be usable as a future program-of-work planning package for Cursor assignment once the active queue permits launch.
+After this readiness package is approved, Priority #2 should be usable as a future program-of-work planning package for assignment to the Engineering role once Product Authority authorizes it.
 
 The intended final state before implementation launch is:
 
@@ -57,7 +59,7 @@ The intended final state before implementation launch is:
 - an implementation plan that defines task order, file areas, validation, and closeout expectations;
 - explicit separation between external campaign ownership and internal website/data ownership;
 - explicit donor/sponsor privacy controls;
-- no requirement for Cursor to infer fundraiser behavior from chat history, historical ideas issues, or stale PMO v2 language.
+- no requirement for an implementer to infer fundraiser behavior from chat history, historical ideas issues, or stale PMO v2 language.
 
 ## Priority #2 program candidate
 
@@ -66,8 +68,8 @@ The intended final state before implementation launch is:
 | Candidate program name | Fundraiser / Charity Campaign Operations Buildout |
 | PMO source | PMO Backlog Priority #2 |
 | Source issue | #1696 |
-| Execution agent after launch | Cursor |
-| Current readiness | Planning-ready; blocked from implementation until ChatGPT/Bill launch |
+| Implementation owner | Engineering role holder per `docs/governance/AGENT-TEAM.md` |
+| Current readiness | Planning-ready; no implementation until Product Authority authorizes it (see the status update) |
 | Primary implementation plan | `docs/ops/implementation-plans/fundraiser-charity-campaign-operations-buildout.md` |
 | Primary operations authority | This readiness document plus the future fundraiser operations playbook task output |
 | Product surface | Fundraiser campaign operations, campaign spotlight, leaderboard/winner display, recognition, and pre-launch verification |
@@ -77,7 +79,7 @@ The intended final state before implementation launch is:
 
 | Priority item | project name | Current state | Design authority | Implementation plan state | Readiness decision |
 | --- | --- | --- | --- | --- | --- |
-| 2 | Fundraiser / Charity Campaign Operations Buildout | PMO July 2026 program candidate | This readiness doc plus PMO backlog row | `fundraiser-charity-campaign-operations-buildout.md` | Ready for Bill/ChatGPT planning review; blocked from launch |
+| 2 | Fundraiser / Charity Campaign Operations Buildout | PMO July 2026 program candidate | This readiness doc plus PMO backlog row | `fundraiser-charity-campaign-operations-buildout.md` | Ready for Product Authority planning review; no launch without authorization |
 | 2a | Fundraiser operations playbook | Draft concept | This readiness doc; future Task 001 output | Covered by Tasks 001, 007, 008 | Needs documentation before build |
 | 2b | Givebutter integration model | Draft concept | This readiness doc; future Task 002 output | Covered by Tasks 002, 004, 006, 007 | Needs external/internal boundary confirmation |
 | 2c | Leaderboard / winner system | Draft concept | This readiness doc; future Tasks 002 and 003 outputs | Covered by Tasks 003, 006, 007 | Needs scoring and snapshot rules |
@@ -128,13 +130,13 @@ The intended final state before implementation launch is:
 
 ## Launch preconditions
 
-Before Cursor receives implementation assignment for this program:
+Before an implementer receives an assignment for this program (June 2026 preconditions; the 2027 go-live program #4414 and each task Issue now govern, see the status update above):
 
-1. Program #1255/#1259 status must be resolved, or Bill/ChatGPT must explicitly reprioritize.
+1. Program #1255/#1259 status must be resolved, or Product Authority must explicitly reprioritize.
 2. Parked Priority #1 status (#1685–#1694) must be resolved, deferred, or explicitly superseded.
-3. A current program issue must explicitly launch Priority #2.
+3. A current program issue must explicitly launch Priority #2 (for 2027, #4414 and its task Issues).
 4. Child task issues must be created from the implementation plan only after launch approval.
-5. Cursor must receive one task issue at a time unless Bill/ChatGPT explicitly approve parallel execution.
+5. An implementer receives one task issue at a time unless Product Authority explicitly approves parallel execution.
 6. Givebutter/vendor configuration decisions must be recorded outside implementation code tasks.
 7. Donor privacy rules must be accepted before any public recognition task starts.
 
@@ -142,4 +144,4 @@ Before Cursor receives implementation assignment for this program:
 
 Priority #2 is now documented as a future PMO July 2026 program candidate.
 
-It is **planning-ready**, not executable. It becomes implementation-ready only after Bill/ChatGPT explicitly launch it and authorize child task issue creation from `docs/ops/implementation-plans/fundraiser-charity-campaign-operations-buildout.md`.
+It is **planning-ready**, not executable. It becomes implementation-ready only after Product Authority explicitly authorizes it and child task issue creation from `docs/ops/implementation-plans/fundraiser-charity-campaign-operations-buildout.md`.

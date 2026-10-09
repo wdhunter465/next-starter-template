@@ -1,0 +1,15 @@
+{
+  "comment": "Reviewer and post-merge test files that do not pass on main yet and are therefore not run by the process test run in the quality gate. Each entry needs a tracking issue. Remove an entry when its file passes. A new reviewer-* or post-merge-* test file runs automatically unless it is listed here (#4466).",
+  "files": [
+    {
+      "file": "tests/post-merge-closeout-all-manifests.test.mjs",
+      "issue": 4445,
+      "reason": "Pins the exact contents of the mutable closeout registry (targets-active.json) and rerun manifests; the registry has moved on (8 active manifests, test expects 6)."
+    },
+    {
+      "file": "tests/post-merge-closeout-automatic.test.mjs",
+      "issue": 4445,
+      "reason": "Asserts post-merge-intent-verification.yml has no pull_request_target trigger; the workflow has one. Needs a closeout-owner decision on which is right."
+    }
+  ]
+}

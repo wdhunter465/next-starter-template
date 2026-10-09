@@ -5,7 +5,6 @@ import {
   isOutdatedComment,
   parseReviewerDispositions,
 } from '../scripts/ci/reviewer_comment_disposition.mjs';
-import { assessReviewerResponseGate } from '../scripts/ci/reviewer-response-gate.mjs';
 import { assessReviewerLifecycle } from '../scripts/ci/reviewer_lifecycle_gate.mjs';
 import { evaluateReviewerAccounting } from '../scripts/ci/reviewer-gate-simulation.mjs';
 import {
@@ -336,8 +335,11 @@ describe('reviewer response gate integration', () => {
     expect(result.disposition.outdatedWithoutDispositionCount).toBe(0);
   });
 
-  it('passes response gate when all actionable comments are dispositioned', () => {
-    const gate = assessReviewerResponseGate({
+  it('passes lifecycle gate when all actionable comments are dispositioned', () => {
+    const gate = assessReviewerLifecycle({
+      eventName: 'pull_request',
+      labels: ['ci'],
+      files: ['scripts/ci/example.mjs'],
       enforceFailure: true,
       body: reviewerAccountingSection,
       reviewComments: [{
