@@ -19,7 +19,7 @@
 
 .img{
   display: block;
-  height: clamp(129px, 15vw, 147px);
+  height: var(--floating-logo-height, clamp(129px, 15vw, 147px));
   width: auto;
   max-width: 240px;
   object-fit: contain;

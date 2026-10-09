@@ -1,6 +1,5 @@
 'use client';
 
-import FloatingLogo from '@/components/FloatingLogo';
 import AdminLink from '@/components/fanclub/AdminLink';
 import ArchivesTiles from '@/components/fanclub/ArchivesTiles';
 import ClubHomeAlStandings from '@/components/fanclub/ClubHomeAlStandings';
@@ -40,7 +39,6 @@ export default function MemberHomePage() {
   return (
     <main>
       <style dangerouslySetInnerHTML={{ __html: clubHomePageLayoutCss }} />
-      <FloatingLogo />
       <div className={clubHomePageStackClassName} aria-label="FanClubHomeSections">
         <div className={clubHomeMastheadRowClassName}>
           <ClubHomeMasthead email={email || ''} />

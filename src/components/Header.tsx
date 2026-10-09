@@ -85,7 +85,9 @@ export default function Header({ showLogo = true }: HeaderProps = {}) {
               <img className={styles.logo} src="/IMG_1946.png" alt="LGFC Logo" />
             </Link>
           </div>
-        ) : null}
+        ) : (
+          <span className={styles.leftOffset} aria-hidden="true" />
+        )}
 
         {/* CENTER: Public buttons */}
         <nav className={styles.center} aria-label="Site">
