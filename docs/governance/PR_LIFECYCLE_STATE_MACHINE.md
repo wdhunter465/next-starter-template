@@ -5,8 +5,8 @@ Authority Level: Governance
 Owns: PR lifecycle states, transition gates, profile-specific readiness, GitHub-native evidence, and closeout transition requirements
 Does Not Own: PR-body policy, delivery-model selection, product/design authority, Administration mutation taxonomy, or Production approval
 Canonical Reference: /docs/governance/PR_PROCESS.md
-Related Issues: #2640, #2641
-Last Reviewed: 2026-07-19
+Related Issues: #2640, #2641, #4134
+Last Reviewed: 2026-10-09
 ---
 
 # PR Lifecycle State Machine
@@ -122,6 +122,8 @@ The exact approved candidate, full standards, Production authority, rollback, an
 ## State 4 — AUTHORIZED DECISION
 
 The required role or deterministic policy has recorded the transition decision.
+
+For merge to `main`, the required role is Product Authority, or CMO when Product Authority is unavailable and a CMO holder is recorded in `docs/governance/AGENT-TEAM.md`. CMO may not approve its own implementation (#4134).
 
 Before action recheck:
 
