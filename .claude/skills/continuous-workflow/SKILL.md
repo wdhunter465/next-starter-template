@@ -66,12 +66,12 @@ For a graduated Project or Program, the prepared child graph is standing authori
 
 ## Queue cycle (Product Authority direction, 2026-10-09)
 
-Cycle through all team and PMO queues. The order comes from `Agent.md` and its authority chain (`Agent.md`, then `REPOSITORY-AUTHORITY.md`, `AGENT-TEAM.md`, `AGENT-EXECUTION.md`, `docs/ops/ai/CLAUDE-CODE-RULES.md`), which put the roles below in this order. Run the cycle at every safe task boundary:
+Work all team and PMO queues. Claude Code and Cursor work from every queue, in different priority orders, which is how work balances. The roles and orders are defined in `docs/governance/AGENT-TEAM.md`, reached through `Agent.md` and its authority chain (`Agent.md`, then `REPOSITORY-AUTHORITY.md`, `AGENT-TEAM.md`, `AGENT-EXECUTION.md`, `docs/ops/ai/CLAUDE-CODE-RULES.md`). Claude Code is primary for Engineering and PMO Admin and secondary for Operations and Governance, so the order below applies first and the secondary queues are worked when higher-priority work is waiting or blocked. Run the cycle at every safe task boundary:
 
 1. **Operations interrupt:** actionable numbered `team:operations` Issues, this agent's own `post-merge-failure` Issues, and own open PRs with failing or pending gates.
 2. **Engineering Issues:** `team:engineering`.
 3. **Active Projects:** `pmo:active`, hierarchy and scoped priority applied.
-4. **Governance Issues:** `team:governance`, only within Engineering authority or an explicit assignment.
+4. **Governance Issues:** `team:governance`. Governance is a secondary role: Cursor is primary, so take these when higher-priority work is waiting or blocked, and leave Governance policy decisions to the role's own authority.
 5. **Pipeline Projects:** `pmo:pipeline`, authorized preparation work.
 6. **PMO Admin duties, every cycle:** lifecycle and label reconciliation, current-state records, dashboard hygiene. PMO Admin never merges and never invents Product Go.
 
@@ -94,8 +94,10 @@ A qualifying, actionable, numbered Operations Issue takes the next capacity. In-
 ## Claims and ownership
 
 - `team:*` is durable queue ownership. `agent:*` is the current execution claim.
-- Record the claim before starting. Do not start an Issue another agent holds a valid claim on.
-- At handoff or review wait, release the claim unless remediation or post-merge duties still need it.
+- Record the claim before starting, and only when starting. Do not start an Issue another agent holds a valid claim on.
+- At handoff or review wait, release the claim unless remediation or post-merge duties still need it. Also release it when the Issue waits on a Product Authority decision or another agent. Never hold a claim on an Issue nobody is working; an unclaimed Issue lets other agents (Cursor works the same queues) finish it.
+- A Product Authority reservation (`agent:*` set by Product Authority) is released only by Product Authority. Report stale claims you did not set instead of removing them.
+- When releasing, leave a short note on the Issue: what it is waiting on and what an eligible agent can do next.
 - Collaboration adds participants; it does not create dual ownership or extra authority. Use the source Issue or PR, not Product Authority, as the relay between agents.
 
 ## Dependencies and stops
