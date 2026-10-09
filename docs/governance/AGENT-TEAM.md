@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Durable LGFC agent roles, recognized agent products, current member mapping, role work-selection order, approval authority, protected stops, and role-transition state
 Does Not Own: PMO lifecycle/stage semantics, detailed queue-label implementation, delivery-profile mechanics, CI implementation, or Production recovery procedure
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3240, #3629, #3693, #3825, #4074, #4165, #4173, #4174, #4399, #4449
-Last Reviewed: 2026-10-05
+Related Issues: #3240, #3629, #3693, #3825, #4074, #4134, #4165, #4173, #4174, #4399, #4449
+Last Reviewed: 2026-10-09
 ---
 
 # Agent Team
@@ -27,7 +27,7 @@ A member may act only through its currently assigned role authority plus an open
 | PMO | Active/Pipeline portfolio management, lifecycle readiness, scoped priority, Engineering/Governance execution prioritization, Graduation and project closeout preparation |
 | PMO Admin | Executes PMO process: lifecycle and label reconciliation, current-state records, dashboard reporting hygiene, Graduation packet recording, and queue administration. Does not create Product Go, Production authorization, or merge authority. The current holder is the member mapped below. |
 | Governance | Final repository-governance disposition and Issue assignment/prioritization subject to Product Authority; Governance Issue ownership |
-| PR Approver / Engineering | Independent validation that work meets design, acceptance, repository, and promotion requirements |
+| PR Approver / Engineering | Independent validation that work meets design, acceptance, repository, and promotion requirements. Validation is not merge approval. |
 | CMO (Change Management Office) | Independent review and merge approval of Pull Requests when Product Authority is unavailable. CMO is not Product Authority, may not approve its own implementation, and may not authorize Production Go, cost, legal, secrets, or other protected Product decisions. The current holder is the member mapped below. |
 | Administration & Communications | Evidence, routing, acknowledgments, escalation, repository-state reconciliation, holds/resumes, reporting, and authorized closeout transactions |
 | Day-2 Operations | Production monitoring, incident classification, containment, recovery strategy, operational hold release |
@@ -109,6 +109,14 @@ CMO may not:
 - replace Product Authority as the default merge approver when Product Authority is available.
 
 A CMO holder must be a named member in the mapping table below, with CMO listed in that member's current roles, before CMO may approve a merge. Until Product Authority records that assignment, CMO remains unassigned in the holders section. An unassigned CMO role is not an approval.
+
+CMO and PR Approver / Engineering are separate authorities (#4134):
+
+- PR Approver / Engineering validates design, acceptance, repository alignment, and promotion requirements. It does not decide whether a Pull Request merges to `main`.
+- CMO decides merge to `main` only when Product Authority is unavailable, after required checks pass and PR Approver / Engineering or other required independent review evidence exists.
+- One member may hold both roles, but may not use either role on its own implementation.
+
+CMO approval is not mechanically enforced today. The `main` ruleset requires zero approving reviews, auto-merge is disabled, and agents act through the shared repository identity, so a CMO approval cannot yet be distinguished from the implementer's. Until dedicated agent identities exist (#3234), a CMO merge decision must be recorded on the source Issue with the reviewer and the reviewed head SHA.
 
 ### Governance role
 
