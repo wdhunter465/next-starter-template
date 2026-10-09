@@ -6,11 +6,13 @@ Owns: Evidence-backed description of the LGFC website as currently implemented a
 Does Not Own: Product design intent; design-vs-as-built gap decisions; Production remediation; runtime configuration secrets
 Canonical Reference: /docs/reference/website/lgfc-website-as-built-current.md
 Source Issue: #3324
-Related Issues: #3305, #3074, #3148, #3149
-Last Reviewed: 2026-08-11
+Related Issues: #3305, #3074, #3148, #3149, #4409, #4411, #4442
+Last Reviewed: 2026-10-09
 ---
 
 # LGFC Website Production As-Built (Current)
+
+> **Status update (2026-10-09, #4442).** The baseline below is dated 2026-08-11. The more recent measured record is `docs/ops/reports/website-design-assessment-2026-10-01/website-as-built.md` (#4409, observed 2026-10-01), which also lists every difference from the design; use it for current measurements. Where the two differ, the 2026-10-01 record controls. One set of findings below is now out of date: the placeholder milestone and event rows were removed from Production and Development by #4411 (verified 2026-10-05). A read-only re-check of the public APIs on 2026-10-09 found no placeholder text. Those rows are marked **Resolved** in place and the rest of this baseline is left as the 2026-08-11 record.
 
 ## Purpose
 
@@ -140,12 +142,12 @@ Source: `src/app/page.tsx`. Section order as implemented:
 | Social Wall | Component loads `https://elfsightcdn.com/platform.js` with widget class from `SOCIAL_WALL_WIDGET_ID`; 8s timeout + platform link fallbacks | `VERIFIED_SOURCE_ONLY` (integration) / partial live |
 | Discussions teaser | API `/api/discussions/list` returns Not authenticated when unauthenticated | `VERIFIED_PRODUCTION` (unauth failure) |
 | Friends | API returns charity/friend items (e.g. ALS Cure Project) | `VERIFIED_PRODUCTION` |
-| Milestones | API returns placeholder row: title “Milestone placeholder”, description “This is text content from milestones table.” | `VERIFIED_PRODUCTION` |
-| Calendar | API `/api/events/next` returns placeholder events | `VERIFIED_PRODUCTION` |
+| Milestones | 2026-08-11: API returned a placeholder row (“Milestone placeholder”). **Resolved (#4411).** 2026-10-09: `/api/milestones/list` returns 19 real milestones, no placeholder text. | `VERIFIED_PRODUCTION` (re-checked 2026-10-09) |
+| Calendar | 2026-08-11: API returned placeholder events. **Resolved (#4411).** 2026-10-09: `/api/events/next` returns one event, “Lou Gehrig Day”. | `VERIFIED_PRODUCTION` (re-checked 2026-10-09) |
 | FAQ section | API returns approved FAQ items | `VERIFIED_PRODUCTION` |
 | Footer | Rotating quote API works; footer shows quote, © 2026, Privacy/Terms/Contact | `VERIFIED_PRODUCTION` |
 
-**Finding (not a remediation under this Issue):** Production milestones and events data currently include explicit placeholder content from D1.
+**Finding (2026-08-11, not a remediation under this Issue):** Production milestones and events data included explicit placeholder content from D1. **Resolved by #4411; see the status update at the top.**
 
 ### 2.2 Social Wall as-built integration
 
@@ -276,8 +278,8 @@ Paths are Cloudflare Pages Function routes under `/api/...`.
 | `POST /api/faq/view` | View count | source | source |
 | `POST /api/ask` | Ask intake | Public | source |
 | `GET /api/friends/list` | Friends list | Public | ok + items |
-| `GET /api/milestones/list` | Milestones | Public | ok + placeholder |
-| `GET /api/events/next` | Upcoming events | Public | ok + placeholders |
+| `GET /api/milestones/list` | Milestones | Public | ok + items (placeholder resolved, #4411) |
+| `GET /api/events/next` | Upcoming events | Public | ok + items (placeholders resolved, #4411) |
 | `GET /api/events/month` | Month events | Public | source |
 | `GET /api/footer-quote` | Footer quote | Public | ok + Gehrig quote |
 | `GET /api/search` | Site search | Public | source + live callable |
@@ -335,7 +337,7 @@ Evidence: `VERIFIED_PRODUCTION` (desktop shell) + `VERIFIED_SOURCE_ONLY` (CSS br
 | Unauthenticated Admin | Layout returns null + redirect to `/` unless admin |
 | Discussions unauthenticated | API error Not authenticated |
 | Matchup loading | Client “Loading matchup…” then images |
-| Placeholder data | Milestones and events APIs return explicit placeholder rows |
+| Placeholder data | 2026-08-11: milestones and events APIs returned explicit placeholder rows. Resolved by #4411 |
 | Client/server split | Static export UI; data via browser `fetch` to Functions |
 | Rate limiting | Dashboard Rate Limiting / WAF intended; `wrangler.toml` `[[ratelimits]]` removed (#527); middleware optional |
 
@@ -350,8 +352,8 @@ Evidence: `VERIFIED_PRODUCTION` (desktop shell) + `VERIFIED_SOURCE_ONLY` (CSS br
 | Join/Login page UI | `VERIFIED_PRODUCTION` |
 | Public FAQ API + homepage FAQ section | `VERIFIED_PRODUCTION` |
 | Friends API | `VERIFIED_PRODUCTION` |
-| Milestones API (placeholder content) | `VERIFIED_PRODUCTION` |
-| Events next API (placeholder content) | `VERIFIED_PRODUCTION` |
+| Milestones API (placeholder content on 2026-08-11; resolved, #4411) | `VERIFIED_PRODUCTION` |
+| Events next API (placeholder content on 2026-08-11; resolved, #4411) | `VERIFIED_PRODUCTION` |
 | Footer quote API + footer links | `VERIFIED_PRODUCTION` |
 | Health API | `VERIFIED_PRODUCTION` |
 | Session unauthenticated | `VERIFIED_PRODUCTION` |
@@ -382,6 +384,7 @@ Evidence: `VERIFIED_PRODUCTION` (desktop shell) + `VERIFIED_SOURCE_ONLY` (CSS br
 | --- | --- |
 | `docs/reference/website/lgfc-website-as-built-current.md` | **This file** — canonical current Production as-built authority (refreshed #3324) |
 | `docs/reference/website/lgfc-website-as-built-reconciliation.md` | **Historical** Phase 1 / June 2026 snapshot — not current Production authority |
+| `docs/ops/reports/website-design-assessment-2026-10-01/website-as-built.md` | **Newer measured record** (#4409, 2026-10-01); controls where it differs from this baseline |
 | Prior #3074 reconciliation prose in previous revision of this file | **Superseded** by this Production-evidence baseline; design decisions remain in design docs, not here |
 | `docs/ops/as-built/*` program as-builts | **Retain** as program closeout evidence; not website Production inventory |
 | Design docs under `docs/reference/design/**` | **Unchanged** by this Issue (design authority, not as-built) |
@@ -390,8 +393,8 @@ Evidence: `VERIFIED_PRODUCTION` (desktop shell) + `VERIFIED_SOURCE_ONLY` (CSS br
 
 ## 12. Findings recorded without remediation
 
-1. Production milestones API returns placeholder milestone content.
-2. Production events API returns placeholder event content.
+1. Production milestones API returned placeholder milestone content. **Resolved (#4411).**
+2. Production events API returned placeholder event content. **Resolved (#4411).**
 3. Homepage discussions teaser depends on authenticated discussions list; guests see loading/empty/error path rather than public discussion data.
 4. `/faq` remains a 200 HTML page that client-redirects (not HTTP-level redirect).
 5. `/login` client-redirects to `/` rather than `/join?mode=login` (source-constant `POST_LOGOUT_ROUTE`).
