@@ -504,6 +504,34 @@ a:hover {
 	height: 8px;
 }
 
+/* Floating logo, one logo on every header (#4489). Height is the single source for
+   FloatingLogo.module.css, the footprint the headers reserve at tablet widths, and the
+   space under the header that keeps the logo from covering page content. */
+:root {
+	--floating-logo-height: clamp(129px, 15vw, 147px);
+	--floating-logo-footprint: calc(var(--floating-logo-height) * 1.4 + 28px);
+}
+
+@media (max-width: 767px) {
+	:root {
+		--floating-logo-height: 72px;
+	}
+}
+
+@media (min-width: 768px) {
+	.topWhitespace {
+		height: calc(var(--floating-logo-height) - 83px);
+	}
+}
+
+@font-face {
+	font-family: 'Alfa Slab One';
+	src: url('/fonts/AlfaSlabOne-Regular.woff2') format('woff2');
+	font-weight: 400;
+	font-style: normal;
+	font-display: swap;
+}
+
 /* Header helpers (class-based, low specificity) */
 .header-wrap {
 	position: relative;

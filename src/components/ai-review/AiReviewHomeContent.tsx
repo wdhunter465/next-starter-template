@@ -1,7 +1,6 @@
 'use client';
 
 import styles from '@/app/page.module.css';
-import FloatingLogo from '@/components/FloatingLogo';
 import CampaignSpotlightSlot from '@/components/home/CampaignSpotlightSlot';
 import FAQSection from '@/components/FAQSection';
 import MilestonesSection from '@/components/MilestonesSection';
@@ -17,7 +16,6 @@ export default function AiReviewHomeContent() {
   return (
     <>
       <AiReviewBanner label="/" />
-      <FloatingLogo />
       <header id="banner" className={styles.hero}>
         <div className={styles.container}>
           <h1 className={styles.title}>Welcome to the Lou Gehrig Fan Club</h1>

@@ -7,7 +7,6 @@
 }
 
 .inner{
-  --floating-logo-footprint: clamp(128px, 28vw, 196px);
   position: relative;
   max-width: 1120px;
   margin: 0 auto;
@@ -125,21 +124,24 @@
   margin: 0 auto;
 }
 
-@media (max-width: 920px){
+@media (min-width: 768px) and (max-width: 1040px){
   .leftOffset{
     width: 0;
     max-width: 0;
   }
 
   .center{
-    gap: 10px;
+    gap: 8px;
+  }
+
+  .btn{
+    padding: 10px 10px;
   }
 
   .inner:has(.leftOffset){
     display: grid;
-    grid-template-columns: minmax(96px, var(--floating-logo-footprint)) minmax(0, 1fr) minmax(96px, var(--floating-logo-footprint));
+    grid-template-columns: var(--floating-logo-footprint) minmax(0, 1fr);
     align-items: center;
-    column-gap: 8px;
   }
 
   .inner:has(.leftOffset) .center{
@@ -147,6 +149,7 @@
     grid-column: 2;
     transform: none;
     min-width: 0;
+    flex-wrap: nowrap;
   }
 }
 

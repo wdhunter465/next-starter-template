@@ -19,6 +19,8 @@ export const clubHomeColors = {
  * fonts.googleapis.com @import is silently blocked (and spams CSP reports) in prod.
  */
 const headlineFont = "Georgia, 'Times New Roman', Times, serif";
+/** Self-hosted masthead face (public/fonts); falls back to the system serif if it fails to load. */
+const nameplateFont = "'Alfa Slab One', Georgia, 'Times New Roman', Times, serif";
 const bodyFont = "'Palatino Linotype', Palatino, 'Book Antiqua', Georgia, serif";
 
 export const clubHomeHeadlineFontFamily = headlineFont;
@@ -129,11 +131,11 @@ export const clubHomeMastheadKicker = {
 };
 
 export const clubHomeMastheadNameplate = {
-  fontFamily: headlineFont,
-  fontWeight: 900 as const,
-  fontSize: 52,
+  fontFamily: nameplateFont,
+  fontWeight: 400 as const,
+  fontSize: 'clamp(52px, 5.5vw, 104px)',
   lineHeight: 1.05,
-  letterSpacing: '-0.01em',
+  letterSpacing: '0',
   margin: '16px 0 6px 0',
   color: clubHomeColors.navy,
   textAlign: 'center' as const,
@@ -181,8 +183,8 @@ export const clubHomeFooterRowClassName = 'club-home-footer-row';
 export const clubHomePageLayoutCss = `
 .club-home-page-stack {
   max-width: 1760px;
-  width: calc(100% - 24px);
-  margin: 0 auto;
+  width: calc(100% - 32px);
+  margin: 0 auto 32px;
   padding: 24px 20px 40px;
   display: flex;
   flex-direction: column;
@@ -223,6 +225,11 @@ export const clubHomePageLayoutCss = `
 }
 
 @media (min-width: 768px) {
+  .club-home-page-stack {
+    width: calc(100% - 96px);
+    margin-bottom: 48px;
+  }
+
   .club-home-columns {
     grid-template-columns: 220px minmax(0, 1fr) 220px;
     column-gap: 32px;
@@ -238,6 +245,19 @@ export const clubHomePageLayoutCss = `
   .club-home-columns {
     grid-template-columns: 240px minmax(0, 1fr) 240px;
     column-gap: 40px;
+  }
+}
+
+@media (min-width: 1280px) {
+  .club-home-columns {
+    grid-template-columns: 300px minmax(0, 1fr) 300px;
+  }
+}
+
+@media (min-width: 1600px) {
+  .club-home-columns {
+    grid-template-columns: 340px minmax(0, 1fr) 340px;
+    column-gap: 48px;
   }
 }
 `;

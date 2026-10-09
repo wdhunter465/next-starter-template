@@ -51,7 +51,7 @@ The canonical structure for header system:
 
 - `src/components/SiteHeader.tsx`
   - Chooses between `Header` (public) and `MemberHeader` (member/admin contexts)
-  - Controls whether a floating big logo is shown and whether the small header logo is shown
+  - Mounts the one floating big logo for every route and tells both headers to hide their small logo and reserve the logo's footprint (Product Authority 2026-10-08, #4489)
 - `src/components/Header.tsx`
   - Public header with centered nav + grouped hamburger
 - `src/components/MemberHeader.tsx`
@@ -92,7 +92,7 @@ This gives us:
 - Header height: either 64px or 72px, but must remain consistent across public + member headers.
 
 ### 2.3 Left area (small header logo)
-This is the “small” logo that shows ONLY when FloatingLogo is not present.
+This is the “small” logo that shows ONLY when FloatingLogo is not present. Since 2026-10-08 (#4489) the floating logo is always present, so both headers render an empty placeholder here that reserves the logo's footprint (`--floating-logo-footprint`).
 
 Rules:
 - Hard constrained width (example: 72px).
@@ -147,10 +147,10 @@ This matches the intent:
 
 ## 4) Banner / Hero Interaction
 
-### 4.1 Visual overlap
-At page top:
-- The floating logo should visually overlap the hero/banner area slightly.
-- The hero/banner should not be pushed down awkwardly just to make room for the logo.
+### 4.1 No overlap (changed 2026-10-08, #4489)
+At page top the floating logo must not cover hero, banner or page text. The earlier rule that it should overlap the banner slightly is withdrawn.
+- The space under the header (`.topWhitespace`, `calc(var(--floating-logo-height) - 83px)` from 768px up) keeps page content below the logo.
+- On phones (under 768px) the logo is 72px and sits inside the 80px header, so no extra space is added.
 
 ### 4.2 Spacing
 - The header buttons should remain comfortably spaced from the banner.
@@ -218,7 +218,7 @@ Header is considered DONE when:
 Before any future header work is merged:
 
 - [ ] Confirm no inline sizing overrides exist for logo in Header/MemberHeader
-- [ ] Confirm floating logo is gated to intended routes (`/` and `/fanclub` only, if that remains the intent)
+- [ ] Confirm the floating logo appears on every route, mounted once in `SiteHeader.tsx`, and covers no content at 390px, 768px, 1280px and 1920px
 - [ ] Confirm scroll hide behavior works
 - [ ] Confirm hamburger dropdown anchoring
 - [ ] Confirm no hitbox regression

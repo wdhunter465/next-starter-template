@@ -114,6 +114,35 @@
   margin: 0 auto;
 }
 
+/* Floating logo is global (#4489): the header reserves its footprint instead of drawing a small logo. */
+.leftOffset{
+  display: none;
+}
+
+@media (min-width: 768px) and (max-width: 1040px){
+  .center{
+    gap: 8px;
+  }
+
+  .btn{
+    padding: 10px 10px;
+  }
+
+  .inner:has(.leftOffset){
+    display: grid;
+    grid-template-columns: var(--floating-logo-footprint) minmax(0, 1fr);
+    align-items: center;
+  }
+
+  .inner:has(.leftOffset) .center{
+    position: static;
+    grid-column: 2;
+    transform: none;
+    min-width: 0;
+    flex-wrap: nowrap;
+  }
+}
+
 @media (max-width: 920px){
   .center{
     gap: 10px;

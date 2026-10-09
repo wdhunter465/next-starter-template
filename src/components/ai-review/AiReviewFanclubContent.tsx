@@ -1,6 +1,5 @@
 'use client';
 
-import FloatingLogo from '@/components/FloatingLogo';
 import AdminLink from '@/components/fanclub/AdminLink';
 import ArchivesTiles from '@/components/fanclub/ArchivesTiles';
 import ClubHomeArchiveSpotlight from '@/components/fanclub/ClubHomeArchiveSpotlight';
@@ -35,7 +34,6 @@ export default function AiReviewFanclubContent({ snapshot }: Props) {
   return (
     <main>
       <AiReviewBanner label="/fanclub" />
-      <FloatingLogo />
       <div style={clubHomePageStack} aria-label="FanClubHomeSections">
         <ClubHomeMasthead email="ai-review@readonly" />
 
