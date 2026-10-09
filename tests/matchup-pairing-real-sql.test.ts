@@ -76,12 +76,14 @@ function pastWeek(daysAgo: number): string {
   return (sqlite.prepare("SELECT date('now', ?, 'weekday 1', '-7 days') AS d").get(`-${daysAgo} days`) as { d: string }).d;
 }
 
+type MatchupBody = { ok: boolean; matchup_id: number | null; items: Array<{ id: number }> };
+
 async function getCurrent() {
   const response = await onRequestGet({
     env: { DB: d1Adapter(sqlite) },
     request: new Request('https://www.lougehrigfanclub.com/api/matchup/current'),
   });
-  return { status: response.status, body: (await response.json()) as any };
+  return { status: response.status, body: (await response.json()) as MatchupBody };
 }
 
 beforeEach(() => {
@@ -138,7 +140,7 @@ describe('insufficient eligible-image pool (row 38)', () => {
     const a = addPhoto();
     const b = addPhoto();
     const { body } = await getCurrent();
-    expect(body.items.map((i: any) => i.id).sort()).toEqual([a, b].sort());
+    expect(body.items.map((i) => i.id).sort()).toEqual([a, b].sort());
     expect(matchupRows()).toHaveLength(1);
   });
 });
@@ -157,7 +159,7 @@ describe('selection stays inside the eligible pool (row 39)', () => {
     for (let draw = 0; draw < 60; draw += 1) {
       sqlite.exec('DELETE FROM weekly_matchups');
       const { body } = await getCurrent();
-      const [a, b] = body.items.map((i: any) => Number(i.id));
+      const [a, b] = body.items.map((i) => Number(i.id));
       expect(eligible, `draw ${draw}`).toContain(a);
       expect(eligible, `draw ${draw}`).toContain(b);
       expect(a).not.toBe(b);
@@ -176,7 +178,7 @@ describe('selection stays inside the eligible pool (row 39)', () => {
     for (let draw = 0; draw < 20; draw += 1) {
       sqlite.exec('DELETE FROM weekly_matchups');
       const { body } = await getCurrent();
-      expect(body.items.map((i: any) => Number(i.id)).sort()).toEqual([...plain].sort());
+      expect(body.items.map((i) => Number(i.id)).sort()).toEqual([...plain].sort());
     }
   });
 });
@@ -217,7 +219,7 @@ describe('pairing, placement and edition history (row 40)', () => {
 
     const { body } = await getCurrent();
 
-    expect(body.items.map((i: any) => Number(i.id)).sort()).toEqual([...fresh].sort());
+    expect(body.items.map((i) => Number(i.id)).sort()).toEqual([...fresh].sort());
     expect(matchupRows()).toHaveLength(3);
   });
 
@@ -227,7 +229,7 @@ describe('pairing, placement and edition history (row 40)', () => {
 
     const { body } = await getCurrent();
 
-    expect(body.items.map((i: any) => Number(i.id)).sort()).toEqual([...pool].sort());
+    expect(body.items.map((i) => Number(i.id)).sort()).toEqual([...pool].sort());
   });
 
   it('replaces a pair whose photo lost eligibility, and clears that week\'s votes', async () => {
@@ -241,7 +243,7 @@ describe('pairing, placement and edition history (row 40)', () => {
 
     const { body } = await getCurrent();
 
-    const ids = body.items.map((i: any) => Number(i.id));
+    const ids = body.items.map((i) => Number(i.id));
     expect(ids).not.toContain(a);
     expect(matchupRows()).toHaveLength(1);
     expect(matchupRows()[0]).toMatchObject({ week_start: week, status: 'active' });
