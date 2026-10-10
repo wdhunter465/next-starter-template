@@ -12,8 +12,8 @@ Supporting References:
   - /docs/reference/operations/administrative-control-lane-contract.md
   - /docs/reference/operations/operating-lanes-and-promotion-profiles.md
   - /docs/reference/operations/work-queue-and-collaboration-contract.md
-Related Issues: #2175, #2208, #2640, #2641, #2699, #2709, #3117
-Last Reviewed: 2026-08-07
+Related Issues: #2175, #2208, #2640, #2641, #2699, #2709, #3117, #4134
+Last Reviewed: 2026-10-09
 ---
 
 # Pull Request Process
@@ -217,6 +217,7 @@ Reviewer state comes from GitHub-native reviews and threads.
 - PR Approver / Engineering owns subjective design and repository alignment.
 - Deterministic CI owns explicit machine checks and eligibility only.
 - Product Authority participates when product, priority, cost, business, or protected decisions require it.
+- Merge to `main` is approved by Product Authority. When Product Authority is unavailable and a CMO holder is recorded in `docs/governance/AGENT-TEAM.md`, CMO may approve the merge of a Pull Request it did not implement. PR Approver / Engineering validation is evidence for that decision, not the merge approval itself (#4134).
 - Administration & Communications may route and report reviewer state but cannot supply independent review.
 - Collaboration may help a reviewer understand evidence but cannot manufacture reviewer authority.
 
