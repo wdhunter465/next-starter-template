@@ -17,14 +17,19 @@ The LGFC content library needs text-based stories to pair with pictures. This pa
 
 "Free to use" here means the source states the license itself. Collection records what the source asserts. A human still sets the rights conclusion (#3551).
 
-## Hosted content only (no link-only content)
+## Collection versus admission
 
-LGFC collects only content it can host and display on its own site: full text, an image, an excerpt with credit. A lead whose value is "go read this on another site" is not collected.
+Two separate stages:
 
-- Members stay on the LGFC website. Content must not send them away to read it.
+1. **Search collects.** Every search records the URL and provenance for everything it finds, whatever its rights or format, including fee-required items and items that cannot be hosted. Search does not judge relevance or decide use.
+2. **Evaluation admits.** The content evaluation process in the repository decides what is relevant and what is admitted into the B2 and D1 libraries.
+
+Admission and website display are hosted-only:
+
+- LGFC admits only content it can host and display on its own site, so members stay on the LGFC website.
 - Content must not open new tabs or switch the site the member is viewing, because that degrades the experience.
 - The credit line names the source, author and license in text on the page. A plain citation URL may sit in the credit line, but it is never the content itself.
-- If a source's terms do not allow hosting (no license, rights retained, no permission), the item is not link-only content. It goes to the permission form letter, and stays on hold until LGFC may host it.
+- A found item that cannot be hosted (no license, rights retained, no permission) keeps its collection record. It goes to the permission form letter and stays on hold until LGFC may host it, or it is rejected. It is never turned into a link on the site.
 
 ## What counts as free to use with credit
 
@@ -64,9 +69,9 @@ Publication year alone is not enough for later works. A 1939 text may still be u
 
 ### Checked and not free to use
 
-These came up in searches and are not free-use by default. Use the permission form letter if the content is wanted.
+These came up in searches and are not free-use by default. Search still records them. Use the permission form letter if the content is wanted.
 
-- SABR articles, the Columbia research guide and similar pages that are only worth a link: excluded as link-only content.
+- SABR articles, the Columbia research guide and similar pages that are only worth a link: recorded at collection, but evaluation will not admit them to the libraries.
 - SABR BioProject biographies and SABR Rucker Archive images: jointly owned by SABR and the authors; no open license found.
 - Detroit Public Library Ernie Harwell collection: rights retained by the library.
 - Densho Nippu Jiji archive: copyright restricted, non-commercial educational use allowed by the holder.
