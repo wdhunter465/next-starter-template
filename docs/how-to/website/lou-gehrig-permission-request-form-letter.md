@@ -31,17 +31,28 @@ Ask once per source (rights holder or collection), so one exchange settles permi
 
 ## Procedure
 
-1. Group the on-hold candidates by `source_owner` (the actual creator or rights holder, not just the hosting site). One group, one letter.
-2. Note `contact_info` for the group. If it is empty, find the source's rights, permissions, or reproductions contact page and record it.
-3. Copy the letter below, fill every `[bracket]`, list the specific URLs found, and send it from the LGFC admin address.
-4. Archive the exchange (see Archive record below). Set `usage_decision` to `hold` on every candidate in the group while waiting.
-5. When the owner replies:
+1. Check the archive for earlier contact with this source (see Ask once, never repeatedly). If the source was already asked, do not send another request.
+2. Group the on-hold candidates by `source_owner` (the actual creator or rights holder, not just the hosting site). One group, one letter.
+3. Note `contact_info` for the group. If it is empty, find the source's rights, permissions, or reproductions contact page and record it.
+4. Copy the letter below, fill every `[bracket]`, list the specific URLs found, and send it from the LGFC admin address.
+5. Archive the exchange (see Archive record below). Set `usage_decision` to `hold` on every candidate in the group while waiting.
+6. When the owner replies:
    - Written permission: archive the reply, record the exact scope granted, the credit wording and any conditions (use, size, duration, exclusions). A human sets the conclusion to `permission_granted` for the candidates the scope covers. Later finds from the same source inside that scope link to the same grant instead of a new request.
    - Refusal: record the denial and its scope, and set `usage_decision` to `deny` for the source's candidates it covers. Keep the records in the library so the same content is not added again if a later search finds it. Never use denied content on the website.
    - Conditions LGFC cannot meet (for example, a fee): set `usage_decision` to `deny` and flag fee-required.
-   - No reply: send one follow-up after 30 days. After that, leave the items on `hold`. Silence is never permission.
-6. A grant covers only what the reply says. If the owner limits it (for example, excludes some items or media types), record the exclusions and treat those items as not permitted.
-7. Never publish on `hold`, and never treat the sent letter as permission.
+   - No reply: send one follow-up after 30 days. After that, leave the items on `hold` and do not ask again. Silence is never permission.
+7. A grant covers only what the reply says. If the owner limits it (for example, excludes some items or media types), record the exclusions and treat those items as not permitted.
+8. Never publish on `hold`, and never treat the sent letter as permission.
+
+## Ask once, never repeatedly
+
+Repeated requests read as spam and would alienate the people whose content we want. Each source is asked once, with at most one follow-up.
+
+- Before any letter, look up the source in the archive. If it has been asked, whatever the answer, do not send a new request.
+- Content recorded as do-not-use stays in the library, so finding it again in a later search updates the existing record and does not trigger a new request.
+- A denial, a fee, or no reply after the follow-up closes the request. Reopen it only if the source invites contact or its terms change, and only with Product Authority's agreement.
+- A later find from a source that granted permission falls inside that grant when it is within the stated scope, and needs no new letter.
+- Letters to different sources go out one at a time and are not bulk mailed. Keep to a few requests a week so LGFC does not look like a mass mailer.
 
 ## Archive record
 
