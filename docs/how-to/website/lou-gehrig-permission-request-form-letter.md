@@ -21,6 +21,10 @@ Use the letter when a candidate is on the owner-contact worklist: `rights_status
 
 Do not use it for content that is already free to use with credit (public domain, CC0, CC BY, CC BY-SA). Those need only the credit line. See `lou-gehrig-free-use-content-discovery.md`.
 
+## Outcomes
+
+Permission received means the content is added to the library and used on the website with its source cited. No permission (denied, fee required, or no reply) means the content is noted in the library so it is not duplicated when found again, and it is never used on the website.
+
 ## One letter per source, not per item
 
 Ask once per source (rights holder or collection), so one exchange settles permission for the source as a whole. The letter names the specific URLs where we found content, then asks for permission across "Gehrig and Gehrig-related content" the source holds. This avoids asking one piece at a time.
@@ -33,7 +37,7 @@ Ask once per source (rights holder or collection), so one exchange settles permi
 4. Archive the exchange (see Archive record below). Set `usage_decision` to `hold` on every candidate in the group while waiting.
 5. When the owner replies:
    - Written permission: archive the reply, record the exact scope granted, the credit wording and any conditions (use, size, duration, exclusions). A human sets the conclusion to `permission_granted` for the candidates the scope covers. Later finds from the same source inside that scope link to the same grant instead of a new request.
-   - Refusal: record the denial and its scope, and set `usage_decision` to `deny` for the source's candidates it covers.
+   - Refusal: record the denial and its scope, and set `usage_decision` to `deny` for the source's candidates it covers. Keep the records in the library so the same content is not added again if a later search finds it. Never use denied content on the website.
    - Conditions LGFC cannot meet (for example, a fee): set `usage_decision` to `deny` and flag fee-required.
    - No reply: send one follow-up after 30 days. After that, leave the items on `hold`. Silence is never permission.
 6. A grant covers only what the reply says. If the owner limits it (for example, excludes some items or media types), record the exclusions and treat those items as not permitted.
