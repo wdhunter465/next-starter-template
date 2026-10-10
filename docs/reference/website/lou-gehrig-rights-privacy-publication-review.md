@@ -60,6 +60,43 @@ Every found item ends in one of two outcomes:
 Pending requests and unanswered requests are recorded and unused, the same as
 no permission.
 
+## Audit record (Product Authority, 2026-10-10)
+
+An auditor must be able to see what LGFC knew at the moment of each decision and
+how LGFC arrived at it. The flow is: search, record the finding as **not
+permitted**, evaluate permissions, set the outcome, and record what the decision
+was based on.
+
+**Default.** Every newly found item is recorded as `not_permitted` with
+evaluation `pending`. Nothing is used on the website until an evaluation sets
+`permitted`.
+
+**Columns on the content record**
+
+| Column | Holds |
+| --- | --- |
+| `origin_url` | Where the content was found |
+| `found_at`, `found_by_run` | Date and time found, and the search run that found it |
+| `origin_usage_statement` | The origin's usage or license statement, verbatim |
+| `origin_usage_captured_at` | When that statement was captured (statements change over time) |
+| `origin_usage_snapshot_ref` | Stored copy or hash of the statement and page as captured |
+| `lgfc_outcome` | `permitted` or `not_permitted` (default `not_permitted`) |
+| `outcome_basis` | Why: `origin_statement`, `email_permission`, `email_denial`, `no_response`, `fee_required`, `public_domain`, `manual_lgfc_decision` |
+| `outcome_set_at`, `outcome_set_by` | When and who (person or named automation) |
+| `permission_request_status` | `not_needed`, `not_sent`, `sent`, `follow_up_sent`, `reply_received`, `closed` |
+| `request_sent_at`, `reply_received_at` | Email dates |
+| `permission_exchange_id` | Link to the archived exchange (messages, addresses, bodies, attachments) |
+
+**Append-only decision history.** Each evaluation step is a new event and is
+never overwritten: event time, actor, from-outcome, to-outcome, basis, notes,
+and references to the evidence used (origin statement snapshot, email message,
+manual decision note). A correction adds a new event. The outcome as of any past
+date can be rebuilt from the history.
+
+**Content and communications.** The content record, every evaluation, every
+permission request, and every reply are all retained, including the full email
+body, date, sender and replier. The D1 build is tracked on #4523 and #4526.
+
 ## Usage categories
 
 | Category | Clearance state | Credit |
