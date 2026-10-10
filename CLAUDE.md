@@ -15,6 +15,10 @@ before it is actually mergeable.
 
 ## Continuous workflow
 
+At session start, before other queue work, run the `permission-inbox-check` skill
+(`.claude/skills/permission-inbox-check/SKILL.md`) to check for replies to permission
+requests.
+
 Work continuously. Finishing one assignment is not a stop, and waiting on review,
 checks or a merge is not a stop. Details are in the `continuous-workflow` skill
 (`.claude/skills/continuous-workflow/SKILL.md`). The authoritative definitions are
