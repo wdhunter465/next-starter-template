@@ -17,6 +17,15 @@ The LGFC content library needs text-based stories to pair with pictures. This pa
 
 "Free to use" here means the source states the license itself. Collection records what the source asserts. A human still sets the rights conclusion (#3551).
 
+## The simple rule
+
+Every found item ends in one of two outcomes:
+
+1. **Use:** the content is free use, or the owner gave permission. It is added to the LGFC library and used on the LGFC website, with the source cited.
+2. **Do not use:** there is no permission (denied, fee required, rights retained and no grant). The item is noted in the library so it is not added again if a later search finds it, and it is never used on the website.
+
+While a permission request is waiting for an answer, the item stays recorded and unused. No reply is treated the same as no permission.
+
 ## Collection versus admission
 
 Two separate stages:
