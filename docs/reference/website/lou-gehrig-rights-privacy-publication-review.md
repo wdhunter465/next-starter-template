@@ -47,6 +47,19 @@ that cannot be hosted stays as a collection record and is held for permission or
 rejected; it is not converted into a link on the site. Existing `link-only` rows
 move to `permission-needed` or `rejected`.
 
+## The simple rule (Product Authority, 2026-10-10)
+
+Every found item ends in one of two outcomes:
+
+- **Use:** free use or permission received. The item is added to the LGFC library
+  and used on the website with its source cited.
+- **Do not use:** no permission (denied, fee required, or rights retained with no
+  grant). The item is noted in the library so a later search does not add it
+  again, and it is never used on the website.
+
+Pending requests and unanswered requests are recorded and unused, the same as
+no permission.
+
 ## Usage categories
 
 | Category | Clearance state | Credit |
