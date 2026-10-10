@@ -6,7 +6,7 @@ Owns: Package-complete project-child and child-remediation Issue format
 Does Not Own: Project Graduation, priority, Product/Production decisions, PR approval, or merge authority
 Canonical Reference: /docs/governance/WORK-QUEUES-AND-COLLABORATION.md
 Related Issues: #3055, #3113, #3134, #3145, #3665
-Last Reviewed: 2026-09-18
+Last Reviewed: 2026-10-10 (retired WORK actor → PMO Admin, #3055)
 ---
 
 # Executable Child Task Template
@@ -21,13 +21,13 @@ The machine-readable projection of this template's required fields, plus determi
 - Parent project: #____
 - Task ID / sequence: ____
 - Project Graduation GO: ____
-- Predecessor and required WORK acceptance: ____ (ordered predecessor — not queue-wide block)
+- Predecessor and required PMO Admin acceptance: ____ (ordered predecessor — not queue-wide block)
 - Successor: #____ | terminal
 - Execution relationship: serial | parallel-authorized
 - Parallel collision proof: ____ | not applicable
 - Advisory prerequisites (comments only; do not deny collision-safe work): ____
 - Assigned Implementation / Operations role holder: ____ (preserve Product-authorized routing)
-- WORK acceptance/closeout owner: WORK
+- PMO Admin acceptance/closeout owner: PMO Admin
 
 ## Objective and deliverable
 
@@ -89,7 +89,7 @@ Record on the live Issue before branch creation or editing:
 - exact starting SHA;
 - working branch;
 - allowlist confirmation;
-- predecessor deterministic-completion evidence (validated merge + post-merge closeout, or WORK `ACCEPT` when a substantive gate is defined);
+- predecessor deterministic-completion evidence (validated merge + post-merge closeout, or PMO Admin `ACCEPT` when a substantive gate is defined);
 - package-complete confirmation;
 - collision/dependency/hold check (distinguish advisory prerequisite, ordered predecessor, real collision, protected stop);
 - Team eligibility and `agent:*` claim confirmation (`team:*` ownership unchanged);
@@ -110,9 +110,9 @@ Result: `PASS` | `PACKAGE-INCOMPLETE` | `HOLD` (evidence-specific protected stop
 - PR/integration identity;
 - scope confirmation.
 
-## WORK closeout packet
+## PMO Admin closeout packet
 
-WORK independently reviews the source package, final diff, tests, checks, review dispositions, integration identity, post-integration evidence, documentation, rollback, and unresolved exceptions when substantive assurance is required or a discrepancy appears.
+PMO Admin independently reviews the source package, final diff, tests, checks, review dispositions, integration identity, post-integration evidence, documentation, rollback, and unresolved exceptions when substantive assurance is required or a discrepancy appears.
 
 Disposition: `ACCEPT` | `HOLD` (HOLD contract complete) | `REMEDIATE` | `VERIFY MORE` | `MITIGATE AND CONTINUE` | `BOUNDED EXCEPTION` | `RESEQUENCE`
 
@@ -126,6 +126,6 @@ On deterministic predecessor completion (and on `ACCEPT` when a substantive gate
 - emit runtime wake transport if applicable;
 - do not require repeat Administration or PMO dispatch.
 
-While predecessor is in review, WORK prepares the successor package before implementer idle time.
+While predecessor is in review, PMO Admin prepares the successor package before implementer idle time.
 
-WORK cannot independently verify or approve a PR implemented by WORK.
+PMO Admin cannot independently verify or approve a PR it implemented.
