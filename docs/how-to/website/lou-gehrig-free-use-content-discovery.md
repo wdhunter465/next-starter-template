@@ -17,6 +17,15 @@ The LGFC content library needs text-based stories to pair with pictures. This pa
 
 "Free to use" here means the source states the license itself. Collection records what the source asserts. A human still sets the rights conclusion (#3551).
 
+## Hosted content only (no link-only content)
+
+LGFC collects only content it can host and display on its own site: full text, an image, an excerpt with credit. A lead whose value is "go read this on another site" is not collected.
+
+- Members stay on the LGFC website. Content must not send them away to read it.
+- Content must not open new tabs or switch the site the member is viewing, because that degrades the experience.
+- The credit line names the source, author and license in text on the page. A plain citation URL may sit in the credit line, but it is never the content itself.
+- If a source's terms do not allow hosting (no license, rights retained, no permission), the item is not link-only content. It goes to the permission form letter, and stays on hold until LGFC may host it.
+
 ## What counts as free to use with credit
 
 | Signal | Use | Credit needed |
@@ -40,7 +49,7 @@ Publication year alone is not enough for later works. A 1939 text may still be u
 | Wikipedia and Wikisource (API) | Gehrig, 1927 Yankees, "Luckiest Man" speech, Gehrig's Appreciation Day | CC BY-SA text | Not yet collected |
 | Library of Congress, Chronicling America | Newspaper stories on Gehrig, 1920–1930 | Public domain before 1931 | Not yet collected; `loc.gov` is blocked from the cloud sandbox |
 | Internet Archive | Books, magazines, newsreels before 1931; 1927 column series "Following the Babe" (Oakland Tribune, Pittsburgh Press, Ottawa Daily Citizen) | Per item; check each license field | Not yet collected |
-| National Archives (NARA) | "An Awful Lot to Live For: Lou Gehrig's Final Season in the News" and the Universal News newsreel | Government-held | Lead found, rights to verify |
+| National Archives (NARA) | "An Awful Lot to Live For: Lou Gehrig's Final Season in the News" text and the Universal News newsreel | Government-held; host a copy only after rights are verified | Lead found, rights to verify |
 | NPS, NIH, and other US agencies | ALS history and Gehrig stories | US government work | Not yet collected |
 | Open-access library repositories (university digital collections) | Columbia-era stories and photos | Per item | Not yet collected |
 
@@ -57,6 +66,7 @@ Publication year alone is not enough for later works. A 1939 text may still be u
 
 These came up in searches and are not free-use by default. Use the permission form letter if the content is wanted.
 
+- SABR articles, the Columbia research guide and similar pages that are only worth a link: excluded as link-only content.
 - SABR BioProject biographies and SABR Rucker Archive images: jointly owned by SABR and the authors; no open license found.
 - Detroit Public Library Ernie Harwell collection: rights retained by the library.
 - Densho Nippu Jiji archive: copyright restricted, non-commercial educational use allowed by the holder.
@@ -64,7 +74,7 @@ These came up in searches and are not free-use by default. Use the permission fo
 - *Lou Gehrig: The Lost Memoir* (Simon & Schuster, 2020): modern copyrighted edition. The 1927 newspaper columns it draws on may be public domain, but the book is not.
 - Fordham Internet Modern History Sourcebook transcript of the 1939 speech: copyright status not established.
 
-## Search recipes
+## Procedure: search recipes
 
 For each source, run a query set rather than one query:
 
