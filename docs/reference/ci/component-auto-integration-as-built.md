@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: As-built component child auto-integration evaluator, workflow behavior, and GitHub-native state surfaces
 Does Not Own: Delivery policy boundaries, approval authority, or branch protection configuration
 Canonical Reference: /docs/governance/DELIVERY-AND-RELEASE.md
-Related Issues: #2498, #2501, #2502, #2588, #3151
-Last Reviewed: 2026-08-09
+Related Issues: #2498, #2501, #2502, #2588, #3151, #3465, #4552
+Last Reviewed: 2026-10-10
 ---
 
 # Component Auto-Integration As-Built
@@ -44,7 +44,8 @@ Return shape:
 | `approvalProfile` | Classified or supplied approval profile |
 | `componentBranch` | Classified or supplied component branch metadata |
 | `componentMaster` | Classified or supplied component-master issue reference |
-| `protectedChange` | Whether the evaluated profile contains protected scope |
+| `protectedChange` | Whether the evaluated profile contains protected scope (reported; does not by itself block) |
+| `protectedStop` | Whether the evaluated profile touches a protected stop (#3465); this is what requires review |
 
 Supporting constants:
 
@@ -60,7 +61,7 @@ The evaluator blocks auto-integration when any of the following are true:
 | `failed_check` | Any required check reports a terminal failure |
 | `pending_check` | Any required check is still running or queued |
 | `non_component_base` | PR base is not `component/**` |
-| `protected_change` | Protected paths changed or approval profile is `protected-change-review`, and no independent current-head APPROVED review has been recorded yet |
+| `protected_change` | A protected stop changed or approval profile is `protected-change-review`, and no independent current-head APPROVED review has been recorded yet |
 | `protected_change_stale_approval` | An independent APPROVED review exists, but only for a prior head — the head changed since approval and a fresh review is required |
 | `component_hold` | Component state is `hold` or a hold label is present |
 | `component_red_state` | Component branch integration state is `red` |
@@ -81,7 +82,7 @@ Protected changes set `requiresChatReview: true` only while `protected_change` o
 4. **current-head `CHANGES_REQUESTED`** — remains blocking via the separate, unchanged `changes_requested` check regardless of protected-change state;
 5. **self-approval** — an APPROVED review that exists only from the implementation actor never satisfies the requirement; `protected_change` stays present alongside the general `implementer-self-approval` finding.
 
-Reviewer identity for this check prefers an attested `Reviewer actor:` field in the review body (`reviewerActor()` from `scripts/ci/reviewer_lifecycle_gate.mjs`) over the raw GitHub review author, matching the identity resolution already used elsewhere in this evaluator. The evaluator only ever reads real GitHub review state (author identity, review state, `commit_id`) — it verifies that authorized review evidence exists; it never infers or invents the Engineering decision. Non-protected children never run this check at all.
+Reviewer identity for this check prefers an attested `Reviewer actor:` field in the review body (`reviewerActor()` from `scripts/ci/reviewer_lifecycle_gate.mjs`) over the raw GitHub review author, matching the identity resolution already used elsewhere in this evaluator. The evaluator only ever reads real GitHub review state (author identity, review state, `commit_id`) — it verifies that authorized review evidence exists; it never infers or invents the Engineering decision. Children without a protected stop never run this check at all, even when they change other protected paths (#3465); those paths are reviewed on the Model B promotion PR. The CLI reads changed workflow content from `COMPONENT_INTEGRATION_CONTENT_ROOT`, which the workflow fills from the PR head with `git show`; without it, changed workflows are treated as stops.
 
 ## Positive rule
 
