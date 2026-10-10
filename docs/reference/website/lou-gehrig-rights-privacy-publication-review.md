@@ -151,6 +151,20 @@ Records and dates). Outreach to CMG is the first priority.
   created assigned to team:Operations and the Product Authority, who sets the
   final state. The decision is recorded in D1.
 
+## Fair use and challenges (Product Authority, 2026-10-10)
+
+The short-quote path stays: a short quote with attribution under editorial
+fair-use judgment, within the limits of the excerpt table. Rules:
+
+- Only a person makes a fair-use decision. Automation never does; an automated
+  evaluation that would depend on fair use is ambiguous and not permitted.
+- A fair-use decision is recorded as `permitted` with basis `manual_lgfc_decision`
+  and a written rationale, dated like any other record.
+- It covers short quotes only, not photos, full articles or video.
+- LGFC accepts that any owner may challenge a permission, including in error. When
+  an owner contacts LGFC, the content is set to `not_permitted` in a new dated
+  record, taken off the site, and the contact is recorded.
+
 ## Citation
 
 LGFC cites the source for all content used. The default format is:
