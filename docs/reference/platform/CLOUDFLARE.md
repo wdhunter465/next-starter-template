@@ -52,6 +52,8 @@ Binding name remains `DB` in both environments; physical database is selected by
 
 **Production database inventory (as shown in D1 Studio sidebar, 2026-08-11; not re-enumerated 2026-10-10):**
 
+This list is incomplete. Later migrations add tables not shown here (for example `content_items`, `rights_evidence`, `sources`, `content_inventory`). Until the next live listing (#4537), `migrations/` is authoritative for the table set.
+
 - `admin_team_worklist`
 - `content_blocks`
 - `content_revisions`
