@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: Backblaze B2 resource inventory and B2↔D1 sync facts as a supporting specification
 Does Not Own: Platform and Environment Domain Policy; UI design specifics; PR process; incident response playbooks
 Canonical Reference: /docs/governance/PLATFORM-AND-ENVIRONMENT.md
-Related Issues: #2688
-Last Reviewed: 2026-07-21
+Related Issues: #2688, #4534, #4538
+Last Reviewed: 2026-10-10
 ---
 
 # Backblaze B2 — Resource Inventory (LGFC)
@@ -28,7 +28,18 @@ This file is **not** a Domain Policy co-owner. Domain-policy conflicts resolve t
 
 ---
 
-## Bucket Inventory (from console screenshots)
+## Live evidence (2026-10-10)
+
+| Evidence | Result | What it proves |
+| --- | --- | --- |
+| `b2-s3-smoke-test.yml` scheduled runs (06:15 UTC daily), 2026-10-08, 2026-10-09, 2026-10-10 (run `38031719442`) | success | The bucket in `B2_BUCKET` is reachable through the S3-compatible endpoint in `B2_ENDPOINT` with the repository credentials; failures open an `ops-runtime-failure` Issue through `scripts/ci/ops_runtime_escalation.mjs` |
+| `b2-d1-daily-sync.yml` scheduled runs, 2026-10-09 and 2026-10-10 (run `38039963078`) | success | The daily B2 → D1 sync completes |
+
+The bucket facts below (file count, size, versioning, encryption, Object Lock, replication) come from console screenshots and were **not** re-verified on 2026-10-10. Cursor Local has no B2 credentials and does not add them; re-verification needs a console check by Product Authority. The asset register row is `b2:bucket:LouGehrigFanClub` in `docs/reference/platform/lgfc-asset-register.md`.
+
+---
+
+## Bucket Inventory (from console screenshots, 2026-07-21)
 
 Bucket:
 - Name: `LouGehrigFanClub`
