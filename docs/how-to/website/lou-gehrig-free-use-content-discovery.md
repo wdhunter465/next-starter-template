@@ -86,14 +86,48 @@ For each source, run a query set rather than one query:
 
 For free-use searching, also filter by license where the source allows it: Openverse and Commons license filters, Internet Archive `licenseurl`, Chronicling America date range 1920–1930.
 
-## Recording
+## Recording: one record shape for every search
 
-Every candidate found must record, at collection time:
+Every search, from every source, records the same fields, so LGFC can always account for where an item came from. The fields below already exist on the candidate and its `rights_evidence` row (see the rights data dictionary).
 
-- `source_url`, `source_name`, `source_owner`, and `date_accessed`;
-- `credit_line` exactly as the source states it;
-- the source's own license or rights text in `rights_evidence`;
-- `review_status = pending_review` and `publication_status = not_ready`.
+| Field | What it holds |
+| --- | --- |
+| `source_name`, `source_domain`, `source_url` | Where the item was found |
+| `source_owner` | The actual creator or rights holder, not just the host site |
+| `date_accessed` and the search run (`run_uid`, query, source) | When and how it was found |
+| `credit_line` | The credit exactly as the source states it |
+| `evidence_text` | The source's own license or rights text, unedited |
+| `evidence_type`, `evidence_url` | Kind of evidence and the page it came from |
+| `contact_info` | How to reach the owner, when offered |
+| `usage_decision`, `conclusion`, `reviewer` | LGFC's decision and who made it |
+
+New candidates start at `review_status = pending_review`, `publication_status = not_ready` and `usage_decision = hold`.
+
+### Usage categories
+
+Every collected item falls into exactly one of these.
+
+| Category | When it applies | `usage_decision` | `conclusion` | Credit on the page |
+| --- | --- | --- | --- | --- |
+| Free use | Public domain, CC0, US government work | `permit` | `public_domain_confirmed` | Courtesy credit |
+| Free use with credit cited | The source's license allows use if credited (CC BY, CC BY-SA, stated "use with credit") | `permit` | `permission_granted`, `evidence_type` names the license | Required: `credit_line` plus license |
+| Free use with permission given | The owner granted permission in writing after our request | `permit` | `permission_granted`, evidence is the stored reply | Exactly as the owner specified |
+| Fee required | The source or owner wants payment or a license fee | `deny` | none | None: never published |
+| Unknown or unclear | No usable statement | `hold` | none | None until resolved |
+
+### Content that costs money: record it, flag it, never use it
+
+LGFC does not pay for content. If a source says a fee, license charge or payment is required:
+
+1. Still record the item with the full set of fields above, with the fee wording in `evidence_text`, so the same item is not re-researched.
+2. Set `usage_decision = deny` and add `FEE REQUIRED: DO NOT USE ON LGFC WEBSITE` to `admin_notes`.
+3. Never publish it, never send a permission letter for it unless the owner offers a free grant, and exclude it from publication prep.
+
+Content that needs a written permission but no fee goes to the permission form letter and stays on `hold` until a grant arrives.
+
+### Gaps to close in code
+
+Today a fee-required item and a permission-needed item both land on `deny` or `hold`, and CC license use and a written grant both use `permission_granted`. The distinction is only in free text. A follow-up Issue adds explicit structured fields (`usage_basis` and a fee flag) and applies them in the collector so every search records them the same way.
 
 Pair text with images: when a story candidate and an image candidate share a person, event, or year, record the link in `admin_notes` so editors can publish them together.
 
