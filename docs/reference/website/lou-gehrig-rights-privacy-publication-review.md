@@ -167,6 +167,27 @@ fair-use judgment, within the limits of the excerpt table. Rules:
   an owner contacts LGFC, the content is set to `not_permitted` in a new dated
   record, taken off the site, and the contact is recorded.
 
+## LGFC original content (reworded stories)
+
+A story that LGFC writes in its own words is LGFC original content and enters the
+archive as an owned record. Two routes put text into the archive: hosting free-use
+text with its source cited, or writing original LGFC content from the facts. Rules
+for the second route:
+
+- Facts, dates and events are not protected; the way a source expresses them is.
+  Original content is built from facts, in new structure and wording, ideally from
+  more than one source.
+- It must not follow a single source's structure, sequence or phrasing closely. A
+  close paraphrase is still derived from that source and takes that source's status.
+  A close adaptation of a CC BY-SA text carries CC BY-SA.
+- Text that was not permitted is never reworded into original content by closely
+  following it. Writing from the facts across several sources is allowed.
+- Quotations are used only if permitted.
+- A person edits and approves every original piece before publication. A draft by
+  automation or AI is not original LGFC content until a person has done so.
+- The record is dated like any other. It lists the source records the facts came
+  from, and the story carries a sources list in the default citation format.
+
 ## Source cost flag
 
 Origins that require a fee, subscription or other cost are flagged in the D1
