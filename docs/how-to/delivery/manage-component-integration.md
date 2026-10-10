@@ -5,8 +5,8 @@ Authority Level: Procedure
 Owns: Operator procedure for managing Model B component child auto-integration, holds, and rollback disablement
 Does Not Own: Delivery policy, evaluator implementation, or branch protection configuration
 Canonical Reference: /docs/governance/DELIVERY-AND-RELEASE.md
-Related Issues: #2498, #2502, #3151
-Last Reviewed: 2026-08-09
+Related Issues: #2498, #2502, #3151, #3465, #4552
+Last Reviewed: 2026-10-10
 ---
 
 # Manage Component Integration
@@ -38,7 +38,7 @@ Component master: #<program-issue>
 Approval profile: component-auto-integration
 ```
 
-Protected-path changes require `protected-change-review` and block auto-integration until an independent PR Approver / Engineering actor submits an APPROVED review linked to the current head (#3151). The implementation actor's own approval never satisfies this; an approval left on a prior head is stale and must be refreshed after any new commit.
+Children that touch a protected stop (`.github/CODEOWNERS`, `wrangler*.toml`, `functions/api/auth/**`, or a workflow that uses non-`GITHUB_TOKEN` secrets, deploys, targets `production`, or uses `pull_request_target` / `workflow_run`) require `protected-change-review` and block auto-integration until an independent PR Approver / Engineering actor submits an APPROVED review linked to the current head (#3151, #3465). Other protected paths such as migrations, `scripts/ci/**`, and `docs/governance/**` use `component-auto-integration`; they are reviewed when the component is promoted to `main`. The implementation actor's own approval never satisfies this; an approval left on a prior head is stale and must be refreshed after any new commit.
 
 ### 2. Run technical verification
 
@@ -116,6 +116,8 @@ gh api repos/wdhunter465/next-starter-template/rulesets/15885337
 
 - [ ] Negative fixtures block failed, pending, protected, hold, red, mismatch, missing master, and stale-base cases
 - [ ] Eligible non-protected child fixture returns `eligible: true`
+- [ ] A child changing only non-stop protected paths (for example a migration) returns `eligible: true` with `protectedChange: true` (#3465)
+- [ ] A Model B promotion PR with protected paths fails `reviewer-response-completion` until an independent current-head approval exists
 - [ ] Protected-change fixtures cover all five #3151 states: review pending, independent approval satisfied, stale approval, current-head changes-requested, and self-approval
 - [ ] An independent current-head APPROVED review clears `protected_change`/`protected_change_stale_approval` without weakening any other blocker
 - [ ] Workflow publishes `Component Integration Eligibility` on child PRs targeting `component/**`
