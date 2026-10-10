@@ -6,7 +6,7 @@ Owns: Metadata fields required for Lou Gehrig content candidates
 Does Not Own: Publication automation, scraping, OCR, AI enrichment, or public routing
 Canonical Reference: /docs/ops/pmo/lou-gehrig-content-collection-expansion-readiness.md
 Related issues: #1738, #1741, #1739, #1740
-Last Reviewed: 2026-07-04
+Last Reviewed: 2026-10-10
 ---
 
 # Lou Gehrig Content Metadata Schema
@@ -30,7 +30,7 @@ rights, editorial review, and future publication-safety automation.
 | `acquisition_method` | yes | manual lead, public archive, owned media, user submission, operator research, other. |
 | `date_accessed` | yes | Date the source was reviewed. |
 | `original_publication_date` | if known | Original publication date or date range. |
-| `rights_status` | yes | unknown, public-domain-candidate, permission-needed, permission-granted, owned, link-only, rejected. |
+| `rights_status` | yes | unknown, public-domain-candidate, permission-needed, permission-granted, owned, fee-required, rejected. (`link-only` retired 2026-10-10: hosted content only; see rights review model.) |
 | `credit_line` | yes | Required attribution or internal note explaining why no public credit line applies. |
 | `provenance_confidence` | yes | high, medium, low. |
 | `factual_confidence` | yes | high, medium, low. |

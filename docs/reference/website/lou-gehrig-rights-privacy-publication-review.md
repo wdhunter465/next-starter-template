@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: Clearance states, public-domain review, privacy review, excerpt/summary treatment, and no-publish conditions
 Does Not Own: Legal conclusions, runtime enforcement, or public publication
 Canonical Reference: /docs/ops/pmo/lou-gehrig-content-collection-expansion-readiness.md
-Related issues: #1738, #1742, #1741
-Last Reviewed: 2026-07-04
+Related issues: #1738, #1742, #1741, #4524
+Last Reviewed: 2026-10-10
 ---
 
 # Lou Gehrig Rights, Privacy, and Publication Review Model
@@ -28,8 +28,31 @@ authority on ambiguous cases.
 | `permission-needed` | Rights holder approval required | Block public use |
 | `permission-granted` | Documented approval | Allowed per license terms |
 | `owned` | LGFC owns or created | Allowed with credit |
-| `link-only` | Citation/reference only | No reproduction; link allowed |
+| `fee-required` | Source or owner wants payment or a license fee | Must not use; record and flag only |
+| `link-only` | Retired 2026-10-10 | Not a collected state; see Hosted content only |
 | `rejected` | Rights unacceptable | Must not use |
+
+## Hosted content only (Product Authority, 2026-10-10)
+
+LGFC collects only content it can host and display on its own site. Link-only
+content is not collected: members stay on the LGFC website, and content must not
+open new tabs or switch the site the member is viewing. A source URL may appear
+in the credit line as a citation but is never the content. Items that cannot be
+hosted are held for permission or rejected, not converted to a link. Existing
+`link-only` rows move to `permission-needed` or `rejected`.
+
+## Usage categories
+
+| Category | Clearance state | Credit |
+| --- | --- | --- |
+| Free use (public domain, CC0, US government work) | `public-domain-candidate`, then confirmed | Courtesy |
+| Free use with credit cited (CC BY, CC BY-SA, stated use-with-credit) | `permission-granted` (license is the grant) | Required |
+| Free use with permission given (owner's written grant) | `permission-granted` (reply stored as evidence) | As the owner specified |
+| Fee required | `fee-required` | None: never published |
+
+LGFC pays for no content. A fee-required item is still recorded in full, flagged
+`FEE REQUIRED: DO NOT USE ON LGFC WEBSITE`, and excluded from publication prep.
+Permission requests use `docs/how-to/website/lou-gehrig-permission-request-form-letter.md`.
 
 ## Public-domain review process
 
@@ -58,17 +81,16 @@ Do not publish private personal data about living people without explicit review
 | --- | --- | --- |
 | Short quote with attribution | Fair use editorial judgment + rights review | Credit line, source citation |
 | Summary in operator words | Rights allow reference | No wholesale copying |
-| Link-only reference | High copyright risk | No body reproduction |
 | Photo thumbnail | Rare; high bar | Explicit permission or PD confirmation |
 
-When uncertain, use link-only/reference-only and defer public-copy approval.
+When uncertain, hold the item (`unknown` or `permission-needed`) and defer public-copy approval. Do not substitute a link.
 
 ## No-publish conditions
 
 Block publication (public routes, `content_inventory`, Fan Club surfaces) when:
 
 - `review_status` is not `approved-for-public-copy`;
-- `rights_status` is `unknown`, `permission-needed`, or `rejected`;
+- `rights_status` is `unknown`, `permission-needed`, `fee-required`, or `rejected`;
 - `privacy_flag` requires unresolved consent or redaction;
 - `factual_confidence` is `low` without approved uncertainty language;
 - `rejection_reason` is present;

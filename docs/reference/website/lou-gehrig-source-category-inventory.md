@@ -6,7 +6,7 @@ Owns: Approved Lou Gehrig content source categories, intake channels, evidence f
 Does Not Own: Runtime ingestion, scraping, OCR, AI enrichment, publication automation, or public routing
 Canonical Reference: /docs/ops/pmo/lou-gehrig-content-collection-expansion-readiness.md
 Related issues: #1738, #1739, #1685, #1256
-Last Reviewed: 2026-07-04
+Last Reviewed: 2026-10-10
 ---
 
 # Lou Gehrig Source Category Inventory
@@ -58,12 +58,12 @@ wholesale copies of copyrighted works in the repository.
 | --- | --- | --- | --- | --- | --- |
 | Public archives | Library of Congress, National Baseball Hall of Fame archives | Operator research; catalog citation | Low–medium; verify reproduction terms | Source title, citation, owner, date accessed, rights status | Operator / editor |
 | Books (reference) | Biographies, historical accounts | Operator research; citation only | Medium; no full-text import | Source title, author, publisher, page/chapter citation, rights status | Operator / editor |
-| Newspaper articles | Historical press coverage | Archive index or licensed database citation | Medium–high; often link-only | Source title, publication, date, citation/URL, rights status | Operator / editor |
+| Newspaper articles | Historical press coverage | Archive index or licensed database citation | Medium–high; host only when public domain or permission granted; otherwise not collected | Source title, publication, date, citation/URL, rights status | Operator / editor |
 | MLB / Yankees official sources | MLB.com historical content, Yankees archives | Public page citation or licensed media | Medium; often permission-needed for media | Source URL, owner, credit line, rights status | Operator / editor |
 | Museums and institutions | Cooperstown, ALS Association historical materials | Institution catalog or outreach | Medium; permission often required | Source title, institution, catalog ID, rights status | Operator / editor |
 | LGFC-owned media | Club photos, event records, operator-created copy | Internal archive | Low when ownership documented | Acquisition method, credit line, rights status (`owned`) | Operator / editor |
 | User-submitted leads | Member tip about a Gehrig artifact or story | `/fanclub/submit` or operator email | Medium; privacy review required | Submitter context, source description, privacy flag | Operator / editor |
-| Academic / reference databases | Peer-reviewed historical analysis | Citation and abstract only | Medium; link/citation preferred | Source title, author, DOI/URL, rights status | Operator / editor |
+| Academic / reference databases | Peer-reviewed historical analysis | Citation and abstract only | Medium; host only with an open license or permission; citation belongs in the credit line | Source title, author, DOI/URL, rights status | Operator / editor |
 | Timeline / milestone facts | Verifiable dates and events | Primary or secondary source citation | Low–medium when corroborated | Source citation, factual confidence, provenance confidence | Operator / editor |
 | Photo / artifact leads | Historical photograph or memorabilia lead | Catalog reference; not binary import without rights | High for images | Source owner, credit line, rights status, privacy flag | Operator / editor |
 
@@ -75,7 +75,9 @@ documented exception path:
 | Category | Risk | Action |
 | --- | --- | --- |
 | Scraped social media content | Copyright, privacy, unstable URLs | Reject |
-| Paywalled full-text copies | Copyright violation | Reject; citation/link only |
+| Paywalled full-text copies | Copyright violation | Reject; no link-only substitute |
+| Content requiring a license fee | LGFC pays for no content | Record, flag `FEE REQUIRED: DO NOT USE`, never publish |
+| Link-only leads | Members leave the site; poor experience | Not collected |
 | Copyrighted full-text imports into repo | Repository liability | Reject |
 | Unverifiable AI-generated claims | No source authority | Reject |
 | Unattributed images | Rights and credit unknown | Reject until source established |
