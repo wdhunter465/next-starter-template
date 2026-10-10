@@ -38,7 +38,7 @@ Component master: #<program-issue>
 Approval profile: component-auto-integration
 ```
 
-Children that touch a protected stop (`.github/CODEOWNERS`, `wrangler*.toml`, `functions/api/auth/**`, or a workflow that uses non-`GITHUB_TOKEN` secrets, deploys, targets `production`, or uses `pull_request_target` / `workflow_run`) require `protected-change-review` and block auto-integration until an independent PR Approver / Engineering actor submits an APPROVED review linked to the current head (#3151, #3465). Other protected paths such as migrations, `scripts/ci/**`, and `docs/governance/**` use `component-auto-integration`; they are reviewed when the component is promoted to `main`. The implementation actor's own approval never satisfies this; an approval left on a prior head is stale and must be refreshed after any new commit.
+Children that touch a protected stop (`.github/CODEOWNERS`, `wrangler*.toml`, `functions/api/auth/**`, or a workflow that uses non-`GITHUB_TOKEN` secrets, deploys, targets `production`, requests write-scoped or OIDC permissions, runs self-hosted, or uses `pull_request_target` / `workflow_run`) require `protected-change-review` and block auto-integration until an independent PR Approver / Engineering actor submits an APPROVED review linked to the current head (#3151, #3465). Other protected paths such as migrations, `scripts/ci/**`, and `docs/governance/**` use `component-auto-integration`; they are reviewed when the component is promoted to `main`. The implementation actor's own approval never satisfies this; an approval left on a prior head is stale and must be refreshed after any new commit.
 
 ### 2. Run technical verification
 

@@ -236,14 +236,20 @@ docs/governance/**
 .github/CODEOWNERS
 wrangler*.toml
 functions/api/auth/**
-.github/workflows/** whose PR-head content uses a secret other than
-  GITHUB_TOKEN, wrangler, `pages deploy`, cloudflare/wrangler-action or
-  cloudflare/pages-action, `environment: production`, `pull_request_target`,
-  or `workflow_run`
+.github/workflows/** whose PR-head content (YAML comment lines ignored) has:
+  any `secrets` reference other than `secrets.GITHUB_TOKEN`
+    (bracket form, `secrets: inherit`, and `toJSON(secrets)` all count),
+  wrangler, `pages deploy`, cloudflare/wrangler-action or
+    cloudflare/pages-action, `environment: production`,
+  `contents: write`, `packages: write`, `actions: write`, `id-token: write`,
+    or `write-all`,
+  `self-hosted`,
+  `pull_request_target`, or `workflow_run`
 ```
 
-A workflow whose head content cannot be read (for example a deleted file) is a
-stop (fail closed). The CLI reads content from `DELIVERY_PROFILE_CONTENT_ROOT`
+`issues: write` and `pull-requests: write` alone are not stops. A workflow whose
+head content cannot be read (for example a deleted file) is a stop (fail
+closed). Matching is intentionally broad; a false stop only adds a review. The CLI reads content from `DELIVERY_PROFILE_CONTENT_ROOT`
 (default: the working directory). The component-integration workflow extracts
 changed workflow files from the PR head with `git show` and never executes PR
 code. `protectedStop` decides the Model B child approval profile; `protectedChange`
