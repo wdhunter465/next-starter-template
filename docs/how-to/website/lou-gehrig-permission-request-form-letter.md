@@ -72,7 +72,7 @@ admin@lougehrigfanclub.com
 
 ## Notes for the sender
 
-- Ask only for content LGFC can host and display on its own site. Do not request permission to link out: members should stay on the LGFC website, and link-only content is not collected.
+- Ask only for content LGFC can host and display on its own site. Do not request permission to link out: members should stay on the LGFC website, and link-only content is not admitted to the libraries.
 - Keep one item or one closely related group per letter, so the answer maps to specific evidence.
 - Do not say or imply that permission has been granted, or that publication is scheduled.
 - Do not claim tax-exempt or charitable status. The letter says only what is true: free membership, no profit, full credit.
