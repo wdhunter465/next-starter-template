@@ -644,6 +644,17 @@ describe('protected-stop detection (#3465)', () => {
       'jobs:\n  a:\n    environment: production',
       'on:\n  pull_request_target:',
       'on:\n  workflow_run:',
+      "run: echo ${{ secrets['CLOUDFLARE_API_TOKEN'] }}",
+      'jobs:\n  call:\n    uses: ./.github/workflows/r.yml\n    secrets: inherit',
+      'env:\n  ALL: ${{ toJSON(secrets) }}',
+      'jobs:\n  t:\n    runs-on: self-hosted',
+      'jobs:\n  t:\n    runs-on: [self-hosted, lgfc-cursor]',
+      'permissions:\n  contents: write',
+      'permissions:\n  id-token: write',
+      'permissions:\n  packages: write',
+      'permissions:\n  actions: write',
+      'permissions: write-all',
+      "run: echo ${{ secrets['GITHUB_TOKEN'] }}",
     ];
     for (const content of cases) {
       expect(isProtectedStopPath('.github/workflows/x.yml', read(content))).toBe(true);
@@ -652,6 +663,17 @@ describe('protected-stop detection (#3465)', () => {
 
   it('lets plain workflows that only use GITHUB_TOKEN through', () => {
     const content = 'on:\n  pull_request:\njobs:\n  t:\n    steps:\n      - run: npm test\n        env:\n          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}';
+    expect(isProtectedStopPath('.github/workflows/x.yml', read(content))).toBe(false);
+  });
+
+  it('lets read-scoped and issue-writing workflows through and ignores YAML comments', () => {
+    const content = [
+      '# Uses no secrets; never deploys with wrangler.',
+      'on:\n  schedule:\n    - cron: "0 * * * *"',
+      'permissions:\n  contents: read\n  issues: write',
+      'jobs:\n  t:\n    runs-on: ubuntu-latest\n    steps:\n      - run: node probe.mjs',
+      '        env:\n          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}',
+    ].join('\n');
     expect(isProtectedStopPath('.github/workflows/x.yml', read(content))).toBe(false);
   });
 

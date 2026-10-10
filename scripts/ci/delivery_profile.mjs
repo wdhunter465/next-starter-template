@@ -91,17 +91,25 @@ export const PROTECTED_STOP_PATTERNS = [
 const WORKFLOW_PATH = /^\.github\/workflows\/.+/;
 
 // A workflow is a stop when it can reach production or privileged context:
-// non-GITHUB_TOKEN secrets, wrangler / Pages deploys, a production environment,
-// or triggers that run with base-repository privileges.
+// any secret other than secrets.GITHUB_TOKEN (dot, bracket, inherit, toJSON),
+// wrangler / Pages deploys, a production environment, write-scoped or OIDC
+// permissions, self-hosted runners, or triggers that run with base-repository
+// privileges. Matching is deliberately broad: a false stop only adds a review.
 const WORKFLOW_STOP_CONTENT = [
-  /secrets\.(?!GITHUB_TOKEN\b)[A-Za-z_]/,
+  /\bsecrets\b/,
   /wrangler/i,
   /pages\s+deploy/i,
   /cloudflare\/(?:wrangler-action|pages-action)/i,
   /^\s*environment:\s*['"]?production/im,
   /pull_request_target/,
   /workflow_run/,
+  /self-hosted/i,
+  /\bwrite-all\b/,
+  /\b(?:contents|packages|actions|id-token):\s*write\b/,
 ];
+
+const GITHUB_TOKEN_SECRET = /\bsecrets\s*\.\s*GITHUB_TOKEN\b/g;
+const YAML_COMMENT_LINE = /^\s*#.*$/gm;
 
 export function readWorkingTreeFile(filePath, root = process.cwd()) {
   const fullPath = path.join(root, filePath);
@@ -118,7 +126,8 @@ export function isProtectedStopPath(filePath, readFileContent = readWorkingTreeF
   if (!WORKFLOW_PATH.test(normalized)) return false;
   const content = readFileContent(normalized);
   if (typeof content !== 'string') return true;
-  return WORKFLOW_STOP_CONTENT.some((pattern) => pattern.test(content));
+  const scanned = content.replace(YAML_COMMENT_LINE, '').replace(GITHUB_TOKEN_SECRET, '');
+  return WORKFLOW_STOP_CONTENT.some((pattern) => pattern.test(scanned));
 }
 
 function defaultMetadata() {
