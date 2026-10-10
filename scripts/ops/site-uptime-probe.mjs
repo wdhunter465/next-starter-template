@@ -11,8 +11,12 @@ export const DEFAULT_TARGETS = [
   { name: 'faq (www)', url: 'https://www.lougehrigfanclub.com/faq/' },
   { name: 'api health + D1', url: 'https://www.lougehrigfanclub.com/api/health', expectJson: { ok: true, db_ok: true } },
   { name: 'pages.dev host', url: 'https://next-starter-template-6yr.pages.dev/' },
-  { name: 'apex domain', url: 'https://lougehrigfanclub.com/' },
+  // Advisory while #4542 is open: reported, but does not fail the run or escalate.
+  // Remove `advisoryIssue` once the apex serves the site again.
+  { name: 'apex domain', url: 'https://lougehrigfanclub.com/', advisoryIssue: 4542 },
 ];
+
+const passesGate = (result) => result.ok || Boolean(result.advisoryIssue);
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -63,7 +67,7 @@ export async function checkTarget(target, { attempts = 2, retryDelayMs = 10_000,
 export async function runProbe(targets = DEFAULT_TARGETS, options = {}) {
   const results = [];
   for (const target of targets) results.push(await checkTarget(target, options));
-  return { ok: results.every((result) => result.ok), results };
+  return { ok: results.every(passesGate), results };
 }
 
 export function renderReport({ ok, results }, checkedAt = new Date().toISOString()) {
@@ -77,14 +81,15 @@ export function renderReport({ ok, results }, checkedAt = new Date().toISOString
     '| --- | --- | --- | --- |',
   ];
   for (const result of results) {
-    const outcome = result.ok ? `PASS (HTTP ${result.status})` : `FAIL — ${result.reason}`;
+    let outcome = result.ok ? `PASS (HTTP ${result.status})` : `FAIL — ${result.reason}`;
+    if (!result.ok && result.advisoryIssue) outcome = `ADVISORY ${outcome} (tracked in #${result.advisoryIssue})`;
     lines.push(`| ${result.name} | ${result.url} | ${outcome} | ${result.attempts} |`);
   }
   return lines.join('\n');
 }
 
 export function failingMarker({ results }) {
-  const names = results.filter((result) => !result.ok).map((result) => result.name).sort();
+  const names = results.filter((result) => !passesGate(result)).map((result) => result.name).sort();
   return `<!-- site-uptime-probe:failing=${names.join(',')} -->`;
 }
 
@@ -123,7 +128,7 @@ async function commentRecoveryIfOpen(report) {
   await fetch(`https://api.github.com/repos/${repository}/issues/${open.number}/comments`, {
     method: 'POST',
     headers: { ...headers, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ body: `${marker}\n## Recovered\n\nAll probe targets passed. Close this Issue once recovery is confirmed.\n\n${report}` }),
+    body: JSON.stringify({ body: `${marker}\n## Recovered\n\nAll required probe targets passed. Close this Issue once recovery is confirmed.\n\n${report}` }),
   });
   return open.number;
 }

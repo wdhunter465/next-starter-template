@@ -61,6 +61,25 @@ describe('runProbe and reporting', () => {
     expect(failingMarker(probe)).toBe('<!-- site-uptime-probe:failing=b -->');
   });
 
+  it('reports an advisory target failure without failing the run', async () => {
+    const withAdvisory = [...targets, { name: 'apex', url: 'https://apex.test/', advisoryIssue: 4542 }];
+    const fetchImpl = async (url) => (url.startsWith('https://apex') ? response(522) : response(200));
+    const probe = await runProbe(withAdvisory, { fetchImpl, retryDelayMs: 0 });
+    expect(probe.ok).toBe(true);
+    const report = renderReport(probe, '2026-10-10T00:00:00Z');
+    expect(report).toContain('- Overall: PASS');
+    expect(report).toContain('| apex | https://apex.test/ | ADVISORY FAIL — HTTP 522 (tracked in #4542) | 2 |');
+    expect(failingMarker(probe)).toBe('<!-- site-uptime-probe:failing= -->');
+  });
+
+  it('still fails the run when a required target fails alongside an advisory one', async () => {
+    const withAdvisory = [...targets, { name: 'apex', url: 'https://apex.test/', advisoryIssue: 4542 }];
+    const fetchImpl = async (url) => (url.startsWith('https://a.') ? response(200) : response(522));
+    const probe = await runProbe(withAdvisory, { fetchImpl, retryDelayMs: 0 });
+    expect(probe.ok).toBe(false);
+    expect(failingMarker(probe)).toBe('<!-- site-uptime-probe:failing=b -->');
+  });
+
   it('reports overall pass when all targets pass', async () => {
     const probe = await runProbe(targets, { fetchImpl: async () => response(200), retryDelayMs: 0 });
     expect(probe.ok).toBe(true);
