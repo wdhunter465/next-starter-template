@@ -6,7 +6,7 @@ Owns: Source metadata, credit display rules, contributor/researcher records, evi
 Does Not Own: Runtime schema implementation, D1 migrations, or public publication
 Canonical Reference: /docs/reference/website/lou-gehrig-content-metadata-schema.md
 Related issues: #1738, #1741, #1739, #1740
-Last Reviewed: 2026-07-04
+Last Reviewed: 2026-10-10
 ---
 
 # Lou Gehrig Source Provenance Model
@@ -40,6 +40,16 @@ apply. Provenance-specific requirements:
 | Confidence | `provenance_confidence`, `factual_confidence` |
 | Attribution | `credit_line` required for every candidate |
 
+## One record for every search
+
+Search collects a record for everything it finds; the content evaluation process decides what is admitted to B2 and D1. Every search from every source records the same provenance set so LGFC can
+always account for where content originated: `source_name`, `source_domain`,
+`source_url`, `source_owner`, `date_accessed`, the search run (`run_uid`, query,
+source), `credit_line`, the source's own license text, `contact_info` when
+offered, and the decision with its reviewer. Fee-required items are recorded the
+same way and flagged do-not-use. See
+`docs/how-to/website/lou-gehrig-free-use-content-discovery.md`.
+
 ## Credit display rules
 
 | Scenario | Credit requirement |
@@ -47,7 +57,9 @@ apply. Provenance-specific requirements:
 | LGFC-owned media | Credit line may state LGFC ownership; document acquisition |
 | Public archive citation | Credit archive name and catalog identifier |
 | Licensed or permission-granted | Credit per license terms; retain permission record in notes |
-| Link-only / reference-only | Credit may point to source URL; no full reproduction |
+| Link-only / reference-only | Retired 2026-10-10; not admitted to the libraries or shown on the site (hosted content only). The URL stays in the collection record |
+| Free use with credit cited | Credit per the source's license: author, title, license, source; required on the page |
+| Fee required | No credit; item is recorded and flagged do-not-use |
 | User submission | Credit submitter only when approved; separate source credit for underlying material |
 | Unknown rights | No public credit until rights review completes |
 

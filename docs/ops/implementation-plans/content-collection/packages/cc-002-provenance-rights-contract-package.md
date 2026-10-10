@@ -82,7 +82,7 @@ Implementers must normalize to **canonical** field names at runtime and in tests
 
 | Domain | Blocking values |
 | --- | --- |
-| `rights_status` | `unknown`, `permission-needed`, `rejected`, `link-only` (for reproduction), or draft equivalent `unknown_pending_review`, `restricted_do_not_publish`, `takedown_requested`, `internal_reference_only`, `fair_use_review_required` (unless Bill/ChatGPT approved) |
+| `rights_status` | `unknown`, `permission-needed`, `rejected`, `fee-required` (never publish; `link-only` retired 2026-10-10), or draft equivalent `unknown_pending_review`, `restricted_do_not_publish`, `takedown_requested`, `internal_reference_only`, `fair_use_review_required` (unless Bill/ChatGPT approved) |
 | `privacy_status` / `privacy_flag` | `private_admin_only`, unresolved `privacy_review_required`, `restricted_do_not_publish`, `takedown_requested`, unreviewed `contains_personal_information` |
 | `publication_status` / `review_status` | not `approved-for-public-copy` / `approved_for_publication` / `published` |
 | Suppression | `takedown_requested`, `suppressed`, `soft_deleted` |
