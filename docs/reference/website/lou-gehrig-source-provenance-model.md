@@ -42,7 +42,7 @@ apply. Provenance-specific requirements:
 
 ## One record for every search
 
-Every search from every source records the same provenance set so LGFC can
+Search collects a record for everything it finds; the content evaluation process decides what is admitted to B2 and D1. Every search from every source records the same provenance set so LGFC can
 always account for where content originated: `source_name`, `source_domain`,
 `source_url`, `source_owner`, `date_accessed`, the search run (`run_uid`, query,
 source), `credit_line`, the source's own license text, `contact_info` when
@@ -57,7 +57,7 @@ same way and flagged do-not-use. See
 | LGFC-owned media | Credit line may state LGFC ownership; document acquisition |
 | Public archive citation | Credit archive name and catalog identifier |
 | Licensed or permission-granted | Credit per license terms; retain permission record in notes |
-| Link-only / reference-only | Retired 2026-10-10; not collected (hosted content only) |
+| Link-only / reference-only | Retired 2026-10-10; not admitted to the libraries or shown on the site (hosted content only). The URL stays in the collection record |
 | Free use with credit cited | Credit per the source's license: author, title, license, source; required on the page |
 | Fee required | No credit; item is recorded and flagged do-not-use |
 | User submission | Credit submitter only when approved; separate source credit for underlying material |

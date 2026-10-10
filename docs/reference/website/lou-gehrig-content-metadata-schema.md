@@ -30,7 +30,7 @@ rights, editorial review, and future publication-safety automation.
 | `acquisition_method` | yes | manual lead, public archive, owned media, user submission, operator research, other. |
 | `date_accessed` | yes | Date the source was reviewed. |
 | `original_publication_date` | if known | Original publication date or date range. |
-| `rights_status` | yes | unknown, public-domain-candidate, permission-needed, permission-granted, owned, fee-required, rejected. (`link-only` retired 2026-10-10: hosted content only; see rights review model.) |
+| `rights_status` | yes | unknown, public-domain-candidate, permission-needed, permission-granted, owned, fee-required, rejected. (`link-only` retired 2026-10-10: not admitted to the libraries; see rights review model.) |
 | `credit_line` | yes | Required attribution or internal note explaining why no public credit line applies. |
 | `provenance_confidence` | yes | high, medium, low. |
 | `factual_confidence` | yes | high, medium, low. |

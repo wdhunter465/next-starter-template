@@ -29,17 +29,23 @@ authority on ambiguous cases.
 | `permission-granted` | Documented approval | Allowed per license terms |
 | `owned` | LGFC owns or created | Allowed with credit |
 | `fee-required` | Source or owner wants payment or a license fee | Must not use; record and flag only |
-| `link-only` | Retired 2026-10-10 | Not a collected state; see Hosted content only |
+| `link-only` | Retired 2026-10-10 | Not an admission state; see Collection versus admission |
 | `rejected` | Rights unacceptable | Must not use |
 
-## Hosted content only (Product Authority, 2026-10-10)
+## Collection versus admission (Product Authority, 2026-10-10)
 
-LGFC collects only content it can host and display on its own site. Link-only
-content is not collected: members stay on the LGFC website, and content must not
-open new tabs or switch the site the member is viewing. A source URL may appear
-in the credit line as a citation but is never the content. Items that cannot be
-hosted are held for permission or rejected, not converted to a link. Existing
-`link-only` rows move to `permission-needed` or `rejected`.
+Search collects the URL and provenance record for everything it finds, whatever
+its rights. Collection decides nothing about relevance or use. The content
+evaluation process in the repository decides what is relevant and what is
+admitted into the B2 and D1 libraries.
+
+Admission and website display are hosted-only. LGFC admits only content it can
+host and display on its own site: members stay on the LGFC website, and content
+must not open new tabs or switch the site the member is viewing. A source URL may
+appear in the credit line as a citation but is never the content. A found item
+that cannot be hosted stays as a collection record and is held for permission or
+rejected; it is not converted into a link on the site. Existing `link-only` rows
+move to `permission-needed` or `rejected`.
 
 ## Usage categories
 

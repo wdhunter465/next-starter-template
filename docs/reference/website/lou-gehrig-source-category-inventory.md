@@ -58,7 +58,7 @@ wholesale copies of copyrighted works in the repository.
 | --- | --- | --- | --- | --- | --- |
 | Public archives | Library of Congress, National Baseball Hall of Fame archives | Operator research; catalog citation | Low–medium; verify reproduction terms | Source title, citation, owner, date accessed, rights status | Operator / editor |
 | Books (reference) | Biographies, historical accounts | Operator research; citation only | Medium; no full-text import | Source title, author, publisher, page/chapter citation, rights status | Operator / editor |
-| Newspaper articles | Historical press coverage | Archive index or licensed database citation | Medium–high; host only when public domain or permission granted; otherwise not collected | Source title, publication, date, citation/URL, rights status | Operator / editor |
+| Newspaper articles | Historical press coverage | Archive index or licensed database citation | Medium–high; admit to the libraries only when public domain or permission granted; otherwise the URL record is kept and the item is not admitted | Source title, publication, date, citation/URL, rights status | Operator / editor |
 | MLB / Yankees official sources | MLB.com historical content, Yankees archives | Public page citation or licensed media | Medium; often permission-needed for media | Source URL, owner, credit line, rights status | Operator / editor |
 | Museums and institutions | Cooperstown, ALS Association historical materials | Institution catalog or outreach | Medium; permission often required | Source title, institution, catalog ID, rights status | Operator / editor |
 | LGFC-owned media | Club photos, event records, operator-created copy | Internal archive | Low when ownership documented | Acquisition method, credit line, rights status (`owned`) | Operator / editor |
@@ -77,7 +77,7 @@ documented exception path:
 | Scraped social media content | Copyright, privacy, unstable URLs | Reject |
 | Paywalled full-text copies | Copyright violation | Reject; no link-only substitute |
 | Content requiring a license fee | LGFC pays for no content | Record, flag `FEE REQUIRED: DO NOT USE`, never publish |
-| Link-only leads | Members leave the site; poor experience | Not collected |
+| Link-only leads | Members leave the site; poor experience | URL recorded at collection; not admitted to B2/D1 or shown on the site |
 | Copyrighted full-text imports into repo | Repository liability | Reject |
 | Unverifiable AI-generated claims | No source authority | Reject |
 | Unattributed images | Rights and credit unknown | Reject until source established |

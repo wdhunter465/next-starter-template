@@ -26,7 +26,7 @@ D1 owns story structure, metadata, search fields, placement rules, editorial sta
 - Alternate perspectives are allowed.
 - Automation performs objective triage only.
 - Humans make editorial and factual decisions.
-- Collect only content LGFC can host on its own site; no link-only content.
+- Search collects the URL and provenance for everything it finds. The content evaluation process decides relevance and what is admitted to the B2 and D1 libraries; only content LGFC can host on its own site is admitted, and the site shows no link-only content.
 - Every item records the same provenance set, whatever the source or search.
 - Content is free use, free use with credit cited, or free use with permission given. LGFC pays for no content; fee-required items are recorded and flagged do-not-use.
 - Detail: `docs/reference/website/lou-gehrig-rights-privacy-publication-review.md` and `docs/reference/website/lou-gehrig-source-provenance-model.md`.
