@@ -1,0 +1,37 @@
+name: OPS — Site Uptime Probe
+
+# Probes public production URLs (site pages, /api/health with D1, pages.dev, apex).
+# A failure opens or updates one Operations Issue; a later clean run comments
+# recovery on it. Public URLs only; GITHUB_TOKEN only (#4540).
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: ops-site-uptime-probe
+  cancel-in-progress: false
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Probe production site
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          OPS_ESCALATION_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: node scripts/ops/site-uptime-probe.mjs --escalate
