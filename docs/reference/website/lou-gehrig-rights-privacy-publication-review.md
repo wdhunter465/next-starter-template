@@ -110,12 +110,13 @@ status.
 | `cmg_permission` | CMG (Gehrig name and likeness) | Applies when the content shows or names Gehrig |
 | `mlb_permission` | MLB | Applies to MLB marks, logos and MLB-sourced media |
 | `yankees_permission` | The Yankees | Applies to Yankees marks, logos and Yankees-sourced media |
+| `privacy_status` | LGFC review | Applies when living people or minors appear; `not_applicable` otherwise |
 | `final_status` | Computed | `permitted` only when every applicable layer is `permitted` |
 
 Each layer value is `permitted`, `not_permitted`, `not_applicable` or
 `for_admin_review`. `not_applicable` never blocks. Any other term, including
 `for_admin_review`, counts as not permitted. The LGFC website uses `permitted`
-content only. Further layers (for example privacy for living people) follow the
+content only. Origin and privacy layers are retained for audit. Further layers follow the
 same pattern.
 
 **Party standing.** CMG, MLB and the Yankees each have a standing record (granted,
@@ -147,9 +148,10 @@ Records and dates). Outreach to CMG is the first priority.
 - An evaluation that lands ambiguous is treated as `not_permitted` and flagged
   with the reason, so a person can review why. The cause is either the code or an
   external variable that needs a better definition.
-- An evaluation that cannot proceed is set to `for_admin_review` and an Issue is
-  created assigned to team:Operations and the Product Authority, who sets the
-  final state. The decision is recorded in D1.
+- An evaluation that cannot proceed is set to `for_admin_review`. One Issue is
+  created per search cycle, listing every topic found in that cycle, assigned to
+  team:Operations and the Product Authority, who sets the final state for each.
+  Each decision is recorded in D1.
 
 ## Fair use and challenges (Product Authority, 2026-10-10)
 
@@ -164,6 +166,15 @@ fair-use judgment, within the limits of the excerpt table. Rules:
 - LGFC accepts that any owner may challenge a permission, including in error. When
   an owner contacts LGFC, the content is set to `not_permitted` in a new dated
   record, taken off the site, and the contact is recorded.
+
+## Source cost flag
+
+Origins that require a fee, subscription or other cost are flagged in the D1
+`sources` table. Searches skip flagged sources and focus on cost-free options.
+Content from a flagged source is `not_permitted` because LGFC does not buy
+content. If an automated search finds that a source needs payment, an API key or
+other cost, the finding is raised as a decision Issue and the decision is
+recorded in D1.
 
 ## Citation
 
