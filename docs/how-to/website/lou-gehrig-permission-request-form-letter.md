@@ -25,6 +25,18 @@ Do not use it for content that is already free to use with credit (public domain
 
 Permission received means the content is added to the library and used on the website with its source cited. No permission (denied, fee required, or no reply) means the content is noted in the library so it is not duplicated when found again, and it is never used on the website.
 
+## Drafts, not sends
+
+Automation creates the permission request as a draft email. The Product
+Authority reviews and sends it. Nothing is sent automatically.
+
+## Clarity first
+
+An unclear request is almost always denied. Each letter makes one clear request
+to the right person, and the ask appears in the first two sentences. Cut anything
+that does not help the reader decide. The form letter below is expected to be
+tightened after the first few sends, and each change is recorded here.
+
 ## One letter per source, not per item
 
 Ask once per source (rights holder or collection), so one exchange settles permission for the source as a whole. The letter names the specific URLs where we found content, then asks for permission across "Gehrig and Gehrig-related content" the source holds. This avoids asking one piece at a time.
