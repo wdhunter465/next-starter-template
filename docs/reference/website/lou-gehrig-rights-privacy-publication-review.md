@@ -97,6 +97,77 @@ date can be rebuilt from the history.
 permission request, and every reply are all retained, including the full email
 body, date, sender and replier. The D1 build is tracked on #4523 and #4526.
 
+## Rights layers and final status (Product Authority, 2026-10-10)
+
+Permission from the origin covers only the origin's work, for example the
+photographer's photo. A picture of Gehrig also needs the people and brands in it
+to clear. Each record therefore carries one status per layer and one final
+status.
+
+| Column | Who decides | Notes |
+| --- | --- | --- |
+| `origin_permission` | The origin (photographer, archive, publisher) | Free use, credit cited, or permission given by email |
+| `cmg_permission` | CMG (Gehrig name and likeness) | Applies when the content shows or names Gehrig |
+| `mlb_permission` | MLB | Applies to MLB marks, logos and MLB-sourced media |
+| `yankees_permission` | The Yankees | Applies to Yankees marks, logos and Yankees-sourced media |
+| `final_status` | Computed | `permitted` only when every applicable layer is `permitted` |
+
+Each layer value is `permitted`, `not_permitted`, `not_applicable` or
+`for_admin_review`. `not_applicable` never blocks. Any other term, including
+`for_admin_review`, counts as not permitted. The LGFC website uses `permitted`
+content only. Further layers (for example privacy for living people) follow the
+same pattern.
+
+**Party standing.** CMG, MLB and the Yankees each have a standing record (granted,
+denied, scope, date). A denial by one of them blocks all content that layer
+applies to. A denial by a source blocks that source's content only. A change in
+standing re-evaluates every affected record and creates new dated records (see
+Records and dates). Outreach to CMG is the first priority.
+
+## Records and dates
+
+- The record date is the date LGFC found the content and created the D1 record.
+  It is the date used to order records. Email dates are stored as part of the
+  communications about the record and do not order records.
+- A permission change creates a new record with the new date. The older record
+  moves to the archive table. The active table holds one current record per
+  origin URL, so it is also the deduplicated table. The archive is kept forever.
+- Retention of all records and communications is permanent.
+- Finding the same URL again with no change in permission creates no record.
+  Finding it with a changed origin statement or a changed party standing triggers
+  re-evaluation and, if the outcome changes, a new record.
+- Only `permitted` content is stored in B2. If a later record is not permitted,
+  the B2 copy is removed and D1 keeps the history.
+- The origin URL is cleaned of unneeded characters (tracking parameters, fragments)
+  but must still re-retrieve the origin content. Only https URLs are tracked and
+  http is ignored.
+
+## Ambiguity and admin review
+
+- An evaluation that lands ambiguous is treated as `not_permitted` and flagged
+  with the reason, so a person can review why. The cause is either the code or an
+  external variable that needs a better definition.
+- An evaluation that cannot proceed is set to `for_admin_review` and an Issue is
+  created assigned to team:Operations and the Product Authority, who sets the
+  final state. The decision is recorded in D1.
+
+## Citation
+
+LGFC cites the source for all content used. The default format is:
+"Title, by Creator, via Source (License)", with the word "origin" linking to the
+origin URL. If the source defines a citation format, that format overrides the
+default.
+
+## Publishing control
+
+- Automation selects content only from records whose `final_status` is
+  `permitted`, filtering in the D1 query and checking again at selection.
+- A scheduled action compares published content with D1. If a published record is
+  not permitted, or became not permitted after publication, it triggers a recycle
+  so automation selects replacement content.
+- Manual changes to site content go through a PR, which may also trigger the
+  action.
+
 ## Usage categories
 
 | Category | Clearance state | Credit |
