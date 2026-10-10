@@ -46,7 +46,7 @@ We would like your non-exclusive permission to use the following on our website:
 - **Item:** [title, date, and description]
 - **Where we found it:** [source URL]
 - **Creator / rights holder as we understand it:** [name]
-- **How we would use it:** [for example, displayed alongside a story about Gehrig's [year/event]; full image or excerpt of [N words]]
+- **How we would use it:** [hosted on the LGFC website, for example displayed alongside a story about Gehrig's [year/event]; full image or excerpt of [N words]]
 
 **About LGFC and how we operate**
 
@@ -72,6 +72,7 @@ admin@lougehrigfanclub.com
 
 ## Notes for the sender
 
+- Ask only for content LGFC can host and display on its own site. Do not request permission to link out: members should stay on the LGFC website, and link-only content is not collected.
 - Keep one item or one closely related group per letter, so the answer maps to specific evidence.
 - Do not say or imply that permission has been granted, or that publication is scheduled.
 - Do not claim tax-exempt or charitable status. The letter says only what is true: free membership, no profit, full credit.
