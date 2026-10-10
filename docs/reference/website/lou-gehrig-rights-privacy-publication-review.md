@@ -60,6 +60,16 @@ LGFC pays for no content. A fee-required item is still recorded in full, flagged
 `FEE REQUIRED: DO NOT USE ON LGFC WEBSITE`, and excluded from publication prep.
 Permission requests use `docs/how-to/website/lou-gehrig-permission-request-form-letter.md`.
 
+### Permission scope and archive
+
+Permission is requested once per source and may cover "Gehrig and Gehrig-related
+content" the source holds, so one exchange can settle many assets. A grant or
+denial covers only the scope its reply states. Every library asset must resolve
+to the archived exchange that covers it: the full messages, addresses, message
+IDs, attachments, URLs listed, scope, credit wording and conditions. The D1
+archive is tracked on #4526; until it exists, originals are kept in the admin
+mailbox and referenced from `rights_evidence`.
+
 ## Public-domain review process
 
 1. Identify work type (text, photo, government document, etc.).
