@@ -128,6 +128,74 @@ describe('component integration negative fixtures', () => {
     expect(result.blockedReasons.map((reason) => reason.code)).toContain('protected_change');
   });
 
+  it('auto-integrates the #3464 pattern: B-child, component target, protected migration, green gates (#3465)', () => {
+    const body = [
+      '- Delivery model: B-child',
+      '- Size: medium',
+      '- Change mode: project',
+      '- Target environment: component',
+      '- Approval profile: component-auto-integration',
+      '- Gate profile: component-child',
+      '- Rollback profile: multi-step',
+      '- Implementation agent: Cursor Local',
+      '- Component branch: component/chatterbox-prototype',
+      '- Component master: #3415',
+    ].join('\n');
+    const result = evaluateComponentIntegration({
+      profile: { body, baseRef: 'component/chatterbox-prototype', headRef: 'cursor/3415-claims' },
+      checks: greenChecks(),
+      changedFiles: ['migrations/0050_chatterbox_claims.sql', 'functions/api/chatterbox/claims.ts'],
+      headSha: 'abc123',
+    });
+
+    expect(result.protectedChange).toBe(true);
+    expect(result.protectedStop).toBe(false);
+    expect(result.requiresChatReview).toBe(false);
+    expect(result.blockedReasons).toEqual([]);
+    expect(result.eligible).toBe(true);
+  });
+
+  it('still requires independent review when a B-child touches a protected stop (#3465)', () => {
+    const body = [
+      '- Delivery model: B-child',
+      '- Size: medium',
+      '- Change mode: project',
+      '- Target environment: component',
+      '- Approval profile: protected-change-review',
+      '- Gate profile: component-child',
+      '- Rollback profile: multi-step',
+      '- Implementation agent: Cursor Local',
+      '- Component branch: component/chatterbox-prototype',
+      '- Component master: #3415',
+    ].join('\n');
+    const result = evaluateComponentIntegration({
+      profile: { body, baseRef: 'component/chatterbox-prototype', headRef: 'cursor/3415-auth' },
+      checks: greenChecks(),
+      changedFiles: ['functions/api/auth/session.ts'],
+      headSha: 'abc123',
+    });
+
+    expect(result.protectedStop).toBe(true);
+    expect(result.eligible).toBe(false);
+    expect(result.blockedReasons.map((reason) => reason.code)).toContain('protected_change');
+  });
+
+  it('never grants B-promotion PRs child auto-integration (#3465)', () => {
+    const result = evaluate({
+      profile: {
+        deliveryModel: 'B-promotion',
+        gateProfile: 'component-promotion',
+        approvalProfile: 'work-bill-production',
+        baseRef: 'main',
+      },
+    }, { changedFiles: ['migrations/0050_chatterbox_claims.sql'] });
+
+    expect(result.eligible).toBe(false);
+    expect(result.blockedReasons.map((reason) => reason.code)).toEqual(
+      expect.arrayContaining(['invalid_delivery_model', 'non_component_base']),
+    );
+  });
+
   it('blocks component integration holds from labels', () => {
     const result = evaluate({}, {
       labels: [{ name: 'component-integration-hold' }],
@@ -223,6 +291,7 @@ describe('component integration positive fixture', () => {
       componentBranch: 'component/delivery-system-v1',
       componentMaster: '#2477',
       protectedChange: false,
+      protectedStop: false,
     });
   });
 });

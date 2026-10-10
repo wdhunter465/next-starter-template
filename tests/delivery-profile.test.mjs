@@ -9,6 +9,7 @@ import {
   TARGET_ENVIRONMENTS,
   WORK_SIZES,
   classifyDeliveryProfile,
+  isProtectedStopPath,
   parseDeliveryMetadata,
   runCli,
 } from '../scripts/ci/delivery_profile.mjs';
@@ -271,7 +272,7 @@ describe('classifyDeliveryProfile', () => {
     }));
   });
 
-  it('classifies protected Model B child PRs for Chat review', () => {
+  it('classifies Model B child PRs that touch a protected stop for independent review', () => {
     const profile = classify(
       {
         deliveryModel: 'B-child',
@@ -285,12 +286,57 @@ describe('classifyDeliveryProfile', () => {
       {
         baseRef: 'component/delivery-system-v1',
         headRef: 'cursor/2485-delivery-profile-contract',
-        changedFiles: ['scripts/ci/delivery_profile.mjs'],
+        changedFiles: ['functions/api/auth/login.ts'],
       },
     );
 
     expect(profile.protectedChange).toBe(true);
+    expect(profile.protectedStop).toBe(true);
     expect(profile.approvalProfile).toBe('protected-change-review');
+    expect(profile.errors).toEqual([]);
+  });
+
+  it('lets Model B child PRs with non-stop protected paths auto-integrate (#3465)', () => {
+    const profile = classify(
+      {
+        deliveryModel: 'B-child',
+        targetEnvironment: 'component',
+        approvalProfile: 'component-auto-integration',
+        gateProfile: 'component-child',
+        rollbackProfile: 'multi-step',
+        componentBranch: 'component/delivery-system-v1',
+        componentMaster: '#2477',
+      },
+      {
+        baseRef: 'component/delivery-system-v1',
+        changedFiles: ['scripts/ci/delivery_profile.mjs', 'docs/governance/PR_PROCESS.md'],
+      },
+    );
+
+    expect(profile.protectedChange).toBe(true);
+    expect(profile.protectedStop).toBe(false);
+    expect(profile.errors).toEqual([]);
+  });
+
+  it('keeps the #3464 pattern (component child adding a migration) on auto-integration', () => {
+    const profile = classify(
+      {
+        deliveryModel: 'B-child',
+        targetEnvironment: 'component',
+        approvalProfile: 'component-auto-integration',
+        gateProfile: 'component-child',
+        rollbackProfile: 'multi-step',
+        componentBranch: 'component/chatterbox-prototype',
+        componentMaster: '#3415',
+      },
+      {
+        baseRef: 'component/chatterbox-prototype',
+        changedFiles: ['migrations/0050_chatterbox_claims.sql', 'functions/api/chatterbox/claims.ts'],
+      },
+    );
+
+    expect(profile.protectedChange).toBe(true);
+    expect(profile.protectedStop).toBe(false);
     expect(profile.errors).toEqual([]);
   });
 
@@ -562,15 +608,55 @@ describe('classifyDeliveryProfile', () => {
       },
       {
         baseRef: 'component/delivery-system-v1',
-        changedFiles: ['docs/governance/PR_PROCESS.md'],
+        changedFiles: ['wrangler.toml'],
       },
     );
 
     expect(profile.protectedChange).toBe(true);
+    expect(profile.protectedStop).toBe(true);
     expect(profile.errors).toContainEqual(expect.objectContaining({
       code: 'invalid_approvalProfile',
       expected: 'protected-change-review',
     }));
+  });
+});
+
+describe('protected-stop detection (#3465)', () => {
+  const read = (content) => () => content;
+
+  it('treats CODEOWNERS, wrangler config, and auth functions as stops', () => {
+    expect(isProtectedStopPath('.github/CODEOWNERS', read(''))).toBe(true);
+    expect(isProtectedStopPath('wrangler.toml', read(''))).toBe(true);
+    expect(isProtectedStopPath('functions/api/auth/session.ts', read(''))).toBe(true);
+  });
+
+  it('does not treat other protected paths as stops', () => {
+    for (const file of ['scripts/ci/x.mjs', 'migrations/1.sql', 'docs/governance/A.md', 'functions/api/admin/x.ts']) {
+      expect(isProtectedStopPath(file, read(''))).toBe(false);
+    }
+  });
+
+  it('treats workflows that deploy, use secrets, or run privileged as stops', () => {
+    const cases = [
+      'run: echo ${{ secrets.CLOUDFLARE_API_TOKEN }}',
+      'run: npx wrangler d1 list',
+      'uses: cloudflare/pages-action@v1',
+      'jobs:\n  a:\n    environment: production',
+      'on:\n  pull_request_target:',
+      'on:\n  workflow_run:',
+    ];
+    for (const content of cases) {
+      expect(isProtectedStopPath('.github/workflows/x.yml', read(content))).toBe(true);
+    }
+  });
+
+  it('lets plain workflows that only use GITHUB_TOKEN through', () => {
+    const content = 'on:\n  pull_request:\njobs:\n  t:\n    steps:\n      - run: npm test\n        env:\n          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}';
+    expect(isProtectedStopPath('.github/workflows/x.yml', read(content))).toBe(false);
+  });
+
+  it('fails closed when workflow content is unavailable', () => {
+    expect(isProtectedStopPath('.github/workflows/deleted.yml', () => null)).toBe(true);
   });
 });
 
