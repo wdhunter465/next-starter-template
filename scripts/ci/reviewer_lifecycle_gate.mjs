@@ -10,6 +10,7 @@ import {
   hasValidDisposition,
   parseReviewerDispositions,
 } from './reviewer_comment_disposition.mjs';
+import { isProtectedPath as isDeliveryProtectedPath, parseDeliveryMetadata } from './delivery_profile.mjs';
 
 export { isEnforcingReviewerLifecycleEvent } from './reviewer-gate-simulation.mjs';
 
@@ -129,6 +130,47 @@ export function assessActorIndependentApproval({
         message: `${implementationIdentity} cannot satisfy the required approval for its own implementation.`,
       }]
     : [];
+}
+
+function reviewCommitSha(review = {}) {
+  return review.commit?.oid || review.commit_id || review.commitId || '';
+}
+
+/**
+ * #3465 Option A: protected paths may auto-integrate into a component branch,
+ * so a B-promotion PR carrying protected paths to main needs an independent
+ * APPROVED review on the current head (actor other than the implementation agent).
+ */
+export function assessProtectedPromotionApproval({
+  body = '',
+  files = [],
+  reviews = [],
+  headSha = '',
+  implementationActor = '',
+} = {}) {
+  if (parseDeliveryMetadata(body).deliveryModel !== 'B-promotion') return [];
+  const protectedFiles = files.filter((file) => isDeliveryProtectedPath(file));
+  if (!protectedFiles.length) return [];
+
+  const implementer = normalizeActorIdentity(implementationActor || parseImplementationActor(body));
+  if (!implementer) {
+    return [{
+      code: 'ambiguous-implementation-identity',
+      message: 'Implementation agent is required to verify independent approval of a protected B-promotion PR.',
+    }];
+  }
+
+  const currentHead = reviews.filter((review) => {
+    const sha = reviewCommitSha(review);
+    return !headSha || !sha || sha === headSha;
+  });
+  const approved = [...latestReviewByActor(currentHead).values()].filter(isActorApprovalReview);
+  if (approved.some((review) => normalizeActorIdentity(reviewerActor(review)) !== implementer)) return [];
+
+  return [{
+    code: 'protected-promotion-approval-required',
+    message: `B-promotion changes protected paths (${protectedFiles.slice(0, 5).join(', ')}${protectedFiles.length > 5 ? ', …' : ''}); an independent APPROVED review on the current head is required.`,
+  }];
 }
 
 export function latestReviewByAuthor(reviews = []) {
@@ -387,6 +429,13 @@ export function assessReviewerLifecycle({
       reviews,
       requireActorIndependentApproval,
     }),
+    ...assessProtectedPromotionApproval({
+      body,
+      files,
+      reviews,
+      headSha,
+      implementationActor: implementationActor || implementationLogin,
+    }),
     ...humanReviewBlockers.map((review) => ({ code: 'human-changes-requested', message: `${review.author} latest review is CHANGES_REQUESTED.` })),
     ...threadState.blocking.map((thread) => ({ code: 'unresolved-human-review-thread', message: `${thread.author || 'unknown'} unresolved thread${thread.path ? ` on ${thread.path}` : ''}: ${thread.excerpt}` })),
     ...dispositionBlockers,
@@ -586,7 +635,7 @@ export async function fetchNativeReviewState({ owner, repo, prNumber, token }) {
       repository(owner: $owner, name: $repo) {
         pullRequest(number: $number) {
           labels(first: 100) { nodes { name } pageInfo { hasNextPage } }
-          reviews(first: 100) { nodes { author { login } body state submittedAt } pageInfo { hasNextPage } }
+          reviews(first: 100) { nodes { author { login } body state submittedAt commit { oid } } pageInfo { hasNextPage } }
           reviewThreads(first: 100) {
             nodes {
               id

@@ -4,6 +4,7 @@ import {
   resolvedCommentIdsFromReviewThreads,
 } from '../scripts/ci/reviewer_comment_disposition.mjs';
 import {
+  assessProtectedPromotionApproval,
   assessReviewerLifecycle,
   buildReviewerLifecycleReport,
   hasExceptionLabel,
@@ -261,5 +262,83 @@ describe('native lifecycle assessment', () => {
     const trusted = new Set(['custom-bot']);
     expect(isTrustedReviewer('custom-bot', trusted)).toBe(true);
     expect(isTrustedReviewer('reviewer-a', trusted)).toBe(false);
+  });
+});
+
+describe('protected B-promotion approval (#3465)', () => {
+  const promotionBody = '- Delivery model: B-promotion\n- Implementation agent: Cursor Local\n';
+  const approval = (actor, oid = 'head1') => ({
+    author: { login: 'wdhunter465' },
+    state: 'APPROVED',
+    body: `Reviewer actor: ${actor}\nDecision: APPROVED`,
+    submittedAt: '2026-10-10T00:00:00Z',
+    commit: { oid },
+  });
+
+  it('blocks a protected B-promotion without independent current-head approval', () => {
+    const blockers = assessProtectedPromotionApproval({
+      body: promotionBody,
+      files: ['migrations/0050.sql'],
+      reviews: [],
+      headSha: 'head1',
+    });
+    expect(blockers.map((b) => b.code)).toEqual(['protected-promotion-approval-required']);
+  });
+
+  it('is satisfied by an independent APPROVED review on the current head', () => {
+    expect(assessProtectedPromotionApproval({
+      body: promotionBody,
+      files: ['migrations/0050.sql'],
+      reviews: [approval('Claude Code')],
+      headSha: 'head1',
+      implementationActor: 'Cursor Local',
+    })).toEqual([]);
+  });
+
+  it('does not accept self-approval or a stale-head approval', () => {
+    const self = assessProtectedPromotionApproval({
+      body: promotionBody,
+      files: ['scripts/ci/x.mjs'],
+      reviews: [approval('Cursor Local')],
+      headSha: 'head1',
+      implementationActor: 'Cursor Local',
+    });
+    const stale = assessProtectedPromotionApproval({
+      body: promotionBody,
+      files: ['scripts/ci/x.mjs'],
+      reviews: [approval('Claude Code', 'old')],
+      headSha: 'head1',
+      implementationActor: 'Cursor Local',
+    });
+    expect(self.map((b) => b.code)).toEqual(['protected-promotion-approval-required']);
+    expect(stale.map((b) => b.code)).toEqual(['protected-promotion-approval-required']);
+  });
+
+  it('requires an implementation identity', () => {
+    const blockers = assessProtectedPromotionApproval({
+      body: '- Delivery model: B-promotion\n',
+      files: ['migrations/0050.sql'],
+      reviews: [approval('Claude Code')],
+      headSha: 'head1',
+    });
+    expect(blockers.map((b) => b.code)).toEqual(['ambiguous-implementation-identity']);
+  });
+
+  it('ignores promotions without protected paths and non-promotion PRs', () => {
+    expect(assessProtectedPromotionApproval({ body: promotionBody, files: ['src/app/page.tsx'], headSha: 'head1' })).toEqual([]);
+    expect(assessProtectedPromotionApproval({ body: '- Delivery model: A\n', files: ['migrations/1.sql'], headSha: 'head1' })).toEqual([]);
+  });
+
+  it('fails the lifecycle gate for an unapproved protected promotion', () => {
+    const result = assessReviewerLifecycle({
+      enforceFailure: true,
+      body: promotionBody,
+      files: ['.github/workflows/x.yml'],
+      reviews: [],
+      reviewThreads: [],
+      headSha: 'head1',
+    });
+    expect(result.shouldFail).toBe(true);
+    expect(result.blockingReasons.map((b) => b.code)).toContain('protected-promotion-approval-required');
   });
 });

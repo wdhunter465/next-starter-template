@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import fs from 'node:fs';
+import path from 'node:path';
 import { assessModelCPaths } from './model_c_path_gate.mjs';
 
 export const DELIVERY_MODELS = ['A', 'B-child', 'B-promotion', 'C', 'emergency-recovery'];
@@ -78,6 +79,57 @@ const PROTECTED_PATTERNS = [
   /^docs\/governance\/.+/,
 ];
 
+// Protected stops still require independent review before a Model B child
+// integrates into its component branch (#3465 Option A). Other protected paths
+// auto-integrate and are reviewed on the B-promotion PR instead.
+export const PROTECTED_STOP_PATTERNS = [
+  /^\.github\/CODEOWNERS$/,
+  /^wrangler[^/]*\.toml$/,
+  /^functions\/api\/auth\/.+/,
+];
+
+const WORKFLOW_PATH = /^\.github\/workflows\/.+/;
+
+// A workflow is a stop when it can reach production or privileged context:
+// any secret other than secrets.GITHUB_TOKEN (dot, bracket, inherit, toJSON),
+// wrangler / Pages deploys, a production environment, write-scoped or OIDC
+// permissions, self-hosted runners, or triggers that run with base-repository
+// privileges. Matching is deliberately broad: a false stop only adds a review.
+const WORKFLOW_STOP_CONTENT = [
+  /\bsecrets\b/,
+  /wrangler/i,
+  /pages\s+deploy/i,
+  /cloudflare\/(?:wrangler-action|pages-action)/i,
+  /^\s*environment:\s*['"]?production/im,
+  /pull_request_target/,
+  /workflow_run/,
+  /self-hosted/i,
+  /\bwrite-all\b/,
+  /\b(?:contents|packages|actions|id-token):\s*write\b/,
+];
+
+const GITHUB_TOKEN_SECRET = /\bsecrets\s*\.\s*GITHUB_TOKEN\b/g;
+const YAML_COMMENT_LINE = /^\s*#.*$/gm;
+
+export function readWorkingTreeFile(filePath, root = process.cwd()) {
+  const fullPath = path.join(root, filePath);
+  try {
+    return fs.readFileSync(fullPath, 'utf8');
+  } catch {
+    return null;
+  }
+}
+
+export function isProtectedStopPath(filePath, readFileContent = readWorkingTreeFile) {
+  const normalized = String(filePath || '').replace(/^\.\/+/, '');
+  if (PROTECTED_STOP_PATTERNS.some((pattern) => pattern.test(normalized))) return true;
+  if (!WORKFLOW_PATH.test(normalized)) return false;
+  const content = readFileContent(normalized);
+  if (typeof content !== 'string') return true;
+  const scanned = content.replace(YAML_COMMENT_LINE, '').replace(GITHUB_TOKEN_SECRET, '');
+  return WORKFLOW_STOP_CONTENT.some((pattern) => pattern.test(scanned));
+}
+
 function defaultMetadata() {
   return Object.fromEntries(Object.keys(FIELD_LABELS).map((field) => [field, '']));
 }
@@ -111,7 +163,7 @@ function isValidComponentMasterIssue(ref) {
   return /^#\d+$/.test(String(ref || '').trim());
 }
 
-function isProtectedPath(filePath) {
+export function isProtectedPath(filePath) {
   const normalized = String(filePath || '').replace(/^\.\/+/, '');
   return PROTECTED_PATTERNS.some((pattern) => pattern.test(normalized));
 }
@@ -195,12 +247,15 @@ export function classifyDeliveryProfile({
   body = '',
   changedFiles = undefined,
   renames = [],
+  readFileContent = readWorkingTreeFile,
 } = {}) {
   const metadata = parseDeliveryMetadata(body);
   const errors = [];
   const hasChangedFileEvidence = Array.isArray(changedFiles);
   const hasNonEmptyChangedFiles = hasChangedFileEvidence && changedFiles.length > 0;
   const protectedChange = hasNonEmptyChangedFiles && changedFiles.some(isProtectedPath);
+  const protectedStop = hasNonEmptyChangedFiles
+    && changedFiles.some((filePath) => isProtectedStopPath(filePath, readFileContent));
 
   for (const field of REQUIRED_FIELDS) {
     if (!metadata[field]) {
@@ -265,7 +320,7 @@ export function classifyDeliveryProfile({
       errors,
       'approvalProfile',
       metadata.approvalProfile,
-      protectedChange ? 'protected-change-review' : 'component-auto-integration',
+      protectedStop ? 'protected-change-review' : 'component-auto-integration',
     );
     pushExpectedError(errors, 'gateProfile', metadata.gateProfile, 'component-child');
     pushExpectedError(errors, 'rollbackProfile', metadata.rollbackProfile, 'multi-step');
@@ -398,6 +453,7 @@ export function classifyDeliveryProfile({
     componentMaster,
     implementationAgent,
     protectedChange,
+    protectedStop,
     errors,
   };
 }
@@ -415,6 +471,7 @@ export function runCli(env = process.env) {
       componentBranch: '',
       componentMaster: '',
       protectedChange: false,
+      protectedStop: false,
       errors: [
         deliveryError('missing_pr_body_file', 'PR_BODY_FILE is required and must point to an existing file.'),
       ],
@@ -441,6 +498,7 @@ export function runCli(env = process.env) {
           componentBranch: normalizeOptionalComponentValue(metadata.componentBranch),
           componentMaster: normalizeOptionalComponentValue(metadata.componentMaster),
           protectedChange: false,
+          protectedStop: false,
           errors: [
             deliveryError(
               'missing_changed_files_file',
@@ -457,11 +515,13 @@ export function runCli(env = process.env) {
       changedFiles = readListFile(env.CHANGED_FILES_FILE);
     }
   }
+  const contentRoot = env.DELIVERY_PROFILE_CONTENT_ROOT || process.cwd();
   const result = classifyDeliveryProfile({
     baseRef: env.PR_BASE_REF || '',
     headRef: env.PR_HEAD_REF || '',
     body,
     changedFiles,
+    readFileContent: (filePath) => readWorkingTreeFile(filePath, contentRoot),
   });
 
   writeJsonArtifact(result, env);
