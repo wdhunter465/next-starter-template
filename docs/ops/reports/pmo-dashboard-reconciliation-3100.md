@@ -1,3 +1,14 @@
+---
+Doc Type: Operations Report
+Audience: Human + AI
+Authority Level: Historical
+Owns: Record of the #3100 PMO dashboard repository identity, owner precedence, and completed-child accounting remediation
+Does Not Own: Current PMO dashboard build or deployment behavior, PMO Issue status, or PMO portfolio authority
+Canonical Reference: docs/governance/PMO-PORTFOLIO.md
+Related Issues: #3100, #3078, #4137
+Last Reviewed: 2026-10-09
+---
+
 # PMO dashboard reconciliation — Issue #3100
 
 ## Scope
