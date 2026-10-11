@@ -134,7 +134,7 @@ describe('pr preflight profile routing', () => {
           size: 'medium-provisional',
           deliveryModel: 'B-child',
           targetEnvironment: 'component',
-          approvalProfile: 'protected-change-review',
+          approvalProfile: 'component-auto-integration',
           gateProfile: 'component-child',
           rollbackProfile: 'multi-step',
           componentBranch: 'component/delivery-system-v1',
@@ -276,7 +276,7 @@ describe('pr preflight profile routing', () => {
       },
       {
         baseRef: 'component/delivery-system-v1',
-        changedFiles: ['docs/governance/PR_PROCESS.md'],
+        changedFiles: ['functions/api/auth/session.ts'],
       },
     );
 

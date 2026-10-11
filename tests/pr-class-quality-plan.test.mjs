@@ -163,7 +163,7 @@ describe('delivery-profile quality routing', () => {
     const body = bodyFor('docs-content', {
       deliveryModel: 'B-child',
       targetEnvironment: 'component',
-      approvalProfile: 'protected-change-review',
+      approvalProfile: 'component-auto-integration',
       gateProfile: 'component-child',
       rollbackProfile: 'multi-step',
       componentBranch: 'component/delivery-system-v1',
