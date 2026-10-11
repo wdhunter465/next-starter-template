@@ -137,6 +137,26 @@ jobs:
             echo "skip=false"
           } >> "$GITHUB_OUTPUT"
 
+      # Protected-stop detection reads changed workflow files as the PR head has
+      # them (#3465). Contents are written as data only; PR code is never run.
+      - name: Extract changed workflow files from PR head
+        if: steps.pr.outputs.skip != 'true' && steps.pr_meta.outputs.skip != 'true'
+        env:
+          PR_NUMBER: ${{ steps.pr.outputs.number }}
+        run: |
+          HEAD_SHA="$(cat "$RUNNER_TEMP/head_sha.txt")"
+          CONTENT_ROOT="$RUNNER_TEMP/head_contents"
+          mkdir -p "$CONTENT_ROOT"
+          git fetch --no-tags origin "pull/${PR_NUMBER}/head" || true
+          while IFS= read -r file; do
+            case "$file" in
+              .github/workflows/*)
+                mkdir -p "$CONTENT_ROOT/$(dirname "$file")"
+                git show "${HEAD_SHA}:${file}" > "$CONTENT_ROOT/$file" 2>/dev/null || rm -f "$CONTENT_ROOT/$file"
+                ;;
+            esac
+          done < "$RUNNER_TEMP/changed_files.txt"
+
       - name: Resolve component branch freshness
         id: freshness
         if: steps.pr.outputs.skip != 'true' && steps.pr_meta.outputs.skip != 'true'
@@ -190,6 +210,7 @@ jobs:
           COMPONENT_INTEGRATION_STATE: ${{ steps.component_state.outputs.state }}
           COMPONENT_INTEGRATION_BASE_BEHIND: ${{ steps.freshness.outputs.behind }}
           COMPONENT_INTEGRATION_HEAD_SHA: ${{ steps.pr_meta.outputs.head_sha }}
+          COMPONENT_INTEGRATION_CONTENT_ROOT: ${{ runner.temp }}/head_contents
           COMPONENT_INTEGRATION_RESULT_JSON: ${{ runner.temp }}/component_integration_result.json
         run: node scripts/ci/component_integration_eligibility.mjs
 
