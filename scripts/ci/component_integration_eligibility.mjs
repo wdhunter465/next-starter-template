@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 
 import fs from 'node:fs';
-import { classifyDeliveryProfile } from './delivery_profile.mjs';
+import path from 'node:path';
+import { classifyDeliveryProfile, readWorkingTreeFile } from './delivery_profile.mjs';
 import {
   assessActorIndependentApproval,
   isActorApprovalReview,
@@ -284,6 +285,7 @@ export function evaluateComponentIntegration({
   headSha = '',
   implementationActor = '',
   implementationLogin = '',
+  readFileContent = undefined,
 } = {}) {
   const blockedReasons = [];
   let requiresChatReview = false;
@@ -304,6 +306,7 @@ export function evaluateComponentIntegration({
       headRef: normalizedProfile.headRef || '',
       body: normalizedProfile.body || '',
       changedFiles: normalizedProfile.changedFiles ?? changedFiles,
+      ...(readFileContent ? { readFileContent } : {}),
     });
 
   const deliveryModel = classified.deliveryModel || normalizedProfile.deliveryModel || '';
@@ -312,6 +315,7 @@ export function evaluateComponentIntegration({
   const componentBranch = classified.componentBranch || normalizedProfile.componentBranch || '';
   const componentMaster = classified.componentMaster || normalizedProfile.componentMaster || '';
   const protectedChange = classified.protectedChange ?? normalizedProfile.protectedChange ?? false;
+  const protectedStop = classified.protectedStop ?? normalizedProfile.protectedStop ?? false;
   const baseRef = normalizedProfile.baseRef || '';
   const baseBehindComponentHead = Number(normalizedProfile.baseBehindComponentHead || 0);
   const profileErrors = classified.errors || normalizedProfile.errors || [];
@@ -369,7 +373,10 @@ export function evaluateComponentIntegration({
     ));
   }
 
-  if (protectedChange || approvalProfile === 'protected-change-review') {
+  // #3465 Option A: only protected stops (or an explicitly declared
+  // protected-change-review) need independent review before component
+  // integration; other protected paths are reviewed on the B-promotion PR.
+  if (protectedStop || approvalProfile === 'protected-change-review') {
     const protectedChangeReview = assessProtectedChangeReview({
       implementationActor: implementationActor || implementationLogin,
       reviews,
@@ -433,6 +440,7 @@ export function evaluateComponentIntegration({
     componentBranch,
     componentMaster,
     protectedChange,
+    protectedStop,
   };
 }
 
@@ -444,6 +452,7 @@ export function renderIntegrationReport(result) {
     `- Component branch: ${result.componentBranch || 'unknown'}`,
     `- Component master: ${result.componentMaster || 'unknown'}`,
     `- Protected change: ${result.protectedChange ? 'yes' : 'no'}`,
+    `- Protected stop: ${result.protectedStop ? 'yes' : 'no'}`,
     `- Component state: ${result.componentState}`,
     `- Requires Chat review: ${result.requiresChatReview ? 'yes' : 'no'}`,
     `- Not applicable (non-component / non-B-child): ${result.notApplicable ? 'yes' : 'no'}`,
@@ -499,6 +508,9 @@ export function runCli(env = process.env) {
     implementationActor: env.COMPONENT_INTEGRATION_IMPLEMENTATION_ACTOR
       || profile.implementationActor
       || parseImplementationActor(profile.body || ''),
+    readFileContent: env.COMPONENT_INTEGRATION_CONTENT_ROOT
+      ? (filePath) => readWorkingTreeFile(filePath, path.resolve(env.COMPONENT_INTEGRATION_CONTENT_ROOT))
+      : () => null,
   });
 
   const report = renderIntegrationReport(result);

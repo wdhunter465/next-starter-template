@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: Shared delivery-profile metadata values, parser fields, classification invariants, protected path baseline, and CLI contract
 Does Not Own: Auto-integration enablement, branch protection settings, workflow behavior, or production promotion approval
 Canonical Reference: /docs/governance/DELIVERY-AND-RELEASE.md
-Related Issues: #2485, #3752, #3753
-Last Reviewed: 2026-08-26
+Related Issues: #2485, #3752, #3753, #3465, #4552
+Last Reviewed: 2026-10-10
 ---
 
 # Delivery Profile Contract
@@ -143,11 +143,14 @@ not silently downgrade one delivery model to another.
   stable component/program master issue (for example `#2477`); it is not a branch
   name and must not be compared to `baseRef`
 - Approval profile:
-  - `component-auto-integration` when no protected paths are changed
-  - `protected-change-review` when protected paths are changed
+  - `protected-change-review` when any changed path is a protected stop
+    (`protectedStop: true`)
+  - `component-auto-integration` otherwise, including when other protected paths
+    change (`protectedChange: true`, `protectedStop: false`)
 
-Protected Model B child PRs require Chat review and are not auto-integration
-eligible.
+Model B child PRs that touch a protected stop require independent PR Approver /
+Engineering review and are not auto-integration eligible until it exists. Other
+protected paths are reviewed on the Model B promotion PR (#3465).
 
 ### Model B promotion
 
@@ -161,6 +164,11 @@ eligible.
 - Component master: required GitHub issue reference matching `#<number>` for the
   same component/program master issue used by child PRs; it is not a branch name
   and must not be compared to `baseRef`
+- When the diff contains any protected path, the required
+  `reviewer-response-completion` check blocks merge until an independent APPROVED
+  review on the current head exists from an actor other than the implementation
+  agent (`assessProtectedPromotionApproval` in
+  `scripts/ci/reviewer_lifecycle_gate.mjs`).
 
 ### Model C (documentation-only) — target contract (#3752 / #3753)
 
@@ -217,6 +225,35 @@ functions/api/admin/**
 scripts/ci/**
 docs/governance/**
 ```
+
+`protectedChange` is true when any changed path matches this baseline.
+
+### Protected stops (#3465)
+
+`protectedStop` is true when any changed path is one of:
+
+```text
+.github/CODEOWNERS
+wrangler*.toml
+functions/api/auth/**
+.github/workflows/** whose PR-head content (YAML comment lines ignored) has:
+  any `secrets` reference other than `secrets.GITHUB_TOKEN`
+    (bracket form, `secrets: inherit`, and `toJSON(secrets)` all count),
+  wrangler, `pages deploy`, cloudflare/wrangler-action or
+    cloudflare/pages-action, `environment: production`,
+  `contents: write`, `packages: write`, `actions: write`, `id-token: write`,
+    or `write-all`,
+  `self-hosted`,
+  `pull_request_target`, or `workflow_run`
+```
+
+`issues: write` and `pull-requests: write` alone are not stops. A workflow whose
+head content cannot be read (for example a deleted file) is a stop (fail
+closed). Matching is intentionally broad; a false stop only adds a review. The CLI reads content from `DELIVERY_PROFILE_CONTENT_ROOT`
+(default: the working directory). The component-integration workflow extracts
+changed workflow files from the PR head with `git show` and never executes PR
+code. `protectedStop` decides the Model B child approval profile; `protectedChange`
+still raises the quality plan and is still reported.
 
 Later delivery-system tasks may refine this baseline with evidence, but protected
 paths covering authentication, secrets, production bindings, deployment,
