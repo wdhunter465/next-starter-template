@@ -13,7 +13,7 @@ Supporting References:
   - /docs/reference/operations/operating-lanes-and-promotion-profiles.md
   - /docs/reference/operations/work-queue-and-collaboration-contract.md
 Related Issues: #2175, #2208, #2640, #2641, #2699, #2709, #3117, #4134
-Last Reviewed: 2026-10-09
+Last Reviewed: 2026-10-10 (retired WORK actor → PMO Admin, #3055)
 ---
 
 # Pull Request Process
@@ -223,11 +223,11 @@ Reviewer state comes from GitHub-native reviews and threads.
 
 ## Standing authority and successor transition
 
-For a graduated project with a complete ordered child graph, PR completion does not consume the project's implementation authority. After integration, deterministic closeout may reconcile mechanically provable child state. WORK evaluates the task against its executable package and records `ACCEPT`, `HOLD`, `REMEDIATE`, or `VERIFY MORE` when substantive assurance or discrepancy handling is required.
+For a graduated project with a complete ordered child graph, PR completion does not consume the project's implementation authority. After integration, deterministic closeout may reconcile mechanically provable child state. PMO Admin evaluates the task against its executable package and records `ACCEPT`, `HOLD`, `REMEDIATE`, or `VERIFY MORE` when substantive assurance or discrepancy handling is required.
 
-Eligible agents self-claim the next package-complete serial successor under standing parent authority without a new Administration or PMO dispatch (#3145). A label, wake event, or routing comment may notify the implementation runtime, but it is transport rather than new authority. Routine WORK “release” is not a mandatory execution prerequisite when deterministic predecessor completion already satisfies the prepared graph.
+Eligible agents self-claim the next package-complete serial successor under standing parent authority without a new Administration or PMO dispatch (#3145). A label, wake event, or routing comment may notify the implementation runtime, but it is transport rather than new authority. Routine PMO Admin “release” is not a mandatory execution prerequisite when deterministic predecessor completion already satisfies the prepared graph.
 
-A green, approved, mergeable, integrated, or merged PR alone is never task acceptance. Acceptance also requires the source package, implementation evidence, required tests including applicable failure paths, review disposition, integration identity, post-integration verification, documentation, rollback disposition, and absence of unresolved protected stops — with WORK judgment applied when the project defines a substantive acceptance gate.
+A green, approved, mergeable, integrated, or merged PR alone is never task acceptance. Acceptance also requires the source package, implementation evidence, required tests including applicable failure paths, review disposition, integration identity, post-integration verification, documentation, rollback disposition, and absence of unresolved protected stops — with PMO Admin judgment applied when the project defines a substantive acceptance gate.
 
 ## Closeout
 

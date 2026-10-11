@@ -6,7 +6,7 @@ Owns: Launched-program queue mode, dependency-map requirements, execution-mode s
 Does Not Own: Workflow YAML implementation, GitHub merge authority, issue mutation authority, vendor account-level scheduled automation, or uncontrolled orchestrator label automation
 Canonical Reference: /docs/reference/pmo/lgfc-program-portfolio-model.md
 Related Issues: #2391, #2386, #2360, #2361, #2363, #2364, #1449, #1448, #1411, #1255, #1256, #1258, #1259, #1501, #1500, #1719, #1720, #1721, #1725, #2775, #3055, #3113, #3125, #3134, #3145, #4174
-Last Reviewed: 2026-09-19
+Last Reviewed: 2026-10-10 (retired WORK actor → PMO Admin, #3055)
 ---
 
 # LGFC Program Queue and Dependency Map
@@ -135,7 +135,7 @@ approved dependency map → active task issue → one PR → READY FOR REVIEW �
 
 - Cursor still executes exactly one source issue per PR. Queue mode governs
   **which task is authorized next**, not whether multiple tasks share one PR.
-- Cursor may continue to the next queue item when the standing Project Graduation authority, dependency map, predecessor WORK `ACCEPT` disposition, package completeness, and halt/resume conditions permit it. No repeat Administration dispatch is required.
+- Cursor may continue to the next queue item when the standing Project Graduation authority, dependency map, predecessor PMO Admin `ACCEPT` disposition, package completeness, and halt/resume conditions permit it. No repeat Administration dispatch is required.
 - Cursor must halt when a rebaseline pause, open halt checkpoint, or unresolved
   blocker is documented in the map or active issue.
 - A launched-program queue must have a dispatcher/watch path under
@@ -146,7 +146,7 @@ Launched-program queue mode does not grant Cursor merge, close, relabel, queue m
 
 ## Standing authority rule
 
-In Mode B, the approved project graph is standing authority. Eligible agents self-claim the next package-complete successor under that authority after deterministic predecessor completion (#3145). WORK may record substantive `ACCEPT`/`HOLD`/`REMEDIATE`/`VERIFY MORE` when judgment is required; the dispatcher may transport a wake event, but absence of repeated prose does not block a package-complete successor.
+In Mode B, the approved project graph is standing authority. Eligible agents self-claim the next package-complete successor under that authority after deterministic predecessor completion (#3145). PMO Admin may record substantive `ACCEPT`/`HOLD`/`REMEDIATE`/`VERIFY MORE` when judgment is required; the dispatcher may transport a wake event, but absence of repeated prose does not block a package-complete successor.
 
 A successor that lacks any executable-package field is `PACKAGE-INCOMPLETE` and fails closed before branch creation or editing. A real collision or protected stop is recorded as an evidence-specific `HOLD` scoped to the affected action — never a generic `BLOCKED` placeholder or queue-wide freeze. A valid `HOLD` uses the contract in `docs/governance/PMO-PORTFOLIO.md` (#3134): affected scope, evidence, why continuation is unsafe or unauthorized, mitigation owner, release condition, parallel-safe work, and disputed-risk decision owner.
 
@@ -157,7 +157,7 @@ Ordinary predecessor and advisory conditions are ordering metadata (comments, pa
 | Class | Map / Issue representation | Continue rule |
 | --- | --- | --- |
 | Advisory prerequisite | Comment or soft dependency row | Collision-safe work continues |
-| Ordered predecessor | Predecessor/successor fields; deterministic completion required | Successor becomes claimable after validated merge + post-merge closeout (or WORK `ACCEPT` when a substantive gate is defined) |
+| Ordered predecessor | Predecessor/successor fields; deterministic completion required | Successor becomes claimable after validated merge + post-merge closeout (or PMO Admin `ACCEPT` when a substantive gate is defined) |
 | Real collision | Halt condition scoped to colliding surface | Disjoint collision-safe tasks continue |
 | Protected stop | Halt condition for Production, credential, security, etc. | Only the unsafe action halts; earlier increments may proceed |
 
@@ -178,7 +178,7 @@ The responsible PMO Admin/operator path must verify:
 2. the successor or dependent issues named by the issue body, parent issue, PR body, or dependency map;
 3. whether each successor is unblocked, queued, awaiting deterministic predecessor completion, or subject to a scoped protected stop;
 4. whether Cursor has exactly one next active source issue unless parallel work is authorized;
-5. whether WORK has prepared the successor package before implementer idle time;
+5. whether PMO Admin has prepared the successor package before implementer idle time;
 6. whether an Ops remediation issue exists for any silent-stall or dispatcher failure.
 
 If a predecessor closes and any successor still says blocked by that predecessor without a real collision or protected stop, the dispatcher must correct the successor state or create/update a remediation issue. Do not treat stale blocked text as harmless documentation drift. Correct advisory or ordered-predecessor metadata to comments and sequencing fields instead of queue-wide freeze.
@@ -207,7 +207,7 @@ Required map fields per task or checkpoint:
 | Successor | Next task, checkpoint, or `terminal` |
 | Stage-before-merge | `yes` or `no` — whether upstream stage gate must pass before this task's PR may merge |
 | Halt condition | What blocks execution or continuation — use protected stop or real collision only; advisory prerequisites belong in comments |
-| Resume condition | What must be true before the next item may start — normally predecessor WORK `ACCEPT` for serial chains |
+| Resume condition | What must be true before the next item may start — normally predecessor PMO Admin `ACCEPT` for serial chains |
 
 Approval:
 
@@ -251,7 +251,7 @@ Every executable task issue in launched-program queue mode must state:
 | Predecessor | `#1401` or `Task 003` |
 | Successor | `#1403` or `Task 005` |
 | Stage-before-merge | `yes` / `no` |
-| Halt/resume condition | Rebaseline complete; `#1448` closed; predecessor WORK `ACCEPT`; scoped protected stop for Production only |
+| Halt/resume condition | Rebaseline complete; `#1448` closed; predecessor PMO Admin `ACCEPT`; scoped protected stop for Production only |
 | Dispatcher path | manual / operator-run PMO Admin check-in / repo-native automation / not configured |
 
 Partial overlap with dependency/blocking criteria is not sufficient. Use the field names above in the issue body.
@@ -285,7 +285,7 @@ Cursor must **halt** (stop at `READY FOR REVIEW` or report without implementing)
 
 1. a rebaseline pause is active (for example `#1448` while open);
 2. the dependency map marks the next item blocked by a real collision or protected stop (not an ordinary ordered predecessor or advisory prerequisite);
-3. predecessor WORK `ACCEPT`, stage-before-merge, or halt/resume conditions are unmet or unclear;
+3. predecessor PMO Admin `ACCEPT`, stage-before-merge, or halt/resume conditions are unmet or unclear;
 4. the task would require merge, close, relabel, queue advancement, or child
    issue creation without explicit authorization;
 5. more than one source issue would be needed for the PR body.

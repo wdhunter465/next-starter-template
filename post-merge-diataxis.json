@@ -1,0 +1,23 @@
+{
+  "changed_files": [
+    "docs/explanation/ARCHITECTURE_OVERVIEW.md",
+    "docs/how-to/website/admin-matchup.md",
+    "docs/how-to/website/website-production-rollback.md",
+    "docs/reference/DEPLOYMENT_GUIDE.md",
+    "docs/reference/DIATAXIS-MAPPING.md",
+    "docs/reference/DOCS_CLEANUP_RECORD_2026-02-17.md",
+    "docs/reference/RECONCILIATION-NOTES_2026-02.md",
+    "docs/reference/accelerated-webpage-implementations-log.md",
+    "docs/reference/cloudflare-frontend.md",
+    "docs/reference/design/LGFC-Production-Design-and-Standards.md",
+    "docs/reference/design/fanclub.md",
+    "docs/reference/diataxis/two-model-authority-disposition-map.md",
+    "docs/reference/documentation-gap-analysis-1132.md",
+    "docs/reference/documentation-ownership-map-1132.md",
+    "docs/reference/legacy-to-diataxis-migration-matrix-1132.md",
+    "docs/reference/weekly-matchup-auto-rotation.md",
+    "docs/reference/weekly-matchup-photo-url-normalization.md"
+  ],
+  "findings": [],
+  "report": "## DIATAXIS Folder Hygiene Advisory\n\nThis audit distinguishes DIATAXIS knowledge content from approved operational docs/ops evidence classes.\n\nNo DIATAXIS folder hygiene defects detected."
+}

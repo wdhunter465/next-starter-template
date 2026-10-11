@@ -6,7 +6,7 @@ Owns: PR lifecycle states, transition gates, profile-specific readiness, GitHub-
 Does Not Own: PR-body policy, delivery-model selection, product/design authority, Administration mutation taxonomy, or Production approval
 Canonical Reference: /docs/governance/PR_PROCESS.md
 Related Issues: #2640, #2641, #4134
-Last Reviewed: 2026-10-09
+Last Reviewed: 2026-10-10 (retired WORK actor → PMO Admin, #3055)
 ---
 
 # PR Lifecycle State Machine
@@ -165,11 +165,11 @@ Verify:
 - rollback/incident disposition;
 - Day-2 ownership transfer.
 
-### WORK acceptance transition
+### PMO Admin acceptance transition
 
-After Development integration or Production merge evidence exists, WORK performs the acceptance review required by the source package when a substantive assurance gate applies or a discrepancy appears. The allowed dispositions are `ACCEPT`, `HOLD`, `REMEDIATE`, and `VERIFY MORE`.
+After Development integration or Production merge evidence exists, PMO Admin performs the acceptance review required by the source package when a substantive assurance gate applies or a discrepancy appears. The allowed dispositions are `ACCEPT`, `HOLD`, `REMEDIATE`, and `VERIFY MORE`.
 
-For a graduated serial project, the next prepared package-complete successor may be self-claimed under standing parent authority after deterministic predecessor completion without repeat dispatch (#3145). WORK `ACCEPT` is required for child closure and parent reconciliation when the project defines a substantive acceptance gate on that edge, and for exception/HOLD/REMEDIATE decisions. Neither merge state nor routine Administration prose invents acceptance. If WORK implemented the PR, WORK cannot supply its own independent review or verification; another authorized reviewer must provide that evidence before acceptance.
+For a graduated serial project, the next prepared package-complete successor may be self-claimed under standing parent authority after deterministic predecessor completion without repeat dispatch (#3145). PMO Admin `ACCEPT` is required for child closure and parent reconciliation when the project defines a substantive acceptance gate on that edge, and for exception/HOLD/REMEDIATE decisions. Neither merge state nor routine Administration prose invents acceptance. If PMO Admin implemented the PR, PMO Admin cannot supply its own independent review or verification; another authorized reviewer must provide that evidence before acceptance.
 
 ## State 6 — CLOSEOUT VERIFIED
 

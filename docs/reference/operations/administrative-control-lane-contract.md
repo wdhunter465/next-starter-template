@@ -6,7 +6,7 @@ Owns: Administration & Communications event, mutation, routing, evidence, acknow
 Does Not Own: Product scope, priority decisions, queue ownership decisions, design, delivery-model selection, implementation authority, PR approval, recovery strategy, Production authority, or workflow implementation
 Canonical Reference: /docs/governance/ADMINISTRATION-AND-COMMUNICATIONS.md
 Related Issues: #2640, #2641, #2639, #2699, #2700, #2709, #3134, #3145
-Last Reviewed: 2026-09-18
+Last Reviewed: 2026-10-10 (retired WORK actor → PMO Admin, #3055)
 ---
 
 # Administration and Communications Contract
@@ -74,8 +74,8 @@ Current people, agents, and systems are mapped to these roles in `docs/governanc
 
 | Closeout class | Closeout decision authority | Transaction executor |
 | --- | --- | --- |
-| Assigned project child task | WORK after required independent review, integration, validation, and post-integration evidence exists | Deterministic CI may attempt first; WORK verifies/reconciles the transaction and releases the successor |
-| Assigned child remediation | WORK after required independent review and remediation verification exists | Deterministic CI may attempt first; WORK verifies/reconciles the transaction |
+| Assigned project child task | PMO Admin after required independent review, integration, validation, and post-integration evidence exists | Deterministic CI may attempt first; PMO Admin verifies/reconciles the transaction and releases the successor |
+| Assigned child remediation | PMO Admin after required independent review and remediation verification exists | Deterministic CI may attempt first; PMO Admin verifies/reconciles the transaction |
 | Project/master | PMO / Engineering with independent PR Approver / Engineering verification | Designated Administration & Communications role holder who did not solely implement the underlying child work |
 | Program/umbrella | Product Authority and PMO / Engineering under explicitly recorded program-closeout authority | Administration & Communications role holder |
 | Promotion Candidate | PMO / Engineering, PR Approver / Engineering, and additional roles required by the applicable approval profile | Administration & Communications role holder records the disposition |
@@ -403,8 +403,8 @@ An exception identifies the affected subject, invariant, evidence, blocking scop
 - Closeout procedure: `docs/ops/pmo/github-issue-closeout-protocol.md`
 
 
-## WORK acceptance and continuous parent-level continuation
+## PMO Admin acceptance and continuous parent-level continuation
 
-WORK owns controlling `ACCEPT`, `HOLD`, `REMEDIATE`, or `VERIFY MORE` dispositions when substantive assurance or discrepancy handling is required, plus child/parent reconciliation. After deterministic predecessor completion, eligible agents self-claim the next package-complete serial successor under standing parent authority (#3145). Transport automation may apply an idempotent mutation but cannot invent acceptance.
+PMO Admin owns controlling `ACCEPT`, `HOLD`, `REMEDIATE`, or `VERIFY MORE` dispositions when substantive assurance or discrepancy handling is required, plus child/parent reconciliation. After deterministic predecessor completion, eligible agents self-claim the next package-complete serial successor under standing parent authority (#3145). Transport automation may apply an idempotent mutation but cannot invent acceptance.
 
 A generic `BLOCKED` state is prohibited for prepared project queues. Use `PACKAGE-INCOMPLETE` for missing execution fields or `HOLD` for a named substantive condition that satisfies the `docs/governance/PMO-PORTFOLIO.md` HOLD contract (affected scope, evidence, why continuation is unsafe or unauthorized, mitigation owner, release condition, parallel-safe work, disputed-risk decision owner). `waiting on PMO` and `pending review` are not holds. Disputed risk uses `RISK IDENTIFIED`. The same role holder must not independently verify or approve a PR that role holder implemented.

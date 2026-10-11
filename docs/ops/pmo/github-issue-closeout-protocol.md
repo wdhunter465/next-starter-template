@@ -6,7 +6,7 @@ Owns: Issue closeout evidence, role-based closeout execution, profile-aware comp
 Does Not Own: Merge authority, delivery or promotion decisions, project objectives, PR approval, Production authorization, recovery strategy, or workflow implementation
 Canonical Reference: /docs/governance/ADMINISTRATION-AND-COMMUNICATIONS.md
 Related Issues: #1411, #2359, #2640, #2641, #2639, #2700, #3069, #4174
-Last Reviewed: 2026-09-19
+Last Reviewed: 2026-10-10 (retired WORK actor → PMO Admin, #3055)
 ---
 
 # GitHub Issue Closeout Protocol
@@ -32,8 +32,8 @@ Closeout is an Administration & Communications function. It records what happene
 
 | Closeout class | Closeout decision authority | Transaction executor |
 | --- | --- | --- |
-| Assigned project child task | WORK when substantive assurance is required after independent review, integration, validation, and post-integration evidence exists | Deterministic CI may attempt the idempotent transaction first; WORK verifies/reconciles when judgment is required; eligible agents self-claim successors under standing parent authority (#3145) |
-| Assigned child remediation | WORK after required independent review and remediation verification exists | Deterministic CI may attempt the idempotent transaction first; WORK verifies/reconciles the result |
+| Assigned project child task | PMO Admin when substantive assurance is required after independent review, integration, validation, and post-integration evidence exists | Deterministic CI may attempt the idempotent transaction first; PMO Admin verifies/reconciles when judgment is required; eligible agents self-claim successors under standing parent authority (#3145) |
+| Assigned child remediation | PMO Admin after required independent review and remediation verification exists | Deterministic CI may attempt the idempotent transaction first; PMO Admin verifies/reconciles the result |
 | Project/master | PMO / Engineering with independent PR Approver / Engineering verification | Designated Administration & Communications role holder who did not solely implement the underlying child work |
 | Program/umbrella | Product Authority and PMO / Engineering under explicitly recorded program-closeout authority | Administration & Communications role holder |
 | Promotion Candidate | PMO / Engineering, PR Approver / Engineering, and additional roles required by the applicable approval profile | Administration & Communications role holder records the disposition |
@@ -134,16 +134,16 @@ Exception: none | #____
 
 Missing evidence routes to one bounded exception. It does not justify guessing.
 
-## WORK acceptance decision
+## PMO Admin acceptance decision
 
-WORK independently reviews the complete task package and evidence and records exactly one disposition:
+PMO Admin independently reviews the complete task package and evidence and records exactly one disposition:
 
 - `ACCEPT`;
 - `HOLD`;
 - `REMEDIATE`; or
 - `VERIFY MORE`.
 
-WORK records `ACCEPT`, `HOLD`, `REMEDIATE`, or `VERIFY MORE` when substantive assurance or discrepancy handling is required. Deterministic CI remains the single automatic source-Issue closeout owner and may reconcile mechanically provable child/parent bookkeeping. Eligible agents self-claim the next package-complete successor under standing parent authority after deterministic predecessor completion (#3145). A merge by itself is not substantive acceptance. When WORK implemented the change, WORK must obtain independent review/verification from another authorized reviewer before recording acceptance.
+PMO Admin records `ACCEPT`, `HOLD`, `REMEDIATE`, or `VERIFY MORE` when substantive assurance or discrepancy handling is required. Deterministic CI remains the single automatic source-Issue closeout owner and may reconcile mechanically provable child/parent bookkeeping. Eligible agents self-claim the next package-complete successor under standing parent authority after deterministic predecessor completion (#3145). A merge by itself is not substantive acceptance. When PMO Admin implemented the change, PMO Admin must obtain independent review/verification from another authorized reviewer before recording acceptance.
 
 ## Assigned task-closeout sequence
 

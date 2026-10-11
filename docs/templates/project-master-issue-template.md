@@ -6,7 +6,7 @@ Owns: Required project-master Issue structure, authority identities, documentati
 Does Not Own: Project-specific product decisions, implementation scope, priority, Production approval, or runtime behavior
 Canonical Reference: /docs/reference/pmo/project-documentation-closeout-contract.md
 Related Issues: #1719, #2366, #3050, #3055, #3113, #3134, #3145
-Last Reviewed: 2026-10-09
+Last Reviewed: 2026-10-10 (retired WORK actor → PMO Admin, #3055)
 ---
 
 # Project Master Issue Template
@@ -100,14 +100,14 @@ Standing implementation authority reference: ____
 Project/component branch: ____  
 PR target: ____  
 Default implementation role holder by child: ____  
-Task acceptance and closeout authority: WORK  
-Project closeout authority: WORK with required independent verification and protected Product/Production decisions
+Task acceptance and closeout authority: PMO Admin  
+Project closeout authority: PMO Admin with required independent verification and protected Product/Production decisions
 
 | Sequence | Child Issue | Objective | Predecessor completion | Successor | Serial/parallel | Writable scope | Collision proof | Prerequisite class | Package state |
 | ---: | --- | --- | --- | --- | --- | --- | --- | --- | --- |
 | 001 | #____ | ____ | ____ | #____ / terminal | serial | ____ | not applicable | ordered predecessor / advisory / protected stop | package-complete / PACKAGE-INCOMPLETE |
 
-A Project Graduation GO remains standing authority for this exact graph. Eligible agents self-claim the next package-complete serial successor after deterministic predecessor completion without a repeat Administration or PMO dispatch (#3055 / #3145). WORK prepares each successor package before implementer idle time and records substantive ACCEPT/HOLD only when judgment is required. Parallel execution requires explicit disjoint scopes and collision proof in this table.
+A Project Graduation GO remains standing authority for this exact graph. Eligible agents self-claim the next package-complete serial successor after deterministic predecessor completion without a repeat Administration or PMO dispatch (#3055 / #3145). PMO Admin prepares each successor package before implementer idle time and records substantive ACCEPT/HOLD only when judgment is required. Parallel execution requires explicit disjoint scopes and collision proof in this table.
 
 ## Protected Stops and Continuation
 
@@ -115,6 +115,6 @@ Protected decisions: ____
 True dependencies (ordered predecessor / real collision only): ____
 Advisory prerequisites (comments; do not deny collision-safe work): ____
 Operations interruption behavior: ____
-Package-incomplete correction owner: WORK
-Successor claim rule: after deterministic predecessor completion (validated merge + post-merge closeout, or WORK `ACCEPT` when a substantive gate is defined on that edge), an eligible agent self-claims the next package-complete task under standing parent authority. `team:*` ownership remains; `agent:*` is the execution claim only.
+Package-incomplete correction owner: PMO Admin
+Successor claim rule: after deterministic predecessor completion (validated merge + post-merge closeout, or PMO Admin `ACCEPT` when a substantive gate is defined on that edge), an eligible agent self-claims the next package-complete task under standing parent authority. `team:*` ownership remains; `agent:*` is the execution claim only.
 No generic `BLOCKED` state, queue-wide freeze, or repeat-dispatch requirement is permitted.
