@@ -1,0 +1,36 @@
+name: OPS — Asset Register Reconcile
+
+# Compares docs/reference/platform/lgfc-asset-register.md with the assets the
+# repository declares (workflow secret names, .env.example, wrangler.toml D1).
+# Drift opens or updates one Operations Issue. Uses GITHUB_TOKEN only (#4539).
+
+on:
+  schedule:
+    - cron: '30 12 * * 1' # Mondays 12:30 UTC
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: ops-asset-register-reconcile
+  cancel-in-progress: false
+
+jobs:
+  reconcile:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Reconcile asset register
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          OPS_ESCALATION_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: node scripts/ops/reconcile-asset-register.mjs --escalate
