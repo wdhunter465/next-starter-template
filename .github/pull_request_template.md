@@ -56,7 +56,7 @@ Emergency recovery:
 - Delivery model: <!-- A / B-child / B-promotion / emergency-recovery -->
 - Change mode: <!-- project / routine-ops / planned-migration / emergency -->
 - Target environment: <!-- component / preview / production / recovery -->
-- Approval profile: <!-- component-auto-integration / work-bill-production / protected-change-review / emergency-approval -->
+- Approval profile: <!-- component-auto-integration / work-bill-production / protected-change-review (B-child touching a protected stop, or Model C domain policy) / emergency-approval -->
 - Gate profile: <!-- component-child / production-candidate / component-promotion / emergency-recovery -->
 - Rollback profile: <!-- one-step / multi-step / emergency-stabilization -->
 - Implementation agent: <!-- required for Model B-child and B-promotion — the current role holder per docs/governance/AGENT-TEAM.md -->

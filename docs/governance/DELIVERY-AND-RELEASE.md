@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Delivery models, Sandbox/Development/Promotion Candidate/Production profiles, integration and promotion boundaries, approval profiles, rollback policy, and release-unit promotion rules
 Does Not Own: Current team-member assignments, PMO sizing, CI implementation, environment-isolation proof, or emergency stabilization procedures
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2495, #2640, #2641, #3752, #3753
-Last Reviewed: 2026-08-26
+Related Issues: #2495, #2640, #2641, #3752, #3753, #3465, #4552
+Last Reviewed: 2026-10-10
 ---
 
 # Delivery and Release
@@ -40,8 +40,8 @@ Development is the primary Model B implementation profile.
 
 - work targets a non-production component branch;
 - automated PR gates validate build, tests, security, scope, metadata, protected paths, freshness, and component state;
-- eligible non-protected work may integrate automatically into the component branch;
-- protected or material design concerns route to PR Approver / Engineering;
+- eligible work may integrate automatically into the component branch, including protected paths that are not protected stops (see "Protected changes");
+- protected stops and material design concerns route to PR Approver / Engineering before integration;
 - independent work may continue while prior work is review- or administration-pending.
 
 Sandbox output must enter Development before it can become a Promotion Candidate.
@@ -184,7 +184,7 @@ promotion PR base            — main
 | Target environment | `component` |
 | Gate profile | `component-child` |
 | Rollback profile | `multi-step` |
-| Approval profile | automated non-main eligibility when non-protected; Engineering review when protected or material |
+| Approval profile | automated non-main eligibility unless the child touches a protected stop; Engineering review for protected stops or material design concerns |
 
 Child PRs do not require whole-feature Production approval or final release closeout.
 
@@ -363,8 +363,9 @@ The rollback package defines, as applicable:
 | Boundary | Decision authority | Automated integration |
 | --- | --- | --- |
 | Sandbox experiment | PMO / Engineering | Yes within isolated Sandbox when safety checks pass |
-| Development child, non-protected | Deterministic CI eligibility under Delivery policy | Yes to non-main component branch |
-| Development child, protected/material | PR Approver / Engineering | No until approval |
+| Development child, no protected stop | Deterministic CI eligibility under Delivery policy | Yes to non-main component branch |
+| Development child, protected stop or material design concern | PR Approver / Engineering | No until approval |
+| Model B promotion carrying protected paths | PR Approver / Engineering (independent, current head) plus Production authority | No |
 | Promotion Candidate Go/No-Go | PMO / Engineering, PR Approver / Engineering, and other required roles | No |
 | Production promotion | Production authority plus required Engineering approval | No |
 | Model C documentation (non-constitutional) | PR review scaled to documentation authority; Deterministic CI path gates | No auto-merge to `main` without required checks |
@@ -375,7 +376,7 @@ Implementation / Operations implements and remediates but does not approve its o
 
 ## Protected changes
 
-Protected or material changes require PR Approver / Engineering review before Development integration or Production promotion, including:
+Protected or material changes require independent PR Approver / Engineering review before they reach Production, including:
 
 - destructive or non-backward-compatible database migration;
 - authentication or authorization boundary;
@@ -384,6 +385,15 @@ Protected or material changes require PR Approver / Engineering review before De
 - branch protection or governance enforcement;
 - irreversible external-service mutation;
 - material architecture or acceptance-criteria change.
+
+Where that review happens depends on the delivery model (#3465, Product Authority Option A, 2026-10-10):
+
+- **Model B child — protected stops.** A child that touches a protected stop needs independent review before it integrates into its component branch. Protected stops are `.github/CODEOWNERS`, `wrangler*.toml` (production bindings), `functions/api/auth/**` (authentication boundary), and workflows that reference any secret other than `GITHUB_TOKEN` (including `secrets: inherit`), deploy (wrangler or Pages actions), target a `production` environment, request write-scoped or OIDC permissions (`contents`, `packages`, `actions`, `id-token`, `write-all`), run on a self-hosted runner, or run with privileged triggers (`pull_request_target`, `workflow_run`). Material design concerns are routed the same way.
+- **Model B child — other protected paths.** Other protected paths (for example `migrations/**`, `scripts/ci/**`, `docs/governance/**`, `functions/api/admin/**`, and workflows that are not stops) integrate automatically into the component branch after the required deterministic gates. CI records the protected change; it does not reach Production at this point.
+- **Model B promotion.** A promotion PR whose diff contains protected paths needs an independent APPROVED review on the current head from an actor other than the implementation agent before merge to `main`. This is enforced by the required `reviewer-response-completion` check.
+- **Model A.** Unchanged: the PR to `main` uses the `work-bill-production` approval profile.
+
+This supersedes, for Model B child integration, the 2026-07-24 #2825 clause to retain `protected-change-review` for all non-Production protected scope.
 
 Model C changes that edit constitutional or domain-policy governance, DIATAXIS authority, or supersession of a canonical owner are treated as protected documentation changes and require independent review before merge to `main`.
 

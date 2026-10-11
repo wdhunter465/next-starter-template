@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: Objective sizing criteria, Medium Model A/B evidence flags, Model C documentation-only selection, decision-matrix examples, and mapping to delivery-profile stable metadata
 Does Not Own: PMO launch authorization, workflow behavior, or merge approval
 Canonical Reference: /docs/governance/PMO-PORTFOLIO.md
-Related Issues: #2487, #3752
-Last Reviewed: 2026-08-26
+Related Issues: #2487, #3752, #3465, #4552
+Last Reviewed: 2026-10-10
 ---
 
 # Work Size and Delivery Model Contract
@@ -60,6 +60,8 @@ This reference defines the evidence contract PMO uses before writing stable deli
 | Bounded performance degradation | medium-provisional | medium | routine-ops | A | chat-bill-production | one-step | Degraded but non-outage production; harmful incomplete state blocks Small; expedited single-PR mitigation |
 | Structural performance degradation | medium-provisional | medium | emergency | emergency-recovery | emergency-stabilization | emergency-approval | Emergency condition without full outage; stabilization-first |
 | Full outage or unsafe production | medium-provisional | medium | emergency | emergency-recovery | emergency-stabilization | emergency-approval | `fullOutageOrUnsafeProduction`; exits normal tree |
+
+For `B-child` rows, the approval profile shown is the typical value for that program's children. Each child PR is classified on its own diff (#3465): `protected-change-review` only when it touches a protected stop (see `docs/reference/ci/delivery-profile-contract.md`), otherwise `component-auto-integration`.
 
 ## Invariants
 
