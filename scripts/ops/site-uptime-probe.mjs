@@ -11,9 +11,7 @@ export const DEFAULT_TARGETS = [
   { name: 'faq (www)', url: 'https://www.lougehrigfanclub.com/faq/' },
   { name: 'api health + D1', url: 'https://www.lougehrigfanclub.com/api/health', expectJson: { ok: true, db_ok: true } },
   { name: 'pages.dev host', url: 'https://next-starter-template-6yr.pages.dev/' },
-  // Advisory while #4542 is open: reported, but does not fail the run or escalate.
-  // Remove `advisoryIssue` once the apex serves the site again.
-  { name: 'apex domain', url: 'https://lougehrigfanclub.com/', advisoryIssue: 4542 },
+  { name: 'apex domain', url: 'https://lougehrigfanclub.com/' },
 ];
 
 const passesGate = (result) => result.ok || Boolean(result.advisoryIssue);
