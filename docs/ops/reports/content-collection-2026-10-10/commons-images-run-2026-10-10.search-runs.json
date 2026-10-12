@@ -1,0 +1,37 @@
+{
+  "search_runs": [
+    {
+      "run_uid": "run-openverse-2026-10-10T12-07-11-605Z",
+      "source_domain": "openverse.org",
+      "query": "Lou Gehrig",
+      "result_limit": 40,
+      "status": "source_error",
+      "discovered_count": 0,
+      "new_count": 0,
+      "error_count": 1,
+      "error_summary": "https://api.openverse.org/v1/images/?q=Lou%20Gehrig&page_size=40 -> HTTP 401"
+    },
+    {
+      "run_uid": "run-loc-2026-10-10T12-07-11-605Z",
+      "source_domain": "loc.gov",
+      "query": "Lou Gehrig",
+      "result_limit": 40,
+      "status": "source_error",
+      "discovered_count": 0,
+      "new_count": 0,
+      "error_count": 1,
+      "error_summary": "fetch failed"
+    },
+    {
+      "run_uid": "run-wikimedia-2026-10-10T12-07-11-605Z",
+      "source_domain": "commons.wikimedia.org",
+      "query": "Lou Gehrig",
+      "result_limit": 40,
+      "status": "completed_with_limit",
+      "discovered_count": 40,
+      "new_count": 40,
+      "error_count": 0,
+      "error_summary": null
+    }
+  ]
+}
