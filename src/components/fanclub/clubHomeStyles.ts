@@ -184,6 +184,7 @@ export const clubHomePageLayoutCss = `
 .club-home-page-stack {
   max-width: 1760px;
   width: calc(100% - 32px);
+  box-sizing: border-box;
   margin: 0 auto 32px;
   padding: 24px 20px 40px;
   display: flex;
