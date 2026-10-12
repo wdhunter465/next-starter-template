@@ -1,0 +1,40 @@
+{
+  "search_runs": [
+    {
+      "run_uid": "run-wikipedia-2026-10-10T17-59-46-657Z",
+      "source_domain": "en.wikipedia.org",
+      "query": "Lou Gehrig",
+      "result_limit": 10,
+      "status": "completed_with_limit",
+      "discovered_count": 10,
+      "new_count": 10,
+      "duplicate_count": 0,
+      "error_count": 0,
+      "error_summary": null
+    },
+    {
+      "run_uid": "run-wikisource-2026-10-10T17-59-46-657Z",
+      "source_domain": "en.wikisource.org",
+      "query": "Lou Gehrig",
+      "result_limit": 10,
+      "status": "completed_with_limit",
+      "discovered_count": 10,
+      "new_count": 10,
+      "duplicate_count": 0,
+      "error_count": 0,
+      "error_summary": null
+    },
+    {
+      "run_uid": "run-internetarchive-2026-10-10T17-59-46-657Z",
+      "source_domain": "archive.org",
+      "query": "Lou Gehrig",
+      "result_limit": 10,
+      "status": "completed_with_limit",
+      "discovered_count": 10,
+      "new_count": 10,
+      "duplicate_count": 0,
+      "error_count": 0,
+      "error_summary": null
+    }
+  ]
+}

@@ -1,0 +1,1280 @@
+{
+  "schema_version": "1",
+  "registry_class": "operator_export",
+  "description": "Automated story discovery export (Wikipedia, Wikisource, Internet Archive) for query \"Lou Gehrig\". Every candidate is unreviewed (review_status=pending_review, publication_status=not_ready). Ambiguous rights are treated as not permitted. Not approved for publication.",
+  "registry_purpose": "operator_export",
+  "content_evidence_level": "mixed",
+  "updated_at": "2026-10-10T17:59:47.864Z",
+  "candidates": [
+    {
+      "candidate_id": "lgfc-gehrig-2026-801",
+      "input_stream": "scheduled_discovery",
+      "title": "The Pride of the Yankees",
+      "source_name": "Wikipedia",
+      "source_type": "library",
+      "content_type": "article",
+      "summary": "The Pride of the Yankees is a 1942 American sports drama film produced by Samuel Goldwyn, directed by Sam Wood, and starring Gary Cooper, Teresa Wright, and Walter Brennan. It is a tribute to the legendary New York Yankees first baseman Lou Gehrig, who died a year before its release, at age 37, from amyotrophic lateral sclerosis (ALS), which later became known to the lay public as \"Lou Gehrig's disease\". Though subtitled The Life of Lou Gehrig, the film is less a sports biography than an homage…",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball",
+        "story"
+      ],
+      "location_tags": [],
+      "rights_status": "permission_granted",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated story discovery candidate. Not permitted until the evaluation process or a person sets permitted; relevance and admission are decided there. Share-alike license: adapted text must carry the same license.",
+      "provenance_notes": "Wikipedia story discovery for query \"Lou Gehrig\". Page: https://en.wikipedia.org/wiki/The_Pride_of_the_Yankees. Site license statement: Creative Commons Attribution-Share Alike 4.0 https://creativecommons.org/licenses/by-sa/4.0/deed.en. License is share-alike: adapted text must carry the same license. Page text is community-written; images on the page are separately licensed and are not covered.",
+      "created_at": "2026-10-10T17:59:47.102Z",
+      "updated_at": "2026-10-10T17:59:47.102Z",
+      "source_url": "https://en.wikipedia.org/wiki/The_Pride_of_the_Yankees",
+      "source_owner": "Wikipedia contributors",
+      "source_domain": "en.wikipedia.org",
+      "date_or_period": "1942",
+      "credit_line": "The Pride of the Yankees, by Wikipedia contributors, via Wikipedia (Creative Commons Attribution-Share Alike 4.0)",
+      "rights_evidence": {
+        "evidence_type": "other",
+        "evidence_text": "Wikipedia site license: Creative Commons Attribution-Share Alike 4.0.",
+        "evidence_url": "https://creativecommons.org/licenses/by-sa/4.0/deed.en",
+        "conclusion": "permission_granted"
+      },
+      "source_metadata": {
+        "source_record_id": "77639",
+        "date_accessed": "2026-10-10",
+        "source_citation": "The Pride of the Yankees, by Wikipedia contributors, via Wikipedia (Creative Commons Attribution-Share Alike 4.0)"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-802",
+      "input_stream": "scheduled_discovery",
+      "title": "Yokohama Stadium",
+      "source_name": "Wikipedia",
+      "source_type": "library",
+      "content_type": "article",
+      "summary": "Yokohama Stadium (横浜スタジアム, Yokohama Sutajiamu) is a baseball stadium in Naka-ku, Yokohama, Japan. It opened in 1978 and has a capacity of 34,046 people. It is primarily used for baseball and is the home field of the Yokohama DeNA BayStars and has the nickname of \"Hamastar\" (ハマスタ) a mix of the words yokoHAMA, STAdium and baySTARs. Due to the pronunciation also reminding people of the rōmaji pronunciation of the word \"Hamster\", the hamster ended up becoming one of the BayStars mascots as well. Th…",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball",
+        "story"
+      ],
+      "location_tags": [],
+      "rights_status": "permission_granted",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated story discovery candidate. Not permitted until the evaluation process or a person sets permitted; relevance and admission are decided there. Share-alike license: adapted text must carry the same license.",
+      "provenance_notes": "Wikipedia story discovery for query \"Lou Gehrig\". Page: https://en.wikipedia.org/wiki/Yokohama_Stadium. Site license statement: Creative Commons Attribution-Share Alike 4.0 https://creativecommons.org/licenses/by-sa/4.0/deed.en. License is share-alike: adapted text must carry the same license. Page text is community-written; images on the page are separately licensed and are not covered.",
+      "created_at": "2026-10-10T17:59:47.103Z",
+      "updated_at": "2026-10-10T17:59:47.103Z",
+      "source_url": "https://en.wikipedia.org/wiki/Yokohama_Stadium",
+      "source_owner": "Wikipedia contributors",
+      "source_domain": "en.wikipedia.org",
+      "date_or_period": "1978",
+      "credit_line": "Yokohama Stadium, by Wikipedia contributors, via Wikipedia (Creative Commons Attribution-Share Alike 4.0)",
+      "rights_evidence": {
+        "evidence_type": "other",
+        "evidence_text": "Wikipedia site license: Creative Commons Attribution-Share Alike 4.0.",
+        "evidence_url": "https://creativecommons.org/licenses/by-sa/4.0/deed.en",
+        "conclusion": "permission_granted"
+      },
+      "source_metadata": {
+        "source_record_id": "1906487",
+        "date_accessed": "2026-10-10",
+        "source_citation": "Yokohama Stadium, by Wikipedia contributors, via Wikipedia (Creative Commons Attribution-Share Alike 4.0)"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-803",
+      "input_stream": "scheduled_discovery",
+      "title": "Lou Gehrig Memorial Award",
+      "source_name": "Wikipedia",
+      "source_type": "library",
+      "content_type": "article",
+      "summary": "The Lou Gehrig Memorial Award is given annually to a Major League Baseball (MLB) player who best exhibits the character and integrity of Lou Gehrig, both on the field and off it. The award was created by the Phi Delta Theta fraternity in honor of Gehrig, who was a member of the fraternity at Columbia University. It was first presented in 1955, fourteen years after Gehrig's death. The award's purpose is to recognize a player's exemplary contributions in \"both his community and philanthropy.\" The…",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball",
+        "story"
+      ],
+      "location_tags": [],
+      "rights_status": "permission_granted",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated story discovery candidate. Not permitted until the evaluation process or a person sets permitted; relevance and admission are decided there. Share-alike license: adapted text must carry the same license.",
+      "provenance_notes": "Wikipedia story discovery for query \"Lou Gehrig\". Page: https://en.wikipedia.org/wiki/Lou_Gehrig_Memorial_Award. Site license statement: Creative Commons Attribution-Share Alike 4.0 https://creativecommons.org/licenses/by-sa/4.0/deed.en. License is share-alike: adapted text must carry the same license. Page text is community-written; images on the page are separately licensed and are not covered.",
+      "created_at": "2026-10-10T17:59:47.103Z",
+      "updated_at": "2026-10-10T17:59:47.103Z",
+      "source_url": "https://en.wikipedia.org/wiki/Lou_Gehrig_Memorial_Award",
+      "source_owner": "Wikipedia contributors",
+      "source_domain": "en.wikipedia.org",
+      "date_or_period": "1955",
+      "credit_line": "Lou Gehrig Memorial Award, by Wikipedia contributors, via Wikipedia (Creative Commons Attribution-Share Alike 4.0)",
+      "rights_evidence": {
+        "evidence_type": "other",
+        "evidence_text": "Wikipedia site license: Creative Commons Attribution-Share Alike 4.0.",
+        "evidence_url": "https://creativecommons.org/licenses/by-sa/4.0/deed.en",
+        "conclusion": "permission_granted"
+      },
+      "source_metadata": {
+        "source_record_id": "3663050",
+        "date_accessed": "2026-10-10",
+        "source_citation": "Lou Gehrig Memorial Award, by Wikipedia contributors, via Wikipedia (Creative Commons Attribution-Share Alike 4.0)"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-804",
+      "input_stream": "scheduled_discovery",
+      "title": "New York Yankees",
+      "source_name": "Wikipedia",
+      "source_type": "library",
+      "content_type": "article",
+      "summary": "The New York Yankees are an American professional baseball team based in the New York City borough of the Bronx. The Yankees compete in Major League Baseball as a member club of the American League (AL) East Division. They are one of two MLB clubs based in New York City, along with the New York Mets of the National League. The team was founded in 1903 when Frank Farrell and Bill Devery purchased the franchise rights to the defunct Baltimore Orioles and used them to establish the New York Highla…",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball",
+        "story"
+      ],
+      "location_tags": [],
+      "rights_status": "permission_granted",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated story discovery candidate. Not permitted until the evaluation process or a person sets permitted; relevance and admission are decided there. Share-alike license: adapted text must carry the same license.",
+      "provenance_notes": "Wikipedia story discovery for query \"Lou Gehrig\". Page: https://en.wikipedia.org/wiki/New_York_Yankees. Site license statement: Creative Commons Attribution-Share Alike 4.0 https://creativecommons.org/licenses/by-sa/4.0/deed.en. License is share-alike: adapted text must carry the same license. Page text is community-written; images on the page are separately licensed and are not covered.",
+      "created_at": "2026-10-10T17:59:47.103Z",
+      "updated_at": "2026-10-10T17:59:47.103Z",
+      "source_url": "https://en.wikipedia.org/wiki/New_York_Yankees",
+      "source_owner": "Wikipedia contributors",
+      "source_domain": "en.wikipedia.org",
+      "date_or_period": "1903",
+      "credit_line": "New York Yankees, by Wikipedia contributors, via Wikipedia (Creative Commons Attribution-Share Alike 4.0)",
+      "rights_evidence": {
+        "evidence_type": "other",
+        "evidence_text": "Wikipedia site license: Creative Commons Attribution-Share Alike 4.0.",
+        "evidence_url": "https://creativecommons.org/licenses/by-sa/4.0/deed.en",
+        "conclusion": "permission_granted"
+      },
+      "source_metadata": {
+        "source_record_id": "4848143",
+        "date_accessed": "2026-10-10",
+        "source_citation": "New York Yankees, by Wikipedia contributors, via Wikipedia (Creative Commons Attribution-Share Alike 4.0)"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-805",
+      "input_stream": "scheduled_discovery",
+      "title": "ALS",
+      "source_name": "Wikipedia",
+      "source_type": "library",
+      "content_type": "article",
+      "summary": "Amyotrophic lateral sclerosis (ALS), also known as motor neuron disease (MND), Lou Gehrig's disease or Charcot's disease (English: shar-KOH, French: [ʃaʁko]), is a rare terminal neurodegenerative disease defined by the progressive loss of both upper and lower motor neurons that normally control voluntary muscle contraction. ALS is the most common of the motor neuron diseases. ALS often presents with gradual muscle stiffness, twitches, weakness, and wasting. Motor neuron loss typically continues…",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball",
+        "story"
+      ],
+      "location_tags": [],
+      "rights_status": "permission_granted",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated story discovery candidate. Not permitted until the evaluation process or a person sets permitted; relevance and admission are decided there. Share-alike license: adapted text must carry the same license.",
+      "provenance_notes": "Wikipedia story discovery for query \"Lou Gehrig\". Page: https://en.wikipedia.org/wiki/ALS. Site license statement: Creative Commons Attribution-Share Alike 4.0 https://creativecommons.org/licenses/by-sa/4.0/deed.en. License is share-alike: adapted text must carry the same license. Page text is community-written; images on the page are separately licensed and are not covered.",
+      "created_at": "2026-10-10T17:59:47.103Z",
+      "updated_at": "2026-10-10T17:59:47.103Z",
+      "source_url": "https://en.wikipedia.org/wiki/ALS",
+      "source_owner": "Wikipedia contributors",
+      "source_domain": "en.wikipedia.org",
+      "credit_line": "ALS, by Wikipedia contributors, via Wikipedia (Creative Commons Attribution-Share Alike 4.0)",
+      "rights_evidence": {
+        "evidence_type": "other",
+        "evidence_text": "Wikipedia site license: Creative Commons Attribution-Share Alike 4.0.",
+        "evidence_url": "https://creativecommons.org/licenses/by-sa/4.0/deed.en",
+        "conclusion": "permission_granted"
+      },
+      "source_metadata": {
+        "source_record_id": "19375577",
+        "date_accessed": "2026-10-10",
+        "source_citation": "ALS, by Wikipedia contributors, via Wikipedia (Creative Commons Attribution-Share Alike 4.0)"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-806",
+      "input_stream": "scheduled_discovery",
+      "title": "Lou Gehrig",
+      "source_name": "Wikipedia",
+      "source_type": "library",
+      "content_type": "article",
+      "summary": "Henry Louis Gehrig ( GAIR-ig; born Heinrich Ludwig Gehrig; June 19, 1903 – June 2, 1941) was an American professional baseball first baseman who played 17 seasons in Major League Baseball (MLB) for the New York Yankees. Gehrig was renowned for his prowess as a hitter and for his durability, which earned him the nickname \"the Iron Horse\", and he is regarded as one of the greatest baseball players of all time. Gehrig was an All-Star seven consecutive times, a Triple Crown winner once, an American…",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball",
+        "story"
+      ],
+      "location_tags": [],
+      "rights_status": "permission_granted",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated story discovery candidate. Not permitted until the evaluation process or a person sets permitted; relevance and admission are decided there. Share-alike license: adapted text must carry the same license.",
+      "provenance_notes": "Wikipedia story discovery for query \"Lou Gehrig\". Page: https://en.wikipedia.org/wiki/Lou_Gehrig. Site license statement: Creative Commons Attribution-Share Alike 4.0 https://creativecommons.org/licenses/by-sa/4.0/deed.en. License is share-alike: adapted text must carry the same license. Page text is community-written; images on the page are separately licensed and are not covered.",
+      "created_at": "2026-10-10T17:59:47.103Z",
+      "updated_at": "2026-10-10T17:59:47.103Z",
+      "source_url": "https://en.wikipedia.org/wiki/Lou_Gehrig",
+      "source_owner": "Wikipedia contributors",
+      "source_domain": "en.wikipedia.org",
+      "date_or_period": "June 19, 1903",
+      "credit_line": "Lou Gehrig, by Wikipedia contributors, via Wikipedia (Creative Commons Attribution-Share Alike 4.0)",
+      "rights_evidence": {
+        "evidence_type": "other",
+        "evidence_text": "Wikipedia site license: Creative Commons Attribution-Share Alike 4.0.",
+        "evidence_url": "https://creativecommons.org/licenses/by-sa/4.0/deed.en",
+        "conclusion": "permission_granted"
+      },
+      "source_metadata": {
+        "source_record_id": "19381762",
+        "date_accessed": "2026-10-10",
+        "source_citation": "Lou Gehrig, by Wikipedia contributors, via Wikipedia (Creative Commons Attribution-Share Alike 4.0)"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-807",
+      "input_stream": "scheduled_discovery",
+      "title": "Christ Church (Bronx)",
+      "source_name": "Wikipedia",
+      "source_type": "library",
+      "content_type": "article",
+      "summary": "Christ Church Riverdale is a historic Episcopal parish church and related structures at 5040 Henry Hudson Parkway East in Riverdale, Bronx, New York City. The church was founded in 1866 and its building, made from brick and local stone with a simple pierced-wall belfry; the church building was built in 1866 to designs by architect Richard M. Upjohn. It was added to the National Register of Historic Places in 1983. The building underwent exterior restoration in 1991 and 1992, and it was designat…",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball",
+        "story"
+      ],
+      "location_tags": [],
+      "rights_status": "permission_granted",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated story discovery candidate. Not permitted until the evaluation process or a person sets permitted; relevance and admission are decided there. Share-alike license: adapted text must carry the same license.",
+      "provenance_notes": "Wikipedia story discovery for query \"Lou Gehrig\". Page: https://en.wikipedia.org/wiki/Christ_Church_(Bronx). Site license statement: Creative Commons Attribution-Share Alike 4.0 https://creativecommons.org/licenses/by-sa/4.0/deed.en. License is share-alike: adapted text must carry the same license. Page text is community-written; images on the page are separately licensed and are not covered.",
+      "created_at": "2026-10-10T17:59:47.103Z",
+      "updated_at": "2026-10-10T17:59:47.103Z",
+      "source_url": "https://en.wikipedia.org/wiki/Christ_Church_(Bronx)",
+      "source_owner": "Wikipedia contributors",
+      "source_domain": "en.wikipedia.org",
+      "date_or_period": "1866",
+      "credit_line": "Christ Church (Bronx), by Wikipedia contributors, via Wikipedia (Creative Commons Attribution-Share Alike 4.0)",
+      "rights_evidence": {
+        "evidence_type": "other",
+        "evidence_text": "Wikipedia site license: Creative Commons Attribution-Share Alike 4.0.",
+        "evidence_url": "https://creativecommons.org/licenses/by-sa/4.0/deed.en",
+        "conclusion": "permission_granted"
+      },
+      "source_metadata": {
+        "source_record_id": "30260950",
+        "date_accessed": "2026-10-10",
+        "source_citation": "Christ Church (Bronx), by Wikipedia contributors, via Wikipedia (Creative Commons Attribution-Share Alike 4.0)"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-808",
+      "input_stream": "scheduled_discovery",
+      "title": "Rud Rennie",
+      "source_name": "Wikipedia",
+      "source_type": "library",
+      "content_type": "article",
+      "summary": "Cecil Rutherford \"Rud\" Rennie (August 8, 1897 – October 6, 1956) was a sportswriter for the New York Herald Tribune, chiefly assigned to the New York Yankees baseball team and the New York Giants football team, for some 36 years. He was a friend and confidant of sports figures such as Babe Ruth, Lou Gehrig, Joe DiMaggio, Pepper Martin, and Dizzy Dean, as well as colleagues in the press box. His writings and remarks have been quoted. Rennie was a member of The Newspaper Guild from its founding i…",
+      "people_tags": [
+        "Lou Gehrig",
+        "Babe Ruth"
+      ],
+      "topic_tags": [
+        "baseball",
+        "story"
+      ],
+      "location_tags": [],
+      "rights_status": "permission_granted",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated story discovery candidate. Not permitted until the evaluation process or a person sets permitted; relevance and admission are decided there. Share-alike license: adapted text must carry the same license.",
+      "provenance_notes": "Wikipedia story discovery for query \"Lou Gehrig\". Page: https://en.wikipedia.org/wiki/Rud_Rennie. Site license statement: Creative Commons Attribution-Share Alike 4.0 https://creativecommons.org/licenses/by-sa/4.0/deed.en. License is share-alike: adapted text must carry the same license. Page text is community-written; images on the page are separately licensed and are not covered.",
+      "created_at": "2026-10-10T17:59:47.104Z",
+      "updated_at": "2026-10-10T17:59:47.104Z",
+      "source_url": "https://en.wikipedia.org/wiki/Rud_Rennie",
+      "source_owner": "Wikipedia contributors",
+      "source_domain": "en.wikipedia.org",
+      "date_or_period": "August 8, 1897",
+      "credit_line": "Rud Rennie, by Wikipedia contributors, via Wikipedia (Creative Commons Attribution-Share Alike 4.0)",
+      "rights_evidence": {
+        "evidence_type": "other",
+        "evidence_text": "Wikipedia site license: Creative Commons Attribution-Share Alike 4.0.",
+        "evidence_url": "https://creativecommons.org/licenses/by-sa/4.0/deed.en",
+        "conclusion": "permission_granted"
+      },
+      "source_metadata": {
+        "source_record_id": "51052398",
+        "date_accessed": "2026-10-10",
+        "source_citation": "Rud Rennie, by Wikipedia contributors, via Wikipedia (Creative Commons Attribution-Share Alike 4.0)"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-809",
+      "input_stream": "scheduled_discovery",
+      "title": "Eleanor Gehrig",
+      "source_name": "Wikipedia",
+      "source_type": "library",
+      "content_type": "article",
+      "summary": "Eleanor Grace Twitchell Gehrig (née Twitchell; March 6, 1904 – March 6, 1984) was an American philanthropist, socialite, sports executive, and memoirist, known as the wife of American baseball player Lou Gehrig. After Gehrig's death she continued to promote his legacy and contribute to Amyotrophic lateral sclerosis (ALS or Lou Gehrig's disease) research. In 1976 she released her autobiography, My Luke and I.",
+      "people_tags": [
+        "Lou Gehrig",
+        "Eleanor Gehrig"
+      ],
+      "topic_tags": [
+        "baseball",
+        "story"
+      ],
+      "location_tags": [],
+      "rights_status": "permission_granted",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated story discovery candidate. Not permitted until the evaluation process or a person sets permitted; relevance and admission are decided there. Share-alike license: adapted text must carry the same license.",
+      "provenance_notes": "Wikipedia story discovery for query \"Lou Gehrig\". Page: https://en.wikipedia.org/wiki/Eleanor_Gehrig. Site license statement: Creative Commons Attribution-Share Alike 4.0 https://creativecommons.org/licenses/by-sa/4.0/deed.en. License is share-alike: adapted text must carry the same license. Page text is community-written; images on the page are separately licensed and are not covered.",
+      "created_at": "2026-10-10T17:59:47.104Z",
+      "updated_at": "2026-10-10T17:59:47.104Z",
+      "source_url": "https://en.wikipedia.org/wiki/Eleanor_Gehrig",
+      "source_owner": "Wikipedia contributors",
+      "source_domain": "en.wikipedia.org",
+      "date_or_period": "March 6, 1904",
+      "credit_line": "Eleanor Gehrig, by Wikipedia contributors, via Wikipedia (Creative Commons Attribution-Share Alike 4.0)",
+      "rights_evidence": {
+        "evidence_type": "other",
+        "evidence_text": "Wikipedia site license: Creative Commons Attribution-Share Alike 4.0.",
+        "evidence_url": "https://creativecommons.org/licenses/by-sa/4.0/deed.en",
+        "conclusion": "permission_granted"
+      },
+      "source_metadata": {
+        "source_record_id": "70164292",
+        "date_accessed": "2026-10-10",
+        "source_citation": "Eleanor Gehrig, by Wikipedia contributors, via Wikipedia (Creative Commons Attribution-Share Alike 4.0)"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-810",
+      "input_stream": "scheduled_discovery",
+      "title": "Pete Frates",
+      "source_name": "Wikipedia",
+      "source_type": "library",
+      "content_type": "article",
+      "summary": "John Peter Frates III (December 28, 1984 – December 9, 2019) bka Pete Frates was an American college baseball player for the Boston College Eagles and an activist for amyotrophic lateral sclerosis (ALS) awareness. He is credited with helping the ALS Ice Bucket Challenge gain national attention, which raised approximately $220 million for ALS research.",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball",
+        "story"
+      ],
+      "location_tags": [],
+      "rights_status": "permission_granted",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated story discovery candidate. Not permitted until the evaluation process or a person sets permitted; relevance and admission are decided there. Share-alike license: adapted text must carry the same license.",
+      "provenance_notes": "Wikipedia story discovery for query \"Lou Gehrig\". Page: https://en.wikipedia.org/wiki/Pete_Frates. Site license statement: Creative Commons Attribution-Share Alike 4.0 https://creativecommons.org/licenses/by-sa/4.0/deed.en. License is share-alike: adapted text must carry the same license. Page text is community-written; images on the page are separately licensed and are not covered.",
+      "created_at": "2026-10-10T17:59:47.104Z",
+      "updated_at": "2026-10-10T17:59:47.104Z",
+      "source_url": "https://en.wikipedia.org/wiki/Pete_Frates",
+      "source_owner": "Wikipedia contributors",
+      "source_domain": "en.wikipedia.org",
+      "date_or_period": "December 28, 1984",
+      "credit_line": "Pete Frates, by Wikipedia contributors, via Wikipedia (Creative Commons Attribution-Share Alike 4.0)",
+      "rights_evidence": {
+        "evidence_type": "other",
+        "evidence_text": "Wikipedia site license: Creative Commons Attribution-Share Alike 4.0.",
+        "evidence_url": "https://creativecommons.org/licenses/by-sa/4.0/deed.en",
+        "conclusion": "permission_granted"
+      },
+      "source_metadata": {
+        "source_record_id": "73716297",
+        "date_accessed": "2026-10-10",
+        "source_citation": "Pete Frates, by Wikipedia contributors, via Wikipedia (Creative Commons Attribution-Share Alike 4.0)"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-811",
+      "input_stream": "scheduled_discovery",
+      "title": "Lou Gehrig's Farewell to Baseball",
+      "source_name": "Wikisource",
+      "source_type": "library",
+      "content_type": "article",
+      "summary": "Fans, for the past two weeks you have been reading about the bad break I got. Yet today I consider myself the luckiest man on the face of the earth. I have been in ballparks for seventeen years and have never received anything but kindness and encouragement from you fans. Look at these grand men. Which of you wouldn’t consider it the highlight of his career just to associate with them for even one day? Sure I’m lucky. Who wouldn’t consider it an honor to have known Jacob Ruppert? Also, the buil…",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball",
+        "story"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated story discovery candidate. Not permitted until the evaluation process or a person sets permitted; relevance and admission are decided there. AMBIGUOUS (treated as not permitted): Wikisource's site license covers the transcription only; the underlying work has its own copyright status and a person must verify it.",
+      "provenance_notes": "Wikisource story discovery for query \"Lou Gehrig\". Page: https://en.wikisource.org/wiki/Lou_Gehrig%27s_Farewell_to_Baseball. Site license statement: Creative Commons Attribution-Share Alike 4.0 https://creativecommons.org/licenses/by-sa/4.0/deed.en. Page text is community-written; images on the page are separately licensed and are not covered.",
+      "created_at": "2026-10-10T17:59:47.506Z",
+      "updated_at": "2026-10-10T17:59:47.506Z",
+      "source_url": "https://en.wikisource.org/wiki/Lou_Gehrig%27s_Farewell_to_Baseball",
+      "source_owner": "Wikisource contributors",
+      "source_domain": "en.wikisource.org",
+      "credit_line": "Lou Gehrig's Farewell to Baseball, by Wikisource contributors, via Wikisource (Creative Commons Attribution-Share Alike 4.0)",
+      "rights_evidence": {
+        "evidence_type": "other",
+        "evidence_text": "Wikisource site license: Creative Commons Attribution-Share Alike 4.0.",
+        "evidence_url": "https://creativecommons.org/licenses/by-sa/4.0/deed.en"
+      },
+      "source_metadata": {
+        "source_record_id": "725",
+        "date_accessed": "2026-10-10",
+        "source_citation": "Lou Gehrig's Farewell to Baseball, by Wikisource contributors, via Wikisource (Creative Commons Attribution-Share Alike 4.0)"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-812",
+      "input_stream": "scheduled_discovery",
+      "title": "Presidential Radio Address - 21 October 1995",
+      "source_name": "Wikisource",
+      "source_type": "library",
+      "content_type": "article",
+      "summary": "Good morning. I want to talk to you today about American renewal. Not economic renewal, though our economy is certainly on the move. Not the renewal of peace, though the United States is leading hopeful efforts toward peace from the Middle East to Northern Ireland to Bosnia. Not even the renewal of the American spirit, though there is a tide of optimism rising over our country as we harness technology and other changes to increase opportunities for all our people and strengthen our families and…",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball",
+        "story"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated story discovery candidate. Not permitted until the evaluation process or a person sets permitted; relevance and admission are decided there. AMBIGUOUS (treated as not permitted): Wikisource's site license covers the transcription only; the underlying work has its own copyright status and a person must verify it.",
+      "provenance_notes": "Wikisource story discovery for query \"Lou Gehrig\". Page: https://en.wikisource.org/wiki/Presidential_Radio_Address_-_21_October_1995. Site license statement: Creative Commons Attribution-Share Alike 4.0 https://creativecommons.org/licenses/by-sa/4.0/deed.en. Page text is community-written; images on the page are separately licensed and are not covered.",
+      "created_at": "2026-10-10T17:59:47.506Z",
+      "updated_at": "2026-10-10T17:59:47.506Z",
+      "source_url": "https://en.wikisource.org/wiki/Presidential_Radio_Address_-_21_October_1995",
+      "source_owner": "Wikisource contributors",
+      "source_domain": "en.wikisource.org",
+      "date_or_period": "1995",
+      "credit_line": "Presidential Radio Address - 21 October 1995, by Wikisource contributors, via Wikisource (Creative Commons Attribution-Share Alike 4.0)",
+      "rights_evidence": {
+        "evidence_type": "other",
+        "evidence_text": "Wikisource site license: Creative Commons Attribution-Share Alike 4.0.",
+        "evidence_url": "https://creativecommons.org/licenses/by-sa/4.0/deed.en"
+      },
+      "source_metadata": {
+        "source_record_id": "8579",
+        "date_accessed": "2026-10-10",
+        "source_citation": "Presidential Radio Address - 21 October 1995, by Wikisource contributors, via Wikisource (Creative Commons Attribution-Share Alike 4.0)"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-813",
+      "input_stream": "scheduled_discovery",
+      "title": "Proclamation 7940",
+      "source_name": "Wikisource",
+      "source_type": "library",
+      "content_type": "article",
+      "summary": "German Americans have played an important role in establishing America as a land where liberty is protected for all of its citizens. Each year on German-American Day, we celebrate the contributions the millions of Americans of German descent have made to our great Nation. Among the early German immigrants, many saw America as a beacon of religious freedom and an opportunity for an improved standard of living. German immigrants helped pioneer the first American colony at Jamestown. Frederick Aug…",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball",
+        "story"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated story discovery candidate. Not permitted until the evaluation process or a person sets permitted; relevance and admission are decided there. AMBIGUOUS (treated as not permitted): Wikisource's site license covers the transcription only; the underlying work has its own copyright status and a person must verify it.",
+      "provenance_notes": "Wikisource story discovery for query \"Lou Gehrig\". Page: https://en.wikisource.org/wiki/Proclamation_7940. Site license statement: Creative Commons Attribution-Share Alike 4.0 https://creativecommons.org/licenses/by-sa/4.0/deed.en. Page text is community-written; images on the page are separately licensed and are not covered.",
+      "created_at": "2026-10-10T17:59:47.506Z",
+      "updated_at": "2026-10-10T17:59:47.506Z",
+      "source_url": "https://en.wikisource.org/wiki/Proclamation_7940",
+      "source_owner": "Wikisource contributors",
+      "source_domain": "en.wikisource.org",
+      "credit_line": "Proclamation 7940, by Wikisource contributors, via Wikisource (Creative Commons Attribution-Share Alike 4.0)",
+      "rights_evidence": {
+        "evidence_type": "other",
+        "evidence_text": "Wikisource site license: Creative Commons Attribution-Share Alike 4.0.",
+        "evidence_url": "https://creativecommons.org/licenses/by-sa/4.0/deed.en"
+      },
+      "source_metadata": {
+        "source_record_id": "60210",
+        "date_accessed": "2026-10-10",
+        "source_citation": "Proclamation 7940, by Wikisource contributors, via Wikisource (Creative Commons Attribution-Share Alike 4.0)"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-814",
+      "input_stream": "scheduled_discovery",
+      "title": "Proclamation 7233",
+      "source_name": "Wikisource",
+      "source_type": "library",
+      "content_type": "article",
+      "summary": "Throughout America's history, we have drawn strength from the diversity of our people. Men and women from many different countries and cultures have arrived here, determined to forge a new life in a new land, and their talents have contributed to our national life. Germans were among the earliest ethnic groups to emigrate to America, arriving at William Penn's invitation more than 300 years ago. Whether motivated by the pursuit of religious liberty, intellectual freedom, or economic opportunity…",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball",
+        "story"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated story discovery candidate. Not permitted until the evaluation process or a person sets permitted; relevance and admission are decided there. AMBIGUOUS (treated as not permitted): Wikisource's site license covers the transcription only; the underlying work has its own copyright status and a person must verify it.",
+      "provenance_notes": "Wikisource story discovery for query \"Lou Gehrig\". Page: https://en.wikisource.org/wiki/Proclamation_7233. Site license statement: Creative Commons Attribution-Share Alike 4.0 https://creativecommons.org/licenses/by-sa/4.0/deed.en. Page text is community-written; images on the page are separately licensed and are not covered.",
+      "created_at": "2026-10-10T17:59:47.506Z",
+      "updated_at": "2026-10-10T17:59:47.506Z",
+      "source_url": "https://en.wikisource.org/wiki/Proclamation_7233",
+      "source_owner": "Wikisource contributors",
+      "source_domain": "en.wikisource.org",
+      "credit_line": "Proclamation 7233, by Wikisource contributors, via Wikisource (Creative Commons Attribution-Share Alike 4.0)",
+      "rights_evidence": {
+        "evidence_type": "other",
+        "evidence_text": "Wikisource site license: Creative Commons Attribution-Share Alike 4.0.",
+        "evidence_url": "https://creativecommons.org/licenses/by-sa/4.0/deed.en"
+      },
+      "source_metadata": {
+        "source_record_id": "60939",
+        "date_accessed": "2026-10-10",
+        "source_citation": "Proclamation 7233, by Wikisource contributors, via Wikisource (Creative Commons Attribution-Share Alike 4.0)"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-815",
+      "input_stream": "scheduled_discovery",
+      "title": "Presidential Radio Address - 16 December 2000",
+      "source_name": "Wikisource",
+      "source_type": "library",
+      "content_type": "article",
+      "summary": "Good morning. This week, as I work to conclude the last budget negotiations of my Presidency, I'm reminded how far we've come these past 8 years. We now live in a time of unprecedented peace and prosperity. But we didn't get there by accident. We made tough choices based on core values of opportunity for all, responsibility from all, and a community of all Americans. Today I want to talk about two elements critical to our continued success: first, our progress in moving people from welfare to w…",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball",
+        "story"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated story discovery candidate. Not permitted until the evaluation process or a person sets permitted; relevance and admission are decided there. AMBIGUOUS (treated as not permitted): Wikisource's site license covers the transcription only; the underlying work has its own copyright status and a person must verify it.",
+      "provenance_notes": "Wikisource story discovery for query \"Lou Gehrig\". Page: https://en.wikisource.org/wiki/Presidential_Radio_Address_-_16_December_2000. Site license statement: Creative Commons Attribution-Share Alike 4.0 https://creativecommons.org/licenses/by-sa/4.0/deed.en. Page text is community-written; images on the page are separately licensed and are not covered.",
+      "created_at": "2026-10-10T17:59:47.506Z",
+      "updated_at": "2026-10-10T17:59:47.506Z",
+      "source_url": "https://en.wikisource.org/wiki/Presidential_Radio_Address_-_16_December_2000",
+      "source_owner": "Wikisource contributors",
+      "source_domain": "en.wikisource.org",
+      "credit_line": "Presidential Radio Address - 16 December 2000, by Wikisource contributors, via Wikisource (Creative Commons Attribution-Share Alike 4.0)",
+      "rights_evidence": {
+        "evidence_type": "other",
+        "evidence_text": "Wikisource site license: Creative Commons Attribution-Share Alike 4.0.",
+        "evidence_url": "https://creativecommons.org/licenses/by-sa/4.0/deed.en"
+      },
+      "source_metadata": {
+        "source_record_id": "1374640",
+        "date_accessed": "2026-10-10",
+        "source_citation": "Presidential Radio Address - 16 December 2000, by Wikisource contributors, via Wikisource (Creative Commons Attribution-Share Alike 4.0)"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-816",
+      "input_stream": "scheduled_discovery",
+      "title": "Press Briefing by Press Secretary Ari Fleischer, May 4, 2001",
+      "source_name": "Wikisource",
+      "source_type": "library",
+      "content_type": "article",
+      "summary": "The James S. Brady Briefing Room 1:00 P.M. EDT MR. FLEISCHER: Good afternoon; a few announcements and then, to keep every captivated, we'll conclude today's briefing with a peak at the week ahead. President Bush today announced his intention to nominate Matt Fong, of California, to serve as Under Secretary of the Army. And President Bush today announced his intention to nominate Ronald Weiser to be Ambassador of the United States to the Slovak Republic. With that, I'm pleased to take questions.…",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball",
+        "story"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated story discovery candidate. Not permitted until the evaluation process or a person sets permitted; relevance and admission are decided there. AMBIGUOUS (treated as not permitted): Wikisource's site license covers the transcription only; the underlying work has its own copyright status and a person must verify it.",
+      "provenance_notes": "Wikisource story discovery for query \"Lou Gehrig\". Page: https://en.wikisource.org/wiki/Press_Briefing_by_Press_Secretary_Ari_Fleischer,_May_4,_2001. Site license statement: Creative Commons Attribution-Share Alike 4.0 https://creativecommons.org/licenses/by-sa/4.0/deed.en. Page text is community-written; images on the page are separately licensed and are not covered.",
+      "created_at": "2026-10-10T17:59:47.506Z",
+      "updated_at": "2026-10-10T17:59:47.506Z",
+      "source_url": "https://en.wikisource.org/wiki/Press_Briefing_by_Press_Secretary_Ari_Fleischer,_May_4,_2001",
+      "source_owner": "Wikisource contributors",
+      "source_domain": "en.wikisource.org",
+      "credit_line": "Press Briefing by Press Secretary Ari Fleischer, May 4, 2001, by Wikisource contributors, via Wikisource (Creative Commons Attribution-Share Alike 4.0)",
+      "rights_evidence": {
+        "evidence_type": "other",
+        "evidence_text": "Wikisource site license: Creative Commons Attribution-Share Alike 4.0.",
+        "evidence_url": "https://creativecommons.org/licenses/by-sa/4.0/deed.en"
+      },
+      "source_metadata": {
+        "source_record_id": "3632851",
+        "date_accessed": "2026-10-10",
+        "source_citation": "Press Briefing by Press Secretary Ari Fleischer, May 4, 2001, by Wikisource contributors, via Wikisource (Creative Commons Attribution-Share Alike 4.0)"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-817",
+      "input_stream": "scheduled_discovery",
+      "title": "Flood v. Kuhn/Opinion of the Court",
+      "source_name": "Wikisource",
+      "source_type": "library",
+      "content_type": "article",
+      "summary": "Discovered via Wikisource search for \"Lou Gehrig\".",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball",
+        "story"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated story discovery candidate. Not permitted until the evaluation process or a person sets permitted; relevance and admission are decided there. AMBIGUOUS (treated as not permitted): Wikisource's site license covers the transcription only; the underlying work has its own copyright status and a person must verify it.",
+      "provenance_notes": "Wikisource story discovery for query \"Lou Gehrig\". Page: https://en.wikisource.org/wiki/Flood_v._Kuhn/Opinion_of_the_Court. Site license statement: Creative Commons Attribution-Share Alike 4.0 https://creativecommons.org/licenses/by-sa/4.0/deed.en. Page text is community-written; images on the page are separately licensed and are not covered.",
+      "created_at": "2026-10-10T17:59:47.506Z",
+      "updated_at": "2026-10-10T17:59:47.506Z",
+      "source_url": "https://en.wikisource.org/wiki/Flood_v._Kuhn/Opinion_of_the_Court",
+      "source_owner": "Wikisource contributors",
+      "source_domain": "en.wikisource.org",
+      "credit_line": "Flood v. Kuhn/Opinion of the Court, by Wikisource contributors, via Wikisource (Creative Commons Attribution-Share Alike 4.0)",
+      "rights_evidence": {
+        "evidence_type": "other",
+        "evidence_text": "Wikisource site license: Creative Commons Attribution-Share Alike 4.0.",
+        "evidence_url": "https://creativecommons.org/licenses/by-sa/4.0/deed.en"
+      },
+      "source_metadata": {
+        "source_record_id": "4600906",
+        "date_accessed": "2026-10-10",
+        "source_citation": "Flood v. Kuhn/Opinion of the Court, by Wikisource contributors, via Wikisource (Creative Commons Attribution-Share Alike 4.0)"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-818",
+      "input_stream": "scheduled_discovery",
+      "title": "Flood v. Kuhn/Dissent Douglas",
+      "source_name": "Wikisource",
+      "source_type": "library",
+      "content_type": "article",
+      "summary": "Discovered via Wikisource search for \"Lou Gehrig\".",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball",
+        "story"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated story discovery candidate. Not permitted until the evaluation process or a person sets permitted; relevance and admission are decided there. AMBIGUOUS (treated as not permitted): Wikisource's site license covers the transcription only; the underlying work has its own copyright status and a person must verify it.",
+      "provenance_notes": "Wikisource story discovery for query \"Lou Gehrig\". Page: https://en.wikisource.org/wiki/Flood_v._Kuhn/Dissent_Douglas. Site license statement: Creative Commons Attribution-Share Alike 4.0 https://creativecommons.org/licenses/by-sa/4.0/deed.en. Page text is community-written; images on the page are separately licensed and are not covered.",
+      "created_at": "2026-10-10T17:59:47.506Z",
+      "updated_at": "2026-10-10T17:59:47.506Z",
+      "source_url": "https://en.wikisource.org/wiki/Flood_v._Kuhn/Dissent_Douglas",
+      "source_owner": "Wikisource contributors",
+      "source_domain": "en.wikisource.org",
+      "credit_line": "Flood v. Kuhn/Dissent Douglas, by Wikisource contributors, via Wikisource (Creative Commons Attribution-Share Alike 4.0)",
+      "rights_evidence": {
+        "evidence_type": "other",
+        "evidence_text": "Wikisource site license: Creative Commons Attribution-Share Alike 4.0.",
+        "evidence_url": "https://creativecommons.org/licenses/by-sa/4.0/deed.en"
+      },
+      "source_metadata": {
+        "source_record_id": "4602716",
+        "date_accessed": "2026-10-10",
+        "source_citation": "Flood v. Kuhn/Dissent Douglas, by Wikisource contributors, via Wikisource (Creative Commons Attribution-Share Alike 4.0)"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-819",
+      "input_stream": "scheduled_discovery",
+      "title": "Speedy (Holman)/Chapter 2",
+      "source_name": "Wikisource",
+      "source_type": "library",
+      "content_type": "article",
+      "summary": "Discovered via Wikisource search for \"Lou Gehrig\".",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball",
+        "story"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated story discovery candidate. Not permitted until the evaluation process or a person sets permitted; relevance and admission are decided there. AMBIGUOUS (treated as not permitted): Wikisource's site license covers the transcription only; the underlying work has its own copyright status and a person must verify it.",
+      "provenance_notes": "Wikisource story discovery for query \"Lou Gehrig\". Page: https://en.wikisource.org/wiki/Speedy_(Holman)/Chapter_2. Site license statement: Creative Commons Attribution-Share Alike 4.0 https://creativecommons.org/licenses/by-sa/4.0/deed.en. Page text is community-written; images on the page are separately licensed and are not covered.",
+      "created_at": "2026-10-10T17:59:47.506Z",
+      "updated_at": "2026-10-10T17:59:47.506Z",
+      "source_url": "https://en.wikisource.org/wiki/Speedy_(Holman)/Chapter_2",
+      "source_owner": "Wikisource contributors",
+      "source_domain": "en.wikisource.org",
+      "credit_line": "Speedy (Holman)/Chapter 2, by Wikisource contributors, via Wikisource (Creative Commons Attribution-Share Alike 4.0)",
+      "rights_evidence": {
+        "evidence_type": "other",
+        "evidence_text": "Wikisource site license: Creative Commons Attribution-Share Alike 4.0.",
+        "evidence_url": "https://creativecommons.org/licenses/by-sa/4.0/deed.en"
+      },
+      "source_metadata": {
+        "source_record_id": "4628295",
+        "date_accessed": "2026-10-10",
+        "source_citation": "Speedy (Holman)/Chapter 2, by Wikisource contributors, via Wikisource (Creative Commons Attribution-Share Alike 4.0)"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-820",
+      "input_stream": "scheduled_discovery",
+      "title": "The New York Times/1929/10/24/Shawkey Signs as Yankee Pilot",
+      "source_name": "Wikisource",
+      "source_type": "library",
+      "content_type": "article",
+      "summary": "Layout 2",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball",
+        "story"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated story discovery candidate. Not permitted until the evaluation process or a person sets permitted; relevance and admission are decided there. AMBIGUOUS (treated as not permitted): Wikisource's site license covers the transcription only; the underlying work has its own copyright status and a person must verify it.",
+      "provenance_notes": "Wikisource story discovery for query \"Lou Gehrig\". Page: https://en.wikisource.org/wiki/The_New_York_Times/1929/10/24/Shawkey_Signs_as_Yankee_Pilot. Site license statement: Creative Commons Attribution-Share Alike 4.0 https://creativecommons.org/licenses/by-sa/4.0/deed.en. Page text is community-written; images on the page are separately licensed and are not covered.",
+      "created_at": "2026-10-10T17:59:47.506Z",
+      "updated_at": "2026-10-10T17:59:47.506Z",
+      "source_url": "https://en.wikisource.org/wiki/The_New_York_Times/1929/10/24/Shawkey_Signs_as_Yankee_Pilot",
+      "source_owner": "Wikisource contributors",
+      "source_domain": "en.wikisource.org",
+      "date_or_period": "1929",
+      "credit_line": "The New York Times/1929/10/24/Shawkey Signs as Yankee Pilot, by Wikisource contributors, via Wikisource (Creative Commons Attribution-Share Alike 4.0)",
+      "rights_evidence": {
+        "evidence_type": "other",
+        "evidence_text": "Wikisource site license: Creative Commons Attribution-Share Alike 4.0.",
+        "evidence_url": "https://creativecommons.org/licenses/by-sa/4.0/deed.en"
+      },
+      "source_metadata": {
+        "source_record_id": "4975822",
+        "date_accessed": "2026-10-10",
+        "source_citation": "The New York Times/1929/10/24/Shawkey Signs as Yankee Pilot, by Wikisource contributors, via Wikisource (Creative Commons Attribution-Share Alike 4.0)"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-821",
+      "input_stream": "scheduled_discovery",
+      "title": "Lou Gehrig : The Iron Horse of Baseball",
+      "source_name": "Internet Archive",
+      "source_type": "library",
+      "content_type": "article",
+      "summary": "Discovered via Internet Archive search for \"Lou Gehrig\".",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball",
+        "story"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated story discovery candidate. Not permitted until the evaluation process or a person sets permitted; relevance and admission are decided there. AMBIGUOUS (treated as not permitted): The origin states no license.",
+      "provenance_notes": "Internet Archive story discovery for query \"Lou Gehrig\". Item: https://archive.org/details/bwb_S0-DFL-049. License URL: none. Rights field: none. The uploader's license and date fields are assertions, not verified facts.",
+      "created_at": "2026-10-10T17:59:47.863Z",
+      "updated_at": "2026-10-10T17:59:47.863Z",
+      "source_url": "https://archive.org/details/bwb_S0-DFL-049",
+      "source_owner": "Richard G. Hubler",
+      "source_domain": "archive.org",
+      "date_or_period": "1941-01-01",
+      "credit_line": "Lou Gehrig : The Iron Horse of Baseball, by Richard G. Hubler, via Internet Archive",
+      "source_metadata": {
+        "source_record_id": "bwb_S0-DFL-049",
+        "date_accessed": "2026-10-10",
+        "source_citation": "Lou Gehrig : The Iron Horse of Baseball, by Richard G. Hubler, via Internet Archive"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-822",
+      "input_stream": "scheduled_discovery",
+      "title": "China Mail 1936-07-23",
+      "source_name": "Internet Archive",
+      "source_type": "library",
+      "content_type": "article",
+      "summary": "GOVT. CLAIM BARCELONA CAPTURED AFTER MUCH BLOODSHED. INSURGENT CLAIMS PATIENCE NOW EXHAUSTED. Military Dictatorship All Over Spain. GOVERNMENT DENIAL OF SUCCESSES. TOLEDO RECEAPTURED. MYSTERIOUS FLIGHT. COL. LINDBERGH IN GERMANY. Gen. Goering's Guest For A Week. POLITICAL PRISONERS RELEASED. Over 40 Were Executed In Canton. AMERICAN CITIZENS GIVEN THIRD DEGREE. KID BERG TECHNICALLY KNOCKED OUT. ANOTHER AMBUSH BY ARABS. One British Soldier Killed And Four Wounded. MAYOR LIU IN SHANGHAI. To Repor…",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball",
+        "story"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated story discovery candidate. Not permitted until the evaluation process or a person sets permitted; relevance and admission are decided there. AMBIGUOUS (treated as not permitted): The origin states no license.",
+      "provenance_notes": "Internet Archive story discovery for query \"Lou Gehrig\". Item: https://archive.org/details/NPCM19360723. License URL: none. Rights field: none. The uploader's license and date fields are assertions, not verified facts.",
+      "created_at": "2026-10-10T17:59:47.864Z",
+      "updated_at": "2026-10-10T17:59:47.864Z",
+      "source_url": "https://archive.org/details/NPCM19360723",
+      "source_domain": "archive.org",
+      "date_or_period": "1936-07-23",
+      "credit_line": "China Mail 1936-07-23, via Internet Archive",
+      "source_metadata": {
+        "source_record_id": "NPCM19360723",
+        "date_accessed": "2026-10-10",
+        "source_citation": "China Mail 1936-07-23, via Internet Archive"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-823",
+      "input_stream": "scheduled_discovery",
+      "title": "Sluggers : twenty-seven of baseball's greatest",
+      "source_name": "Internet Archive",
+      "source_type": "library",
+      "content_type": "article",
+      "summary": "74 pages : 26 cm",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball",
+        "story"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated story discovery candidate. Not permitted until the evaluation process or a person sets permitted; relevance and admission are decided there. AMBIGUOUS (treated as not permitted): The origin states no license.",
+      "provenance_notes": "Internet Archive story discovery for query \"Lou Gehrig\". Item: https://archive.org/details/sluggerstwentyse0000sull. License URL: none. Rights field: none. The uploader's license and date fields are assertions, not verified facts.",
+      "created_at": "2026-10-10T17:59:47.864Z",
+      "updated_at": "2026-10-10T17:59:47.864Z",
+      "source_url": "https://archive.org/details/sluggerstwentyse0000sull",
+      "source_owner": "Sullivan, George, 1927-",
+      "source_domain": "archive.org",
+      "date_or_period": "1991-01-01",
+      "credit_line": "Sluggers : twenty-seven of baseball's greatest, by Sullivan, George, 1927-, via Internet Archive",
+      "source_metadata": {
+        "source_record_id": "sluggerstwentyse0000sull",
+        "date_accessed": "2026-10-10",
+        "source_citation": "Sluggers : twenty-seven of baseball's greatest, by Sullivan, George, 1927-, via Internet Archive"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-824",
+      "input_stream": "scheduled_discovery",
+      "title": "Last time out : big-league farewells of baseball's greats",
+      "source_name": "Internet Archive",
+      "source_type": "library",
+      "content_type": "article",
+      "summary": "xvi, 326 pages : 21 cm",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball",
+        "story"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated story discovery candidate. Not permitted until the evaluation process or a person sets permitted; relevance and admission are decided there. AMBIGUOUS (treated as not permitted): The origin states no license.",
+      "provenance_notes": "Internet Archive story discovery for query \"Lou Gehrig\". Item: https://archive.org/details/lasttimeoutbigle0000nogo. License URL: none. Rights field: none. The uploader's license and date fields are assertions, not verified facts.",
+      "created_at": "2026-10-10T17:59:47.864Z",
+      "updated_at": "2026-10-10T17:59:47.864Z",
+      "source_url": "https://archive.org/details/lasttimeoutbigle0000nogo",
+      "source_owner": "Nogowski, John, 1953-",
+      "source_domain": "archive.org",
+      "date_or_period": "2005-01-01",
+      "credit_line": "Last time out : big-league farewells of baseball's greats, by Nogowski, John, 1953-, via Internet Archive",
+      "source_metadata": {
+        "source_record_id": "lasttimeoutbigle0000nogo",
+        "date_accessed": "2026-10-10",
+        "source_citation": "Last time out : big-league farewells of baseball's greats, by Nogowski, John, 1953-, via Internet Archive"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-825",
+      "input_stream": "scheduled_discovery",
+      "title": "Bury my heart at Cooperstown : salacious, sad, and surreal deaths in the history of baseball",
+      "source_name": "Internet Archive",
+      "source_type": "library",
+      "content_type": "article",
+      "summary": "1 online resource (xxiv, 261 pages :) :",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball",
+        "story"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated story discovery candidate. Not permitted until the evaluation process or a person sets permitted; relevance and admission are decided there. AMBIGUOUS (treated as not permitted): The origin states no license.",
+      "provenance_notes": "Internet Archive story discovery for query \"Lou Gehrig\". Item: https://archive.org/details/burymyheartatcoo0000russ. License URL: none. Rights field: none. The uploader's license and date fields are assertions, not verified facts.",
+      "created_at": "2026-10-10T17:59:47.864Z",
+      "updated_at": "2026-10-10T17:59:47.864Z",
+      "source_url": "https://archive.org/details/burymyheartatcoo0000russ",
+      "source_owner": "Russo, Frank, 1959-",
+      "source_domain": "archive.org",
+      "date_or_period": "2006-01-01",
+      "credit_line": "Bury my heart at Cooperstown : salacious, sad, and surreal deaths in the history of baseball, by Russo, Frank, 1959-, via Internet Archive",
+      "source_metadata": {
+        "source_record_id": "burymyheartatcoo0000russ",
+        "date_accessed": "2026-10-10",
+        "source_citation": "Bury my heart at Cooperstown : salacious, sad, and surreal deaths in the history of baseball, by Russo, Frank, 1959-, via Internet Archive"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-826",
+      "input_stream": "scheduled_discovery",
+      "title": "Hank Greenberg : the hero of heroes",
+      "source_name": "Internet Archive",
+      "source_type": "library",
+      "content_type": "article",
+      "summary": "392 pages, 16 unnumbered pages of plates : 24 cm",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball",
+        "story"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated story discovery candidate. Not permitted until the evaluation process or a person sets permitted; relevance and admission are decided there. AMBIGUOUS (treated as not permitted): The origin states no license.",
+      "provenance_notes": "Internet Archive story discovery for query \"Lou Gehrig\". Item: https://archive.org/details/hankgreenbergher0000rose. License URL: none. Rights field: none. The uploader's license and date fields are assertions, not verified facts.",
+      "created_at": "2026-10-10T17:59:47.864Z",
+      "updated_at": "2026-10-10T17:59:47.864Z",
+      "source_url": "https://archive.org/details/hankgreenbergher0000rose",
+      "source_owner": "Rosengren, John",
+      "source_domain": "archive.org",
+      "date_or_period": "2013-01-01",
+      "credit_line": "Hank Greenberg : the hero of heroes, by Rosengren, John, via Internet Archive",
+      "source_metadata": {
+        "source_record_id": "hankgreenbergher0000rose",
+        "date_accessed": "2026-10-10",
+        "source_citation": "Hank Greenberg : the hero of heroes, by Rosengren, John, via Internet Archive"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-827",
+      "input_stream": "scheduled_discovery",
+      "title": "American heroes",
+      "source_name": "Internet Archive",
+      "source_type": "library",
+      "content_type": "article",
+      "summary": "3 v. (xxiii, 1078 p.) : 24 cm",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball",
+        "story"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated story discovery candidate. Not permitted until the evaluation process or a person sets permitted; relevance and admission are decided there. AMBIGUOUS (treated as not permitted): The origin states no license.",
+      "provenance_notes": "Internet Archive story discovery for query \"Lou Gehrig\". Item: https://archive.org/details/americanheroes0000unse. License URL: none. Rights field: none. The uploader's license and date fields are assertions, not verified facts.",
+      "created_at": "2026-10-10T17:59:47.864Z",
+      "updated_at": "2026-10-10T17:59:47.864Z",
+      "source_url": "https://archive.org/details/americanheroes0000unse",
+      "source_domain": "archive.org",
+      "date_or_period": "2009-01-01",
+      "credit_line": "American heroes, via Internet Archive",
+      "source_metadata": {
+        "source_record_id": "americanheroes0000unse",
+        "date_accessed": "2026-10-10",
+        "source_citation": "American heroes, via Internet Archive"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-828",
+      "input_stream": "scheduled_discovery",
+      "title": "Modern sports ethics : a reference handbook",
+      "source_name": "Internet Archive",
+      "source_type": "library",
+      "content_type": "article",
+      "summary": "xviii, 329 p. : 24 cm",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball",
+        "story"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated story discovery candidate. Not permitted until the evaluation process or a person sets permitted; relevance and admission are decided there. AMBIGUOUS (treated as not permitted): The origin states no license.",
+      "provenance_notes": "Internet Archive story discovery for query \"Lou Gehrig\". Item: https://archive.org/details/modernsportsethi0000lump_v8z6. License URL: none. Rights field: none. The uploader's license and date fields are assertions, not verified facts.",
+      "created_at": "2026-10-10T17:59:47.864Z",
+      "updated_at": "2026-10-10T17:59:47.864Z",
+      "source_url": "https://archive.org/details/modernsportsethi0000lump_v8z6",
+      "source_owner": "Lumpkin, Angela",
+      "source_domain": "archive.org",
+      "date_or_period": "2009-01-01",
+      "credit_line": "Modern sports ethics : a reference handbook, by Lumpkin, Angela, via Internet Archive",
+      "source_metadata": {
+        "source_record_id": "modernsportsethi0000lump_v8z6",
+        "date_accessed": "2026-10-10",
+        "source_citation": "Modern sports ethics : a reference handbook, by Lumpkin, Angela, via Internet Archive"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-829",
+      "input_stream": "scheduled_discovery",
+      "title": "Yankee Stadium : a tribute : 85 years of memories, 1923-2008",
+      "source_name": "Internet Archive",
+      "source_type": "library",
+      "content_type": "article",
+      "summary": "176 pages : 25 cm +",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball",
+        "story"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated story discovery candidate. Not permitted until the evaluation process or a person sets permitted; relevance and admission are decided there. AMBIGUOUS (treated as not permitted): The origin states no license.",
+      "provenance_notes": "Internet Archive story discovery for query \"Lou Gehrig\". Item: https://archive.org/details/yankeestadiumtri0000kran. License URL: none. Rights field: none. The uploader's license and date fields are assertions, not verified facts.",
+      "created_at": "2026-10-10T17:59:47.864Z",
+      "updated_at": "2026-10-10T17:59:47.864Z",
+      "source_url": "https://archive.org/details/yankeestadiumtri0000kran",
+      "source_owner": "Krantz, Les",
+      "source_domain": "archive.org",
+      "date_or_period": "2008-01-01",
+      "credit_line": "Yankee Stadium : a tribute : 85 years of memories, 1923-2008, by Krantz, Les, via Internet Archive",
+      "source_metadata": {
+        "source_record_id": "yankeestadiumtri0000kran",
+        "date_accessed": "2026-10-10",
+        "source_citation": "Yankee Stadium : a tribute : 85 years of memories, 1923-2008, by Krantz, Les, via Internet Archive"
+      }
+    },
+    {
+      "candidate_id": "lgfc-gehrig-2026-830",
+      "input_stream": "scheduled_discovery",
+      "title": "China Mail 1935-08-22",
+      "source_name": "Internet Archive",
+      "source_type": "library",
+      "content_type": "article",
+      "summary": "CABINET DIVIDED ON ISSUE OF SANCTIONS AGAINST ITALY. URGE FOR RESTRICTION OF THE CONELICT TO AFRICA AS MAIN OBJECTIVE OF BRITISH POLICY. FRANCE EMPHATICALLY IN SUPPORT. GRAVE CONSEQUENCES HINGE ON TO-DAY'S MEETING. DOMINION DELEGATES CONSULTED. ASSEMBLY OF CABINET. Remarkable Activity In Downing Street. PRESENCE OF HUGE CROWDS RECALLS 1931 CRISIS. Britain To Stand By Her Obligations. FRENCH SUPPORT ASSURED. ITALIAN FINANCES. RELIGIOUS CLASH. 2 KILLED AND 30 WOUNDED IN BOSNIA. Orthodoxers And Mo…",
+      "people_tags": [
+        "Lou Gehrig"
+      ],
+      "topic_tags": [
+        "baseball",
+        "story"
+      ],
+      "location_tags": [],
+      "rights_status": "unknown",
+      "source_trust_status": "trusted",
+      "relevance_status": "pending",
+      "review_status": "pending_review",
+      "publication_status": "not_ready",
+      "privacy_flag": "none",
+      "privacy_review_status": "not_applicable",
+      "review_priority": "normal",
+      "admin_notes": "Automated story discovery candidate. Not permitted until the evaluation process or a person sets permitted; relevance and admission are decided there. AMBIGUOUS (treated as not permitted): The origin states no license.",
+      "provenance_notes": "Internet Archive story discovery for query \"Lou Gehrig\". Item: https://archive.org/details/NPCM19350822. License URL: none. Rights field: none. The uploader's license and date fields are assertions, not verified facts.",
+      "created_at": "2026-10-10T17:59:47.864Z",
+      "updated_at": "2026-10-10T17:59:47.864Z",
+      "source_url": "https://archive.org/details/NPCM19350822",
+      "source_domain": "archive.org",
+      "date_or_period": "1935-08-22",
+      "credit_line": "China Mail 1935-08-22, via Internet Archive",
+      "source_metadata": {
+        "source_record_id": "NPCM19350822",
+        "date_accessed": "2026-10-10",
+        "source_citation": "China Mail 1935-08-22, via Internet Archive"
+      }
+    }
+  ]
+}
