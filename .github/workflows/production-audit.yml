@@ -141,7 +141,7 @@ jobs:
                 repo: context.repo.repo,
                 title: title,
                 body: body,
-                labels: ["change-ops"]
+                labels: ["change-ops", "team:operations"]
               });
             }
 
