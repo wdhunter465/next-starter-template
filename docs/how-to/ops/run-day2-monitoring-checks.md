@@ -27,7 +27,9 @@ Tell an operator, for each stage 1 monitoring check, what it proves, where its a
 
 Scheduled job health covers the silent case the watcher cannot see: a job that stopped running, was disabled, or keeps failing past its window. Its windows are in `JOBS` in `scripts/ops/scheduled-job-health.mjs`. A test fails if a scheduled workflow is added without an entry there.
 
-## Respond to an alert
+## Procedure
+
+### Respond to an alert
 
 1. Open the Issue and the linked run. Read the failing step or the failing row of the report.
 2. Classify it:
@@ -37,7 +39,7 @@ Scheduled job health covers the silent case the watcher cannot see: a job that s
    - **Missing secret or configuration.** Record who provisions it.
 3. Close the Issue with a comment naming the fix or decision. The uptime probe and scheduled job health post a recovery comment on a clean run; they do not close the Issue.
 
-## Disable a check
+### Disable a check
 
 - **One job in scheduled job health:** remove its `JOBS` entry by PR and say why in the PR. Removing the workflow file has the same effect, and the coverage test then expects the entry to be gone.
 - **A whole check:** disable the workflow in the Actions tab for an emergency, then remove its `schedule:` by PR. Scheduled job health reports a disabled workflow until the PR lands. That is intended.
