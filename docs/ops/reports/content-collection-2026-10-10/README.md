@@ -13,17 +13,19 @@ Last Reviewed: 2026-10-12
 
 ## Purpose
 
-This folder preserves, unchanged, what the first runs of the image and story collectors produced on 2026-10-10. Before this, the files existed only in a session folder. Collection records the origin URL and the origin's own license statement for everything found; it decides nothing.
+This report describes, and the data files in `data/research/collected-2026-10-10/` preserve unchanged, what the first runs of the image and story collectors produced on 2026-10-10. Before this, the files existed only in a session folder. Collection records the origin URL and the origin's own license statement for everything found; it decides nothing.
 
 ## Status of everything in this folder
 
 **Collected. Not evaluated. Not imported to D1. Not permitted.** Nothing here may be used on the LGFC website. Default is not permitted; each item needs the evaluation process and, where required, permission, before it can be admitted.
 
-These files are deliberately not in `data/research/`. The collectors skip any URL found in a top-level `data/research/*.json` registry, and the weekly discovery workflow imports its own run output, so registering these there would make a later run skip URLs that were never imported.
+The data files are in the subfolder `data/research/collected-2026-10-10/`, not at the top level of `data/research/`. The collectors skip any URL found in a top-level `data/research/*.json` registry, and the weekly discovery workflow imports its own run output, so registering these at the top level would make a later run skip URLs that were never imported. The collectors read only top-level files, so the subfolder is not scanned.
+
+Candidate IDs in these files were assigned at collection time. Because the collectors do not scan the subfolder, a later run may assign the same IDs. Nothing here is imported, so nothing collides today. If any of these candidates is imported later, re-key it first.
 
 ## Contents
 
-| File | What it is |
+| File in `data/research/collected-2026-10-10/` | What it is |
 | --- | --- |
 | `commons-images-run-2026-10-10.json` | 40 Wikimedia Commons image candidates (33 `public_domain_candidate`, 7 `unknown`) in the `CandidateRegistry` format |
 | `commons-images-run-2026-10-10.search-runs.json` | The three search-run records for that run |
