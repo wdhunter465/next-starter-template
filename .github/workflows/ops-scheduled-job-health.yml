@@ -1,0 +1,40 @@
+name: OPS — Scheduled Job Health
+
+# Monitor of monitors (#4468). Flags a scheduled workflow that is disabled, missing,
+# or has not succeeded on the default branch within its window. A finding opens or
+# updates one Operations Issue; a later clean run comments recovery on it.
+# GITHUB_TOKEN only; reads the Actions API, no Production access.
+
+on:
+  schedule:
+    - cron: '40 */2 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  actions: read
+  issues: write
+
+concurrency:
+  group: ops-scheduled-job-health
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Check scheduled job health
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          OPS_ESCALATION_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: node scripts/ops/scheduled-job-health.mjs --escalate

@@ -30,6 +30,10 @@ Watched workflows (by their exact `name:`):
 - D1 Migrations
 - Repository Runner Health
 - LGFC Cursor Runner Health
+- OPS — Design Compliance Audit
+- OPS — Post-Merge Self-Healing
+- Gehrig Content Discovery (#3551 / #3552 / #2270 perpetual collection)
+- OPS — Scheduled Job Health
 - GATE — Quality Checks (default branch only)
 - GATE — Secret Scan (default branch only)
 
