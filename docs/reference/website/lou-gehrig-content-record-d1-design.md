@@ -6,14 +6,14 @@ Owns: D1 design for content permission records, decision history, source standin
 Does Not Own: The policy itself (the rights review model), migrations, runtime code, or any D1 write
 Canonical Reference: /docs/reference/website/lou-gehrig-rights-privacy-publication-review.md
 Related Issues: #4550, #4523, #4526, #4528, #4527, #4368
-Last Reviewed: 2026-10-10
+Last Reviewed: 2026-10-12
 ---
 
 # Lou Gehrig Content Record D1 Design
 
 ## Purpose
 
-This design turns the policy in the rights review model into D1 tables and columns, reusing what exists. It is a proposal for review. Nothing here is built.
+This design turns the policy in the rights review model into D1 tables and columns, reusing what exists. Section "Build status" says what is built.
 
 ## Principles
 
@@ -164,9 +164,18 @@ The rendering (multi-line second column, PDF and CSV export) is a separate task.
 
 `content_inventory` rows carry `candidate_id` in `content_inventory_events` and link through `content_items.content_inventory_id`. The selection filter and the monitoring action (#4528) read `active_content_items.final_status`; `content_inventory_placement_history` and the events table are the usage log. No separate placements table is needed.
 
-## Open decisions for Product Authority
+## Decisions (Product Authority, 2026-10-11; recorded on #4527)
 
-1. Supersession: same table with a view (recommended) or physical archive tables.
-2. CMG, MLB and Yankees scope: blanket (all Gehrig content waits) or scoped (merchandise, marks, endorsement, and party-controlled material only). Until decided, those layers default to `for_admin_review`.
-3. Purge: confirm collected records are exempt from the existing purge fields.
-4. Privacy layer: confirm living-person and minors criteria for `not_applicable`.
+1. **Supersession: the newest record defines use.** Same table with a view. A permission change creates a new dated record, the older one is marked `superseded_at` / `superseded_by`, and nothing is deleted.
+2. **CMG, MLB and Yankees: assumed blanket, each must confirm.** The working assumption is that Gehrig content needs sign-off from all three. Each party must reply to confirm the assumption and any scope it states. Until a party replies its layer stays `for_admin_review`, so no record reaches `permitted`. A reply that says no approval is needed sets that layer to `not_applicable`.
+3. **Retention: everything is permanent unless a person marks it for purge.** No automatic purge exists or is added. The existing `deleted_at`, `retention_reason` and `purge_eligible_at` columns are set only by an explicit human action through the admin editorial endpoints, with a reason. A marked record's permission exchanges and decision history are not deleted with it.
+4. **Alternate contacts: at most 2 per source.** After the three-attempt sequence goes unanswered, automation tries up to two alternate contacts found on the source's website. After that Product Authority intervenes manually.
+5. **New searched domains approved:** `en.wikipedia.org`, `en.wikisource.org` and `archive.org` may be added to `sources` before any story import. Adding the rows is a D1 write and follows the normal Development-first path.
+
+Still open: the privacy layer's criteria for `not_applicable` (living people, minors).
+
+## Build status
+
+- Migration `0084_content_permission_layers_4523.sql` (#4523): the layers, outcome basis, fee flag, supersession columns, the active view, the final-status and fee triggers, the `sources` cost and standing columns, and the backfill. Not yet built: the unique index on active `source_url` (needs the duplicate query first), `rights_parties` and standing history, `search_cycles`.
+- #4526: the communications tables (`permission_exchanges`, `permission_messages`, `permission_exchange_items`) and the append-only triggers. `content_items.permission_exchange_id` and `rights_evidence.exchange_id` exist without foreign keys until those tables are created.
+- #4528: selection and monitoring read `active_content_items.final_status`.
