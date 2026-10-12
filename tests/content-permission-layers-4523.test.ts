@@ -237,6 +237,23 @@ describe('migration 0084 (scratch database)', () => {
     expect(db.prepare('SELECT COUNT(*) AS n FROM rights_evidence WHERE content_item_id = ?').get(older)).toEqual({ n: 1 });
   });
 
+  it('keeps the 0084 columns, view and triggers when the 0065 emergency rollback rebuilds the tables', () => {
+    const db = new DatabaseSync(':memory:');
+    for (const file of migrations()) db.exec(fs.readFileSync(path.join(MIGRATIONS_DIR, file), 'utf8'));
+    const id = insertItem(db);
+    insertEvidence(db, id, { usage_basis: 'free_use_credit', usage_decision: 'permit' });
+    db.exec(fs.readFileSync(path.join(process.cwd(), 'scripts/ops/rollback/0065_archive_acquisition_core_rollback.sql'), 'utf8'));
+
+    expect(db.prepare('SELECT final_status, cmg_permission FROM content_items WHERE id = ?').get(id)).toEqual({
+      final_status: 'not_permitted',
+      cmg_permission: 'for_admin_review',
+    });
+    expect(db.prepare('SELECT usage_basis FROM rights_evidence WHERE content_item_id = ?').get(id)).toEqual({ usage_basis: 'free_use_credit' });
+    expect((db.prepare('SELECT COUNT(*) AS n FROM active_content_items').get() as { n: number }).n).toBe(1);
+    expect(() => db.prepare("UPDATE content_items SET final_status = 'permitted' WHERE id = ?").run(id)).toThrow(/final_status permitted requires/);
+    expect(() => insertEvidence(db, id, { fee_required: 1, usage_decision: 'permit' })).toThrow(/fee-required evidence/);
+  });
+
   it('adds the source cost and standing columns with safe defaults', () => {
     const db = dbBefore0084();
     apply0084(db);

@@ -59,6 +59,10 @@ DROP TABLE _rollback_0065_guard;
 -- empty, so this discards no data.
 -- ---------------------------------------------------------------------------
 
+-- #4523/migration 0084: active_content_items reads content_items, which Part C drops and
+-- renames; drop it here and recreate it, unchanged, before COMMIT.
+DROP VIEW IF EXISTS active_content_items;
+
 DROP TABLE archive_item_custody_events;
 DROP TABLE archive_items;
 
@@ -141,6 +145,30 @@ CREATE TABLE content_items_prev (
   curator_decision_by TEXT,
   curator_decision_at TEXT,
   curator_decision_notes TEXT,
+  -- #4523/migration 0084: additive columns, unrelated to 0065 -- carried over verbatim, in
+  -- ALTER TABLE order, like every other post-0065 column.
+  origin_permission TEXT NOT NULL DEFAULT 'not_permitted'
+    CHECK (origin_permission IN ('permitted', 'not_permitted', 'not_applicable', 'for_admin_review')),
+  cmg_permission TEXT NOT NULL DEFAULT 'for_admin_review'
+    CHECK (cmg_permission IN ('permitted', 'not_permitted', 'not_applicable', 'for_admin_review')),
+  mlb_permission TEXT NOT NULL DEFAULT 'for_admin_review'
+    CHECK (mlb_permission IN ('permitted', 'not_permitted', 'not_applicable', 'for_admin_review')),
+  yankees_permission TEXT NOT NULL DEFAULT 'for_admin_review'
+    CHECK (yankees_permission IN ('permitted', 'not_permitted', 'not_applicable', 'for_admin_review')),
+  privacy_status TEXT NOT NULL DEFAULT 'for_admin_review'
+    CHECK (privacy_status IN ('permitted', 'not_permitted', 'not_applicable', 'for_admin_review')),
+  final_status TEXT NOT NULL DEFAULT 'not_permitted'
+    CHECK (final_status IN ('permitted', 'not_permitted', 'for_admin_review')),
+  outcome_basis TEXT NOT NULL DEFAULT 'pending'
+    CHECK (outcome_basis IN (
+      'origin_statement', 'email_permission', 'email_denial', 'no_response', 'fee_required',
+      'public_domain', 'manual_lgfc_decision', 'pending'
+    )),
+  outcome_set_at TEXT,
+  outcome_set_by TEXT,
+  superseded_at TEXT,
+  superseded_by TEXT,
+  permission_exchange_id INTEGER,
   FOREIGN KEY (duplicate_of) REFERENCES content_items_prev(candidate_id) DEFERRABLE INITIALLY DEFERRED
 );
 
@@ -264,7 +292,14 @@ CREATE TABLE rights_evidence_prev (
   -- #4405/migration 0080: additive column, unrelated to 0065 -- carried over
   -- verbatim like every other post-0065 column, so this script keeps
   -- reversing only what 0065 itself changed.
-  contact_info TEXT
+  contact_info TEXT,
+  -- #4523/migration 0084: additive columns, carried over verbatim in ALTER TABLE order.
+  usage_basis TEXT NOT NULL DEFAULT 'unknown'
+    CHECK (usage_basis IN ('free_use', 'free_use_credit', 'free_use_permission', 'fee_required', 'unknown')),
+  fee_required INTEGER NOT NULL DEFAULT 0
+    CHECK (fee_required IN (0, 1)),
+  evidence_text_sha256 TEXT,
+  exchange_id INTEGER
 );
 INSERT INTO rights_evidence_prev SELECT * FROM rights_evidence;
 DROP TABLE rights_evidence;
@@ -387,5 +422,63 @@ CREATE INDEX IF NOT EXISTS idx_rights_evidence_content_item_channel
 CREATE INDEX IF NOT EXISTS idx_rights_evidence_usage_decision
   ON rights_evidence(usage_decision)
   WHERE usage_decision = 'hold';
+
+-- ---------------------------------------------------------------------------
+-- Part E: recreate the migration 0084 (#4523) indexes, view and triggers that dropping and
+-- rebuilding content_items and rights_evidence removed, verbatim from 0084.
+-- ---------------------------------------------------------------------------
+
+CREATE INDEX IF NOT EXISTS idx_content_items_final_status
+  ON content_items(final_status)
+  WHERE superseded_at IS NULL;
+
+CREATE INDEX IF NOT EXISTS idx_content_items_source_url_active
+  ON content_items(source_url)
+  WHERE superseded_at IS NULL AND source_url IS NOT NULL;
+
+CREATE VIEW IF NOT EXISTS active_content_items AS
+  SELECT * FROM content_items WHERE superseded_at IS NULL;
+
+CREATE TRIGGER IF NOT EXISTS trg_content_items_final_status_insert
+BEFORE INSERT ON content_items
+WHEN NEW.final_status = 'permitted' AND (
+  NEW.origin_permission <> 'permitted'
+  OR NEW.cmg_permission NOT IN ('permitted', 'not_applicable')
+  OR NEW.mlb_permission NOT IN ('permitted', 'not_applicable')
+  OR NEW.yankees_permission NOT IN ('permitted', 'not_applicable')
+  OR NEW.privacy_status NOT IN ('permitted', 'not_applicable')
+  OR NEW.outcome_basis = 'fee_required'
+)
+BEGIN
+  SELECT RAISE(ABORT, 'final_status permitted requires origin permitted and every other layer permitted or not_applicable');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_content_items_final_status_update
+BEFORE UPDATE ON content_items
+WHEN NEW.final_status = 'permitted' AND (
+  NEW.origin_permission <> 'permitted'
+  OR NEW.cmg_permission NOT IN ('permitted', 'not_applicable')
+  OR NEW.mlb_permission NOT IN ('permitted', 'not_applicable')
+  OR NEW.yankees_permission NOT IN ('permitted', 'not_applicable')
+  OR NEW.privacy_status NOT IN ('permitted', 'not_applicable')
+  OR NEW.outcome_basis = 'fee_required'
+)
+BEGIN
+  SELECT RAISE(ABORT, 'final_status permitted requires origin permitted and every other layer permitted or not_applicable');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_rights_evidence_fee_required_insert
+BEFORE INSERT ON rights_evidence
+WHEN (NEW.fee_required = 1 OR NEW.usage_basis = 'fee_required') AND NEW.usage_decision <> 'deny'
+BEGIN
+  SELECT RAISE(ABORT, 'fee-required evidence must have usage_decision deny');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_rights_evidence_fee_required_update
+BEFORE UPDATE ON rights_evidence
+WHEN (NEW.fee_required = 1 OR NEW.usage_basis = 'fee_required') AND NEW.usage_decision <> 'deny'
+BEGIN
+  SELECT RAISE(ABORT, 'fee-required evidence must have usage_decision deny');
+END;
 
 COMMIT;
