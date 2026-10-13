@@ -1,5 +1,6 @@
 // Deterministic editorial rotation scoring and selection for content_inventory.
 
+import { passesPermissionGate, permissionStatusSelect } from "./content-inventory-permission-gate";
 import { publishedInventoryWhere } from "./content-inventory-public";
 
 export const HOMEPAGE_SPOTLIGHT_SECTION = "homepage_spotlight";
@@ -14,6 +15,7 @@ const USAGE_COUNT_SCORE_PENALTY = 30;
 
 export type RotationRow = {
   id: number;
+  permission_final_status?: string | null;
   title?: string | null;
   priority?: number | null;
   canonical?: number | boolean | null;
@@ -218,7 +220,7 @@ export function isRotationEligibleRow(row: RotationRow, sectionKey: string): boo
     return false;
   if (!String(row.source_name || "").trim()) return false;
   if (!String(row.credit_line || "").trim()) return false;
-  return true;
+  return passesPermissionGate(row);
 }
 
 export async function fetchRotationEligibleRows(db: any, options: { sectionKey: string; q?: string }): Promise<RotationRow[]> {
@@ -241,14 +243,14 @@ export async function fetchRotationEligibleRows(db: any, options: { sectionKey: 
     .prepare(
       `SELECT id, title, text, summary, credit_line, source_name, source_url, tag, event_date, event_year,
               rotation_group, last_featured, usage_count, feature_weight, canonical, priority,
-              allowed_sections, status, updated_at
+              allowed_sections, status, updated_at${permissionStatusSelect()}
        FROM content_inventory
        ${whereSql}`,
     )
     .bind(...args)
     .all();
 
-  return (rows.results ?? []) as RotationRow[];
+  return ((rows.results ?? []) as RotationRow[]).filter((row) => passesPermissionGate(row));
 }
 
 export async function fetchRotationRankedInventory<T extends RotationRow>(

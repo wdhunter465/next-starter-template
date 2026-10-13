@@ -5,6 +5,7 @@ import {
   readyRenditionUrl,
   type RenditionSize,
 } from "./content-inventory-media";
+import { passesPermissionGate, permissionStatusSelect } from "./content-inventory-permission-gate";
 import { countPublishedInventoryForSection, mapPublicInventoryStory, publishedInventoryWhere } from "./content-inventory-public";
 import {
   CLUB_HOME_PLACEMENT_ZONES,
@@ -217,13 +218,13 @@ async function fetchClubHomeRows(db: any): Promise<ClubHomeInventoryRow[]> {
     .prepare(
       `SELECT id, title, text, summary, credit_line, source_name, story_type, tag,
               perspective_label, event_date, event_year, rotation_group, last_featured,
-              usage_count, feature_weight, canonical, priority, allowed_sections, status, updated_at
+              usage_count, feature_weight, canonical, priority, allowed_sections, status, updated_at${permissionStatusSelect()}
          FROM content_inventory
         WHERE ${publishedInventoryWhere(CLUB_HOME_SECTION)}`,
     )
     .all();
 
-  return (rows.results ?? []) as ClubHomeInventoryRow[];
+  return ((rows.results ?? []) as ClubHomeInventoryRow[]).filter((row) => passesPermissionGate(row));
 }
 
 function pickLeadStory(rows: ClubHomeInventoryRow[], asOfDate = new Date()): ClubHomeInventoryRow | null {
@@ -605,13 +606,14 @@ async function loadEligibleStoryById(db: any, storyId: number): Promise<ClubHome
     .prepare(
       `SELECT id, title, text, summary, credit_line, source_name, story_type, tag,
               perspective_label, event_date, event_year, rotation_group, last_featured,
-              usage_count, feature_weight, canonical, priority, allowed_sections, status, updated_at
+              usage_count, feature_weight, canonical, priority, allowed_sections, status, updated_at${permissionStatusSelect()}
          FROM content_inventory
         WHERE id = ? AND ${publishedInventoryWhere(CLUB_HOME_SECTION)}`,
     )
     .bind(storyId)
     .first();
-  return (row as ClubHomeInventoryRow | null) ?? null;
+  const story = (row as ClubHomeInventoryRow | null) ?? null;
+  return story && passesPermissionGate(story) ? story : null;
 }
 
 async function payloadFromEdition(
