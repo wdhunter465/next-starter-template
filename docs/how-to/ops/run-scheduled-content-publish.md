@@ -5,8 +5,8 @@ Authority Level: Operational Authority
 Owns: How to author, schedule, and auto-publish dated content_blocks posts (currently the Fundraiser Daily Details feed) and cross-post them to social via Zapier
 Does Not Own: The dynamic donation leaderboard/standings snapshot cadence (see /docs/how-to/ops/als-fundraiser-snapshots-and-publishing.md); the generic CMS draft/publish flow for non-scheduled blocks (/api/admin/cms/save.ts, /api/admin/cms/publish.ts); the 2027 program calendar itself (source: Issue #2093)
 Canonical Reference: /docs/governance/standards/document-authority-hierarchy_MASTER.md
-Related Issues: #4253, #2093, #1700, #2039
-Last Reviewed: 2026-09-20
+Related Issues: #4253, #2093, #1700, #2039, #4565
+Last Reviewed: 2026-10-12
 ---
 
 # Scheduled content publish + Zapier social cross-post
@@ -155,7 +155,7 @@ endpoint — no admin token, published rows only.
 Nothing about the `scheduled_publish_at` mechanism is fundraiser-specific.
 Any `content_blocks` row in any `page`/`section` can be scheduled the same
 way (e.g. the 2027-01-01 launch announcement, the 2027-02-15/03-01 CTA
-reinforcements, or the 2027-06-02 Lou Gehrig Day closeout post from #2093's
+reinforcements, or the 2027-06-07 fundraiser closeout post from #2093's
 calendar) by writing directly to `content_blocks` with a future
 `scheduled_publish_at` — a dedicated admin authoring endpoint like
 `fundraiser-details/create.ts` is a convenience for one recurring feed, not

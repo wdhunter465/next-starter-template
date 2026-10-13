@@ -5,8 +5,8 @@ Authority Level: Operational Evidence
 Owns: First 2027 Lou Gehrig Day annual instance using only Product-approved dates
 Does Not Own: Additional 2027 public dates; public copy; publication Go; automatic posting; Production mutation
 Canonical Reference: /docs/reference/operations/annual-lou-gehrig-day-operating-contract.md
-Related Issues: #2084, #3858, #2093, #1700
-Last Reviewed: 2026-09-21
+Related Issues: #2084, #3858, #2093, #1700, #4565
+Last Reviewed: 2026-10-12
 ---
 
 # Lou Gehrig Day 2027 annual instance
@@ -25,7 +25,7 @@ Out of scope: additional 2027 public dates; public copy; publication Go; automat
 
 - `lou_gehrig_day_date`: 2027-06-02
 - #2093 (2027 Launch Calendar) is still Pipeline. This instance does not copy unapproved calendar rows from that parent.
-- Scheduled-content docs mention a 2027-06-02 Lou Gehrig Day closeout post as a #2093 example. That is not publication Go for this package.
+- Scheduled-content docs mention a 2027-06-07 fundraiser closeout post as a #2093 example (the fundraiser no longer closes on Lou Gehrig Day; see #4565). That is not publication Go for this package.
 - No 2027 public copy, spotlight payload, social deck, newsletter, fundraiser mention, or partner list is Product-approved in this record.
 
 ## Intended final state

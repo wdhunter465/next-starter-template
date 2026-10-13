@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: Durable 2027 launch-calendar taxonomy, Product-approved calendar of record, integrated source-program milestone matrix, 2026-12-31 Go/No-Go evidence packet, tabletop rehearsal record, and freeze/reporting handoff for parent #2093
 Does Not Own: Inventing public dates; publishing this calendar on the public website events calendar; website or fundraiser launch; public announcements; Production mutation; paid services; credentials; replacing source-project acceptance on #1700, #2039, #2084, or #2782
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2093, #3861, #3862, #3863, #3864, #3865, #3866, #1700, #2039, #2084, #2782, #2089
-Last Reviewed: 2026-09-24
+Related Issues: #2093, #3861, #3862, #3863, #3864, #3865, #3866, #1700, #2039, #2084, #2782, #2089, #4565
+Last Reviewed: 2026-10-12
 ---
 
 # 2027 launch calendar operating contract
@@ -55,7 +55,7 @@ A row without an owner role or required evidence class is rejected and must not 
 | --- | --- | --- | --- | --- | --- | --- |
 | Website completion | Product Authority for Go; Operations for smoke; implementers for named Issues | #2039 / #1685 lineage | Production-ready website evidence; smoke result; no open protected stop | Freeze class recorded or waived by Product | Announcement class; Day-2 class | No public website-live claim until Product Go. Emergency website change during freeze requires Bill approval. |
 | Fundraiser readiness | Product Authority for dates and commitments; Operations for window health | #1700 lineage | Registration/launch readiness packet; donation-window boundaries; no unapproved sponsor claim | Website class if homepage-linked fundraiser surfaces are in scope | Lou Gehrig Day class for 2027 closeout coupling | No fundraiser public date or dollar-goal claim except Product-approved #2093 anchors. |
-| Lou Gehrig Day | Product Authority for public copy and extra windows; Operations for checklist | #2084 lineage | Annual instance; rehearsal record; rights/privacy disposition | Fundraiser class for coupled 2027 closeout | Rollback class if unpublish is required | June 2 is the #2084 public anchor. Other LGD public dates come only from Product / #2093. |
+| Lou Gehrig Day | Product Authority for public copy and extra windows; Operations for checklist | #2084 lineage | Annual instance; rehearsal record; rights/privacy disposition | Fundraiser class for the Lou Gehrig Day week inside the donation window | Rollback class if unpublish is required | June 2 is the #2084 public anchor. Other LGD public dates come only from Product / #2093. |
 | Content freeze | Product Authority declares freeze; editors stop unapproved change | #2093 freeze decision; #2039/#1700 content owners | Freeze declaration on #2093; exception log | Rehearsal class complete or Product waiver | Deployment class | Freeze begins only when Bill declares it. Emergency edits require Bill. A missing freeze date is a stop, not a guessed date. |
 | Rehearsal | Operations executes; PMO records | #2093 / #3865; #2084 rehearsal pattern | Tabletop record covering delay, No-Go, rollback, and communications-hold | Taxonomy and calendar of record exist | Go/No-Go evidence packet | Rehearsal must not send live announcements or mutate Production. Failed rehearsal is a stop. |
 | Deployment | Product Authority for Production Go; Operations for execute/verify | #2782 lineage; website/fundraiser Issues as named | Deployment identity; smoke; rollback path ready | Freeze class; rehearsal class; #2089 evidence model when Production Go is claimed | Announcement class; Day-2 class | This calendar does not itself authorize Production. #2782 remains the deployment evidence owner. |
@@ -101,11 +101,13 @@ Source: Product-specified table on #2093 dated 2026-09-20. No date below is infe
 | 2027-02-01 → 2027-03-01 | Daily “Fundraiser Details” posts (homepage-linked page, newest first); each day’s post also to every LGFC social platform | Fundraiser readiness; Announcement | Bill; #1700/#2039 | 10:00 AM website-then-social auto-publish remains a #1700/#2039 flag, not this contract’s runtime |
 | 2027-02-15 | Repeat call-to-action: join the fundraiser as a participant | Announcement | Bill; #1700 | Authorization record |
 | 2027-03-01 | Repeat call-to-action: join as a participant (also last day of daily Fundraiser Details posts) | Announcement | Bill; #1700 | Authorization record |
-| 2027-03-25 | Fundraiser launches (donations open); coincides with MLB Opening Day | Fundraiser readiness | Bill; #1700 | Donation-window boundaries; no unapproved sponsor claim |
-| 2027-03-25 → 2027-06-02 | Daily leaderboard and progress toward $10,000 total donation goal on LGFC.com and social | Fundraiser readiness; Day-2 monitoring | Bill; Operations; #1700 | Daily status vocabulary after #3866 handoff |
-| 2027-06-02, 9:00 PM | Lou Gehrig Day evening closeout: close fundraiser → determine winners → publish final report on LGFC.com → announce on social with URL → thank-you messages | Lou Gehrig Day; Announcement | Bill; #2084; #1700 | Annual instance and rehearsal; this PMO closeout time is not a new public `events` row |
+| 2027-03-25, 12:00 AM (midnight) | Fundraiser launches (donations open) at the start of the day; coincides with MLB Opening Day | Fundraiser readiness | Bill; #1700 | Donation-window boundaries; no unapproved sponsor claim |
+| 2027-03-25 → 2027-06-07, 12:00 PM | Daily leaderboard and progress toward $10,000 total donation goal on LGFC.com and social | Fundraiser readiness; Day-2 monitoring | Bill; Operations; #1700 | Daily status vocabulary after #3866 handoff |
+| 2027-06-07, 12:00 PM (noon) | Fundraiser closes (donations end), then closeout: determine winners → publish final report on LGFC.com → announce on social with URL → thank-you messages | Fundraiser readiness; Announcement | Bill; #1700; #2084 for the Lou Gehrig Day coupling | Closeout rehearsal; this PMO closeout time is not a new public `events` row |
 
 The public Fan Club Events Calendar may independently show **Lou Gehrig Day 2027-06-02** from the #2084/#2859 seed. That posted event is not publication of this PMO table.
+
+**Revision 2026-10-12 (Product Authority, recorded on #2093 and #4565).** The fundraiser launches at 12:00 AM on 2027-03-25 and closes at 12:00 PM on 2027-06-07. It no longer closes on Lou Gehrig Day. Every MLB team hosts a Lou Gehrig Day in its home park, and teams that are away on Wednesday 2027-06-02 host it when they return, so observances run through the week; ending on Monday also gives participants the weekend after to gather donations. Lou Gehrig Day (2027-06-02) falls inside the donation window and the fundraiser stays open that day. The calendar does not state a time zone for any row; Product records one zone for all rows on #2093.
 
 A date not in this table is rejected until Product records a replacement revision on #2093.
 
@@ -116,8 +118,8 @@ Each row is PMO coordination only. A row that would grant Production or announce
 | Milestone | Owner | Source Issue | Depends on | Due window | Evidence | Fallback |
 | --- | --- | --- | --- | --- | --- | --- |
 | Website completion for 2027-01-01 live claim | Bill for Go; Operations for smoke | #2039 / #1685 | Freeze declared or Product waiver; #2782 deployment evidence | 2026-12-31 freeze through 2027-01-01 | Production-ready website evidence; smoke; no open protected stop | Slip visible on #2093; do not move the public live date |
-| Fundraiser readiness for coming-soon and launch | Bill; Operations | #1700 | Website homepage-linked surfaces if used; Product copy | 2027-02-01 coming-soon; 2027-03-25 launch | Registration/launch packet; donation-window boundaries | Hold the PMO row; do not open donations early |
-| Annual Lou Gehrig Day package | Bill for copy; Operations for checklist | #2084 | Fundraiser closeout coupling; June 2 public event remains #2084/#2859 | 2027-06-02 (day); 2027-06-02, 9:00 PM PMO closeout | Annual instance; rehearsal; rights/privacy | Keep June 2 public event; do not add PMO closeout to D1 `events` |
+| Fundraiser readiness for coming-soon and launch | Bill; Operations | #1700 | Website homepage-linked surfaces if used; Product copy | 2027-02-01 coming-soon; 2027-03-25, 12:00 AM launch; 2027-06-07, 12:00 PM close | Registration/launch packet; donation-window boundaries | Hold the PMO row; do not open donations early |
+| Annual Lou Gehrig Day package | Bill for copy; Operations for checklist | #2084 | Fundraiser stays open on Lou Gehrig Day; June 2 public event remains #2084/#2859 | 2027-06-02 (day); fundraiser closeout 2027-06-07, 12:00 PM (PMO, not a Lou Gehrig Day row) | Annual instance; rehearsal; rights/privacy | Keep June 2 public event; do not add PMO closeout to D1 `events` |
 | Content freeze | Bill declares | #2093; #2039/#1700 content owners | Rehearsal complete or Product waiver | 2026-12-31 assuming Go | Freeze declaration; exception log | Missing freeze is a stop, not a guessed date |
 | Communications / auto-publish flag | Bill authorizes; #1700/#2039 own mechanism | #1700; #2039 | Product announcement Go per window | 10:00 AM on each Product-authorized announcement day | Channel list; authorization record | Flag only; this child does not implement cron or Zapier |
 | Rehearsal | Operations executes; PMO records | #2093 / #3865; #2084 pattern | Taxonomy + calendar of record | Before freeze declaration | Tabletop covering delay, No-Go, rollback, communications-hold | Failed rehearsal is a stop; no live sends |
@@ -127,7 +129,7 @@ Each row is PMO coordination only. A row that would grant Production or announce
 | Day-2 monitoring | Operations; PMO records vocabulary | #2093 / #3866 | Deployment or announcement as applicable | 2027-01-01 onward as Go allows | blocked / at risk / ready / go / no-go / deployed / verified / monitoring | Absence of Go is a stop |
 | #2089 evidence model | Engineering / #2089 owner | #2089 | Required before claiming Production Go | Before any Production Go claim | Evidence-ownership model | Do not rewrite calendar dates to paper over the gap |
 
-Dependency order for PMO reporting: website and freeze before 2027-01-01 live claim; fundraiser before 2027-03-25 launch; #2084 before 2027-06-02 closeout; rehearsal before freeze; #2782 and #2089 before Production Go; announcement only after Product authorization.
+Dependency order for PMO reporting: website and freeze before 2027-01-01 live claim; fundraiser before 2027-03-25 launch; #2084 before 2027-06-02 (Lou Gehrig Day); fundraiser closeout at 2027-06-07, 12:00 PM; rehearsal before freeze; #2782 and #2089 before Production Go; announcement only after Product authorization.
 
 ## Go/No-Go evidence packet (#3864)
 

@@ -5,8 +5,8 @@ Authority Level: Operational Authority
 Owns: Snapshot publishing procedures for ALS fundraiser data
 Does Not Own: Campaign data structure; homepage layout rules; the 2027 dates themselves (owned by the calendar of record)
 Canonical Reference: /docs/governance/standards/document-authority-hierarchy_MASTER.md
-Related Issues: #4442, #4432, #4436, #4414
-Last Reviewed: 2026-10-09
+Related Issues: #4442, #4432, #4436, #4414, #4565
+Last Reviewed: 2026-10-12
 ---
 
 # Snapshot Publishing Procedure
@@ -30,9 +30,9 @@ From the calendar of record:
 
 | Date or window | What happens |
 | --- | --- |
-| 2027-03-25 | Fundraiser launches (donations open) |
-| 2027-03-25 to 2027-06-02 | One daily leaderboard and progress update toward the $10,000 total donation goal, on LGFC.com and on social |
-| 2027-06-02, 9:00 PM | Closeout: close the fundraiser, determine winners, publish the final report on LGFC.com, announce on social with the URL, send thank-you messages |
+| 2027-03-25, 12:00 AM | Fundraiser launches (donations open) |
+| 2027-03-25 to 2027-06-07, 12:00 PM | One daily leaderboard and progress update toward the $10,000 total donation goal, on LGFC.com and on social |
+| 2027-06-07, 12:00 PM (noon) | Closeout: close the fundraiser, determine winners, publish the final report on LGFC.com, announce on social with the URL, send thank-you messages |
 
 No snapshot is published before 2027-03-25. A date not in the calendar of record is not used until Product Authority records a replacement on #2093.
 
@@ -60,7 +60,7 @@ If validation fails → snapshot not published.
 
 ### Final lock
 
-At the closeout on 2027-06-02 (9:00 PM):
+At the closeout on 2027-06-07 (12:00 PM):
 
 1. Confirm fundraiser closed
 2. Generate final snapshot
