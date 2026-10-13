@@ -39,6 +39,7 @@ import {
   mapInternetArchiveDocToCandidateFields,
   mapWikiPageToCandidateFields,
 } from '../../functions/_lib/content-pipeline-story-adapter.ts';
+import { withOriginTerms } from './discovery-evidence-terms.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, '../..');
@@ -213,7 +214,7 @@ function toCandidate(id, fields) {
   if (dateOrPeriod) candidate.date_or_period = dateOrPeriod;
   if (fields.creditLine) candidate.credit_line = fields.creditLine;
   if (fields.rightsEvidence) {
-    const evidence = { ...fields.rightsEvidence };
+    const evidence = withOriginTerms(fields.rightsEvidence);
     for (const key of Object.keys(evidence)) if (evidence[key] === undefined) delete evidence[key];
     candidate.rights_evidence = evidence;
   }

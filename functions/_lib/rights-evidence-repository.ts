@@ -2,6 +2,7 @@
 // Evidence rows are append-only: each reviewer action records a new row
 // rather than mutating a prior one, preserving the full evidentiary trail.
 
+import type { UsageBasis } from './content-permission-status';
 import { requireTables } from './d1';
 
 export const RIGHTS_EVIDENCE_TABLES = ['rights_evidence', 'content_items'] as const;
@@ -92,6 +93,10 @@ export type RightsEvidenceRow = {
   // Wikimedia uploader's user page); otherwise recorded by whoever does the
   // outreach.
   contact_info: string | null;
+  // #4523 / #4568: how the use is allowed, the fee flag, and a hash of the origin's wording.
+  usage_basis: UsageBasis;
+  fee_required: number;
+  evidence_text_sha256: string | null;
 };
 
 export type StoredRightsEvidence = Omit<RightsEvidenceRow, 'evidence_metadata'> & {
@@ -122,7 +127,19 @@ export type RightsEvidenceInput = {
   // an explicit 'permit'/'deny' always requires the caller to have actually
   // made that determination, never inferred.
   usage_decision?: RightsEvidenceUsageDecision;
+  // #4568: default 'unknown' and 0. A fee-required row must carry usage_decision 'deny'
+  // (enforced here and by the 0084 triggers).
+  usage_basis?: UsageBasis;
+  fee_required?: boolean;
+  evidence_text_sha256?: string | null;
 };
+
+export class FeeRequiredEvidenceMustDenyError extends Error {
+  constructor() {
+    super('fee-required rights_evidence must have usage_decision deny.');
+    this.name = 'FeeRequiredEvidenceMustDenyError';
+  }
+}
 
 export async function requireRightsEvidenceTables(db: unknown) {
   return requireTables(db, [...RIGHTS_EVIDENCE_TABLES]);
@@ -173,6 +190,11 @@ export async function recordRightsEvidence(
   input: RightsEvidenceInput,
 ): Promise<StoredRightsEvidence> {
   const metadata = JSON.stringify(input.evidence_metadata ?? {});
+  const usageBasis = input.fee_required ? 'fee_required' : input.usage_basis ?? 'unknown';
+  const usageDecision = input.usage_decision ?? 'hold';
+  if (usageBasis === 'fee_required' && usageDecision !== 'deny') {
+    throw new FeeRequiredEvidenceMustDenyError();
+  }
 
   const result = await db
     .prepare(
@@ -181,8 +203,9 @@ export async function recordRightsEvidence(
         evidence_url, evidence_metadata, reviewer, conclusion, conclusion_rationale,
         channel, rights_holder, repository_or_collection, publication_established,
         us_publication_or_uraa_confirmed, publication_date_source,
-        source_filename, tagging_requirements, usage_decision, contact_info
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        source_filename, tagging_requirements, usage_decision, contact_info,
+        usage_basis, fee_required, evidence_text_sha256
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       input.content_item_id,
@@ -203,8 +226,11 @@ export async function recordRightsEvidence(
       input.publication_date_source ?? null,
       input.source_filename ?? null,
       input.tagging_requirements ?? null,
-      input.usage_decision ?? 'hold',
+      usageDecision,
       input.contact_info ?? null,
+      usageBasis,
+      usageBasis === 'fee_required' ? 1 : 0,
+      input.evidence_text_sha256 ?? null,
     )
     .run();
 
@@ -435,6 +461,9 @@ function pickRightsEvidenceRowFields(row: RightsEvidenceRow): RightsEvidenceRow 
     tagging_requirements: row.tagging_requirements,
     usage_decision: row.usage_decision,
     contact_info: row.contact_info,
+    usage_basis: row.usage_basis,
+    fee_required: row.fee_required,
+    evidence_text_sha256: row.evidence_text_sha256,
   };
 }
 
