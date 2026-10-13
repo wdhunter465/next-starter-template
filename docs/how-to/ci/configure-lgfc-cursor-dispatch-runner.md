@@ -5,8 +5,8 @@ Authority Level: Operational
 Owns: Host registration and verification procedure for the dedicated `lgfc-cursor` GitHub Actions runner used by #3212 dispatch (primary after Phase 4)
 Does Not Own: Historical Cursor Bridge package internals or Production website deployment
 Canonical Reference: /docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md
-Related Issues: #3212, #3347, #2636
-Last Reviewed: 2026-09-21
+Related Issues: #3212, #3347, #2636, #4567, #4570
+Last Reviewed: 2026-10-13
 ---
 
 # Configure the LGFC Cursor dispatch runner
@@ -94,6 +94,29 @@ before starting the runner so label-driven wakes exercise the wrapper without in
    - `issue_number`: a Cursor-owned Issue carrying `agent:cursor` + `handoff:ready`
    - `confirmation`: `CURSOR_DISPATCH`
    - `dry_run`: `true` for the first proof
+
+## Host sleep and the health threshold
+
+The runner lives on a Chromebook that usually sleeps overnight. While the host sleeps, GitHub reports the runner as `offline`, which is not a fault (#4567).
+
+`LGFC Cursor Runner Health` runs at 11:17 and 17:17 UTC (7:17 AM and 1:17 PM Eastern daylight time) and treats the results as follows (#4570):
+
+| Observation | Result |
+|---|---|
+| Runner online | Pass |
+| Runner offline, previous check online or no previous check | Notice only: job summary plus a `RUNNER_OFFLINE_NOTICE` annotation. The run passes and no `ops-exception` Issue opens. |
+| Runner offline, previous check also offline | Fail. The workflow-failure watcher opens an `ops-exception` Issue. |
+| No runner with label `lgfc-cursor` registered | Fail immediately |
+| Health token cannot list runners (`AUTH_DENIED`) | Fail immediately |
+
+Each offline check uploads a `runner-offline-observation` artifact (kept 3 days). The next check reads the previous run's artifacts with the workflow's own `GITHUB_TOKEN` (`actions: read`), so the threshold needs no new secret or permission. If that lookup fails, the check fails closed as before.
+
+The threshold is therefore two consecutive offline checks: a sleeping host gives a notice at 11:17 UTC and clears by 17:17 UTC, while a real outage fails within about six hours. A manual run with confirmation `CURSOR_RUNNER_HEALTH` counts as a check, so a manual run while the host is online resets the count.
+
+To keep the host awake when dispatch must be available overnight:
+
+- ChromeOS **Settings > System preferences > Power**: set **While charging** to **Keep display on** (or **Turn off display** without sleep), keep the Chromebook on power, and turn off **Sleep when cover is closed**.
+- Leave the Linux development environment running; the runner service `actions.runner.wdhunter465-next-starter-template.lgfc-cursor-chromebook.service` reconnects by itself when the host wakes.
 
 ## Security rules
 
