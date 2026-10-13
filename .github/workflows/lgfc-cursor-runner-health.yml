@@ -11,8 +11,11 @@ on:
         required: true
         type: string
   schedule:
-    # Low-noise daily check (zero incremental cost beyond public Actions minutes).
+    # Two low-noise checks a day (zero incremental cost beyond public Actions minutes).
+    # The host usually sleeps overnight, so the 11:17 check is often a notice only;
+    # the 17:17 check either clears it or, if still offline, fails the run (#4570).
     - cron: "17 11 * * *"
+    - cron: "17 17 * * *"
 
 # GITHUB_TOKEN cannot list self-hosted runners. Do not add permissions.administration
 # (#4311): that key is invalid Actions YAML (HTTP 422) and aborts parse on every push.
@@ -51,8 +54,13 @@ jobs:
           echo "::notice title=AUTH_NOT_CONFIGURED::CURSOR_RUNNER_HEALTH_TOKEN is not set. ONLINE/OFFLINE not observed. Workflow parsed."
 
       - name: Query dedicated Cursor runner presence
+        id: health
         if: env.CURSOR_RUNNER_HEALTH_TOKEN != ''
         uses: actions/github-script@v7
+        env:
+          # Read-only lookup of this workflow's previous run (actions: read above).
+          ACTIONS_READ_TOKEN: ${{ github.token }}
+          OFFLINE_ARTIFACT_NAME: runner-offline-observation
         with:
           github-token: ${{ env.CURSOR_RUNNER_HEALTH_TOKEN }}
           script: |
@@ -117,13 +125,74 @@ jobs:
 
             const online = matches.filter((runner) => runner.status === 'online');
             if (online.length === 0) {
-              summary.push('- Result: **OFFLINE**');
+              // One offline check is usually the Chromebook host asleep (#4567, #4570).
+              // Fail only when the previous check of this workflow was also offline.
+              core.setOutput('offline_observed', 'true');
               summary.push(`- Observed statuses: ${matches.map((r) => r.status).join(', ')}`);
+
+              let previousOffline;
+              try {
+                const actions = getOctokit(process.env.ACTIONS_READ_TOKEN);
+                const { data: runs } = await actions.rest.actions.listWorkflowRuns({
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  workflow_id: 'lgfc-cursor-runner-health.yml',
+                  status: 'completed',
+                  per_page: 10,
+                });
+                const previous = runs.workflow_runs.find((run) => run.id !== context.runId);
+                if (!previous) {
+                  previousOffline = false;
+                } else {
+                  const { data: artifacts } = await actions.rest.actions.listWorkflowRunArtifacts({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    run_id: previous.id,
+                  });
+                  previousOffline = artifacts.artifacts.some(
+                    (artifact) => artifact.name === process.env.OFFLINE_ARTIFACT_NAME && !artifact.expired,
+                  );
+                  summary.push(`- Previous check: run ${previous.id} (${previous.created_at}), offline=${previousOffline}`);
+                }
+              } catch (err) {
+                // Cannot prove the previous check was online: keep the old fail-closed behavior.
+                summary.push(`- Previous check: lookup failed (${err.status || err.message}); treating as offline`);
+                previousOffline = true;
+              }
+
+              if (previousOffline) {
+                summary.push('- Result: **OFFLINE (second consecutive check)**');
+                summary.push('- Action: wake the host and confirm the runner service is running; see docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md');
+                await core.summary.addRaw(summary.join('\n')).write();
+                core.setFailed('lgfc-cursor runner is registered but not online on two consecutive checks');
+                return;
+              }
+
+              summary.push('- Result: **OFFLINE (first observation, notice only)**');
+              summary.push('- The next check fails the run if the runner is still offline.');
               await core.summary.addRaw(summary.join('\n')).write();
-              core.setFailed('lgfc-cursor runner is registered but not online');
+              core.notice(
+                'lgfc-cursor runner is registered but not online. First observation (host likely asleep); the next check fails if it is still offline.',
+                { title: 'RUNNER_OFFLINE_NOTICE' },
+              );
               return;
             }
 
             summary.push('- Result: **ONLINE**');
             summary.push(`- Online runners: ${online.map((r) => r.name).join(', ')}`);
             await core.summary.addRaw(summary.join('\n')).write();
+
+      # The next check reads this marker from the previous run to decide notice vs failure.
+      - name: Write offline observation marker
+        if: always() && steps.health.outputs.offline_observed == 'true'
+        run: |
+          mkdir -p runner-offline-observation
+          date -u +%Y-%m-%dT%H:%M:%SZ > runner-offline-observation/observed-at.txt
+
+      - name: Upload offline observation marker
+        if: always() && steps.health.outputs.offline_observed == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: runner-offline-observation
+          path: runner-offline-observation/
+          retention-days: 3
