@@ -19,6 +19,7 @@ import {
   SOURCE_TYPES,
   SUBMISSION_TYPES,
 } from './content-pipeline-candidate-constants';
+import { permissionFieldsForDiscovery, USAGE_BASIS_SET } from './content-pipeline-usage-basis';
 
 export const CONTENT_PIPELINE_CORE_TABLES = [
   'sources',
@@ -93,6 +94,13 @@ export type DiscoveryRightsEvidence = {
   // an email, a profile/contact URL, or left unset when the source gives no
   // usable contact avenue at all.
   contact_info?: string;
+  // #4568: the collector's reading of the origin's terms. The import recomputes the stored
+  // value with permissionFieldsForDiscovery, which honors a collector's fee flag but never
+  // lets usage_basis grant more than `conclusion` already does.
+  usage_basis?: string;
+  fee_required?: boolean;
+  // #4568: SHA-256 (hex) of evidence_text as captured, so a later change in wording is detected.
+  evidence_text_sha256?: string;
 };
 
 export type CandidateRecord = {
@@ -308,6 +316,10 @@ function validateCandidate(candidate: unknown, index: number): string[] {
     validateMemberSubmission(errors, label, candidate.member_submission);
   }
 
+  if (isRecord(candidate.rights_evidence) && candidate.rights_evidence.usage_basis !== undefined) {
+    pushEnumError(errors, `${label}.rights_evidence.usage_basis`, candidate.rights_evidence.usage_basis, USAGE_BASIS_SET);
+  }
+
   if (candidate.publication_status === 'approved_for_publish') {
     if (!isNonEmptyString(candidate.credit_line)) {
       errors.push(`${label}: credit_line is required when publication_status is approved_for_publish`);
@@ -456,15 +468,50 @@ function buildContentItemUpsert(candidate: CandidateRecord): ImportSqlStatement 
     .map((column) => `${column} = excluded.${column}`)
     .join(',\n  ');
 
+  // #4568: permission layers, outcome and final status for discovered items. Written on the
+  // first insert only and deliberately left out of the ON CONFLICT update, so a re-import never
+  // overwrites a person's later decision; a change in the origin's terms creates a new
+  // record instead (supersession below).
+  if (candidate.input_stream === 'scheduled_discovery') {
+    const fields = permissionFieldsForDiscovery(candidate.rights_evidence);
+    const decided = fields.outcome_basis !== 'pending';
+    columns.push(
+      'origin_permission',
+      'cmg_permission',
+      'mlb_permission',
+      'yankees_permission',
+      'privacy_status',
+      'final_status',
+      'outcome_basis',
+      'outcome_set_at',
+      'outcome_set_by',
+    );
+    values.push(
+      sqlString(fields.layers.origin),
+      sqlString(fields.layers.cmg),
+      sqlString(fields.layers.mlb),
+      sqlString(fields.layers.yankees),
+      sqlString(fields.layers.privacy),
+      sqlString(fields.final_status),
+      sqlString(fields.outcome_basis),
+      sqlString(decided ? candidate.created_at : null),
+      sqlString(decided ? 'automated:discovery-classifier' : null),
+    );
+  }
+
   // Dedupe guard (#3712 phase 1): a candidate whose source_url already
-  // belongs to a DIFFERENT content_items row is never inserted as a new
-  // row -- the same real-world photo/article rediscovered under a fresh
+  // belongs to a DIFFERENT active content_items row is never inserted as a
+  // new row -- the same real-world photo/article rediscovered under a fresh
   // candidate_id must not create a duplicate. The `candidate_id != ...`
   // exclusion keeps this from ever blocking a normal idempotent re-import
   // of the same candidate_id (the ON CONFLICT upsert below still applies
   // to that case). When source_url is NULL, SQL's NULL-comparison
   // semantics make the EXISTS subquery find nothing, so the guard is a
   // no-op -- there is nothing to dedupe against.
+  //
+  // #4568 exception: when the origin's captured terms have changed since the
+  // active record's last automated capture, the newer record is inserted and
+  // the older one is superseded (buildSupersedeOlderRecords), never deleted.
   const sourceUrlSql = sqlString(candidate.source_url ?? null);
   const sql = `INSERT INTO content_items (
   ${columns.join(',\n  ')}
@@ -475,6 +522,8 @@ WHERE NOT EXISTS (
   SELECT 1 FROM content_items existing
   WHERE existing.source_url = ${sourceUrlSql}
     AND existing.candidate_id != ${sqlString(candidate.candidate_id)}
+    AND existing.superseded_at IS NULL
+    AND NOT (${termsChangedSql(candidate, 'existing')})
 )
 ON CONFLICT(candidate_id) DO UPDATE SET
   ${updateAssignments};`;
@@ -482,7 +531,56 @@ ON CONFLICT(candidate_id) DO UPDATE SET
   return {
     table: 'content_items',
     sql,
-    description: `Upsert content_items for ${candidate.candidate_id} (skipped if source_url duplicates a different row)`,
+    description: `Upsert content_items for ${candidate.candidate_id} (skipped if source_url duplicates a different row with unchanged terms)`,
+  };
+}
+
+// #4568: true when `alias` (an active record for the same source_url) is older than this
+// candidate and its latest automated capture of the same evidence type says something different
+// from this candidate's capture. Human-recorded evidence is not compared: its wording follows a
+// different format and is a decision, not a capture of the origin's terms.
+function termsChangedSql(candidate: CandidateRecord, alias: string): string {
+  const evidence = candidate.input_stream === 'scheduled_discovery' ? candidate.rights_evidence : undefined;
+  if (!evidence?.evidence_text) {
+    return '0';
+  }
+  return `${alias}.created_at < ${sqlString(candidate.created_at)}
+      AND EXISTS (
+        SELECT 1 FROM rights_evidence captured
+        WHERE captured.id = (
+          SELECT MAX(prior.id) FROM rights_evidence prior
+          WHERE prior.content_item_id = ${alias}.id
+            AND prior.evidence_type = ${sqlString(evidence.evidence_type)}
+            AND prior.reviewer LIKE 'automated:discovery-%'
+        )
+          AND captured.evidence_text IS NOT NULL
+          AND captured.evidence_text != ${sqlString(evidence.evidence_text)}
+      )`;
+}
+
+// #4568: the newest dated record defines use. Once the newer record exists, every older active
+// record for the same source_url is marked superseded by it. No row is deleted.
+function buildSupersedeOlderRecords(candidate: CandidateRecord): ImportSqlStatement | null {
+  if (candidate.input_stream !== 'scheduled_discovery' || !candidate.source_url) {
+    return null;
+  }
+  const candidateIdSql = sqlString(candidate.candidate_id);
+  const sql = `UPDATE content_items
+SET superseded_at = ${sqlString(candidate.created_at)},
+    superseded_by = ${candidateIdSql}
+WHERE source_url = ${sqlString(candidate.source_url)}
+  AND candidate_id != ${candidateIdSql}
+  AND superseded_at IS NULL
+  AND created_at < ${sqlString(candidate.created_at)}
+  AND EXISTS (
+    SELECT 1 FROM content_items newer
+    WHERE newer.candidate_id = ${candidateIdSql}
+      AND newer.superseded_at IS NULL
+  );`;
+  return {
+    table: 'content_items',
+    sql,
+    description: `Supersede older records for the source_url of ${candidate.candidate_id}`,
   };
 }
 
@@ -668,18 +766,23 @@ function buildDiscoveryRightsEvidenceInsert(candidate: CandidateRecord): ImportS
   // keeps recording evidence only (conclusion NULL, channel
   // 'internal_archive_only', usage_decision 'hold') so it surfaces on the
   // owner-contact worklist instead.
-  const reviewer = evidence?.conclusion ? 'automated:discovery-classifier' : 'automated:discovery-import';
-  const channel = evidence?.conclusion ? 'website' : 'internal_archive_only';
-  const usageDecision = evidence?.conclusion ? 'permit' : 'hold';
+  // #4568: usage_basis and the fee flag come from the same mapping as the record's layers. A
+  // fee-required item is recorded with usage_decision 'deny' and no conclusion.
+  const fields = permissionFieldsForDiscovery(evidence);
+  const reviewer =
+    fields.conclusion || fields.fee_required ? 'automated:discovery-classifier' : 'automated:discovery-import';
+  const channel = fields.conclusion ? 'website' : 'internal_archive_only';
 
   const sql = evidence
     ? `INSERT INTO rights_evidence (
   content_item_id, evidence_type, evidence_text, evidence_url, reviewer,
-  conclusion, channel, usage_decision, contact_info
+  conclusion, channel, usage_decision, contact_info,
+  usage_basis, fee_required, evidence_text_sha256
 )
 SELECT
   ci.id, ${sqlString(evidence.evidence_type)}, ${sqlString(evidence.evidence_text ?? null)}, ${sqlString(evidence.evidence_url ?? null)},
-  ${sqlString(reviewer)}, ${sqlString(evidence.conclusion ?? null)}, ${sqlString(channel)}, ${sqlString(usageDecision)}, ${sqlString(evidence.contact_info ?? null)}
+  ${sqlString(reviewer)}, ${sqlString(fields.conclusion)}, ${sqlString(channel)}, ${sqlString(fields.usage_decision)}, ${sqlString(evidence.contact_info ?? null)},
+  ${sqlString(fields.usage_basis)}, ${sqlInteger(fields.fee_required)}, ${sqlString(evidence.evidence_text_sha256 ?? null)}
 FROM content_items ci
 WHERE ci.candidate_id = ${sqlString(candidate.candidate_id)}
   AND NOT EXISTS (
@@ -748,6 +851,10 @@ export function buildCandidateImportPlan(registry: CandidateRegistry): ImportPla
 
   for (const candidate of registry.candidates) {
     statements.push(buildContentItemUpsert(candidate));
+    const supersedeStatement = buildSupersedeOlderRecords(candidate);
+    if (supersedeStatement) {
+      statements.push(supersedeStatement);
+    }
     statements.push(...buildTagStatements(candidate));
 
     if (candidate.member_submission) {
