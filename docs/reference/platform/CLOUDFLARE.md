@@ -108,9 +108,16 @@ Dashboard-owned; not declared in `wrangler.toml`. `functions/api/_middleware.ts`
 
 ---
 
-## Reconciliation status (2026-10-10)
+## Reconciliation status (2026-10-13)
 
-Cursor Local's wrangler login had expired, so a full read-only account listing (`wrangler pages project list`, `wrangler d1 list`, `wrangler r2 bucket list`) was not run. The facts above are verified only from HTTP checks and workflow evidence. A full listing needs an interactive `wrangler login` by Product Authority (HOLD on #4537). The asset register is `docs/reference/platform/lgfc-asset-register.md`.
+A read-only listing of the Cloudflare account on 2026-10-13 (Product Authority's admin access, list calls only) confirmed:
+
+- D1: `lgfc_lite` (`22d0dc3e-ad34-43af-8e6a-2063df1a1e04`) and `lgfc-litedev` (`35232809-b4c1-4df9-9f39-2f178b13c378`), matching the sections above.
+- R2: one bucket, `lgfc-d1-backups`.
+- KV: no namespaces.
+- Workers: one, `lgfc-agent-eval`, a temporary Worker from the abandoned Cloudflare AI agent evaluation (created 2026-08-22). Product plans to re-evaluate Cloudflare AI in 2027 (#3635). It is recorded in the asset register as `retired`; removing it is a Product decision.
+
+**Not verified:** the Pages project list and its custom domains. That listing is not available through the tools used, so the Pages facts above still rest on HTTP checks and workflow evidence (2026-10-10). The 2026-10-10 reconciliation was limited the same way: Cursor Local's wrangler login had expired (HOLD on #4537). The asset register is `docs/reference/platform/lgfc-asset-register.md`.
 
 ---
 
