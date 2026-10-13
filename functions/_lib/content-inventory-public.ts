@@ -1,5 +1,6 @@
 // Shared read helpers for published content_inventory public/member surfaces.
 
+import { permissionGateWhere } from './content-inventory-permission-gate';
 import { fetchRotationRankedInventory } from './content-inventory-rotation';
 import { rightsClearedClause } from './rights-hold';
 
@@ -55,7 +56,8 @@ export function sectionAllowedClause(sectionKey: string, alias?: string): string
 
 export function publishedInventoryWhere(sectionKey: string, alias?: string): string {
   const prefix = alias ? `${alias}.` : '';
-  return `${prefix}status = 'published' AND ${sectionAllowedClause(sectionKey, alias)} AND COALESCE(TRIM(${prefix}source_name), '') != '' AND COALESCE(TRIM(${prefix}credit_line), '') != ''`;
+  const gate = permissionGateWhere(alias);
+  return `${prefix}status = 'published' AND ${sectionAllowedClause(sectionKey, alias)} AND COALESCE(TRIM(${prefix}source_name), '') != '' AND COALESCE(TRIM(${prefix}credit_line), '') != ''${gate ? ` AND ${gate}` : ''}`;
 }
 
 export function mapPublicInventoryStory(row: InventoryRow): PublicInventoryStory {
