@@ -36,7 +36,7 @@ This file is **not** a Domain Policy co-owner. Conflicts with domain policy, Pro
 | `https://www.lougehrigfanclub.com/` | 200, served by Cloudflare |
 | `https://next-starter-template-6yr.pages.dev/` | 200, served by Cloudflare |
 | `http://lougehrigfanclub.com/` | 301 to `https://lougehrigfanclub.com/` |
-| `https://lougehrigfanclub.com/` | **522** (Cloudflare cannot reach an origin) — the apex is proxied but not attached to the Pages project and has no working redirect (#4542) |
+| `https://lougehrigfanclub.com/` | 301 to `https://www.lougehrigfanclub.com/` (2026-10-13). It was 522 on 2026-10-10 because the apex was a proxied placeholder record with no redirect; a dashboard Redirect Rule added 2026-10-12 fixed it (#4542). The rule is dashboard-owned, not in the repo. |
 
 ---
 
@@ -108,9 +108,16 @@ Dashboard-owned; not declared in `wrangler.toml`. `functions/api/_middleware.ts`
 
 ---
 
-## Reconciliation status (2026-10-10)
+## Reconciliation status (2026-10-13)
 
-Cursor Local's wrangler login had expired, so a full read-only account listing (`wrangler pages project list`, `wrangler d1 list`, `wrangler r2 bucket list`) was not run. The facts above are verified only from HTTP checks and workflow evidence. A full listing needs an interactive `wrangler login` by Product Authority (HOLD on #4537). The asset register is `docs/reference/platform/lgfc-asset-register.md`.
+A read-only listing of the Cloudflare account on 2026-10-13 (Product Authority's admin access, list calls only) confirmed:
+
+- D1: `lgfc_lite` (`22d0dc3e-ad34-43af-8e6a-2063df1a1e04`) and `lgfc-litedev` (`35232809-b4c1-4df9-9f39-2f178b13c378`), matching the sections above.
+- R2: one bucket, `lgfc-d1-backups`.
+- KV: no namespaces.
+- Workers: one, `lgfc-agent-eval`, a temporary Worker from the abandoned Cloudflare AI agent evaluation (created 2026-08-22). Product plans to re-evaluate Cloudflare AI in 2027 (#3635). It is recorded in the asset register as `retired`; removing it is a Product decision.
+
+**Not verified:** the Pages project list and its custom domains. That listing is not available through the tools used, so the Pages facts above still rest on HTTP checks and workflow evidence (2026-10-10). The 2026-10-10 reconciliation was limited the same way: Cursor Local's wrangler login had expired (HOLD on #4537). The asset register is `docs/reference/platform/lgfc-asset-register.md`.
 
 ---
 
