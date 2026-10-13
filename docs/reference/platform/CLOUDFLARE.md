@@ -36,7 +36,7 @@ This file is **not** a Domain Policy co-owner. Conflicts with domain policy, Pro
 | `https://www.lougehrigfanclub.com/` | 200, served by Cloudflare |
 | `https://next-starter-template-6yr.pages.dev/` | 200, served by Cloudflare |
 | `http://lougehrigfanclub.com/` | 301 to `https://lougehrigfanclub.com/` |
-| `https://lougehrigfanclub.com/` | **522** (Cloudflare cannot reach an origin) — the apex is proxied but not attached to the Pages project and has no working redirect (#4542) |
+| `https://lougehrigfanclub.com/` | 301 to `https://www.lougehrigfanclub.com/` (2026-10-13). It was 522 on 2026-10-10 because the apex was a proxied placeholder record with no redirect; a dashboard Redirect Rule added 2026-10-12 fixed it (#4542). The rule is dashboard-owned, not in the repo. |
 
 ---
 
