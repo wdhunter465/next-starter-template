@@ -42,6 +42,7 @@ This file is **not** a Domain Policy co-owner. Conflicts with domain policy, Pro
 
 ## Cloudflare D1 (SQLite)
 
+**Token:** GitHub reaches Cloudflare through the API token `lgfc-lite-token`. Do not change it; see `docs/reference/platform/lgfc-lite-token.md`.  
 **Production database name:** `lgfc_lite`  
 **Production database UUID:** `22d0dc3e-ad34-43af-8e6a-2063df1a1e04`  
 
