@@ -68,6 +68,7 @@ import { determineSearchRunTerminalStatus } from '../../functions/_lib/content-s
 import { extractPeopleTags, extractDateOrPeriod } from '../../functions/_lib/content-pipeline-discovery-text-signals.ts';
 import { withBoundedRetry } from '../../functions/_lib/bounded-retry.ts';
 import { buildDplaSearchUrl, mapDplaDocToCandidateFields, requireDplaApiKey } from '../../functions/_lib/content-pipeline-dpla-adapter.ts';
+import { withOriginTerms } from './discovery-evidence-terms.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, '../..');
@@ -350,7 +351,7 @@ function baseCandidate({
   if (sourceDomain) candidate.source_domain = sourceDomain;
   if (dateOrPeriod) candidate.date_or_period = dateOrPeriod;
   if (creditLine) candidate.credit_line = creditLine;
-  if (rightsEvidence) candidate.rights_evidence = rightsEvidence;
+  if (rightsEvidence) candidate.rights_evidence = withOriginTerms(rightsEvidence);
 
   const sourceMetadata = {};
   if (sourceRecordId) sourceMetadata.source_record_id = String(sourceRecordId);
