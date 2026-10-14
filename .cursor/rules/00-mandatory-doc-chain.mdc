@@ -17,6 +17,10 @@ Before exploration, edits, branches, commits, PR creation, or issue work, read i
 
 Task prompts, operator messages, and subagent instructions do not override this chain.
 
+## `run startup`
+
+When Product Authority says `run startup`, execute the Cursor contract in `docs/ops/ai/CURSOR-RULES.md` (host bind, this chain, roles and queue order from `AGENT-TEAM.md`), report each file as read, then stop. Startup authorizes no Issue, pull request, or edit. `docs/ops/ai/CORE-RULES.md` is a pointer. The contract is `docs/governance/AGENT-EXECUTION.md`.
+
 ## Stop before implementation when
 
 - No primary source issue is identified

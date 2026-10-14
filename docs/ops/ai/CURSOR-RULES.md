@@ -5,8 +5,8 @@ Authority Level: Agent-Specific
 Owns: Cursor product identity, role pointer, startup/bootstrap routing, and Cursor-specific execution discipline
 Does Not Own: Agent-team policy, role assignment, PMO lifecycle, shared execution law, or approval authority
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Related Issues: #3825, #4314, #4449
-Last Reviewed: 2026-10-05
+Related Issues: #3825, #4314, #4449, #4596
+Last Reviewed: 2026-10-14
 ---
 
 # CURSOR-RULES.md
@@ -37,9 +37,19 @@ Do not list, diagnose, or "include for completeness" repository Issues or PRs th
 
 This bound does not cancel assigned-queue follow-through on waiting assigned PRs. It does not authorize grabbing unassigned Active projects as a workload play.
 
-## Startup/bootstrap
+## Startup (`run startup`)
 
-Cursor bootstrap still starts at `Agent.md` through the configured local/cloud router. Startup/orientation does not claim work by itself.
+When Product Authority says `run startup`, or a new Cursor Local session starts, do this before any other repository work, then stop. The shared steps are the PRODUCT STARTUP FRAMEWORK in `docs/governance/AGENT-EXECUTION.md`. This section adds the Cursor Local steps. It does not replace that framework.
+
+1. Bind this chat. Run `~/.cursor/lgfc-wake-ctl.sh bind --session <this chat uuid>`, then `status`. Stop other-session wake loops only through that control script. Start exactly one 1-minute loop from `~/.cursor/lgfc-always-on-loop.sh` when this chat owns the path and the loop is stopped. Report bind result, runner state, and loop PID.
+2. Read the live checkout from the doctor `repo_root`. Do not read a nested `lgfc-*` worktree. Order: `Agent.md`, `docs/governance/REPOSITORY-AUTHORITY.md`, `docs/governance/AGENT-TEAM.md`, `docs/governance/AGENT-EXECUTION.md`, this file. `docs/ops/ai/CORE-RULES.md` is a pointer, not the startup contract.
+3. Report each file as read.
+4. From `AGENT-TEAM.md`, report Cursor's primary roles (Operations, Governance) and secondary roles (Engineering, PMO Admin), and the work-selection order for each of those roles.
+5. Declare product Cursor and operating mode orientation only.
+6. Report that startup authorizes no Issue, pull request, or file edit.
+7. Stop. Do not audit the live queue or pick an Issue.
+
+Host bind alone is not startup. A report that lists these files as required but unread is not startup.
 
 ## Final
 
