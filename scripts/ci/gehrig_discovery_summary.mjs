@@ -8,6 +8,7 @@
 
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 const CANDIDATES_FILE = 'data/research/lou-gehrig-content-candidates-external-discovery.json';
 const SEARCH_RUNS_FILE = 'data/research/lou-gehrig-content-candidates-external-discovery.search-runs.json';
@@ -79,6 +80,162 @@ function formatLicenseNotesTable(licenseNotes) {
   return `| Candidate ID | Title | License | License URL | Artist | Attribution |\n| --- | --- | --- | --- | --- | --- |\n${rows}\n`;
 }
 
+const SOURCE_OUTAGE_STATUSES = new Set(['source_error', 'rate_limited']);
+
+export function countConsecutiveFailures(conclusions) {
+  let count = 0;
+  for (const conclusion of conclusions) {
+    if (conclusion === 'failure') count += 1;
+    else break;
+  }
+  return count;
+}
+
+export function decideGuard({ haltAt, reenableAt, reenableRequested }) {
+  if (reenableRequested) return 'run';
+  if (haltAt && (!reenableAt || haltAt > reenableAt)) return 'halted';
+  return 'run';
+}
+
+// pass: no source stayed down.
+// fail: the job fails after import so the outage is visible. Import already ran.
+// halt: this is the third consecutive failure. Open one Issue and do not fail.
+export function decideOutage({ sourceErrorCount, consecutivePriorFailures }) {
+  if (!sourceErrorCount) return 'pass';
+  if (consecutivePriorFailures >= 2) return 'halt';
+  return 'fail';
+}
+
+export function countSourceOutages(searchRuns) {
+  return (searchRuns ?? []).filter((run) => SOURCE_OUTAGE_STATUSES.has(run.status)).length;
+}
+
+function setOutput(name, value) {
+  const line = `${name}=${value}`;
+  if (process.env.GITHUB_OUTPUT) fs.appendFileSync(process.env.GITHUB_OUTPUT, `${line}\n`);
+  console.log(line);
+}
+
+function githubHeaders() {
+  return {
+    Accept: 'application/vnd.github+json',
+    Authorization: `Bearer ${process.env.GH_TOKEN || process.env.GITHUB_TOKEN}`,
+    'X-GitHub-Api-Version': '2022-11-28',
+  };
+}
+
+async function githubGet(pathname) {
+  const response = await fetch(`https://api.github.com${pathname}`, { headers: githubHeaders() });
+  if (!response.ok) {
+    throw new Error(`${pathname} -> HTTP ${response.status}`);
+  }
+  return response.json();
+}
+
+function newestArtifactTime(artifacts, name) {
+  const matches = (artifacts ?? []).filter((artifact) => artifact.name === name && !artifact.expired);
+  if (matches.length === 0) return null;
+  return matches.map((artifact) => artifact.created_at).sort().at(-1);
+}
+
+export async function evaluateGuard({ repository, currentRunId, reenableRequested, fetchImpl = githubGet }) {
+  if (!repository || !(process.env.GH_TOKEN || process.env.GITHUB_TOKEN)) {
+    return { mode: 'run', consecutiveFailures: 0 };
+  }
+  const artifacts = await fetchImpl(`/repos/${repository}/actions/artifacts?per_page=100`);
+  const haltAt = newestArtifactTime(artifacts.artifacts, 'gehrig-discovery-halted');
+  const reenableAt = newestArtifactTime(artifacts.artifacts, 'gehrig-discovery-reenabled');
+  const mode = decideGuard({ haltAt, reenableAt, reenableRequested });
+  if (mode === 'halted') return { mode, consecutiveFailures: 0 };
+  const runs = await fetchImpl(
+    `/repos/${repository}/actions/workflows/gehrig-content-discovery.yml/runs?per_page=20`,
+  );
+  const conclusions = (runs.workflow_runs ?? [])
+    .filter((run) => String(run.id) !== String(currentRunId) && run.status === 'completed')
+    .map((run) => run.conclusion);
+  return { mode: 'run', consecutiveFailures: countConsecutiveFailures(conclusions) };
+}
+
+async function guardMain() {
+  const reenableRequested = process.env.REENABLE === 'REENABLE_GEHRIG_DISCOVERY';
+  try {
+    const result = await evaluateGuard({
+      repository: process.env.GITHUB_REPOSITORY,
+      currentRunId: process.env.GITHUB_RUN_ID,
+      reenableRequested,
+    });
+    setOutput('mode', result.mode);
+    setOutput('consecutive_failures', String(result.consecutiveFailures));
+    setOutput('reenable', reenableRequested ? 'true' : 'false');
+    if (result.mode === 'halted') {
+      console.log('Gehrig Content Discovery is halted after 3 consecutive failures. Re-enable with workflow_dispatch input reenable=REENABLE_GEHRIG_DISCOVERY.');
+    }
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    setOutput('mode', 'run');
+    setOutput('consecutive_failures', '0');
+    setOutput('reenable', 'false');
+  }
+}
+
+async function openHaltIssue() {
+  const repository = process.env.GITHUB_REPOSITORY;
+  const token = process.env.GH_TOKEN || process.env.GITHUB_TOKEN;
+  const response = await fetch(`https://api.github.com/repos/${repository}/issues`, {
+    method: 'POST',
+    headers: { ...githubHeaders(), 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      title: 'OPS EXCEPTION: Gehrig Content Discovery halted after 3 consecutive failures',
+      labels: ['team:operations', 'ops-exception'],
+      body: [
+        'Gehrig Content Discovery failed 3 consecutive runs. This job is halted.',
+        '',
+        'Further scheduled runs pass without collecting or importing until a person re-enables it.',
+        'Re-enable: Actions → Gehrig Content Discovery → Run workflow, and set reenable to REENABLE_GEHRIG_DISCOVERY.',
+        '',
+        `Run: ${process.env.GITHUB_SERVER_URL || 'https://github.com'}/${repository}/actions/runs/${process.env.GITHUB_RUN_ID || ''}`,
+        '',
+        'There is no shared halt for every GitHub Action. This halt covers only Gehrig Content Discovery (#4588).',
+      ].join('\n'),
+    }),
+  });
+  if (!response.ok) {
+    throw new Error(`issue create -> HTTP ${response.status} ${await response.text()}`);
+  }
+  return response.json();
+}
+
+async function outageMain() {
+  const searchRunsData = readJsonIfExists(path.join(process.cwd(), SEARCH_RUNS_FILE));
+  const sourceErrorCount = countSourceOutages(searchRunsData?.search_runs);
+  const discoveryFailed = process.env.DISCOVERY_OUTCOME === 'failure';
+  const effectiveErrors = sourceErrorCount > 0 ? sourceErrorCount : discoveryFailed ? 1 : 0;
+  const consecutivePriorFailures = Number(process.env.CONSECUTIVE_PRIOR_FAILURES ?? 0);
+  const action = decideOutage({
+    sourceErrorCount: effectiveErrors,
+    consecutivePriorFailures: Number.isFinite(consecutivePriorFailures) ? consecutivePriorFailures : 0,
+  });
+  setOutput('action', action);
+  if (action === 'pass') return;
+  if (action === 'fail') {
+    console.error(
+      `${effectiveErrors} discovery source(s) stayed down after retries. Other sources were imported. This failed step is the outage signal.`,
+    );
+    process.exitCode = 1;
+    return;
+  }
+  try {
+    const issue = await openHaltIssue();
+    fs.mkdirSync('gehrig-discovery-halted', { recursive: true });
+    fs.writeFileSync('gehrig-discovery-halted/halted-at.txt', `${new Date().toISOString()}\n`);
+    setOutput('halt_check', 'true');
+    console.log(`Opened ${issue.html_url}`);
+  } catch (error) {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exitCode = 1;
+  }
+}
+
 function main() {
   const repoRoot = process.cwd();
   const candidatesData = readJsonIfExists(path.join(repoRoot, CANDIDATES_FILE));
@@ -93,6 +250,9 @@ function main() {
     '## Gehrig Content Discovery (#3551 / #3552)',
     '',
     `Discovered **${candidates.length}** candidate(s) across ${searchRuns.length} source run(s). Metadata only -- no rights conclusion recorded, nothing published.`,
+    countSourceOutages(searchRuns) > 0
+      ? `**Source outage:** ${countSourceOutages(searchRuns)} source(s) stayed down after retries. Their search-runs are source_error or rate_limited. Candidates from the other sources are kept and imported. This job fails after import so the outage stays visible.`
+      : '',
     '',
     '### Search runs',
     formatSearchRunsTable(searchRuns),
@@ -121,4 +281,12 @@ function main() {
   console.log(markdown);
 }
 
-main();
+const invokedDirectly = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (invokedDirectly) {
+  const mode = process.argv[2];
+  const pending = mode === '--guard' ? guardMain() : mode === '--outage' ? outageMain() : Promise.resolve(main());
+  pending.catch((error) => {
+    console.error(error instanceof Error ? error.message : String(error));
+    process.exitCode = 1;
+  });
+}

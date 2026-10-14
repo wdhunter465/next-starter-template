@@ -203,7 +203,14 @@ class HttpStatusError extends Error {
   }
 }
 
+function retryDelayMs() {
+  const parsed = Number(process.env.DISCOVERY_RETRY_BASE_DELAY_MS ?? 500);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : 500;
+}
+
 async function fetchJson(url, headers = {}) {
+  const baseDelayMs = retryDelayMs();
+  const timeoutMs = Number(process.env.DISCOVERY_FETCH_TIMEOUT_MS ?? 30000);
   return withBoundedRetry(
     async () => {
       const response = await fetch(url, {
@@ -212,6 +219,7 @@ async function fetchJson(url, headers = {}) {
           Accept: 'application/json',
           ...headers,
         },
+        signal: AbortSignal.timeout(Number.isFinite(timeoutMs) && timeoutMs > 0 ? timeoutMs : 30000),
       });
       if (!response.ok) {
         throw new HttpStatusError(url, response.status);
@@ -219,6 +227,8 @@ async function fetchJson(url, headers = {}) {
       return response.json();
     },
     {
+      baseDelayMs,
+      delay: baseDelayMs === 0 ? async () => {} : undefined,
       isRetryable: (error) => {
         if (error instanceof HttpStatusError) {
           // 429 (rate limited) and 5xx (server-side) are transient --
@@ -226,7 +236,7 @@ async function fetchJson(url, headers = {}) {
           // etc.) mean the request itself is wrong and retrying cannot help.
           return error.status === 429 || error.status >= 500;
         }
-        // A thrown fetch (network/DNS/TLS failure) is always transient.
+        // A thrown fetch (network/DNS/TLS/timeout) is always transient.
         return true;
       },
     },
@@ -586,17 +596,24 @@ const COLLECTORS = {
   dpla: collectDpla,
 };
 
-async function main() {
-  let options;
-  try {
-    options = parseArgs(process.argv.slice(2));
-  } catch (error) {
-    console.error(errorMessage(error));
-    printUsage();
-    process.exitCode = 1;
-    return;
-  }
+// A finished discovery run exits 0 even when a source stays down. Search-runs
+// already record source_error. The workflow imports the sources that
+// succeeded, then a later step fails the job so the outage stays visible.
+export function decideDiscoveryExit() {
+  return 0;
+}
 
+export async function runDiscovery(options, fetchImpl) {
+  const previousFetch = globalThis.fetch;
+  if (fetchImpl) globalThis.fetch = fetchImpl;
+  try {
+    return await runDiscoveryWithFetch(options);
+  } finally {
+    if (fetchImpl) globalThis.fetch = previousFetch;
+  }
+}
+
+async function runDiscoveryWithFetch(options) {
   const nextId = makeCandidateIdFactory();
   const allCandidates = [];
   const errors = [];
@@ -665,10 +682,17 @@ async function main() {
     fs.writeFileSync(licenseNotesOutPath, JSON.stringify({ license_notes: licenseNotes }, null, 2) + '\n', 'utf8');
     console.log(`Wrote ${licenseNotes.length} Wikimedia Commons license note(s) to ${path.relative(repoRoot, licenseNotesOutPath)}`);
   }
+  const exitCode = decideDiscoveryExit(errors.length, options.sources.length);
   if (errors.length > 0) {
     console.error(`\n${errors.length} error(s) occurred:`);
     for (const error of errors) console.error(`  - ${error}`);
-    process.exitCode = 1;
+    if (errors.length < options.sources.length) {
+      console.error(
+        'Other sources still produced candidates. Import those results. The discovery job reports this source outage after import.',
+      );
+    } else {
+      console.error('Every requested source stayed down after retries. No candidates to import. The discovery job reports this outage.');
+    }
   }
   console.log('\nNext steps:');
   console.log('1. Record each search run (POST start, then POST complete with the same run_uid) against');
@@ -678,6 +702,24 @@ async function main() {
   console.log('2. Validate and import discovered candidates via');
   console.log(`   node --experimental-strip-types scripts/content-pipeline/import-seed-candidates.mjs --file ${options.out} --database lgfc-litedev --local --dry-run`);
   console.log('   (review the dry-run output, then drop --dry-run once satisfied — Development only, per #3552/#3554)');
+  return { exitCode, candidates: allCandidates, searchRuns, errors };
 }
 
-main();
+async function main() {
+  let options;
+  try {
+    options = parseArgs(process.argv.slice(2));
+  } catch (error) {
+    console.error(errorMessage(error));
+    printUsage();
+    process.exitCode = 1;
+    return;
+  }
+  const result = await runDiscovery(options);
+  process.exitCode = result.exitCode;
+}
+
+const invokedDirectly = process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+if (invokedDirectly) {
+  main();
+}
