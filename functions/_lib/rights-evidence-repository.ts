@@ -2,7 +2,7 @@
 // Evidence rows are append-only: each reviewer action records a new row
 // rather than mutating a prior one, preserving the full evidentiary trail.
 
-import type { UsageBasis } from './content-permission-status';
+import { CONDITIONAL_EVIDENCE_DENIAL_MESSAGE, type UsageBasis } from './content-permission-status';
 import { requireTables } from './d1';
 
 export const RIGHTS_EVIDENCE_TABLES = ['rights_evidence', 'content_items'] as const;
@@ -97,6 +97,10 @@ export type RightsEvidenceRow = {
   usage_basis: UsageBasis;
   fee_required: number;
   evidence_text_sha256: string | null;
+  // #4593: 1 when the permission carries a condition (territory, duration, usage limit).
+  // Credit or attribution wording is not a condition; that stays usage_basis 'free_use_credit'.
+  has_conditions: number;
+  conditions_text: string | null;
 };
 
 export type StoredRightsEvidence = Omit<RightsEvidenceRow, 'evidence_metadata'> & {
@@ -132,12 +136,24 @@ export type RightsEvidenceInput = {
   usage_basis?: UsageBasis;
   fee_required?: boolean;
   evidence_text_sha256?: string | null;
+  // #4593: any condition is a denial. The person decides: credit wording stays out of
+  // conditions_text (use usage_basis 'free_use_credit'); territory, duration, and usage
+  // limits go here. Non-empty conditions_text counts as has_conditions.
+  has_conditions?: boolean | number;
+  conditions_text?: string | null;
 };
 
 export class FeeRequiredEvidenceMustDenyError extends Error {
   constructor() {
     super('fee-required rights_evidence must have usage_decision deny.');
     this.name = 'FeeRequiredEvidenceMustDenyError';
+  }
+}
+
+export class ConditionalEvidenceMustDenyError extends Error {
+  constructor() {
+    super(CONDITIONAL_EVIDENCE_DENIAL_MESSAGE);
+    this.name = 'ConditionalEvidenceMustDenyError';
   }
 }
 
@@ -195,6 +211,14 @@ export async function recordRightsEvidence(
   if (usageBasis === 'fee_required' && usageDecision !== 'deny') {
     throw new FeeRequiredEvidenceMustDenyError();
   }
+  const conditionsText = typeof input.conditions_text === 'string' && input.conditions_text.trim() !== ''
+    ? input.conditions_text.trim()
+    : null;
+  // Credit wording is not a condition. A non-empty conditions_text is, and the person chose that field.
+  const hasConditions = input.has_conditions === true || input.has_conditions === 1 || conditionsText !== null;
+  if (hasConditions && usageDecision !== 'deny') {
+    throw new ConditionalEvidenceMustDenyError();
+  }
 
   const result = await db
     .prepare(
@@ -204,8 +228,8 @@ export async function recordRightsEvidence(
         channel, rights_holder, repository_or_collection, publication_established,
         us_publication_or_uraa_confirmed, publication_date_source,
         source_filename, tagging_requirements, usage_decision, contact_info,
-        usage_basis, fee_required, evidence_text_sha256
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        usage_basis, fee_required, evidence_text_sha256, has_conditions, conditions_text
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     )
     .bind(
       input.content_item_id,
@@ -231,6 +255,8 @@ export async function recordRightsEvidence(
       usageBasis,
       usageBasis === 'fee_required' ? 1 : 0,
       input.evidence_text_sha256 ?? null,
+      hasConditions ? 1 : 0,
+      conditionsText,
     )
     .run();
 
@@ -464,6 +490,8 @@ function pickRightsEvidenceRowFields(row: RightsEvidenceRow): RightsEvidenceRow 
     usage_basis: row.usage_basis,
     fee_required: row.fee_required,
     evidence_text_sha256: row.evidence_text_sha256,
+    has_conditions: row.has_conditions,
+    conditions_text: row.conditions_text,
   };
 }
 
