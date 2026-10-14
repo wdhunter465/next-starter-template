@@ -2,7 +2,7 @@
 Doc Type: Report
 Audience: Human + AI
 Authority Level: Supporting (register for Product Authority review; not a Go packet row)
-Owns: Placeholder and sample content register for go-live task P-05b (#4419): each remaining item, where it lives, its disposition and how it was verified
+Owns: Sample and stub content register for go-live task P-05b (#4419): each remaining item, where it lives, its disposition and how it was verified
 Does Not Own: Any code, data or migration change, the authenticated-page sweep (needs member and admin accounts, P-09), or the Go packet
 Canonical Reference: /docs/reference/operations/2027-launch-calendar-operating-contract.md
 Related Issues: #4419, #4414, #4411, #4409, #4422, #4431, #4432
