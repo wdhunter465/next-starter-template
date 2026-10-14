@@ -5,8 +5,8 @@ Authority Level: Supporting (recommendation record; not design authority)
 Owns: Recommended dispositions for the 84 differences and the six design conflicts in the #4409 register, for Product Authority review
 Does Not Own: Any decision (Product Authority decides), locked design specifications under docs/reference/design/**, or application code
 Canonical Reference: /docs/governance/PRODUCT-AND-DESIGN.md
-Related Issues: #4409, #4420, #4411, #4431, #4442
-Last Reviewed: 2026-10-08
+Related Issues: #4409, #4420, #4411, #4431, #4442, #4609
+Last Reviewed: 2026-10-14
 ---
 
 # Recommended dispositions for the website design differences
@@ -83,9 +83,9 @@ The five High items go first (color, then buttons and card classes, then the mem
 | D-013 | Typography | Med | **A** | Typography | Shared meta text class should be 14px |
 | D-014 | Typography | Med | **A** | Typography | No text under 13px (accessibility) |
 | D-015 | Typography | Low | **C** | Typography | Small drift; accept |
-| D-016 | Buttons | Med | **A** | Buttons, links and forms | One primary button style removes most of the button drift |
-| D-017 | Buttons | High | **A** | Buttons, links and forms | Join, Login and Vote look broken today; visible on the homepage banner |
-| D-018 | Buttons | Med | **A** | Buttons, links and forms | Keyboard focus ring on all controls (accessibility) |
+| D-016 | Buttons | Med | **A** | Buttons, links and forms | Closed in the #4609 pull request. One primary `.btn.primary` style; Join uses the inverse primary on the blue banner |
+| D-017 | Buttons | High | **A** | Buttons, links and forms | Closed in the #4609 pull request. Join and Login are banner buttons; Vote uses `.btn.primary` |
+| D-018 | Buttons | Med | **A** | Buttons, links and forms | Closed in the #4609 pull request. `:focus-visible` ring on links, buttons and form controls |
 | D-019 | Buttons | Low | **C** | Buttons, links and forms | Secondary button variants are acceptable |
 | D-020 | Buttons | Low | **D** | Buttons, links and forms | Spinner is polish; defer |
 | D-021 | Buttons | Low | **C** | Buttons, links and forms | Accept mixed disabled look |
@@ -113,7 +113,7 @@ The five High items go first (color, then buttons and card classes, then the mem
 | D-043 | Home | Low | **C** | Home page content | Data driven; matches |
 | D-044 | Home | Low | **A** | Home page content | Loading line and fallback should not both show |
 | D-045 | Search | Med | **B** | Search and text pages | Search width is deliberate |
-| D-046 | Search | Med | **A** | Buttons, links and forms | Same focus fix as D-018 |
+| D-046 | Search | Med | **A** | Buttons, links and forms | Closed in the #4609 pull request. Same `:focus-visible` ring as D-018 |
 | D-047 | Search | Low | **C** | Search and text pages | Wording is clearer as built |
 | D-048 | Search | Low | **A** | Search and text pages | Result count at 14px with D-013 |
 | D-049 | Search | Med | **A** | Search and text pages | Result title and excerpt sizes follow the type scale |

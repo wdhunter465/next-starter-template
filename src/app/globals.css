@@ -391,12 +391,52 @@ a:hover {
 
 .joinBanner .join-banner__btn--primary {
   background: #fff;
-  color: #0033cc;
+  color: var(--lgfc-blue, #0033cc);
+  border: 2px solid #fff;
 }
 
 .joinBanner .join-banner__btn--secondary {
-  border: 2px solid rgba(255, 255, 255, 0.9);
+  background: transparent;
+  border: 2px solid #fff;
   color: #fff;
+}
+
+/* One primary action style (#4609, D-016). Vote and other global .btn controls use it.
+   Header buttons stay in their module so the header theme can change them on its own. */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: 1px solid var(--lgfc-blue, #0033cc);
+  background: var(--lgfc-bg-card, #fff);
+  color: var(--lgfc-blue, #0033cc);
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.btn.primary {
+  background: var(--lgfc-blue, #0033cc);
+  color: #fff;
+  border-color: var(--lgfc-blue, #0033cc);
+}
+
+.btn.primary:hover {
+  background: var(--lgfc-blue-hover, #002299);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible {
+  outline: 3px solid var(--lgfc-blue, #0033cc);
+  outline-offset: 3px;
 }
 /* "FREE" badge under the Join banner heading (#4460). A span on a white pill:
    the banner forces h2/h3/h4/p/a text to white, and red on the banner blue fails contrast. */
@@ -490,14 +530,22 @@ a:hover {
 .joinBanner h3,
 .joinBanner h4,
 .joinBanner p,
-.joinBanner a,
+.joinBanner a:not(.join-banner__btn),
 .joinBanner .section-title {
 	color: #fff !important;
 }
 
-/* Exception: buttons within joinBanner have black text */
-.joinBanner .joinBanner .join-banner__btn {
-	color: #000 !important;
+.joinBanner .join-banner__btn--primary {
+	background: #fff;
+	color: var(--lgfc-blue, #0033cc) !important;
+}
+
+.joinBanner .join-banner__btn--secondary {
+	color: #fff !important;
+}
+
+.joinBanner :focus-visible {
+	outline-color: #fff;
 }
 
 .topWhitespace {

@@ -14,8 +14,8 @@ export default function JoinCTA() {
           vote in the Weekly Photo Matchup, and read approved FAQs before the 2027 public relaunch.
         </p>
         <div className="join-banner__actions">
-          <Link className="join-banner__btn" href="/join">Join</Link>
-          <Link className="join-banner__btn" href={LOGIN_TAB_ROUTE}>Login</Link>
+          <Link className="join-banner__btn join-banner__btn--primary" href="/join">Join</Link>
+          <Link className="join-banner__btn join-banner__btn--secondary" href={LOGIN_TAB_ROUTE}>Login</Link>
         </div>
       </div>
     </div>

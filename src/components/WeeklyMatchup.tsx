@@ -316,7 +316,7 @@ function renderMatchupBody(
             <button
               disabled={submitting}
               onClick={() => submit('a')}
-              className="btn"
+              className="btn primary"
               style={{ marginTop: 12, width: '100%' }}
             >
               {submitting ? 'Submitting…' : 'Vote A'}
@@ -341,7 +341,7 @@ function renderMatchupBody(
             <button
               disabled={submitting}
               onClick={() => submit('b')}
-              className="btn"
+              className="btn primary"
               style={{ marginTop: 12, width: '100%' }}
             >
               {submitting ? 'Submitting…' : 'Vote B'}
