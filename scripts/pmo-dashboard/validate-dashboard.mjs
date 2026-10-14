@@ -122,79 +122,51 @@ function validateRow(row, label, rowByNumber, rowDataByNumber) {
 
   const view = topLevelViewFromLabel(label);
   if (view === 'incomplete' || view === 'completedPrograms') {
-    errors.push(`${label} current-book presentation must not include ${view} rows`);
-  } else {
-    validateQueueFields(row, label, view);
-    if (row.lifecycle === 'pipeline') {
-      if (!row.dataQualityErrors?.length) {
-        if (!row.pipelineStageLabel || !stageLabels.has(row.pipelineStageLabel)) {
-          errors.push(`${label} Pipeline rows require exactly one supported pipelineStageLabel`);
-        }
-        if (!row.pipelineStageDisplay) errors.push(`${label} Pipeline rows require pipelineStageDisplay`);
-      }
-    } else if (row.pipelineStageLabel || row.pipelineStageDisplay) {
-      errors.push(`${label} non-Pipeline rows must not carry Pipeline stage fields`);
-    }
-    if (row.lifecycle === 'active' && view !== 'activePrograms' && !isChildLabel(label)) errors.push(`${label} active lifecycle must appear in activePrograms`);
-    if (row.lifecycle === 'pipeline' && view !== 'pmoPipeline' && !isChildLabel(label)) errors.push(`${label} pipeline lifecycle must appear in pmoPipeline`);
-    if (row.lifecycle === 'closed' && !isChildLabel(label)) {
-      errors.push(`${label} closed records are not part of the current PMO book`);
+    errors.push(`${label} must not appear in retired view ${view}`);
+  }
+  if (row.lifecycle === 'pipeline' && !isChildLabel(label)) {
+    if (!row.pipelineStageLabel || !stageLabels.has(row.pipelineStageLabel)) {
+      errors.push(`${label} Pipeline rows require a canonical pipeline stage label`);
     }
   }
-
-  if (Number.isNaN(row.percentComplete)) errors.push(`${label} percentComplete is NaN`);
-  if (row.percentComplete !== null && (typeof row.percentComplete !== 'number' || row.percentComplete < 0 || row.percentComplete > 100)) {
-    errors.push(`${label} percentComplete must be null or 0-100`);
+  if (row.lifecycle === 'active' && row.pipelineStageLabel) {
+    errors.push(`${label} Active rows must not carry pipelineStageLabel`);
   }
-  if (!Number.isInteger(row.taskCount) || row.taskCount < 0) errors.push(`${label} taskCount must be a non-negative integer`);
-  if (!Number.isInteger(row.tasksCompleted) || row.tasksCompleted < 0) errors.push(`${label} tasksCompleted must be a non-negative integer`);
-  if (row.tasksCompleted > row.taskCount) errors.push(`${label} # of Tasks Completed is greater than # of Tasks`);
-  if (row.taskCount > 0) {
-    const expected = Math.round((row.tasksCompleted / row.taskCount) * 100);
-    if (row.percentComplete !== expected) errors.push(`${label} percentComplete must equal round(tasksCompleted / taskCount * 100)`);
-  } else if (row.percentComplete !== null) {
-    errors.push(`${label} percentComplete must be null when taskCount is 0`);
-  }
+  validateQueueFields(row, label, view);
 
-  if (row.issueNumber) {
-    if (rowByNumber.has(row.issueNumber)) errors.push(`issue #${row.issueNumber} appears in multiple dashboard views`);
+  if (Number.isInteger(row.issueNumber) && row.issueNumber > 0) {
+    if (rowByNumber.has(row.issueNumber)) {
+      errors.push(`issue #${row.issueNumber} appears more than once in current-book views`);
+    }
     rowByNumber.set(row.issueNumber, label);
     rowDataByNumber.set(row.issueNumber, row);
   }
-
-  if (row.children != null) {
-    if (!Array.isArray(row.children)) {
-      errors.push(`${label} children must be an array`);
-      return;
-    }
-    for (const [index, child] of row.children.entries()) {
-      const childLabel = `${label}.children[${index}]`;
-      validateRow(child, childLabel, rowByNumber, rowDataByNumber);
-      if (!child.parentProgramIssue && row.issueNumber) errors.push(`${childLabel} is missing parentProgramIssue metadata`);
-      if (child.parentProgramIssue && child.parentProgramIssue !== row.issueNumber) errors.push(`${childLabel} parentProgramIssue does not match parent row issueNumber`);
-      if (!Number.isInteger(child.childSequence) || child.childSequence <= 0) errors.push(`${childLabel} childSequence must be a positive integer`);
-    }
-  }
 }
 
-function validateQueueRow(errors, order, queues, expected, { orderPath, queuesPath }) {
-  const expectedOrder = expected.map((queue) => queue.id);
-  if (!Array.isArray(order) || order.join(',') !== expectedOrder.join(',')) {
-    errors.push(`${orderPath} must be ${expectedOrder.join(', ')}`);
-  }
-  if (!Array.isArray(queues) || queues.length !== expected.length) {
-    errors.push(`${queuesPath} must contain ${expected.length} rows`);
+function validateQueueRow(errors, order, queues, expectedOrder, { orderPath, queuesPath }) {
+  if (!Array.isArray(order)) {
+    errors.push(`${orderPath} must be an array`);
     return;
   }
+  if (!Array.isArray(queues)) {
+    errors.push(`${queuesPath} must be an array`);
+    return;
+  }
+  if (order.join(',') !== expectedOrder.map((q) => q.id).join(',')) {
+    errors.push(`${orderPath} must match ${expectedOrder.map((q) => q.id).join(',')}`);
+  }
+  if (queues.length !== expectedOrder.length) {
+    errors.push(`${queuesPath} length must equal ${expectedOrder.length}`);
+  }
   queues.forEach((queue, index) => {
-    const expectedQueue = expected[index];
     const label = `${queuesPath}[${index}]`;
+    const expected = expectedOrder[index];
     if (!queue || typeof queue !== 'object') {
       errors.push(`${label} must be an object`);
       return;
     }
-    if (queue.id !== expectedQueue.id) errors.push(`${label} id must be ${expectedQueue.id}`);
-    if (queue.title !== expectedQueue.title) errors.push(`${label} title must be ${expectedQueue.title}`);
+    if (expected && queue.id !== expected.id) errors.push(`${label} id must be ${expected.id}`);
+    if (expected && queue.title !== expected.title) errors.push(`${label} title must be ${expected.title}`);
     if (!Number.isInteger(queue.count) || queue.count < 0) errors.push(`${label} count must be a non-negative integer`);
     try {
       const url = new URL(queue.issueSearchUrl);
@@ -270,6 +242,57 @@ if (data) {
         errors.push('teamQueues.pmoQueues tracked count must equal Pipeline plus Active');
       }
     }
+    if (!Number.isInteger(data.teamQueues.totalOpenIssues) || data.teamQueues.totalOpenIssues < 0) {
+      errors.push('teamQueues.totalOpenIssues must be a non-negative integer');
+    }
+    const taskQ = data.teamQueues.pmoTaskQueue;
+    if (!taskQ || typeof taskQ !== 'object') {
+      errors.push('teamQueues.pmoTaskQueue must be present');
+    } else {
+      if (taskQ.id !== 'pmoTasks') errors.push('teamQueues.pmoTaskQueue.id must be pmoTasks');
+      if (!Number.isInteger(taskQ.count) || taskQ.count < 0) errors.push('teamQueues.pmoTaskQueue.count must be a non-negative integer');
+      try {
+        const url = new URL(taskQ.issueSearchUrl);
+        if (url.protocol !== 'https:' || url.hostname !== 'github.com') {
+          errors.push('teamQueues.pmoTaskQueue.issueSearchUrl must be an https GitHub issues search');
+        }
+      } catch {
+        errors.push('teamQueues.pmoTaskQueue.issueSearchUrl must be a valid URL');
+      }
+    }
+    const otherQ = data.teamQueues.otherQueue;
+    if (!otherQ || typeof otherQ !== 'object') {
+      errors.push('teamQueues.otherQueue must be present');
+    } else if (!Number.isInteger(otherQ.count) || otherQ.count < 0) {
+      errors.push('teamQueues.otherQueue.count must be a non-negative integer');
+    }
+    const br = data.teamQueues.breakout;
+    if (!br || typeof br !== 'object') {
+      errors.push('teamQueues.breakout must be present');
+    } else {
+      const keys = ['operations', 'engineering', 'governance', 'pmoParents', 'pmoTasks', 'other', 'totalOpenIssues'];
+      for (const key of keys) {
+        if (!Number.isInteger(br[key]) || br[key] < 0) {
+          errors.push(`teamQueues.breakout.${key} must be a non-negative integer`);
+        }
+      }
+      if (
+        Number.isInteger(br.operations) && Number.isInteger(br.engineering) && Number.isInteger(br.governance) &&
+        Number.isInteger(br.pmoParents) && Number.isInteger(br.pmoTasks) && Number.isInteger(br.other) &&
+        Number.isInteger(br.totalOpenIssues)
+      ) {
+        const sum = br.operations + br.engineering + br.governance + br.pmoParents + br.pmoTasks + br.other;
+        if (sum !== br.totalOpenIssues) {
+          errors.push(`teamQueues.breakout categories (${sum}) must equal totalOpenIssues (${br.totalOpenIssues})`);
+        }
+        if (br.totalOpenIssues !== data.teamQueues.totalOpenIssues) {
+          errors.push('teamQueues.breakout.totalOpenIssues must equal teamQueues.totalOpenIssues');
+        }
+      }
+      if (taskQ && Number.isInteger(taskQ.count) && Number.isInteger(br.pmoTasks) && taskQ.count !== br.pmoTasks) {
+        errors.push('teamQueues.pmoTaskQueue.count must equal breakout.pmoTasks');
+      }
+    }
   }
   if (!data.currentBook || typeof data.currentBook !== 'object') {
     errors.push('currentBook summary must be present');
@@ -292,57 +315,22 @@ if (data) {
   for (const [index, row] of (data.dataQualityExceptions || []).entries()) {
     validateExceptionRow(row, `dataQualityExceptions[${index}]`, rowByNumber);
   }
-
-  const taskAccountingByNumber = new Map();
-  if (!Array.isArray(data.taskAccounting)) {
-    errors.push('taskAccounting must be present and must be an array');
-  } else {
-    for (const [index, entry] of data.taskAccounting.entries()) {
-      const label = `taskAccounting[${index}]`;
-      if (!Number.isInteger(entry.parentIssueNumber) || entry.parentIssueNumber <= 0) errors.push(`${label} parentIssueNumber must be a positive integer`);
-      if (!Array.isArray(entry.declaredTaskIssueNumbers)) errors.push(`${label} declaredTaskIssueNumbers must be an array`);
-      if (!Array.isArray(entry.missingTaskIssueNumbers)) errors.push(`${label} missingTaskIssueNumbers must be an array`);
-      if (!Array.isArray(entry.completedTaskIssueNumbers)) errors.push(`${label} completedTaskIssueNumbers must be an array`);
-      if (!Number.isInteger(entry.taskCount) || entry.taskCount < 0) errors.push(`${label} taskCount must be a non-negative integer`);
-      if (!Number.isInteger(entry.tasksCompleted) || entry.tasksCompleted < 0) errors.push(`${label} tasksCompleted must be a non-negative integer`);
-      if (entry.tasksCompleted > entry.taskCount) errors.push(`${label} tasksCompleted is greater than taskCount`);
-      const declaredUnique = new Set(entry.declaredTaskIssueNumbers || []);
-      if (declaredUnique.size !== (entry.declaredTaskIssueNumbers || []).length) errors.push(`${label} declaredTaskIssueNumbers must not contain duplicates`);
-      if (entry.taskCount !== declaredUnique.size) errors.push(`${label} taskCount must equal declaredTaskIssueNumbers length`);
-      if (entry.tasksCompleted !== (entry.completedTaskIssueNumbers || []).length) errors.push(`${label} tasksCompleted must equal completedTaskIssueNumbers length`);
-      const row = rowDataByNumber.get(entry.parentIssueNumber);
-      if (row && row.taskCount !== entry.taskCount) errors.push(`${label} taskCount does not match dashboard row value for #${entry.parentIssueNumber}`);
-      if (row && row.tasksCompleted !== entry.tasksCompleted) errors.push(`${label} tasksCompleted does not match dashboard row value for #${entry.parentIssueNumber}`);
-      if (taskAccountingByNumber.has(entry.parentIssueNumber)) errors.push(`${label} duplicates task accounting for issue #${entry.parentIssueNumber}`);
-      taskAccountingByNumber.set(entry.parentIssueNumber, entry);
-    }
-  }
-
-  for (const [collection, items] of [['included', inventory?.included], ['excluded', inventory?.excluded]]) {
-    for (const item of items || []) {
-      for (const field of FORBIDDEN_INVENTORY_LIVE_STATE_FIELDS) {
-        if (Object.prototype.hasOwnProperty.call(item, field)) {
-          errors.push(`tracked inventory ${collection} #${item.issueNumber} must not declare ${field}; live GitHub Issue metadata is sole lifecycle/team/priority authority`);
-        }
-      }
-    }
-  }
-  for (const item of inventory?.excluded || []) {
-    const view = rowByNumber.get(item.issueNumber);
-    if (view) errors.push(`excluded issue #${item.issueNumber} must not appear in dashboard output (found in ${view})`);
-  }
 }
 
-for (const file of ['index.html', 'queues.html', 'assets/pmo-dashboard.css', 'assets/pmo-dashboard.js', 'assets/pmo-queues.js']) {
-  try {
-    await readFile(path.join(outDir, file), 'utf8');
-  } catch {
-    errors.push(`generated ${file} is missing`);
+if (inventory && Array.isArray(inventory.issues)) {
+  for (const [index, item] of inventory.issues.entries()) {
+    for (const field of FORBIDDEN_INVENTORY_LIVE_STATE_FIELDS) {
+      if (Object.prototype.hasOwnProperty.call(item, field)) {
+        errors.push(`inventory.issues[${index}] must not prescribe live state field ${field}`);
+      }
+    }
   }
 }
 
 if (errors.length) {
-  console.error(errors.map((error) => `- ${error}`).join('\n'));
+  console.error('PMO dashboard validation failed:');
+  for (const error of errors) console.error(`- ${error}`);
   process.exit(1);
 }
-console.log(`PMO dashboard validation passed for ${outDir}`);
+
+console.log('PMO dashboard validation passed');

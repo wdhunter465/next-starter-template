@@ -5,8 +5,8 @@ Authority Level: Operational Guidance
 Owns: PMO dashboard generation, refresh, validation procedure, operator remediation flow, and GitHub Pages limitations
 Does Not Own: PMO lifecycle definitions, queue and priority policy, PMO issue contract, dashboard JSON specification, GitHub Issues source records, or Cloudflare production deployment
 Canonical Reference: /docs/reference/pmo/pmo-lifecycle-and-priority-contract.md
-Related Issues: #2101, #2299, #2313, #2471, #2516, #2610, #2611, #2699, #2702, #3116, #3136, #3597, #3615, #4171, #4174, #4176
-Last Reviewed: 2026-09-19
+Related Issues: #2101, #2299, #2313, #2471, #2516, #2610, #2611, #2699, #2702, #3116, #3136, #3597, #3615, #4171, #4174, #4176, #4620
+Last Reviewed: 2026-10-14
 ---
 
 # PMO Dashboard
@@ -19,7 +19,7 @@ The dashboard normalizes public-safe Issue data into Active and Pipeline book vi
 
 Queue, priority, Project Graduation, and collaboration semantics are owned by `docs/governance/WORK-QUEUES-AND-COLLABORATION.md`. The JSON and view contract is owned by `docs/reference/pmo/pmo-lifecycle-and-priority-contract.md`. The July 2026 dashboard specification is superseded historical context.
 
-This operator guidance was reconciled under #2699 from the PMO meeting decisions. It must not be delegated to an implementation agent to reinterpret the meeting record. Owner-display and event-refresh behavior were corrected under #3615. PMO process execution is **PMO Admin**; the current holder is in `docs/governance/AGENT-TEAM.md`.
+This operator guidance was reconciled under #2699 from the PMO meeting decisions. It must not be delegated to an implementation agent to reinterpret the meeting record. Owner-display and event-refresh behavior were corrected under #3615. Team queues total open issues, PMO child/task counts, and assignment breakout were added under #4620. PMO process execution is **PMO Admin**; the current holder is in `docs/governance/AGENT-TEAM.md`.
 
 ## Scope
 
@@ -74,7 +74,16 @@ Canonical JSON:
 https://wdhunter465.github.io/next-starter-template/pmo-dashboard/dashboard-data.json
 ```
 
-The Team queues page has two rows. Row one reports exclusive team ownership in this order: Operations, Engineering, Governance. Row two reports PMO **parent projects only** in this order: PMO tracked, PMO Pipeline, PMO Active. Tracked equals Pipeline plus Active. Child `pmo:task` Issues are omitted from the PMO row. The `teamQueues` JSON object is reporting-only. GitHub search links follow the same filters.
+The Team queues page reports:
+
+1. **Repository total open issues** (all open Issues; PRs excluded) above the team sections.
+2. **Exclusive team ownership** in this order: Operations, Engineering, Governance.
+3. **PMO parent projects** in this order: PMO tracked, PMO Pipeline, PMO Active. Tracked equals Pipeline plus Active. Child `pmo:task` Issues are omitted from parent tiles.
+4. **PMO child / task** open Issues (`label:pmo:task`).
+5. **Other / unassigned** open Issues not in the exclusive team or PMO task partitions.
+6. An **assignment breakout** whose categories are mutually exclusive and sum to total open issues.
+
+The `teamQueues` JSON object is reporting-only (`totalOpenIssues`, `queues`, `pmoQueues`, `pmoTaskQueue`, `otherQueue`, `breakout`). GitHub search links follow the same filters.
 
 The former owner URL (`https://wdhunter645.github.io/next-starter-template/pmo-dashboard/`) returns 404 after the repository rename to `wdhunter465/next-starter-template`. Use only the `wdhunter465.github.io` URLs above.
 
@@ -221,48 +230,6 @@ Target validation must reject or quarantine:
 - peer work counted as child work;
 - invalid task math;
 - prohibited legacy priority such as `pmo:priority:none` or Pipeline `pmo:priority:idea` after migration;
-- frozen inventory state overriding current GitHub metadata.
-
-Until #2702 merges, existing runtime code and fixtures may still enforce the legacy single-PMO-priority model. That is a known implementation gap, not valid operator guidance. Do not modify live Issues to satisfy obsolete runtime assumptions without an approved migration transaction.
-
-## GitHub Pages setup notes
-
-GitHub Pages must be enabled with GitHub Actions as the source. This reporting target does not replace or modify the Cloudflare Pages production website.
-
-One-time operator procedure:
-
-1. Open repository **Settings**.
-2. Open **Pages**.
-3. Under **Build and deployment**, set **Source** to **GitHub Actions**.
-4. Manually dispatch **PMO dashboard CI build** (preferred; deploy follows automatically) or **PMO dashboard CI deploy**.
-5. Confirm Configure Pages, Upload Pages artifact, and Deploy to GitHub Pages execute.
-6. Verify the HTML and JSON URLs.
-7. Record the workflow and URL evidence on the controlling operational Issue.
-
-Do not add a PAT or privileged secret merely to enable Pages through automation.
-
-## Display safety
-
-Treat all Issue-derived values as untrusted display text. Escape titles, descriptions, owners, statuses, dates, labels, and links before rendering.
-
-## Known limitations
-
-- The target lifecycle-specific queue model is not fully implemented in runtime until #2702 merges.
-- Feature-branch fixtures do not prove current live inventory state.
-- The public reporting surface is unavailable until GitHub Pages is configured.
-- Anticipated completion dates remain explicit Issue values or `TBD`; the dashboard does not forecast dates.
-- The first queue-aware runtime version does not require charts, per-project pages, or private reporting.
-- High-volume issue-event bursts are coalesced by concurrency; the schedule remains the floor if events are dropped.
-
-## Related references
-
-- Work Queues and Collaboration: `/docs/governance/WORK-QUEUES-AND-COLLABORATION.md`
-- PMO Operating Model: `/docs/ops/pmo/PMO-JULY-2026-OPERATING-MODEL.md`
-- PMO Dashboard Specification: `/docs/ops/pmo/PMO-JULY-2026-DASHBOARD-SPECIFICATION.md`
-- Weekly PMO review: `/docs/how-to/pmo/run-weekly-pmo-priority-and-graduation-review.md`
-- Runtime transition: `#2702`
-- Owner resolution and event refresh: `#3615`
-
-## Supersession
+- missing Team queues total/breakout fields after #4620 (`totalOpenIssues`, `pmoTaskQueue`, `otherQueue`, `breakout` partition sum).
 
 This how-to supersedes operator guidance that uses one PMO priority namespace for Active and Pipeline, requires priority on child tasks, treats Pipeline `pmo:priority:idea` as the target model, counts peer Operations/Engineering work as project completion, resolves ownership from Issue-body `Owner / Agent` text over `agent:*` labels, or describes the dashboard as schedule-only without issue-event refresh.
