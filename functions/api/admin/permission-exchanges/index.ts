@@ -20,7 +20,7 @@ export const onRequestGet = async (context: any): Promise<Response> => {
   const domain = new URL(context.request.url).searchParams.get('source_domain')?.trim().toLowerCase() || '';
   if (!domain) return jsonResponse({ ok: false, error: 'source_domain is required' }, 400);
   const exchange = await findOpenExchangeForSource(d1.db, domain);
-  return jsonResponse({ ok: true, exchange });
+  return jsonResponse({ ok: true, exchange }, 200);
 };
 
 export const onRequestPost = async (context: any): Promise<Response> => {
@@ -59,7 +59,7 @@ export const onRequestPost = async (context: any): Promise<Response> => {
         contentItemId: Number(body.content_item_id),
         rightsEvidenceId: body.rights_evidence_id == null ? undefined : Number(body.rights_evidence_id),
       });
-      return jsonResponse({ ok: true });
+      return jsonResponse({ ok: true }, 200);
     }
     const id = await recordPermissionExchange(d1.db, {
       sourceDomain: String(body.source_domain || ''),
