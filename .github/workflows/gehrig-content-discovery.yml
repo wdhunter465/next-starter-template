@@ -59,6 +59,10 @@ on:
         description: 'Required when import_to_d1 is true: type "confirm" to allow the production D1 write'
         required: false
         default: ""
+      reenable:
+        description: 'Type REENABLE_GEHRIG_DISCOVERY to clear a halt after three consecutive failed runs (#4588)'
+        required: false
+        default: ""
   schedule:
     # Every Monday 13:00 UTC, against all three #3551-approved automated
     # sources in the default set (loc, wikimedia, openverse -- DPLA stays
@@ -73,8 +77,13 @@ concurrency:
   group: gehrig-content-discovery
   cancel-in-progress: false
 
+# actions: read counts prior runs. issues: write opens the single halt
+# Issue after 3 consecutive failures (#4588). There is no shared halt for
+# every Action; this covers Gehrig Content Discovery only.
 permissions:
   contents: read
+  actions: read
+  issues: write
 
 jobs:
   discover:
@@ -88,10 +97,35 @@ jobs:
         with:
           node-version-file: .node-version
 
+      - name: Halt check
+        id: guard
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          REENABLE: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.reenable || '' }}
+        run: node scripts/ci/gehrig_discovery_summary.mjs --guard
+
+      - name: Record re-enable
+        if: steps.guard.outputs.reenable == 'true'
+        run: |
+          mkdir -p gehrig-discovery-reenabled
+          date -u +%Y-%m-%dT%H:%M:%SZ > gehrig-discovery-reenabled/reenabled-at.txt
+
+      - name: Upload re-enable marker
+        if: steps.guard.outputs.reenable == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: gehrig-discovery-reenabled
+          path: gehrig-discovery-reenabled/
+          retention-days: 90
+
       - name: Install dependencies
+        if: steps.guard.outputs.mode != 'halted'
         run: npm ci
 
       - name: Run discovery against approved sources
+        if: steps.guard.outputs.mode != 'halted'
         id: discovery
         env:
           # On schedule, github.event.inputs is entirely absent, so these
@@ -116,10 +150,11 @@ jobs:
             --out data/research/lou-gehrig-content-candidates-external-discovery.json
 
       - name: Write discovery step summary
-        if: always()
+        if: always() && steps.guard.outputs.mode != 'halted'
         run: node scripts/ci/gehrig_discovery_summary.mjs
 
       - name: Upload discovery results
+        if: steps.guard.outputs.mode != 'halted'
         uses: actions/upload-artifact@v4
         with:
           name: gehrig-discovery-results
@@ -129,7 +164,7 @@ jobs:
           if-no-files-found: warn
 
       - name: Require explicit confirmation for production D1 write (manual runs only)
-        if: github.event_name == 'workflow_dispatch' && github.event.inputs.import_to_d1 == 'true'
+        if: steps.guard.outputs.mode != 'halted' && github.event_name == 'workflow_dispatch' && github.event.inputs.import_to_d1 == 'true'
         env:
           CONFIRM_WRITE: ${{ github.event.inputs.confirm_write }}
         run: |
@@ -138,8 +173,20 @@ jobs:
             exit 1
           fi
 
+      - name: Count candidates before import
+        id: import_gate
+        if: steps.guard.outputs.mode != 'halted' && (github.event_name == 'schedule' || github.event.inputs.import_to_d1 == 'true')
+        run: |
+          node --input-type=module -e "
+            import fs from 'node:fs';
+            const file = 'data/research/lou-gehrig-content-candidates-external-discovery.json';
+            const count = fs.existsSync(file) ? (JSON.parse(fs.readFileSync(file, 'utf8')).candidates || []).length : 0;
+            fs.appendFileSync(process.env.GITHUB_OUTPUT, 'count=' + count + '\n');
+            console.log('candidate_count=' + count);
+          "
+
       - name: Verify Cloudflare D1 credentials
-        if: github.event_name == 'schedule' || github.event.inputs.import_to_d1 == 'true'
+        if: steps.guard.outputs.mode != 'halted' && steps.import_gate.outputs.count != '0' && (github.event_name == 'schedule' || github.event.inputs.import_to_d1 == 'true')
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -147,7 +194,7 @@ jobs:
         run: node scripts/ci/verify_cloudflare_d1_auth.mjs
 
       - name: Import discovered candidates into production D1 (metadata only)
-        if: github.event_name == 'schedule' || github.event.inputs.import_to_d1 == 'true'
+        if: steps.guard.outputs.mode != 'halted' && steps.import_gate.outputs.count != '0' && (github.event_name == 'schedule' || github.event.inputs.import_to_d1 == 'true')
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -156,3 +203,22 @@ jobs:
           node --experimental-strip-types scripts/content-pipeline/import-seed-candidates.mjs \
             --file data/research/lou-gehrig-content-candidates-external-discovery.json \
             --database lgfc_lite --remote
+
+      - name: Report persistent source outage
+        if: always() && steps.guard.outputs.mode != 'halted'
+        id: outage
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_RUN_ID: ${{ github.run_id }}
+          DISCOVERY_OUTCOME: ${{ steps.discovery.outcome }}
+          CONSECUTIVE_PRIOR_FAILURES: ${{ steps.guard.outputs.consecutive_failures }}
+        run: node scripts/ci/gehrig_discovery_summary.mjs --outage
+
+      - name: Upload halt marker
+        if: always() && steps.outage.outputs.halt_check == 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: gehrig-discovery-halted
+          path: gehrig-discovery-halted/
+          retention-days: 90
