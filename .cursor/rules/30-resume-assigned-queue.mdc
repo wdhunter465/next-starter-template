@@ -28,4 +28,4 @@ Do not mix remaining queue items into the just-opened PR. `handoff:ready` is not
 
 Ticks and status reports name only assigned Cursor work and Issues/PRs related to that work (`docs/ops/ai/CURSOR-RULES.md` assigned-work reporting, #4314). Do not include unassigned Issues/PRs, other agents' work, or label-only `agent:cursor` inventory.
 
-Canonical: `docs/ops/ai/CORE-RULES.md` assigned-queue continuation; Cursor reporting bound: `docs/ops/ai/CURSOR-RULES.md`.
+Canonical: `docs/governance/AGENT-EXECUTION.md` assigned-queue continuation. `docs/ops/ai/CORE-RULES.md` is a pointer. Cursor reporting bound: `docs/ops/ai/CURSOR-RULES.md`.
