@@ -6,7 +6,7 @@ Owns: Production behavior, routing rules, and navigation invariants as the prima
 Does Not Own: Product and Design Domain Policy; implementation details inside components
 Canonical Reference: /docs/governance/PRODUCT-AND-DESIGN.md
 Related Issues: #2687, #3074, #3148
-Last Reviewed: 2026-08-08
+Last Reviewed: 2026-10-14
 ---
 
 # LGFC Production Design and Standards
@@ -149,14 +149,19 @@ Mobile public logged-in hamburger:
 5. About → /about
 6. Contact → /contact
 
-Mobile FanClub hamburger:
+Mobile FanClub hamburger (12 items; updated 2026-10-14 to the built menu, Product Authority, #4409, C-3 and D-030):
 1. Club Home → /fanclub
 2. My Profile → /fanclub/myprofile
-3. Search → /search
-4. Store → external Bonfire link
-5. Logout → /logout
-6. About → /about
-7. Contact → /contact
+3. Photo → /fanclub/photo
+4. Library → /fanclub/library
+5. Memorabilia → /fanclub/memorabilia
+6. Chat → /fanclub/chat
+7. Submit → /fanclub/submit
+8. Search → /search
+9. Store → external Bonfire link
+10. Logout → /logout
+11. About → /about
+12. Contact → /contact
 
 Store is included in the mobile hamburger because mobile has no visible top menu. Store remains an external Bonfire link only; no `/store` route exists.
 
@@ -174,7 +179,7 @@ Home must not appear as a separate hamburger drawer label when Club Home is alre
 
 Right column — two-row layout:
 
-Row 1: Privacy → `/privacy`, Terms → `/terms`  
+Row 1: Privacy → `/privacy`, Terms → `/terms`, Accessibility → `/accessibility` (added 2026-10-14, Product Authority, #4409, D-034)  
 Row 2: Contact → `/contact`
 
 Left: D1-backed rotating quote + dynamic-year copyright  

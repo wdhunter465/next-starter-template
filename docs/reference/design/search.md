@@ -5,7 +5,7 @@ Authority Level: Canonical Design Specification
 Owns: Routes, navigation invariants, UI/UX contracts, page content contracts
 Does Not Own: How-to procedures; operational runbooks; governance policies
 Canonical Reference: /docs/reference/design/LGFC-Production-Design-and-Standards.md
-Last Reviewed: 2026-02-20
+Last Reviewed: 2026-10-14
 ---
 
 # Search Page Specification — LGFC
@@ -36,7 +36,7 @@ Covers the search bar, result cards with type badges, permission-filtered scope 
 
 ```
 [Global Header]
-[Page Container — 1200px max, 20px padding]
+[Page Container — 980px max, 20px padding]  (updated 2026-10-14 to the built width, Product Authority, #4409, D-045 and D-026)
   [Page Title — H1: "Search"]
   [Search Bar]
   [Results Area]

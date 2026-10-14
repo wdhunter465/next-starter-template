@@ -6,7 +6,7 @@ Owns: FanClub routes, navigation invariants, UI/UX contracts, and page content c
 Does Not Own: Product and Design Domain Policy; how-to procedures; operational runbooks
 Canonical Reference: /docs/reference/design/LGFC-Production-Design-and-Standards.md
 Related Issues: #2687
-Last Reviewed: 2026-07-21
+Last Reviewed: 2026-10-14
 ---
 
 # LGFC — FanClub Area Specification
@@ -68,6 +68,8 @@ Notes:
 ---
 
 ## FanClub Home Page (Club Home) — section order
+
+> **Superseded 2026-10-14 (Product Authority, #4409, C-2 and D-069).** The Club Home design is the newspaper layout in `fanclub-home.md`. The list below is the older design, kept as history. The Welcome Section, Post Creation and Discussion Feed exist as components but are not mounted on Club Home.
 
 The FanClub home must present the following sections in this order:
 
