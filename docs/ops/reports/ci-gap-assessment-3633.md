@@ -6,14 +6,14 @@ Owns: Task #3633-007 gap assessment of the Phase 1 catalog and the build plan fo
 Does Not Own: Any workflow or test change, Product dates, Production access, or the acceptance decision (Product Authority accepts Phases 1-4 at the design gate)
 Canonical Reference: /docs/ops/implementation-plans/issue-3633-002-ordered-plan.md
 Related Issues: #3633, #4465, #4463, #4464, #4466, #4467, #4468, #4469, #4470, #4471
-Last Reviewed: 2026-10-07
+Last Reviewed: 2026-10-14
 ---
 
 # Gap assessment for #3633
 
 ## Status
 
-`_DRAFT` — documentation only, and the design gate. It assigns exactly one status to each of the 87 catalog rows and names the build children. Product Authority accepts Phases 1-4 before children 008 through 012 start (proposed 2026-10-19). Nothing here changes a check.
+`_DRAFT` — documentation only, and the design gate. It assigns exactly one status to each of the 91 catalog rows (87 original rows plus 4 rows added 2026-10-14, numbered 88-91 below) and names the build children. Product Authority accepts Phases 1-4 before children 008 through 012 start (proposed 2026-10-19). Nothing here changes a check.
 
 ## How to read the statuses
 
@@ -23,18 +23,18 @@ Evidence comes from the inventory (`docs/ops/reports/ci-test-inventory-3633.md`)
 
 | Status | Rows |
 | --- | --- |
-| `EXISTING_SUFFICIENT` | 7 |
-| `EXISTING_NEEDS_HARDENING` | 46 |
+| `EXISTING_SUFFICIENT` | 9 |
+| `EXISTING_NEEDS_HARDENING` | 48 |
 | `DUPLICATED_CONSOLIDATE` | 1 |
 | `MISSING_BUILD` | 18 |
 | `MANUAL_EXPLORATORY` | 7 |
 | `CONTROLLED_RECOVERY_EXERCISE` | 5 |
 | `DEFER_PRODUCT_DECISION` | 3 |
-| Total | 87 |
+| Total | 91 |
 
 Headlines:
 
-- **Only 7 of 87 rows are fully covered today**, and 3 of those (build and lint, and the two secrets rows) rest on the required pre-merge checks. Most rows have a test somewhere but not a run that happens automatically against a deployed environment.
+- **Only 9 of 91 rows are fully covered today**, and 3 of those (build and lint, and the two secrets rows) rest on the required pre-merge checks. Most rows have a test somewhere but not a run that happens automatically against a deployed environment.
 - **The biggest single gap is run coverage, not test count.** 26 post-merge and reviewer test files run nowhere, the Playwright specs (including the accessibility scan) are not required or scheduled on a preview, and there is no scheduled qualification against a deployed environment.
 - **Missing outright:** dependency and supply-chain checks, performance baselines, focus order and reduced-motion handling, fundraiser widget checks (blocked on #4139), concurrent-session and concurrent-admin tests, a missing or slow asset check, repeated-run stability evidence, and a check that alerts when a monitor itself stops.
 - **Deferred to Product Authority:** the two webhook rows (no inbound webhook is adopted) and the RTO, RPO and SLO row (#2829 is on hold).
@@ -179,6 +179,17 @@ Headlines:
 | 86 | Privilege escalation paths | Manual / exploratory | `MANUAL_EXPLORATORY` | Manual exploratory by design | - |
 | 87 | Webhook signature and authentication, if implemented | Deterministic CI | `DEFER_PRODUCT_DECISION` | No inbound webhook is adopted | - |
 
+### Rows added 2026-10-14
+
+Four rows were added to the catalog after this assessment was first written (task #4462). They are numbered 88-91 here so rows 1-87 keep their numbers. The catalog places 88 and 89 under Content / media / Club Newspaper and 90 and 91 under Performance / reliability.
+
+| # | Requirement | Class | Status | Evidence or note | Child |
+| --- | --- | --- | --- | --- | --- |
+| 88 | Final status is never permitted unless the origin and every other rights layer allow it, and fee-required evidence is never permitted (D1 triggers, migration 0084) | Deterministic CI | `EXISTING_SUFFICIENT` | `content-permission-layers-4523.test.ts` (18 tests): layer combinations, fee-required never permitted, insert and update trigger rejection, superseded records, 0065 rollback keeps the 0084 columns | - |
+| 89 | The publication gate ships off and fails closed when the permission columns are missing (#4569) | Deterministic CI | `EXISTING_SUFFICIENT` | `content-inventory-permission-gate-4569.test.ts` (8 tests): gate off leaves the SQL unchanged, gate on shows only permitted stories, a missing view shows nothing | - |
+| 90 | One failing source or dependency does not fail a scheduled job's other work (#4588) | Scheduled qualification | `EXISTING_NEEDS_HARDENING` | `gehrig-discovery-source-error.test.mjs` (6 tests) covers Gehrig discovery only. Other scheduled collectors have not been checked for the same behavior | #3633-009 |
+| 91 | An Action that fails three consecutive times halts further attempts and opens one Issue (Product rule 2026-10-14, #4589) | Deterministic CI | `EXISTING_NEEDS_HARDENING` | Halt exists per job for runner health (#4590) and Gehrig discovery (#4595), each with tests. There is no shared halt for every Action; #4589 holds the design and needs Product approval | #3633-010 |
+
 ## Build plan by child
 
 Each gap row is assigned to one build child. Risk, cadence, environment, writable scope, owner and rollback are the same for every row in a child unless a row says otherwise.
@@ -196,7 +207,7 @@ Each gap row is assigned to one build child. Risk, cadence, environment, writabl
 
 ### #3633-009 Scheduled and end-to-end qualification (#4467)
 
-- **Rows (25):** 12, 13, 14, 17, 19, 20, 21, 26, 28, 32, 33, 34, 35, 41, 42, 45, 59, 60, 61, 62, 63, 64, 68, 69, 85
+- **Rows (26):** 12, 13, 14, 17, 19, 20, 21, 26, 28, 32, 33, 34, 35, 41, 42, 45, 59, 60, 61, 62, 63, 64, 68, 69, 85, 90
 - **Risk if absent:** A visitor-facing, membership, admin, content or accessibility regression is found by a visitor, not by a check.
 - **Cadence:** Nightly against the Pages preview or Development; weekly for slower suites; at least three consecutive runs before 2026-11-07.
 - **Environment:** Development deployment or preview. Production only for read-only audits.
@@ -206,7 +217,7 @@ Each gap row is assigned to one build child. Risk, cadence, environment, writabl
 
 ### #3633-010 Production health and Day-2 monitoring (#4468)
 
-- **Rows (8):** 18, 65, 66, 67, 70, 76, 78, 79
+- **Rows (9):** 18, 65, 66, 67, 70, 76, 78, 79, 91
 - **Risk if absent:** A Production outage, failed scheduled job or silent monitor is not noticed.
 - **Cadence:** Existing 12-hour production audit; add the failure-watch list entries now; add an out-of-band alert path.
 - **Environment:** Production, read-only.
@@ -240,7 +251,7 @@ If time is short before 2026-10-31, build in this order: (1) add the missing wor
 
 ## Decisions for Product Authority at the design gate
 
-1. Accept the catalog, inventory, deduplication proposal and this assessment as Phases 1-4.
+1. Accept the inventory, deduplication proposal and this assessment as Phases 1-4. The 91-row catalog was accepted as the build gate on 2026-10-14.
 2. Choose whether dependency and supply-chain checks (rows 7 and 84) are built now or deferred under #2827.
 3. Confirm webhooks are not adopted (rows 56 and 87) and the RTO, RPO and SLO row waits on #2829.
 4. Decide whether a missing `prefers-reduced-motion` behavior (row 63) is fixed in the product or accepted for launch.
