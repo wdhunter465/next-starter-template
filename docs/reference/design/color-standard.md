@@ -1,5 +1,5 @@
 ---
-Doc Type: Specification
+Doc Type: Reference
 Audience: Human + AI
 Authority Level: Supporting Design Specification
 Owns: The single LGFC color standard: each approved color, its CSS token and permitted use, and the rules code follows to use color
