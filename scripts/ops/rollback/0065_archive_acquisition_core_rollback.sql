@@ -481,4 +481,14 @@ BEGIN
   SELECT RAISE(ABORT, 'fee-required evidence must have usage_decision deny');
 END;
 
+-- #4526/migration 0085: indexes on the exchange columns. The permission_exchanges
+-- tables themselves are not part of the 0065 surface and are not dropped here.
+CREATE INDEX IF NOT EXISTS idx_content_items_permission_exchange
+  ON content_items(permission_exchange_id)
+  WHERE permission_exchange_id IS NOT NULL;
+
+CREATE INDEX IF NOT EXISTS idx_rights_evidence_exchange
+  ON rights_evidence(exchange_id)
+  WHERE exchange_id IS NOT NULL;
+
 COMMIT;
