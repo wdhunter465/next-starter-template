@@ -5,15 +5,15 @@ Authority Level: Operational Plan
 Owns: Task #3633-001 reconciliation of Project #3633 design, current state, dependencies, and acceptance
 Does Not Own: New workflows, gap dispositions, CI consolidation, Production admission, or Product date changes
 Canonical Reference: /docs/governance/PMO-PORTFOLIO.md
-Related Issues: #3633, #3981, #3982, #3983, #2450, #2453, #2815, #2817, #4089, #4139
-Last Reviewed: 2026-10-07
+Related Issues: #3633, #3981, #3982, #3983, #4462, #4569, #4588, #4589, #2450, #2453, #2815, #2817, #4089, #4139
+Last Reviewed: 2026-10-14
 ---
 
 # Issue #3633-001 design reconciliation
 
 ## Status
 
-`_DRAFT` — first executable task of Active project #3633. This file does not add or change CI.
+`_DRAFT` — first executable task of Active project #3633. This file does not add or change CI. On 2026-10-14 (task #4462) the catalog was checked against the parent and four rows were added; it now awaits Product Authority acceptance as the build gate (see "Coverage check").
 
 ## Purpose
 
@@ -35,7 +35,7 @@ Record the authoritative design, the repository state on 2026-10-07, the depende
 
 ## Current state — 2026-10-07
 
-- #3633 is Active, `pmo:priority:1`, `team:pmo`, implementation owner `agent:cursor` (Product Authority assignment 2026-10-07). Dashboard tasks are 0/3.
+- #3633 is Active, `pmo:priority:1`, `team:pmo`, implementation owner `agent:claude` (Product Authority assignment 2026-10-14, replacing the 2026-10-07 assignment). Dashboard tasks are 0/3.
 - The Issue body still says Pipeline / Design Needed, owner cloudflareAI, and preferred owner Grok. Those lines are stale. The label and this reconciliation are the current owner record. The phase order in the body remains the design.
 - Preparation tasks are open and generic: #3981 (this reconciliation), #3982 (ordered plan, validation, rollback, handoff), #3983 (launch package). The parent's ten execution children (catalog, inventory, dedup, gaps, PR CI, scheduled/E2E, Production health, recovery, fundraiser qualification, final handoff) are not opened yet.
 - `main` at `3d8f7287` contains 107 workflow files under `.github/workflows/`. That count is a size signal for Phase 2. It is not the inventory.
@@ -132,6 +132,8 @@ Primary class is the parent's required distinction. One row may later gain a sec
 | Takedown and suppression | Product / operator acceptance |
 | Rights revoked after staging | Scheduled qualification |
 | Malformed metadata and duplicate candidates | Deterministic CI |
+| Final status is never permitted unless the origin and every other rights layer allow it, and fee-required evidence is never permitted (D1 triggers, migration 0084) | Deterministic CI |
+| The publication gate ships off and fails closed when the permission columns are missing (#4569) | Deterministic CI |
 
 ### Fundraiser / Givebutter
 
@@ -171,6 +173,8 @@ Primary class is the parent's required distinction. One row may later gain a sec
 | External-service timeout and unavailability | Scheduled qualification |
 | Repeated-run stability | Scheduled qualification |
 | Alert delivery and escalation | Production health |
+| One failing source or dependency does not fail a scheduled job's other work (#4588) | Scheduled qualification |
+| An Action that fails three consecutive times halts further attempts and opens one Issue for the failures and the halted Action (Product rule 2026-10-14, #4589) | Deterministic CI |
 
 ### Recovery / Day-2
 
@@ -198,6 +202,22 @@ Primary class is the parent's required distinction. One row may later gain a sec
 | Direct API access without the UI | Deterministic CI |
 | Privilege escalation paths | Manual / exploratory |
 | Webhook signature and authentication, if implemented | Deterministic CI |
+
+## Coverage check — 2026-10-14
+
+Task #4462 compared this catalog with the parent's Phase 1 lists.
+
+| Check | Result |
+| --- | --- |
+| Domains in the parent | 10, all present |
+| Requirements in the parent | 87, all present, none removed or reworded |
+| Rows added | 4: the failing-source and halt-after-three-failures rows (Performance / reliability) and the rights-final-status and publication-gate rows (Content / media / Club Newspaper), for decisions made since 2026-10-07 |
+| Rows in the catalog now | 91 |
+| Gap status | Still unset on every row (Phase 4) |
+
+## Acceptance request
+
+Product Authority is asked to record on #3633 that this catalog (91 rows) is the build gate. Until it is recorded, tasks #4466 to #4470 may not start.
 
 ## Acceptance
 

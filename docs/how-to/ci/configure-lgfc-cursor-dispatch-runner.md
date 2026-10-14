@@ -5,8 +5,8 @@ Authority Level: Operational
 Owns: Host registration and verification procedure for the dedicated `lgfc-cursor` GitHub Actions runner used by #3212 dispatch (primary after Phase 4)
 Does Not Own: Historical Cursor Bridge package internals or Production website deployment
 Canonical Reference: /docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md
-Related Issues: #3212, #3347, #2636, #4567, #4570
-Last Reviewed: 2026-10-13
+Related Issues: #3212, #3347, #2636, #4567, #4570, #4587
+Last Reviewed: 2026-10-14
 ---
 
 # Configure the LGFC Cursor dispatch runner
@@ -106,12 +106,18 @@ The runner lives on a Chromebook that usually sleeps overnight. While the host s
 | Runner online | Pass |
 | Runner offline, previous check online or no previous check | Notice only: job summary plus a `RUNNER_OFFLINE_NOTICE` annotation. The run passes and no `ops-exception` Issue opens. |
 | Runner offline, previous check also offline | Fail. The workflow-failure watcher opens an `ops-exception` Issue. |
+| Previous-run lookup fails | Notice only. The summary names the error. The run is not an offline result and does not fail (#4587). |
+| Three consecutive failed runs | The third failure opens one Issue, uploads `runner-health-halted`, and later runs pass with a halt notice until a person re-enables the check. |
 | No runner with label `lgfc-cursor` registered | Fail immediately |
 | Health token cannot list runners (`AUTH_DENIED`) | Fail immediately |
 
-Each offline check uploads a `runner-offline-observation` artifact (kept 3 days). The next check reads the previous run's artifacts with the workflow's own `GITHUB_TOKEN` (`actions: read`), so the threshold needs no new secret or permission. If that lookup fails, the check fails closed as before.
+Each offline check uploads a `runner-offline-observation` artifact (kept 3 days). The next check reads recent runs and their artifacts with `fetch` and the workflow's own `GITHUB_TOKEN` (`actions: read`). `actions/github-script@v7` does not provide `getOctokit`; calling it threw before any HTTP request and the old catch treated that as a second offline check (#4587). Permissions stay `contents: read` and `actions: read`.
 
 The threshold is therefore two consecutive offline checks: a sleeping host gives a notice at 11:17 UTC and clears by 17:17 UTC, while a real outage fails within about six hours. A manual run with confirmation `CURSOR_RUNNER_HEALTH` counts as a check, so a manual run while the host is online resets the count.
+
+After three consecutive failed runs, the check halts (#4587). The run that reaches that count opens one Issue titled `OPS EXCEPTION: LGFC Cursor Runner Health halted after 3 consecutive failures` (labels `team:operations` and `ops-exception`), uploads `runner-health-halted` (kept 90 days), and does not fail, so the workflow-failure watcher does not open a second Issue for that run. Later scheduled runs see the halt marker, pass, and do not open another Issue. The health token opens that Issue; it is the same secret that lists runners, so the workflow `permissions:` block does not change. If creating the Issue fails, that run still fails once and the existing watcher opens the single `OPS EXCEPTION: LGFC Cursor Runner Health failed` Issue.
+
+A person re-enables the check by running **LGFC Cursor Runner Health** manually, signed in as `wdhunter465`, with confirmation `CURSOR_RUNNER_HEALTH` and re-enable `REENABLE_CURSOR_RUNNER_HEALTH`. That run uploads `runner-health-reenabled` and starts the failure count over. An online runner does not clear a halt by itself.
 
 To keep the host awake when dispatch must be available overnight:
 
