@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Shared execution rules, enforcement model, PR discipline, stop conditions, shared product-startup framework
 Does Not Own: Design authority, platform configuration, tracker content, role mapping
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3055, #3113, #3117, #3134, #3138, #3142, #3145, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4074, #4099, #4131, #4165, #4198, #4314
-Last Reviewed: 2026-10-07
+Related Issues: #3055, #3113, #3117, #3134, #3138, #3142, #3145, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4074, #4099, #4131, #4165, #4198, #4314, #4596
+Last Reviewed: 2026-10-14
 ---
 
 This document is the canonical shared execution law. It moved here from `docs/ops/ai/CORE-RULES.md` under #4198. The old path is a compatibility pointer and is not a second policy.
@@ -443,7 +443,7 @@ The literal command `run startup` resolves according to the active product. Each
 - In **ChatGPT**: do not run startup as a live product. `docs/ops/ai/CHATGPT-RULES.md` is retired (#4173).
 - In **Codex**: do not run startup as a live product. `docs/ops/ai/CODEX-RULES.md` is retired (#4165).
 - In **Claude Code**: run the Claude Code startup contract (`docs/ops/ai/CLAUDE-CODE-RULES.md`).
-- In **Cursor**: existing bootstrap applies (`AGENTS.md` for Cloud, `.cursor/rules/*.mdc` for Local); unchanged by this framework.
+- In **Cursor**: run the Cursor startup contract in `docs/ops/ai/CURSOR-RULES.md`. It includes this framework's shared steps. Cursor Local also binds the session wake path before those steps. `AGENTS.md` (Cloud) and `.cursor/rules/*.mdc` (Local) route to that contract; they do not replace it.
 - In **Claude** (conversational): no product-specific startup contract exists; the product is outside the operational delivery chain unless bounded collaboration is explicitly authorized.
 
 ## Shared startup steps
