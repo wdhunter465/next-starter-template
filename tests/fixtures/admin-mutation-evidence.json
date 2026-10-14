@@ -43,6 +43,7 @@
 		"functions/api/admin/membership-card.ts": "none",
 		"functions/api/admin/photos/purge.ts": "none",
 		"functions/api/admin/photos/update.ts": "none",
+		"functions/api/admin/permission-exchanges/index.ts": "none",
 		"functions/api/admin/reports/close.ts": "none",
 		"functions/api/admin/welcome-email.ts": "none",
 		"functions/api/admin/worklist.ts": "none"
