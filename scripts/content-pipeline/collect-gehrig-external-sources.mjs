@@ -68,6 +68,7 @@ import { determineSearchRunTerminalStatus } from '../../functions/_lib/content-s
 import { extractPeopleTags, extractDateOrPeriod } from '../../functions/_lib/content-pipeline-discovery-text-signals.ts';
 import { withBoundedRetry } from '../../functions/_lib/bounded-retry.ts';
 import { buildDplaSearchUrl, mapDplaDocToCandidateFields, requireDplaApiKey } from '../../functions/_lib/content-pipeline-dpla-adapter.ts';
+import { normalizeSourceUrl } from '../../functions/_lib/content-pipeline-url-normalize.ts';
 import { withOriginTerms } from './discovery-evidence-terms.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -97,6 +98,7 @@ const DEFAULT_SOURCES = [
 const DEFAULT_LIMIT = 20;
 const DEFAULT_OUT = 'data/research/lou-gehrig-content-candidates-external-discovery.json';
 const SEED_FILE = 'data/research/lou-gehrig-content-candidates.json';
+const RESEARCH_DIR = 'data/research';
 const KNOWN_SOURCES = ['openverse', 'loc', 'wikimedia', 'dpla'];
 
 function printUsage() {
@@ -613,8 +615,28 @@ export async function runDiscovery(options, fetchImpl) {
   }
 }
 
+function loadKnownNormalizedUrls() {
+  const known = new Set();
+  const dir = path.join(repoRoot, RESEARCH_DIR);
+  if (!fs.existsSync(dir)) return known;
+  for (const file of fs.readdirSync(dir)) {
+    if (!file.endsWith('.json')) continue;
+    try {
+      const data = JSON.parse(fs.readFileSync(path.join(dir, file), 'utf8'));
+      for (const candidate of data.candidates ?? []) {
+        const url = normalizeSourceUrl(candidate.source_url);
+        if (url) known.add(url);
+      }
+    } catch {
+      // Not a candidate registry.
+    }
+  }
+  return known;
+}
+
 async function runDiscoveryWithFetch(options) {
   const nextId = makeCandidateIdFactory();
+  const knownUrls = loadKnownNormalizedUrls();
   const allCandidates = [];
   const errors = [];
   const searchRuns = [];
@@ -625,11 +647,24 @@ async function runDiscoveryWithFetch(options) {
     const collector = COLLECTORS[source];
     const runUid = `run-${source}-${runTimestamp}`;
     let resultCount = 0;
+    let newCount = 0;
     let collectionError = null;
     try {
-      const candidates = await collector(options.query, options.limit, nextId, licenseNotes);
-      resultCount = candidates.length;
-      console.log(`${source}: collected ${candidates.length} candidate(s)`);
+      const collected = await collector(options.query, options.limit, nextId, licenseNotes);
+      const candidates = [];
+      let duplicateCount = 0;
+      for (const candidate of collected) {
+        const normalized = normalizeSourceUrl(candidate.source_url);
+        if (normalized && knownUrls.has(normalized)) {
+          duplicateCount += 1;
+          continue;
+        }
+        if (normalized) knownUrls.add(normalized);
+        candidates.push(candidate);
+      }
+      resultCount = collected.length;
+      newCount = candidates.length;
+      console.log(`${source}: collected ${collected.length} candidate(s), ${duplicateCount} already recorded`);
       allCandidates.push(...candidates);
     } catch (error) {
       collectionError = error;
@@ -651,7 +686,7 @@ async function runDiscoveryWithFetch(options) {
       result_limit: options.limit,
       status,
       discovered_count: resultCount,
-      new_count: resultCount,
+      new_count: newCount,
       error_count: collectionError ? 1 : 0,
       error_summary: collectionError ? errorMessage(collectionError) : null,
     });
