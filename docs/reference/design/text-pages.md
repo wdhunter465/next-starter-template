@@ -6,7 +6,7 @@ Owns: Routes, navigation invariants, UI/UX contracts, page content contracts
 Does Not Own: How-to procedures; operational runbooks; governance policies
 Canonical Reference: /docs/reference/design/LGFC-Production-Design-and-Standards.md
 Related Issues: #3149
-Last Reviewed: 2026-08-08
+Last Reviewed: 2026-10-14
 ---
 
 # Text Page Specifications — LGFC
@@ -15,6 +15,8 @@ Last Reviewed: 2026-08-08
 
 This document covers four public pages that share the same structure:
 `/about`, `/contact`, `/privacy`, `/terms`.
+
+A fifth page, `/accessibility`, also exists. It is a hard-coded accessibility statement, linked from the footer and listed in the sitemap (accepted 2026-10-14, Product Authority, #4409, D-060).
 
 Each page is a **text content page**. All inherit the global header, footer,
 and standard page container. Layout is not customised per page — only the
@@ -61,7 +63,7 @@ Inherits the global container from the style guide:
 - Font size: `16px`
 - Line height: `1.6`
 - Color: `#333333`
-- Max content width: `760px` (narrower than container for comfortable reading)
+- Max content width: `900px` (narrower than container for comfortable reading; updated 2026-10-14 to the built width, Product Authority, #4409, D-054 and D-026)
 - Paragraphs separated by `24px` spacing
 
 ### Internal headings (H2, if needed within page)

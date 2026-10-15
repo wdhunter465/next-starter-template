@@ -6,7 +6,7 @@ Owns: FanClub home route purpose, section contracts, data dependencies
 Does Not Own: FanClub subpage specs; API schema details; implementation internals
 Canonical Reference: /docs/reference/design/fanclub.md
 Related issues: #1685, #1688, #1690, #1962, #4263, #4344, #4349, #3161
-Last Reviewed: 2026-10-07
+Last Reviewed: 2026-10-14
 ---
 
 # `/fanclub` — FanClub Home Page Specification
@@ -23,7 +23,7 @@ Define the authenticated FanClub member home experience and locked newspaper-sty
 
 ## Section / Component Breakdown
 
-Newspaper-style order (fail-closed static fallbacks when inventory is empty):
+Newspaper-style order (fail-closed static fallbacks when inventory is empty). The built layout is a three-column grid (left, centre, right) plus a footer row. The feature link cards and the submission call to action sit in the footer row, not mid-page (accepted 2026-10-14, Product Authority, #4409, D-070):
 
 | Order | Section | Component |
 | --- | --- | --- |
