@@ -58,9 +58,9 @@ How it works:
 
 1. The sweeper lists every workflow in `.github/workflows` that has a `schedule:` trigger. Pull request, push and `workflow_run` workflows are never touched.
 2. For each one it reads the newest completed runs on the default branch. Cancelled and skipped runs are ignored. A success, including a manual `workflow_dispatch` run, restarts the count.
-3. When the 3 newest counted runs are all `failure` or `timed_out`, it opens one Issue (`OPS HALTED: <workflow> halted after 3 consecutive failures`, labels `team:operations`, `ops-exception`, `ops-halted`) naming the three runs, then disables the workflow. It reports first so a halt is never silent.
-4. These Production-protecting jobs are never disabled. They get an `OPS ALERT` Issue and keep running: the daily and quarterly D1 backups, the snapshot backup, the production audit, the site uptime probe and the D1 daily sync. Product Authority confirms this list.
-5. The Issue records the newest failed run it covers. After a person re-enables the workflow, only newer runs count, so the old failures do not halt it again.
+3. When the 3 newest counted runs are all `failure` or `timed_out`, it opens one Issue (`OPS HALTED: <workflow> halted after 3 consecutive failures`, labels `team:operations`, `ops-exception`, `ops-halted`, `ops:priority:2`) naming the three runs, then disables the workflow. It reports first so a halt is never silent.
+4. These Production-protecting jobs are never disabled. They get an `OPS ALERT` Issue (`ops:priority:1`) and keep running: the daily and quarterly D1 backups, the snapshot backup, the production audit, the site uptime probe and the D1 daily sync. Product Authority confirms this list.
+5. An Operations Issue is an actionable interrupt only when it carries an `ops:priority:N` label, so both Issues carry one. The Issue records the newest failed run it covers. After a person re-enables the workflow, only newer runs count, so the old failures do not halt it again.
 
 ### Re-enable a halted workflow
 

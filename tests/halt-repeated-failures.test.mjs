@@ -126,7 +126,7 @@ describe('sweep', () => {
     expect(out).toEqual([{ file: 'a.yml', action: 'halted', number: 900 }]);
     const writes = calls.filter((c) => c.method !== 'GET').map((c) => `${c.method} ${c.route.split('/').slice(-1)[0]}`);
     expect(writes).toEqual(['POST issues', 'PUT disable']);
-    expect(state.issues[0].labels).toEqual(['team:operations', 'ops-exception', 'ops-halted']);
+    expect(state.issues[0].labels).toEqual(['team:operations', 'ops-exception', 'ops-halted', 'ops:priority:2']);
     expect(state.issues[0].body).toContain(markerFor('a.yml'));
     expect(state.issues[0].body).toContain(lastRunMarker(3));
     expect(state.issues[0].body).toContain('actions/runs/3');
@@ -177,7 +177,7 @@ describe('sweep', () => {
     const out = await sweep({ ...base, files: [file], api });
     expect(out[0]).toMatchObject({ file, action: 'alerted' });
     expect(calls.some((c) => c.method === 'PUT')).toBe(false);
-    expect(state.issues[0].labels).toEqual(['team:operations', 'ops-exception']);
+    expect(state.issues[0].labels).toEqual(['team:operations', 'ops-exception', 'ops:priority:1']);
     // the same three failures are already covered by the alert: no second Issue
     const second = await sweep({ ...base, files: [file], api });
     expect(second[0]).toMatchObject({ action: 'ok' });

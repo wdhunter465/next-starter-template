@@ -156,7 +156,7 @@ Scope and definitions:
 
 What a halt does:
 
-1. Opens one Issue assigned to the Operations queue (`team:operations`) naming the workflow, the three failed runs and how to re-enable it. A halted Action does not add a comment on every later run because it makes no later runs.
+1. Opens one Issue assigned to the Operations queue (`team:operations`) with an Operations priority (`ops:priority:2`, or `ops:priority:1` for a Production-protecting job) so it interrupts normal work, naming the workflow, the three failed runs and how to re-enable it. A halted Action does not add a comment on every later run because it makes no later runs.
 2. Disables the workflow so it makes no further attempts.
 3. A halt is an Operations exception. Operations records the cause and fix on the Issue, then re-enables the workflow. The Action stays halted until a person re-enables it.
 

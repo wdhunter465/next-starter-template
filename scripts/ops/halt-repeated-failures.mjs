@@ -17,8 +17,11 @@ import { pathToFileURL } from 'node:url';
 
 export const FAILURE_LIMIT = 3;
 export const SELF = 'ops-halt-repeated-failures.yml';
-export const HALT_LABELS = ['team:operations', 'ops-exception', 'ops-halted'];
-export const ALERT_LABELS = ['team:operations', 'ops-exception'];
+// An Operations Issue is an actionable interrupt only when it carries exactly one ops:priority:N
+// (docs/governance/WORK-QUEUES-AND-COLLABORATION.md). A halted Action is priority 2; a
+// Production-protecting job that keeps failing is priority 1.
+export const HALT_LABELS = ['team:operations', 'ops-exception', 'ops-halted', 'ops:priority:2'];
+export const ALERT_LABELS = ['team:operations', 'ops-exception', 'ops:priority:1'];
 
 // Jobs that protect Production. Silently stopping them is worse than repeated failure,
 // so they alert and keep running. Product Authority confirms this list (#4637).
