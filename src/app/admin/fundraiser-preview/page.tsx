@@ -55,8 +55,8 @@ function buttonStyle(primary = false, disabled = false): React.CSSProperties {
   return {
     padding: '10px 14px',
     borderRadius: 10,
-    border: primary ? '1px solid #0033cc' : '1px solid rgba(0,0,0,0.18)',
-    background: disabled ? 'rgba(0,0,0,0.05)' : primary ? '#0033cc' : 'white',
+    border: primary ? '1px solid var(--lgfc-blue, #0033cc)' : '1px solid rgba(0,0,0,0.18)',
+    background: disabled ? 'rgba(0,0,0,0.05)' : primary ? 'var(--lgfc-blue, #0033cc)' : 'white',
     color: primary && !disabled ? '#fff' : '#111',
     cursor: disabled ? 'not-allowed' : 'pointer',
     fontWeight: 700,
