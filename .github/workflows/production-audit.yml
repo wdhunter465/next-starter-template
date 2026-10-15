@@ -150,3 +150,27 @@ jobs:
         run: |
           echo "Production audit failed."
           exit 1
+
+  # #4466 row 10. Extends this audit rather than adding a workflow. Read-only:
+  # the latest successful Pages deployment on main must be this checkout.
+  commit_identity:
+    name: Deployed commit matches candidate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Compare Production deployment to this commit
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_PAGES_PROJECT: ${{ secrets.CLOUDFLARE_PAGES_PROJECT }}
+          GITHUB_SHA: ${{ github.sha }}
+          DEPLOY_BRANCH: main
+        run: node scripts/ci/deployed-commit-identity.mjs
