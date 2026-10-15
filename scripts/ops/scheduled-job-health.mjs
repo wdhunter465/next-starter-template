@@ -29,6 +29,7 @@ export const JOBS = [
   { file: 'ops-scheduled-content-publish.yml', maxAgeHours: 30 },
   { file: 'lgfc-cursor-runner-health.yml', maxAgeHours: 54 },
   { file: 'ops-asset-register-reconcile.yml', maxAgeHours: 8 * 24 + 6 },
+  { file: 'ops-weekly-operations-scorecard.yml', maxAgeHours: 8 * 24 + 6 },
   { file: 'ai-execution-bridge-smoke.yml', maxAgeHours: 8 * 24 + 6 },
   { file: 'gehrig-content-discovery.yml', maxAgeHours: 8 * 24 + 6 },
   { file: 'ops-d1-backup-scheduled-quarterly-drill-3268.yml', maxAgeHours: 95 * 24 },
