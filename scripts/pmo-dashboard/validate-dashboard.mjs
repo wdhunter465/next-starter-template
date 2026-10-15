@@ -149,27 +149,31 @@ function validateRow(row, label, rowByNumber, rowDataByNumber) {
   if (!Number.isInteger(row.taskCount) || row.taskCount < 0) errors.push(`${label} taskCount must be a non-negative integer`);
   if (!Number.isInteger(row.tasksCompleted) || row.tasksCompleted < 0) errors.push(`${label} tasksCompleted must be a non-negative integer`);
   if (row.tasksCompleted > row.taskCount) errors.push(`${label} # of Tasks Completed is greater than # of Tasks`);
-  if (row.taskCount === 0 && row.percentComplete !== null) {
+  if (row.taskCount > 0) {
+    const expected = Math.round((row.tasksCompleted / row.taskCount) * 100);
+    if (row.percentComplete !== expected) errors.push(`${label} percentComplete must equal round(tasksCompleted / taskCount * 100)`);
+  } else if (row.percentComplete !== null) {
     errors.push(`${label} percentComplete must be null when taskCount is 0`);
   }
-  if (row.taskCount > 0 && row.percentComplete !== Math.round((row.tasksCompleted / row.taskCount) * 100)) {
-    errors.push(`${label} percentComplete must match tasksCompleted/taskCount`);
-  }
 
-  if (Array.isArray(row.children)) {
-    for (const [cIndex, child] of row.children.entries()) {
-      const childLabel = `${label}.children[${cIndex}]`;
-      validateRow(child, childLabel, rowByNumber, rowDataByNumber);
-      if (!Number.isInteger(child.childSequence) || child.childSequence <= 0) errors.push(`${childLabel} childSequence must be a positive integer`);
-    }
-  }
-
-  if (Number.isInteger(row.issueNumber) && row.issueNumber > 0 && !isChildLabel(label)) {
-    if (rowByNumber.has(row.issueNumber)) {
-      errors.push(`issue #${row.issueNumber} appears more than once in current-book views`);
-    }
+  if (row.issueNumber) {
+    if (rowByNumber.has(row.issueNumber)) errors.push(`issue #${row.issueNumber} appears in multiple dashboard views`);
     rowByNumber.set(row.issueNumber, label);
     rowDataByNumber.set(row.issueNumber, row);
+  }
+
+  if (row.children != null) {
+    if (!Array.isArray(row.children)) {
+      errors.push(`${label} children must be an array`);
+      return;
+    }
+    for (const [index, child] of row.children.entries()) {
+      const childLabel = `${label}.children[${index}]`;
+      validateRow(child, childLabel, rowByNumber, rowDataByNumber);
+      if (!child.parentProgramIssue && row.issueNumber) errors.push(`${childLabel} is missing parentProgramIssue metadata`);
+      if (child.parentProgramIssue && child.parentProgramIssue !== row.issueNumber) errors.push(`${childLabel} parentProgramIssue does not match parent row issueNumber`);
+      if (!Number.isInteger(child.childSequence) || child.childSequence <= 0) errors.push(`${childLabel} childSequence must be a positive integer`);
+    }
   }
 }
 
@@ -341,15 +345,44 @@ if (data) {
   for (const [index, row] of (data.dataQualityExceptions || []).entries()) {
     validateExceptionRow(row, `dataQualityExceptions[${index}]`, rowByNumber);
   }
-}
 
-if (inventory && Array.isArray(inventory.issues)) {
-  for (const [index, item] of inventory.issues.entries()) {
-    for (const field of FORBIDDEN_INVENTORY_LIVE_STATE_FIELDS) {
-      if (Object.prototype.hasOwnProperty.call(item, field)) {
-        errors.push(`inventory.issues[${index}] must not prescribe live state field ${field}`);
+  const taskAccountingByNumber = new Map();
+  if (!Array.isArray(data.taskAccounting)) {
+    errors.push('taskAccounting must be present and must be an array');
+  } else {
+    for (const [index, entry] of data.taskAccounting.entries()) {
+      const label = `taskAccounting[${index}]`;
+      if (!Number.isInteger(entry.parentIssueNumber) || entry.parentIssueNumber <= 0) errors.push(`${label} parentIssueNumber must be a positive integer`);
+      if (!Array.isArray(entry.declaredTaskIssueNumbers)) errors.push(`${label} declaredTaskIssueNumbers must be an array`);
+      if (!Array.isArray(entry.missingTaskIssueNumbers)) errors.push(`${label} missingTaskIssueNumbers must be an array`);
+      if (!Array.isArray(entry.completedTaskIssueNumbers)) errors.push(`${label} completedTaskIssueNumbers must be an array`);
+      if (!Number.isInteger(entry.taskCount) || entry.taskCount < 0) errors.push(`${label} taskCount must be a non-negative integer`);
+      if (!Number.isInteger(entry.tasksCompleted) || entry.tasksCompleted < 0) errors.push(`${label} tasksCompleted must be a non-negative integer`);
+      if (entry.tasksCompleted > entry.taskCount) errors.push(`${label} tasksCompleted is greater than taskCount`);
+      const declaredUnique = new Set(entry.declaredTaskIssueNumbers || []);
+      if (declaredUnique.size !== (entry.declaredTaskIssueNumbers || []).length) errors.push(`${label} declaredTaskIssueNumbers must not contain duplicates`);
+      if (entry.taskCount !== declaredUnique.size) errors.push(`${label} taskCount must equal declaredTaskIssueNumbers length`);
+      if (entry.tasksCompleted !== (entry.completedTaskIssueNumbers || []).length) errors.push(`${label} tasksCompleted must equal completedTaskIssueNumbers length`);
+      const row = rowDataByNumber.get(entry.parentIssueNumber);
+      if (row && row.taskCount !== entry.taskCount) errors.push(`${label} taskCount does not match dashboard row value for #${entry.parentIssueNumber}`);
+      if (row && row.tasksCompleted !== entry.tasksCompleted) errors.push(`${label} tasksCompleted does not match dashboard row value for #${entry.parentIssueNumber}`);
+      if (taskAccountingByNumber.has(entry.parentIssueNumber)) errors.push(`${label} duplicates task accounting for issue #${entry.parentIssueNumber}`);
+      taskAccountingByNumber.set(entry.parentIssueNumber, entry);
+    }
+  }
+
+  for (const [collection, items] of [['included', inventory?.included], ['excluded', inventory?.excluded]]) {
+    for (const item of items || []) {
+      for (const field of FORBIDDEN_INVENTORY_LIVE_STATE_FIELDS) {
+        if (Object.prototype.hasOwnProperty.call(item, field)) {
+          errors.push(`tracked inventory ${collection} #${item.issueNumber} must not declare ${field}; live GitHub Issue metadata is sole lifecycle/team/priority authority`);
+        }
       }
     }
+  }
+  for (const item of inventory?.excluded || []) {
+    const view = rowByNumber.get(item.issueNumber);
+    if (view) errors.push(`excluded issue #${item.issueNumber} must not appear in dashboard output (found in ${view})`);
   }
 }
 
