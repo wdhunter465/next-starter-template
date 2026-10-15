@@ -9,9 +9,9 @@
 	--maxw: 1200px;
 	--radius: 14px;
 	--shadow: 0 6px 24px rgba(0, 0, 0, 0.08);
-	--section-gap: 2.5rem;
-	--section-gap-tight: 3rem;
-	--section-gap-moderate: 4rem;
+	--section-gap: var(--rhythm-lg);
+	--section-gap-tight: var(--rhythm-sm);
+	--section-gap-moderate: var(--rhythm-md);
 	--brand-blue: #0033cc;
 	
 	/* LGFC design tokens - Centralized colors */
@@ -237,6 +237,23 @@ a:hover {
 }
 
 /* Section rhythm */
+.card {
+	background: var(--lgfc-bg-card, #fff);
+	border: 1px solid var(--lgfc-border-soft, #e6e6e6);
+	border-radius: var(--lgfc-radius-md);
+	padding: var(--rhythm-sm);
+}
+
+.grid {
+	display: grid;
+	gap: var(--rhythm-sm);
+}
+
+.link {
+	color: var(--lgfc-blue, #0033cc);
+	text-decoration: underline;
+}
+
 .section {
 	margin-block: var(--rhythm-lg);
 }
@@ -346,7 +363,6 @@ a:hover {
 .joinBanner {
   background: #0033cc;
   color: #fff;
-  border-radius: 20px;
   padding: 24px;
 }
 

@@ -5,7 +5,7 @@ Authority Level: Controlled
 Owns: Homepage section layout and component mapping
 Does Not Own: Component implementation; global navigation standards
 Canonical Reference: /docs/reference/design/LGFC-Production-Design-and-Standards.md
-Last Reviewed: 2026-06-02
+Last Reviewed: 2026-10-14
 ---
 
 # Homepage Layout
@@ -33,6 +33,8 @@ Design-sensitive homepage work must also read `/docs/explanation/lgfc-design-evo
 13. FOOTER
 
 When spotlight is inactive, position #3 remains a hidden slot; the locked sequence still governs the page contract.
+
+A hidden Fundraiser Details teaser (`#fundraiser-daily-details`) sits directly above the spotlight slot. It is not part of the numbered order (accepted 2026-10-14, Product Authority, #4409, D-038).
 
 ---
 

@@ -5,7 +5,7 @@ Authority Level: Canonical Design Specification
 Owns: Routes, navigation invariants, UI/UX contracts, page content contracts
 Does Not Own: How-to procedures; operational runbooks; governance policies
 Canonical Reference: /docs/reference/design/LGFC-Production-Design-and-Standards.md
-Last Reviewed: 2026-04-01
+Last Reviewed: 2026-10-14
 ---
 
 # FanClub Sub-Page Specifications — LGFC
@@ -34,7 +34,7 @@ All pages:
 
 ```
 [FanClub Header]
-[Page Container — 1200px max, 20px padding]
+[Page Container — 980px to 1100px max depending on the page, 20px padding]  (updated 2026-10-14 to the built widths, Product Authority, #4409, D-026)
   [Page Title — H1]
   [Keyword Search Bar]
   [Content Area]
