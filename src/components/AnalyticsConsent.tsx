@@ -86,7 +86,7 @@ export default function AnalyticsConsent() {
             <p style={{ margin: 0, flex: '1 1 280px', fontSize: 14, lineHeight: 1.5, color: '#333333' }}>
               This site uses Google Analytics to understand aggregate page usage. Analytics is off until you
               choose Accept.{' '}
-              <Link href="/privacy" style={{ color: '#0033cc', textDecoration: 'underline' }}>
+              <Link href="/privacy" style={{ color: 'var(--lgfc-blue, #0033cc)', textDecoration: 'underline' }}>
                 Privacy
               </Link>
             </p>
@@ -96,7 +96,7 @@ export default function AnalyticsConsent() {
                 onClick={decline}
                 style={{
                   background: '#ffffff',
-                  color: '#0033cc',
+                  color: 'var(--lgfc-blue, #0033cc)',
                   border: '1px solid rgba(0, 51, 204, 0.3)',
                   borderRadius: 12,
                   padding: '10px 16px',
@@ -111,7 +111,7 @@ export default function AnalyticsConsent() {
                 type="button"
                 onClick={accept}
                 style={{
-                  background: '#0033cc',
+                  background: 'var(--lgfc-blue, #0033cc)',
                   color: '#ffffff',
                   border: 'none',
                   borderRadius: 12,

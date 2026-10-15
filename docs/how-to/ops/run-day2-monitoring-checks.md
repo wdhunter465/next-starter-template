@@ -5,8 +5,8 @@ Authority Level: Procedure
 Owns: Operator steps for the Production health and Day-2 monitoring checks (stage 1): what each check proves, where it alerts, how to respond, how to disable
 Does Not Own: Monitoring strategy and stages (#4468), rollback authority (#3633 decision record), the per-workflow failure watcher procedure (docs/how-to/ci/workflow-failure-exception-issues.md)
 Canonical Reference: /docs/ops/reports/ci-gap-assessment-3633.md
-Related Issues: #4468, #3633, #4444, #4540, #4539
-Last Reviewed: 2026-10-12
+Related Issues: #4468, #3633, #4444, #4540, #4539, #4599
+Last Reviewed: 2026-10-14
 ---
 
 # Run the Day-2 Monitoring Checks
@@ -24,6 +24,7 @@ Tell an operator, for each stage 1 monitoring check, what it proves, where its a
 | Asset register reconcile | `ops-asset-register-reconcile.yml` | Mondays 12:30 UTC | The asset register matches the repository's inventories | Issue opened by the reconcile script |
 | Workflow failure watcher | `ops-workflow-failure-exception-issues.yml` | On each watched run | A watched workflow failed on `main` | Issue `OPS EXCEPTION: <workflow> failed` |
 | Scheduled job health | `ops-scheduled-job-health.yml` | Every 2 hours at :40 | Every scheduled workflow is enabled and succeeded on `main` within its window | Issue `OPS — Scheduled job health — stale or disabled job` |
+| Weekly operations scorecard | `ops-weekly-operations-scorecard.yml` | Mondays 13:00 UTC, and on demand | The last 7 days of uptime, job health, delivery, restore time, the Operations queue, backup age, and Priority 1 projects | Comment on the standing Issue `Weekly scorecard` |
 
 Scheduled job health covers the silent case the watcher cannot see: a job that stopped running, was disabled, or keeps failing past its window. Its windows are in `JOBS` in `scripts/ops/scheduled-job-health.mjs`. A test fails if a scheduled workflow is added without an entry there.
 
