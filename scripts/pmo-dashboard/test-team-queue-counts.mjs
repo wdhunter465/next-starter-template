@@ -1,4 +1,4 @@
-import { buildTeamQueueCounts, classifyTeamQueue } from './team-queue-counts.mjs';
+import { buildTeamQueueCounts, classifyTeamQueue, classifyOpenIssuePartition } from './team-queue-counts.mjs';
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -65,6 +65,24 @@ assert(
   'closed post-merge-failure omitted'
 );
 
+assert(classifyOpenIssuePartition(issue(100, { labels: ['pmo:task'] })) === 'pmoTasks', 'partition task');
+assert(
+  classifyOpenIssuePartition(issue(101, { labels: ['pmo:task', 'team:engineering'] })) === 'pmoTasks',
+  'partition task wins over team label'
+);
+assert(
+  classifyOpenIssuePartition(issue(102, { labels: ['status:active'] })) === 'other',
+  'partition unassigned'
+);
+assert(
+  classifyOpenIssuePartition(issue(103, { labels: ['team:pmo', 'pmo:active'] })) === 'pmoParents',
+  'partition pmo parent'
+);
+assert(
+  classifyOpenIssuePartition(issue(104, { labels: ['ops-pr-escalation', 'pmo:task'] })) === 'operations',
+  'ops exception wins over task in partition'
+);
+
 const counts = buildTeamQueueCounts(
   [
     issue(1, { labels: ['team:operations'] }),
@@ -80,7 +98,9 @@ const counts = buildTeamQueueCounts(
     issue(14, { labels: ['team:pmo', 'pmo:active', 'pmo:task'] }),
     issue(15, { labels: ['ops-pr-escalation'] }),
     issue(16, { labels: ['ops-pr-escalation', 'post-merge-failure'] }),
-    issue(18, { labels: ['post-merge-failure', 'status:active', 'agent:claude'] })
+    issue(18, { labels: ['post-merge-failure', 'status:active', 'agent:claude'] }),
+    issue(21, { labels: ['pmo:task'] }),
+    issue(22, { labels: ['random-label'] })
   ],
   { owner: 'wdhunter465', repo: 'next-starter-template' }
 );
@@ -95,6 +115,25 @@ assert(counts.pmoOrder.join(',') === 'pmoTracked,pmoPipeline,pmoActive', 'pmo ro
 assert(counts.pmoQueues.map((queue) => queue.title).join(',') === 'PMO tracked,PMO Pipeline,PMO Active', 'pmo display titles');
 assert(counts.pmoQueues.map((queue) => queue.count).join(',') === '4,3,1', 'pmo parent counts: tracked = pipeline + active');
 
+// Open issues in the fixture (exclude closed #9): 15
+assert(counts.totalOpenIssues === 15, `totalOpenIssues expected 15 got ${counts.totalOpenIssues}`);
+assert(counts.pmoTaskQueue.id === 'pmoTasks', 'pmo task queue id');
+assert(counts.pmoTaskQueue.count === 2, 'pmo task count: #14 and #21');
+assert(counts.otherQueue.count === 2, 'other count: multi-team #10 and random #22');
+
+const b = counts.breakout;
+assert(b.operations === 5, 'breakout operations');
+assert(b.engineering === 1, 'breakout engineering');
+assert(b.governance === 1, 'breakout governance');
+assert(b.pmoParents === 4, 'breakout pmo parents');
+assert(b.pmoTasks === 2, 'breakout pmo tasks');
+assert(b.other === 2, 'breakout other');
+assert(
+  b.operations + b.engineering + b.governance + b.pmoParents + b.pmoTasks + b.other === b.totalOpenIssues,
+  'breakout partition sums to totalOpenIssues'
+);
+assert(b.totalOpenIssues === counts.totalOpenIssues, 'breakout total matches top-level');
+
 const expectedOpsQuery = encodeURIComponent(
   'is:open is:issue label:team:operations,ops-pr-escalation,post-merge-failure'
 );
@@ -105,7 +144,7 @@ assert(
 );
 
 // Every queue search must exclude PRs (is:issue) so links match classifyTeamQueue.
-for (const queue of [...counts.queues, ...counts.pmoQueues]) {
+for (const queue of [...counts.queues, ...counts.pmoQueues, counts.pmoTaskQueue, counts.otherQueue]) {
   assert(
     queue.issueSearchUrl.includes('is%3Aissue'),
     `${queue.id} search URL must include is:issue`
@@ -134,6 +173,14 @@ assert(
   counts.pmoQueues[0].issueSearchUrl.includes('label%3Apmo%3Aparent') &&
     counts.pmoQueues[0].issueSearchUrl.includes('-label%3Apmo%3Atask'),
   'pmo tracked search includes parent and omits tasks'
+);
+assert(
+  counts.pmoTaskQueue.issueSearchUrl.includes('label%3Apmo%3Atask'),
+  'pmo task search includes pmo:task'
+);
+assert(
+  counts.totalOpenIssuesUrl.includes('is%3Aopen') && counts.totalOpenIssuesUrl.includes('is%3Aissue'),
+  'total open issues search URL'
 );
 
 console.log('team-queue count contract passed');
