@@ -5,7 +5,7 @@ Authority Level: Canonical
 Owns: Routes, navigation invariants, UI/UX contracts, page content contracts
 Does Not Own: How-to procedures; operational runbooks; governance policies
 Canonical Reference: /docs/reference/design/LGFC-Production-Design-and-Standards.md
-Last Reviewed: 2026-02-20
+Last Reviewed: 2026-10-14
 ---
 
 > **STATUS:** INCOMPLETE  
@@ -40,7 +40,7 @@ The dashboard runs **only** on the Cloudflare Pages-hosted site and provides the
 
 ### URL
 
-- Main entry: `/admin/dashboard`
+- Main entry: `/admin` (updated 2026-10-14 to the built route, Product Authority, #4409, D-078; `/admin/dashboard` is not a route)
 
 ### Access Control
 
@@ -61,14 +61,9 @@ The dashboard runs **only** on the Cloudflare Pages-hosted site and provides the
 
 The Admin Dashboard is organized into key areas:
 
-1. **Reports** (moderation queue)  
-2. **Posts** (news + Q&A)  
-3. **Media** (B2-backed assets)  
-4. **Milestones**  
-5. **Events**  
-6. **Weekly Matchup**  
-7. **Users**  
-8. **System Health**
+The built admin has 18 tools (accepted 2026-10-14, Product Authority, #4409, D-080): Dashboard, Moderation (the reports queue lives here), Audit & Reporting, FAQ Queue, Page Content, CMS Blocks, Editorial Archive, Events, Matchup, Fundraiser Preview, Club Staging, Join Requests, Worklist, Member Operations, Media Assets, Rights Review, Archive Items, D1 Inspect.
+
+The original design listed Reports, Posts, Media, Milestones, Events, Weekly Matchup, Users and System Health. There is no separate Posts, Milestones, Users or System Health manager, and none is required for launch. Where the sections below describe those areas, they record the original design, not the built admin.
 
 ### Layout
 
@@ -376,7 +371,7 @@ The Admin Dashboard is considered **functionally complete** when:
 
 - All sections defined in this document exist and are reachable.
 - Reports queue is fully operational and drives moderation workflow.
-- Posts, Media, Milestones, Events, Weekly Matchup, Users, and System Health sections perform their intended CRUD operations end-to-end.
+- The built admin tools listed in section 3 perform their intended operations end-to-end.
 - All admin routes `/admin/**` are properly gated by canonical auth/session + admin role authorization.
 - Core actions are logged.
 - No 404s or dead links in the admin navigation.
