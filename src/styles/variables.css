@@ -1,5 +1,4 @@
 :root{
-  --lgfc-blue:#002868;
   --lgfc-red:#BF0A30;
   --lgfc-red-dark:#941b1b;
   --lgfc-offwhite:#F8F9FA;
@@ -9,4 +8,4 @@
   --font-head: "Georgia", "Times New Roman", serif;
   --font-body: "Helvetica Neue", Arial, sans-serif;
 }
-html,body{background:var(--lgfc-offwhite);color:var(--lgfc-charcoal);}
+html,body{background:var(--lgfc-bg-page, var(--lgfc-offwhite));color:var(--lgfc-charcoal);}
