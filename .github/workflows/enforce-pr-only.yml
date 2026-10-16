@@ -18,14 +18,26 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           GH_REPO: ${{ github.repository }}
         run: |
-          pr_number="$(gh api "repos/${GH_REPO}/commits/${GITHUB_SHA}/pulls" \
-            -H 'Accept: application/vnd.github+json' \
-            --jq 'map(select(.merged_at != null))[0].number // ""')"
+          # The commit-to-PR lookup can lag for a few seconds after a merge,
+          # so retry before concluding the push was direct (#4633).
+          attempts=6
+          delay=5
+          pr_number=""
+          for attempt in $(seq 1 "$attempts"); do
+            pr_number="$(gh api "repos/${GH_REPO}/commits/${GITHUB_SHA}/pulls" \
+              -H 'Accept: application/vnd.github+json' \
+              --jq 'map(select(.merged_at != null))[0].number // ""' || true)"
 
-          if [ -n "$pr_number" ]; then
-            echo "Push to main is associated with merged PR #${pr_number}."
-            exit 0
-          fi
+            if [ -n "$pr_number" ]; then
+              echo "Push to main is associated with merged PR #${pr_number} (attempt ${attempt})."
+              exit 0
+            fi
+
+            if [ "$attempt" -lt "$attempts" ]; then
+              echo "No merged PR found for ${GITHUB_SHA} yet (attempt ${attempt}/${attempts}); retrying in ${delay}s."
+              sleep "$delay"
+            fi
+          done
 
           echo "::error::Direct pushes to main are not allowed. All changes must go through approved PRs."
           exit 1
