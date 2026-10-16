@@ -43,7 +43,7 @@ Product Authority directives (2026-10-15): Bill is CMO; Claude Code is PMO; ever
 | 5 Explanation | AI-workforce explanation points to constitution | #4656 | open |
 | 5 Template, skill | PR template comment and `continuous-workflow` skill | #4661 | open |
 
-All open PRs are ready for review. Merge #4640 first; the others reference sections it adds. Nothing was merged by the agent.
+All open PRs are ready for review. #4640 is merged; the others reference sections it added. Nothing was merged by the agent.
 
 ## Gate coverage: which PR requirements have no enforcing gate
 
