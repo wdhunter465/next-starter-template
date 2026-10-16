@@ -6,7 +6,7 @@ Owns: Durable LGFC agent roles, recognized agent products, current member mappin
 Does Not Own: PMO lifecycle/stage semantics, detailed queue-label implementation, delivery-profile mechanics, CI implementation, or Production recovery procedure
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
 Related Issues: #3240, #3629, #3693, #3825, #4074, #4134, #4165, #4173, #4174, #4399, #4449
-Last Reviewed: 2026-10-09
+Last Reviewed: 2026-10-15
 ---
 
 # Agent Team
@@ -28,7 +28,7 @@ A member may act only through its currently assigned role authority plus an open
 | PMO Admin | Executes PMO process: lifecycle and label reconciliation, current-state records, dashboard reporting hygiene, Graduation packet recording, and queue administration. Does not create Product Go, Production authorization, or merge authority. The current holder is the member mapped below. |
 | Governance | Final repository-governance disposition and Issue assignment/prioritization subject to Product Authority; Governance Issue ownership |
 | PR Approver / Engineering | Independent validation that work meets design, acceptance, repository, and promotion requirements. Validation is not merge approval. |
-| CMO (Change Management Office) | Independent review and merge approval of Pull Requests when Product Authority is unavailable. CMO is not Product Authority, may not approve its own implementation, and may not authorize Production Go, cost, legal, secrets, or other protected Product decisions. The current holder is the member mapped below. |
+| CMO (Change Management Office) | Human merge approval for Production-tier Pull Requests (`docs/governance/REPOSITORY-AUTHORITY.md`, Merge authority). CMO is not required for non-production Pull Requests. CMO may not approve its own implementation and may not authorize Production Go, cost, legal, secrets, or other protected Product decisions without Product Authority. The current holder is the member mapped below. |
 | Administration & Communications | Evidence, routing, acknowledgments, escalation, repository-state reconciliation, holds/resumes, reporting, and authorized closeout transactions |
 | Day-2 Operations | Production monitoring, incident classification, containment, recovery strategy, operational hold release |
 | Deterministic CI | Machine-provable checks, evidence, eligible bounded automation, and authorized non-main integration |
@@ -94,29 +94,29 @@ PMO Admin does not merge Pull Requests, invent Product Go, or close program/mast
 
 ### CMO role
 
-CMO is the Change Management Office. It exists so merge approval can continue when Product Authority is unavailable.
+CMO is the Change Management Office. It is the human approver for Production-tier merges, held by a named person (`docs/governance/REPOSITORY-AUTHORITY.md`, Merge authority).
 
 CMO may:
 
-- independently review a Pull Request it did not implement;
-- approve that Pull Request for merge after required gates and independent review evidence exist.
+- approve a Production-tier Pull Request for merge after required gates exist;
+- act for Product Authority on Production merges when Product Authority is unavailable and the holder is recorded below.
 
 CMO may not:
 
 - approve its own implementation;
-- waive independent review;
-- authorize Production Go, cost, legal, privacy, credentials, destructive data, or other protected Product decisions;
-- replace Product Authority as the default merge approver when Product Authority is available.
+- waive required checks;
+- authorize Production Go, cost, legal, privacy, credentials, destructive data, or other protected Product decisions beyond what Product Authority has recorded.
 
-A CMO holder must be a named member in the mapping table below, with CMO listed in that member's current roles, before CMO may approve a merge. Until Product Authority records that assignment, CMO remains unassigned in the holders section. An unassigned CMO role is not an approval.
+CMO is not part of the non-production path. Non-production Pull Requests are self-approved by the implementer once the deterministic gates pass (Product Authority, 2026-10-15). This is intentional, to speed up development, and is not an exception to be reported.
+
+Production approval is human only. No agent holds CMO or supplies a Production approval.
 
 CMO and PR Approver / Engineering are separate authorities (#4134):
 
 - PR Approver / Engineering validates design, acceptance, repository alignment, and promotion requirements. It does not decide whether a Pull Request merges to `main`.
-- CMO decides merge to `main` only when Product Authority is unavailable, after required checks pass and PR Approver / Engineering or other required independent review evidence exists.
-- One member may hold both roles, but may not use either role on its own implementation.
+- CMO decides Production-tier merges, after required checks pass.
 
-CMO approval is not mechanically enforced today. The `main` ruleset requires zero approving reviews, auto-merge is disabled, and agents act through the shared repository identity, so a CMO approval cannot yet be distinguished from the implementer's. Until dedicated agent identities exist (#3234), a CMO merge decision must be recorded on the source Issue with the reviewer and the reviewed head SHA.
+CMO approval is not mechanically enforced today. The `main` ruleset requires zero approving reviews, auto-merge is disabled, and agents act through the shared repository identity, so a CMO approval cannot yet be distinguished from the implementer's. Until dedicated agent identities exist (#3234), a Production-tier merge decision must be recorded on the source Issue with the approver and the reviewed head SHA.
 
 ### Governance role
 
@@ -135,9 +135,9 @@ Governance does not override Product Authority's business/product decisions or p
 
 | Member/product | Current roles |
 | --- | --- |
-| Bill | Product Authority; Day-2 Operations; default merge approval when available |
+| Bill | Product Authority; **CMO**; Day-2 Operations; Production merge approval (human only) |
 | Retired member (#4173) | **Retired.** No current team role, wake path, PMO authority, Governance authority, review authority, or implementation authority. Historical record only (see #4173). |
-| Claude Code | **Engineering** (primary); **PMO Admin** (primary); Operations and Governance (secondary); authorized implementation; PR Approver only for work Claude Code did not implement |
+| Claude Code | **PMO** (primary); **Engineering** (primary); **PMO Admin** (primary); Operations and Governance (secondary); authorized implementation; PR Approver only for work Claude Code did not implement |
 | Cursor (on Chromebook) | **Operations** (primary); **Governance** (primary); Engineering and PMO Admin (secondary); authorized implementation; PR Approver only for work Cursor did not implement |
 | Retired member (#4165) | **Retired.** No current team role, wake path, or implementation authority. Historical record only (see #4165). |
 | GitHub Copilot | Pull Request review only; not a durable role holder |
@@ -154,12 +154,13 @@ The LGFC Agentic Team is **Claude Code** and **Cursor (on Chromebook)**, both pa
 
 | Role | Primary | Secondary |
 | --- | --- | --- |
+| PMO | Claude Code | none recorded |
 | Engineering | Claude Code | Cursor |
 | PMO Admin | Claude Code | Cursor |
 | Operations | Cursor | Claude Code |
 | Governance | Cursor | Claude Code |
 
-Bill reviews and approves Pull Requests and acts as Product Authority. Departures from this assignment are one-offs recorded on the Issue.
+Bill acts as Product Authority and CMO. Bill approves Production-tier Pull Requests; non-production Pull Requests are self-approved (`docs/governance/REPOSITORY-AUTHORITY.md`, Merge authority). Departures from this assignment are one-offs recorded on the Issue.
 
 This assignment replaces every earlier role holder, interim assignment and transition note (including the #4174 interim PMO Admin assignment). Where older text contradicts it, the older text is legacy.
 
@@ -177,10 +178,11 @@ PMO process documents name **PMO Admin** and **CMO**. They do not name a specifi
 
 Current holders live only in this file:
 
+- **PMO:** Claude Code (primary)
 - **PMO Admin:** Claude Code (primary); Cursor (secondary)
-- **CMO:** unassigned until Product Authority adds CMO to a named member's role list in the mapping table above
+- **CMO:** Bill (assigned by Product Authority, 2026-10-15)
 
-Product Authority (Bill) remains the default merge approver when available. CMO is the recorded delegate for merge approval only when Product Authority is unavailable and a holder is named.
+Bill holds both Product Authority and CMO. Production-tier merges are human only.
 
 ## Retirement record — #4173
 
@@ -222,11 +224,10 @@ An agent claim does not permanently transfer role or Team ownership. Claims must
 ## Independent review and separation of duties
 
 - No implementer may be the sole independent reviewer/approver of its own protected work.
-- PMO Admin may not merge Pull Requests.
+- PMO Admin may not merge Production-tier Pull Requests.
 - CMO may not approve its own implementation.
-- Claude Code may approve only work it did not implement.
-- No implementer self-approves protected work.
-- Model C constitutional/domain-policy changes require independent review before merge.
+- Self-approval is allowed for non-production Pull Requests only, and never for a protected decision (`docs/governance/REPOSITORY-AUTHORITY.md`, Merge authority).
+- No implementer self-approves a Production-tier or protected change.
 - Production promotion retains the configured Engineering and Product/Production authority.
 
 ## Approval and protected boundaries
@@ -269,7 +270,7 @@ Project/Program closeout remains a PMO/Governance/Product decision at the level 
 This document supersedes earlier agent-team language that:
 
 - names a specific product or person as the PMO process actor instead of **PMO Admin**;
-- treats merge approval as only a named person instead of Product Authority by default and **CMO** when Product Authority is unavailable and a holder is recorded;
+- requires CMO or any human approval for non-production Pull Requests, or lets any agent approve a Production-tier merge;
 - treats Cursor as permanently Operations-only or permanently Engineering before the recorded transition;
 - treats the member retired under #4165 as a live Operations/implementation role;
 - treats the member retired under #4173 as a live Governance/Administration/PMO role;
