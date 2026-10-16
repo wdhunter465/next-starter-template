@@ -35,7 +35,7 @@ Product Authority directives (2026-10-15): Bill is CMO; Claude Code is PMO; ever
 | Operations | Enforce PR Only retries the merged-PR lookup | #4634 | merged |
 | Operations | Monitor passes a job awaiting its first run | #4636 | merged |
 | Operations | Halt any scheduled Action after 3 consecutive failures; one Issue; `ops:priority` | #4638 | merged |
-| 1 Constitution, 2 Agent Team | Hierarchy levels, tiered Merge authority, PR readiness; Bill = CMO, Claude Code = PMO | #4640 | open |
+| 1 Constitution, 2 Agent Team | Hierarchy levels, tiered Merge authority, PR readiness; Bill = CMO, Claude Code = PMO | #4640 | merged |
 | 2 Domain | No draft state; lifecycle and handoff point to constitution | #4647 | open |
 | 2 Domain | `PR_PROCESS`, `PR_GOVERNANCE`, `DELIVERY-AND-RELEASE` tiered merge authority | #4650 | open |
 | 2 Domain | CMO-fallback wording removed from PLATFORM, PRODUCT, PMO, CI policies | #4652 | open |
