@@ -6,7 +6,7 @@ Owns: The current responsibility matrix and the human-only decision list for #24
 Does Not Own: Role assignment. The live map is `docs/governance/AGENT-TEAM.md`
 Canonical Reference: /docs/governance/AGENT-TEAM.md
 Related Issues: #2456, #2449, #4165, #4173, #4174
-Last Reviewed: 2026-09-27
+Last Reviewed: 2026-10-16
 ---
 
 # AI and human responsibilities
@@ -37,7 +37,7 @@ This file owns the current responsibility matrix and the human-only decision lis
 
 The Governance durable role has no active holder after the ChatGPT retirement. That is an unowned control, not a reason to invent a new agent. Product Authority records the holder. Until then, Governance Issues are not self-assigned by an implementer.
 
-Overlap to avoid: Cursor's interim PMO Admin work and Claude Code's Engineering review must not become two copies of merge authority. Merge stays with Bill, or with CMO only when Product Authority is unavailable and a CMO holder is recorded.
+Overlap to avoid: Cursor's interim PMO Admin work and Claude Code's Engineering review must not become two copies of merge authority. Merge authority is tiered and defined in `docs/governance/REPOSITORY-AUTHORITY.md` (Merge authority): Production-tier merges stay with Bill (Product Authority and CMO); non-production Pull Requests are self-approved.
 
 ### Human-only decisions
 
