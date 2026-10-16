@@ -6,7 +6,7 @@ Owns: PR lifecycle states, transition gates, profile-specific readiness, GitHub-
 Does Not Own: PR-body policy, delivery-model selection, product/design authority, Administration mutation taxonomy, or Production approval
 Canonical Reference: /docs/governance/PR_PROCESS.md
 Related Issues: #2640, #2641, #4134
-Last Reviewed: 2026-10-10 (retired WORK actor → PMO Admin, #3055)
+Last Reviewed: 2026-10-16 (no draft state; merge-authority tiers, #4641)
 ---
 
 # PR Lifecycle State Machine
@@ -16,7 +16,7 @@ Last Reviewed: 2026-10-10 (retired WORK actor → PMO Admin, #3055)
 Define the GitHub-native lifecycle for LGFC pull requests while preserving the four promotion profiles.
 
 ```text
-NO PR -> DRAFT -> READY FOR REVIEW -> READY FOR INTEGRATION OR PROMOTION
+NO PR -> READY FOR REVIEW -> READY FOR INTEGRATION OR PROMOTION
       -> AUTHORIZED DECISION -> INTEGRATED OR MERGED -> CLOSEOUT VERIFIED
 ```
 
@@ -58,11 +58,11 @@ Before opening a PR confirm:
 
 Stop when authority, target, profile, or scope is ambiguous.
 
-## State 1 — DRAFT
+## State 1 — Not ready (branch only)
 
-A PR exists but implementation, validation, stable facts, or handoff evidence is incomplete.
+Implementation, validation, stable facts, or handoff evidence is incomplete. There is no draft PR (`docs/governance/REPOSITORY-AUTHORITY.md`, Pull-request readiness). The work stays on its branch; no PR is opened until the conditions below hold.
 
-Transition to `READY FOR REVIEW` when:
+Open the PR, in READY FOR REVIEW state, when:
 
 - diff matches the source allowlist and intent;
 - PR stable facts match the current diff;
@@ -92,7 +92,7 @@ Possible dispositions:
 
 - `APPROVED FOR INTEGRATION` for eligible Development work;
 - `PROMOTION CANDIDATE READY` after complete candidate qualification;
-- `PRODUCTION GO` when the Production decision is authorized;
+- `PRODUCTION GO` when the Production decision is authorized by a human;
 - `ADJUSTMENT` for bounded correction;
 - `PLAN CHANGE REQUIRED` for material change;
 - `HOLD` for protected or operational conditions.
@@ -107,7 +107,7 @@ Sandbox work may integrate only within the isolated Sandbox or be adopted into a
 
 ### Development
 
-Non-protected work may integrate automatically into the non-main component branch when deterministic eligibility passes. Protected/material work requires PR Approver / Engineering.
+Development and other non-production work is self-approved once the deterministic gates pass (`docs/governance/REPOSITORY-AUTHORITY.md`, Merge authority). Protected decisions are never covered by self-approval.
 
 Development integration does not establish Promotion Candidate or Production readiness.
 
@@ -123,7 +123,7 @@ The exact approved candidate, full standards, Production authority, rollback, an
 
 The required role or deterministic policy has recorded the transition decision.
 
-For merge to `main`, the required role is Product Authority, or CMO when Product Authority is unavailable and a CMO holder is recorded in `docs/governance/AGENT-TEAM.md`. CMO may not approve its own implementation (#4134).
+For a Production-tier merge, approval is human only: Product Authority or the CMO holder recorded in `docs/governance/AGENT-TEAM.md`. CMO may not approve its own implementation (#4134). A non-production merge is self-approved by the implementer after the gates pass; no CMO decision is required.
 
 Before action recheck:
 
