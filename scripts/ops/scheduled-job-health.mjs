@@ -33,14 +33,23 @@ export const JOBS = [
   { file: 'ai-execution-bridge-smoke.yml', maxAgeHours: 8 * 24 + 6 },
   { file: 'gehrig-content-discovery.yml', maxAgeHours: 8 * 24 + 6 },
   { file: 'ops-d1-backup-scheduled-quarterly-drill-3268.yml', maxAgeHours: 95 * 24 },
+  { file: 'ops-halt-repeated-failures.yml', maxAgeHours: 3 },
   { file: 'ops-workflow-failure-exception-issues.yml', maxAgeHours: null },
 ];
 
-export function evaluateJob(job, { state, lastSuccessAt }, now = new Date()) {
+export function evaluateJob(job, { state, lastSuccessAt, createdAt }, now = new Date()) {
   if (!state) return { ...job, ok: false, reason: 'workflow not found' };
   if (state !== 'active') return { ...job, ok: false, reason: `workflow state is ${state}` };
   if (job.maxAgeHours === null) return { ...job, ok: true, reason: '', lastSuccessAt };
-  if (!lastSuccessAt) return { ...job, ok: false, reason: 'no successful run on the default branch' };
+  if (!lastSuccessAt) {
+    // A job added recently has not had its first scheduled slot yet (#4635). It is
+    // pending, not failing, until its own window has passed with no success.
+    const addedHoursAgo = createdAt ? (now.getTime() - new Date(createdAt).getTime()) / HOUR : null;
+    if (addedHoursAgo !== null && addedHoursAgo >= 0 && addedHoursAgo <= job.maxAgeHours) {
+      return { ...job, ok: true, pending: true, reason: `awaiting first run (added ${Math.round(addedHoursAgo)} h ago)`, lastSuccessAt };
+    }
+    return { ...job, ok: false, reason: 'no successful run on the default branch' };
+  }
   const ageHours = (now.getTime() - new Date(lastSuccessAt).getTime()) / HOUR;
   if (ageHours > job.maxAgeHours) {
     return { ...job, ok: false, lastSuccessAt, reason: `last success ${Math.round(ageHours)} h ago (limit ${job.maxAgeHours} h)` };
@@ -53,11 +62,11 @@ export async function fetchJobStatus(job, { repository, headers, branch, fetchIm
   const workflow = await fetchImpl(base, { headers });
   if (workflow.status === 404) return { state: null, lastSuccessAt: null };
   if (!workflow.ok) throw new Error(`GET ${job.file} failed: ${workflow.status}`);
-  const { state } = await workflow.json();
+  const { state, created_at: createdAt = null } = await workflow.json();
   const runs = await fetchImpl(`${base}/runs?branch=${encodeURIComponent(branch)}&status=success&per_page=1`, { headers });
   if (!runs.ok) throw new Error(`GET ${job.file} runs failed: ${runs.status}`);
   const latest = (await runs.json()).workflow_runs?.[0];
-  return { state, lastSuccessAt: latest?.updated_at || latest?.created_at || null };
+  return { state, createdAt, lastSuccessAt: latest?.updated_at || latest?.created_at || null };
 }
 
 export async function runCheck(jobs, context, now = new Date()) {
@@ -78,7 +87,8 @@ export function renderReport({ ok, results }, checkedAt = new Date().toISOString
   ];
   for (const result of results) {
     const limit = result.maxAgeHours === null ? 'enabled only' : `${result.maxAgeHours} h`;
-    lines.push(`| ${result.file} | ${limit} | ${result.lastSuccessAt || '-'} | ${result.ok ? 'PASS' : `FAIL — ${result.reason}`} |`);
+    const outcome = result.ok ? (result.pending ? `PASS — ${result.reason}` : 'PASS') : `FAIL — ${result.reason}`;
+    lines.push(`| ${result.file} | ${limit} | ${result.lastSuccessAt || '-'} | ${outcome} |`);
   }
   return lines.join('\n');
 }
