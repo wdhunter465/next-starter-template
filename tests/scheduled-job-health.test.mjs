@@ -17,7 +17,7 @@ function fakeGitHub(byFile) {
     const match = url.match(/workflows\/([^/?]+)(\/runs)?/);
     const entry = byFile[match[1]];
     if (!entry) return jsonResponse(404, {});
-    if (!match[2]) return jsonResponse(200, { state: entry.state });
+    if (!match[2]) return jsonResponse(200, { state: entry.state, created_at: entry.createdAt });
     return jsonResponse(200, { workflow_runs: entry.lastSuccessAt ? [{ updated_at: entry.lastSuccessAt }] : [] });
   };
 }
@@ -42,6 +42,21 @@ describe('evaluateJob', () => {
   it('fails a job with no successful run', () => {
     expect(evaluateJob(job, { state: 'active', lastSuccessAt: null }, NOW))
       .toMatchObject({ ok: false, reason: 'no successful run on the default branch' });
+  });
+
+  it('passes a newly added job that has no run yet and is still inside its first window (#4635)', () => {
+    const result = evaluateJob(job, { state: 'active', lastSuccessAt: null, createdAt: hoursAgo(10) }, NOW);
+    expect(result).toMatchObject({ ok: true, pending: true, reason: 'awaiting first run (added 10 h ago)' });
+  });
+
+  it('fails a job with no run once its first window has passed (#4635)', () => {
+    expect(evaluateJob(job, { state: 'active', lastSuccessAt: null, createdAt: hoursAgo(31) }, NOW))
+      .toMatchObject({ ok: false, reason: 'no successful run on the default branch' });
+  });
+
+  it('does not grant the grace window to a job that has succeeded and gone stale (#4635)', () => {
+    expect(evaluateJob(job, { state: 'active', lastSuccessAt: hoursAgo(40), createdAt: hoursAgo(5) }, NOW))
+      .toMatchObject({ ok: false });
   });
 
   it('fails a missing workflow', () => {
