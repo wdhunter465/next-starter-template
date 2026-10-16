@@ -3,23 +3,22 @@ Doc Type: Governance / Process
 Audience: Human + AI Agents
 Authority Level: Governance
 Owns: Ready-for-review handoff requirements for pull requests
-Does Not Own: General PR lifecycle state-machine rules, CI implementation, merge authority, or post-merge automation behavior
+Does Not Own: General PR lifecycle state-machine rules, CI implementation, merge authority (owned by `docs/governance/REPOSITORY-AUTHORITY.md`), or post-merge automation behavior
 Canonical Reference: /docs/governance/PR_LIFECYCLE_STATE_MACHINE.md
-Last Reviewed: 2026-06-14
+Last Reviewed: 2026-10-16
 ---
 
 # PR Ready-for-Review Handoff Requirement
 
 ## Rule
 
-An agent handoff is invalid while a pull request remains in GitHub Draft state unless the PR body or a current PR comment records an explicit blocker that prevents the Ready for Review transition.
+A pull request is opened ready for review and stays that way (`docs/governance/REPOSITORY-AUTHORITY.md`, Pull-request readiness). Draft is not a working state. A PR that is not ready is not yet a PR: the work stays on its branch.
 
 ## Required behavior
 
-Before reporting a PR as complete, ready, handed off, or awaiting human review, the responsible agent must confirm one of the following is true:
+Before reporting a PR as complete, ready, handed off, or awaiting review, the responsible agent confirms GitHub shows the PR as open and not Draft.
 
-1. The PR has been moved out of Draft using GitHub's **Ready for review** transition.
-2. The PR remains Draft and the blocker is explicitly recorded in the PR body or a current PR comment.
+If GitHub shows Draft, the agent uses GitHub's **Ready for review** transition, or closes the PR and keeps the work on the branch with the blocker recorded on the source Issue.
 
 Opening a PR, updating the PR body, running checks, or saying the PR is ready is not sufficient if GitHub still shows the PR as Draft.
 
@@ -28,9 +27,9 @@ Opening a PR, updating the PR body, running checks, or saying the PR is ready is
 Every PR handoff must report the actual GitHub state:
 
 ```text
-GitHub PR state: draft / ready for review / merged / blocked with documented reason
+GitHub PR state: ready for review / merged / closed
 ```
 
 ## Failure condition
 
-If an agent reports a PR as ready for review while GitHub still shows the PR as Draft and no blocker is documented, the handoff is invalid and must be corrected before any human merge decision.
+If an agent reports a PR as ready for review while GitHub shows it as Draft, the handoff is invalid and must be corrected before any approval or merge.
