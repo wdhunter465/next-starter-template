@@ -10,7 +10,7 @@ import FaqBrowse from '@/components/FaqBrowse';
 const SUCCESS_MESSAGE = "Your question has been submitted. We'll reply by email.";
 const ERROR_MESSAGE = 'Submission failed. Please try again.';
 const CONTACT_MAILTO =
-  'mailto:Contact@LouGehrigFanClub.com?subject=Contact%20Needed%20ASK';
+  'mailto:admin@lougehrigfanclub.com?subject=Contact%20Needed%20ASK';
 
 function isValidAskEmail(value: string): boolean {
   const trimmed = value.trim();
