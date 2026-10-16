@@ -357,6 +357,29 @@ async function attachStoryImages(
   }
 }
 
+/**
+ * True when the Featured Photo zone would show the same picture as the lead story: the same
+ * story, or two different stories whose primary image is the same media asset (#4617).
+ * Club Home never shows one picture twice, so the caller omits the media feature instead.
+ */
+async function mediaFeatureDuplicatesLead(
+  db: any,
+  associations: Map<number, Array<Record<string, unknown>>>,
+  leadStory: ClubHomeStoryPayload | null,
+  mediaStory: ClubHomeStoryPayload | null,
+): Promise<boolean> {
+  if (!leadStory || !mediaStory) return false;
+  if (Number(leadStory.id) === Number(mediaStory.id)) return true;
+  const primaryOf = (rows: Array<Record<string, unknown>>) =>
+    rows.find((row) => String((row as any).media_role || "") === "primary_image") || rows[0];
+  const leadPrimary = primaryOf(associations.get(leadStory.id) || []);
+  const mediaRows =
+    associations.get(mediaStory.id) || (await listStoryMediaAssociations(db, [mediaStory.id])).get(mediaStory.id) || [];
+  const mediaPrimary = primaryOf(mediaRows);
+  if (!leadPrimary || !mediaPrimary) return false;
+  return Number((leadPrimary as any).media_id || 0) === Number((mediaPrimary as any).media_id || 0);
+}
+
 async function resolveMediaFeature(
   db: any,
   leadStory: ClubHomeStoryPayload | null,
@@ -671,7 +694,7 @@ async function payloadFromEdition(
   }
 
   let mediaFeature: ClubHomeMediaFeaturePayload | null = null;
-  if (mediaLeadStory) {
+  if (mediaLeadStory && !(await mediaFeatureDuplicatesLead(db, associations, leadStory, mediaLeadStory))) {
     // Only reuse the pre-fetched batch when it's the same story attachStoryImages() already
     // resolved above; an edition's standalone media placement can point at a different story.
     const precomputed =
@@ -743,13 +766,16 @@ async function fetchClubHomeContentLive(
     : composed.mediaFeatureRow
       ? mapClubHomeStory(composed.mediaFeatureRow)
       : null;
-  const mediaFeature = await resolveMediaFeature(
-    db,
-    mediaFeatureStory,
-    request,
-    options?.publicB2BaseUrl,
-    mediaFeatureMirrorsLead && leadStory ? { associations, image: leadStory.image } : undefined,
-  );
+  // Never show the lead story's picture a second time in the Featured Photo zone (#4617).
+  const mediaFeature = (await mediaFeatureDuplicatesLead(db, associations, leadStory, mediaFeatureStory))
+    ? null
+    : await resolveMediaFeature(
+        db,
+        mediaFeatureStory,
+        request,
+        options?.publicB2BaseUrl,
+        mediaFeatureMirrorsLead && leadStory ? { associations, image: leadStory.image } : undefined,
+      );
 
   const placements = [...composed.placements];
   if (leadStory && mediaFeature) {
