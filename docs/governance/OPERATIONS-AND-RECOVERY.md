@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Production health, degraded-service routing, incident classification, containment, recovery strategy, operational hold release, component recovery, stabilization-first boundaries, and Operations queue completion criteria
 Does Not Own: Cross-team queue semantics, Administration & Communications policy, delivery-model selection, PMO sizing, PR approval roles, CI implementation, project objectives, or daily operator checklists
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2495, #2640, #2641, #2695, #2699, #4213
-Last Reviewed: 2026-09-22
+Related Issues: #2495, #2640, #2641, #2695, #2699, #4213, #4589, #4637
+Last Reviewed: 2026-10-15
 ---
 
 # Operations and Recovery
@@ -143,6 +143,28 @@ Trusted evidence may come from:
 Deterministic automation may create or elevate a deduplicated operational Issue and attach evidence. It must not invent cause, recovery strategy, production authority, or authoritative `OPS:` classification beyond pre-authorized deterministic rules.
 
 Not every Operations interrupt is a Production incident. Day-2 Operations must classify Production impact separately after the interrupt is active.
+
+## Repeated Action failure halt
+
+Product Authority rule (2026-10-14, #4589; implementation directed 2026-10-15, #4637): an Action that fails three times in a row stops making attempts, and one Issue is opened for the failures and the halted Action. A repeating failure must not run unattended and must not generate a new alert on every run.
+
+Scope and definitions:
+
+- The rule covers every **scheduled** workflow. Workflows triggered by pushes, pull requests or other workflows are required gates or follow-on jobs; a failure there is normal on a branch and the workflow is never disabled by this rule.
+- A failure is a completed run on the default branch whose conclusion is `failure` or `timed_out`. Cancelled and skipped runs are ignored. A run is consecutive when no successful run on the default branch sits between it and the newest failure.
+- Three consecutive failures halt the Action. A success, including a manual `workflow_dispatch` run, restarts the count.
+
+What a halt does:
+
+1. Opens one Issue assigned to the Operations queue (`team:operations`) with an Operations priority (`ops:priority:2`, or `ops:priority:1` for a Production-protecting job) so it interrupts normal work, naming the workflow, the three failed runs and how to re-enable it. A halted Action does not add a comment on every later run because it makes no later runs.
+2. Disables the workflow so it makes no further attempts.
+3. A halt is an Operations exception. Operations records the cause and fix on the Issue, then re-enables the workflow. The Action stays halted until a person re-enables it.
+
+Exception: a job that protects Production (backups, snapshot, production audit, site uptime probe) is not disabled. It alerts through the same Issue and keeps running, because silently stopping it is worse than repeated failure. Product Authority confirms the list of such jobs.
+
+Authority: halting uses the workflow's own repository token. It adds no credential, no Production access and no new approval authority. Changing the halt rule, the alert-only list or the permission it uses is a protected change.
+
+Mechanism, procedure and re-enable steps: `docs/how-to/ci/workflow-failure-exception-issues.md`.
 
 ## Assessment hold
 
@@ -319,6 +341,7 @@ Administration & Communications then restores preserved PMO and Engineering work
 | Delivery and promotion policy | `docs/governance/DELIVERY-AND-RELEASE.md` |
 | Runner contract | `docs/reference/ci/repository-runner-contract.md` |
 | Emergency recovery procedure | `docs/how-to/ops/run-emergency-recovery.md` |
+| Repeated Action failure halt procedure | `docs/how-to/ci/workflow-failure-exception-issues.md` |
 | Rollback evidence | `docs/reference/delivery/delivery-and-rollback-profiles.md` |
 
 ## Supersession
