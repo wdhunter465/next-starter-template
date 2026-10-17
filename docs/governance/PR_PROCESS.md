@@ -13,7 +13,7 @@ Supporting References:
   - /docs/reference/operations/operating-lanes-and-promotion-profiles.md
   - /docs/reference/operations/work-queue-and-collaboration-contract.md
 Related Issues: #2175, #2208, #2640, #2641, #2699, #2709, #3117, #4134
-Last Reviewed: 2026-10-10 (retired WORK actor → PMO Admin, #3055)
+Last Reviewed: 2026-10-16 (tiered merge authority, #4649)
 ---
 
 # Pull Request Process
@@ -37,8 +37,8 @@ Queue ownership, universal collaboration, and Project Graduation are defined in 
 5. The PR body stores stable facts only.
 6. Dynamic lifecycle, checks, reviews, routing, collaboration, holds, and closeout remain on GitHub-native surfaces.
 7. Required gates are deterministic, necessary, and profile-appropriate.
-8. Implementation / Operations does not self-approve protected work or Production promotion.
-9. Deterministic CI may record automated eligibility for non-main integration; it does not impersonate PR Approver / Engineering.
+8. Merge authority is tiered (`docs/governance/REPOSITORY-AUTHORITY.md`, Merge authority). Non-production work is self-approved by the implementer once the deterministic gates pass. Production-tier work, and any protected decision, is never self-approved.
+9. Deterministic CI may record automated eligibility for non-main integration; it does not impersonate PR Approver / Engineering or a human Production approver.
 10. Promotion Candidate is mandatory before Production.
 11. Sandbox cannot move directly to Promotion Candidate or Production.
 12. Development cannot move directly to Production.
@@ -217,7 +217,7 @@ Reviewer state comes from GitHub-native reviews and threads.
 - PR Approver / Engineering owns subjective design and repository alignment.
 - Deterministic CI owns explicit machine checks and eligibility only.
 - Product Authority participates when product, priority, cost, business, or protected decisions require it.
-- Merge to `main` is approved by Product Authority. When Product Authority is unavailable and a CMO holder is recorded in `docs/governance/AGENT-TEAM.md`, CMO may approve the merge of a Pull Request it did not implement. PR Approver / Engineering validation is evidence for that decision, not the merge approval itself (#4134).
+- Production-tier merges are approved by a human only: Product Authority, or the CMO holder recorded in `docs/governance/AGENT-TEAM.md`, for a Pull Request it did not implement. Non-production merges are self-approved by the implementer after the deterministic gates pass; no CMO decision is required. PR Approver / Engineering validation is evidence for a Production decision, not the merge approval itself (#4134).
 - Administration & Communications may route and report reviewer state but cannot supply independent review.
 - Collaboration may help a reviewer understand evidence but cannot manufacture reviewer authority.
 

@@ -454,7 +454,7 @@ describe('content-inventory-club-home', () => {
     expect(payload.media_feature?.title).toBe('Media feature photo');
   });
 
-  it('falls back to mirroring the lead story when it is the only eligible story', async () => {
+  it('omits the Featured Photo when the lead story is the only eligible story, so the lead picture is never shown twice (#4617)', async () => {
     const payload = await fetchClubHomeContent(
       makeClubHomeDb({
         inventory: [
@@ -497,7 +497,37 @@ describe('content-inventory-club-home', () => {
     );
 
     expect(payload.lead_story?.headline).toBe('Only story');
-    expect(payload.media_feature?.thumbnail_url).toBe('https://cdn.example.com/renditions/600/medium.jpg');
-    expect(payload.media_feature?.title).toBe('Only photo');
+    expect(payload.lead_story?.image?.url).toBe('https://cdn.example.com/renditions/600/medium.jpg');
+    expect(payload.media_feature).toBeNull();
+  });
+
+  it('omits the Featured Photo when a different story would show the same media asset as the lead (#4617)', async () => {
+    const base = {
+      credit_line: 'Club Historians',
+      source_name: 'LGFC Archive',
+      allowed_sections: 'club_home',
+      status: 'published',
+      canonical: 1,
+      feature_weight: 1,
+    };
+    const payload = await fetchClubHomeContent(
+      makeClubHomeDb({
+        inventory: [
+          { ...base, id: 1, title: 'Lead story', summary: 'Lead summary', story_type: 'primary', priority: 10 },
+          { ...base, id: 2, title: 'Other story', summary: 'Other summary', story_type: 'primary', priority: 5 },
+        ],
+        media: [
+          { story_id: 1, media_id: 700, media_role: 'primary_image', display_order: 0, caption: 'Shared photo', alt_text: 'Shared', source_name: 'LGFC', credit_line: 'LGFC' },
+          { story_id: 2, media_id: 700, media_role: 'primary_image', display_order: 0, caption: 'Shared photo', alt_text: 'Shared', source_name: 'LGFC', credit_line: 'LGFC' },
+        ],
+        renditions: [
+          { media_id: 700, size: 'medium', status: 'ready', url: 'https://cdn.example.com/renditions/700/medium.jpg' },
+        ],
+      }),
+    );
+
+    expect(payload.lead_story?.headline).toBe('Lead story');
+    expect(payload.lead_story?.image?.url).toBe('https://cdn.example.com/renditions/700/medium.jpg');
+    expect(payload.media_feature).toBeNull();
   });
 });
