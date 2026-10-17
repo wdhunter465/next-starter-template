@@ -6,7 +6,7 @@ Owns: PMO intake, Pipeline lifecycle, stage deliverables, scoped priority, Sandb
 Does Not Own: Queue-label implementation mechanics, executable implementation, CI implementation, Day-2 recovery strategy, or Production approval
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
 Related Issues: #3134, #3145, #3597, #3823, #4174, #4176
-Last Reviewed: 2026-09-19
+Last Reviewed: 2026-10-16
 ---
 
 # PMO Portfolio
@@ -15,7 +15,7 @@ Last Reviewed: 2026-09-19
 
 This document defines the controlling LGFC PMO operating model for Engineering qualification, Pipeline preparation, Project Graduation, Active execution oversight, portfolio ordering, durable handoff continuity, and completion.
 
-Product Authority makes final business/product priority and protected decisions. **PMO Admin** executes PMO process (lifecycle, labels, current-state, dashboard hygiene, Graduation packets). The current PMO Admin holder is recorded only in `docs/governance/AGENT-TEAM.md`. **CMO** may approve Pull Requests for merge when Product Authority is unavailable, only after a holder is recorded in AGENT-TEAM. CMO is not Product Authority and may not approve its own implementation.
+Product Authority makes final business/product priority and protected decisions. **PMO Admin** executes PMO process (lifecycle, labels, current-state, dashboard hygiene, Graduation packets). The current PMO Admin holder is recorded only in `docs/governance/AGENT-TEAM.md`. **CMO** (a human, recorded in AGENT-TEAM) approves Production-tier merges; non-production Pull Requests are self-approved (`docs/governance/REPOSITORY-AUTHORITY.md`, Merge authority). CMO is not Product Authority and may not approve its own implementation.
 
 Machine-readable lifecycle and priority details are in `docs/reference/pmo/pmo-lifecycle-and-priority-contract.md`.
 

@@ -6,7 +6,7 @@ Owns: Shared execution rules, enforcement model, PR discipline, stop conditions,
 Does Not Own: Design authority, platform configuration, tracker content, role mapping
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
 Related Issues: #3055, #3113, #3117, #3134, #3138, #3142, #3145, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4074, #4099, #4131, #4165, #4198, #4314, #4596
-Last Reviewed: 2026-10-14
+Last Reviewed: 2026-10-16
 ---
 
 This document is the canonical shared execution law. It moved here from `docs/ops/ai/CORE-RULES.md` under #4198. The old path is a compatibility pointer and is not a second policy.
@@ -291,7 +291,7 @@ Agents must NOT:
 
 Defaults:
 
-- PR = draft
+- PR = opened ready for review, never as a draft (`docs/governance/REPOSITORY-AUTHORITY.md`, Pull-request readiness)
 - Implementation agents stop the scoped implementation at the PR handoff boundary unless their assignment says otherwise.
 - Accepted assignments continue through the authorized assignment lifecycle and are not cancelled by conversational interruptions (#3693).
 
@@ -307,7 +307,7 @@ The agent's task is complete only when all of the following are true:
 2. All reviewer comments, bot comments, and review threads have been inspected.
 3. Every actionable reviewer item has either been fixed, rejected with rationale, marked not applicable, or linked to a bounded follow-up issue using the required PR-body disposition format.
 4. All required gates have passed on the latest PR head after the final code and PR-body updates.
-5. The PR status is changed from DRAFT/BLOCKED to READY FOR REVIEW, or the agent explicitly reports the exact blocker preventing readiness.
+5. The PR is in READY FOR REVIEW state, or the agent explicitly reports the exact blocker preventing readiness and keeps the work on its branch instead of opening a PR.
 6. The agent's final report includes the current head SHA, exact checks run, gate status, reviewer disposition status, and whether the PR is READY FOR REVIEW.
 
 A PR must not be handed off for review while any required gate, reviewer comment, bot comment, review thread, PR-body section, or source-issue accounting item still requires agent action.
