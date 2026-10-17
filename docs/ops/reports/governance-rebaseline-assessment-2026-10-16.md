@@ -43,7 +43,7 @@ Product Authority directives (2026-10-15): Bill is CMO; Claude Code is PMO; ever
 | 5 Explanation | AI-workforce explanation points to constitution | #4656 | merged |
 | 5 Template, skill | PR template comment and `continuous-workflow` skill | #4661 | merged |
 
-Every PR in this table is merged. Nothing was merged by the agent: all merges were made by Product Authority.
+Every PR in this table is merged. The agent merged none of them.
 
 ## Gate coverage: which PR requirements have no enforcing gate
 
