@@ -2,11 +2,11 @@
 Doc Type: Governance
 Audience: Human + AI
 Authority Level: Constitutional
-Owns: Repository precedence, GitHub Issue authority, domain ownership, lane topology, queue topology, role-based work-selection delegation, canonical-source rules, supersession, and unresolved-conflict escalation
+Owns: Repository precedence, the top-down document hierarchy, merge-authority tiers, pull-request readiness, GitHub Issue authority, domain ownership, lane topology, queue topology, role-based work-selection delegation, canonical-source rules, supersession, and unresolved-conflict escalation
 Does Not Own: Detailed PMO, delivery, agent, CI, Administration, Operations, collaboration, or platform procedures
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
 Related Issues: #2678, #3629, #3825, #4174
-Last Reviewed: 2026-09-19
+Last Reviewed: 2026-10-15
 ---
 
 # Repository Authority
@@ -43,6 +43,51 @@ Live GitHub Issues, PRs, checks, reviews, threads, branches, deployments, and re
 Each topic has one canonical owner. Lower-level documents may reference that owner but must not create competing policy.
 
 A superseding documentation change is complete only when the new/updated canonical source is merged and contradictory active copies are reconciled or explicitly subordinated.
+
+## Top-down hierarchy
+
+The repository is organized top-down. Each level takes its authority from the level above and may add detail but never contradict it. A lower level that conflicts with a higher level is wrong and is corrected to match it; the higher level is not bent to fit.
+
+| Level | What it holds | Where | Authority Level header |
+| --- | --- | --- | --- |
+| 0 | Product decisions | Product Authority decisions, locked Product documents | Product |
+| 1 | Constitution | This document | Constitutional |
+| 2 | Domain policy | `docs/governance/*.md` (one owner per domain, table below) | Domain Policy |
+| 3 | Reference contracts | `docs/reference/**` | Reference |
+| 4 | Procedures | `docs/how-to/**`, `docs/tutorials/**` | Procedure |
+| 5 | Pointers, templates, skills, rules files | `docs/ops/ai/**`, `docs/templates/**`, `.claude/**`, `.cursor/**`, `.agents/**`, `CLAUDE.md`, `.github/pull_request_template.md` | Pointer / Template |
+| 6 | Automation | `.github/workflows/**`, `scripts/**` | Implementation |
+
+Rules:
+
+1. Policy is written at the highest level that owns it and nowhere lower. Lower levels link to it.
+2. A change flows down: when a rule changes, the level that owns it changes first, then each level beneath it is brought into line, in order.
+3. Automation enforces what policy says. A gate with no policy behind it, or a policy with no gate and no stated reason, is a defect to correct.
+4. A requirement is either enforced by a named deterministic gate or is stated to be a convention that a reviewer checks. Documents must say which.
+
+## Merge authority
+
+Who may approve a merge depends on where the change lands, not on who wrote it. This section is the only place the tiers are defined. Every lower level points here.
+
+| Tier | Change lands in | Approval | CMO |
+| --- | --- | --- | --- |
+| Production | `main` as a Production change, Production deploy, promotion to Production, or any protected decision named in Protected boundaries | Human only: Product Authority, or the CMO holder recorded in `docs/governance/AGENT-TEAM.md` | Required, human |
+| Non-production | Sandbox, Development component branches, Promotion Candidate preparation, documentation, tooling and other work that does not change Production behavior | Self-approved: the implementing agent's own approval is sufficient once the deterministic gates pass; no CMO review | Not required |
+
+Product Authority set the non-production tier on purpose, to speed up development. It is not a gap.
+
+Limits on self-approval, which do not move:
+
+- It never covers a protected decision (see Protected boundaries), whatever the tier.
+- It needs every required deterministic check to pass on the current head, and every review thread to be resolved.
+- It still needs the source Issue, the allowlist and the stable PR facts.
+- Production approval is human only. No agent may supply it.
+
+## Pull-request readiness
+
+A pull request is opened ready for review, not as a draft. Every pull request must be in the ready-for-review state before anyone approves or merges it. Draft is not a working state in this repository; do not open or keep a draft PR. Work that is not ready is not yet a PR: keep it on the branch.
+
+Ready for review means: a source Issue that predates the branch, a diff inside the allowlist, stable facts in the PR body, builder validation recorded, and the required checks running on the current head.
 
 ## Operating lane topology
 

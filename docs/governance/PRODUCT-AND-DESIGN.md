@@ -6,7 +6,7 @@ Owns: Product behavior ownership, UX and functional-requirement decision rules, 
 Does Not Own: Agent team approval routing, delivery Model A/B selection, platform/runtime isolation, CI gate implementation, or page-level visual specifications
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
 Related Issues: #2687, #2686, #4174, #4213
-Last Reviewed: 2026-09-22
+Last Reviewed: 2026-10-16
 ---
 
 # Product and Design
@@ -27,7 +27,7 @@ Agent roles and protected-stop contracts remain in `docs/governance/AGENT-TEAM.m
 | **PMO Admin** | Current holder in `docs/governance/AGENT-TEAM.md` | Final design package authorship; launch-control packaging; design documentation completeness |
 | **Implementation / Operations** | Current holder in `docs/governance/AGENT-TEAM.md` | Scoped implementation of approved product/design work; no self-approval of product or design authority |
 | **PR Approver / Engineering** | Current holder in `docs/governance/AGENT-TEAM.md` | Independent review of product/design PRs per delivery profile; not a substitute for Product Authority on material product decisions |
-| **CMO** | Current holder in `docs/governance/AGENT-TEAM.md` (unassigned until recorded) | Merge approval when Product Authority is unavailable; may not approve own implementation |
+| **CMO** | Current holder in `docs/governance/AGENT-TEAM.md` | Human approval of Production-tier merges (`docs/governance/REPOSITORY-AUTHORITY.md`, Merge authority); not required for non-production PRs; may not approve own implementation |
 | **Supporting design references** | `docs/reference/design/**` and `docs/governance/standards/design-authority_MASTER.md` | Locked behavior facts, page/route contracts, and enforcement pointers only |
 
 Rules:
@@ -116,7 +116,7 @@ Routine wording fixes, reference routing corrections, validation remediation, an
 
 | Change type | Design-doc update first? | Approval |
 | --- | --- | --- |
-| Docs-only supporting-spec correction aligned to existing Product Authority intent | Yes (the docs PR is the change) | PMO Admin; CMO may merge if Product Authority is unavailable and a CMO holder is recorded |
+| Docs-only supporting-spec correction aligned to existing Product Authority intent | Yes (the docs PR is the change) | PMO Admin; non-production, so self-approved after the required checks (`docs/governance/REPOSITORY-AUTHORITY.md`, Merge authority) |
 | Implementation matching already-locked supporting specs | No additional design ownership change | Per delivery profile (`docs/governance/DELIVERY-AND-RELEASE.md`) |
 | Material product/UX change | Yes | Product Authority go/no-go, then PMO Admin review/merge |
 | Component-child drafting under an authorized Model B program | Per child allowlist | Component auto-integration only when the child profile allows it; does not activate `main` policy alone |
