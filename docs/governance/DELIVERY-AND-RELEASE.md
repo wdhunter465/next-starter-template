@@ -6,7 +6,7 @@ Owns: Delivery models, Sandbox/Development/Promotion Candidate/Production profil
 Does Not Own: Current team-member assignments, PMO sizing, CI implementation, environment-isolation proof, or emergency stabilization procedures
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
 Related Issues: #2495, #2640, #2641, #3752, #3753, #3465, #4552
-Last Reviewed: 2026-10-10
+Last Reviewed: 2026-10-16
 ---
 
 # Delivery and Release
@@ -317,8 +317,9 @@ Requirements:
 - one primary source Issue with explicit Model C intent and path scope;
 - one implementation PR whose diff is limited to approved documentation namespaces;
 - Issue/PR accounting and required review evidence remain enforced;
-- independent review is required before merge when the change touches **Constitutional** or **Domain Policy** governance, alters DIATAXIS authority, or changes supersession of a canonical owner;
-- lower-authority documentation (how-to, tutorial, non-policy reference, ops trackers that do not define binding policy) may use lighter review appropriate to documentation risk, but never zero review when repository process requires attestation;
+- a Model C PR is non-production and is self-approved after the required checks pass, including for **Constitutional** and **Domain Policy** governance, DIATAXIS authority and supersession of a canonical owner (Product Authority, 2026-10-15);
+- self-approval does not cover a protected decision named in `docs/governance/REPOSITORY-AUTHORITY.md` (Protected boundaries);
+- the reviewer-lifecycle attestation and review-thread requirements still apply;
 - code-specific build, deploy, migration, and Production smoke gates must not be required **solely** because the PR is Model C.
 
 Review intensity scales with documentation authority level (Constitutional / Domain Policy / Canonical / Controlled / Procedure / Evidence), not with file extension.
@@ -368,8 +369,7 @@ The rollback package defines, as applicable:
 | Model B promotion carrying protected paths | PR Approver / Engineering (independent, current head) plus Production authority | No |
 | Promotion Candidate Go/No-Go | PMO / Engineering, PR Approver / Engineering, and other required roles | No |
 | Production promotion | Production authority plus required Engineering approval | No |
-| Model C documentation (non-constitutional) | PR review scaled to documentation authority; Deterministic CI path gates | No auto-merge to `main` without required checks |
-| Model C documentation (constitutional / domain policy / DIATAXIS authority) | Independent review plus required Engineering or Product Authority as authority level demands | No |
+| Model C documentation (any authority level) | Self-approved by the implementer after Deterministic CI path gates and required checks pass (non-production tier, `docs/governance/REPOSITORY-AUTHORITY.md`) | No auto-merge to `main` without required checks |
 | Emergency recovery | Day-2 Operations and required protected authority | Only pre-authorized deterministic recovery actions |
 
 Implementation / Operations implements and remediates but does not approve its own protected work or Production promotion.
@@ -395,7 +395,7 @@ Where that review happens depends on the delivery model (#3465, Product Authorit
 
 This supersedes, for Model B child integration, the 2026-07-24 #2825 clause to retain `protected-change-review` for all non-Production protected scope.
 
-Model C changes that edit constitutional or domain-policy governance, DIATAXIS authority, or supersession of a canonical owner are treated as protected documentation changes and require independent review before merge to `main`.
+Model C changes that edit constitutional or domain-policy governance, DIATAXIS authority, or supersession of a canonical owner follow the non-production tier: self-approved after the required checks pass. They are no longer routed to independent review (Product Authority, 2026-10-15).
 
 ## Canonical references
 
