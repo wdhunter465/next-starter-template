@@ -271,6 +271,7 @@ Every current `.github/workflows/*` file as of 2026-09-14 (`HEAD` at inventory r
 | `ops-d1-prod-dev-refresh.yml` | OPS — D1 Prod→Dev Refresh (#3359) |
 | `ops-design-compliance-audit.yml` | OPS — Design Compliance Audit |
 | `ops-gehrig-retrosheet-ingest-4263.yml` | OPS — Gehrig Retrosheet Ingest (#4263) |
+| `ops-halt-repeated-failures.yml` | OPS — Halt Repeated Action Failures |
 | `ops-main-change-monitor.yml` | OPS — Main Change Monitor |
 | `ops-post-merge-self-healing.yml` | OPS — Post-Merge Self-Healing |
 | `ops-pr-issue-accounting.yml` | GATE — PR Issue Accounting |

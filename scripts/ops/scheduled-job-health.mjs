@@ -33,6 +33,7 @@ export const JOBS = [
   { file: 'ai-execution-bridge-smoke.yml', maxAgeHours: 8 * 24 + 6 },
   { file: 'gehrig-content-discovery.yml', maxAgeHours: 8 * 24 + 6 },
   { file: 'ops-d1-backup-scheduled-quarterly-drill-3268.yml', maxAgeHours: 95 * 24 },
+  { file: 'ops-halt-repeated-failures.yml', maxAgeHours: 3 },
   { file: 'ops-workflow-failure-exception-issues.yml', maxAgeHours: null },
 ];
 
