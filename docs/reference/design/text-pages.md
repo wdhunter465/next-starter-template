@@ -104,6 +104,7 @@ This page consolidates both contact and support destinations.
 
 **Required content elements (must appear regardless of copy):**
 
+- Admin and Support meanings, stated on the page (Product Authority, 2026-10-16, #4658): members contact Admin with questions and for everything else; members contact Support for help with a problem or to report a broken feature (operational tasks). All replies can come from Admin.
 - A section headed `Contact` with two labeled lines: `Support:` `Support@LouGehrigFanClub.com` and `Admin:` `admin@lougehrigfanclub.com`. Confirmed by Product Authority on 2026-10-16 (#4409, D-059 and C-6); this replaces the earlier `Contact@LouGehrigFanClub.com` reference.
 - Note: footer does not display email addresses directly; this page is the
   canonical location for contact details.

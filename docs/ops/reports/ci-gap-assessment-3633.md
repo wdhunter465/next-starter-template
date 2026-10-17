@@ -6,7 +6,7 @@ Owns: Task #3633-007 gap assessment of the Phase 1 catalog and the build plan fo
 Does Not Own: Any workflow or test change, Product dates, Production access, or the acceptance decision (Product Authority accepts Phases 1-4 at the design gate)
 Canonical Reference: /docs/ops/implementation-plans/issue-3633-002-ordered-plan.md
 Related Issues: #3633, #4465, #4463, #4464, #4466, #4467, #4468, #4469, #4470, #4471
-Last Reviewed: 2026-10-14
+Last Reviewed: 2026-10-16
 ---
 
 # Gap assessment for #3633
@@ -28,8 +28,8 @@ Evidence comes from the inventory (`docs/ops/reports/ci-test-inventory-3633.md`)
 | `DUPLICATED_CONSOLIDATE` | 1 |
 | `MISSING_BUILD` | 18 |
 | `MANUAL_EXPLORATORY` | 7 |
-| `CONTROLLED_RECOVERY_EXERCISE` | 5 |
-| `DEFER_PRODUCT_DECISION` | 3 |
+| `CONTROLLED_RECOVERY_EXERCISE` | 6 |
+| `DEFER_PRODUCT_DECISION` | 2 |
 | Total | 91 |
 
 Headlines:
@@ -37,7 +37,7 @@ Headlines:
 - **Only 9 of 91 rows are fully covered today**, and 3 of those (build and lint, and the two secrets rows) rest on the required pre-merge checks. Most rows have a test somewhere but not a run that happens automatically against a deployed environment.
 - **The biggest single gap is run coverage, not test count.** 26 post-merge and reviewer test files run nowhere, the Playwright specs (including the accessibility scan) are not required or scheduled on a preview, and there is no scheduled qualification against a deployed environment.
 - **Missing outright:** dependency and supply-chain checks, performance baselines, focus order and reduced-motion handling, fundraiser widget checks (blocked on #4139), concurrent-session and concurrent-admin tests, a missing or slow asset check, repeated-run stability evidence, and a check that alerts when a monitor itself stops.
-- **Deferred to Product Authority:** the two webhook rows (no inbound webhook is adopted) and the RTO, RPO and SLO row (#2829 is on hold).
+- **Decided by Product Authority on 2026-10-16:** no inbound webhook is adopted (rows 56 and 87 need no build and stay deferred until one is adopted); the recovery targets are zero data loss and immediate recovery, proven by the recovery exercises (row 74, now a controlled recovery exercise).
 
 ## Row statuses
 
@@ -126,7 +126,7 @@ Headlines:
 | 53 | Givebutter unavailable or degraded | Scheduled qualification | `MISSING_BUILD` | No degraded Givebutter state test found | #3633-012 |
 | 54 | Network interruption, refresh, and back navigation | Manual / exploratory | `MANUAL_EXPLORATORY` | Exploratory by design | - |
 | 55 | Campaign state, ended campaign, and stale cache | Scheduled qualification | `EXISTING_NEEDS_HARDENING` | Three tests mention ended or inactive campaigns; no stale-cache case | #3633-012 |
-| 56 | Webhook duplicate, delay, malformation, replay, or unavailability, if webhooks are adopted | Deterministic CI | `DEFER_PRODUCT_DECISION` | No inbound Givebutter webhook is adopted; the only webhook is the outbound Zapier call in scheduled publish | - |
+| 56 | Webhook duplicate, delay, malformation, replay, or unavailability, if webhooks are adopted | Deterministic CI | `DEFER_PRODUCT_DECISION` | Decided 2026-10-16: no inbound webhook is adopted, so nothing to build. The only webhook is the outbound Zapier call in scheduled publish. Revisit if one is adopted | - |
 | 57 | No payment credentials, secrets, or private donor data | Deterministic CI | `EXISTING_NEEDS_HARDENING` | `gitleaks` covers secrets; the zero-donor-data boundary (#4139) has no test | #3633-012 |
 
 ### Accessibility / UX
@@ -159,7 +159,7 @@ Headlines:
 | 71 | Deployment rollback | Controlled recovery exercise | `CONTROLLED_RECOVERY_EXERCISE` | `run-emergency-recovery.md` describes rollback; no recorded exercise | #3633-011 |
 | 72 | D1 backup creation and restore verification | Controlled recovery exercise | `EXISTING_NEEDS_HARDENING` | Daily export and quarterly restore-drill workflows (#3268); last drill results not summarized here | #3633-011 |
 | 73 | B2/D1 recovery relationships | Controlled recovery exercise | `CONTROLLED_RECOVERY_EXERCISE` | No exercise covering B2 and D1 together found | #3633-011 |
-| 74 | RTO, RPO, and SLO evidence per #2829 | Product / operator acceptance | `DEFER_PRODUCT_DECISION` | #2829 is on hold; Product Authority sets the targets | - |
+| 74 | RTO, RPO, and SLO evidence per #2829 | Product / operator acceptance | `CONTROLLED_RECOVERY_EXERCISE` | Product Authority set the targets on 2026-10-16: zero data loss (RPO) and immediate recovery (RTO), as targets. Evidence is the recorded recovery exercises, including a snapshot at the end of each change window. #2829 stays on hold for the formal SLO text | #3633-011 |
 | 75 | Failed or partial deployment | Controlled recovery exercise | `CONTROLLED_RECOVERY_EXERCISE` | No exercise for failed or partial deployment found | #3633-011 |
 | 76 | Production post-deploy smoke | Production health | `EXISTING_NEEDS_HARDENING` | `production-audit` also runs on push to main paths; post-deploy trigger not tied to the deploy | #3633-010 |
 | 77 | Scheduled recovery exercises | Controlled recovery exercise | `EXISTING_NEEDS_HARDENING` | Quarterly restore drill only; no schedule for rollback or content exercises | #3633-011 |
@@ -177,7 +177,7 @@ Headlines:
 | 84 | Dependency and provenance findings | Deterministic CI | `MISSING_BUILD` | Same as row 7 | #3633-008 |
 | 85 | Direct API access without the UI | Deterministic CI | `EXISTING_NEEDS_HARDENING` | API tests call handlers directly; no run against a deployed environment | #3633-009 |
 | 86 | Privilege escalation paths | Manual / exploratory | `MANUAL_EXPLORATORY` | Manual exploratory by design | - |
-| 87 | Webhook signature and authentication, if implemented | Deterministic CI | `DEFER_PRODUCT_DECISION` | No inbound webhook is adopted | - |
+| 87 | Webhook signature and authentication, if implemented | Deterministic CI | `DEFER_PRODUCT_DECISION` | Decided 2026-10-16: no inbound webhook is adopted, so nothing to build. Revisit if one is adopted | - |
 
 ### Rows added 2026-10-14
 
@@ -227,7 +227,7 @@ Each gap row is assigned to one build child. Risk, cadence, environment, writabl
 
 ### #3633-011 Recovery, backup and rollback exercises (#4469)
 
-- **Rows (7):** 31, 43, 71, 72, 73, 75, 77
+- **Rows (8):** 31, 43, 71, 72, 73, 74, 75, 77
 - **Risk if absent:** Recovery steps are untested when they are needed.
 - **Cadence:** One recorded exercise per row before 2026-11-07; D1 restore drill stays quarterly.
 - **Environment:** An approved environment, never Production without a recorded Product Authority Go and a documented restore path.
@@ -253,7 +253,7 @@ If time is short before 2026-10-31, build in this order: (1) add the missing wor
 
 1. Accept the inventory, deduplication proposal and this assessment as Phases 1-4. The 91-row catalog was accepted as the build gate on 2026-10-14.
 2. Choose whether dependency and supply-chain checks (rows 7 and 84) are built now or deferred under #2827.
-3. Confirm webhooks are not adopted (rows 56 and 87) and the RTO, RPO and SLO row waits on #2829.
+3. Confirm webhooks are not adopted (rows 56 and 87) and set the recovery targets (row 74). **Decided 2026-10-16:** no inbound webhook; targets are zero data loss and immediate recovery, and restore testing (#4469) is approved.
 4. Decide whether a missing `prefers-reduced-motion` behavior (row 63) is fixed in the product or accepted for launch.
 
 ## Rollback

@@ -6,7 +6,7 @@ Owns: Routes, navigation invariants, UI/UX contracts, page content contracts for
 Does Not Own: How-to procedures; operational runbooks; governance policies; admin FAQ/Ask queues
 Canonical Reference: /docs/reference/design/LGFC-Production-Design-and-Standards.md
 Related Issues: #3074, #3148
-Last Reviewed: 2026-08-08
+Last Reviewed: 2026-10-16
 ---
 
 # FAQ & Ask — Consolidated Public Workflow — LGFC
@@ -84,7 +84,7 @@ Expanding an FAQ item fires `POST /api/faq/view` (fire-and-forget). Multiple ite
 
 - Success: “Your question has been submitted. We’ll reply by email.”
 - Error: “Submission failed. Please try again.”
-- Contact mailto: `mailto:Contact@LouGehrigFanClub.com?subject=Contact%20Needed%20ASK`
+- Contact mailto: `mailto:admin@lougehrigfanclub.com?subject=Contact%20Needed%20ASK` (questions go to Admin; updated 2026-10-16, Product Authority, #4658)
 
 `/ask` does **not** write directly to `faq_entries`.
 
