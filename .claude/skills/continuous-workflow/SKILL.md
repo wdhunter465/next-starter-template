@@ -124,7 +124,7 @@ Role precedence changes sequencing, not authority. A protected stop blocks that 
 
 ## Separation of duties
 
-No implementer is the sole independent reviewer or approver of its own protected work. PMO Admin does not merge. CMO may not approve its own implementation. Merge approval defaults to Product Authority. Model C (constitutional or domain-policy) changes need independent review before merge.
+Merge authority is tiered (`docs/governance/REPOSITORY-AUTHORITY.md`, Merge authority). Production-tier merges are human only: Product Authority or the CMO, and no agent supplies that approval. Non-production Pull Requests, including Model C documentation, are self-approved by the implementer once the required checks pass. Self-approval never covers a protected decision. CMO may not approve its own implementation. Do not merge a Production-tier PR.
 
 ## Delivery cycle
 
