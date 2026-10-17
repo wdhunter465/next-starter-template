@@ -6,7 +6,7 @@ Owns: The decision worksheet for the 84 differences found between as-designed an
 Does Not Own: Product design intent, locked design specifications under docs/reference/design/**, remediation decisions, or application code
 Canonical Reference: /docs/governance/PRODUCT-AND-DESIGN.md
 Related issues: #4409
-Last Reviewed: 2026-10-15
+Last Reviewed: 2026-10-16
 ---
 
 # Website Design Assessment — Differences Register and Decision Worksheet
@@ -28,7 +28,7 @@ This worksheet lists every difference found on 2026-10-01. On 2026-10-14 Product
 | C-3 | FanClub hamburger drawer | Production-standards doc: 7 items | Built: 12 items (adds Photo, Library, Memorabilia, Chat, Submit) | Twelve items match the shipped member features; update the spec. | Bill, 2026-10-14 (accept all, #4409) |
 | C-4 | Member header name | Design lock: `MemberHeader` | Code and other docs: FanClub header (**built**) | `FanClubHeader` is the real name; update the design lock. | Bill, 2026-10-14 (accept all, #4409) |
 | C-5 | Header height | Design lock: 64px or 72px | Built: 96px bar (80px mobile) | The built 96px (80px mobile) stays; update the spec. | Bill, 2026-10-14 (accept all, #4409) |
-| C-6 | Contact mailbox on `/contact` | `text-pages.md`: `Contact@LouGehrigFanClub.com` and `admin@…` | Built: `Support@LouGehrigFanClub.com` and `admin@…` |  |  |
+| C-6 | Contact mailbox on `/contact` | `text-pages.md`: `Contact@LouGehrigFanClub.com` and `admin@…` | Built: `Support@LouGehrigFanClub.com` and `admin@…` | The contact page shows Support@LouGehrigFanClub.com and admin@lougehrigfanclub.com under a Contact heading, as built. Update the spec. The Ask page still mails `Contact@LouGehrigFanClub.com`; that address is not decided here. | Bill, 2026-10-16 |
 
 ## Step 2 — Differences (84)
 
@@ -92,7 +92,7 @@ This worksheet lists every difference found on 2026-10-01. On 2026-10-14 Product
 | D-056 | Text pages | AD-TXT-01 | Body line-height 1.6; paragraph spacing 24px | Line-height 1.7 (lead paragraph 18px/1.6); paragraph margin 14px | P | Low | C | Accepted 2026-10-14 (accept all, #4409). Accept |  | - |
 | D-057 | Text pages | AD-TXT-01 | H2 24px, margin 40px above / 16px below | 22px, margin 22px above / 10px below | P | Med | A | Accepted 2026-10-14 (accept all, #4409). Text page heading spacing follows one style |  | #4614 |
 | D-058 | Text pages | AD-TXT-01 | All four pages share the same layout, no custom CSS | `/about` uses PageShell: Georgia 32.8px charcoal title with subtitle; Contact/Privacy/Terms use the blue sans H1 | P | Med | A | Accepted 2026-10-14 (accept all, #4409). About should share the layout of the other text pages |  | #4614 |
-| D-059 | Text pages | AD-TXT-02 | Contact page shows `admin@lougehrigfanclub.com` and `Contact@LouGehrigFanClub.com` | Shows **Support@LouGehrigFanClub.com** and admin@lougehrigfanclub.com; `Contact@…` appears only in the Ask-form mailto | P | Med |  | Open: recommended B (update the spec) once Bill confirms the live mailbox (conflict C-6). Not covered by accept-all. |  | - |
+| D-059 | Text pages | AD-TXT-02 | Contact page shows `admin@lougehrigfanclub.com` and `Contact@LouGehrigFanClub.com` | Shows **Support@LouGehrigFanClub.com** and admin@lougehrigfanclub.com; `Contact@…` appears only in the Ask-form mailto | P | Med | B | Accepted 2026-10-16 (Bill confirmed the mailboxes; ruling C-6). The contact page spec now names Support and Admin under a Contact heading. **Closed 2026-10-16.** |  | - |
 | D-060 | Text pages | AD-TXT-01 | Four text pages (about, contact, privacy, terms) | A fifth page, **/accessibility**, exists (hard-coded statement), is in the footer and sitemap | P | Low | B | Accepted 2026-10-14 (accept all, #4409). Accessibility page exists and is wanted |  | - |
 | D-061 | Text pages | AD-TXT-02 | About copy awaiting (placeholder) | Real copy is live | P | Low | A | Accepted 2026-10-14 (accept all, #4409). Verify and close; copy is already live |  | #4614 |
 | D-062 | Ask / FAQ | AD-ROUTE-02 | `/faq` is a compatibility redirect, not a competing workflow | Redirect works (client-side, verified `/faq/?q=gehrig` → `/ask/?q=gehrig`), but `/faq/` and `/login/` are still listed in `sitemap.xml` | P | Low | A | Accepted 2026-10-14 (accept all, #4409). Remove /faq and /login from the sitemap |  | #4615 |

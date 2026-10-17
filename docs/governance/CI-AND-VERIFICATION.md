@@ -6,7 +6,7 @@ Owns: Gate profiles, check classification, deterministic evidence, validation ow
 Does Not Own: Delivery Model A/B selection, agent approval routing, branch-protection UI settings, workflow YAML implementation, product/UX behavior, or platform isolation claims
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
 Related Issues: #2689, #2686, #3668, #3671, #3807, #3746, #3751, #3771, #2769, #4174, #4089, #4200, #4213
-Last Reviewed: 2026-09-22
+Last Reviewed: 2026-10-16
 ---
 
 # CI and Verification
@@ -41,7 +41,7 @@ Domain policy, the merge-protection supporting surface, and live Main required c
 | **PMO Admin** | Current holder in `docs/governance/AGENT-TEAM.md` | Verification package completeness; Promotion Candidate qualification criteria authorship; PMO process for CI/verification policy |
 | **Implementation / Operations** | Current holder in `docs/governance/AGENT-TEAM.md` | Scoped implementation of approved CI docs and allowlisted verification work; remediation of failing checks inside the allowlist; no self-approval of protected gate or Production authority |
 | **PR Approver / Engineering** | Current holder in `docs/governance/AGENT-TEAM.md` | Independent judgment that work meets design, acceptance, repository, and promotion requirements; not replaceable by a green CI panel alone |
-| **CMO** | Current holder in `docs/governance/AGENT-TEAM.md` (unassigned until recorded) | Merge approval of PRs when Product Authority is unavailable; not Product Authority; may not approve own implementation |
+| **CMO** | Current holder in `docs/governance/AGENT-TEAM.md` | Human approval of Production-tier merges; not required for non-production PRs; not Product Authority; may not approve own implementation |
 | **Deterministic CI** | GitHub Actions and authorized repository automation | Machine-provable checks, evidence artifacts, eligible non-main integration under Delivery policy, and bounded authorized automation |
 | **Administration & Communications** | Current holder in `docs/governance/AGENT-TEAM.md` plus automation | Routing, acknowledgments, evidence transport, hold/resume, and closeout state reconciliation that depends on verification outcomes |
 | **Day-2 Operations** | Current holder in `docs/governance/AGENT-TEAM.md` | Production health verification after deploy; incident classification when live verification fails |
@@ -212,7 +212,7 @@ Routine inventory wording fixes, reference routing corrections, and allowlisted 
 
 | Change type | CI-doc update first? | Approval |
 | --- | --- | --- |
-| Docs-only supporting inventory correction aligned to existing authority | Yes (the docs PR is the change) | Per delivery profile; PMO Admin for policy meaning; CMO may merge if Product Authority is unavailable and a holder is recorded |
+| Docs-only supporting inventory correction aligned to existing authority | Yes (the docs PR is the change) | Per delivery profile; PMO Admin for policy meaning; non-production, so self-approved after the required checks |
 | Workflow behavior change matching already-recorded surfaces | Supporting surface update with or before implementation | Per delivery profile; protected-path rules apply |
 | Required-check or Production verification meaning change | Yes | PMO / Engineering; Product Authority when material |
 | Component-child drafting under an authorized Model B program | Per child allowlist | Component auto-integration only when the child profile allows it; does not activate `main` policy alone |
