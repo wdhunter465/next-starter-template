@@ -36,14 +36,14 @@ Product Authority directives (2026-10-15): Bill is CMO; Claude Code is PMO; ever
 | Operations | Monitor passes a job awaiting its first run | #4636 | merged |
 | Operations | Halt any scheduled Action after 3 consecutive failures; one Issue; `ops:priority` | #4638 | merged |
 | 1 Constitution, 2 Agent Team | Hierarchy levels, tiered Merge authority, PR readiness; Bill = CMO, Claude Code = PMO | #4640 | merged |
-| 2 Domain | No draft state; lifecycle and handoff point to constitution | #4647 | open |
-| 2 Domain | `PR_PROCESS`, `PR_GOVERNANCE`, `DELIVERY-AND-RELEASE` tiered merge authority | #4650 | open |
-| 2 Domain | CMO-fallback wording removed from PLATFORM, PRODUCT, PMO, CI policies | #4652 | open |
-| 3 Reference | PMO reference contracts point to constitution | #4654 | open |
-| 5 Explanation | AI-workforce explanation points to constitution | #4656 | open |
-| 5 Template, skill | PR template comment and `continuous-workflow` skill | #4661 | open |
+| 2 Domain | No draft state; lifecycle and handoff point to constitution | #4647 | merged |
+| 2 Domain | `PR_PROCESS`, `PR_GOVERNANCE`, `DELIVERY-AND-RELEASE` tiered merge authority | #4650 | merged |
+| 2 Domain | CMO-fallback wording removed from PLATFORM, PRODUCT, PMO, CI policies | #4652 | merged |
+| 3 Reference | PMO reference contracts point to constitution | #4654 | merged |
+| 5 Explanation | AI-workforce explanation points to constitution | #4656 | merged |
+| 5 Template, skill | PR template comment and `continuous-workflow` skill | #4661 | merged |
 
-All open PRs are ready for review. #4640 is merged; the others reference sections it added. Nothing was merged by the agent.
+Every PR in this table is merged. Nothing was merged by the agent: all merges were made by Product Authority.
 
 ## Gate coverage: which PR requirements have no enforcing gate
 
