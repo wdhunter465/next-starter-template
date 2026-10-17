@@ -14,6 +14,7 @@ export function assessModelCPostMerge({
   root = '.',
   issueClosed = null,
   prMerged = null,
+  baseRef = null,
   skipDiataxis = false,
 } = {}) {
   const errors = [];
@@ -53,7 +54,11 @@ export function assessModelCPostMerge({
     });
   }
 
-  if (prMerged === true && issueClosed === false) {
+  // GitHub closes a source Issue only when its PR merges into the default branch, so a PR
+  // merged into a stacked parent branch legitimately leaves the Issue open (#4667).
+  // An unknown base keeps the strict check.
+  const mergedIntoMain = baseRef === null || baseRef === 'main';
+  if (prMerged === true && issueClosed === false && mergedIntoMain) {
     errors.push({
       code: 'source_issue_open',
       message: 'Source Issue remains open after Model C merge; closeout evidence incomplete.',
@@ -93,6 +98,7 @@ export function runCli(env = process.env) {
     root: env.MODEL_C_ROOT || '.',
     issueClosed: env.MODEL_C_ISSUE_CLOSED === 'true' ? true : env.MODEL_C_ISSUE_CLOSED === 'false' ? false : null,
     prMerged: env.MODEL_C_PR_MERGED === 'true' ? true : env.MODEL_C_PR_MERGED === 'false' ? false : null,
+    baseRef: env.MODEL_C_BASE_REF ? env.MODEL_C_BASE_REF : null,
     skipDiataxis: env.MODEL_C_SKIP_DIATAXIS === 'true',
   });
   console.log(renderModelCPostMergeReport(result));

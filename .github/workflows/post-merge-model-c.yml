@@ -35,16 +35,19 @@ jobs:
           PULL_REQUEST_NUMBER: ${{ github.event.pull_request.number }}
           PULL_REQUEST_BODY: ${{ github.event.pull_request.body }}
           PULL_REQUEST_MERGED: ${{ github.event.pull_request.merged }}
+          PULL_REQUEST_BASE_REF: ${{ github.event.pull_request.base.ref }}
           DISPATCH_PR_NUMBER: ${{ inputs.pr_number }}
         run: |
           if [ "$EVENT_NAME" = "pull_request" ]; then
             PR_NUMBER="$PULL_REQUEST_NUMBER"
             printf '%s\n' "$PULL_REQUEST_BODY" > "$RUNNER_TEMP/pr_body.md"
             MERGED="$PULL_REQUEST_MERGED"
+            BASE_REF="$PULL_REQUEST_BASE_REF"
           else
             PR_NUMBER="$DISPATCH_PR_NUMBER"
             gh pr view "$PR_NUMBER" --json body -q .body > "$RUNNER_TEMP/pr_body.md"
             MERGED=$(gh pr view "$PR_NUMBER" --json state,mergedAt --jq 'if .state == "MERGED" and .mergedAt != null then "true" else "false" end')
+            BASE_REF=$(gh pr view "$PR_NUMBER" --json baseRefName -q .baseRefName)
           fi
           if grep -qiE '^[[:space:]]*(-[[:space:]]*)?Delivery model:[[:space:]]*C[[:space:]]*$' "$RUNNER_TEMP/pr_body.md"; then
             echo "is_model_c=true" >> "$GITHUB_OUTPUT"
@@ -67,6 +70,7 @@ jobs:
           echo "issue_closed=$ISSUE_CLOSED" >> "$GITHUB_OUTPUT"
           echo "pr_number=$PR_NUMBER" >> "$GITHUB_OUTPUT"
           echo "merged=$MERGED" >> "$GITHUB_OUTPUT"
+          echo "base_ref=$BASE_REF" >> "$GITHUB_OUTPUT"
 
       - name: Collect merge paths
         if: steps.meta.outputs.is_model_c == 'true'
@@ -99,6 +103,7 @@ jobs:
           CHANGED_FILES_FILE: ${{ runner.temp }}/changed_files.txt
           MODEL_C_PR_MERGED: ${{ steps.meta.outputs.merged }}
           MODEL_C_ISSUE_CLOSED: ${{ steps.meta.outputs.issue_closed }}
+          MODEL_C_BASE_REF: ${{ steps.meta.outputs.base_ref }}
         run: node scripts/ci/model_c_post_merge.mjs
 
       - name: Skip non-Model C merges
