@@ -6,7 +6,7 @@ Owns: LGFC PMO July 2026 program issue portfolio model, PMO Backlog intake model
 Does Not Own: Product design, workflow implementation, runtime behavior, GitHub issue mutation, or merge authority
 Canonical Reference: /docs/ops/pmo/PMO-JULY-2026-OPERATING-MODEL.md
 Related Issues: #1411, #1417, #1418, #1419, #1420, #1421, #1422, #1423, #1424, #1379, #1255, #1501, #1719, #1720, #4174
-Last Reviewed: 2026-09-19
+Last Reviewed: 2026-10-16
 ---
 
 # LGFC Program Portfolio Model
@@ -103,7 +103,7 @@ Workflow Automation follows this path: it was captured as backlog material, prom
 - Cursor edits files inside the active task allowlist and records validation.
 - Cursor may not merge PRs, close issues, relabel issues, mutate queue state, or create child issues unless the active source issue explicitly authorizes it.
 - PMO Admin reviews governance, source-issue accounting, queue conformance, and documentation authority.
-- Product Authority retains default merge authority, protected action authority, launch-gate approval, destructive issue-action authority, and strategy decision authority. CMO may approve merge only when Product Authority is unavailable and a holder is recorded in AGENT-TEAM.
+- Product Authority retains protected action authority, launch-gate approval, destructive issue-action authority, and strategy decision authority. Merge authority is tiered and defined in `docs/governance/REPOSITORY-AUTHORITY.md` (Merge authority): Production-tier merges are human only, non-production Pull Requests are self-approved.
 - GitHub is the shared audit trail after planning content is promoted out of chat or Drive.
 
 ## Cursor Read Order

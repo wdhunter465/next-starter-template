@@ -6,7 +6,7 @@ Owns: Platform architecture ownership, environment classification, preview/compo
 Does Not Own: Delivery Model A/B selection, agent approval routing, CI gate implementation, product/UX behavior, or day-to-day operator checklists
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
 Related Issues: #2688, #2686, #4174, #4213
-Last Reviewed: 2026-09-22
+Last Reviewed: 2026-10-16
 ---
 
 # Platform and Environment
@@ -27,7 +27,7 @@ Delivery model selection remains in `docs/governance/PMO-PORTFOLIO.md` and `docs
 | **PMO Admin** | Current holder in `docs/governance/AGENT-TEAM.md` | Platform documentation package authorship; environment classification completeness |
 | **Implementation / Operations** | Current holder in `docs/governance/AGENT-TEAM.md` | Scoped implementation of approved platform docs and allowlisted platform work; no self-approval of platform authority |
 | **PR Approver / Engineering** | Current holder in `docs/governance/AGENT-TEAM.md` | Independent review of platform/environment PRs per delivery profile; not a substitute for Product Authority on credentials, cost, or material isolation decisions |
-| **CMO** | Current holder in `docs/governance/AGENT-TEAM.md` (unassigned until recorded) | Merge approval when Product Authority is unavailable; may not approve own implementation |
+| **CMO** | Current holder in `docs/governance/AGENT-TEAM.md` | Human approval of Production-tier merges (`docs/governance/REPOSITORY-AUTHORITY.md`, Merge authority); not required for non-production PRs; may not approve own implementation |
 | **Supporting platform references** | `docs/reference/platform/**` | Resource inventories, isolation classifications, and operational platform facts only |
 
 Rules:
@@ -92,7 +92,7 @@ Required controls while isolation is incomplete:
 | External-service mutation (B2 write sync, email send, analytics) | PMO Admin review; Product Authority when production impact or cost applies | Source issue + protected-change review when required |
 | Deployment binding / Pages project / production domain change | PMO Admin primary; Product Authority when material | Protected-change review |
 | D1 schema migration affecting production | PMO Admin review; Product Authority when destructive or irreversible | Migration plan + protected-change review |
-| Platform rollback of bindings, credentials, or external writes | Product Authority; CMO only for merge when Product Authority is unavailable and a holder is recorded | Rollback package on source issue / PR |
+| Platform rollback of bindings, credentials, or external writes | Product Authority; CMO approves the Production-tier merge only | Rollback package on source issue / PR |
 | Emergency platform stabilization | Operations and Recovery path | Incident/source issue disposition |
 
 No agent may treat an implementation convenience, screenshot, prior PR, or draft comment as a platform isolation or credential decision.
@@ -146,7 +146,7 @@ Routine inventory wording fixes, reference routing corrections, validation remed
 
 | Change type | Platform-doc update first? | Approval |
 | --- | --- | --- |
-| Docs-only supporting inventory correction aligned to existing authority | Yes (the docs PR is the change) | PMO Admin; CMO may merge if Product Authority is unavailable and a CMO holder is recorded |
+| Docs-only supporting inventory correction aligned to existing authority | Yes (the docs PR is the change) | PMO Admin; non-production, so self-approved after the required checks (`docs/governance/REPOSITORY-AUTHORITY.md`, Merge authority) |
 | Implementation matching already-recorded platform facts | No additional ownership change | Per delivery profile (`docs/governance/DELIVERY-AND-RELEASE.md`) |
 | Material isolation, binding, credential, or hosting change | Yes | Product Authority go/no-go when material, then PMO Admin review/merge |
 | Component-child drafting under an authorized Model B program | Per child allowlist | Component auto-integration only when the child profile allows it; does not activate `main` policy alone |
