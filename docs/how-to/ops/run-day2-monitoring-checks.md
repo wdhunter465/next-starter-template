@@ -6,7 +6,7 @@ Owns: Operator steps for the Production health and Day-2 monitoring checks (stag
 Does Not Own: Monitoring strategy and stages (#4468), rollback authority (#3633 decision record), the per-workflow failure watcher procedure (docs/how-to/ci/workflow-failure-exception-issues.md)
 Canonical Reference: /docs/ops/reports/ci-gap-assessment-3633.md
 Related Issues: #4468, #3633, #4444, #4540, #4539, #4599
-Last Reviewed: 2026-10-14
+Last Reviewed: 2026-10-18
 ---
 
 # Run the Day-2 Monitoring Checks
@@ -25,7 +25,14 @@ Tell an operator, for each stage 1 monitoring check, what it proves, where its a
 | Workflow failure watcher | `ops-workflow-failure-exception-issues.yml` | On each watched run | A watched workflow failed on `main` | Issue `OPS EXCEPTION: <workflow> failed` |
 | Scheduled job health | `ops-scheduled-job-health.yml` | Every 2 hours at :40 | Every scheduled workflow is enabled and succeeded on `main` within its window | Issue `OPS — Scheduled job health — stale or disabled job` |
 | Repeated failure halt | `ops-halt-repeated-failures.yml` | Hourly at :17 | No scheduled workflow has 3 consecutive failures on `main`. One that does is disabled and gets one Issue; a Production-protecting job alerts and keeps running | Issue `OPS HALTED: <workflow> halted after 3 consecutive failures` or `OPS ALERT: <workflow> failed 3 times in a row (not halted)` |
+| Production edge health | `ops-production-edge-health.yml` | 06:45 and 18:45 UTC | Home and FAQ answer HTTP 2xx, send a cache-control policy that cannot stay stale for more than a day, and respond within 8 seconds. Also checks that scheduled-job health succeeded within 6 hours | Issue `OPS — Production edge health — check failed` |
 | Weekly operations scorecard | `ops-weekly-operations-scorecard.yml` | Mondays 13:00 UTC, and on demand | The last 7 days of uptime, job health, delivery, restore time, the Operations queue, backup age, and Priority 1 projects | Comment on the standing Issue `Weekly scorecard` |
+
+Backup success is visible in two places. `OPS — D1 Backup Scheduled Daily Export (#3268 Phase 3)` and `OPS — Snapshot Backup` are on the failure watcher, so a failed run opens `OPS EXCEPTION: <workflow> failed`. Scheduled job health also fails the daily export when its last success is older than 30 hours.
+
+These workflow failures open an Operations exception even though the job also writes its own runtime finding: `OPS — B2 D1 Daily Sync`, `OPS — B2 S3 Smoke Test`, `OPS — Matchup Pair Monitor`, and `OPS — Production Edge Health`. Production audit keeps its own Issue, `Production Audit Failed (Playwright Invariants)`, and is not duplicated on the watcher.
+
+Production deploy is the Cloudflare Pages Git integration. There is no repository deploy workflow to chain. After a deploy, dispatch `OPS — Production Audit` or wait for the 00:15 or 12:15 UTC run.
 
 Scheduled job health covers the silent case the watcher cannot see: a job that stopped running, was disabled, or keeps failing past its window. Its windows are in `JOBS` in `scripts/ops/scheduled-job-health.mjs`. A test fails if a scheduled workflow is added without an entry there.
 
@@ -49,13 +56,14 @@ Scheduled job health covers the silent case the watcher cannot see: a job that s
 
 ## Verification
 
-- `npx vitest run tests/scheduled-job-health.test.mjs` passes. It includes broken fixtures: a stale job, a disabled job, a missing workflow, a job with no success, and an API error that must not report a pass.
+- `npx vitest run tests/scheduled-job-health.test.mjs tests/production-edge-health.test.mjs` passes. The edge-health tests fail a missing cache-control header, a long max-age with no revalidation, a slow response, a non-2xx response, a thrown fetch, and a silent scheduled-job health monitor.
 - After merge, run `OPS — Scheduled Job Health` by `workflow_dispatch` and read the step summary table.
 
 ## Limits
 
-- Scheduled job health cannot see itself stop. Its failures are on the watcher's list, and the uptime probe and runner health are independent schedules, but a disabled `ops-scheduled-job-health.yml` is noticed only by a person.
-- There is no out-of-band alert channel (gap row 70). Alerts reach Operations through GitHub Issues only.
+- Production edge health watches `ops-scheduled-job-health.yml`. Scheduled job health watches `ops-production-edge-health.yml`. If both stop, neither can say so.
+- There is no out-of-band alert channel (gap row 70). Alerts reach Operations through GitHub Issues only. A second channel needs a Product Authority choice.
+- The shared three-failure halt is `ops-halt-repeated-failures.yml` (#4637). It is already on `main`.
 
 ## Rollback
 
