@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
+import { motionSafeScrollBehavior } from '@/lib/motionPreference';
 
 type Quote = { quote: string; source?: string };
 
@@ -77,7 +78,7 @@ export default function Footer() {
 
         {/* Center: small logo (uses available footer height) */}
         <div style={{ flex: '0 0 auto', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-          <button type="button" aria-label="Back to top" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} style={{ background: 'transparent', border: 0, padding: 0, cursor: 'pointer' }}>
+          <button type="button" aria-label="Back to top" onClick={() => window.scrollTo({ top: 0, behavior: motionSafeScrollBehavior() })} style={{ background: 'transparent', border: 0, padding: 0, cursor: 'pointer' }}>
             <img
               src="/logo.svg"
               alt="Lou Gehrig Fan Club"
