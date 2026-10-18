@@ -1,8 +1,9 @@
 'use client';
 
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { apiGet, apiPost } from '@/lib/api';
 import { WEEKLY_MATCHUP_HOLD } from '@/lib/matchup-hold';
+import styles from './WeeklyMatchup.module.css';
 
 type Photo = {
   id: number;
@@ -37,32 +38,6 @@ type ResultsResp = {
     winner: 'a' | 'b' | 'tie';
     winner_photo?: { id: number; url: string; alt?: string } | null;
   };
-};
-
-const gridStyle: CSSProperties = {
-  display: 'grid',
-  gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-  gap: 16,
-  alignItems: 'start',
-};
-
-const photoFrameStyle: CSSProperties = {
-  width: '100%',
-  height: 440,
-  borderRadius: 12,
-  overflow: 'hidden',
-  display: 'flex',
-  alignItems: 'center',
-  justifyContent: 'center',
-  background: '#f3f4f6',
-};
-
-const photoStyle: CSSProperties = {
-  width: '100%',
-  height: '100%',
-  objectFit: 'contain',
-  objectPosition: 'center',
-  display: 'block',
 };
 
 /** Vote lock is pair-scoped so mid-week photo replacement unlocks voting for the new pair. */
@@ -298,18 +273,19 @@ function renderMatchupBody(
 
   return (
     <>
-      <div style={gridStyle}>
+      <div className={styles.grid}>
         <div className="card" style={{ textAlign: 'center' }}>
-          <div style={photoFrameStyle}>
+          <div className={styles.frame}>
             <img
               src={a.url}
               alt={a.description || 'Lou Gehrig'}
-              style={photoStyle}
+              className={styles.photo}
               onError={() => onBrokenPhoto(a.id)}
             />
           </div>
 
-          <div className="sub" style={{ marginTop: 10 }}>{a.title || a.description || 'Photo A'}</div>
+          <div className={styles.label}>Photo A</div>
+          {(a.title || a.description) && <div className="sub" style={{ marginTop: 4 }}>{a.title || a.description}</div>}
           {aCredit && <div className="sub" style={{ marginTop: 4, fontSize: 13, opacity: 0.8 }}>Credit: {aCredit}</div>}
 
           {!hasVoted && (
@@ -325,16 +301,17 @@ function renderMatchupBody(
         </div>
 
         <div className="card" style={{ textAlign: 'center' }}>
-          <div style={photoFrameStyle}>
+          <div className={styles.frame}>
             <img
               src={b.url}
               alt={b.description || 'Lou Gehrig'}
-              style={photoStyle}
+              className={styles.photo}
               onError={() => onBrokenPhoto(b.id)}
             />
           </div>
 
-          <div className="sub" style={{ marginTop: 10 }}>{b.title || b.description || 'Photo B'}</div>
+          <div className={styles.label}>Photo B</div>
+          {(b.title || b.description) && <div className="sub" style={{ marginTop: 4 }}>{b.title || b.description}</div>}
           {bCredit && <div className="sub" style={{ marginTop: 4, fontSize: 13, opacity: 0.8 }}>Credit: {bCredit}</div>}
 
           {!hasVoted && (
