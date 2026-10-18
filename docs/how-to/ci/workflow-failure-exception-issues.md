@@ -5,8 +5,8 @@ Authority Level: Procedure
 Owns: How a failed scheduled or post-merge workflow becomes an Operations exception Issue, how to add a workflow to the watch list, and how a scheduled workflow is halted and re-enabled after 3 consecutive failures
 Does Not Own: Incident command, rollback decisions, or the content of individual workflows
 Canonical Reference: /docs/governance/OPERATIONS-AND-RECOVERY.md
-Related Issues: #4444, #3268, #4589, #4637
-Last Reviewed: 2026-10-15
+Related Issues: #4444, #3268, #4589, #4637, #4670, #4674
+Last Reviewed: 2026-10-18
 ---
 
 # Workflow Failure Exception Issues
@@ -36,6 +36,10 @@ Watched workflows (by their exact `name:`):
 - OPS — Scheduled Job Health
 - GATE — Quality Checks (default branch only)
 - GATE — Secret Scan (default branch only)
+- OPS — B2 D1 Daily Sync
+- OPS — B2 S3 Smoke Test
+- OPS — Matchup Pair Monitor
+- OPS — Production Edge Health
 
 Only failures on the default branch open an Issue. Failures on pull request branches are normal and are ignored.
 
