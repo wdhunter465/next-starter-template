@@ -18,6 +18,15 @@ export const FOLDER_RULES = [
     requiredMessage: 'how-to docs must contain a task execution section: Steps, Procedure, or Execution',
   },
   {
+    // Locked design specs may say Specification; they are still reference content (#4632).
+    prefix: 'docs/reference/design/',
+    folderClass: 'diataxis',
+    expectedDocType: 'Reference',
+    acceptedDocTypes: ['Specification'],
+    forbiddenStructure: /^##[ \t]+(Steps|Procedure|How to|Tutorial)|```(bash|sh|zsh|powershell)/im,
+    forbiddenMessage: 'reference docs must not contain procedure/tutorial sections or executable command blocks',
+  },
+  {
     prefix: 'docs/reference/',
     folderClass: 'diataxis',
     expectedDocType: 'Reference',
@@ -107,7 +116,8 @@ export function auditDiataxisFile(file, content) {
     return findings;
   }
 
-  const docTypePattern = new RegExp(`^Doc Type: .*${rule.expectedDocType}`, 'im');
+  const docTypes = [rule.expectedDocType, ...(rule.acceptedDocTypes || [])];
+  const docTypePattern = new RegExp(`^Doc Type: .*(${docTypes.join('|')})`, 'im');
   if (!docTypePattern.test(content)) {
     findings.push({
       file,
