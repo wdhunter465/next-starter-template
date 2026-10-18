@@ -19,7 +19,7 @@ Task prompts, operator messages, and subagent instructions do not override this 
 
 ## `run startup`
 
-When Product Authority says `run startup`, execute the Cursor contract in `docs/ops/ai/CURSOR-RULES.md` (host bind, this chain, roles and queue order from `AGENT-TEAM.md`), report each file as read, then stop. Startup authorizes no Issue, pull request, or edit. `docs/ops/ai/CORE-RULES.md` is a pointer. The contract is `docs/governance/AGENT-EXECUTION.md`.
+When a new Cursor Local session starts, or Product Authority says `run startup`, perform Session open in `docs/ops/ai/CURSOR-RULES.md`. That section runs `~/.cursor/lgfc-wake-ctl.sh`, reads this chain, reports roles, summarizes only the session just closed, reports the Operations queue, and suggests the next step. Then stop before implementation. Startup authorizes no Issue, pull request, or edit. `docs/ops/ai/CORE-RULES.md` is a pointer. The contract is `docs/governance/AGENT-EXECUTION.md`.
 
 ## Stop before implementation when
 
