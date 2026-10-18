@@ -14,6 +14,12 @@ describe('public SEO artifacts (#2046)', () => {
     }
   });
 
+  it('does not list the /faq redirect or the /login page (#4615, D-062)', () => {
+    const urls = sitemap().map((entry) => entry.url);
+    expect(urls).not.toContain(`${SITE_URL}/faq/`);
+    expect(urls).not.toContain(`${SITE_URL}/login/`);
+  });
+
   it('disallows member and admin paths in robots.txt', () => {
     const rules = robots();
     expect(rules.sitemap).toBe(`${SITE_URL}/sitemap.xml`);

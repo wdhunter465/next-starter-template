@@ -1,0 +1,39 @@
+/* Weekly Matchup layout (#4615, D-042). Photos show whole, with no grey bars, and
+   the two cards stack on phones so each photo gets the full width. */
+.grid {
+	display: grid;
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	gap: 16px;
+	align-items: start;
+}
+
+.frame {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	border-radius: 12px;
+	overflow: hidden;
+}
+
+.photo {
+	display: block;
+	width: auto;
+	max-width: 100%;
+	height: auto;
+	max-height: 440px;
+	object-fit: contain;
+}
+
+.label {
+	margin-top: 10px;
+	font-size: 0.875rem;
+	font-weight: 700;
+	color: var(--lgfc-text-main);
+}
+
+@media (max-width: 520px) {
+	.grid {
+		grid-template-columns: minmax(0, 1fr);
+	}
+}
