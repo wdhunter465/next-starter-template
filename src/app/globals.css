@@ -985,3 +985,18 @@ summary:focus-visible {
 .memberpage-admin .memberpage-card-admin {
 	border-color: #f2c48a;
 }
+
+/* Reduced motion (#4624, catalog row 63). One rule stops or shortens every CSS
+   animation, transition and smooth scroll on the site. Inventory:
+   docs/reference/website/reduced-motion-inventory.md */
+@media (prefers-reduced-motion: reduce) {
+	*,
+	*::before,
+	*::after {
+		animation-duration: 0.01ms !important;
+		animation-iteration-count: 1 !important;
+		transition-duration: 0.01ms !important;
+		transition-delay: 0s !important;
+		scroll-behavior: auto !important;
+	}
+}
