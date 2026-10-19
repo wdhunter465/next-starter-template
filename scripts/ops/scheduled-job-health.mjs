@@ -14,6 +14,7 @@ const HOUR = 60 * 60 * 1000;
 // branch (any trigger). null means only the enabled state is checked.
 export const JOBS = [
   { file: 'ops-site-uptime-probe.yml', maxAgeHours: 3 },
+  { file: 'ops-photo-address-check.yml', maxAgeHours: 8 },
   { file: 'ops-stale-communication.yml', maxAgeHours: 3 },
   { file: 'program-2477-chat-attention-pulse.yml', maxAgeHours: 3 },
   { file: 'ops-chatterbox-reconciliation-sweep.yml', maxAgeHours: 4 },
