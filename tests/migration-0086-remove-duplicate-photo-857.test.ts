@@ -1,5 +1,5 @@
-// #4705: migration 0086 takes duplicate photo 857 off the site and out of the matchup pool.
-// It must touch photo 857 only, delete nothing, and be safe to run twice.
+// #4705: migration 0086 removes duplicate photo 857 from D1.
+// It must touch photo 857 only, never fail on a story reference, and be safe to run twice.
 
 import fs from 'node:fs';
 import path from 'node:path';
@@ -37,17 +37,29 @@ function row(db: DatabaseSync, id: number) {
 const migrationSql = () => fs.readFileSync(path.join(migrationsDir, TARGET_FILE), 'utf8');
 
 describe('migration 0086 removes duplicate photo 857', () => {
-  it('hides photo 857 from the site and the matchup pool', () => {
+  it('deletes photo 857 when no story uses it', () => {
     const db = schemaBeforeTarget();
     seedPhoto(db, 855, KEEP_NAME);
     seedPhoto(db, 857, DROP_NAME);
     db.exec(migrationSql());
+    expect(row(db, 857)).toBeUndefined();
+    expect(row(db, 855)).toBeTruthy();
+  });
 
-    const dropped = row(db, 857);
-    expect(dropped.publication_eligible).toBe(0);
-    expect(dropped.is_matchup_eligible).toBe(-1);
-    expect(dropped.rights_notes).toContain('DUPLICATE_REMOVED');
-    expect(dropped.rights_notes).toContain('#4705');
+  it('hides photo 857 instead, without failing, when a story still uses it', () => {
+    const db = schemaBeforeTarget();
+    seedPhoto(db, 857, DROP_NAME);
+    db.exec(
+      `INSERT INTO content_inventory (id, tag, title, text) VALUES (1, 'tag', 't', 'x')`,
+    );
+    db.exec(
+      `INSERT INTO content_inventory_media (story_id, media_id, media_role) VALUES (1, 857, 'supporting_image')`,
+    );
+    expect(() => db.exec(migrationSql())).not.toThrow();
+    const kept = row(db, 857);
+    expect(kept.publication_eligible).toBe(0);
+    expect(kept.is_matchup_eligible).toBe(-1);
+    expect(kept.rights_notes).toContain('DUPLICATE_REMOVED');
   });
 
   it('leaves photo 855 and every other photo untouched', () => {
@@ -65,12 +77,15 @@ describe('migration 0086 removes duplicate photo 857', () => {
     }
   });
 
-  it('keeps the row, so closed matchups that reference photo 857 still resolve', () => {
+  it('leaves weekly_matchups rows alone', () => {
     const db = schemaBeforeTarget();
+    seedPhoto(db, 855, KEEP_NAME);
     seedPhoto(db, 857, DROP_NAME);
+    db.exec(
+      `INSERT INTO weekly_matchups (photo_a_id, photo_b_id, week_start, status) VALUES (856, 857, '2026-10-12', 'closed')`,
+    );
     db.exec(migrationSql());
-    expect(row(db, 857)).toBeTruthy();
-    expect((db.prepare('SELECT COUNT(*) AS n FROM photos').get() as { n: number }).n).toBe(1);
+    expect((db.prepare('SELECT COUNT(*) AS n FROM weekly_matchups').get() as { n: number }).n).toBe(1);
   });
 
   it('does nothing to a row whose id matches but whose file name does not', () => {
@@ -78,6 +93,7 @@ describe('migration 0086 removes duplicate photo 857', () => {
     seedPhoto(db, 857, 'some-other-file.jpg');
     db.exec(migrationSql());
     const untouched = row(db, 857);
+    expect(untouched).toBeTruthy();
     expect(untouched.publication_eligible).toBe(1);
     expect(untouched.is_matchup_eligible).toBe(1);
   });
@@ -86,9 +102,9 @@ describe('migration 0086 removes duplicate photo 857', () => {
     const db = schemaBeforeTarget();
     seedPhoto(db, 857, DROP_NAME);
     db.exec(migrationSql());
-    const once = row(db, 857).rights_notes;
     db.exec(migrationSql());
-    expect(row(db, 857).rights_notes).toBe(once);
+    expect(() => db.exec(migrationSql())).not.toThrow();
+    expect(row(db, 857)).toBeUndefined();
   });
 
   it('runs cleanly when photo 857 is absent (a Development database)', () => {
@@ -98,9 +114,10 @@ describe('migration 0086 removes duplicate photo 857', () => {
     expect(row(db, 855).publication_eligible).toBe(1);
   });
 
-  it('never deletes or drops anything', () => {
+  it('deletes only from photos, only photo 857, and drops nothing', () => {
     const sql = migrationSql().replace(/--.*$/gm, '').toUpperCase();
-    expect(sql).not.toMatch(/\bDELETE\b/);
+    expect(sql.match(/\bDELETE\s+FROM\s+\w+/g)).toEqual(['DELETE FROM PHOTOS']);
+    expect(sql).toContain('ID = 857');
     expect(sql).not.toMatch(/\bDROP\b/);
     expect(sql).not.toMatch(/\bTRUNCATE\b/);
   });
