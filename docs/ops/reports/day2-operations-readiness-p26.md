@@ -6,7 +6,7 @@ Owns: Proposed launch-window roles, daily status format, monitoring and alerting
 Does Not Own: The Go packet, any workflow or alert change, the freeze declaration, credentials, or any Production action
 Canonical Reference: /docs/reference/operations/2027-launch-calendar-operating-contract.md
 Related Issues: #4439, #4414, #3268, #2780, #3866, #4444, #4453, #4407, #4417, #4468
-Last Reviewed: 2026-10-08
+Last Reviewed: 2026-10-19
 ---
 
 # Day-2 operations readiness for the launch window (go-live P-26), proposal
@@ -81,17 +81,23 @@ Operations posts one comment per day on #2093 starting when the freeze is declar
 
 ## Decisions for Product Authority
 
-| # | Question | Recommended answer |
-| --- | --- | --- |
-| 1 | Who holds each role above? | Product Authority names them; one named person for Operations and one backup |
-| 2 | Standing rollback Go for the launch window? | Yes, rollback only, report afterward |
-| 3 | Where do alerts go? | The `team:operations` exception Issues, plus a notification to the Operations holder |
-| 4 | When does daily reporting start? | On the day the freeze is declared |
-| 5 | Add Production Audit, the B2 sync and the B2 smoke test to the failure watcher? | Yes, as part of #3633-010 |
+Status as of 2026-10-19. The answers were given on #4439 (2026-10-16) and #4657 (2026-10-19).
+
+| # | Question | Recommended answer | Decision |
+| --- | --- | --- | --- |
+| 1 | Who holds each role above? | Product Authority names them; one named person for Operations and one backup | **Decided 2026-10-16.** Cursor holds Operations. Claude Code holds Engineering and is secondary Operations. |
+| 2 | Standing rollback Go for the launch window? | Yes, rollback only, report afterward | **Approved 2026-10-19** (decision 5 on #4657): rollback only, with a report afterward. |
+| 3 | Where do alerts go? | The `team:operations` exception Issues, plus a notification to the Operations holder | **Approved 2026-10-19** (decision 3 on #4657), narrowed: outage and failed-deploy alerts also reach Bill and the Operations holder by email or phone alert. The channel and any cost are still to be chosen (#4687). |
+| 4 | When does daily reporting start? | On the day the freeze is declared | **Open.** No answer recorded. |
+| 5 | Add Production Audit, the B2 sync and the B2 smoke test to the failure watcher? | Yes, as part of #3633-010 | **Approved 2026-10-19** with the monitoring review, tracked as #4686. |
+
+### Work that follows the decisions
+
+The monitoring review (#4657) opened one Issue per gap on 2026-10-19: #4681 (wake an agent on a new Operations Issue), #4682 (synthetic sign-in check), #4683 (photo addresses), #4684 (scheduled publish check after 10:00), #4685 (uptime probe routes), #4686 (failure watcher coverage), #4687 (alerts to Bill and Operations), #4688 (certificate and DNS), #4689 (failed deploy alert), #4690 (email delivery), #4691 (secret expiry reminders). Three need an input from Product Authority before building: where the sign-in test credentials are stored (#4682), the alert channel and cost (#4687), and the answer to decision 4 above.
 
 ## Validation
 
-Valid when the role holders are named, the five decisions are recorded on #4439 or #2093, and the map is re-run on the launch candidate with the gaps closed or accepted.
+Valid when the role holders are named, the five decisions are recorded on #4439 or #2093 (four are, decision 4 is open), and the map is re-run on the launch candidate with the gaps closed or accepted.
 
 ## Rollback
 

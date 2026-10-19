@@ -6,7 +6,7 @@ Owns: The step order for the 2027-01-01 go-live deployment: preconditions, deplo
 Does Not Own: The Go decision, the freeze declaration, Cloudflare account administration, or any Production action by itself
 Canonical Reference: /docs/reference/operations/2027-launch-calendar-operating-contract.md
 Related Issues: #4425, #4414, #2093, #4417, #4439, #4440, #4421, #4424, #2905, #2901
-Last Reviewed: 2026-10-08
+Last Reviewed: 2026-10-19
 ---
 
 # Go-live deployment runbook
@@ -146,18 +146,30 @@ The 2026-09-24 tabletop named the rollback path without running it. The acceptan
 
 Part B is the only part that touches Production. A live rehearsal rolls real visitors back by one deployment for a few minutes, so it needs a window, an announcement to the team only, and the Go. If Product Authority declines a live rehearsal, record the decline and do part A and C only. That leaves the rollback "named but not proven", and the Go packet row must say so.
 
+### Status, 2026-10-19
+
+Product Authority approved the standing rollback Go for the launch window (rollback only, report afterward) and the remaining recovery exercises on 2026-10-19 (#4657, #4469). That is approval to run the rehearsal. It is not yet scheduled, for three reasons:
+
+- **Part A (procedure check):** needs the Cloudflare Pages dashboard, which the agent sessions cannot reach. Someone with dashboard access walks the Roll back and Roll forward sections and confirms each control exists, then records it below.
+- **Part B (live rehearsal):** needs a named quiet window with no staged post due, and a person or a workflow able to roll the Pages project back one deployment and forward again. Agent sessions have no Pages deployment control, and no workflow does this today. Building one would add a Production-capable workflow with the Cloudflare token, which is a protected change for Product Authority to decide. Product Authority names the window, and either runs the dashboard steps with the agent recording, or approves that workflow.
+- **Deployment identity:** the site does not publish its commit SHA, so "deployment identity before and after" cannot be read off the site. #4696 adds a static marker file; until it merges, the identity is read from the Pages dashboard.
+
+**Part C (data recovery check): done.** The isolated restore drill of 2026-10-16 (workflow run 38966454925, `restore-verify`, manual dispatch, approved by Product Authority) completed with conclusion `success`: confirmation, restore, evidence upload and result recording all passed, and the alert and failure-record steps were skipped. It follows the 2026-10-01 restore proof recorded on #3268. Aggregate result only; no row content was recorded.
+
+Until Part B is run, the Go packet's Rollback row must say rollback is named but not proven.
+
 ### Rehearsal record (completed after the rehearsal)
 
 | Field | Entry |
 | --- | --- |
-| Date, window and executor | |
+| Date, window and executor | Part C: 2026-10-16, workflow run 38966454925. Parts A and B: not yet scheduled (see Status) |
 | Deployment identity before | |
 | Deployment identity after rollback | |
 | Smoke and launch-readiness result after rollback | |
 | Minutes from decision to verified rollback | |
 | Deployment identity after roll forward | |
 | Result after roll forward | |
-| Problems found and fixes opened | |
+| Problems found and fixes opened | No deployment marker on the site (#4696) |
 | Product Authority acceptance | |
 
 ## Inputs from earlier projects
