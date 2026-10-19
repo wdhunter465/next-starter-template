@@ -15,6 +15,8 @@ import {
 	requestsSourceIssueTerminalClose,
 	resolveSourceIssueCloseoutMode,
 	shouldCloseSourceIssue,
+	dispositionKeepsSourceOpen,
+	postMergeIssueDispositionSection,
 	shouldKeepActiveSourceIssueOpen,
 	shouldPreserveSourceIssueOpen,
 	shouldReopenActiveSourceIssue,
@@ -1384,5 +1386,43 @@ describe('clerical source-issue linkage repair (#2532)', () => {
 		});
 		expect(evaluation.status).toBe('declared_correct');
 		expect(evaluation.correctedIssueNumber).toBe('3042');
+	});
+});
+
+describe('plain keep-open wording in the disposition (#4445)', () => {
+	const prBody = (disposition) => `# PR Summary\n\n## Change Summary\n\nText.\n\n${disposition}\n\n## Reviewer / Bot Review Attestation\n\n- [ ] x\n`;
+
+	it('honors the wording that closed #4537, #4615, #4626 and #4657 early', () => {
+		for (const line of [
+			'POST-MERGE ISSUE DISPOSITION: keep #4537 open on merge for the Pages listing; close after Pages is verified.',
+			'POST-MERGE ISSUE DISPOSITION: keep #4615 open on merge until #4672 closes D-040 and D-044.',
+			'POST-MERGE ISSUE DISPOSITION: keep #4657 open until Bill answers the decisions and the gap Issues are opened.',
+		]) {
+			expect(shouldKeepActiveSourceIssueOpen(prBody(line)), line).toBe(true);
+		}
+	});
+
+	it('honors the same wording under a heading', () => {
+		expect(
+			shouldKeepActiveSourceIssueOpen(prBody('## POST-MERGE ISSUE DISPOSITION\n\nKeep #4672 open on merge until the check is recorded.')),
+		).toBe(true);
+		expect(
+			shouldKeepActiveSourceIssueOpen(prBody('## POST-MERGE ISSUE DISPOSITION\n\nThe Issue stays open after merge.')),
+		).toBe(true);
+	});
+
+	it('still closes when the disposition says close, in either form', () => {
+		expect(shouldKeepActiveSourceIssueOpen(prBody('POST-MERGE ISSUE DISPOSITION: close #4632 on merge.'))).toBe(false);
+		expect(shouldKeepActiveSourceIssueOpen(prBody('## POST-MERGE ISSUE DISPOSITION\n\nClose #4672 on merge.'))).toBe(false);
+		expect(shouldKeepActiveSourceIssueOpen(prBody('POST-MERGE ISSUE DISPOSITION: close #1 on merge; do not keep it open.'))).toBe(false);
+	});
+
+	it('ignores keep-open words outside the disposition and reads only the disposition lines', () => {
+		expect(shouldKeepActiveSourceIssueOpen('The follow-up stays open.\n\nNo disposition here.')).toBe(false);
+		const section = postMergeIssueDispositionSection(prBody('POST-MERGE ISSUE DISPOSITION: keep #1 open.\n'));
+		expect(section).toContain('keep #1 open');
+		expect(section).not.toContain('Reviewer');
+		expect(dispositionKeepsSourceOpen('')).toBe(false);
+		expect(dispositionKeepsSourceOpen('reopen #1 if closed')).toBe(false);
 	});
 });
