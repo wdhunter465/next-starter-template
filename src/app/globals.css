@@ -29,6 +29,15 @@
 	--lgfc-border: #e0e0e0;
 	--lgfc-border-soft: #dde3f5;
 	--lgfc-border-light: #e8ecf5;
+
+	/* LGFC design tokens - Message colors (#4626, accepted 2026-10-19; no component uses them yet, #4627 does) */
+	--lgfc-error: #b00020;
+	--lgfc-error-bg: #fff7f7;
+	--lgfc-error-border: #e7b8b8;
+	--lgfc-warning: #7a4b00;
+	--lgfc-success: #184d12;
+	--lgfc-success-bg: #f6fff6;
+	--lgfc-success-border: #cde4cf;
 	
 	/* LGFC design tokens - Typography */
 	--lgfc-font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", "Roboto", "Helvetica Neue", Arial, sans-serif;
