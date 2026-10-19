@@ -191,8 +191,23 @@ export function isPermittedClosedSourceIssueFollowup({ body = '', sourceIssue = 
 }
 
 export function postMergeIssueDispositionSection(body = '') {
-	const match = String(body || '').match(/## POST-MERGE ISSUE DISPOSITION[\s\S]*?(?=\n## [A-Z]|\n<!--|$)/i);
-	return match ? match[0] : '';
+	const text = String(body || '');
+	const heading = text.match(/## POST-MERGE ISSUE DISPOSITION[\s\S]*?(?=\n## [A-Z]|\n<!--|$)/i);
+	if (heading) return heading[0];
+	// A plain "POST-MERGE ISSUE DISPOSITION: ..." line (the PR template has no heading for it, #4445).
+	const plain = text.match(/^[ \t>*_-]*POST-MERGE ISSUE DISPOSITION\b[^\n]*(?:\n(?![ \t]*\n)[^\n]*)*/im);
+	return plain ? plain[0] : '';
+}
+
+/**
+ * Plain keep-open wording in the disposition ("keep #4615 open on merge until ...", "stays open",
+ * "remains open"). Only the disposition section is read, not the closeout checklist (#4445).
+ */
+export function dispositionKeepsSourceOpen(section = '') {
+	const text = String(section || '');
+	if (!text) return false;
+	if (/\b(?:do not|don't|no need to)\s+keep\b/i.test(text)) return false;
+	return /\b(?:keep|keeps|kept|stay|stays|remain|remains|leave)\b[^\n.]{0,80}\bopen\b/i.test(text);
 }
 
 export function postMergeCloseoutChecklistSection(body = '') {
@@ -224,7 +239,10 @@ function shouldKeepActiveSourceIssueOpenFromSection(section = '') {
 }
 
 export function shouldKeepActiveSourceIssueOpen(body = '') {
-	return shouldKeepActiveSourceIssueOpenFromSection(postMergeKeepOpenSections(body));
+	return (
+		shouldKeepActiveSourceIssueOpenFromSection(postMergeKeepOpenSections(body)) ||
+		dispositionKeepsSourceOpen(postMergeIssueDispositionSection(body))
+	);
 }
 
 export function isUmbrellaSourceIssue(issueMeta = null) {
