@@ -15,6 +15,114 @@ export const MAX_RETRY_WINDOW_MS = 60_000;
  */
 export const REQUIRED_CHECK_NAMES = ['quality', 'gitleaks'];
 
+/**
+ * Deploys the merge itself triggers (#4445). The closeout must not run before they finish, or it can
+ * mark an Issue verified before a migration has applied or the site has redeployed.
+ */
+export const DEPLOY_WAIT_MAX_MS = 20 * 60_000;
+export const DEPLOY_POLL_MS = 30_000;
+/** How long an expected deploy may stay absent before it is treated as not triggered. */
+export const DEPLOY_APPEAR_GRACE_MS = 3 * 60_000;
+export const D1_MIGRATIONS_WORKFLOW_NAME = 'D1 Migrations';
+export const PAGES_CHECK_NAME = 'Cloudflare Pages';
+
+const D1_MIGRATION_PATHS = [
+	/^migrations\//,
+	/^wrangler\.toml$/,
+	/^\.github\/workflows\/d1-migrations\.yml$/,
+	/^scripts\/ci\/d1_prod_dev_identity_check\.mjs$/,
+];
+const PAGES_BUILD_PATHS = [
+	/^src\//,
+	/^functions\//,
+	/^public\//,
+	/^package(?:-lock)?\.json$/,
+	/^next\.config\./,
+	/^wrangler\.toml$/,
+	/^tsconfig\.json$/,
+];
+
+export function expectedMergeDeploys(changedFiles = []) {
+	const files = Array.isArray(changedFiles) ? changedFiles : [];
+	return {
+		d1Migrations: files.some((file) => D1_MIGRATION_PATHS.some((pattern) => pattern.test(file))),
+		pagesBuild: files.some((file) => PAGES_BUILD_PATHS.some((pattern) => pattern.test(file))),
+	};
+}
+
+/**
+ * Pure evaluation of the deploys a merge triggered.
+ * - A deploy that is running or queued keeps the closeout waiting.
+ * - A deploy that finished without success blocks the closeout (`failed`).
+ * - A D1 Migrations run that never appears is a failure once the grace period passes.
+ * - A Pages check that never appears is treated as not triggered once the grace period passes.
+ */
+export function evaluateMergeDeploys({ expected, d1Run = null, pagesCheck = null, elapsedMs = 0, graceMs = DEPLOY_APPEAR_GRACE_MS } = {}) {
+	const waiting = [];
+	const failed = [];
+	const done = [];
+
+	if (expected?.d1Migrations) {
+		if (!d1Run) {
+			if (elapsedMs >= graceMs) failed.push('d1_migrations_not_triggered');
+			else waiting.push('d1_migrations');
+		} else if (String(d1Run.status || '').toLowerCase() !== 'completed') {
+			waiting.push('d1_migrations');
+		} else if (d1Run.conclusion === 'success') {
+			done.push('d1_migrations');
+		} else {
+			failed.push(`d1_migrations_${d1Run.conclusion || 'failed'}`);
+		}
+	}
+
+	if (expected?.pagesBuild) {
+		if (!pagesCheck) {
+			if (elapsedMs < graceMs) waiting.push('pages_build');
+		} else if (String(pagesCheck.status || '').toLowerCase() !== 'completed') {
+			waiting.push('pages_build');
+		} else if (['success', 'neutral', 'skipped'].includes(pagesCheck.conclusion)) {
+			done.push('pages_build');
+		} else {
+			failed.push(`pages_build_${pagesCheck.conclusion || 'failed'}`);
+		}
+	}
+
+	if (failed.length) return { settled: false, terminal: true, classification: 'merge_deploy_failed', reasons: failed };
+	if (waiting.length) return { settled: false, classification: 'merge_deploy_pending', reasons: waiting };
+	return { settled: true, classification: 'settled', reasons: [], done };
+}
+
+export async function waitForMergeDeploys({
+	expected,
+	loadDeployState,
+	sleep = delay,
+	pollMs = DEPLOY_POLL_MS,
+	maxWaitMs = DEPLOY_WAIT_MAX_MS,
+	graceMs = DEPLOY_APPEAR_GRACE_MS,
+} = {}) {
+	if (!expected?.d1Migrations && !expected?.pagesBuild) {
+		return { status: 'settled', attempts: 0, elapsedMs: 0, reasons: [], waitedFor: [] };
+	}
+	let elapsedMs = 0;
+	let attempts = 0;
+	while (true) {
+		attempts += 1;
+		const state = await loadDeployState();
+		const evaluation = evaluateMergeDeploys({ expected, ...state, elapsedMs, graceMs });
+		if (evaluation.settled) {
+			return { status: 'settled', attempts, elapsedMs, reasons: [], waitedFor: evaluation.done };
+		}
+		if (evaluation.terminal) {
+			return { status: 'failed', classification: evaluation.classification, reasons: evaluation.reasons, attempts, elapsedMs };
+		}
+		if (elapsedMs >= maxWaitMs) {
+			return { status: 'failed', classification: 'merge_deploy_timeout', reasons: evaluation.reasons, attempts, elapsedMs };
+		}
+		await sleep(pollMs);
+		elapsedMs += pollMs;
+	}
+}
+
 const delay = (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds));
 
 function terminalCheck(check = {}) {
@@ -182,6 +290,21 @@ export async function loadGitHubPostMergeSnapshot({ token, repository, prNumber,
 	};
 }
 
+export async function loadGitHubMergeDeployState({ token, repository, prNumber, expectedMergeSha }) {
+	const [runs, checks, files] = await Promise.allSettled([
+		githubJson(`/actions/runs?head_sha=${expectedMergeSha}&event=push&per_page=50`, { token, repository }),
+		githubJson(`/commits/${expectedMergeSha}/check-runs?per_page=100`, { token, repository }),
+		githubJson(`/pulls/${prNumber}/files?per_page=100`, { token, repository }),
+	]);
+	const workflowRuns = runs.status === 'fulfilled' ? runs.value.workflow_runs || [] : [];
+	const checkRuns = checks.status === 'fulfilled' ? checks.value.check_runs || [] : [];
+	return {
+		changedFiles: files.status === 'fulfilled' ? files.value.map((file) => file.filename) : null,
+		d1Run: workflowRuns.find((run) => run.name === D1_MIGRATIONS_WORKFLOW_NAME) || null,
+		pagesCheck: checkRuns.find((check) => check.name === PAGES_CHECK_NAME) || null,
+	};
+}
+
 function reportMarkdown(result, { prNumber, expectedMergeSha }) {
 	return [
 		'# Post-Merge Stabilization',
@@ -214,10 +337,21 @@ export async function main(env = process.env) {
 		throw new Error('GITHUB_TOKEN, GITHUB_REPOSITORY, PR_NUMBER, and GITHUB_SHA are required');
 	}
 
-	const result = await stabilizePostMergeState({
+	let result = await stabilizePostMergeState({
 		expectedMergeSha,
 		loadSnapshot: () => loadGitHubPostMergeSnapshot({ token, repository, prNumber, expectedMergeSha }),
 	});
+	if (result.status === 'settled') {
+		const first = await loadGitHubMergeDeployState({ token, repository, prNumber, expectedMergeSha });
+		const expected = expectedMergeDeploys(first.changedFiles || []);
+		const deploys = await waitForMergeDeploys({
+			expected,
+			loadDeployState: () => loadGitHubMergeDeployState({ token, repository, prNumber, expectedMergeSha }),
+		});
+		if (deploys.status === 'failed') {
+			result = { ...deploys, attempts: result.attempts + deploys.attempts, elapsedMs: result.elapsedMs + deploys.elapsedMs };
+		}
+	}
 	appendOutput('status', result.status);
 	appendOutput('pr_number', prNumber);
 	appendOutput('classification', result.classification || 'settled');
