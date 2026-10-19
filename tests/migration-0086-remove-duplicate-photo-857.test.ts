@@ -50,7 +50,7 @@ describe('migration 0086 removes duplicate photo 857', () => {
     const db = schemaBeforeTarget();
     seedPhoto(db, 857, DROP_NAME);
     db.exec(
-      `INSERT INTO content_inventory (id, tag, title, text) VALUES (1, 'tag', 't', 'x')`,
+      `INSERT INTO content_inventory (id, tag, title, text, credit_line) VALUES (1, 'tag', 't', 'x', 'c')`,
     );
     db.exec(
       `INSERT INTO content_inventory_media (story_id, media_id, media_role) VALUES (1, 857, 'supporting_image')`,
