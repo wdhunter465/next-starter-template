@@ -6,14 +6,14 @@ Owns: The single LGFC color standard: each approved color, its CSS token and per
 Does Not Own: Typography, spacing, layout, or any decision to add, remove or change a color (Product Authority decides)
 Canonical Reference: /docs/reference/design/LGFC-Production-Design-and-Standards.md
 Related Issues: #4626, #4627, #4409, #4420, #4608
-Last Reviewed: 2026-10-14
+Last Reviewed: 2026-10-19
 ---
 
 # LGFC color standard
 
 ## Status
 
-Written 2026-10-14 at Product Authority's direction: avoid variance in the color schema, and give all code and design changes one standard to refer to. It records the colors already approved in `docs/reference/design/style-guide.md` and already defined as CSS tokens in `src/app/globals.css`. It invents no color. Where code uses a color that is not approved here, it is listed under "Open items" for Product Authority to decide.
+Written 2026-10-14 at Product Authority's direction: avoid variance in the color schema, and give all code and design changes one standard to refer to. It records the colors already approved in `docs/reference/design/style-guide.md` and already defined as CSS tokens in `src/app/globals.css`. It invents no color. Where code uses a color that is not approved here, Product Authority decides (see "Decisions recorded").
 
 ## Rules
 
@@ -41,9 +41,25 @@ Source: `style-guide.md` (Color Palette) and `globals.css` (`:root`).
 | Soft border | `--lgfc-border-soft` | `#dde3f5` | Primary border for cards and dividers |
 | Light border | `--lgfc-border-light` | `#e8ecf5` | Lighter internal separations |
 
+## Message colors
+
+Accepted by Product Authority on 2026-10-19 (proposal on #4626). Every value is already in the code, so accepting them changes nothing visible; #4627 moves components onto the tokens. All three text colors pass WCAG AA and AAA on white (contrast 7.3, 7.4 and 10.0).
+
+| Name | Token | Hex | Use |
+| --- | --- | --- | --- |
+| Error text | `--lgfc-error` | `#b00020` | Error messages and failed-action text |
+| Error panel background | `--lgfc-error-bg` | `#fff7f7` | Background of an error panel |
+| Error panel border | `--lgfc-error-border` | `#e7b8b8` | Border of an error panel |
+| Warning text | `--lgfc-warning` | `#7a4b00` | Warnings and cautions; no panel colors are approved |
+| Success text | `--lgfc-success` | `#184d12` | Success confirmations |
+| Success panel background | `--lgfc-success-bg` | `#f6fff6` | Background of a success panel |
+| Success panel border | `--lgfc-success-border` | `#cde4cf` | Border of a success panel |
+
+`#7c2d12` (the Club Staging admin notice) is a near-duplicate of the warning color and maps to `--lgfc-warning`.
+
 ## Colors defined in code but not described in the style guide
 
-These tokens exist today. They are kept as defined, and each needs its use confirmed by Product Authority (open item 1).
+These tokens exist today. They are kept as defined; Product Authority's decision on each is recorded under "Decisions recorded" (decision 1).
 
 | Name | Token | Hex | Defined in |
 | --- | --- | --- | --- |
@@ -57,17 +73,19 @@ These tokens exist today. They are kept as defined, and each needs its use confi
 | Charcoal | `--lgfc-charcoal` | `#212529` | `src/styles/variables.css` |
 | Divider | `--lgfc-divider` | `#dee2e6` | `src/styles/variables.css` |
 
-The five tokens in `variables.css` are defined outside `globals.css`, which rule 2 forbids once they are consolidated (open item 2).
+The five tokens in `variables.css` are defined outside `globals.css`, which rule 2 forbids once they are consolidated (decision 2).
 
-## Open items for Product Authority
+## Decisions recorded
 
-| # | Question | Recommended answer |
+Product Authority agreed to the recommended answers on 2026-10-16 ("4627 I agree with your assessment") and accepted the message colors on 2026-10-19. Both are recorded on #4626.
+
+| # | Question | Decision |
 | --- | --- | --- |
-| 1 | Confirm the use of the nine tokens in the second table, or retire them | Keep `--lgfc-bg-light` and `--lgfc-border`; retire the `--brand-blue` alias and `--lgfc-offwhite` (duplicates) once code stops using them |
-| 2 | Move the five `variables.css` color tokens into `globals.css` (rule 2) | Yes, in the follow-up Issue #4627 |
-| 3 | Name approved colors for error, warning and success messages. The code uses `#b00020`, `#7a4b00`, `#7c2d12` and others with no token | Product Authority picks; the author does not guess |
-| 4 | The Club Home newspaper uses a cream and brown set (for example `#f5efe0`, `#d3c3a5`, `#4a4238`, `#8a3324`). Is that a second approved palette for the Club Home newspaper design? | Yes if it is the Club Home newspaper design, and then it gets its own rows and tokens |
-| 5 | The code uses `#1e3a8a`, `#003366`, `#6b7280`, `#4b5563` and similar grays and blues with no token | Replace with the nearest core token, or approve as new rows |
+| 1 | Use of the nine tokens in the second table | Keep `--lgfc-bg-light` and `--lgfc-border`; retire the `--brand-blue` alias and `--lgfc-offwhite` (duplicates) once code stops using them |
+| 2 | Move the five `variables.css` color tokens into `globals.css` | Yes, in #4627 |
+| 3 | Colors for error, warning and success messages | Accepted 2026-10-19; see "Message colors" above |
+| 4 | The Club Home newspaper cream and brown set (for example `#f5efe0`, `#d3c3a5`, `#4a4238`, `#8a3324`) | A second approved palette for the Club Home newspaper design, with its own rows and tokens, to be added in #4627 |
+| 5 | Stray colors (`#1e3a8a`, `#003366`, `#6b7280`, `#4b5563` and similar) | Map to the nearest core token, or approve as new rows |
 
 ## Follow-up work
 
