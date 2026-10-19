@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: Current post-merge validation, source-issue closeout, evidence, and remediation surface as a supporting specification
 Does Not Own: CI and Verification Domain Policy; pre-merge required checks; branch protection settings; production runtime monitoring
 Canonical Reference: /docs/governance/CI-AND-VERIFICATION.md
-Related Issues: #2689, #1197, #1500, #2175, #2208, #2380, #2469, #2591
-Last Reviewed: 2026-07-21
+Related Issues: #2689, #1197, #1500, #2175, #2208, #2380, #2469, #2591, #4445
+Last Reviewed: 2026-10-19
 ---
 
 # LGFC Post-Merge Validation Surface
@@ -94,6 +94,12 @@ When validation passes and no blocking remediation remains, the closeout runner 
 6. verify terminal label integrity.
 
 Program, umbrella, parent, roadmap, queue, and tracking boundaries remain governed by current issue/PR policy and explicit closeout decisions.
+
+### Keep-open disposition and merge deploys (#4445)
+
+- **Keep-open wording.** The closeout reads the `POST-MERGE ISSUE DISPOSITION` section of the PR body, either as a `## POST-MERGE ISSUE DISPOSITION` heading or as a plain `POST-MERGE ISSUE DISPOSITION:` line. Wording such as "keep #N open", "stays open" or "remains open" keeps the source issue open; "close #N on merge" does not. The closeout checklist is read separately, as before.
+- **Wait for the deploys the merge triggers.** After GitHub state settles, stabilization waits (up to 20 minutes, polling every 30 seconds) for the `D1 Migrations` run when the merge touches migrations, `wrangler.toml` or the migration workflow, and for the `Cloudflare Pages` check when it touches site paths (`src/`, `functions/`, `public/`, package, Next and TypeScript config). A deploy that fails blocks the closeout (`merge_deploy_failed`); one that does not finish in time keeps the source issue open (`merge_deploy_timeout`); a migration run that never appears within 3 minutes blocks it too. A `Cloudflare Pages` check that never appears is treated as not triggered. Documentation-only merges wait for nothing.
+- **Not covered here.** Treating every workflow finding as an exception, and holding closeout while the source issue has unchecked acceptance criteria, remain open items on #4445.
 
 ## Failure and remediation
 

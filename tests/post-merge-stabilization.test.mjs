@@ -4,7 +4,10 @@ import { fileURLToPath } from 'node:url';
 import { describe, expect, it, vi } from 'vitest';
 
 import {
+	evaluateMergeDeploys,
 	evaluatePostMergeSnapshot,
+	expectedMergeDeploys,
+	waitForMergeDeploys,
 	loadGitHubPostMergeSnapshot,
 	REQUIRED_CHECK_NAMES,
 	stabilizePostMergeState,
@@ -337,5 +340,97 @@ describe('required check surface only names checks that can actually produce a c
 		} else {
 			expect(REQUIRED_CHECK_NAMES).not.toContain('pr-issue-accounting');
 		}
+	});
+});
+
+describe('merge deploy wait (#4445)', () => {
+	it('expects a D1 Migrations run only for migration paths and a Pages build for site paths', () => {
+		expect(expectedMergeDeploys(['migrations/0099_x.sql'])).toEqual({ d1Migrations: true, pagesBuild: false });
+		expect(expectedMergeDeploys(['src/app/page.tsx'])).toEqual({ d1Migrations: false, pagesBuild: true });
+		expect(expectedMergeDeploys(['wrangler.toml'])).toEqual({ d1Migrations: true, pagesBuild: true });
+		expect(expectedMergeDeploys(['docs/ops/reports/x.md', 'tests/a.test.ts'])).toEqual({
+			d1Migrations: false,
+			pagesBuild: false,
+		});
+	});
+
+	it('keeps waiting while a deploy is running and settles when it succeeds', () => {
+		const expected = { d1Migrations: true, pagesBuild: false };
+		expect(
+			evaluateMergeDeploys({ expected, d1Run: { status: 'in_progress' }, elapsedMs: 10_000 }),
+		).toMatchObject({ settled: false, classification: 'merge_deploy_pending' });
+		expect(
+			evaluateMergeDeploys({ expected, d1Run: { status: 'completed', conclusion: 'success' }, elapsedMs: 90_000 }),
+		).toMatchObject({ settled: true });
+	});
+
+	it('reproduces the #4411 case: a migration still applying is not verified', () => {
+		const result = evaluateMergeDeploys({
+			expected: { d1Migrations: true, pagesBuild: true },
+			d1Run: { status: 'queued' },
+			pagesCheck: null,
+			elapsedMs: 35_000,
+		});
+		expect(result.settled).toBe(false);
+		expect(result.reasons).toEqual(['d1_migrations', 'pages_build']);
+	});
+
+	it('fails when a deploy finished without success', () => {
+		expect(
+			evaluateMergeDeploys({
+				expected: { d1Migrations: true, pagesBuild: true },
+				d1Run: { status: 'completed', conclusion: 'failure' },
+				pagesCheck: { status: 'completed', conclusion: 'success' },
+				elapsedMs: 120_000,
+			}),
+		).toMatchObject({ settled: false, terminal: true, classification: 'merge_deploy_failed', reasons: ['d1_migrations_failure'] });
+	});
+
+	it('treats a migration run that never appears as a failure, and a missing Pages check as not triggered', () => {
+		expect(
+			evaluateMergeDeploys({ expected: { d1Migrations: true }, d1Run: null, elapsedMs: 200_000 }),
+		).toMatchObject({ terminal: true, reasons: ['d1_migrations_not_triggered'] });
+		expect(evaluateMergeDeploys({ expected: { pagesBuild: true }, pagesCheck: null, elapsedMs: 200_000 })).toMatchObject({
+			settled: true,
+		});
+		expect(evaluateMergeDeploys({ expected: { pagesBuild: true }, pagesCheck: null, elapsedMs: 30_000 })).toMatchObject({
+			settled: false,
+			reasons: ['pages_build'],
+		});
+	});
+
+	it('does not wait at all when the merge triggers no deploy', async () => {
+		const loadDeployState = vi.fn();
+		const result = await waitForMergeDeploys({ expected: { d1Migrations: false, pagesBuild: false }, loadDeployState });
+		expect(result.status).toBe('settled');
+		expect(loadDeployState).not.toHaveBeenCalled();
+	});
+
+	it('polls until the deploy finishes, then settles', async () => {
+		const states = [
+			{ d1Run: { status: 'queued' } },
+			{ d1Run: { status: 'in_progress' } },
+			{ d1Run: { status: 'completed', conclusion: 'success' } },
+		];
+		const sleep = vi.fn().mockResolvedValue(undefined);
+		const result = await waitForMergeDeploys({
+			expected: { d1Migrations: true },
+			loadDeployState: async () => states.shift(),
+			sleep,
+			pollMs: 30_000,
+		});
+		expect(result).toMatchObject({ status: 'settled', attempts: 3, elapsedMs: 60_000 });
+		expect(sleep).toHaveBeenCalledTimes(2);
+	});
+
+	it('times out with a keep-open classification when a deploy never finishes', async () => {
+		const result = await waitForMergeDeploys({
+			expected: { d1Migrations: true },
+			loadDeployState: async () => ({ d1Run: { status: 'in_progress' } }),
+			sleep: async () => {},
+			pollMs: 30_000,
+			maxWaitMs: 90_000,
+		});
+		expect(result).toMatchObject({ status: 'failed', classification: 'merge_deploy_timeout' });
 	});
 });
