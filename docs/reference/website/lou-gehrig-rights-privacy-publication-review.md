@@ -219,7 +219,7 @@ default.
 | Category | Clearance state | Credit |
 | --- | --- | --- |
 | Free use (public domain, CC0, US government work) | `public-domain-candidate`, then confirmed | Courtesy |
-| Free use, first published before 1931 | Treated as confirmed on recording the publication date and its source; marked `free use pre-1931` | Courtesy |
+| Free use, first published before 1931 | Public domain on recording the first-publication date and its source; existing public-domain label | Courtesy |
 | Free use with credit cited (CC BY, CC BY-SA, stated use-with-credit) | `permission-granted` (license is the grant) | Required |
 | Free use with permission given (owner's written grant) | `permission-granted` (reply stored as evidence) | As the owner specified |
 | Fee required | `fee-required` | None: never published |
@@ -243,18 +243,19 @@ mailbox and referenced from `rights_evidence`.
 1. Identify work type (text, photo, government document, etc.).
 2. Determine publication date and jurisdiction considerations.
 3. Document assessment in notes; do not assume PD from age alone.
-4. Set `public-domain-candidate` until Bill/ChatGPT or qualified review confirms. The exception is a work first published before January 1, 1931 whose first-publication date and the source of that date are recorded: it is treated as confirmed public domain and marked `free use pre-1931` (see Pre-1931 works).
+4. Set `public-domain-candidate` until Bill/ChatGPT or qualified review confirms. The exception is a work first published before January 1, 1931 whose first-publication date and the source of that date are recorded: it is public domain, needs no confirmation wait, and takes the existing public-domain label (see Old content is not automatically free).
 5. Confirmed public domain may proceed to `approved-for-reference` or public-copy path.
 
-### Pre-1931 works (Product Authority, 2026-10-20)
+### Old content is not automatically free (Product Authority, 2026-10-20)
 
-Anything first published before January 1, 1931 is public domain in the United States as of 2026 and is free to use. It does not wait in `public-domain-candidate`. It is admitted to the D1 and B2 libraries and may be used on the website, and its record is marked `free use pre-1931` so these items can be reported on.
+Age alone does not make content free to use.
 
+- **First published before January 1, 1931: public domain** in the United States as of 2026, and free to use. It does not wait in `public-domain-candidate`. It is admitted to the D1 and B2 libraries and may be used on the website. It carries the existing public-domain label; no separate label is used.
+- **First published from 1931 through 1977: not automatically free.** Protected for 95 years from publication if published with a proper copyright notice and renewed. Public domain only as a one-off exception, when notice or renewal was missed, and that must be shown for the item. Until confirmed it stays `public-domain-candidate` (for example the 1939 farewell speech and the 1942 film are presumed protected).
 - The date that counts is the **first publication** date, not the creation or photograph date. Unpublished material is not covered.
-- The record carries the first-publication date and the source of that date. Age alone does not qualify, and an item whose date cannot be sourced stays `public-domain-candidate` or follows the normal rights path.
-- The mark covers copyright only. The privacy review, the CMG, MLB and Yankees permission layers, trademarks and logos, and any archive's own terms of access still apply.
-- Works first published in 1931 or later are outside this exception.
-- The search guidance is `docs/how-to/website/lou-gehrig-free-use-content-discovery.md`; the stored mark and its report are tracked on #4728.
+- The record carries the first-publication date and the source of that date (`publication_established`, `publication_date_source` on the rights evidence; `original_publication_date` in the content metadata schema). Age alone does not qualify, and an item whose date cannot be sourced stays `public-domain-candidate` or follows the normal rights path.
+- The public-domain label covers copyright only. The privacy review, the CMG, MLB and Yankees permission layers, trademarks and logos, and any archive's own terms of access still apply.
+- The search guidance is `docs/how-to/website/lou-gehrig-free-use-content-discovery.md`.
 
 ## Privacy review process
 

@@ -5,7 +5,7 @@ Authority Level: Operational Procedure
 Owns: Search strategy for finding Lou Gehrig content (stories and images) that is free to use with source credit
 Does Not Own: Rights conclusions, the source allowlist, collector code, or publication approval
 Canonical Reference: /docs/reference/content-pipeline-rights-data-dictionary.md
-Related issues: #4521, #3551, #4405, #4727, #4728
+Related issues: #4521, #3551, #4405, #4727
 Last Reviewed: 2026-10-20
 ---
 
@@ -46,7 +46,7 @@ Admission and website display are hosted-only:
 | --- | --- | --- |
 | CC0, Public Domain Mark | Yes | Courtesy credit |
 | US government work (NPS, NARA, NIH, Library of Congress staff work) | Yes | Courtesy credit |
-| First published before January 1, 1931 (public domain as of 2026) | Yes, without waiting for confirmation, when the date and its source are recorded; mark the record `free use pre-1931` (see below) | Courtesy credit |
+| First published before January 1, 1931 (public domain as of 2026) | Yes, when the first-publication date and its source are recorded (see below) | Courtesy credit |
 | CC BY | Yes | Required: author, title, license, link |
 | CC BY-SA (for example Wikipedia text) | Yes, if LGFC can share the adapted text under the same license | Required, plus same license on adaptations |
 | CC BY-NC, CC BY-ND | Not by default | Treat as permission-needed (see the permission form letter) |
@@ -54,19 +54,22 @@ Admission and website display are hosted-only:
 
 Publication year alone is not enough for later works. A 1939 text may still be under copyright, so check renewal and the source's own statement.
 
-## Works first published before 1931 (Product Authority, 2026-10-20)
+## Old content is not automatically free (Product Authority, 2026-10-20)
 
-Anything first published before January 1, 1931 is public domain in the United States as of 2026 and is free to use. Such an item is admitted to the D1 and B2 libraries and may be used on the website, with courtesy credit. It needs no permission request and does not wait in `public-domain-candidate` for confirmation (see the Public-domain review process in `docs/reference/website/lou-gehrig-rights-privacy-publication-review.md`). Its record is marked **`free use pre-1931`** so these items can be reported on.
+Age alone does not make content free to use. Under US copyright law as of 2026:
 
-The rule applies only when all three hold:
+- **First published before January 1, 1931: public domain.** Photographs, newspaper articles, audio recordings and other works first published before that date are public domain and free to use without permission or fees. They are admitted to the D1 and B2 libraries and may be used on the website, with courtesy credit. They carry the existing public-domain label (conclusion `public_domain_confirmed`, outcome basis `public_domain`); no separate label is used.
+- **First published from 1931 through 1977: not automatically free.** These works stay protected for 95 years from publication if they were published with a proper copyright notice and the copyright was renewed. Much of Gehrig's best-known material falls here, such as the 1939 farewell speech and the 1942 film. A work from this window is public domain only as a one-off exception, when the creator did not include a notice or did not renew. That has to be shown for the item, goes through the Public-domain review process in `docs/reference/website/lou-gehrig-rights-privacy-publication-review.md`, and stays `public-domain-candidate` until confirmed.
+
+The pre-1931 rule applies only when all three hold:
 
 1. **First publication, not creation.** The date is when the work was first published. A photograph taken in 1928 and first published in 1935 is not covered.
-2. **The date is recorded with its source.** The record carries the first-publication date and where that date came from, for example a dated newspaper page, a dated book edition or a catalog record. A date nobody can source is not enough, and age alone does not qualify; that item follows the normal rights path.
+2. **The date is recorded with its source.** The record carries the first-publication date and where it came from, for example a dated newspaper page, a dated book edition or a catalog record. A date nobody can source is not enough, and age alone does not qualify; that item follows the normal rights path.
 3. **The work was published.** Unpublished material, such as private letters or photographs never published, is not covered by this rule.
 
-What the mark does not settle: it covers copyright only. Privacy review, the CMG, MLB and Yankees permission layers, trademarks and logos, and any archive's own terms of access are separate and unchanged.
+The public-domain label covers copyright only. Privacy review, the CMG, MLB and Yankees permission layers, trademarks and logos, and any archive's own terms of access are separate and unchanged.
 
-Until the stored mark and its report exist (#4728), record the words `free use pre-1931`, the first-publication date and the source of that date in the conclusion rationale of the item's rights evidence, so the items can be found later. Works first published in 1931 or later are outside this rule and follow the guidance above.
+Public-domain items from before 1931 can be reported from fields that already exist: the public-domain conclusion plus the recorded first-publication date and its source (`original_publication_date` in the content metadata schema; `publication_established` and `publication_date_source` on the rights evidence).
 
 ## Where to search, by what each is good for
 
