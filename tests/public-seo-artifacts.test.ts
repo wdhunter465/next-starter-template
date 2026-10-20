@@ -1,8 +1,14 @@
+import type { Metadata } from 'next';
 import { describe, expect, it } from 'vitest';
 
 import sitemap from '@/app/sitemap';
 import robots from '@/app/robots';
-import { buildHomeStructuredData, PUBLIC_SITEMAP_ROUTES, SITE_URL } from '@/lib/publicSiteMetadata';
+import {
+  buildHomeStructuredData,
+  DEFAULT_SITE_METADATA,
+  PUBLIC_SITEMAP_ROUTES,
+  SITE_URL,
+} from '@/lib/publicSiteMetadata';
 
 describe('public SEO artifacts (#2046)', () => {
   it('lists core public routes in the sitemap', () => {
@@ -43,5 +49,29 @@ describe('public SEO artifacts (#2046)', () => {
       expect(item).not.toHaveProperty('potentialAction');
       expect(item).not.toHaveProperty('sameAs');
     }
+  });
+
+  it('sets a canonical on the home page and on every sitemap route (#4732)', async () => {
+    const modules: Record<string, () => Promise<{ metadata?: Metadata }>> = {
+      '/about/': () => import('@/app/about/layout'),
+      '/accessibility/': () => import('@/app/accessibility/layout'),
+      '/ask/': () => import('@/app/ask/layout'),
+      '/contact/': () => import('@/app/contact/layout'),
+      '/events/': () => import('@/app/events/layout'),
+      '/join/': () => import('@/app/join/page'),
+      '/privacy/': () => import('@/app/privacy/page'),
+      '/search/': () => import('@/app/search/layout'),
+      '/terms/': () => import('@/app/terms/page'),
+    };
+    expect(DEFAULT_SITE_METADATA.alternates?.canonical).toBe(`${SITE_URL}/`);
+    for (const route of PUBLIC_SITEMAP_ROUTES) {
+      if (route === '/') continue;
+      const load = modules[route];
+      expect(load, `no metadata module mapped for ${route}`).toBeDefined();
+      const mod = await load();
+      expect(mod.metadata?.alternates?.canonical).toBe(`${SITE_URL}${route}`);
+    }
+    const fundraiser = await import('@/app/fundraiser-details/layout');
+    expect(fundraiser.metadata.alternates?.canonical).toBe(`${SITE_URL}/fundraiser-details/`);
   });
 });
