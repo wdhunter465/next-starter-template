@@ -21,6 +21,7 @@ Tell an operator, for each stage 1 monitoring check, what it proves, where its a
 | --- | --- | --- | --- | --- |
 | Production audit | `production-audit.yml` | 00:15 and 12:15 UTC | Playwright invariants pass against `https://www.lougehrigfanclub.com` (read-only) | Issue `Production Audit Failed (Playwright Invariants)` |
 | Site uptime probe | `ops-site-uptime-probe.yml` | Every 30 minutes | `www`, `/faq/`, `/api/health` with D1, the `pages.dev` host and the apex answer HTTP 2xx | Issue `OPS — Site uptime probe — failure detected` |
+| Photo address check | `ops-photo-address-check.yml` | Every 6 hours at :23 | Every photo address the public photo list and the current Weekly Matchup serve returns an image from Backblaze. A 404, an XML error body, a non-image or a timeout fails it, after one retry | Issue `OPS — Photo address check — failure detected` |
 | Asset register reconcile | `ops-asset-register-reconcile.yml` | Mondays 12:30 UTC | The asset register matches the repository's inventories | Issue opened by the reconcile script |
 | Workflow failure watcher | `ops-workflow-failure-exception-issues.yml` | On each watched run | A watched workflow failed on `main` | Issue `OPS EXCEPTION: <workflow> failed` |
 | Scheduled job health | `ops-scheduled-job-health.yml` | Every 2 hours at :40 | Every scheduled workflow is enabled and succeeded on `main` within its window | Issue `OPS — Scheduled job health — stale or disabled job` |
