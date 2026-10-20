@@ -54,16 +54,16 @@ All agent work routes through `Agent.md` and its mandatory documentation chain. 
 
 Stable boundaries:
 
-- Bill is Product Authority and the default merge approver when available. He decides requirements, priority, gates, and launch authorization.
+- Bill is Product Authority and the Production-tier merge approver. He decides requirements, priority, gates, and launch authorization.
 - Claude Code is Engineering. It may independently review work it did not implement.
 - Cursor is Operations during the recorded transition, interim PMO Admin, and an authorized implementer. That mapping is not a completed move into Engineering.
 - ChatGPT and Codex are retired. They have no current team role.
 - The Governance role has no active product holder until Product Authority records one.
-- A builder does not approve its own work.
+- A builder does not approve its own work, except for non-production Pull Requests, which the constitution allows it to approve and merge.
 
 PMO lifecycle terms and pull-request lifecycle states are different systems. PMO portfolio rules are in `docs/governance/PMO-PORTFOLIO.md`. Pull-request states are in `docs/governance/PR_LIFECYCLE_STATE_MACHINE.md`.
 
-`READY FOR REVIEW` is not `READY FOR MERGE`. Only the human operator may merge.
+`READY FOR REVIEW` is not `READY FOR MERGE`. Merge authority is tiered: the implementing agent merges non-production Pull Requests, and only the human approver merges Production-tier ones (`docs/governance/REPOSITORY-AUTHORITY.md`, Merge authority).
 
 ## Run startup
 

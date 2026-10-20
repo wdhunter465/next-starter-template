@@ -5,8 +5,8 @@ Authority Level: Constitutional
 Owns: Repository precedence, the top-down document hierarchy, merge-authority tiers, pull-request readiness, GitHub Issue authority, domain ownership, lane topology, queue topology, role-based work-selection delegation, canonical-source rules, supersession, and unresolved-conflict escalation
 Does Not Own: Detailed PMO, delivery, agent, CI, Administration, Operations, collaboration, or platform procedures
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2678, #3629, #3825, #4174
-Last Reviewed: 2026-10-15
+Related Issues: #2678, #3629, #3825, #4174, #4715
+Last Reviewed: 2026-10-20
 ---
 
 # Repository Authority
@@ -75,6 +75,12 @@ Who may approve a merge depends on where the change lands, not on who wrote it. 
 | Non-production | Sandbox, Development component branches, Promotion Candidate preparation, documentation, tooling and other work that does not change Production behavior | Self-approved: the implementing agent's own approval is sufficient once the deterministic gates pass; no CMO review | Not required |
 
 Product Authority set the non-production tier on purpose, to speed up development. It is not a gap.
+
+Who merges (Product Authority, 2026-10-20):
+
+- **Non-production tier:** the implementing agent approves and merges its own Pull Request once the limits below are met. No other approval is needed. Review by another agent or by Product Authority remains available and is never blocked.
+- **Production tier:** no agent approves or merges. The human approver (Product Authority, or the CMO holder recorded in `docs/governance/AGENT-TEAM.md`) approves and merges, and the agent continues with its next eligible item while the Pull Request waits.
+- **Merge record:** all agents act through the shared repository identity, so a merge appears under that identity. Until dedicated agent identities exist (#3234), the merging agent leaves one comment on the Pull Request in the form `Merged by: <product>; head <sha>; checks green; threads resolved`. The record is the only way to tell which actor merged.
 
 Limits on self-approval, which do not move:
 
