@@ -37,6 +37,15 @@ Do not list, diagnose, or "include for completeness" repository Issues or PRs th
 
 This bound does not cancel assigned-queue follow-through on waiting assigned PRs. It does not authorize grabbing unassigned Active projects as a workload play.
 
+## Resume queue (#3605 / #3611)
+
+The shared rule is Assigned-queue continuation in `docs/governance/AGENT-EXECUTION.md`. For Cursor:
+
+- the always-on poller persists the resume queue at `/tmp/lgfc-cursor-resume-queue.json`, with `waiting` and `nextExecutable` fields; `fresh=0` is not permission to stop while that queue is non-empty;
+- Cursor's active claims are `agent:cursor` with `status:active`, assigned to Cursor or named by Product Authority as this session's work;
+- Cursor-owned `post-merge-failure` exceptions belong to the resume queue;
+- do not occupy the session with standing-queue status while other assigned or `agent:cursor` work remains, and keep to the reporting bound above (#4314).
+
 ## Startup (`run startup`)
 
 When Product Authority says `run startup`, or a new Cursor Local session starts, do these steps before other repository work, then continue with Session open. The shared steps are the PRODUCT STARTUP FRAMEWORK in `docs/governance/AGENT-EXECUTION.md`. This section adds the Cursor Local steps. It does not replace that framework.
