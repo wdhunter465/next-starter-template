@@ -3,8 +3,13 @@ import { describe, expect, it } from 'vitest';
 
 import sitemap from '@/app/sitemap';
 import robots from '@/app/robots';
+import { existsSync, statSync } from 'node:fs';
+import path from 'node:path';
+
 import {
   buildHomeStructuredData,
+  buildPublicPageMetadata,
+  DEFAULT_SOCIAL_IMAGE,
   DEFAULT_SITE_METADATA,
   PUBLIC_SITEMAP_ROUTES,
   SITE_URL,
@@ -86,5 +91,21 @@ describe('public SEO artifacts (#2046)', () => {
     }
     const fundraiser = await import('@/app/fundraiser-details/layout');
     expect(fundraiser.metadata.alternates?.canonical).toBe(`${SITE_URL}/fundraiser-details/`);
+  });
+
+  it('gives the home page and shared page metadata a default social card (#4731)', () => {
+    const image = DEFAULT_SOCIAL_IMAGE;
+    expect(image.url.startsWith(`${SITE_URL}/`)).toBe(true);
+    expect(image.alt.length).toBeGreaterThan(0);
+    expect(DEFAULT_SITE_METADATA.openGraph?.images).toEqual([image]);
+    expect(DEFAULT_SITE_METADATA.twitter?.images).toEqual([image.url]);
+
+    const page = buildPublicPageMetadata({ title: 'T', description: 'D', path: '/about/' });
+    expect(page.openGraph?.images).toEqual([image]);
+    expect(page.twitter?.images).toEqual([image.url]);
+
+    const file = path.join(process.cwd(), 'public', new URL(image.url).pathname);
+    expect(existsSync(file), `${file} is missing`).toBe(true);
+    expect(statSync(file).size).toBeLessThan(300 * 1024);
   });
 });
