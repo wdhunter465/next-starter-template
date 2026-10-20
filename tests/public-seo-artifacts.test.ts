@@ -3,7 +3,12 @@ import { describe, expect, it } from 'vitest';
 
 import sitemap from '@/app/sitemap';
 import robots from '@/app/robots';
-import { DEFAULT_SITE_METADATA, PUBLIC_SITEMAP_ROUTES, SITE_URL } from '@/lib/publicSiteMetadata';
+import {
+  buildHomeStructuredData,
+  DEFAULT_SITE_METADATA,
+  PUBLIC_SITEMAP_ROUTES,
+  SITE_URL,
+} from '@/lib/publicSiteMetadata';
 
 describe('public SEO artifacts (#2046)', () => {
   it('lists core public routes in the sitemap', () => {
@@ -40,6 +45,23 @@ describe('public SEO artifacts (#2046)', () => {
     }
     const distinct = new Set(entries.map((entry) => new Date(entry.lastModified as Date).toISOString()));
     expect(distinct.size).toBeGreaterThan(1);
+  });
+
+  it('describes the organization and website in home page structured data (#4733)', () => {
+    const data = buildHomeStructuredData();
+    const byType = Object.fromEntries(data.map((item) => [item['@type'], item]));
+    expect(byType.Organization).toMatchObject({
+      '@context': 'https://schema.org',
+      name: 'Lou Gehrig Fan Club',
+      url: `${SITE_URL}/`,
+      logo: `${SITE_URL}/logo.svg`,
+    });
+    expect(byType.WebSite).toMatchObject({ name: 'Lou Gehrig Fan Club', url: `${SITE_URL}/` });
+    expect(JSON.parse(JSON.stringify(data))).toEqual(data);
+    for (const item of data) {
+      expect(item).not.toHaveProperty('potentialAction');
+      expect(item).not.toHaveProperty('sameAs');
+    }
   });
 
   it('sets a canonical on the home page and on every sitemap route (#4732)', async () => {
