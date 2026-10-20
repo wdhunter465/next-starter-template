@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Shared execution rules, enforcement model, PR discipline, stop conditions, shared product-startup framework
 Does Not Own: Design authority, platform configuration, tracker content, role mapping
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3055, #3113, #3117, #3134, #3138, #3142, #3145, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4074, #4099, #4131, #4165, #4198, #4314, #4596
-Last Reviewed: 2026-10-16
+Related Issues: #3055, #3113, #3117, #3134, #3138, #3142, #3145, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4074, #4099, #4131, #4165, #4198, #4314, #4596, #4715, #4719
+Last Reviewed: 2026-10-20
 ---
 
 This document is the canonical shared execution law. It moved here from `docs/ops/ai/CORE-RULES.md` under #4198. The old path is a compatibility pointer and is not a second policy.
@@ -39,7 +39,7 @@ This document applies to all AI agents working in this repository. It governs ag
 
 ## Current Known Truth
 
-Repository governance is DIATAXIS-first, PRs are issue-scoped, and human/operator approval remains required for merge. PR gate-readiness troubleshooting requires correlated inspection of PR panel state, issue-accounting, review threads, PR body accounting, latest head workflow runs, failed job logs, and workflow implementation behavior.
+Repository governance is DIATAXIS-first, PRs are issue-scoped, and merge approval follows the tiers in `docs/governance/REPOSITORY-AUTHORITY.md` (Merge authority). PR gate-readiness troubleshooting requires correlated inspection of PR panel state, issue-accounting, review threads, PR body accounting, latest head workflow runs, failed job logs, and workflow implementation behavior.
 
 GitHub Issues and Pull Requests are the authoritative execution record for normal implementation work. Tracker files are historical/status indexes and are not routine implementation closeout ledgers.
 
@@ -118,7 +118,7 @@ Rules:
 - Auto-created OPS tracker Issues after a PR already exists are not a compliant substitute for a pre-existing governing Issue.
 - OPS tracker Issues must not replace, override, or hijack the source task Issue.
 - Post-merge validation must report against the source task Issue.
-- Merge authority remains human/operator only.
+- Merge authority is tiered and defined only in `docs/governance/REPOSITORY-AUTHORITY.md` (Merge authority).
 
 Motivating incident: PR #3115 was opened before governing Issue #3116 existed. That sequence must never recur (Issue #3117).
 
