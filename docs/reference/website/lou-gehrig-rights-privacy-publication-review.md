@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: Clearance states, public-domain review, privacy review, excerpt/summary treatment, and no-publish conditions
 Does Not Own: Legal conclusions, runtime enforcement, or public publication
 Canonical Reference: /docs/ops/pmo/lou-gehrig-content-collection-expansion-readiness.md
-Related issues: #1738, #1742, #1741, #4524
-Last Reviewed: 2026-10-10
+Related issues: #1738, #1742, #1741, #4524, #4727
+Last Reviewed: 2026-10-20
 ---
 
 # Lou Gehrig Rights, Privacy, and Publication Review Model
@@ -219,6 +219,7 @@ default.
 | Category | Clearance state | Credit |
 | --- | --- | --- |
 | Free use (public domain, CC0, US government work) | `public-domain-candidate`, then confirmed | Courtesy |
+| Free use, first published before 1931 | Treated as confirmed on recording the publication date and its source; marked `free use pre-1931` | Courtesy |
 | Free use with credit cited (CC BY, CC BY-SA, stated use-with-credit) | `permission-granted` (license is the grant) | Required |
 | Free use with permission given (owner's written grant) | `permission-granted` (reply stored as evidence) | As the owner specified |
 | Fee required | `fee-required` | None: never published |
@@ -242,8 +243,18 @@ mailbox and referenced from `rights_evidence`.
 1. Identify work type (text, photo, government document, etc.).
 2. Determine publication date and jurisdiction considerations.
 3. Document assessment in notes; do not assume PD from age alone.
-4. Set `public-domain-candidate` until Bill/ChatGPT or qualified review confirms.
+4. Set `public-domain-candidate` until Bill/ChatGPT or qualified review confirms. The exception is a work first published before January 1, 1931 whose first-publication date and the source of that date are recorded: it is treated as confirmed public domain and marked `free use pre-1931` (see Pre-1931 works).
 5. Confirmed public domain may proceed to `approved-for-reference` or public-copy path.
+
+### Pre-1931 works (Product Authority, 2026-10-20)
+
+Anything first published before January 1, 1931 is public domain in the United States as of 2026 and is free to use. It does not wait in `public-domain-candidate`. It is admitted to the D1 and B2 libraries and may be used on the website, and its record is marked `free use pre-1931` so these items can be reported on.
+
+- The date that counts is the **first publication** date, not the creation or photograph date. Unpublished material is not covered.
+- The record carries the first-publication date and the source of that date. Age alone does not qualify, and an item whose date cannot be sourced stays `public-domain-candidate` or follows the normal rights path.
+- The mark covers copyright only. The privacy review, the CMG, MLB and Yankees permission layers, trademarks and logos, and any archive's own terms of access still apply.
+- Works first published in 1931 or later are outside this exception.
+- The search guidance is `docs/how-to/website/lou-gehrig-free-use-content-discovery.md`; the stored mark and its report are tracked on #4728.
 
 ## Privacy review process
 
