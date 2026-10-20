@@ -11,6 +11,14 @@ export function buildCanonicalMetadata(path: string): Metadata {
   return { alternates: { canonical: canonicalUrl(path) } };
 }
 
+/** Default social card: the club logo (public/IMG_1946.png) until approved archive photos exist (#4735). */
+export const DEFAULT_SOCIAL_IMAGE = {
+  url: `${SITE_URL}/images/og/lgfc-default-1200x630.png`,
+  width: 1200,
+  height: 630,
+  alt: 'Lou Gehrig Fan Club logo: crossed bats with LGFC',
+};
+
 export const DEFAULT_SITE_METADATA: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
@@ -28,12 +36,14 @@ export const DEFAULT_SITE_METADATA: Metadata = {
     title: 'Lou Gehrig Fan Club',
     description:
       'Official Lou Gehrig Fan Club website with fan stories, historical archives, events, and member access.',
+    images: [DEFAULT_SOCIAL_IMAGE],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Lou Gehrig Fan Club',
     description:
       'Official Lou Gehrig Fan Club website with fan stories, historical archives, events, and member access.',
+    images: [DEFAULT_SOCIAL_IMAGE.url],
   },
 };
 
@@ -55,10 +65,12 @@ export function buildPublicPageMetadata({
       title,
       description,
       url,
+      images: [DEFAULT_SOCIAL_IMAGE],
     },
     twitter: {
       title,
       description,
+      images: [DEFAULT_SOCIAL_IMAGE.url],
     },
   };
 }
