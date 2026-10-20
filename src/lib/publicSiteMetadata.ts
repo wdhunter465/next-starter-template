@@ -65,3 +65,21 @@ export const PUBLIC_SITEMAP_ROUTES = [
   '/search/',
   '/terms/',
 ] as const;
+
+/**
+ * Last content change per sitemap route (#4734), from the git history of each route's source files.
+ * Update the date when a page's content changes. The type requires an entry for every sitemap route.
+ * Pages whose copy comes from the content API (/privacy/, /terms/) change there, not in git.
+ */
+export const PUBLIC_SITEMAP_LAST_MODIFIED: Record<(typeof PUBLIC_SITEMAP_ROUTES)[number], string> = {
+  '/': '2026-10-09',
+  '/about/': '2026-07-01',
+  '/accessibility/': '2026-08-12',
+  '/ask/': '2026-10-16',
+  '/contact/': '2026-10-16',
+  '/events/': '2026-07-01',
+  '/join/': '2026-02-11',
+  '/privacy/': '2026-09-04',
+  '/search/': '2026-09-03',
+  '/terms/': '2026-01-20',
+};

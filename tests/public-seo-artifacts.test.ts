@@ -27,4 +27,17 @@ describe('public SEO artifacts (#2046)', () => {
       disallow: ['/admin/', '/fanclub/', '/api/', '/_ai-review/'],
     });
   });
+
+  it('gives each sitemap entry its own valid, non-future lastModified date (#4734)', () => {
+    const entries = sitemap();
+    expect(entries).toHaveLength(PUBLIC_SITEMAP_ROUTES.length);
+    const now = Date.now();
+    for (const entry of entries) {
+      const time = new Date(entry.lastModified as Date).getTime();
+      expect(Number.isNaN(time), `${entry.url} has an invalid date`).toBe(false);
+      expect(time, `${entry.url} is dated in the future`).toBeLessThanOrEqual(now);
+    }
+    const distinct = new Set(entries.map((entry) => new Date(entry.lastModified as Date).toISOString()));
+    expect(distinct.size).toBeGreaterThan(1);
+  });
 });
