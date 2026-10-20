@@ -22,11 +22,13 @@ Do not merely report that these files are required. Read them before making any 
    - Devin → `docs/ops/ai/DEVIN-RULES.md` (retired #4399; historical only — do not run as a live product)
    - OpenAI / Work → `docs/ops/ai/WORK-RULES.md` (retired #4074; historical only — do not run as a live product)
 
+6. `context.md` (orientation digest: the stack, the vendors, and where the design and platform authorities live; follow its pointers only when a task needs the detail)
+
 For PR, issue, review, remediation, or implementation work, also read:
 
-6. `.agents/skills/lgfc-pr-governance/SKILL.md`
-7. `.github/pull_request_template.md`
-8. Product-applicable how-to. Cursor PR work uses `docs/how-to/cursor/open-task-pr.md`.
+7. `.agents/skills/lgfc-pr-governance/SKILL.md`
+8. `.github/pull_request_template.md`
+9. Product-applicable how-to. Cursor PR work uses `docs/how-to/cursor/open-task-pr.md`.
 
 A bootstrap report that says these files are "required but not yet read" is noncompliant.
 
@@ -40,6 +42,7 @@ Before any other repo-work response, report each file as **read**:
 - AGENT-TEAM.md: read
 - CORE-RULES.md: read
 - product pointer: read (the active row from step 5)
+- context.md: read
 
 For PR work, also report:
 

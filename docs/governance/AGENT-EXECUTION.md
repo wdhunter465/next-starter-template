@@ -5,7 +5,7 @@ Authority Level: Domain Policy
 Owns: Shared execution rules, enforcement model, PR discipline, stop conditions, shared product-startup framework
 Does Not Own: Design authority, platform configuration, tracker content, role mapping
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3055, #3113, #3117, #3134, #3138, #3142, #3145, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4074, #4099, #4131, #4165, #4198, #4314, #4596, #4715, #4719
+Related Issues: #3055, #3113, #3117, #3134, #3138, #3142, #3145, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4074, #4099, #4131, #4165, #4198, #4314, #4596, #4715, #4716, #4719
 Last Reviewed: 2026-10-20
 ---
 
@@ -457,9 +457,10 @@ Every product-specific startup contract must, at minimum:
 6. Confirm any other required connected-source access for that product (e.g., Google Drive, Notion workspace, local checkout).
 7. Read the complete mandatory authority chain from `Agent.md`.
 8. Read the product-specific rules file.
-9. Report only explicitly supplied active context — no queue audit, no inferred work.
-10. Determine and report whether any work is authorized (it is not, by startup alone).
-11. Stop.
+9. Read the orientation digest, `context.md`: the stack, the vendors, and where the design and platform authorities live. It orients at a high level; follow its pointers when a task needs the detail.
+10. Report only explicitly supplied active context — no queue audit, no inferred work.
+11. Determine and report whether any work is authorized (it is not, by startup alone).
+12. Stop.
 
 ## Startup provenance invariant
 
@@ -483,6 +484,19 @@ Regardless of product, startup completion never authorizes:
 - administrative reconciliation.
 
 A source Issue, its acceptance criteria, an exact file-touch allowlist, the applicable promotion profile, role authority, and an explicit implementation Go are loaded and confirmed separately, after startup completes. Startup completion is never itself interpreted as task authorization.
+
+## Session lifecycle (#4716)
+
+A working session has three phases, in this order. This section is the only statement of the sequence; product rules files add their own mechanics and do not redefine the phases.
+
+1. **Run startup: orientation only.** The agent identifies its product and roles, confirms access, reads the authority chain, its product file and the orientation digest, reports, and stops (Shared startup steps above).
+2. **Task definition.** Product Authority and the agent define the task list together. A read-only look at the Operations queue and at the agent's own open PRs and claims may inform the list. That look is preparation: it authorizes no claim, edit or PR. A task joins the list only with a source Issue, acceptance criteria, an exact file allowlist, role authority and an explicit implementation Go, or when it sits inside a graduated Project's prepared child graph (standing authority, below).
+3. **Continuous run.** Once the list exists, the agent works it without being re-prompted:
+   - it prepares each assigned task to a ready-to-merge PR, then starts the next eligible task while that PR waits (Assigned-queue continuation, above);
+   - merge authority follows the tiers in `docs/governance/REPOSITORY-AUTHORITY.md` (Merge authority); a PR that waits for the human approver does not stop the run;
+   - when the assigned list is complete it takes ownership of unassigned eligible work in its role order (`docs/governance/AGENT-TEAM.md`): only an Issue its roles cover, with no valid claim by another agent, and package-complete;
+   - **the Operations interrupt is always on** from the end of startup. Every agent watches for new qualifying Operations Issues, which take precedence over all other work because Production services are expected to be affected. In-flight work stops at the nearest safe checkpoint (`docs/governance/WORK-QUEUES-AND-COLLABORATION.md`, Operations interrupt);
+   - the run ends only when no eligible assigned or unassigned work remains, Product Authority says stop, or a protected stop or evidence-specific `HOLD` covers what is left. A protected stop blocks that one action, not the rest of the queue.
 
 ## Continuous parent-level execution (#3055 / #3145)
 
