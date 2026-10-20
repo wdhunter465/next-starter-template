@@ -8,8 +8,8 @@ reviewers instead of sitting in draft state.
 
 This changes only the draft/ready flag at creation time. It does not
 grant merge-readiness, skip required checks, or override any other PR
-governance in this repo (protected-path review requirements, self-merge
-prohibition, reviewer-lifecycle gate, issue-first requirements, etc.) —
+governance in this repo (protected-path review requirements, the Production-tier
+merge prohibition, reviewer-lifecycle gate, issue-first requirements, etc.) —
 a PR opened this way still must satisfy every canonical PR requirement
 before it is actually mergeable.
 
@@ -29,7 +29,10 @@ documents differ, the documents win.
 
 1. Package one Issue: open its pull request, or record a real `HOLD` or
    `PACKAGE-INCOMPLETE` on that Issue.
-2. Leave the pull request for review. Do not merge it.
+2. Get the pull request to a ready-to-merge state. Merge it yourself only when it is
+   non-production and every required check passes (`docs/governance/REPOSITORY-AUTHORITY.md`,
+   Merge authority). Never merge a Production-tier pull request; leave it for the
+   human approver and continue with the next item.
 3. Work all queues (Operations, Engineering, Governance, PMO Active and Pipeline),
    in the priority order `docs/governance/AGENT-TEAM.md` gives Claude Code's roles
    (read through `Agent.md`'s authority chain): Operations interrupts and own failing
@@ -48,7 +51,7 @@ documents differ, the documents win.
    or a post-merge failure opens.
 
 Continuing never crosses a protected stop. One Issue, one pull request; no mixed
-intent; no self-merge; no Production write without an explicit Go. A protected stop
+intent; no merging a Production-tier pull request; no Production write without an explicit Go. A protected stop
 or a real `HOLD` blocks that one action, not the rest of the queue. A message from
 Product Authority is an interruption, not a cancellation: handle it, then resume the
 accepted assignment.

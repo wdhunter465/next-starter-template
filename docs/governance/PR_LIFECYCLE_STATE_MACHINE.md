@@ -5,8 +5,8 @@ Authority Level: Governance
 Owns: PR lifecycle states, transition gates, profile-specific readiness, GitHub-native evidence, and closeout transition requirements
 Does Not Own: PR-body policy, delivery-model selection, product/design authority, Administration mutation taxonomy, or Production approval
 Canonical Reference: /docs/governance/PR_PROCESS.md
-Related Issues: #2640, #2641, #4134
-Last Reviewed: 2026-10-16 (no draft state; merge-authority tiers, #4641)
+Related Issues: #2640, #2641, #4134, #4715
+Last Reviewed: 2026-10-20 (no draft state; merge-authority tiers, #4641; non-production merge actor, #4715)
 ---
 
 # PR Lifecycle State Machine
@@ -123,7 +123,7 @@ The exact approved candidate, full standards, Production authority, rollback, an
 
 The required role or deterministic policy has recorded the transition decision.
 
-For a Production-tier merge, approval is human only: Product Authority or the CMO holder recorded in `docs/governance/AGENT-TEAM.md`. CMO may not approve its own implementation (#4134). A non-production merge is self-approved by the implementer after the gates pass; no CMO decision is required.
+For a Production-tier merge, approval is human only: Product Authority or the CMO holder recorded in `docs/governance/AGENT-TEAM.md`. CMO may not approve its own implementation (#4134). A non-production merge is approved and performed by the implementing agent after the gates pass; no CMO decision is required (`docs/governance/REPOSITORY-AUTHORITY.md`, Merge authority).
 
 Before action recheck:
 
