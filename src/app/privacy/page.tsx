@@ -1,5 +1,8 @@
 import React from "react";
 import { fetchPageContent } from "@/lib/pageContent";
+import { buildCanonicalMetadata } from '@/lib/publicSiteMetadata';
+
+export const metadata = buildCanonicalMetadata('/privacy/');
 
 export default async function Page() {
   const data = await fetchPageContent("/privacy");
