@@ -75,3 +75,22 @@ export const PUBLIC_SITEMAP_ROUTES = [
   '/search/',
   '/terms/',
 ] as const;
+
+/** Organization and WebSite structured data for the home page (#4733). Values match visible site content. */
+export function buildHomeStructuredData() {
+  return [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'Lou Gehrig Fan Club',
+      url: `${SITE_URL}/`,
+      logo: `${SITE_URL}/logo.svg`,
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: 'Lou Gehrig Fan Club',
+      url: `${SITE_URL}/`,
+    },
+  ];
+}
