@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Shared execution rules, enforcement model, PR discipline, stop conditions, shared product-startup framework
 Does Not Own: Design authority, platform configuration, tracker content, role mapping
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3055, #3113, #3117, #3134, #3138, #3142, #3145, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4074, #4099, #4131, #4165, #4198, #4314, #4596
-Last Reviewed: 2026-10-16
+Related Issues: #3055, #3113, #3117, #3134, #3138, #3142, #3145, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4074, #4099, #4131, #4165, #4198, #4314, #4596, #4715
+Last Reviewed: 2026-10-20
 ---
 
 This document is the canonical shared execution law. It moved here from `docs/ops/ai/CORE-RULES.md` under #4198. The old path is a compatibility pointer and is not a second policy.
@@ -39,7 +39,7 @@ This document applies to all AI agents working in this repository. It governs ag
 
 ## Current Known Truth
 
-Repository governance is DIATAXIS-first, PRs are issue-scoped, and human/operator approval remains required for merge. PR gate-readiness troubleshooting requires correlated inspection of PR panel state, issue-accounting, review threads, PR body accounting, latest head workflow runs, failed job logs, and workflow implementation behavior.
+Repository governance is DIATAXIS-first, PRs are issue-scoped, and merge approval follows the tiers in `docs/governance/REPOSITORY-AUTHORITY.md` (Merge authority). PR gate-readiness troubleshooting requires correlated inspection of PR panel state, issue-accounting, review threads, PR body accounting, latest head workflow runs, failed job logs, and workflow implementation behavior.
 
 GitHub Issues and Pull Requests are the authoritative execution record for normal implementation work. Tracker files are historical/status indexes and are not routine implementation closeout ledgers.
 
@@ -75,9 +75,9 @@ After packaging one assignment (PR opened, HOLD, or PACKAGE-INCOMPLETE recorded 
 - Cursor-owned `post-merge-failure`;
 - `agent:cursor` + `status:active` claims that are assigned to Cursor or that Product Authority named as this session's work.
 
-Do not treat `fresh=0` or “brief status + keep looping” as permission to stop while that resume queue is non-empty. One Issue → one PR; do not mix remaining queue items into the just-opened PR. `handoff:ready` is not website Go. Do not self-merge.
+Do not treat `fresh=0` or “brief status + keep looping” as permission to stop while that resume queue is non-empty. One Issue → one PR; do not mix remaining queue items into the just-opened PR. `handoff:ready` is not website Go. Do not merge a Production-tier PR.
 
-Waiting on independent review, merge approval, or another long-running process for a packaged assignment is still not idle (#3611). An item is *waiting* when its linked open authored PR has latest checks SUCCESS, or when it is `handoff:ready` (labels/status only — not website Go). Keep waiting items for gate, reviewer, and post-merge follow-through. Immediately continue `nextExecutable` — the next eligible item that is not merely waiting. If `nextExecutable` is absent, keep looping for follow-through on waiting items; do not idle and do not self-merge. Do not occupy the session with standing-queue status while other assigned or `agent:cursor` work remains.
+Waiting on independent review, merge approval, or another long-running process for a packaged assignment is still not idle (#3611). An item is *waiting* when its linked open authored PR has latest checks SUCCESS, or when it is `handoff:ready` (labels/status only — not website Go). Keep waiting items for gate, reviewer, and post-merge follow-through. Immediately continue `nextExecutable` — the next eligible item that is not merely waiting. If `nextExecutable` is absent, keep looping for follow-through on waiting items; do not idle and do not merge a Production-tier PR. Do not occupy the session with standing-queue status while other assigned or `agent:cursor` work remains.
 
 The always-on poller persists the resume queue at `/tmp/lgfc-cursor-resume-queue.json` and includes `waiting` plus `nextExecutable`.
 
@@ -118,7 +118,7 @@ Rules:
 - Auto-created OPS tracker Issues after a PR already exists are not a compliant substitute for a pre-existing governing Issue.
 - OPS tracker Issues must not replace, override, or hijack the source task Issue.
 - Post-merge validation must report against the source task Issue.
-- Merge authority remains human/operator only.
+- Merge authority is tiered and defined only in `docs/governance/REPOSITORY-AUTHORITY.md` (Merge authority).
 
 Motivating incident: PR #3115 was opened before governing Issue #3116 existed. That sequence must never recur (Issue #3117).
 
@@ -320,7 +320,7 @@ A PR must not be handed off for review while any required gate, reviewer comment
 - Any agent acting in that role may create, comment on, label, update, and organize Issues and Pull Requests when task scope is clear.
 - Issue-first hard gate remains mandatory for all work; no PR-first operations, incident, CI, or emergency exception exists.
 - PR creation is NOT delegated unless explicitly instructed.
-- Merge authority remains human/operator only.
+- Merge authority is tiered and defined only in `docs/governance/REPOSITORY-AUTHORITY.md` (Merge authority).
 
 Current role holders for PMO / Governance, PR Approver / Engineering, Administration & Communications, and Day-2 Operations coordination authority are recorded in `docs/governance/AGENT-TEAM.md`. Two members were permanently removed from the LGFC Agentic Team and hold no current role (#4173, #4074); see `docs/governance/AGENT-TEAM.md` for the retirement records and each member's product-specific rules file (`CHATGPT-RULES.md`, `WORK-RULES.md`) for historical-only detail.
 

@@ -18,7 +18,7 @@ If this file and those documents differ, the documents win. Role-to-member mappi
 Continuous workflow means an agent finishes packaging one assignment and immediately starts the next eligible one. Waiting for someone to review or merge the previous pull request is not a stop.
 
 1. **Package one Issue.** Open its pull request, or record a real `HOLD` or `PACKAGE-INCOMPLETE` on that Issue.
-2. **Leave the PR for review.** Do not merge it. Do not self-merge.
+2. **Get the PR to ready-to-merge.** Merge it yourself only when it is non-production and every required check passes (`REPOSITORY-AUTHORITY.md`, Merge authority); leave the merge record the constitution defines. Never merge a Production-tier PR: leave it for the human approver and continue.
 3. **Select the next eligible item and start it.** One Issue, one pull request. Do not mix queue items into the PR just opened.
 4. **Return to the waiting PR only when** a check fails, a reviewer comments, or a post-merge failure opens.
 
