@@ -6,7 +6,7 @@ Owns: LGFC asset register schema, asset rows, and secret-name catalog as a suppo
 Does Not Own: Platform and Environment Domain Policy; vendor contracts; credential values; delivery approval; incident response
 Canonical Reference: /docs/governance/PLATFORM-AND-ENVIRONMENT.md
 Related Issues: #4534, #4535, #4539, #4540, #4541, #4542
-Last Reviewed: 2026-10-10
+Last Reviewed: 2026-10-21
 ---
 
 # LGFC Asset Register
@@ -75,7 +75,7 @@ When this register and a detailed inventory disagree, the detailed inventory's c
 | cf:worker:lgfc-agent-eval | agent | Worker `lgfc-agent-eval` (temporary Cloudflare AI agent evaluation; evaluation abandoned 2026-10, re-evaluation planned 2027, #3635) | Cloudflare | shared | Product Authority | team:operations | Cloudflare Workers listing 2026-10-13 (created 2026-08-22) | — | none | — | none | retired | 2026-10-13 |
 | cf:waf:rate-limiting | platform | Rate limiting / WAF (dashboard-owned, `API_RATE_LIMITER`) | Cloudflare | production | Product Authority | team:operations | `docs/how-to/website/api-rate-limiting.md` | cf:pages:next-starter-template | none | — | none | active | — |
 | b2:bucket:LouGehrigFanClub | storage | B2 bucket `LouGehrigFanClub` | Backblaze | shared | Product Authority | team:operations | `docs/reference/platform/Backblaze_B2.md`; `b2-s3-smoke-test.yml` | — | public | B2_KEY_ID; B2_APP_KEY; B2_BUCKET; B2_ENDPOINT; PUBLIC_B2_BASE_URL | `b2-s3-smoke-test.yml` (daily); `b2-d1-daily-sync.yml` | active | 2026-10-10 |
-| email:icloud:domain-mailbox | email | Domain mailbox | Apple iCloud Mail | production | Product Authority | team:operations | `vendor-inventory.md` | — | member | — | none | active | — |
+| email:icloud:domain-mailbox | email | Inbound club mail relay (Cloudflare Email Routing forwards to an Apple masked address that Apple delivers to the club Gmail mailbox; no hosted domain mailbox, #4754) | Apple | production | Product Authority | team:operations | `vendor-inventory.md` | — | member | — | none | active | — |
 | email:mailchannels:transactional | email | Transactional email (off unless `MAILCHANNELS_ENABLED=1`) | MailChannels | production | Product Authority | team:operations | `component-environment-isolation.md` | cf:pages:next-starter-template | member | MAILCHANNELS_API_KEY | none | active | — |
 | saas:ga4:G-BRV48J1VEJ | saas | Google Analytics 4 property | Google | production | Product Authority | team:operations | `component-environment-isolation.md` (#4350) | app:build:nextjs | public | NEXT_PUBLIC_GA_ID | none | active | — |
 | saas:givebutter:fundraising | saas | Fundraising | Givebutter | production | Product Authority | team:operations | `vendor-inventory.md` (#4139, #4430) | — | none | — | none | active | — |
