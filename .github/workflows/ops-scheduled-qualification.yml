@@ -1,0 +1,94 @@
+name: OPS — Scheduled Qualification (#4467)
+
+# #3633-009 (#4467): nightly qualification of the public site and the admin boundary against
+# Production, read-only (GET requests only, no sign-in, nothing written). Covers gap rows 12, 13,
+# 14, 17, 28, 60-62, 64 and 85. Three consecutive green runs with retained evidence are required
+# before 2026-11-07 (#4467). A failure on main opens an Operations exception Issue through
+# ops-workflow-failure-exception-issues.yml (#4444 pattern); no auto-fix.
+#
+# Rollback: remove the `schedule` trigger. Run history and artifacts are kept.
+
+on:
+  schedule:
+    - cron: "30 7 * * *"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  actions: read
+
+concurrency:
+  group: ops-scheduled-qualification
+  cancel-in-progress: false
+
+jobs:
+  qualify:
+    name: Qualify public site and admin boundary (https, read-only)
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Set production BASE_URL
+        id: base
+        run: |
+          BASE_URL="$(tr -d '\r\n' < scripts/ci/production_base_url.txt | sed -E 's/[[:space:]]+$//')"
+          if [ -z "$BASE_URL" ]; then
+            echo "Empty production BASE_URL"
+            exit 1
+          fi
+          echo "base_url=$BASE_URL" >> "$GITHUB_OUTPUT"
+
+      - name: Run scheduled qualification specs
+        id: qualify
+        env:
+          BASE_URL: ${{ steps.base.outputs.base_url }}
+        run: |
+          npx playwright test \
+            tests/e2e/scheduled-qualification.spec.ts \
+            tests/e2e/launch-readiness-public-routes.spec.ts \
+            tests/e2e/homepage-sections.spec.ts \
+            tests/e2e/mobile-navigation.spec.ts \
+            tests/e2e/accessibility-scan.spec.ts \
+            --reporter=list,html
+        continue-on-error: true
+
+      - name: Upload Playwright report (retained evidence)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-scheduled-qualification
+          path: playwright-report
+          retention-days: 30
+          if-no-files-found: warn
+
+      - name: Record the run
+        if: always()
+        run: |
+          {
+            echo "## OPS — Scheduled Qualification (#4467)"
+            echo "- Date (UTC): $(date -u +%Y-%m-%dT%H:%MZ)"
+            echo "- Base URL: ${{ steps.base.outputs.base_url }}"
+            echo "- Result: ${{ steps.qualify.outcome }}"
+            echo "- Evidence: artifact playwright-report-scheduled-qualification (30 days)"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Fail the job when the specs failed
+        if: steps.qualify.outcome != 'success'
+        run: |
+          echo "Scheduled qualification failed; see the retained report."
+          exit 1

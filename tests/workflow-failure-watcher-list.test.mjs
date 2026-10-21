@@ -21,6 +21,7 @@ const MUST_BE_WATCHED = [
   'OPS — B2 S3 Smoke Test',
   'OPS — Matchup Pair Monitor',
   'OPS — Production Edge Health',
+  'OPS — Scheduled Qualification (#4467)',
   'OPS — Scheduled Job Health',
   'GATE — Quality Checks',
   'GATE — Secret Scan',
