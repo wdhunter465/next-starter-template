@@ -97,6 +97,6 @@ Retired, not in use: the OpenAI-based members ChatGPT, Work and Codex ChatBot (#
 - Owners, environments, dependencies, monitors, and reconciliation dates for these vendors' assets are recorded in `docs/reference/platform/lgfc-asset-register.md` (#4535).
 - This document lists LGFC vendors in use and one available future automation vendor. Vendors in the Gate Checks, Repository Wiki, and Hosting sections were not re-verified on 2026-10-09; the agent, reviewer, Zapier and Givebutter entries were.
 - Bonfire is the LGFC store vendor.
-- Apple iCloud Mail is used for the custom email domain mailbox layer (the club addresses published on the website). Copyright permission requests and replies do not use it: they go through Product Authority's own mailbox (#4749).
+- Apple iCloud Mail is used for the custom email domain mailbox layer. Copyright permission requests and replies do not use the club addresses published on the website: they go through Product Authority's own mailbox (#4749).
 - MailChannels is used for outbound transactional email delivery.
 - Zapier must be shown as future or inactive in architecture diagrams unless later activated.
