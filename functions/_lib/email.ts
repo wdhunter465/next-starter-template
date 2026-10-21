@@ -7,6 +7,21 @@ function parseFrom(from: string): MailChannelsAddress {
 	return { email: from.trim() };
 }
 
+// #4751: website email is sent from the club domain's admin or support address only.
+const FROM_DISPLAY_NAME = 'Lou Gehrig Fan Club';
+const ALLOWED_FROM_ADDRESSES = ['admin@lougehrigfanclub.com', 'support@lougehrigfanclub.com'];
+const DEFAULT_FROM_ADDRESS = ALLOWED_FROM_ADDRESSES[0];
+
+export function resolveFromAddress(fromRaw: string): MailChannelsAddress {
+	const parsed = parseFrom(fromRaw);
+	const email = String(parsed.email || '').trim().toLowerCase();
+	if (ALLOWED_FROM_ADDRESSES.includes(email)) {
+		return { email, name: parsed.name || FROM_DISPLAY_NAME };
+	}
+	console.warn('MAIL_FROM is not an allowed sender address; using the default club address.');
+	return { email: DEFAULT_FROM_ADDRESS, name: FROM_DISPLAY_NAME };
+}
+
 type MailSendResult = { sent: boolean; provider: string; statusCode?: number; error?: string; skipped?: boolean };
 
 function requiredEnv(opts: { env: any; key: string; hint?: string }): string {
@@ -35,7 +50,7 @@ async function sendMailChannels(opts: {
 	if (!fromRaw) return { sent: false, provider: 'mailchannels', error: 'MAIL_FROM not configured' };
 
 	const replyToRaw = String(opts.env?.MAIL_REPLY_TO || '').trim();
-	const from = parseFrom(fromRaw);
+	const from = resolveFromAddress(fromRaw);
 
 	const payload: any = {
 		personalizations: [{ to: opts.to }],
