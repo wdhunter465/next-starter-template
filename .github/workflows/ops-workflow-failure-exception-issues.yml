@@ -27,6 +27,7 @@ on:
       - "OPS — B2 S3 Smoke Test"
       - "OPS — Matchup Pair Monitor"
       - "OPS — Production Edge Health"
+      - "OPS — Scheduled Qualification (#4467)"
     types: [completed]
 
 permissions:
