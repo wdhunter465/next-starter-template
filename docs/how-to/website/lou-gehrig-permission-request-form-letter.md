@@ -5,8 +5,8 @@ Authority Level: Operational Procedure
 Owns: Standard permission-request form letter and outreach procedure for rights holders of candidate Lou Gehrig content
 Does Not Own: Rights conclusions, legal advice, publication approval, or the rights-evidence data model
 Canonical Reference: /docs/reference/content-pipeline-rights-data-dictionary.md
-Related issues: #4368, #3551, #4405
-Last Reviewed: 2026-10-10
+Related issues: #4368, #3551, #4405, #4749
+Last Reviewed: 2026-10-21
 ---
 
 # Lou Gehrig Permission Request Form Letter
@@ -89,7 +89,7 @@ LGFC must be able to show, for every asset in the library, that permission was a
 - the credit wording and conditions the owner stated;
 - links from each affected candidate and library asset to the exchange that covers it.
 
-The target home for this record is D1, so each library asset points to its permission trail. The D1 archive is not built yet (see Issue #4526). Until it exists, keep the original emails in the LGFC admin mailbox under a permission label, and record the message reference on each affected candidate's `rights_evidence`.
+The target home for this record is D1, so each library asset points to its permission trail. The D1 archive is not built yet (see Issue #4526). Until it exists, keep the original emails in the mailbox that sends the requests and receives the replies (Product Authority's own mailbox, not the club mailbox) under a permission label, and record the message reference on each affected candidate's `rights_evidence`.
 
 ## Form letter
 
@@ -118,7 +118,7 @@ We would like your non-exclusive permission to use Gehrig and Gehrig-related con
 - LGFC makes no profit. We do not sell this content, run advertising against it, or use it for commercial products.
 - We credit every source. We would display your credit exactly as you specify, with a link back to your collection or website where you wish.
 - We do not alter the work beyond cropping or resizing for display, and we do not imply that your organization endorses LGFC.
-- If you ask us to remove any item, we will take it down promptly. Our contact for that is admin@lougehrigfanclub.com.
+- If you ask us to remove any item, we will take it down promptly. To ask, reply to this email.
 
 If you are the right person to approve this, could you reply to confirm that:
 
@@ -133,9 +133,10 @@ Thank you for preserving this material and for considering our request.
 Sincerely,
 [name]
 [role], Lou Gehrig Fan Club
-admin@lougehrigfanclub.com
 
 ## Notes for the sender
+
+- Send requests from the permission mailbox, and put the permission label on each request thread when you send it, so the inbox check sees the replies. Do not print an email address in this letter or in this document: replies come back to the sending mailbox, and this repository is public.
 
 - Ask only for content LGFC can host and display on its own site. Do not request permission to link out: members should stay on the LGFC website, and link-only content is not admitted to the libraries.
 - Send one letter per source, naming the specific URLs found. Do not ask for blanket permission beyond what the source holds, and do not describe a grant as wider than the reply states.
