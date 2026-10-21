@@ -1,6 +1,12 @@
 import { fireEvent, render, screen, waitFor } from '@testing-library/react';
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
+const nav = vi.hoisted(() => ({ pathname: '/' as string | null }));
+
+vi.mock('next/navigation', () => ({
+  usePathname: () => nav.pathname,
+}));
+
 vi.mock('@/components/GoogleAnalytics', () => ({
   default: function MockGoogleAnalytics() {
     return <div data-testid="google-analytics-mock" />;
@@ -14,6 +20,36 @@ const STORAGE_KEY = 'lgfc_analytics_consent';
 describe('AnalyticsConsent', () => {
   beforeEach(() => {
     window.localStorage.removeItem(STORAGE_KEY);
+    nav.pathname = '/';
+  });
+
+  it('shows no banner and loads no analytics on /admin pages (#4745)', async () => {
+    for (const path of ['/admin', '/admin/', '/admin/audit/']) {
+      nav.pathname = path;
+      const { container, unmount } = render(<AnalyticsConsent />);
+      await waitFor(() => expect(container).toBeEmptyDOMElement());
+      expect(screen.queryByRole('dialog', { name: 'Analytics preference' })).not.toBeInTheDocument();
+      expect(screen.queryByTestId('google-analytics-mock')).not.toBeInTheDocument();
+      unmount();
+    }
+  });
+
+  it('does not load analytics on /admin pages even when consent was stored as granted (#4745)', async () => {
+    window.localStorage.setItem(STORAGE_KEY, 'granted');
+    nav.pathname = '/admin/join-requests/';
+    const { container } = render(<AnalyticsConsent />);
+    await waitFor(() => expect(container).toBeEmptyDOMElement());
+    expect(screen.queryByTestId('google-analytics-mock')).not.toBeInTheDocument();
+  });
+
+  it('still measures the member area and public pages (#4745)', async () => {
+    window.localStorage.setItem(STORAGE_KEY, 'granted');
+    for (const path of ['/fanclub/', '/administrators/', '/']) {
+      nav.pathname = path;
+      const { unmount } = render(<AnalyticsConsent />);
+      await waitFor(() => expect(screen.getByTestId('google-analytics-mock')).toBeInTheDocument());
+      unmount();
+    }
   });
 
   it('underlines the in-paragraph Privacy link so it is distinguishable without color', async () => {
