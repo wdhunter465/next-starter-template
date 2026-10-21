@@ -78,7 +78,7 @@ Retired, not in use: the OpenAI-based members ChatGPT, Work and Codex ChatBot (#
 
 - Cloudflare
 - Backblaze B2
-- Apple (masked forwarding address for inbound club mail)
+- Apple (email address masking only; no mailbox or routing)
 - MailChannels
 - Elfsight
 - Givebutter
@@ -97,6 +97,6 @@ Retired, not in use: the OpenAI-based members ChatGPT, Work and Codex ChatBot (#
 - Owners, environments, dependencies, monitors, and reconciliation dates for these vendors' assets are recorded in `docs/reference/platform/lgfc-asset-register.md` (#4535).
 - This document lists LGFC vendors in use and one available future automation vendor. Vendors in the Gate Checks, Repository Wiki, and Hosting sections were not re-verified on 2026-10-09; the agent, reviewer, Zapier and Givebutter entries were.
 - Bonfire is the LGFC store vendor.
-- Inbound club mail (confirmed by Product Authority, 2026-10-21, #4754): mail to the published club addresses reaches Cloudflare Email Routing (the domain's MX records), which forwards it to an Apple masked address; Apple unmasks it and delivers it to the club's Gmail mailbox. Apple hosts no mailbox for the domain. Member replies to join email go to `admin@lougehrigfanclub.com` and take this path. Copyright permission requests and replies do not use the club addresses published on the website: they go through Product Authority's own mailbox (#4749).
+- Inbound club mail (confirmed by Product Authority, 2026-10-21, #4757): mail to the club addresses reaches Cloudflare Email Routing (the domain's MX records), whose routing rules forward `admin@`, `support@` and `test@` on `lougehrigfanclub.com` to the club's mailbox; the catch-all rule drops mail to any other address. `test@` stays configured for email testing in parallel with the production addresses. Apple provides email address masking only, with no mailbox or routing role. Member replies to join email go to `admin@lougehrigfanclub.com` and take this path. Copyright permission requests and replies do not use the club addresses published on the website: they go through Product Authority's own mailbox (#4749).
 - MailChannels is used for outbound transactional email delivery. Website email is sent from `admin@lougehrigfanclub.com` or `support@lougehrigfanclub.com` (#4751).
 - Zapier must be shown as future or inactive in architecture diagrams unless later activated.
