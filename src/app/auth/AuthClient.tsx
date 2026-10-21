@@ -248,12 +248,12 @@ function InnerAuthClient({ defaultMode }: { defaultMode?: Mode }) {
             onChange={(e) => setEmailLogin(e.target.value)}
             placeholder="you@example.com"
             required
-            style={{ width: '100%', marginBottom: 12, padding: 10 }}
+            style={{ width: '100%', marginBottom: 12, padding: 10, boxSizing: 'border-box' }}
             autoComplete="email"
             inputMode="email"
             type="email"
           />
-          <button type="submit" disabled={busy} style={{ width: '100%', padding: 10 }}>
+          <button type="submit" disabled={busy} style={{ width: '100%', padding: 10, boxSizing: 'border-box' }}>
             {busy ? 'Working…' : 'Login'}
           </button>
         </form>
@@ -270,7 +270,7 @@ function InnerAuthClient({ defaultMode }: { defaultMode?: Mode }) {
             onChange={(e) => setScreenName(e.target.value)}
             placeholder="Your public name"
             required
-            style={{ width: '100%', marginBottom: 12, padding: 10 }}
+            style={{ width: '100%', marginBottom: 12, padding: 10, boxSizing: 'border-box' }}
             autoComplete="nickname"
           />
 
@@ -283,7 +283,7 @@ function InnerAuthClient({ defaultMode }: { defaultMode?: Mode }) {
             onChange={(e) => setFullName(e.target.value)}
             placeholder="First Last"
             required
-            style={{ width: '100%', marginBottom: 12, padding: 10 }}
+            style={{ width: '100%', marginBottom: 12, padding: 10, boxSizing: 'border-box' }}
             autoComplete="name"
           />
 
@@ -296,7 +296,7 @@ function InnerAuthClient({ defaultMode }: { defaultMode?: Mode }) {
             onChange={(e) => setEmailJoin(e.target.value)}
             placeholder="you@example.com"
             required
-            style={{ width: '100%', marginBottom: 10, padding: 10 }}
+            style={{ width: '100%', marginBottom: 10, padding: 10, boxSizing: 'border-box' }}
             autoComplete="email"
             inputMode="email"
             type="email"
@@ -311,7 +311,7 @@ function InnerAuthClient({ defaultMode }: { defaultMode?: Mode }) {
             Receive emails about updates (optional)
           </label>
 
-          <button type="submit" disabled={busy} style={{ width: '100%', padding: 10 }}>
+          <button type="submit" disabled={busy} style={{ width: '100%', padding: 10, boxSizing: 'border-box' }}>
             {busy ? 'Working…' : 'Join'}
           </button>
         </form>
