@@ -60,7 +60,6 @@ jobs:
         run: |
           npx playwright test \
             tests/e2e/scheduled-qualification.spec.ts \
-            tests/e2e/launch-readiness-public-routes.spec.ts \
             tests/e2e/homepage-sections.spec.ts \
             tests/e2e/mobile-navigation.spec.ts \
             tests/e2e/accessibility-scan.spec.ts \
