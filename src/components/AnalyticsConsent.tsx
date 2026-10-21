@@ -1,10 +1,16 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useCallback, useEffect, useState } from 'react';
 import GoogleAnalytics from '@/components/GoogleAnalytics';
 
 const STORAGE_KEY = 'lgfc_analytics_consent';
+
+/** Admin work is not visitor traffic (#4745): no banner and no analytics on /admin and below. */
+function isAnalyticsExcludedPath(pathname: string | null): boolean {
+  return pathname === '/admin' || Boolean(pathname?.startsWith('/admin/'));
+}
 
 type ConsentState = 'unknown' | 'granted' | 'denied';
 
@@ -32,6 +38,7 @@ function writeStoredConsent(value: 'granted' | 'denied') {
  * Preference persists in localStorage so the banner does not re-prompt.
  */
 export default function AnalyticsConsent() {
+  const pathname = usePathname();
   const [consent, setConsent] = useState<ConsentState>('unknown');
   const [ready, setReady] = useState(false);
 
@@ -49,6 +56,8 @@ export default function AnalyticsConsent() {
     writeStoredConsent('denied');
     setConsent('denied');
   }, []);
+
+  if (isAnalyticsExcludedPath(pathname)) return null;
 
   const showBanner = ready && consent === 'unknown';
 
