@@ -17,7 +17,7 @@ import {
 // #4593: conditions are a denial. Credit wording is not a condition.
 
 const MIGRATIONS_DIR = path.join(process.cwd(), 'migrations');
-const TARGET = '0086_rights_evidence_conditions_4593.sql';
+const TARGET = '0087_rights_evidence_conditions_4593.sql';
 const ALL_CLEAR: PermissionLayers = {
   origin: 'permitted',
   cmg: 'permitted',
@@ -173,7 +173,7 @@ describe('permission conditions (#4593)', () => {
     ).toThrow(/conditional evidence cannot support final_status permitted/);
   });
 
-  it('leaves existing rows unchanged when 0086 is applied', () => {
+  it('leaves existing rows unchanged when 0087 is applied', () => {
     const db = dbBefore0086();
     const id = insertItem(db);
     db.prepare(

@@ -305,7 +305,7 @@ CREATE TABLE rights_evidence_prev (
     CHECK (fee_required IN (0, 1)),
   evidence_text_sha256 TEXT,
   exchange_id INTEGER,
-  -- #4593/migration 0086: additive columns, carried over verbatim in ALTER TABLE order.
+  -- #4593/migration 0087: additive columns, carried over verbatim in ALTER TABLE order.
   has_conditions INTEGER NOT NULL DEFAULT 0
     CHECK (has_conditions IN (0, 1)),
   conditions_text TEXT
@@ -500,7 +500,7 @@ CREATE INDEX IF NOT EXISTS idx_rights_evidence_exchange
   ON rights_evidence(exchange_id)
   WHERE exchange_id IS NOT NULL;
 
--- #4593/migration 0086: condition denial triggers, recreated because the rebuild drops them.
+-- #4593/migration 0087: condition denial triggers, recreated because the rebuild drops them.
 CREATE TRIGGER IF NOT EXISTS trg_rights_evidence_has_conditions_insert
 BEFORE INSERT ON rights_evidence
 WHEN NEW.has_conditions = 1 AND NEW.usage_decision <> 'deny'
