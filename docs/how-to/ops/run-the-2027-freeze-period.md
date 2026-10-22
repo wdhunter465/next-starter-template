@@ -54,7 +54,7 @@ Anything else needs a freeze exception.
 
 If a row is not ready, record it as a waiver on #2093 (authority, scope, expiry, residual risk) or as a freeze exception. Do not guess a date.
 
-## Milestone runbook
+## Procedure: milestone runbook
 
 Each row is a check, not a Go. Operations does the checks; Product Authority authorizes anything public.
 
