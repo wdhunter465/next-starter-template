@@ -6,7 +6,7 @@ Owns: Current LGFC repo/program status routing
 Does Not Own: Detailed implementation scope, PR evidence, or Drive planning authority
 Source Issue: #2086
 Canonical Reference: /docs/ops/pmo/PMO-JULY-2026-OPERATING-MODEL.md
-Last Reviewed: 2026-10-22 (live-state refresh, #4770)
+Last Reviewed: 2026-10-22 (Chatterbox hold, #3415)
 ---
 
 # LGFC Current State
@@ -113,7 +113,7 @@ Live labels `pmo:pipeline` on 2026-10-22. Pipeline placement does not authorize 
 | #2083 Store and merchandise operations | idea, priority 29 | `agent:claude` |
 | #3047 Digital Lou Gehrig portrait and voice | idea, priority 31 | no `agent:*` label |
 | #2817 Governance implementation remediation | priority 61, `status:hold` | Children #2818 to #2832 remain open. |
-| #3415 Chatterbox communication layer | development-testing, priority 65, `status:post-merge-verify` | `agent:claude` |
+| #3415 Chatterbox communication layer | development-testing, priority 65, `status:hold` until 2027-07-01 | `agent:claude` |
 | #2076 Cost analysis and growth heat map | idea, priority 71 | `agent:claude` |
 | #2081 Monetization strategy | idea, priority 72 | `agent:claude` |
 | #3635 Cloudflare AI Agents pool | sandbox-testing, priority 73 | `agent:cloudflareAI` |
@@ -128,6 +128,7 @@ Live labels `pmo:pipeline` on 2026-10-22. Pipeline placement does not authorize 
 | #2817 governance remediation | `status:hold` | Children stay open; do not claim without Product Authority direction |
 | #4537, #4541 (children of #4534) | `status:hold` | See Issues |
 | #3407 agent GitHub identities | `status:hold` | See Issue |
+| #3415 Chatterbox | `status:hold` until 2027-07-01 | Open tasks #3527, #3544, and #3686 stay held. Do not resume before that date |
 | #1719 closeout | `CLOSEOUT BLOCKED — DOCUMENTATION INCOMPLETE` in `program-registry.md` | Verify remediation AS-BUILT and reconciliation before relying on closed state |
 | #2678, #2779 | Closure subject to documentation/AS-BUILT verification | Verify before treating closed state as authoritative |
 
