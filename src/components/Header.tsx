@@ -90,8 +90,8 @@ export default function Header({ showLogo = true }: HeaderProps = {}) {
         )}
 
         {/* CENTER: Public buttons */}
-        <nav className={styles.center} aria-label="Site">
-          {!isLoggedIn ? (
+        <nav className={styles.center} aria-label="Site" aria-busy={session.status === 'unknown'}>
+          {session.status === 'unknown' ? null : !isLoggedIn ? (
             <Link className={styles.btn} href="/join">Join</Link>
           ) : (
             <Link className={styles.btn} href="/fanclub">Club Home</Link>
@@ -108,7 +108,7 @@ export default function Header({ showLogo = true }: HeaderProps = {}) {
             Store
           </a>
 
-          {!isLoggedIn ? (
+          {session.status === 'unknown' ? null : !isLoggedIn ? (
             <Link className={styles.btn} href={LOGIN_TAB_ROUTE}>Login</Link>
           ) : (
             <>
@@ -122,7 +122,10 @@ export default function Header({ showLogo = true }: HeaderProps = {}) {
               ref={toggleRef}
               className={styles.hamburger}
               type="button"
-              onClick={() => setOpen(v => !v)}
+              onClick={() => {
+                if (session.status === 'unknown') return;
+                setOpen(v => !v);
+              }}
               aria-label="Open menu"
               aria-expanded={open}
               aria-controls="hamburger-menu"
@@ -132,7 +135,7 @@ export default function Header({ showLogo = true }: HeaderProps = {}) {
               <span className={styles.hamburgerBar} />
             </button>
 
-            {open ? (
+            {open && session.status !== 'unknown' ? (
               <HamburgerMenu
                 variant={isLoggedIn ? 'public-member' : 'public-guest'}
                 menuId="hamburger-menu"
