@@ -6,7 +6,7 @@ Owns: Verified PMO program status, active implementation assignment, launch-stat
 Does Not Own: Product priority decisions, task implementation detail, Production approval, or undocumented inferred status
 Canonical Reference: /docs/governance/PMO-PORTFOLIO.md
 Related Issues: #1255, #1719, #2615, #2678, #2779, #2784, #4214
-Last Reviewed: 2026-09-22 (role-name reconciliation, #4214)
+Last Reviewed: 2026-10-22 (current-assignment routing, #4770)
 ---
 
 # PMO Program Registry
@@ -19,12 +19,9 @@ Documentation completeness and a final AS-BUILT record are mandatory project clo
 
 ## Current implementation assignments
 
-| Project | Status | Implementer | Current task | PMO owner |
-| --- | --- | --- | --- | --- |
-| #2615 | Active | Cursor | #2622 | PMO Admin (interim, per `docs/governance/AGENT-TEAM.md`) |
-| #2784 | Active | Claude | #2918 | PMO Admin (interim, per `docs/governance/AGENT-TEAM.md`) |
+Active parents and their owner labels are routed in `docs/ops/pmo/CURRENT-STATE.md` (reviewed 2026-10-22) and are verified against live Issues, not copied here. The earlier rows for #2615 and #2784 are removed: neither Issue is open as of 2026-10-22.
 
-Cursor and Claude are implementers. PMO Admin (interim, per `docs/governance/AGENT-TEAM.md`) coordinates PMO administration for these projects. Bill is Product and Production Authority.
+PMO Admin (per `docs/governance/AGENT-TEAM.md`) coordinates PMO administration. Cursor and Claude Code are implementers. Bill is Product and Production Authority.
 
 Post-merge exceptions return immediately to the implementer of the originating PR. PMO defines, routes, independently reviews, verifies, and closes the remediation.
 
