@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Shared execution rules, enforcement model, PR discipline, stop conditions, shared product-startup framework
 Does Not Own: Design authority, platform configuration, tracker content, role mapping
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3055, #3113, #3117, #3134, #3138, #3142, #3145, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4074, #4099, #4131, #4165, #4198, #4314, #4596
-Last Reviewed: 2026-10-14
+Related Issues: #3055, #3113, #3117, #3134, #3138, #3142, #3145, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4074, #4099, #4131, #4165, #4198, #4314, #4596, #4715, #4716, #4719
+Last Reviewed: 2026-10-20
 ---
 
 This document is the canonical shared execution law. It moved here from `docs/ops/ai/CORE-RULES.md` under #4198. The old path is a compatibility pointer and is not a second policy.
@@ -39,7 +39,7 @@ This document applies to all AI agents working in this repository. It governs ag
 
 ## Current Known Truth
 
-Repository governance is DIATAXIS-first, PRs are issue-scoped, and human/operator approval remains required for merge. PR gate-readiness troubleshooting requires correlated inspection of PR panel state, issue-accounting, review threads, PR body accounting, latest head workflow runs, failed job logs, and workflow implementation behavior.
+Repository governance is DIATAXIS-first, PRs are issue-scoped, and merge approval follows the tiers in `docs/governance/REPOSITORY-AUTHORITY.md` (Merge authority). PR gate-readiness troubleshooting requires correlated inspection of PR panel state, issue-accounting, review threads, PR body accounting, latest head workflow runs, failed job logs, and workflow implementation behavior.
 
 GitHub Issues and Pull Requests are the authoritative execution record for normal implementation work. Tracker files are historical/status indexes and are not routine implementation closeout ledgers.
 
@@ -67,21 +67,21 @@ If additional work is discovered → log it in the source Issue or PR, do not ex
 
 A wake with no *new* GitHub events is not idle when discovered work remains.
 
-After packaging one assignment (PR opened, HOLD, or PACKAGE-INCOMPLETE recorded on the source Issue), immediately re-evaluate and continue the next eligible item from:
+After packaging one assignment (PR opened, HOLD, or PACKAGE-INCOMPLETE recorded on the source Issue), immediately re-evaluate and continue the next eligible item from this agent's resume queue:
 
 - numbered Operations interrupts;
-- Issues assigned to the operator;
-- open authored PRs with failing or pending gates;
-- Cursor-owned `post-merge-failure`;
-- `agent:cursor` + `status:active` claims that are assigned to Cursor or that Product Authority named as this session's work.
+- Issues assigned to this agent;
+- this agent's open authored PRs with failing or pending gates;
+- this agent's own `post-merge-failure` exceptions;
+- active claims (the `agent:*` label for this agent's product, with `status:active`) assigned to this agent, or that Product Authority named as this session's work.
 
-Do not treat `fresh=0` or “brief status + keep looping” as permission to stop while that resume queue is non-empty. One Issue → one PR; do not mix remaining queue items into the just-opened PR. `handoff:ready` is not website Go. Do not self-merge.
+Each product's rules file names where its agent reads this queue. Where it does not, read the queue directly from GitHub: assigned Issues, authored open PRs and their checks, own `post-merge-failure` Issues, and active claims.
 
-Waiting on independent review, merge approval, or another long-running process for a packaged assignment is still not idle (#3611). An item is *waiting* when its linked open authored PR has latest checks SUCCESS, or when it is `handoff:ready` (labels/status only — not website Go). Keep waiting items for gate, reviewer, and post-merge follow-through. Immediately continue `nextExecutable` — the next eligible item that is not merely waiting. If `nextExecutable` is absent, keep looping for follow-through on waiting items; do not idle and do not self-merge. Do not occupy the session with standing-queue status while other assigned or `agent:cursor` work remains.
+Do not treat “no new events” or a “brief status + keep looping” as permission to stop while that resume queue is non-empty. One Issue → one PR; do not mix remaining queue items into the just-opened PR. `handoff:ready` is not website Go. Do not merge a Production-tier PR.
 
-The always-on poller persists the resume queue at `/tmp/lgfc-cursor-resume-queue.json` and includes `waiting` plus `nextExecutable`.
+Waiting on independent review, merge approval, or another long-running process for a packaged assignment is still not idle (#3611). An item is *waiting* when its linked open authored PR has latest checks SUCCESS, or when it is `handoff:ready` (labels/status only — not website Go). Keep waiting items for gate, reviewer, and post-merge follow-through. Immediately continue the next eligible item that is not merely waiting (`nextExecutable`, where the product tracks it). If none exists, keep looping for follow-through on waiting items; do not idle and do not merge a Production-tier PR. Do not occupy the session with standing-queue status while other assigned work remains.
 
-Cursor operator-facing status and always-on ticks must not list Issues or PRs that are not assigned Cursor work or related to that assigned work. Canonical reporting bound: `docs/ops/ai/CURSOR-RULES.md` (#4314). This does not relax assigned-queue continuation for work that is actually assigned.
+Product-specific resume-queue mechanics and operator-facing reporting bounds live in the product's rules file (for Cursor, `docs/ops/ai/CURSOR-RULES.md`, #4314). They do not relax assigned-queue continuation for work that is actually assigned.
 
 ## Accepted-assignment continuity (#3693)
 
@@ -118,7 +118,7 @@ Rules:
 - Auto-created OPS tracker Issues after a PR already exists are not a compliant substitute for a pre-existing governing Issue.
 - OPS tracker Issues must not replace, override, or hijack the source task Issue.
 - Post-merge validation must report against the source task Issue.
-- Merge authority remains human/operator only.
+- Merge authority is tiered and defined only in `docs/governance/REPOSITORY-AUTHORITY.md` (Merge authority).
 
 Motivating incident: PR #3115 was opened before governing Issue #3116 existed. That sequence must never recur (Issue #3117).
 
@@ -291,7 +291,7 @@ Agents must NOT:
 
 Defaults:
 
-- PR = draft
+- PR = opened ready for review, never as a draft (`docs/governance/REPOSITORY-AUTHORITY.md`, Pull-request readiness)
 - Implementation agents stop the scoped implementation at the PR handoff boundary unless their assignment says otherwise.
 - Accepted assignments continue through the authorized assignment lifecycle and are not cancelled by conversational interruptions (#3693).
 
@@ -307,7 +307,7 @@ The agent's task is complete only when all of the following are true:
 2. All reviewer comments, bot comments, and review threads have been inspected.
 3. Every actionable reviewer item has either been fixed, rejected with rationale, marked not applicable, or linked to a bounded follow-up issue using the required PR-body disposition format.
 4. All required gates have passed on the latest PR head after the final code and PR-body updates.
-5. The PR status is changed from DRAFT/BLOCKED to READY FOR REVIEW, or the agent explicitly reports the exact blocker preventing readiness.
+5. The PR is in READY FOR REVIEW state, or the agent explicitly reports the exact blocker preventing readiness and keeps the work on its branch instead of opening a PR.
 6. The agent's final report includes the current head SHA, exact checks run, gate status, reviewer disposition status, and whether the PR is READY FOR REVIEW.
 
 A PR must not be handed off for review while any required gate, reviewer comment, bot comment, review thread, PR-body section, or source-issue accounting item still requires agent action.
@@ -316,11 +316,10 @@ A PR must not be handed off for review while any required gate, reviewer comment
 
 # CAPABILITIES
 
-- The PMO / Governance role holder owns Issue and PR creation under standing operator permission when acting within its mapped roles (`docs/governance/AGENT-TEAM.md`).
-- Any agent acting in that role may create, comment on, label, update, and organize Issues and Pull Requests when task scope is clear.
+- An agent opens the Pull Request for the Issue it is implementing. Opening it is part of the assignment and needs no separate delegation. A Pull Request for work the agent is not assigned is opened only on explicit instruction.
+- The PMO, PMO Admin and Governance role holders (`docs/governance/AGENT-TEAM.md`) create, comment on, label, update, and organize Issues for PMO, administration and governance work under standing operator permission when task scope is clear. Any agent may comment on and label the Issue it is working.
 - Issue-first hard gate remains mandatory for all work; no PR-first operations, incident, CI, or emergency exception exists.
-- PR creation is NOT delegated unless explicitly instructed.
-- Merge authority remains human/operator only.
+- Merge authority is tiered and defined only in `docs/governance/REPOSITORY-AUTHORITY.md` (Merge authority).
 
 Current role holders for PMO / Governance, PR Approver / Engineering, Administration & Communications, and Day-2 Operations coordination authority are recorded in `docs/governance/AGENT-TEAM.md`. Two members were permanently removed from the LGFC Agentic Team and hold no current role (#4173, #4074); see `docs/governance/AGENT-TEAM.md` for the retirement records and each member's product-specific rules file (`CHATGPT-RULES.md`, `WORK-RULES.md`) for historical-only detail.
 
@@ -458,9 +457,10 @@ Every product-specific startup contract must, at minimum:
 6. Confirm any other required connected-source access for that product (e.g., Google Drive, Notion workspace, local checkout).
 7. Read the complete mandatory authority chain from `Agent.md`.
 8. Read the product-specific rules file.
-9. Report only explicitly supplied active context — no queue audit, no inferred work.
-10. Determine and report whether any work is authorized (it is not, by startup alone).
-11. Stop.
+9. Read the orientation digest, `context.md`: the stack, the vendors, and where the design and platform authorities live. It orients at a high level; follow its pointers when a task needs the detail.
+10. Report only explicitly supplied active context — no queue audit, no inferred work.
+11. Determine and report whether any work is authorized (it is not, by startup alone).
+12. Stop.
 
 ## Startup provenance invariant
 
@@ -484,6 +484,19 @@ Regardless of product, startup completion never authorizes:
 - administrative reconciliation.
 
 A source Issue, its acceptance criteria, an exact file-touch allowlist, the applicable promotion profile, role authority, and an explicit implementation Go are loaded and confirmed separately, after startup completes. Startup completion is never itself interpreted as task authorization.
+
+## Session lifecycle (#4716)
+
+A working session has three phases, in this order. This section is the only statement of the sequence; product rules files add their own mechanics and do not redefine the phases.
+
+1. **Run startup: orientation only.** The agent identifies its product and roles, confirms access, reads the authority chain, its product file and the orientation digest, reports, and stops (Shared startup steps above).
+2. **Task definition.** Product Authority and the agent define the task list together. A read-only look at the Operations queue and at the agent's own open PRs and claims may inform the list. That look is preparation: it authorizes no claim, edit or PR. A task joins the list only with a source Issue, acceptance criteria, an exact file allowlist, role authority and an explicit implementation Go, or when it sits inside a graduated Project's prepared child graph (standing authority, below).
+3. **Continuous run.** Once the list exists, the agent works it without being re-prompted:
+   - it prepares each assigned task to a ready-to-merge PR, then starts the next eligible task while that PR waits (Assigned-queue continuation, above);
+   - merge authority follows the tiers in `docs/governance/REPOSITORY-AUTHORITY.md` (Merge authority); a PR that waits for the human approver does not stop the run;
+   - when the assigned list is complete it takes ownership of unassigned eligible work in its role order (`docs/governance/AGENT-TEAM.md`): only an Issue its roles cover, with no valid claim by another agent, and package-complete;
+   - **the Operations interrupt is always on** from the end of startup. Every agent watches for new qualifying Operations Issues, which take precedence over all other work because Production services are expected to be affected. In-flight work stops at the nearest safe checkpoint (`docs/governance/WORK-QUEUES-AND-COLLABORATION.md`, Operations interrupt);
+   - the run ends only when no eligible assigned or unassigned work remains, Product Authority says stop, or a protected stop or evidence-specific `HOLD` covers what is left. A protected stop blocks that one action, not the rest of the queue.
 
 ## Continuous parent-level execution (#3055 / #3145)
 

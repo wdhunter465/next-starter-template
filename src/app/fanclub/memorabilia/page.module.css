@@ -69,8 +69,8 @@
   min-height: 44px;
   padding: 10px 14px;
   border-radius: 999px;
-  border: 1px solid #1e3a8a;
-  background: #1e3a8a;
+  border: 1px solid var(--lgfc-blue, #0033cc);
+  background: var(--lgfc-blue, #0033cc);
   color: #fff;
   cursor: pointer;
   font-size: 13px;

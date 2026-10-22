@@ -1,5 +1,5 @@
 ---
-Doc Type: Specification
+Doc Type: Reference
 Audience: Human + AI
 Authority Level: Canonical Design Specification
 Owns: Homepage calendar section contract and interaction expectations

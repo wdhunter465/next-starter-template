@@ -1,0 +1,16 @@
+---
+description: On a new Cursor Local session, run the repo session-open tasks before other work
+alwaysApply: true
+---
+
+# Session open (#4676)
+
+When this Cursor Local session opens, before other repository work, perform **Session open** in `docs/ops/ai/CURSOR-RULES.md`.
+
+Run this script. Do not invent a second stop path:
+
+`~/.cursor/lgfc-wake-ctl.sh startup --session <this chat uuid>`
+
+If another session owns a healthy loop, run `~/.cursor/lgfc-wake-ctl.sh rebind --session <this chat uuid>` once, then start exactly one loop from `~/.cursor/lgfc-always-on-loop.sh`. Do not kill the GitHub Actions runner.
+
+Then summarize only the session just closed, review the Operations queue, and suggest the next step. If that step is ambiguous or there is no clear next work item, say so in the session prompt and stop. This does not authorize an Issue, a pull request, or a file edit.

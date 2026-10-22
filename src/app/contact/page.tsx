@@ -36,7 +36,7 @@ export default async function Page() {
             The Lou Gehrig Fan Club is fan-run. Email is the fastest way to reach us for questions, source corrections, contributions, or partnerships.
           </p>
           <p style={styles.p}>
-            Use Support for general help. Use Admin for operational or governance questions. If you are unsure, email Support and we will route your note.
+            Email Admin with questions and for anything that is not a problem report. Email Support for help with a problem or to report a broken feature. If you are unsure, email Admin and we will route your note.
           </p>
         </>
       )}

@@ -1,11 +1,11 @@
 ---
-Doc Type: Specification
+Doc Type: Reference
 Audience: Human + AI
 Authority Level: Canonical Design Specification
 Owns: Routes, navigation invariants, UI/UX contracts, page content contracts
 Does Not Own: How-to procedures; operational runbooks; governance policies
 Canonical Reference: /docs/reference/design/LGFC-Production-Design-and-Standards.md
-Last Reviewed: 2026-02-20
+Last Reviewed: 2026-10-14
 ---
 
 # LGFC Website Style Guide
@@ -88,9 +88,10 @@ This system font stack provides optimal performance and native appearance on all
 ### Headings
 
 - **Hero H1** (Homepage main heading)
-  - Desktop: `40px` (2.5rem)
-  - Tablet (768px+): `56px` (3.5rem)
-  - Large Desktop (1024px+): `64px` (4rem)
+  - Base: `48px` (3rem)
+  - From 640px: `64px` (4rem)
+  - Large Desktop (1024px+): `72px` (4.5rem)
+  - Updated 2026-10-14 to the built sizes (Product Authority, #4409, D-008)
   - Font weight: `700` (bold)
   - Color: `#ffffff` (on blue background)
   - Line height: `1.2`
@@ -282,7 +283,7 @@ All interactive elements must have visible focus indicators for keyboard navigat
 ```css
 background: #0033cc;
 color: #ffffff;
-font-size: clamp(2.5rem, 5vw, 4rem);
+font-size: 3rem; /* 4rem from 640px, 4.5rem from 1024px */
 font-weight: 700;
 ```
 

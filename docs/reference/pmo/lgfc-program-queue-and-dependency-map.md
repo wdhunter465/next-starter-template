@@ -6,7 +6,7 @@ Owns: Launched-program queue mode, dependency-map requirements, execution-mode s
 Does Not Own: Workflow YAML implementation, GitHub merge authority, issue mutation authority, vendor account-level scheduled automation, or uncontrolled orchestrator label automation
 Canonical Reference: /docs/reference/pmo/lgfc-program-portfolio-model.md
 Related Issues: #2391, #2386, #2360, #2361, #2363, #2364, #1449, #1448, #1411, #1255, #1256, #1258, #1259, #1501, #1500, #1719, #1720, #1721, #1725, #2775, #3055, #3113, #3125, #3134, #3145, #4174
-Last Reviewed: 2026-10-10 (retired WORK actor → PMO Admin, #3055)
+Last Reviewed: 2026-10-16
 ---
 
 # LGFC Program Queue and Dependency Map
@@ -24,7 +24,7 @@ This document owns:
 - dependency-map structure and approval requirements;
 - continue/halt decision rules Cursor may apply from documentation;
 - dispatcher/watch requirements for keeping a launched queue moving;
-- authority boundaries for Product Authority (default merge) and PMO Admin (batch verification/rebaseline). Current holders: `docs/governance/AGENT-TEAM.md`. CMO may approve merge when Product Authority is unavailable and a holder is recorded.
+- authority boundaries for Product Authority and PMO Admin (batch verification/rebaseline). Current holders: `docs/governance/AGENT-TEAM.md`. Merge authority is tiered and defined in `docs/governance/REPOSITORY-AUTHORITY.md` (Merge authority).
 
 This document does not own:
 
@@ -73,7 +73,7 @@ This document does not own:
   `CHATGPT HANDOFF` markers remain comments only; they are not launch authority. A launched queue
   requires a manual dispatcher, an operator-run PMO Admin check-in, or repo-native automation
   path defined in `docs/ops/pmo/queue-watch-and-dispatch-protocol.md`. This is an operational check-in, not vendor account-level scheduled automation.
-- Product Authority owns merge authority to `main` when available, launch gates, and destructive issue actions. CMO may approve merge only when Product Authority is unavailable and a holder is recorded in AGENT-TEAM.
+- Product Authority owns launch gates and destructive issue actions. Merge authority is tiered (Production human only; non-production self-approved) and defined in `docs/governance/REPOSITORY-AUTHORITY.md`.
 - PMO Admin owns PMO process: queue conformance, batch verification, rebaseline authority, and dispatcher/remediation routing when authorized.
 - Cursor may not merge to `main`, approve, close, relabel, advance queues, or mutate
   issue state unless the active source issue explicitly authorizes that action.
@@ -299,7 +299,7 @@ If the halt is caused by missing dispatcher/watch behavior, stale blocked succes
 | Role | Authority |
 | --- | --- |
 | Product Authority | Default merge, launch gates, destructive issue actions, strategy exceptions |
-| CMO | Merge approval when Product Authority is unavailable and a holder is recorded in AGENT-TEAM |
+| CMO | Human approval of Production-tier merges (`docs/governance/REPOSITORY-AUTHORITY.md`); holder in AGENT-TEAM |
 | PMO Admin | PMO process, queue conformance, batch verification, rebaseline, dispatcher/remediation routing when authorized |
 | Cursor | Bounded implementation, validation, PR-body evidence, `READY FOR REVIEW` handoff |
 

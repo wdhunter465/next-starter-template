@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: Supporting PR governance guidance, UI/layout PR references, documentation header compliance
 Does Not Own: Canonical PR-process policy, PR body authority, PR-process CI promotion policy
 Canonical Reference: /docs/governance/PR_PROCESS.md
-Related Issues: #1719, #1723, #4213
-Last Reviewed: 2026-09-22
+Related Issues: #1719, #1723, #4213, #4715
+Last Reviewed: 2026-10-20
 ---
 
 # Website Pull Request Governance
@@ -22,11 +22,11 @@ This document is a supporting governance reference. The canonical pull request p
 
 ## Merge authority (summary)
 
-- Merge to `main` requires Product Authority approval (CMO when Product Authority is unavailable and a CMO holder is recorded in `docs/governance/AGENT-TEAM.md`). The current Product Authority holder is mapped only in `docs/governance/AGENT-TEAM.md`.
+- Merge authority is tiered and defined only in `docs/governance/REPOSITORY-AUTHORITY.md` (Merge authority). Production-tier merges require human approval (Product Authority or the CMO holder). Non-production Pull Requests are approved and merged by the implementing agent once the deterministic gates pass. Holders are mapped only in `docs/governance/AGENT-TEAM.md`.
 - Non-`main` Model B component integration may follow `/docs/governance/PR_PROCESS.md` when the source issue authorizes `component-auto-integration`.
 - Governance documentation on an authorized project component branch is version-controlled project work; it does not create an intermediate human gate solely because the files live under `docs/governance/**`.
 - Project-branch docs become repository-wide authority only after Product Authority-approved promotion to `main` (or a separate early documentation promotion when another active project must consume the rule first).
-- Cursor does not self-approve or self-merge. Cursor does not merge to `main`.
+- No agent approves or merges a Production-tier change. Self-approval never covers a protected decision.
 
 Full matrix: `/docs/ops/reports/pr-readiness-merge-authority-1723.md`.
 

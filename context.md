@@ -2,18 +2,20 @@
 Doc Type: Explanation
 Audience: Human + AI
 Authority Level: Informational
-Owns: Short orientation to this repository's identity, platform, authority routing, startup stop boundary, and stable execution discipline
-Does Not Own: Product design invariants, authentication rules, agent role mapping, PMO priority, PR lifecycle, or any live Issue, PR, branch, or queue state
+Owns: Short orientation digest read at startup: this repository's identity, the stack, the vendors and the design and platform authorities at a high level, authority routing, the startup stop boundary, and stable execution discipline
+Does Not Own: Product design invariants, authentication rules, vendor status, agent role mapping, PMO priority, PR lifecycle, or any live Issue, PR, branch, or queue state
 Canonical Reference: /Agent.md
-Related Issues: #2466
-Last Reviewed: 2026-09-27
+Related Issues: #2466, #4717
+Last Reviewed: 2026-10-20
 ---
 
 # context.md — Repository orientation (LGFC)
 
 This file orients contributors and agents. It does not define rules. When it disagrees with a canonical document, the canonical document wins. Start at `Agent.md` and follow that file's authority chain.
 
-Durable orientation belongs here. Current Issue, PR, branch, queue, watcher, program, implementation, and tool-version state does not.
+It is the orientation digest read at startup (`docs/governance/AGENT-EXECUTION.md`, PRODUCT STARTUP FRAMEWORK). It gives the picture at a high level and points to the owner of each detail. Read the owner when a task needs the detail; do not rely on this file for it.
+
+Durable orientation belongs here. Current Issue, PR, branch, queue, watcher, program, implementation, role-holder, vendor-status, and tool-version state does not.
 
 ## Repository
 
@@ -23,7 +25,7 @@ The production objective recorded for this orientation is to complete and produc
 
 Repository documents and GitHub Issues and pull requests outrank chat memory, Drive drafts, dashboard snapshots, application UI, and inferred context. Live GitHub and repository evidence controls operational and readiness claims. An assumption is not current state.
 
-## Platform
+## Stack
 
 - Next.js App Router and TypeScript
 - Cloudflare Pages static export
@@ -31,43 +33,50 @@ Repository documents and GitHub Issues and pull requests outrank chat memory, Dr
 - Cloudflare D1
 - Backblaze B2 for media
 
-The site is not purely static. Authentication, membership, content, administration, and other data-backed behavior depend on Pages Functions and D1.
+The site is not purely static. Authentication, membership, content, administration, and other data-backed behavior depend on Pages Functions and D1. Member authentication is a session cookie plus D1 session and member records; `localStorage` is not the source of truth.
 
-Exact routes, navigation, footer, homepage order, floating logo, and other product invariants live in `docs/reference/design/LGFC-Production-Design-and-Standards.md`. Do not treat a route list in this file as that authority.
+## Design
 
-## Authentication
+The product and design decisions are owned by `docs/governance/PRODUCT-AND-DESIGN.md` (decision, freeze, adjustment and deviation rules). The controlled specifications are under `docs/reference/design/`:
 
-Member authentication is the cookie `lgfc_session` plus D1 `member_sessions`. Member identity and role come from D1 `members`. `localStorage` is not the member-auth source of truth.
+| Need | Start here |
+| --- | --- |
+| Routes, navigation, footer, homepage order, floating logo, other product invariants | `docs/reference/design/LGFC-Production-Design-and-Standards.md` |
+| Authentication, join and login, protected areas, redirects | `docs/reference/design/auth-model.md` |
+| Colors | `docs/reference/design/color-standard.md` |
+| Visual and writing style | `docs/reference/design/style-guide.md` |
 
-- `/join` is the canonical join and login page.
-- `/join?mode=login` opens the login tab.
-- `/fanclub` and `/fanclub/**` are protected.
-- `/login` and `/auth` are legacy compatibility routes; they do not redirect the same way. See `docs/reference/design/auth-model.md`'s Redirect Policy for the exact target of each.
+Do not treat a route list or a design statement in this file as that authority. Store stays an external Bonfire destination; there is no `/store` route unless the design authority changes.
 
-The controlling description is `docs/reference/design/auth-model.md`.
+## Platform
 
-Store stays an external Bonfire destination. There is no `/store` route unless that design authority changes.
+Platform, environment, credential and deployment boundaries are owned by `docs/governance/PLATFORM-AND-ENVIRONMENT.md`. Delivery and release are owned by `docs/governance/DELIVERY-AND-RELEASE.md`, and Production health, incidents and recovery by `docs/governance/OPERATIONS-AND-RECOVERY.md`. The controlled specifications are under `docs/reference/platform/`:
+
+| Need | Start here |
+| --- | --- |
+| Cloudflare (Pages, Functions, bindings) | `docs/reference/platform/CLOUDFLARE.md` |
+| D1 database design and operations | `docs/reference/platform/LGFC-D1-DATABASE-DESIGN-and-OPERATIONS-GUIDE.md` |
+| Backblaze B2 media storage | `docs/reference/platform/Backblaze_B2.md` |
+| Environment isolation between component, preview and Production | `docs/reference/platform/component-environment-isolation.md` |
+| Owners, environments, dependencies and monitors of each asset | `docs/reference/platform/lgfc-asset-register.md` |
+
+## Vendors
+
+LGFC relies on a small set of vendors: Cloudflare for hosting, Pages Functions and D1; Backblaze B2 for media; GitHub for the repository and its automation; Givebutter for fundraising; Bonfire for the store; MailChannels and Apple iCloud Mail for email; and social platforms for announcements. The coding agents and PR reviewers in use are listed in the same place.
+
+The current list, which vendors are active, inactive or only available, and the notes on each are owned by `docs/reference/architecture/vendor-inventory.md`. Check it before assuming a vendor is in use. Who holds an agent role is owned by `docs/governance/AGENT-TEAM.md`, not by the vendor list.
 
 ## Authority and roles
 
-All agent work routes through `Agent.md` and its mandatory documentation chain. `docs/governance/AGENT-TEAM.md` is the current, authoritative record of role holders. The boundaries below are a non-authoritative summary for orientation only; when they disagree with `AGENT-TEAM.md`, `AGENT-TEAM.md` wins.
-
-Stable boundaries:
-
-- Bill is Product Authority and the default merge approver when available. He decides requirements, priority, gates, and launch authorization.
-- Claude Code is Engineering. It may independently review work it did not implement.
-- Cursor is Operations during the recorded transition, interim PMO Admin, and an authorized implementer. That mapping is not a completed move into Engineering.
-- ChatGPT and Codex are retired. They have no current team role.
-- The Governance role has no active product holder until Product Authority records one.
-- A builder does not approve its own work.
+All agent work routes through `Agent.md` and its mandatory documentation chain. `docs/governance/AGENT-TEAM.md` is the only record of role holders, role work order and the Team assignment; this file does not restate them. `docs/governance/REPOSITORY-AUTHORITY.md` is the constitution, including who may approve and merge.
 
 PMO lifecycle terms and pull-request lifecycle states are different systems. PMO portfolio rules are in `docs/governance/PMO-PORTFOLIO.md`. Pull-request states are in `docs/governance/PR_LIFECYCLE_STATE_MACHINE.md`.
 
-`READY FOR REVIEW` is not `READY FOR MERGE`. Only the human operator may merge.
+`READY FOR REVIEW` is not `READY FOR MERGE`. Merge authority is tiered: the implementing agent merges non-production Pull Requests, and only the human approver merges Production-tier ones (`docs/governance/REPOSITORY-AUTHORITY.md`, Merge authority).
 
 ## Run startup
 
-`run startup` is an orientation command. Each recognized product identifies itself, reads its own startup contract, reports orientation, and stops. The shared stop boundary is in `docs/ops/ai/CORE-RULES.md`. The product list is in `Agent.md` and `docs/governance/AGENT-TEAM.md`.
+`run startup` is an orientation command. Each recognized product identifies itself, reads its own startup contract, reports orientation, and stops. The shared steps and stop boundary are in `docs/governance/AGENT-EXECUTION.md` (PRODUCT STARTUP FRAMEWORK). After startup, task definition and the continuous run follow (`docs/governance/AGENT-EXECUTION.md`, Session lifecycle). The product list is in `Agent.md` and `docs/governance/AGENT-TEAM.md`.
 
 Startup does not authorize a queue audit, inferred next work, GitHub mutation, PMO advance, work packaging, or implementation. Startup completion is not task authorization. A source Issue, its acceptance criteria, an exact file allowlist, and an explicit implementation Go are loaded separately, after startup.
 

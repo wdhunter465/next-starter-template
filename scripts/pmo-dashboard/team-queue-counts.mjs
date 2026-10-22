@@ -10,6 +10,12 @@ const PMO_QUEUE_ORDER = [
   { id: 'pmoActive', title: 'PMO Active', teamLabel: 'team:pmo', lifecycleLabel: 'pmo:active', omitTask: true, parentLabel: 'pmo:parent' }
 ];
 
+const PMO_TASK_QUEUE = {
+  id: 'pmoTasks',
+  title: 'PMO child / task',
+  taskLabel: 'pmo:task'
+};
+
 const APPROVED_TEAMS = new Set([
   'team:operations',
   'team:pmo',
@@ -36,8 +42,16 @@ function isOperationsException(labels) {
   return OPERATIONS_EXCEPTION_LABELS.some((label) => labels.includes(label));
 }
 
+function isOpenIssue(issue) {
+  return Boolean(issue) && !issue.pull_request && issue.state === 'open';
+}
+
+/**
+ * Parent team-queue classification for exclusive team tiles and PMO parent tiles.
+ * Returns null for closed, PRs, multi-team, pmo:task, dual lifecycle, or unowned issues.
+ */
 export function classifyTeamQueue(issue) {
-  if (!issue || issue.pull_request || issue.state !== 'open') return null;
+  if (!isOpenIssue(issue)) return null;
   const labels = normalizeLabels(issue.labels);
   // Exception / escalated closeout work counts in Operations regardless of team:* exclusivity.
   if (isOperationsException(labels)) return 'operations';
@@ -53,14 +67,46 @@ export function classifyTeamQueue(issue) {
   return hasActive ? 'pmoActive' : 'pmoPipeline';
 }
 
+/**
+ * Exhaustive partition of one open issue for the full assignment breakout.
+ * Categories are mutually exclusive so counts sum to totalOpenIssues.
+ */
+export function classifyOpenIssuePartition(issue) {
+  if (!isOpenIssue(issue)) return null;
+  const labels = normalizeLabels(issue.labels);
+  if (isOperationsException(labels)) return 'operations';
+  // Child tasks are counted under PMO tasks even when a team label was wrongly applied.
+  if (labels.includes('pmo:task')) return 'pmoTasks';
+  const team = exclusiveApprovedTeam(labels);
+  if (team === 'team:operations') return 'operations';
+  if (team === 'team:engineering') return 'engineering';
+  if (team === 'team:governance') return 'governance';
+  if (team === 'team:pmo') {
+    const hasActive = labels.includes('pmo:active');
+    const hasPipeline = labels.includes('pmo:pipeline');
+    if (hasActive !== hasPipeline) return 'pmoParents';
+  }
+  return 'other';
+}
+
 function issueSearchUrl(owner, repo, queue) {
   // is:issue excludes pull requests so the link matches classifyTeamQueue (which omits PRs).
   const query = ['is:open', 'is:issue'];
   if (queue.id === 'operations') {
-    // Operations: exclusive team:operations owners plus exception labels.
     const opsLabels = [queue.teamLabel, ...OPERATIONS_EXCEPTION_LABELS].join(',');
     query.push(`label:${opsLabels}`);
-  } else {
+  } else if (queue.taskLabel) {
+    query.push(`label:${queue.taskLabel}`);
+  } else if (queue.id === 'other') {
+    // Approximate residual set for operator drill-down (not a perfect partition filter).
+    query.push('-label:team:operations');
+    query.push('-label:team:engineering');
+    query.push('-label:team:governance');
+    query.push('-label:team:pmo');
+    query.push('-label:pmo:task');
+    query.push('-label:ops-pr-escalation');
+    query.push('-label:post-merge-failure');
+  } else if (queue.teamLabel) {
     query.push(`label:${queue.teamLabel}`);
   }
   if (queue.lifecycleLabel) query.push(`label:${queue.lifecycleLabel}`);
@@ -81,21 +127,74 @@ function queuePayload(order, counts, owner, repo) {
   }));
 }
 
+function totalOpenSearchUrl(owner, repo) {
+  return `https://github.com/${owner}/${repo}/issues?q=${encodeURIComponent('is:open is:issue')}`;
+}
+
 export function buildTeamQueueCounts(issues, { owner, repo } = {}) {
   const counts = Object.fromEntries(
     [...TEAM_QUEUE_ORDER, ...PMO_QUEUE_ORDER].map((queue) => [queue.id, 0])
   );
+  counts.pmoTasks = 0;
+  counts.other = 0;
+
+  let totalOpenIssues = 0;
+  const breakout = {
+    operations: 0,
+    engineering: 0,
+    governance: 0,
+    pmoParents: 0,
+    pmoTasks: 0,
+    other: 0
+  };
+
   for (const issue of issues || []) {
-    const id = classifyTeamQueue(issue);
-    if (id) counts[id] += 1;
+    if (!isOpenIssue(issue)) continue;
+    totalOpenIssues += 1;
+
+    const parentId = classifyTeamQueue(issue);
+    if (parentId) counts[parentId] += 1;
+
+    const partition = classifyOpenIssuePartition(issue);
+    if (partition && Object.prototype.hasOwnProperty.call(breakout, partition)) {
+      breakout[partition] += 1;
+    }
   }
+
   counts.pmoTracked = counts.pmoPipeline + counts.pmoActive;
+  counts.pmoTasks = breakout.pmoTasks;
+  counts.other = breakout.other;
+
+  const pmoTaskPayload = {
+    id: PMO_TASK_QUEUE.id,
+    title: PMO_TASK_QUEUE.title,
+    count: counts.pmoTasks,
+    issueSearchUrl: issueSearchUrl(owner, repo, PMO_TASK_QUEUE)
+  };
+
+  const otherPayload = {
+    id: 'other',
+    title: 'Other / unassigned',
+    count: counts.other,
+    issueSearchUrl: issueSearchUrl(owner, repo, { id: 'other' })
+  };
+
   return {
+    totalOpenIssues,
+    totalOpenIssuesUrl: totalOpenSearchUrl(owner, repo),
     order: TEAM_QUEUE_ORDER.map((queue) => queue.id),
     queues: queuePayload(TEAM_QUEUE_ORDER, counts, owner, repo),
     pmoOrder: PMO_QUEUE_ORDER.map((queue) => queue.id),
-    pmoQueues: queuePayload(PMO_QUEUE_ORDER, counts, owner, repo)
+    pmoQueues: queuePayload(PMO_QUEUE_ORDER, counts, owner, repo),
+    pmoTaskQueue: pmoTaskPayload,
+    otherQueue: otherPayload,
+    breakout: {
+      ...breakout,
+      totalOpenIssues,
+      // Convenience: parents from exclusive PMO parent classification.
+      pmoParentsFromTiles: counts.pmoTracked
+    }
   };
 }
 
-export { TEAM_QUEUE_ORDER, PMO_QUEUE_ORDER };
+export { TEAM_QUEUE_ORDER, PMO_QUEUE_ORDER, PMO_TASK_QUEUE };

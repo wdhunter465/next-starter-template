@@ -5,8 +5,8 @@ Authority Level: Supporting (recommendation record; not design authority)
 Owns: Recommended dispositions for the 84 differences and the six design conflicts in the #4409 register, for Product Authority review
 Does Not Own: Any decision (Product Authority decides), locked design specifications under docs/reference/design/**, or application code
 Canonical Reference: /docs/governance/PRODUCT-AND-DESIGN.md
-Related Issues: #4409, #4420, #4411, #4431, #4442
-Last Reviewed: 2026-10-08
+Related Issues: #4409, #4420, #4411, #4431, #4442, #4609, #4610
+Last Reviewed: 2026-10-14
 ---
 
 # Recommended dispositions for the website design differences
@@ -83,19 +83,19 @@ The five High items go first (color, then buttons and card classes, then the mem
 | D-013 | Typography | Med | **A** | Typography | Shared meta text class should be 14px |
 | D-014 | Typography | Med | **A** | Typography | No text under 13px (accessibility) |
 | D-015 | Typography | Low | **C** | Typography | Small drift; accept |
-| D-016 | Buttons | Med | **A** | Buttons, links and forms | One primary button style removes most of the button drift |
-| D-017 | Buttons | High | **A** | Buttons, links and forms | Join, Login and Vote look broken today; visible on the homepage banner |
-| D-018 | Buttons | Med | **A** | Buttons, links and forms | Keyboard focus ring on all controls (accessibility) |
+| D-016 | Buttons | Med | **A** | Buttons, links and forms | Closed in the #4609 pull request. One primary `.btn.primary` style; Join uses the inverse primary on the blue banner |
+| D-017 | Buttons | High | **A** | Buttons, links and forms | Closed in the #4609 pull request. Join and Login are banner buttons; Vote uses `.btn.primary` |
+| D-018 | Buttons | Med | **A** | Buttons, links and forms | Closed in the #4609 pull request. `:focus-visible` ring on links, buttons and form controls |
 | D-019 | Buttons | Low | **C** | Buttons, links and forms | Secondary button variants are acceptable |
 | D-020 | Buttons | Low | **D** | Buttons, links and forms | Spinner is polish; defer |
 | D-021 | Buttons | Low | **C** | Buttons, links and forms | Accept mixed disabled look |
 | D-022 | Links | Low | **C** | Buttons, links and forms | Underlined links are required for accessibility; update the spec if wanted |
 | D-023 | Links | Low | **C** | Buttons, links and forms | Accept |
-| D-024 | Spacing | Med | **A** | Cards, layout and spacing | Use the 48/32/20 rhythm tokens on the home page |
+| D-024 | Spacing | Med | **A** | Cards, layout and spacing | Closed in the #4610 pull request. Home section gaps use --rhythm-lg, --rhythm-md and --rhythm-sm |
 | D-025 | Spacing | Low | **C** | Cards, layout and spacing | Accept |
 | D-026 | Layout | Med | **B** | Cards, layout and spacing | Page widths are deliberate by page type; document them in the spec |
-| D-027 | Radius | Med | **A** | Cards, layout and spacing | Banner radius should come from one token (the second rule overrides it) |
-| D-028 | Cards | High | **A** | Cards, layout and spacing | Several blocks use card and grid classes that no stylesheet defines; define them |
+| D-027 | Radius | Med | **A** | Cards, layout and spacing | Closed in the #4610 pull request. The join banner radius is only --lgfc-radius-lg |
+| D-028 | Cards | High | **A** | Cards, layout and spacing | Closed in the #4610 pull request. Global .card, .grid and .link are defined. .btn is the #4609 pull request |
 | D-029 | Header | Med | **B** | Header, footer and logo | 96px header is built and in use; update the spec |
 | D-030 | Header | Med | **B** | Header, footer and logo | Twelve drawer items match the shipped member features |
 | D-031 | Header | Med | **A** | Header, footer and logo | Header buttons wrap to two lines on desktop |
@@ -113,7 +113,7 @@ The five High items go first (color, then buttons and card classes, then the mem
 | D-043 | Home | Low | **C** | Home page content | Data driven; matches |
 | D-044 | Home | Low | **A** | Home page content | Loading line and fallback should not both show |
 | D-045 | Search | Med | **B** | Search and text pages | Search width is deliberate |
-| D-046 | Search | Med | **A** | Buttons, links and forms | Same focus fix as D-018 |
+| D-046 | Search | Med | **A** | Buttons, links and forms | Closed in the #4609 pull request. Same `:focus-visible` ring as D-018 |
 | D-047 | Search | Low | **C** | Search and text pages | Wording is clearer as built |
 | D-048 | Search | Low | **A** | Search and text pages | Result count at 14px with D-013 |
 | D-049 | Search | Med | **A** | Search and text pages | Result title and excerpt sizes follow the type scale |
@@ -135,7 +135,7 @@ The five High items go first (color, then buttons and card classes, then the mem
 | D-065 | Join | Low | **A** | Member, admin and auth | Selected tab needs a visible state |
 | D-066 | Auth | Med | **C** | Member, admin and auth | Client-side protection is how the static site works; accepted limitation |
 | D-067 | Auth | Low | **C** | Member, admin and auth | Matches |
-| D-068 | 404 | Med | **A** | Cards, layout and spacing | 404 page needs layout CSS |
+| D-068 | 404 | Med | **A** | Cards, layout and spacing | Closed in the #4610 pull request. The 404 page uses its own stylesheet instead of unused utility classes |
 | D-069 | Member | Med | **B** | Member, admin and auth | Newspaper Club Home is built; retire the older design (conflict C-2) |
 | D-070 | Member | Low | **B** | Member, admin and auth | Grid layout is built; update the spec |
 | D-071 | Member | Low | **C** | Member, admin and auth | Responsive sub-pages are better than desktop-only |

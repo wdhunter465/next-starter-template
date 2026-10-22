@@ -2,6 +2,23 @@ import type { Metadata } from 'next';
 
 export const SITE_URL = 'https://www.lougehrigfanclub.com';
 
+export function canonicalUrl(path: string): string {
+  return `${SITE_URL}${path.startsWith('/') ? path : `/${path}`}`;
+}
+
+/** Canonical-only metadata for pages whose title and description are set elsewhere. */
+export function buildCanonicalMetadata(path: string): Metadata {
+  return { alternates: { canonical: canonicalUrl(path) } };
+}
+
+/** Default social card: the club logo (public/IMG_1946.png) until approved archive photos exist (#4735). */
+export const DEFAULT_SOCIAL_IMAGE = {
+  url: `${SITE_URL}/images/og/lgfc-default-1200x630.png`,
+  width: 1200,
+  height: 630,
+  alt: 'Lou Gehrig Fan Club logo: crossed bats with LGFC',
+};
+
 export const DEFAULT_SITE_METADATA: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
@@ -10,6 +27,7 @@ export const DEFAULT_SITE_METADATA: Metadata = {
   },
   description:
     'Official Lou Gehrig Fan Club website with fan stories, historical archives, events, and member access.',
+  alternates: { canonical: `${SITE_URL}/` },
   openGraph: {
     type: 'website',
     locale: 'en_US',
@@ -18,12 +36,14 @@ export const DEFAULT_SITE_METADATA: Metadata = {
     title: 'Lou Gehrig Fan Club',
     description:
       'Official Lou Gehrig Fan Club website with fan stories, historical archives, events, and member access.',
+    images: [DEFAULT_SOCIAL_IMAGE],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'Lou Gehrig Fan Club',
     description:
       'Official Lou Gehrig Fan Club website with fan stories, historical archives, events, and member access.',
+    images: [DEFAULT_SOCIAL_IMAGE.url],
   },
 };
 
@@ -36,7 +56,7 @@ export function buildPublicPageMetadata({
   description: string;
   path: string;
 }): Metadata {
-  const url = `${SITE_URL}${path.startsWith('/') ? path : `/${path}`}`;
+  const url = canonicalUrl(path);
   return {
     title,
     description,
@@ -45,10 +65,12 @@ export function buildPublicPageMetadata({
       title,
       description,
       url,
+      images: [DEFAULT_SOCIAL_IMAGE],
     },
     twitter: {
       title,
       description,
+      images: [DEFAULT_SOCIAL_IMAGE.url],
     },
   };
 }
@@ -60,10 +82,45 @@ export const PUBLIC_SITEMAP_ROUTES = [
   '/ask/',
   '/contact/',
   '/events/',
-  '/faq/',
   '/join/',
-  '/login/',
   '/privacy/',
   '/search/',
   '/terms/',
 ] as const;
+
+/**
+ * Last content change per sitemap route (#4734), from the git history of each route's source files.
+ * Update the date when a page's content changes. The type requires an entry for every sitemap route.
+ * Pages whose copy comes from the content API (/privacy/, /terms/) change there, not in git.
+ */
+export const PUBLIC_SITEMAP_LAST_MODIFIED: Record<(typeof PUBLIC_SITEMAP_ROUTES)[number], string> = {
+  '/': '2026-10-09',
+  '/about/': '2026-07-01',
+  '/accessibility/': '2026-08-12',
+  '/ask/': '2026-10-16',
+  '/contact/': '2026-10-16',
+  '/events/': '2026-07-01',
+  '/join/': '2026-02-11',
+  '/privacy/': '2026-09-04',
+  '/search/': '2026-09-03',
+  '/terms/': '2026-01-20',
+};
+
+/** Organization and WebSite structured data for the home page (#4733). Values match visible site content. */
+export function buildHomeStructuredData() {
+  return [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: 'Lou Gehrig Fan Club',
+      url: `${SITE_URL}/`,
+      logo: `${SITE_URL}/logo.svg`,
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: 'Lou Gehrig Fan Club',
+      url: `${SITE_URL}/`,
+    },
+  ];
+}

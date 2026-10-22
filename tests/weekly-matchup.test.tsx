@@ -242,6 +242,36 @@ describe('WeeklyMatchup interactive behavior (reactivated 2026-08-18, #3552)', (
     expect(screen.getAllByText(/^Credit:/)).toHaveLength(1);
   });
 
+  it('labels each photo A or B and shows a caption only when the photo has one (#4615, D-042)', async () => {
+    window.localStorage.clear();
+    vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {
+      const path = String(input);
+      if (path === '/api/matchup/current') {
+        return Promise.resolve(
+          jsonResponse({
+            ok: true,
+            week_start: currentWeek,
+            matchup_id: 3,
+            items: [
+              { id: 20, url: '/photos/20.jpg', title: 'Real caption' },
+              { id: 21, url: '/photos/21.jpg' },
+            ],
+          }),
+        );
+      }
+      return Promise.reject(new Error(`Unexpected fetch: ${path}`));
+    });
+
+    render(<WeeklyMatchup />);
+
+    await waitFor(() => {
+      expect(screen.getByText('Real caption')).toBeInTheDocument();
+    });
+    expect(screen.getByText('Photo A')).toBeInTheDocument();
+    expect(screen.getByText('Photo B')).toBeInTheDocument();
+    expect(screen.getAllByText(/^Photo [AB]$/)).toHaveLength(2);
+  });
+
   it('treats a whitespace-only source as absent (#4167 Copilot review)', async () => {
     window.localStorage.clear();
     vi.spyOn(globalThis, 'fetch').mockImplementation((input) => {

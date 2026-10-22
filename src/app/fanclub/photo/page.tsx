@@ -20,8 +20,8 @@ const pillBase: React.CSSProperties = {
 
 const pillActive: React.CSSProperties = {
   ...pillBase,
-  background: '#1e3a8a',
-  borderColor: '#1e3a8a',
+  background: 'var(--lgfc-blue, #0033cc)',
+  borderColor: 'var(--lgfc-blue, #0033cc)',
   color: '#fff',
 };
 
