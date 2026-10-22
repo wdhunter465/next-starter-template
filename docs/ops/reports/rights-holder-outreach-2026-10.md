@@ -25,7 +25,7 @@ This repository is public. The record leaves out recipient email addresses and p
 | CMG Worldwide (Mark) | 2026-10-22, 12:32 PM | Licensing guidance request | Whether CMG approval is needed for name and likeness on a non-commercial fan site, and on what terms | Awaiting reply |
 | New York Yankees (customer service inbox; one Yankees staff contact copied) | 2026-10-22, 12:53 PM | Request for historical content and copyright guidance | Whether the Yankees control or license Gehrig photographs or archives; requirements for team names, logos, uniforms and imagery; fees and conditions; referral to the right archive or rights holder | Awaiting reply |
 | Major League Baseball (MLB Photos, Licensing/Publishing and Legal departments; the same Yankees staff contact copied) | 2026-10-22, 12:58 PM | Request for historical content and licensing guidance | Same four questions as the Yankees email | Awaiting reply. **Wording error, see below** |
-| LouGehrig.com / Lou Gehrig Society (John Howell, Rip Van Winkle Foundation) | | Request | Draft in preparation | Not sent |
+| John Howell (for himself, the Rip Van Winkle Foundation and the Lou Gehrig Society; LouGehrig.com ownership not confirmed) | 2026-10-22 | Informal personal email to an existing partner (2023 event sponsor), not a formal request | Whether he, the foundation or the society have copyright or licensing concerns about the planned archive; whether they hold material they could share or authorize | Awaiting reply |
 
 Attempt counts and reminders follow the request schedule in the form-letter how-to (day 0, day 30, day 45). The first attempts above are day 0 for Live Like Lou's content question and for CMG.
 
@@ -37,6 +37,10 @@ Attempt counts and reminders follow the request schedule in the form-letter how-
 - To the Yankees and to MLB: the club will refrain from publishing material where the Yankees' permission may be required until it receives guidance; it will not imply the Yankees or MLB endorse or sponsor it; it will review and act on a rights holder's concern about published material. The 2027 fundraiser with the Live Like Lou Foundation was mentioned to both.
 
 The first commitment is in force now. Until CMG answers, content that uses Lou Gehrig's name or likeness where CMG approval may be required stays unpublished. The archive's "not permitted" default already behaves this way; the commitment makes it a promise to a third party.
+
+### Dates committed to Live Like Lou
+
+Product Authority confirmed on 2026-10-22 that the Live Like Lou email commits the club to the dates in it. They match the calendar of record: website live 2027-01-01; fundraiser announced 2027-02-01; fundraiser 2027-03-25 to 2027-06-07. It also commits a deliverable with no date yet: the campaign details go to the foundation before the 2027-02-01 announcement. A change to any of these dates now needs a message to the foundation, not only a calendar change on #2093. Proposed working target for the review copy: by 2027-01-15, for Product Authority to confirm or change on #2093.
 
 ## Live Like Lou email (summary)
 
@@ -115,16 +119,30 @@ Rules carried over from the form-letter how-to: one letter per source; the ask i
 
 Both emails use the shared core wording and four questions: copyright and permission requirements, team intellectual property, scope and conditions, and rights ownership and referrals. The Yankees email is addressed to the Yankees legal or licensing team through the customer service inbox. The MLB email went to three MLB departments.
 
-**Wording error in the MLB email.** The MLB email was built from the Yankees email and still names the Yankees in its body: it asks for guidance "from the New York Yankees", asks whether "the Yankees organization" controls or licenses content, and promises to refrain from publishing where "the Yankees' permission may be required". Only the first line ("Hello MLB Photos, Legal or Licensing Team") and the subject refer to MLB. The effect: MLB staff may take the questions as meant for the team, and the holding promise, as worded, is made to the Yankees and not to MLB. Correction status: a short corrective follow-up in the same MLB thread is recommended; it is Product Authority's to send. Record the send here when done.
+**Wording error in the MLB email.** The MLB email was built from the Yankees email and still names the Yankees in its body: it asks for guidance "from the New York Yankees", asks whether "the Yankees organization" controls or licenses content, and promises to refrain from publishing where "the Yankees' permission may be required". Only the first line ("Hello MLB Photos, Legal or Licensing Team") and the subject refer to MLB. The effect: MLB staff may take the questions as meant for the team, and the holding promise, as worded, is made to the Yankees and not to MLB. Correction status: the email went out uncorrected (Product Authority, 2026-10-22). A follow-up in the same thread is still possible and is Product Authority's to send; until one is sent, read any MLB reply with this wording in mind and do not treat the holding promise as made to MLB.
 
 Open points 1 and 2 below were settled in effect by the sends: the holding statement went to CMG, the Yankees and MLB, and the fundraiser sentence went to CMG, the Yankees and MLB. Treat them as the working practice unless Product Authority changes it.
+
+## Informal contact with John Howell
+
+Product Authority wrote to John Howell at a personal address on 2026-10-22, as an existing partner, with an update on the club and the planned archive (Library, Gallery, Memorabilia, newspaper-style site with automated rotation) and asked about copyright or licensing concerns and about material he, the Rip Van Winkle Foundation or the Lou Gehrig Society could share or authorize. The address is not recorded here.
+
+What this exchange is and is not:
+
+- It is a relationship contact. It states no scope of use, credit wording, removal promise or holding statement, and it does not mention the fundraiser.
+- A friendly reply is not permission. If he offers material or says there is no concern, ask in writing for the scope in his words (which items, which uses, credit line, who has authority), and treat it as a normal request under the form-letter how-to.
+- Three bodies are named. Confirm in writing which of them owns the material in question, and whether LouGehrig.com is run by one of them. Rights are recorded per source, so each body that grants anything gets its own record.
+- Product Authority's mailbox holds the original. Forward any reply to the permission inbox or paste it onto #4368 so it can be archived.
 
 ## Open points for Product Authority
 
 1. Whether the holding statement goes to every holder or only to CMG.
-2. Whether the fundraiser sentence goes to the Yankees, MLB and LouGehrig.com before the February announcement.
+2. Whether the fundraiser sentence goes to the Yankees, MLB and LouGehrig.com before the February announcement. (Sent to CMG, the Yankees and MLB; not to John Howell.)
 3. Whether the club keeps one named signatory (Founder and Administrator) on all requests.
 4. The CMG email is a request for guidance, not a request for permission. If CMG replies that approval is required, the form letter and the schedule take over for the permission request itself.
+
+5. Whether a formal request to the Lou Gehrig Society or the Rip Van Winkle Foundation follows the informal email now or after a reply.
+6. The date for sending the campaign details to Live Like Lou (working target 2027-01-15).
 
 ## Validation
 
