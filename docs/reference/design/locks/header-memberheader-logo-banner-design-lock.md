@@ -5,10 +5,10 @@ Authority Level: Canonical Design Specification
 Owns: Routes, navigation invariants, UI/UX contracts, page content contracts
 Does Not Own: How-to procedures; operational runbooks; governance policies
 Canonical Reference: /docs/reference/design/LGFC-Production-Design-and-Standards.md
-Last Reviewed: 2026-02-20
+Last Reviewed: 2026-10-14
 ---
 
-# Header + MemberHeader + Logo + Banner Design Lock (DO NOT REGRESS)
+# Header + FanClubHeader + Logo + Banner Design Lock (DO NOT REGRESS)
 
 **Purpose:** This is the authoritative design and implementation spec for the LGFC header system.  
 If any future change breaks these invariants, it is a **regression** and must be fixed immediately.  
@@ -50,17 +50,17 @@ At the very top of the page:
 The canonical structure for header system:
 
 - `src/components/SiteHeader.tsx`
-  - Chooses between `Header` (public) and `MemberHeader` (member/admin contexts)
+  - Chooses between `Header` (public) and `FanClubHeader` (member/admin contexts)
   - Mounts the one floating big logo for every route and tells both headers to hide their small logo and reserve the logo's footprint (Product Authority 2026-10-08, #4489)
 - `src/components/Header.tsx`
   - Public header with centered nav + grouped hamburger
-- `src/components/MemberHeader.tsx`
+- `src/components/FanClubHeader.tsx`
   - Member header with centered nav + grouped hamburger
 - `src/components/FloatingLogo.tsx`
   - The large “separate object” logo shown only at top-of-page, non-sticky behavior via auto-hide on scroll
 - CSS Modules:
   - `src/components/Header.module.css`
-  - `src/components/MemberHeader.module.css`
+  - `src/components/FanClubHeader.module.css`
   - `src/components/FloatingLogo.module.css`
 
 ### 1.2 Why FloatingLogo Exists
@@ -89,7 +89,7 @@ This gives us:
 
 ### 2.2 Inner layout
 - `max-width: 1120px; margin: 0 auto;`
-- Header height: either 64px or 72px, but must remain consistent across public + member headers.
+- Header height: the built bar is 96px on desktop (72px content plus 12px padding above and below) plus a 1px border, 97px in all; 81px on phones (56px content). It must remain consistent across public + member headers. Updated 2026-10-14 (Product Authority, #4409, C-5 and D-029); this replaces "either 64px or 72px".
 
 ### 2.3 Left area (small header logo)
 This is the “small” logo that shows ONLY when FloatingLogo is not present. Since 2026-10-08 (#4489) the floating logo is always present, so both headers render an empty placeholder here that reserves the logo's footprint (`--floating-logo-footprint`).
@@ -208,7 +208,7 @@ Header is considered DONE when:
 
 5) **Stability**
    - Implementation is captured in these specific files and remains stable across future changes:
-     - `SiteHeader.tsx`, `Header.tsx`, `MemberHeader.tsx`, `FloatingLogo.tsx`
+     - `SiteHeader.tsx`, `Header.tsx`, `FanClubHeader.tsx`, `FloatingLogo.tsx`
      - associated CSS modules
 
 ---
@@ -217,7 +217,7 @@ Header is considered DONE when:
 
 Before any future header work is merged:
 
-- [ ] Confirm no inline sizing overrides exist for logo in Header/MemberHeader
+- [ ] Confirm no inline sizing overrides exist for logo in Header/FanClubHeader
 - [ ] Confirm the floating logo appears on every route, mounted once in `SiteHeader.tsx`, and covers no content at 390px, 768px, 1280px and 1920px
 - [ ] Confirm scroll hide behavior works
 - [ ] Confirm hamburger dropdown anchoring

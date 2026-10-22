@@ -1,5 +1,5 @@
 ---
-Doc Type: Specification
+Doc Type: Reference
 Audience: Human + AI
 Authority Level: Canonical Design Specification
 Owns: Weekly vote results route intent, visibility, and expected result presentation

@@ -1,0 +1,43 @@
+name: OPS — Halt Repeated Action Failures
+
+# Product Authority rule (2026-10-14, #4589; implemented #4637): a scheduled Action that
+# fails 3 times in a row is disabled and one Issue assigned to team:operations names the
+# failures and the halted Action. Production-protecting jobs alert instead of stopping.
+# Policy: docs/governance/OPERATIONS-AND-RECOVERY.md. Procedure and re-enable steps:
+# docs/how-to/ci/workflow-failure-exception-issues.md.
+#
+# GITHUB_TOKEN only. actions: write is needed to disable a workflow; there is no new
+# credential, no secret and no Production access. This is a protected change.
+
+on:
+  schedule:
+    - cron: '17 * * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  actions: write
+  issues: write
+
+concurrency:
+  group: ops-halt-repeated-failures
+  cancel-in-progress: false
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Halt scheduled workflows with 3 consecutive failures
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+        run: node scripts/ops/halt-repeated-failures.mjs

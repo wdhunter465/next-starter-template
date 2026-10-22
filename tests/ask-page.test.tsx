@@ -96,7 +96,7 @@ describe('Ask page (consolidated FAQ & Ask)', () => {
     expect(document.getElementById('ask-form')).not.toBeNull();
     expect(screen.getByRole('link', { name: /Contact us directly/i })).toHaveAttribute(
       'href',
-      'mailto:Contact@LouGehrigFanClub.com?subject=Contact%20Needed%20ASK',
+      'mailto:admin@lougehrigfanclub.com?subject=Contact%20Needed%20ASK',
     );
 
     await waitFor(() => {

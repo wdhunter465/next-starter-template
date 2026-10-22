@@ -2,6 +2,8 @@
 
 import styles from './page.module.css';
 
+import JsonLd from '@/components/JsonLd';
+import { buildHomeStructuredData } from '@/lib/publicSiteMetadata';
 import WeeklyMatchup from '@/components/WeeklyMatchup';
 import CampaignSpotlightSlot from '@/components/home/CampaignSpotlightSlot';
 import FundraiserDailyDetailsTeaser from '@/components/home/FundraiserDailyDetailsTeaser';
@@ -16,6 +18,7 @@ import SocialWall from '@/components/SocialWall';
 export default function HomePage() {
   return (
     <>
+      <JsonLd data={buildHomeStructuredData()} />
       {/* Section: Hero Banner */}
       <header id="banner" className={styles.hero}>
         <div className={styles.container}>

@@ -23,6 +23,11 @@ on:
       - "OPS — Scheduled Job Health"
       - "GATE — Quality Checks"
       - "GATE — Secret Scan"
+      - "OPS — B2 D1 Daily Sync"
+      - "OPS — B2 S3 Smoke Test"
+      - "OPS — Matchup Pair Monitor"
+      - "OPS — Production Edge Health"
+      - "OPS — Scheduled Qualification (#4467)"
     types: [completed]
 
 permissions:

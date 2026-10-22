@@ -270,6 +270,59 @@ if (data) {
         errors.push('teamQueues.pmoQueues tracked count must equal Pipeline plus Active');
       }
     }
+    if (!Number.isInteger(data.teamQueues.totalOpenIssues) || data.teamQueues.totalOpenIssues < 0) {
+      errors.push('teamQueues.totalOpenIssues must be a non-negative integer');
+    }
+    const taskQ = data.teamQueues.pmoTaskQueue;
+    if (!taskQ || typeof taskQ !== 'object') {
+      errors.push('teamQueues.pmoTaskQueue must be present');
+    } else {
+      if (taskQ.id !== 'pmoTasks') errors.push('teamQueues.pmoTaskQueue.id must be pmoTasks');
+      if (!Number.isInteger(taskQ.count) || taskQ.count < 0) {
+        errors.push('teamQueues.pmoTaskQueue.count must be a non-negative integer');
+      }
+      try {
+        const url = new URL(taskQ.issueSearchUrl);
+        if (url.protocol !== 'https:' || url.hostname !== 'github.com') {
+          errors.push('teamQueues.pmoTaskQueue.issueSearchUrl must be an https GitHub issues search');
+        }
+      } catch {
+        errors.push('teamQueues.pmoTaskQueue.issueSearchUrl must be a valid URL');
+      }
+    }
+    const otherQ = data.teamQueues.otherQueue;
+    if (!otherQ || typeof otherQ !== 'object') {
+      errors.push('teamQueues.otherQueue must be present');
+    } else if (!Number.isInteger(otherQ.count) || otherQ.count < 0) {
+      errors.push('teamQueues.otherQueue.count must be a non-negative integer');
+    }
+    const br = data.teamQueues.breakout;
+    if (!br || typeof br !== 'object') {
+      errors.push('teamQueues.breakout must be present');
+    } else {
+      const keys = ['operations', 'engineering', 'governance', 'pmoParents', 'pmoTasks', 'other', 'totalOpenIssues'];
+      for (const key of keys) {
+        if (!Number.isInteger(br[key]) || br[key] < 0) {
+          errors.push(`teamQueues.breakout.${key} must be a non-negative integer`);
+        }
+      }
+      if (
+        Number.isInteger(br.operations) && Number.isInteger(br.engineering) && Number.isInteger(br.governance) &&
+        Number.isInteger(br.pmoParents) && Number.isInteger(br.pmoTasks) && Number.isInteger(br.other) &&
+        Number.isInteger(br.totalOpenIssues)
+      ) {
+        const sum = br.operations + br.engineering + br.governance + br.pmoParents + br.pmoTasks + br.other;
+        if (sum !== br.totalOpenIssues) {
+          errors.push(`teamQueues.breakout categories (${sum}) must equal totalOpenIssues (${br.totalOpenIssues})`);
+        }
+        if (br.totalOpenIssues !== data.teamQueues.totalOpenIssues) {
+          errors.push('teamQueues.breakout.totalOpenIssues must equal teamQueues.totalOpenIssues');
+        }
+      }
+      if (taskQ && Number.isInteger(taskQ.count) && Number.isInteger(br.pmoTasks) && taskQ.count !== br.pmoTasks) {
+        errors.push('teamQueues.pmoTaskQueue.count must equal breakout.pmoTasks');
+      }
+    }
   }
   if (!data.currentBook || typeof data.currentBook !== 'object') {
     errors.push('currentBook summary must be present');

@@ -5,8 +5,8 @@ Authority Level: Navigation
 Owns: Read order, authority routing, lane/profile identification, execution entry point
 Does Not Own: Role policy, execution rules, design authority, communication policy, delivery policy, or governance decisions
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2640, #2641, #2686, #2690, #3052, #3138, #3142, #3693, #3755, #3815, #4126, #4173
-Last Reviewed: 2026-10-07
+Related Issues: #2640, #2641, #2686, #2690, #3052, #3138, #3142, #3693, #3755, #3815, #4126, #4173, #4716
+Last Reviewed: 2026-10-20
 ---
 
 # Agent.md
@@ -170,10 +170,10 @@ When Product Authority says `run startup`, the literal command resolves accordin
 - Work: `docs/ops/ai/WORK-RULES.md` (retired #4074; historical only)
 - Codex: `docs/ops/ai/CODEX-RULES.md` (retired #4165; historical only)
 - Claude Code: `docs/ops/ai/CLAUDE-CODE-RULES.md`
-- Cursor: existing bootstrap, unchanged (`AGENTS.md` for Cloud, `.cursor/rules/*.mdc` for Local)
+- Cursor: `docs/ops/ai/CURSOR-RULES.md` (Startup section), reached through `AGENTS.md` for Cloud and `.cursor/rules/*.mdc` for Local
 - Claude (conversational): no product-specific startup contract; outside the operational delivery chain unless bounded collaboration is authorized
 
-Shared skeleton, session-boundary rules, and the full list of what startup must never authorize: `docs/ops/ai/CORE-RULES.md`, "PRODUCT STARTUP FRAMEWORK." Current product/role inventory: `docs/governance/AGENT-TEAM.md`.
+Shared skeleton, session-boundary rules, and the full list of what startup must never authorize: `docs/governance/AGENT-EXECUTION.md`, "PRODUCT STARTUP FRAMEWORK." After startup the session continues through task definition and the continuous run: `docs/governance/AGENT-EXECUTION.md`, "Session lifecycle." Current product/role inventory: `docs/governance/AGENT-TEAM.md`.
 
 Startup does not authorize, for any product:
 
@@ -234,7 +234,7 @@ Routine bounded correction, deterministic administrative reconciliation, and non
 - Administration & Communications: `docs/governance/ADMINISTRATION-AND-COMMUNICATIONS.md`
 - Day-2 Operations: `docs/governance/OPERATIONS-AND-RECOVERY.md`
 - Lane/profile reference: `docs/reference/operations/operating-lanes-and-promotion-profiles.md`
-- Shared execution detail: `docs/ops/ai/CORE-RULES.md`
+- Shared execution detail: `docs/governance/AGENT-EXECUTION.md` (`docs/ops/ai/CORE-RULES.md` is a compatibility pointer)
 - Execution fidelity (approved-action contracts): `docs/governance/standards/AGENT-EXECUTION-FIDELITY.md`
 
 Legacy person-specific or serialized instructions must not be cited when they conflict with these canonical sources.

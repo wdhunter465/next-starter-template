@@ -103,6 +103,28 @@ describe('DIATAXIS folder hygiene audit', () => {
     expect(findings.map((finding) => finding.code)).toContain('OUTSIDE_DIATAXIS_FOLDER');
   });
 
+  it('accepts Doc Type Specification for locked design specs under docs/reference/design (#4632)', () => {
+    const spec = referenceDoc.replace('Doc Type: Reference', 'Doc Type: Specification');
+
+    const design = auditDiataxisFile('docs/reference/design/search.md', spec);
+    expect(design.map((finding) => finding.code)).not.toContain('DOC_TYPE_FOLDER_MISMATCH');
+
+    const elsewhere = auditDiataxisFile('docs/reference/example.md', spec);
+    expect(elsewhere.map((finding) => finding.code)).toContain('DOC_TYPE_FOLDER_MISMATCH');
+  });
+
+  it('still requires a valid Doc Type and keeps the reference-only rules for design specs', () => {
+    const wrong = referenceDoc.replace('Doc Type: Reference', 'Doc Type: How-To');
+    expect(auditDiataxisFile('docs/reference/design/search.md', wrong).map((f) => f.code)).toContain(
+      'DOC_TYPE_FOLDER_MISMATCH',
+    );
+
+    const procedural = `${referenceDoc}\n## Steps\n\nDo this.\n`;
+    expect(auditDiataxisFile('docs/reference/design/search.md', procedural).map((f) => f.code)).toContain(
+      'FORBIDDEN_STRUCTURE_PRESENT',
+    );
+  });
+
   it('renders actionable advisory text', () => {
     const report = renderDiataxisReport([
       {

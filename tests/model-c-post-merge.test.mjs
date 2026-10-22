@@ -42,6 +42,29 @@ describe('model_c_post_merge', () => {
     expect(result.ok).toBe(false);
     expect(result.errors.some((e) => e.code === 'source_issue_open')).toBe(true);
   });
+
+  it('does not require the source issue closed when merged into a stacked parent branch (#4667)', () => {
+    const result = assessModelCPostMerge({
+      changedFiles: ['docs/reference/ci/x.md'],
+      prMerged: true,
+      issueClosed: false,
+      baseRef: 'issue-4639-constitution-hierarchy',
+      skipDiataxis: true,
+    });
+    expect(result.ok).toBe(true);
+  });
+
+  it('still requires the source issue closed when merged into main (#4667)', () => {
+    const result = assessModelCPostMerge({
+      changedFiles: ['docs/reference/ci/x.md'],
+      prMerged: true,
+      issueClosed: false,
+      baseRef: 'main',
+      skipDiataxis: true,
+    });
+    expect(result.ok).toBe(false);
+    expect(result.errors.some((e) => e.code === 'source_issue_open')).toBe(true);
+  });
 });
 
 

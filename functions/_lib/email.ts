@@ -7,6 +7,23 @@ function parseFrom(from: string): MailChannelsAddress {
 	return { email: from.trim() };
 }
 
+// #4751: website email is sent from the club domain's admin or support address only.
+const FROM_DISPLAY_NAME = 'Lou Gehrig Fan Club';
+const ALLOWED_FROM_ADDRESSES = ['admin@lougehrigfanclub.com', 'support@lougehrigfanclub.com'];
+const DEFAULT_FROM_ADDRESS = ALLOWED_FROM_ADDRESSES[0];
+
+export function resolveFromAddress(fromRaw: string): MailChannelsAddress {
+	const parsed = parseFrom(fromRaw);
+	const email = String(parsed.email || '').trim().toLowerCase();
+	if (ALLOWED_FROM_ADDRESSES.includes(email)) {
+		return { email, name: parsed.name || FROM_DISPLAY_NAME };
+	}
+	console.warn('MAIL_FROM is not an allowed sender address; using the default club address.');
+	return { email: DEFAULT_FROM_ADDRESS, name: FROM_DISPLAY_NAME };
+}
+
+const DEFAULT_SITE_URL = 'https://www.lougehrigfanclub.com';
+
 type MailSendResult = { sent: boolean; provider: string; statusCode?: number; error?: string; skipped?: boolean };
 
 function requiredEnv(opts: { env: any; key: string; hint?: string }): string {
@@ -24,6 +41,7 @@ async function sendMailChannels(opts: {
 	subject: string;
 	text: string;
 	html: string;
+	senderOverride?: string; // still restricted to the allowed club addresses
 }): Promise<MailSendResult> {
 	const enabled = String(opts.env?.MAILCHANNELS_ENABLED || '0') === '1';
 	if (!enabled) return { sent: false, provider: 'disabled' };
@@ -35,7 +53,7 @@ async function sendMailChannels(opts: {
 	if (!fromRaw) return { sent: false, provider: 'mailchannels', error: 'MAIL_FROM not configured' };
 
 	const replyToRaw = String(opts.env?.MAIL_REPLY_TO || '').trim();
-	const from = parseFrom(fromRaw);
+	const from = resolveFromAddress(opts.senderOverride || fromRaw);
 
 	const payload: any = {
 		personalizations: [{ to: opts.to }],
@@ -112,17 +130,15 @@ export async function sendWelcomeEmail(opts: {
 	siteUrl?: string;
 	introMd?: string; // optional: admin-managed welcome email top-half copy
 }): Promise<MailSendResult> {
-	const siteUrl = (opts.siteUrl || String(opts.env?.NEXT_PUBLIC_SITE_URL || '')).trim();
+	const siteUrl = (opts.siteUrl || String(opts.env?.NEXT_PUBLIC_SITE_URL || '') || DEFAULT_SITE_URL).trim();
 	const to: MailChannelsAddress = { email: opts.toEmail, name: opts.toName || undefined };
 
 	const subject = 'Welcome to the Lou Gehrig Fan Club';
 
 	const introMd = String(opts.introMd || '').trim();
-	const defaultIntroText = `Thanks for joining the Lou Gehrig Fan Club mailing list.
+	const defaultIntroText = `Welcome to the Lou Gehrig Fan Club, a fan-run community honoring Lou Gehrig's legacy and supporting ALS awareness. Membership is free.
 
-You’ll get periodic updates about new content, milestones, events, and ways to support ALS charities.
-
-If you ever want to stop receiving messages, reply to this email and we’ll remove you.`;
+Questions? Just reply to this email.`;
 	const introText = introMd ? mdToPlain(introMd) : defaultIntroText;
 
 	const text = `Hi${opts.toName ? ` ${opts.toName}` : ''},
@@ -132,12 +148,11 @@ ${introText}
 ${siteUrl ? `Visit: ${siteUrl}
 ` : ''}— Lou Gehrig Fan Club`;
 
-	const defaultIntroHtml = `<p>Thanks for joining the <strong>Lou Gehrig Fan Club</strong> mailing list.</p>
-<p>You’ll get periodic updates about new content, milestones, events, and ways to support ALS charities.</p>
-<p>If you ever want to stop receiving messages, reply to this email and we’ll remove you.</p>`;
+	const defaultIntroHtml = `<p>Welcome to the <strong>Lou Gehrig Fan Club</strong>, a fan-run community honoring Lou Gehrig's legacy and supporting ALS awareness. Membership is free.</p>
+<p>Questions? Just reply to this email.</p>`;
 	const introHtml = introMd ? mdToBasicHtml(introMd) : defaultIntroHtml;
 
-	const html = `<p>Hi${opts.toName ? ` ${opts.toName}` : ''},</p>
+	const html = `<p>Hi${opts.toName ? ` ${escapeHtml(opts.toName)}` : ''},</p>
 ${introHtml}
 ${siteUrl ? `<p>Visit: <a href="${siteUrl}">${siteUrl}</a></p>` : ''}
 <p>— Lou Gehrig Fan Club</p>`;
@@ -164,7 +179,7 @@ You did not opt in to periodic email updates, so this is the only message you wi
 
 — Lou Gehrig Fan Club`;
 
-	const html = `<p>Hi${opts.toName ? ` ${opts.toName}` : ''},</p>
+	const html = `<p>Hi${opts.toName ? ` ${escapeHtml(opts.toName)}` : ''},</p>
 <p>This confirms your <strong>Lou Gehrig Fan Club</strong> account was created successfully.</p>
 <p>You did not opt in to periodic email updates, so this is the only message you will receive unless you take further action on the site.</p>
 <p>— Lou Gehrig Fan Club</p>`;
@@ -185,7 +200,7 @@ export async function sendAdminJoinNotification(opts: {
 	const adminToRaw = String(opts.env?.MAIL_ADMIN_TO || '').trim();
 	if (!adminToRaw) return { sent: false, provider: 'mailchannels', error: 'MAIL_ADMIN_TO not configured', skipped: true };
 
-	const siteUrl = (opts.siteUrl || String(opts.env?.NEXT_PUBLIC_SITE_URL || '')).trim();
+	const siteUrl = (opts.siteUrl || String(opts.env?.NEXT_PUBLIC_SITE_URL || '') || DEFAULT_SITE_URL).trim();
 
 	const recipients = adminToRaw
 		.split(',')
@@ -193,25 +208,28 @@ export async function sendAdminJoinNotification(opts: {
 		.filter(Boolean)
 		.map((email: string) => ({ email } as MailChannelsAddress));
 
-	const subject = 'LGFC Lite – New Join Request';
+	// The member's name is typed by the member: keep it on one line and short in the subject.
+	const subjectName = String(opts.name || '').replace(/[\r\n]+/g, ' ').trim().slice(0, 100);
+	const subject = `New fan club member join request: ${subjectName}`;
 	const when = new Date().toISOString();
 
-	const text = `New join request
+	const text = `New fan club member join request
 
 Name: ${opts.name}
 Email: ${opts.email}
 When (UTC): ${when}
 Request ID: ${opts.requestId}
-${siteUrl ? `Site: ${siteUrl}` : ''}`;
+Site: ${siteUrl}`;
 
-	const html = `<h3>New join request</h3>
+	const html = `<h3>New fan club member join request</h3>
 <ul>
-<li><strong>Name:</strong> ${opts.name}</li>
-<li><strong>Email:</strong> ${opts.email}</li>
+<li><strong>Name:</strong> ${escapeHtml(opts.name)}</li>
+<li><strong>Email:</strong> ${escapeHtml(opts.email)}</li>
 <li><strong>When (UTC):</strong> ${when}</li>
-<li><strong>Request ID:</strong> ${opts.requestId}</li>
-${siteUrl ? `<li><strong>Site:</strong> <a href="${siteUrl}">${siteUrl}</a></li>` : ''}
+<li><strong>Request ID:</strong> ${escapeHtml(opts.requestId)}</li>
+<li><strong>Site:</strong> <a href="${escapeHtml(siteUrl)}">${escapeHtml(siteUrl)}</a></li>
 </ul>`;
 
-	return sendMailChannels({ env: opts.env, to: recipients, subject, text, html });
+	// Sent from support@ so the notice is never from and to the same address (admin@).
+	return sendMailChannels({ env: opts.env, to: recipients, subject, text, html, senderOverride: 'Lou Gehrig Fan Club <support@lougehrigfanclub.com>' });
 }

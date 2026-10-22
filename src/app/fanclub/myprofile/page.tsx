@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useMemo, useState } from 'react';
 import MembershipCardSection from '@/components/fanclub/MembershipCardSection';
 import { useMemberSession } from '@/hooks/useMemberSession';
+import { motionSafeScrollBehavior } from '@/lib/motionPreference';
 import styles from './page.module.css';
 
 type Profile = {
@@ -72,7 +73,7 @@ export default function MemberProfilePage() {
     const scrollToMembershipCard = () => {
       const target = document.getElementById('membership-card');
       if (!target) return false;
-      target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      target.scrollIntoView({ behavior: motionSafeScrollBehavior(), block: 'start' });
       return true;
     };
 
