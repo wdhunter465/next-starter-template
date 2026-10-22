@@ -20,14 +20,7 @@ src/app/admin/fundraiser-preview/page.tsx:60:#111111
 src/app/admin/media-assets/page.tsx:142:#dddddd
 src/app/admin/media-assets/page.tsx:158:#dddddd
 src/app/admin/media-assets/page.tsx:188:#eeeeee
-src/app/ask/page.tsx:165:#b00020
 src/app/auth/AuthClient.tsx:235:#cccccc
-src/app/health/page.tsx:9:#666666
-src/app/not-found.module.css:37:#ffffff
-src/components/AnalyticsConsent.tsx:107:#ffffff
-src/components/AnalyticsConsent.tsx:124:#ffffff
-src/components/AnalyticsConsent.tsx:78:#ffffff
-src/components/AnalyticsConsent.tsx:95:#333333
 src/components/CalendarSection.module.css:152:#666666
 src/components/admin/AdminDashboard.module.css:163:#111111
 src/components/admin/AdminDashboard.module.css:25:#111111
@@ -68,4 +61,3 @@ src/components/social-wall.module.css:41:#6b7280
 src/components/social-wall.module.css:48:#f8fafc
 src/components/social-wall.module.css:49:#dbe3f2
 src/components/social-wall.module.css:70:#6b7280
-src/styles/weekly.css:80:#ffffff
