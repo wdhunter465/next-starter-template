@@ -6,7 +6,7 @@ Owns: Verified PMO backlog state, preparation status, active assignment summary,
 Does Not Own: Product priority decisions, implementation authority, Production approval, or status inferred without repository evidence
 Canonical Reference: /docs/governance/PMO-PORTFOLIO.md
 Related Issues: #1255, #1719, #2215, #2615, #2678, #2779, #2784, #2817, #3355, #4174
-Last Reviewed: 2026-09-19
+Last Reviewed: 2026-10-22 (current-focus routing, #4770)
 ---
 
 # PMO Backlog
@@ -27,10 +27,7 @@ Canonical policy: `docs/governance/PROJECT-DOCUMENTATION-AND-AS-BUILT.md`.
 
 ## Current implementation focus
 
-| Project | Lane | Implementer | Current task | Status |
-| --- | --- | --- | --- | --- |
-| #2615 | Active PMO implementation | Cursor | #2622 | Active |
-| #2784 | Active PMO implementation | Claude | #2918 | Active |
+Active parents and their owner labels are routed in `docs/ops/pmo/CURRENT-STATE.md` (reviewed 2026-10-22) and are verified against live Issues, not copied here. The earlier rows for #2615 and #2784 are removed: neither Issue is open as of 2026-10-22.
 
 **PMO Admin** executes PMO process. The current holder is recorded in `docs/governance/AGENT-TEAM.md`. Product Authority retains Product and Production authority. CMO may approve merge when Product Authority is unavailable and a holder is recorded.
 
