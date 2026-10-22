@@ -5,7 +5,7 @@ Authority Level: Canonical Design Specification
 Owns: Routes, navigation invariants, UI/UX contracts, page content contracts
 Does Not Own: How-to procedures; operational runbooks; governance policies
 Canonical Reference: /docs/reference/design/LGFC-Production-Design-and-Standards.md
-Last Reviewed: 2026-10-14
+Last Reviewed: 2026-10-22
 ---
 
 # LGFC Website Style Guide
@@ -97,8 +97,7 @@ This system font stack provides optimal performance and native appearance on all
   - Line height: `1.2`
 
 - **Page Title H1**
-  - Desktop: `32px` (2rem)
-  - Tablet: `36px` (2.25rem)
+  - One size at every width: `32px` (2rem). Accepted 2026-10-14 (#4409, D-010)
   - Font weight: `700`
   - Color: LGFC Blue (`#0033cc`)
   - Line height: `1.2`

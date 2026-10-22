@@ -199,8 +199,8 @@ export default function AdminCMS() {
                   }}
                 >
                   <span style={{ display: 'block', fontWeight: 700 }}>{b.title}</span>
-                  <span style={{ display: 'block', fontSize: 12, opacity: 0.8 }}>{b.key}</span>
-                  <span style={{ display: 'block', fontSize: 12, opacity: 0.75, marginTop: 4 }}>
+                  <span style={{ display: 'block', fontSize: 13, opacity: 0.8 }}>{b.key}</span>
+                  <span style={{ display: 'block', fontSize: 13, opacity: 0.75, marginTop: 4 }}>
                     {b.page} / {b.section} • {b.status} • v{b.version}
                   </span>
                 </button>
@@ -287,7 +287,7 @@ export default function AdminCMS() {
               </div>
 
               {selected && (
-                <div style={{ fontSize: 12, opacity: 0.8 }}>
+                <div style={{ fontSize: 13, opacity: 0.8 }}>
                   <div>
                     Current: {selected.status} • v{selected.version} • updated {selected.updated_at} by{' '}
                     {selected.updated_by}

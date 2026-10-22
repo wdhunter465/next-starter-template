@@ -17,7 +17,7 @@ export default function WelcomeSection({ email }: WelcomeSectionProps) {
         background: '#fff',
       }}
     >
-      <h2 style={{ margin: '0 0 8px 0', fontSize: 22 }}>Welcome back{emailHint ? `, ${emailHint}` : ''}.</h2>
+      <h2 style={{ margin: '0 0 8px 0' }}>Welcome back{emailHint ? `, ${emailHint}` : ''}.</h2>
       <p style={{ margin: '0 0 10px 0', color: 'rgba(0,0,0,0.75)', lineHeight: 1.55 }}>
         This is your FanClub home. Use the sections below to browse archives, join discussions, and explore club
         milestones.

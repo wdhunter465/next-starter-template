@@ -17,7 +17,7 @@
 .title{
   margin: 0;
   font-family: var(--font-head, var(--font-headline, "Georgia", "Times New Roman", serif));
-  font-size: 2.05rem;
+  font-size: 2rem;
   line-height: 1.1;
   letter-spacing: -0.01em;
   color: var(--lgfc-charcoal, var(--text, #111));

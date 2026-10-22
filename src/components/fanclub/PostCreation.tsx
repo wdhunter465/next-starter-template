@@ -54,7 +54,7 @@ export default function PostCreation({ email, onPostCreated }: PostCreationProps
         background: '#fff',
       }}
     >
-      <h2 style={{ margin: '0 0 8px 0', fontSize: 22 }}>Share with the Club</h2>
+      <h2 style={{ margin: '0 0 8px 0' }}>Share with the Club</h2>
       <p style={{ margin: '0 0 12px 0', color: 'rgba(0,0,0,0.72)' }}>
         Posting as <strong>{email || 'member'}</strong>
       </p>

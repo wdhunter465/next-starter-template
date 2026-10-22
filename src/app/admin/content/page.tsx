@@ -135,7 +135,7 @@ export default function AdminContentPage() {
       <div style={{ display: 'grid', gap: 14, marginTop: 16 }}>
         <div style={{ display: 'flex', gap: 10, alignItems: 'center', flexWrap: 'wrap' }}>
           <label style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span style={{ fontSize: 12, opacity: 0.85 }}>Slug</span>
+            <span style={{ fontSize: 13, opacity: 0.85 }}>Slug</span>
             <input
               value={slug}
               onChange={(e) => setSlug(e.target.value)}
@@ -244,7 +244,7 @@ function SectionEditor(props: {
       <div style={{ display: 'flex', justifyContent: 'space-between', gap: 10, flexWrap: 'wrap' }}>
         <div>
           <div style={{ fontWeight: 700 }}>{section}</div>
-          <div style={{ fontSize: 12, opacity: 0.75 }}>
+          <div style={{ fontSize: 13, opacity: 0.75 }}>
             Live updated: {live?.updated_at ?? '—'} · Draft: {draft ? 'present' : '—'}
           </div>
         </div>
@@ -283,7 +283,7 @@ function SectionEditor(props: {
       </div>
 
       <label style={{ display: 'grid', gap: 6 }}>
-        <span style={{ fontSize: 12, opacity: 0.85 }}>Asset URL (optional)</span>
+        <span style={{ fontSize: 13, opacity: 0.85 }}>Asset URL (optional)</span>
         <input
           value={assetUrl}
           onChange={(e) => setAssetUrl(e.target.value)}
@@ -297,7 +297,7 @@ function SectionEditor(props: {
       </label>
 
       <label style={{ display: 'grid', gap: 6 }}>
-        <span style={{ fontSize: 12, opacity: 0.85 }}>Content</span>
+        <span style={{ fontSize: 13, opacity: 0.85 }}>Content</span>
         <textarea
           value={content}
           onChange={(e) => setContent(e.target.value)}

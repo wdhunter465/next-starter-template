@@ -7,7 +7,7 @@
 }
 
 .title {
-  font-size: clamp(1.6rem, 4vw, 2rem);
+  font-size: 2rem;
   margin: 0 0 8px;
 }
 
@@ -151,7 +151,7 @@
 .timestamp {
   margin-left: auto;
   opacity: 0.75;
-  font-size: 12px;
+  font-size: 13px;
   white-space: nowrap;
 }
 
@@ -165,7 +165,7 @@
 .meta {
   margin-top: 10px;
   opacity: 0.72;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 @media (max-width: 520px) {

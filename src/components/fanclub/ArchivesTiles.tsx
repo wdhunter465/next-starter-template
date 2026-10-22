@@ -21,7 +21,7 @@ const FEATURE_LINKS = [
 export default function ArchivesTiles() {
   return (
     <section aria-label="Feature link cards">
-      <h2 style={{ margin: '0 0 12px 0', fontSize: 22, color: 'var(--lgfc-blue, #003366)' }}>Club Features</h2>
+      <h2 style={{ margin: '0 0 12px 0', color: 'var(--lgfc-blue, #003366)' }}>Club Features</h2>
       <div
         style={{
           display: 'grid',
