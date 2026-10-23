@@ -5,8 +5,8 @@ Authority Level: Agent-Specific
 Owns: Cursor product identity, role pointer, startup/bootstrap routing, and Cursor-specific execution discipline
 Does Not Own: Agent-team policy, role assignment, PMO lifecycle, shared execution law, or approval authority
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Related Issues: #3825, #4314, #4449, #4596, #4676, #4716
-Last Reviewed: 2026-10-20
+Related Issues: #3825, #4314, #4449, #4596, #4676, #4716, #4783
+Last Reviewed: 2026-10-22
 ---
 
 # CURSOR-RULES.md
@@ -50,7 +50,7 @@ The shared rule is Assigned-queue continuation in `docs/governance/AGENT-EXECUTI
 
 When Product Authority says `run startup`, or a new Cursor Local session starts, do these steps before other repository work, then continue with Session open. The shared steps are the PRODUCT STARTUP FRAMEWORK in `docs/governance/AGENT-EXECUTION.md`. This section adds the Cursor Local steps. It does not replace that framework.
 
-1. Bind this chat. Run `~/.cursor/lgfc-wake-ctl.sh bind --session <this chat uuid>`, then `status`. Stop other-session wake loops only through that control script. Start exactly one 1-minute loop from `~/.cursor/lgfc-always-on-loop.sh` when this chat owns the path and the loop is stopped. Report bind result, runner state, and loop PID.
+1. Report wake status. Run `~/.cursor/lgfc-wake-ctl.sh startup --session <this chat uuid>`, then `status`. Do not `rebind`. Do not stop another session's loop. Start one 1-minute loop from `~/.cursor/lgfc-always-on-loop.sh` only when `/tmp/lgfc-wake-live-session` is empty, `~/.cursor/lgfc-wake-halt` is absent, and Product Authority has asked for the poll to run. If a live session is recorded and the loop is stopped or stalled, report it and leave the loop stopped. Read the latest poll from `~/.cursor/lgfc-wake-poll-inbox.json`. Report owner, runner state, and loop PID.
 2. Read the live checkout from the doctor `repo_root`. Do not read a nested `lgfc-*` worktree. Order: `Agent.md`, `docs/governance/REPOSITORY-AUTHORITY.md`, `docs/governance/AGENT-TEAM.md`, `docs/governance/AGENT-EXECUTION.md`, this file. `docs/ops/ai/CORE-RULES.md` is a pointer, not the startup contract.
 3. Report each file as read.
 4. From `AGENT-TEAM.md`, report Cursor's primary roles (Operations, Governance) and secondary roles (Engineering, PMO Admin), and the work-selection order for each of those roles.
@@ -64,10 +64,10 @@ Host bind alone is not startup. A report that lists these files as required but 
 
 On every new Cursor Local session, before other repository work, perform this section. It is phase 2 preparation in the Session lifecycle (`docs/governance/AGENT-EXECUTION.md`): steps 4 to 6 are read-only summaries that inform the task list with Product Authority. They are not part of Startup and they claim, edit and start nothing. Product Authority set these tasks on 2026-10-18. `.cursor/rules/40-session-open.mdc` (`alwaysApply: true`) is what puts this section in front of the local agent when the session opens. The rule does not execute the shell itself. The local agent runs the script below.
 
-1. Record the live session id in `/tmp/lgfc-wake-live-session` before stopping anything. If that id is not this chat, that is the session being closed. Do not summarize any older session.
-2. Close that prior wake path and run startup. Run `~/.cursor/lgfc-wake-ctl.sh startup --session <this chat uuid>`. If another session still owns a healthy loop, run `~/.cursor/lgfc-wake-ctl.sh rebind --session <this chat uuid>` once, then `status`, then start exactly one loop from `~/.cursor/lgfc-always-on-loop.sh`. Stop prior-session wake loops only through that control script. Do not kill the GitHub Actions runner. Do not stop PipeWire, D-Bus, or sommelier. Stop a dev server left listening by the prior session. If the other session takes the path back, report that in the session prompt and do not keep rebinding.
+1. Read `/tmp/lgfc-wake-live-session`. If it names another chat, that chat remains the owner. Do not overwrite it, stop its loop, or summarize that session.
+2. Run `~/.cursor/lgfc-wake-ctl.sh startup --session <this chat uuid>`, then `status`. The session-start hook reports that status. It does not take ownership. Do not `rebind`. Do not start a loop unless the live-session file is empty, the halt file is absent, and Product Authority has asked for the poll to run. If the recorded owner's loop is stopped or stalled, report it and leave it stopped. Read `~/.cursor/lgfc-wake-poll-inbox.json` for the latest poll. Do not kill the GitHub Actions runner. Do not stop PipeWire, D-Bus, or sommelier. Stop a dev server left listening by the prior session.
 3. Complete Startup steps 2 through 6 above.
-4. Summarize only the session just closed: what it was doing, what it finished, and what it left open. Use that session's transcript and `/tmp/lgfc-wake-ctl.log`.
+4. Summarize a session only when this chat is the recorded owner and that session was closed. Use that session's transcript and `/tmp/lgfc-wake-ctl.log`. Do not summarize a chat that still owns the wake path.
 5. Review the Operations queue and summarize its current state. Include open Issues labeled `team:operations`, and open Issues labeled `ops:priority:1` through `ops:priority:4`, `ops:monitoring`, or `ops:hold`. A qualifying interrupt has `team:operations` plus exactly one of those states. Say which Issues are actionable, which are waiting, and which are mislabeled.
 6. Suggest how to prioritize in-progress work and the next step, using `docs/governance/AGENT-TEAM.md` and `docs/governance/OPERATIONS-AND-RECOVERY.md`. One Issue, one pull request. Do not merge a Production-tier PR. `handoff:ready` is not website Go.
 7. Use the repository agentic documents, the constitution, and the governance procedures. After an assignment is accepted, follow the continuous workflow in `docs/governance/AGENT-EXECUTION.md`.
