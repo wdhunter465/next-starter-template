@@ -114,14 +114,14 @@ Verified against the repository on 2026-10-23 (Issue #4822). Letters follow sect
 - H — Component Mapping: `home.md` maps every homepage section to its component or inline block.
 
 ### Pending
-- A — Architecture Purge (partial):
+- A — Architecture Purge (partial, #4825):
   - `docs/reference/architecture/cms.md` is already a Historical Pointer stub.
   - `docs/reference/design/dashboard.md` is still `Canonical` and `STATUS: INCOMPLETE`, and describes the live admin dashboard. Product Authority decides whether to archive it or finish it.
   - `/docs/archive/legacy-architecture/` does not exist; the archive uses `docs/archive/superseded/`. Product Authority decides whether to keep the brief path.
-- I — Route Cleanup: `src/app/events`, `src/app/fundraiser-details` and `src/app/ai-review` have no spec under `docs/reference/design/`. Decide per route: add a spec or declare it non-canonical.
-- J — Governance Hardening: no contradiction audit has been run since the auth and homepage changes. Open check: `health.md` and `error-404.md` cite different Canonical References than the other new specs.
-- Open check: three legacy-platform mentions in `docs/ops/reports/website-design-assessment-2026-10-01/website-as-designed.md`, the identity-provider decision brief and `lgfc-homepage-legacy-v6.html` need classification as historical or removal.
-- Execution model (section 4): Copilot is no longer a role holder (`docs/governance/AGENT-TEAM.md`). Section 4 needs Product Authority's replacement wording.
+- I — Route Cleanup (#4824): `src/app/events` and `src/app/fundraiser-details` have no spec under `docs/reference/design/`. `/ai-review` is documented in `docs/ops/ai/AI-REVIEW-ACCESS.md` and is non-canonical for public design.
+- Legacy-platform mentions: the remaining hits in `website-as-designed.md`, the identity-provider decision brief and the compliance report are prohibitions or historical context; `lgfc-homepage-legacy-v6.html` has none. No work needed.
+- J — Governance Hardening (#4826): no contradiction audit has been run since the auth and homepage changes. Open check: `health.md` and `error-404.md` cite different Canonical References than the other new specs.
+- Execution model (section 4, #4827): Copilot is no longer a role holder (`docs/governance/AGENT-TEAM.md`). Section 4 needs Product Authority's replacement wording.
 
 ### Handoff to Cursor
 Cursor holds Governance as a primary role and Engineering as secondary (`AGENT-TEAM.md`). Handoff goes through GitHub Issues labeled `agent:cursor`, one Issue and one PR per pending item above, not through this file.
