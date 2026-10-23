@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Repository work-queue classification, queue ownership, team/agent claim semantics, queue-state transitions, Operations interrupt behavior, role-work-selection integration, Project Graduation routing, and universal collaboration
 Does Not Own: Product outcome, final Product priority decisions, PMO lifecycle/stage deliverables, implementation methods, recovery strategy, PR approval decisions, or Production authorization
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3134, #3145, #3240, #3629, #3825
-Last Reviewed: 2026-09-18
+Related Issues: #3134, #3145, #3240, #3629, #3825, #4818
+Last Reviewed: 2026-10-23
 ---
 
 # Work Queues and Collaboration
@@ -102,6 +102,8 @@ Claim lifecycle:
 7. Team ownership persists until completion or formal transfer.
 
 A Product Authority reserved assignment may keep an `agent:*` reservation until the reserved agent starts or authority releases it.
+
+An eligible Issue in the agent's role order that has durable `team:*` ownership, no valid `agent:*` claim, and no explicit Product Authority reservation is an invitation to claim. Absence of `agent:*` is not a reason to idle or to wait for a Product Authority relay. The claim is still recorded before work starts. The lifecycle above (#3240) is unchanged: one valid claim blocks a second independent start.
 
 ## Priority semantics
 
