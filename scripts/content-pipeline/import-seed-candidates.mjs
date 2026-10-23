@@ -5,7 +5,7 @@
  * Usage:
  *   node --experimental-strip-types scripts/content-pipeline/import-seed-candidates.mjs \
  *     --file data/research/lou-gehrig-content-candidates.json \
- *     [--database lgfc_lite] [--local|--remote] [--batch-size 10] [--dry-run]
+ *     [--database lgfc_lite] [--local|--remote] [--batch-size 1] [--dry-run]
  */
 
 import fs from 'node:fs';
@@ -42,15 +42,16 @@ const {
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, '../..');
-// A 40-candidate registry (320 statements) in one D1 execute fails with
-// SQLITE_NOMEM (#4841), so candidates are imported in small batches.
-const DEFAULT_BATCH_SIZE = 10;
+// A 40-candidate registry (320 statements) in one D1 execute failed with
+// SQLITE_NOMEM (#4841), and so did a batch of 10. Importing one candidate per
+// execute shows whether a single row is the cause and names it when it fails.
+const DEFAULT_BATCH_SIZE = 1;
 const MIN_NODE_MAJOR = 22;
 const MIN_NODE_MINOR_FOR_STRIP_TYPES = 6;
 
 function printUsage() {
   console.log(`Usage: node --experimental-strip-types ${path.relative(process.cwd(), fileURLToPath(import.meta.url))} \\
-  --file <registry.json> [--database lgfc_lite] [--local|--remote] [--batch-size 10] [--dry-run]`);
+  --file <registry.json> [--database lgfc_lite] [--local|--remote] [--batch-size 1] [--dry-run]`);
 }
 
 function assertNodeRuntime() {
@@ -259,7 +260,8 @@ function main() {
       fs.writeFileSync(tempFile, sqlBatch, 'utf8');
       executeSqlFile(options.database, options.target, tempFile);
     } catch (err) {
-      console.error(`Import stopped at batch ${index + 1} of ${batches.length}; ${index} batch(es) were applied. Re-running is safe: duplicate source URLs are skipped.`);
+      const ids = batches[index].candidates.map((candidate) => candidate.candidate_id).join(', ');
+      console.error(`Import stopped at batch ${index + 1} of ${batches.length}; ${index} batch(es) were applied. Failing candidate(s): ${ids}. Re-running is safe: duplicate source URLs are skipped.`);
       throw err;
     } finally {
       try {
