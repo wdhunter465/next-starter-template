@@ -114,6 +114,17 @@ describe('Header mobile navigation wiring', () => {
     vi.unstubAllGlobals();
   });
 
+  it('hides Join and Login while the session is still loading', () => {
+    vi.stubGlobal('fetch', vi.fn(() => new Promise(() => {})));
+
+    render(<Header showLogo={false} />);
+
+    expect(screen.queryByRole('link', { name: 'Join' })).not.toBeInTheDocument();
+    expect(screen.queryByRole('link', { name: 'Login' })).not.toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Search' })).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'Store' })).toBeInTheDocument();
+  });
+
   it('opens guest hamburger drawer when logged out', async () => {
     mockSession({ ok: false });
 
