@@ -117,7 +117,7 @@ export default function PhotoDetailPanel({
         onClick={(event) => event.stopPropagation()}
       >
         <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'start' }}>
-          <h2 id={titleId} style={{ margin: 0, fontSize: 22 }}>
+          <h2 id={titleId} style={{ margin: 0 }}>
             {label}
           </h2>
           <button

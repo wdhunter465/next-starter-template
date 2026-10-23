@@ -8,7 +8,7 @@ const cell = {
   textAlign: 'right' as const,
   fontVariantNumeric: 'tabular-nums' as const,
   paddingLeft: 6,
-  fontSize: 12,
+  fontSize: 13,
 };
 
 function formatDate(iso: string): string {
@@ -28,8 +28,8 @@ function TeamBatting({ team, lines }: { team: string; lines: GehrigBattingLine[]
   if (!rows.length) return null;
   return (
     <div style={{ marginBottom: 10 }}>
-      <div style={{ fontWeight: 700, fontSize: 12, marginBottom: 4 }}>{teamLabel(team)}</div>
-      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+      <div style={{ fontWeight: 700, fontSize: 13, marginBottom: 4 }}>{teamLabel(team)}</div>
+      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
         <thead>
           <tr style={{ color: '#4a4238' }}>
             <th style={{ textAlign: 'left', fontWeight: 600 }}>Batter</th>
@@ -67,7 +67,7 @@ export default function ClubHomeGehrigBoxScore({ load }: { load: GehrigGameLoadS
           <p style={{ margin: '0 0 10px 0', fontWeight: 700, fontSize: 14 }}>{scoreLine(load.game)}</p>
           <TeamBatting team={load.game.vis_team} lines={load.game.batting} />
           <TeamBatting team={load.game.home_team} lines={load.game.batting} />
-          <p style={{ ...clubHomeMutedText, fontSize: 11, marginTop: 8 }}>{load.game.source_credit}</p>
+          <p style={{ ...clubHomeMutedText, fontSize: 13, marginTop: 8 }}>{load.game.source_credit}</p>
         </>
       ) : (
         <p style={clubHomeMutedText}>

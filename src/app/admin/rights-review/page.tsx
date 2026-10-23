@@ -247,11 +247,11 @@ function ResolveForm(props: { item: { candidate_id: string }; onResolved: () => 
     <div style={{ display: 'grid', gap: 10 }}>
       <div style={{ display: 'grid', gap: 10, gridTemplateColumns: '1fr 1fr' }}>
         <label style={{ display: 'grid', gap: 6 }}>
-          <span style={{ fontSize: 12, opacity: 0.85 }}>Reviewer</span>
+          <span style={{ fontSize: 13, opacity: 0.85 }}>Reviewer</span>
           <input value={reviewer} onChange={(e) => setReviewer(e.target.value)} style={fieldStyle()} placeholder="Your name" />
         </label>
         <label style={{ display: 'grid', gap: 6 }}>
-          <span style={{ fontSize: 12, opacity: 0.85 }}>Channel (optional -- required with a conclusion)</span>
+          <span style={{ fontSize: 13, opacity: 0.85 }}>Channel (optional -- required with a conclusion)</span>
           <select value={channel} onChange={(e) => setChannel(e.target.value)} style={fieldStyle()}>
             {CHANNEL_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>
@@ -263,7 +263,7 @@ function ResolveForm(props: { item: { candidate_id: string }; onResolved: () => 
       </div>
 
       <label style={{ display: 'grid', gap: 6 }}>
-        <span style={{ fontSize: 12, opacity: 0.85 }}>Legal conclusion (optional -- full determination, not just triage)</span>
+        <span style={{ fontSize: 13, opacity: 0.85 }}>Legal conclusion (optional -- full determination, not just triage)</span>
         <select value={conclusion} onChange={(e) => setConclusion(e.target.value)} style={fieldStyle()}>
           {CONCLUSION_OPTIONS.map((o) => (
             <option key={o.value} value={o.value}>
@@ -274,7 +274,7 @@ function ResolveForm(props: { item: { candidate_id: string }; onResolved: () => 
       </label>
 
       <label style={{ display: 'grid', gap: 6 }}>
-        <span style={{ fontSize: 12, opacity: 0.85 }}>Rationale</span>
+        <span style={{ fontSize: 13, opacity: 0.85 }}>Rationale</span>
         <textarea
           value={rationale}
           onChange={(e) => setRationale(e.target.value)}
@@ -306,7 +306,7 @@ function QueueCard(props: { item: HoldQueueItem; onResolved: () => void }) {
     <div style={cardStyle()}>
       <div>
         <div style={{ fontWeight: 700, fontSize: 16 }}>{item.title}</div>
-        <div style={{ fontSize: 12, opacity: 0.75, marginTop: 2 }}>
+        <div style={{ fontSize: 13, opacity: 0.75, marginTop: 2 }}>
           {item.candidate_id} · {item.content_type ?? 'unknown type'}
         </div>
       </div>
@@ -353,7 +353,7 @@ function UnreviewedCard(props: { item: UnreviewedItem; onResolved: () => void })
     <div style={cardStyle()}>
       <div>
         <div style={{ fontWeight: 700, fontSize: 16 }}>{item.title}</div>
-        <div style={{ fontSize: 12, opacity: 0.75, marginTop: 2 }}>
+        <div style={{ fontSize: 13, opacity: 0.75, marginTop: 2 }}>
           {item.candidate_id} · created {new Date(item.created_at).toLocaleDateString()}
         </div>
       </div>

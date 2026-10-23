@@ -57,7 +57,7 @@ export default function ClubStagingRotationPreview({ items }: ClubStagingRotatio
           marginBottom: 12,
         }}
       >
-        <h2 style={{ margin: 0, fontSize: 22, color: 'var(--lgfc-blue, #003366)' }}>Rotation preview</h2>
+        <h2 style={{ margin: 0, color: 'var(--lgfc-blue, #003366)' }}>Rotation preview</h2>
         {canRotate ? (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <button type="button" onClick={goPrev} aria-label="Previous rotation item">

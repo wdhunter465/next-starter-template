@@ -48,7 +48,7 @@ export default function EventsNextTen() {
 
   return (
     <section style={{ marginTop: 22 }}>
-      <h2 style={{ fontSize: 22, lineHeight: 1.25, margin: '0 0 10px 0' }}>Upcoming events (next 10)</h2>
+      <h2 style={{ lineHeight: 1.25, margin: '0 0 10px 0' }}>Upcoming events (next 10)</h2>
       {status ? (
         <p style={{ fontSize: 14, color: 'rgba(0,0,0,0.6)', margin: 0 }}>{status}</p>
       ) : (

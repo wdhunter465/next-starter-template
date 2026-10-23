@@ -251,7 +251,7 @@ export default function FanclubSubmitPage() {
 
   return (
     <main style={{ maxWidth: 980, margin: '0 auto', padding: '28px 16px' }}>
-      <h1 style={{ fontSize: 32, margin: '0 0 8px 0' }}>Member Submissions</h1>
+      <h1 style={{ margin: '0 0 8px 0' }}>Member Submissions</h1>
       <p style={{ marginTop: 0, opacity: 0.85 }}>
         Submit a short article or a photo to be considered for the site. Rights and permission are captured with a
         simple choice below &mdash; pick the one that applies.

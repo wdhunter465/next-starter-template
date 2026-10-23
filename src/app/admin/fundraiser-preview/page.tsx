@@ -268,7 +268,7 @@ export default function FundraiserPreviewPage() {
         <section style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: 16, padding: 18, background: 'var(--lgfc-bg-card)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
             <div>
-              <h2 style={{ margin: 0, fontSize: 22 }}>Campaign Spotlight Control</h2>
+              <h2 style={{ margin: 0 }}>Campaign Spotlight Control</h2>
               <p style={{ margin: '8px 0 0 0', opacity: 0.85 }}>
                 Homepage placement stays between the Hero Banner and Weekly Matchup. When disabled, the homepage omits this section entirely.
               </p>
@@ -316,7 +316,7 @@ export default function FundraiserPreviewPage() {
         </section>
 
         <section style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: 16, padding: 18, background: 'var(--lgfc-bg-card)' }}>
-          <h2 style={{ marginTop: 0, fontSize: 22 }}>Fundraiser Source Data</h2>
+          <h2 style={{ marginTop: 0 }}>Fundraiser Source Data</h2>
           <p style={{ opacity: 0.85 }}>
             Leaderboard snapshots for enabled campaigns are derived from <code>data/fundraiser.json</code>. Invalid source data blocks save/publish.
           </p>
@@ -357,7 +357,7 @@ export default function FundraiserPreviewPage() {
         </section>
 
         <section style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: 16, padding: 18, background: 'var(--lgfc-bg-card)' }}>
-          <h2 style={{ marginTop: 0, fontSize: 22 }}>Current Block Status</h2>
+          <h2 style={{ marginTop: 0 }}>Current Block Status</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
             <div>
               <strong>Draft version:</strong> {block?.version ?? '(new)'}
@@ -387,7 +387,7 @@ export default function FundraiserPreviewPage() {
         </section>
 
         <section style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: 16, padding: 18, background: 'var(--lgfc-bg-card)' }}>
-          <h2 style={{ marginTop: 0, fontSize: 22 }}>Editor</h2>
+          <h2 style={{ marginTop: 0 }}>Editor</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 14 }}>
             <label style={{ display: 'grid', gap: 6 }}>
               <span>Eyebrow</span>
@@ -477,13 +477,13 @@ export default function FundraiserPreviewPage() {
 
         <section style={{ display: 'grid', gap: 16 }}>
           <div>
-            <h2 style={{ marginTop: 0, marginBottom: 10, fontSize: 22 }}>Admin Preview</h2>
+            <h2 style={{ marginTop: 0, marginBottom: 10 }}>Admin Preview</h2>
             <CampaignSpotlightCard config={form} previewLabel="Local Draft Preview" />
           </div>
 
           {publishedConfig && publishedErrors.length === 0 ? (
             <div>
-              <h2 style={{ marginTop: 0, marginBottom: 10, fontSize: 22 }}>Published Snapshot</h2>
+              <h2 style={{ marginTop: 0, marginBottom: 10 }}>Published Snapshot</h2>
               <CampaignSpotlightCard
                 config={publishedConfig}
                 previewLabel={publishedConfig.enabled ? 'Homepage Eligible' : 'Published Hidden State'}
