@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Shared execution rules, enforcement model, PR discipline, stop conditions, shared product-startup framework
 Does Not Own: Design authority, platform configuration, tracker content, role mapping
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3055, #3113, #3117, #3134, #3138, #3142, #3145, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4074, #4099, #4131, #4165, #4198, #4314, #4596, #4715, #4716, #4719
-Last Reviewed: 2026-10-20
+Related Issues: #3055, #3113, #3117, #3134, #3138, #3142, #3145, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4074, #4099, #4131, #4165, #4198, #4314, #4596, #4715, #4716, #4719, #4819
+Last Reviewed: 2026-10-23
 ---
 
 This document is the canonical shared execution law. It moved here from `docs/ops/ai/CORE-RULES.md` under #4198. The old path is a compatibility pointer and is not a second policy.
@@ -36,6 +36,17 @@ Rules:
 ## Scope
 
 This document applies to all AI agents working in this repository. It governs agent behavior, not product design, runtime architecture, platform configuration, or final merge authority.
+
+## Hard stops
+
+Pointers only. The sections named here already define these rules. This summary adds none.
+
+- No repository change without a governing Issue that predates the branch, the commits, and the pull request. Detail: ISSUE-FIRST HARD GATE.
+- One task, one Issue, one pull request. No mixed intent and no scope expansion. Detail: EXECUTION DISCIPLINE.
+- Stop when authority conflicts, scope or repository state is unclear, the source Issue or the changed-file allowlist is missing, live pull-request state cannot be verified, or a routine Product Authority relay is requested while GitHub communication works. Detail: MANDATORY STOP CONDITIONS.
+- Product, cost, legal, privacy, credential, destructive-data, and Production decisions stay on the source Issue. Detail: No-human-relay guardrail.
+- An executor does not approve its own protected work, and no implementer is the sole independent reviewer of that work. Detail: AGENT ROUTING PRIORITY and Continuous parent-level execution. Merge tiers, including who may merge a Production-tier pull request, are defined only in `docs/governance/REPOSITORY-AUTHORITY.md` (Merge authority).
+- After one assignment is packaged, continue the next eligible assigned item. Waiting on review is not idle. Do not merge a Production-tier pull request. Detail: ASSIGNED-QUEUE CONTINUATION.
 
 ## Current Known Truth
 
