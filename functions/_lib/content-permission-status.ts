@@ -51,13 +51,24 @@ const CLEARED_BY_OTHER_LAYER: ReadonlySet<PermissionLayer> = new Set(['permitted
 
 /**
  * The final status implied by the layers.
- * - `permitted`: origin permitted, every other layer permitted or not_applicable, and not a fee-required outcome.
- * - `not_permitted`: any layer is not_permitted, or the outcome is fee-required.
+ * - `permitted`: origin permitted, every other layer permitted or not_applicable, and not a fee-required outcome or conditional evidence.
+ * - `not_permitted`: any layer is not_permitted, the outcome is fee-required, or the evidence carries a condition.
  * - `for_admin_review`: nothing says no, but at least one layer still needs a person.
+ *
+ * #4593: a condition (territory, duration, usage limit) is a denial. Credit or
+ * attribution wording is not a condition; the person records that as
+ * usage_basis `free_use_credit` and leaves `hasConditions` false.
  */
-export function computeFinalStatus(layers: PermissionLayers, outcomeBasis: OutcomeBasis = 'pending'): FinalStatus {
+export const CONDITIONAL_EVIDENCE_DENIAL_MESSAGE =
+  'A condition on permission (territory, duration, or a usage limit) is a denial. Record usage_decision deny. Credit or attribution wording is not a condition; record that as usage_basis free_use_credit, not in conditions_text.';
+
+export function computeFinalStatus(
+  layers: PermissionLayers,
+  outcomeBasis: OutcomeBasis = 'pending',
+  options?: { hasConditions?: boolean },
+): FinalStatus {
   const all = [layers.origin, layers.cmg, layers.mlb, layers.yankees, layers.privacy];
-  if (outcomeBasis === 'fee_required' || all.includes('not_permitted')) return 'not_permitted';
+  if (outcomeBasis === 'fee_required' || options?.hasConditions === true || all.includes('not_permitted')) return 'not_permitted';
   if (layers.origin === 'permitted' && [layers.cmg, layers.mlb, layers.yankees, layers.privacy].every((l) => CLEARED_BY_OTHER_LAYER.has(l))) {
     return 'permitted';
   }
