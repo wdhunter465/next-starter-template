@@ -31,7 +31,7 @@
   box-sizing: border-box;
   padding: 12px 14px;
   border-radius: 12px;
-  border: 1px solid #dde3f5;
+  border: 1px solid var(--lgfc-border-soft);
   font-size: 16px;
   min-height: 48px;
   width: 100%;
@@ -46,7 +46,7 @@
   border-radius: 12px;
   border: none;
   background: var(--lgfc-blue);
-  color: #fff;
+  color: var(--lgfc-bg-card);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -64,7 +64,7 @@
 
 .status {
   margin-top: 18px;
-  color: #666;
+  color: var(--lgfc-text-muted);
   font-size: 14px;
   line-height: 1.5;
   min-height: 24px;
@@ -83,8 +83,8 @@
 }
 
 .article {
-  background: #fff;
-  border: 1px solid #dde3f5;
+  background: var(--lgfc-bg-card);
+  border: 1px solid var(--lgfc-border-soft);
   border-radius: 14px;
   padding: 20px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
@@ -98,7 +98,7 @@
   letter-spacing: 0.4px;
   padding: 4px 10px;
   border-radius: 999px;
-  background: #f8f9ff;
+  background: var(--lgfc-bg-subtle);
   color: var(--lgfc-blue);
   font-weight: 700;
   margin-bottom: 10px;
@@ -112,13 +112,13 @@
 }
 
 .resultLink {
-  color: #333;
+  color: var(--lgfc-text-main);
   text-decoration: none;
 }
 
 .excerpt {
   margin: 0;
-  color: #666;
+  color: var(--lgfc-text-muted);
   font-size: 14px;
   line-height: 1.5;
   overflow-wrap: anywhere;
@@ -142,14 +142,14 @@
   border-radius: 8px;
   text-decoration: none;
   font-weight: 700;
-  background: #fff;
-  color: #333;
-  border: 1px solid #dde3f5;
+  background: var(--lgfc-bg-card);
+  color: var(--lgfc-text-main);
+  border: 1px solid var(--lgfc-border-soft);
 }
 
 .pageLinkActive {
   background: var(--lgfc-blue);
-  color: #fff;
+  color: var(--lgfc-bg-card);
 }
 
 .fallback {
