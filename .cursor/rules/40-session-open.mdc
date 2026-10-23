@@ -11,6 +11,6 @@ Run this script. Do not invent a second stop path:
 
 `~/.cursor/lgfc-wake-ctl.sh startup --session <this chat uuid>`
 
-Do not `rebind`. A second chat may start `~/.cursor/lgfc-always-on-loop.sh` only when `/tmp/lgfc-wake-live-session` is empty and `~/.cursor/lgfc-wake-halt` is absent. If a live session is recorded and the loop is stopped, report it and leave it stopped. Poll results are in `~/.cursor/lgfc-wake-poll-inbox.json`. Do not kill the GitHub Actions runner.
+Do not `rebind`. A second chat may start `~/.cursor/lgfc-always-on-loop.sh` only when `/tmp/lgfc-wake-live-session` is empty, `~/.cursor/lgfc-wake-halt` is absent, and Product Authority has asked for the poll to run. If a live session is recorded and the loop is stopped, report it and leave it stopped. Poll results are in `~/.cursor/lgfc-wake-poll-inbox.json`. Do not kill the GitHub Actions runner.
 
 Then review the Operations queue and suggest the next step. Summarize a session only when this chat is the recorded owner and that session was closed. If the next step is ambiguous or there is no clear next work item, say so in the session prompt and stop. This does not authorize an Issue, a pull request, or a file edit.
