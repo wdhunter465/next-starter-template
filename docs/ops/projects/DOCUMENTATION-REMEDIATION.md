@@ -5,7 +5,8 @@ Authority Level: Operational Authority
 Owns: Documentation remediation project scope, workstream definitions, execution model
 Does Not Own: Design authority; product specs; implementation sequencing outside this project
 Canonical Reference: /docs/ops/OPERATING_MANUAL.md
-Last Reviewed: 2026-04-22
+Related Issues: #4822
+Last Reviewed: 2026-10-23
 ---
 
 # LGFC — DOCUMENTATION REMEDIATION PROJECT (CRITICAL)
@@ -101,26 +102,29 @@ A → B → C → D
 
 ## 9. Workstream Status (LIVE — AUTO-SYNC REQUIRED)
 
-### Completed (Merged)
-- None (tracker corrected to reflect implementation state)
+Verified against the repository on 2026-10-23 (Issue #4822). Letters follow section 5. The ticket files under `/docs/ops/projects/documentation-remediation/tickets/` use a different lettering (A–L); those tickets all merged on 2026-03-26 (#703, #705, #707, #711, #715, #717, #721, #723, #727, #729, #731, #741) and are not repeated here.
 
-### Pending Implementation (Ticket Merged, Doc Changes Not Fully Applied)
-- A — Architecture Purge → PR #703 (MERGED 2026-03-26)
-  - Note: Ticket merged, but archive/stub authority enforcement remained incomplete and is still implementation-pending.
-- C — Auth Model (LOCKED) → PR #707 (MERGED 2026-03-26)
-  - Note: Ticket merged, but active design docs still contained stale auth language and required implementation follow-through.
+### Completed
+- B — Canonical Authority Lock: 695 of 701 docs carry a `Canonical Reference` header; the production design doc is the named source.
+- C — Auth Model: `auth-model.md` is the single canonical auth source. Superseded wording: the model is D1-backed cookie sessions (`lgfc_session`), not localStorage `lgfc_member_email`. Remaining magic-link mentions are prohibitions only (`README.md`, `auth-model.md`, `text-pages.md`, `cloudflare-frontend.md`).
+- D — Routing Fix: logout redirects to `/` (`auth-model.md`). Superseded wording: login redirects to `/fanclub`.
+- E — Data Alignment: `faq-and-ask.md` states `/ask` does not write to `faq_entries`. Superseded wording: `faq_entries` is a real table for the FAQ section, so its remaining mentions are correct.
+- F — Homepage Order: `home.md` locks the order Hero, Spotlight, Weekly, Join, About, Social, Discussions, Friends, Milestones, Calendar, FAQ/Ask, Footer. A hidden fundraiser teaser sits above Spotlight (D-038).
+- G — Missing Specs: all eight exist under `docs/reference/design/` (`fanclub-home`, `weeklyvote-results`, `health`, `home-friends`, `home-milestones`, `home-calendar`, `home-discussions`, `error-404`).
+- H — Component Mapping: `home.md` maps every homepage section to its component or inline block.
 
-### In Progress (Open PRs)
-- B — Canonical Authority Lock → PR #705 (OPEN)
-- D — Routing Fix → PR #711 (OPEN)
-- E — Homepage Alignment → PR #715 (OPEN)
-- F — Navigation Sync → PR #717 (OPEN)
-- G — Footer Standardization → PR #721 (OPEN)
-- H — Content Deduplication → PR #723 (OPEN)
-- I — Tracker Alignment → PR #727 (OPEN)
-- J — Governance Cleanup → PR #729 (OPEN)
-- K — Index Cleanup → PR #731 (OPEN)
-- L — Terminology Standardization → PR #741 (OPEN)
+### Pending
+- A — Architecture Purge (partial, #4825):
+  - `docs/reference/architecture/cms.md` is already a Historical Pointer stub.
+  - `docs/reference/design/dashboard.md` is still `Canonical` and `STATUS: INCOMPLETE`, and describes the live admin dashboard. Product Authority decides whether to archive it or finish it.
+  - `/docs/archive/legacy-architecture/` does not exist; the archive uses `docs/archive/superseded/`. Product Authority decides whether to keep the brief path.
+- I — Route Cleanup (#4824): `src/app/events` and `src/app/fundraiser-details` have no spec under `docs/reference/design/`. `/ai-review` is documented in `docs/ops/ai/AI-REVIEW-ACCESS.md` and is non-canonical for public design.
+- Legacy-platform mentions: the remaining hits in `website-as-designed.md`, the identity-provider decision brief and the compliance report are prohibitions or historical context; `lgfc-homepage-legacy-v6.html` has none. No work needed.
+- J — Governance Hardening (#4826): no contradiction audit has been run since the auth and homepage changes. Open check: `health.md` and `error-404.md` cite different Canonical References than the other new specs.
+- Execution model (section 4, #4827): Copilot is no longer a role holder (`docs/governance/AGENT-TEAM.md`). Section 4 needs Product Authority's replacement wording.
+
+### Handoff to Cursor
+Cursor holds Governance as a primary role and Engineering as secondary (`AGENT-TEAM.md`). Handoff goes through GitHub Issues labeled `agent:cursor`, one Issue and one PR per pending item above, not through this file.
 
 ### Enforcement Rule (CRITICAL)
 - This section MUST be updated with every PR open/merge
