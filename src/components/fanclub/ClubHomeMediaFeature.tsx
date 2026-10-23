@@ -44,7 +44,7 @@ export default function ClubHomeMediaFeature({ media }: ClubHomeMediaFeatureProp
           ) : null}
           {media?.description ? <p style={clubHomeMutedText}>{media.description}</p> : null}
           {(media?.credit_line || media?.source_name) && (
-            <p style={{ ...clubHomeMutedText, marginTop: 8, fontSize: 12, fontStyle: 'italic' }}>
+            <p style={{ ...clubHomeMutedText, marginTop: 8, fontSize: 13, fontStyle: 'italic' }}>
               {media.credit_line ? `Credit: ${media.credit_line}` : null}
               {media.credit_line && media.source_name ? ' · ' : null}
               {media.source_name ? `Source: ${media.source_name}` : null}

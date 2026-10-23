@@ -35,7 +35,7 @@ export default function CharitiesTiles() {
 
   return (
     <section style={{ marginTop: 28 }}>
-      <h2 style={{ fontSize: 22, lineHeight: 1.25, margin: '0 0 10px 0' }}>Charities listed in D1</h2>
+      <h2 style={{ lineHeight: 1.25, margin: '0 0 10px 0' }}>Charities listed in D1</h2>
       <p style={{ margin: '0 0 14px 0', opacity: 0.85 }}>
         These tiles are pulled live from the D1 <code>friends</code> table (kind=charity). This is the “connectivity proof” layer.
       </p>

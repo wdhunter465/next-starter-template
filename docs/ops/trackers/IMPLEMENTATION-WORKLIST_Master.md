@@ -4,12 +4,11 @@ Audience: Human + AI
 Authority Level: Operational Authority
 Owns: Live implementation sequencing, task status, thread execution map
 Does Not Own: Design specifications or final architecture decisions
-Canonical Reference: /docs/ops/trackers/LGFC-REPO-RECOVERY-AND-IMPLEMENTATION_PLAN.md
-Last Reviewed: 2026-06-02
+Canonical Reference: /docs/ops/pmo/CURRENT-STATE.md
+Last Reviewed: 2026-10-23
 ---
 
-Project Plan (authoritative roadmap):
-/docs/ops/trackers/LGFC-REPO-RECOVERY-AND-IMPLEMENTATION_PLAN.md
+The recovery-era plan is archived at `docs/archive/superseded/ops/trackers/LGFC-REPO-RECOVERY-AND-IMPLEMENTATION_PLAN.md` (#4138, 2026-10-23). This worklist is the live sequence.
 
 Thread Closeout Log:
 /docs/ops/trackers/THREAD-LOG_Master.md

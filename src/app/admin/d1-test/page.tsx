@@ -19,7 +19,7 @@ type D1DetailResponse = {
 
 const localStyles: Record<string, React.CSSProperties> = {
   main: { padding: '32px 16px', maxWidth: 1100, margin: '0 auto' },
-  h1: { fontSize: 34, margin: '0 0 8px 0' },
+  h1: { margin: '0 0 8px 0' },
   lead: { fontSize: 16, lineHeight: 1.7, margin: '0 0 18px 0' },
   table: { width: '100%', borderCollapse: 'collapse', marginTop: 10 },
   th: { textAlign: 'left', padding: '8px 6px', borderBottom: '1px solid rgba(0,0,0,0.15)' },

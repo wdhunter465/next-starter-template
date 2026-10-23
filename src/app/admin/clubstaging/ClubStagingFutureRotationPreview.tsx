@@ -64,7 +64,7 @@ export default function ClubStagingFutureRotationPreview() {
 
   return (
     <section aria-label="Future rotation set preview" style={{ marginBottom: 24 }}>
-      <h2 style={{ margin: '0 0 12px 0', fontSize: 22, color: 'var(--lgfc-blue, #003366)' }}>
+      <h2 style={{ margin: '0 0 12px 0', color: 'var(--lgfc-blue, #003366)' }}>
         Future rotation set
       </h2>
       <p style={{ margin: '0 0 16px 0', lineHeight: 1.55, color: 'rgba(0,0,0,0.72)' }}>

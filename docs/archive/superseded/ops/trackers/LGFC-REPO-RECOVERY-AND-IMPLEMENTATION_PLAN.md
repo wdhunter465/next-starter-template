@@ -1,12 +1,16 @@
 ---
-Doc Type: Operations
+Doc Type: Archived Operations
 Audience: Human + AI
-Authority Level: Operational Authority
-Owns: Repository recovery and implementation sequencing
-Does Not Own: Design specifications
-Canonical Reference: /docs/reference/design/LGFC-Production-Design-and-Standards.md
-Last Reviewed: 2026-03-16
+Authority Level: Historical
+Owns: Historical recovery-era sequencing record only
+Does Not Own: Current implementation sequencing
+Canonical Reference: /docs/ops/trackers/IMPLEMENTATION-WORKLIST_Master.md
+Archived From: /docs/ops/trackers/LGFC-REPO-RECOVERY-AND-IMPLEMENTATION_PLAN.md
+Archived Reason: Recovery-era plan. Live sequencing is the implementation worklist. Archived under #4138.
+Last Reviewed: 2026-10-23
 ---
+
+> **ARCHIVED (#4138, 2026-10-23):** Historical. Live sequencing is `docs/ops/trackers/IMPLEMENTATION-WORKLIST_Master.md`.
 
 # LGFC Repository Recovery and Implementation Plan
 
