@@ -5,11 +5,12 @@ Authority Level: Canonical
 Owns: Routes, navigation invariants, UI/UX contracts, page content contracts
 Does Not Own: How-to procedures; operational runbooks; governance policies
 Canonical Reference: /docs/reference/design/LGFC-Production-Design-and-Standards.md
-Last Reviewed: 2026-10-14
+Related issues: #4825, #4822
+Last Reviewed: 2026-10-23
 ---
 
-> **STATUS:** INCOMPLETE  
-> This document is a working draft and does not yet fully represent the implemented state.
+> **STATUS:** AS-BUILT FOR SECTIONS 2, 3, 12 AND 14  
+> Section 3 lists the 18 admin tools that are built and is the authority for what ships. Sections 4 to 11 record the original design. Where they describe a manager that is not in section 3 (Posts, Milestones, Users, System Health), that manager is not built and is not required for launch.
 
 # LGFC — Admin Dashboard Specification  
 ## Lou Gehrig Fan Club — Admin & CMS UI  
@@ -357,7 +358,7 @@ This is a **read-only diagnostic view** to guide admin troubleshooting and decis
 
 ## 13. Visual and UX Guidelines
 
-- Use the same LGFC color palette and type scale defined in `/docs/style-guide.md`.
+- Use the same LGFC color palette and type scale defined in `/docs/reference/design/style-guide.md`.
 - Maintain a clean, table-and-card-based layout.
 - Ensure mobile-friendly layouts for quick moderation on smaller screens.
 - Avoid visual overload; prioritize clarity and readability.
@@ -369,8 +370,8 @@ This is a **read-only diagnostic view** to guide admin troubleshooting and decis
 
 The Admin Dashboard is considered **functionally complete** when:
 
-- All sections defined in this document exist and are reachable.
-- Reports queue is fully operational and drives moderation workflow.
+- All 18 tools listed in section 3 exist and are reachable from `/admin`.
+- The reports queue (built as Moderation) is fully operational and drives the moderation workflow.
 - The built admin tools listed in section 3 perform their intended operations end-to-end.
 - All admin routes `/admin/**` are properly gated by canonical auth/session + admin role authorization.
 - Core actions are logged.
