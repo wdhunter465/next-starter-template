@@ -5,8 +5,8 @@ Authority Level: Informational
 Owns: Per-file disposition of the remaining legacy-to-Diátaxis paths owned by #3155
 Does Not Own: Entry-chain consolidation, continuous stewardship, document-asset registry, or non-migration product implementation
 Canonical Reference: /docs/reference/DIATAXIS-MAPPING.md
-Related Issues: #3155, #1132, #2823, #4399
-Last Reviewed: 2026-09-27
+Related Issues: #3155, #1132, #2823, #4399, #4138
+Last Reviewed: 2026-10-23
 ---
 
 # Legacy-to-Diátaxis disposition map
@@ -28,7 +28,7 @@ Out of scope: entry-chain consolidation, a document-asset registry, deploy autho
 
 - This file is the package-1 inventory. It does not close #3155.
 - The three `PROMPTS/` files and the two superseded root files are the archive-now rows. That archive merged in #4398.
-- `AI-GUIDE.md`, the recovery-era plan, and the stale ChatGPT sentence in `WORK-RULES.md` stay for a later package.
+- `AI-GUIDE.md` and the recovery-era plan were archived under #4138 on 2026-10-23. The stale ChatGPT sentence in `WORK-RULES.md` stays for the later hygiene package.
 - Product Authority confirmed on 2026-09-27 (#4399) that Copilot is still in use and Devin is no longer in use.
 
 ## Intended final state
@@ -75,8 +75,8 @@ Action words: migrate, rewrite, route, retain, archive, delete.
 | `PROMPTS/Cursor-Rules.md` | Stale prompt | `docs/ops/ai/CURSOR-RULES.md` | Live; no header; contradicts current roles | archive | Says ChatGPT is the planner and Cursor must not open PRs. Add the canonical header on archive. | #3155 package 2 | Remove `PROMPTS/` from intent allowlists in the same PR | Header present; no required-file check loads `PROMPTS/` | Revert the PR |
 | `PROMPTS/Cursor-Launch-Prompt.md` | Stale prompt | `docs/how-to/cursor/run-program-task.md` | Live; no header | archive | Launch behavior already has a how-to. Add the canonical header on archive. | #3155 package 2 | Same allowlist removal | Header present | Revert the PR |
 | `PROMPTS/PR-as-ticket-template.md` | Stale template | `docs/templates/agent-assignment-template.md` | Live; no header; names retired Codex execution | archive | Current assignment template already exists. Add the canonical header on archive. | #3155 package 2 | Same allowlist removal | Header present | Revert the PR |
-| `docs/governance/ai/AI-GUIDE.md` | Historical build prompt | Design standards named by `Agent.md` | Live; header still says Canonical | archive later | It is not agent routing authority. Archive only after a consumer check. | #3155 later package | Consumer check before the move | Not this package | — |
-| `docs/ops/trackers/LGFC-REPO-RECOVERY-AND-IMPLEMENTATION_PLAN.md` | Recovery-era plan | Current ops trackers that are still live | Live | archive later | Archive only after the reference check. | #3155 later package | Reference check | Not this package | — |
+| `docs/governance/ai/AI-GUIDE.md` | Historical build prompt | Design standards named by `Agent.md` | Archived #4138 | archive | Consumer check found no workflow, script, or Agent.md dependency. Header is Historical. | #4138 | None | Header is Historical; live folder is gone | Revert the PR |
+| `docs/ops/trackers/LGFC-REPO-RECOVERY-AND-IMPLEMENTATION_PLAN.md` | Recovery-era plan | `docs/ops/trackers/IMPLEMENTATION-WORKLIST_Master.md` | Archived #4138 | archive | The worklist is the live sequence. Header is Historical. | #4138 | Worklist canonical reference updated in the same PR | Header is Historical | Revert the PR |
 | `docs/ops/ai/CORE-RULES.md` | Shared execution rules | This path | Current | retain | Detailed execution law. Not a legacy root. | Existing path | None | Header already present | — |
 | `docs/ops/ai/CURSOR-RULES.md` | Agent-specific rules | `docs/governance/AGENT-TEAM.md` for role | Current | retain | Cursor product rules. Role state stays in `AGENT-TEAM.md`. | Existing path | None | — | — |
 | `docs/ops/ai/CLAUDE-CODE-RULES.md` | Agent-specific rules | `docs/governance/AGENT-TEAM.md` for role | Current | retain | Claude Code product rules. | Existing path | None | — | — |
@@ -107,4 +107,4 @@ Package 3 archives the two superseded root files, changes their headers from Ope
 
 ## What this map does not do
 
-It does not create `docs/governance/standards/agent-governance.md`. It does not move binding policy into `docs/ops/ai/`. It does not edit the mandatory authority chain. It does not add attestation or a document registry. It does not archive `AI-GUIDE.md` or the recovery-era plan until their consumer checks are done.
+It does not create `docs/governance/standards/agent-governance.md`. It does not move binding policy into `docs/ops/ai/`. It does not edit the mandatory authority chain. It does not add attestation or a document registry. `AI-GUIDE.md` and the recovery-era plan were archived under #4138 on 2026-10-23 after the consumer check.

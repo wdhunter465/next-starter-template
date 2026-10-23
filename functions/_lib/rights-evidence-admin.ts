@@ -1,6 +1,7 @@
 // Admin API request parsing/validation for #3551/#3552 rights evidence (migration 0055).
 
 import { CANDIDATE_ID_PATTERN, CANDIDATE_ID_VALIDATION_MESSAGE } from './content-pipeline-candidate-constants';
+import { CONDITIONAL_EVIDENCE_DENIAL_MESSAGE } from './content-permission-status';
 import {
   RIGHTS_EVIDENCE_CHANNEL_SET,
   RIGHTS_EVIDENCE_CONCLUSION_SET,
@@ -24,6 +25,7 @@ const REPOSITORY_OR_COLLECTION_MAX_LENGTH = 500;
 const PUBLICATION_DATE_SOURCE_MAX_LENGTH = 500;
 const SOURCE_FILENAME_MAX_LENGTH = 500;
 const TAGGING_REQUIREMENTS_MAX_LENGTH = 2000;
+const CONDITIONS_TEXT_MAX_LENGTH = 4000;
 
 export type RecordRightsEvidenceRequest = {
   candidate_id: string;
@@ -44,6 +46,9 @@ export type RecordRightsEvidenceRequest = {
   source_filename?: string;
   tagging_requirements?: string;
   usage_decision?: RightsEvidenceUsageDecision;
+  // #4593: 1 when the person records a condition. Credit wording is not a condition.
+  has_conditions?: 0 | 1;
+  conditions_text?: string;
 };
 
 export type ParseRecordRightsEvidenceResult =
@@ -175,6 +180,16 @@ export function parseRecordRightsEvidenceRequest(body: unknown): ParseRecordRigh
     usageDecision = rawUsageDecision as RightsEvidenceUsageDecision;
   }
 
+  // #4593: the person decides. Credit or attribution stays out of conditions_text
+  // (usage_basis free_use_credit). Territory, duration, and usage limits go here.
+  // Any non-empty conditions text is a condition, and a condition is a denial.
+  const conditionsText = asOptionalTrimmedString(record.conditions_text, CONDITIONS_TEXT_MAX_LENGTH);
+  let hasConditions = asBooleanishFlag(record.has_conditions);
+  if (conditionsText) hasConditions = 1;
+  if (hasConditions === 1 && usageDecision !== 'deny') {
+    return { ok: false, error: CONDITIONAL_EVIDENCE_DENIAL_MESSAGE };
+  }
+
   let evidenceMetadata: Record<string, unknown> | undefined;
   if (record.evidence_metadata !== undefined && record.evidence_metadata !== null) {
     if (typeof record.evidence_metadata !== 'object' || Array.isArray(record.evidence_metadata)) {
@@ -202,6 +217,8 @@ export function parseRecordRightsEvidenceRequest(body: unknown): ParseRecordRigh
     source_filename: asOptionalTrimmedString(record.source_filename, SOURCE_FILENAME_MAX_LENGTH),
     tagging_requirements: asOptionalTrimmedString(record.tagging_requirements, TAGGING_REQUIREMENTS_MAX_LENGTH),
     usage_decision: usageDecision,
+    has_conditions: hasConditions,
+    conditions_text: conditionsText,
   };
 
   return { ok: true, request };

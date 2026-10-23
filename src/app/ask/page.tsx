@@ -162,7 +162,7 @@ function AskForm() {
             </div>
           ) : null}
           {submitErr ? (
-            <div className="sub" style={{ marginTop: 20, color: '#b00020' }}>
+            <div className="sub" style={{ marginTop: 20, color: 'var(--lgfc-error)' }}>
               {submitErr}
             </div>
           ) : null}

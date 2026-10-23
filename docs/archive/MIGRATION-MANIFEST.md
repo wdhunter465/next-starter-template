@@ -5,8 +5,8 @@ Authority Level: Historical Record
 Owns: Legacy documentation retirement ledger (old path to DIATAXIS authority mapping)
 Does Not Own: Active operational authority; legacy retirement policy rules
 Canonical Reference: /docs/ops/pmo/diataxis-legacy-retirement-policy.md
-Related issues: #1353, #1076, #1134, #2140
-Last Reviewed: 2026-09-27
+Related issues: #1353, #1076, #1134, #2140, #4138
+Last Reviewed: 2026-10-23
 ---
 
 # Legacy Documentation Migration Manifest
@@ -43,3 +43,5 @@ Rows are append-only. Do not delete historical rows; append corrections with a n
 | PROMPTS/PR-as-ticket-template.md | docs/archive/superseded/PROMPTS/PR-as-ticket-template.md | docs/templates/agent-assignment-template.md | retired | Template routed to the current assignment template. Archived with a canonical header under #3155. | 2026-09-27 |
 | ops/ai/CROSS-AGENT-OPERATING-RULES.md | docs/archive/superseded/ops/ai/CROSS-AGENT-OPERATING-RULES.md | docs/ops/ai/CORE-RULES.md | retired | Superseded by #2823. Archived with a Historical header under #3155 instead of copying policy into docs/ops/ai. | 2026-09-27 |
 | governance/ai/AGENT-GOVERNANCE.md | docs/archive/superseded/governance/ai/AGENT-GOVERNANCE.md | docs/governance/AGENT-TEAM.md | retired | Superseded by #2823. Archived with a Historical header under #3155. No replacement governance standard was authored. | 2026-09-27 |
+| docs/governance/ai/AI-GUIDE.md | docs/archive/superseded/governance/ai/AI-GUIDE.md | docs/governance/REPOSITORY-AUTHORITY.md | retired | Last live file in the legacy governance/ai folder. Consumer check found no workflow, script, or Agent.md dependency. Archived under #4138. | 2026-10-23 |
+| docs/ops/trackers/LGFC-REPO-RECOVERY-AND-IMPLEMENTATION_PLAN.md | docs/archive/superseded/ops/trackers/LGFC-REPO-RECOVERY-AND-IMPLEMENTATION_PLAN.md | docs/ops/trackers/IMPLEMENTATION-WORKLIST_Master.md | retired | Recovery-era plan. The implementation worklist is the live sequence. Archived under #4138. | 2026-10-23 |

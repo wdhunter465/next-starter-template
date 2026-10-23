@@ -5,6 +5,7 @@
 // which records a new append-only row rather than mutating the held one.
 // Protected by an authenticated D1 admin member session (requireAdmin).
 
+import { CONDITIONAL_EVIDENCE_DENIAL_MESSAGE } from '../../../../_lib/content-permission-status';
 import { requireContentPipelineCandidateTables } from '../../../../_lib/content-pipeline-candidate-repository';
 import { listHoldQueue, listUnreviewedQueue, requireRightsEvidenceTables } from '../../../../_lib/rights-evidence-repository';
 import { requireAdmin } from '../../../../_lib/auth';
@@ -49,6 +50,9 @@ export const onRequestGet = async (context: any): Promise<Response> => {
     return jsonResponse(
       {
         ok: true,
+        // #4593: shown on the queue so a person recording a conditional grant is told to record a denial.
+        // Credit or attribution wording is not a condition.
+        condition_policy: CONDITIONAL_EVIDENCE_DENIAL_MESSAGE,
         count: items.length,
         items,
         unreviewed_count: unreviewedItems.length,

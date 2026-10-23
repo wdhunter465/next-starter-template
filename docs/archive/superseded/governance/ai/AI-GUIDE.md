@@ -1,12 +1,16 @@
 ---
-Doc Type: Governance
+Doc Type: Archived Governance
 Audience: Human + AI
-Authority Level: Canonical
-Owns: Governance rules, PR process, enforcement, AI guardrails
-Does Not Own: Design/architecture/platform specifications; step-by-step ops procedures
-Canonical Reference: /docs/governance/standards/document-authority-hierarchy_MASTER.md
-Last Reviewed: 2026-02-20
+Authority Level: Historical
+Owns: Historical build prompt only
+Does Not Own: Agent routing, design authority, or current implementation instructions
+Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
+Archived From: /docs/governance/ai/AI-GUIDE.md
+Archived Reason: Last live file in the legacy governance/ai folder. Archived under #4138. Design standards named by Agent.md remain the authority.
+Last Reviewed: 2026-10-23
 ---
+
+> **ARCHIVED (#4138, 2026-10-23):** Historical build prompt. Not agent routing authority. Current authority: `Agent.md` → `docs/governance/REPOSITORY-AUTHORITY.md`.
 
 MASTER BUILD PROMPT — LOU GEHRIG FAN CLUB PLATFORM
 

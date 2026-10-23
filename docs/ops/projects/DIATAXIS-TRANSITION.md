@@ -6,7 +6,7 @@ Owns: DIATAXIS structure, folder intent, project documentation coverage, merged-
 Does Not Own: Product design decisions, implementation authority, or Production approval
 Canonical Reference: /docs/governance/PROJECT-DOCUMENTATION-AND-AS-BUILT.md
 Related Issues: #1132, #1342, #1719
-Last Reviewed: 2026-08-04
+Last Reviewed: 2026-10-23
 ---
 
 # LGFC DIATAXIS Transition and Project Documentation Model
@@ -105,4 +105,4 @@ Completion percentage and merged code do not override this rule.
 
 ## Historical transition status
 
-The earlier DIATAXIS transition work under #1342 and #1132 remains historical evidence. Current project documentation and closeout authority is controlled by `docs/governance/PROJECT-DOCUMENTATION-AND-AS-BUILT.md` and the project source Issue.
+The earlier DIATAXIS transition work under #1342 and #1132 remains historical evidence. The legacy-folder migration finished on 2026-10-23 under #4138: the undecided top-level folders are gone, and the last live legacy-folder file is in `docs/archive/superseded/`. Current project documentation and closeout authority is controlled by `docs/governance/PROJECT-DOCUMENTATION-AND-AS-BUILT.md` and the project source Issue.

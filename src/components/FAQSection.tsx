@@ -56,7 +56,7 @@ const ctaPrimary: CSSProperties = {
   fontWeight: 700,
   textDecoration: "none",
   background: "var(--lgfc-blue)",
-  color: "#fff",
+  color: "var(--lgfc-bg-card)",
   border: "2px solid var(--lgfc-blue)",
 };
 

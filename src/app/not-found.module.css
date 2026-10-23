@@ -34,7 +34,7 @@
 	padding: 12px 24px;
 	border-radius: var(--lgfc-radius-md);
 	background: var(--lgfc-blue, #0033cc);
-	color: #fff;
+	color: var(--lgfc-bg-card);
 	font-weight: 700;
 	text-decoration: none;
 }
