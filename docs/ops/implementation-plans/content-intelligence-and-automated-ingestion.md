@@ -32,17 +32,17 @@ The original notes defer all automated ingestion. The repository has since moved
 
 | Live work | Overlaps with | Divergence from this design |
 | --- | --- | --- |
-| #4787 hourly Gehrig discovery with a rotating query plan | Section 6 ingestion, Section 9 monitoring | This design starts with manual seed intake and low-volume polling. Hourly rotating discovery is already beyond that. |
-| #4788 Library of Congress Chronicling America discovery | Section 6 approved sources | Matches the "public archive" source type. Confirm each source is in the registry with robots, terms and rights notes recorded. |
-| #4789 Internet Archive discovery for books, magazines, newsreels, photographs | Section 6 | Same as above. |
-| #4790 assess further collection sources | Section 6.2 candidate source types | Natural home for the source shortlist and the pilot choice (Section 21). |
-| #4794 archive vertical slice, 10 pre-1931 public-domain items; #4816 best-quality copy, exclude watermarked sources | Sections 6, 13 | Narrow, public-domain, human-reviewed. Compatible with the pilot. |
-| #4791 move confirmed pre-1931 public-domain candidates into the archive automatically | Sections 1.2, 4.1 human review before publication | Automatic movement of confirmed candidates needs reconciling with "all items enter the review queue". Decide where the confirmation happens. |
-| #4707 duplicate-photo sweep, #4708 duplicate-photo removal tool | Section 8 duplicate detection | Photo-only and deterministic today. Section 8 covers text, near-duplicate and semantic cases. |
-| #4592 URL normalization for dedupe and do-not-use check, #4593 permission conditions, #4526 permission correspondence archive, #4527 gap register | Sections 8.3, 14 | These deliver parts of URL canonicalization and rights handling. Reuse them, do not rebuild. |
-| #4368 copyright permission requests project | Section 14 | Owns the rights workflow this design depends on. |
+| #4787 hourly Gehrig discovery with a rotating query plan | Section 5 ingestion, Section 8 monitoring | This design starts with manual seed intake and low-volume polling. Hourly rotating discovery is already beyond that. |
+| #4788 Library of Congress Chronicling America discovery | Section 5 approved sources | Matches the "public archive" source type. Confirm each source is in the registry with robots, terms and rights notes recorded. |
+| #4789 Internet Archive discovery for books, magazines, newsreels, photographs | Section 5 | Same as above. |
+| #4790 assess further collection sources | Section 5.2 candidate source types | Natural home for the source shortlist and the pilot choice (Section 20). |
+| #4794 archive vertical slice, 10 pre-1931 public-domain items; #4816 best-quality copy, exclude watermarked sources | Sections 5, 13 | Narrow, public-domain, human-reviewed. Compatible with the pilot. |
+| #4791 move confirmed pre-1931 public-domain candidates into the archive automatically | Sections 3.1, 4.1 human review before publication | Automatic movement of confirmed candidates needs reconciling with "all items enter the review queue". Decide where the confirmation happens. |
+| #4707 duplicate-photo sweep, #4708 duplicate-photo removal tool | Section 7 duplicate detection | Photo-only and deterministic today. Section 7 covers text, near-duplicate and semantic cases. |
+| #4592 URL normalization for dedupe and do-not-use check, #4593 permission conditions, #4526 permission correspondence archive, #4527 gap register | Sections 7.3, 13 | These deliver parts of URL canonicalization and rights handling. Reuse them, do not rebuild. |
+| #4368 copyright permission requests project | Section 13 | Owns the rights workflow this design depends on. |
 
-Before any phase here starts, a source Issue should reconcile this table with the live design: which parts of Phases 1 and 2 already exist, and which controls in Section 15 (budget caps, kill switch, default-disabled sources) the live discovery work already enforces.
+Before any phase here starts, a source Issue should reconcile this table with the live design: which parts of Phases 1 and 2 already exist, and which controls in Section 14 (budget caps, kill switch, default-disabled sources) the live discovery work already enforces.
 
 ## 1. Executive Summary
 
