@@ -58,7 +58,7 @@ export default function FundraiserDailyDetailsFeed({
 
   return (
     <section style={{ marginTop: 22 }}>
-      {heading ? <h2 style={{ fontSize: 22, lineHeight: 1.25, margin: '0 0 10px 0' }}>{heading}</h2> : null}
+      {heading ? <h2 style={{ lineHeight: 1.25, margin: '0 0 10px 0' }}>{heading}</h2> : null}
       {status ? (
         <p style={{ fontSize: 14, color: 'rgba(0,0,0,0.6)', margin: 0 }}>{status}</p>
       ) : (

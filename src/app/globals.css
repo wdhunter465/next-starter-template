@@ -132,11 +132,11 @@ a:hover {
 	text-decoration: underline;
 }
 
-/* Mobile typography adjustments */
+/* Mobile typography adjustments (#4612). Page titles stay 32px at every width.
+   Section headings hold the 22px mobile minimum. */
 @media (max-width: 768px) {
 	:root {
-		--lgfc-font-size-h1: 1.5rem; /* ~24px on mobile */
-		--lgfc-font-size-h2: 1.25rem; /* ~20px on mobile */
+		--lgfc-font-size-h2: 1.375rem; /* 22px */
 	}
 }
 
@@ -347,6 +347,8 @@ a:hover {
 
 .sub {
 	color: var(--lgfc-text-muted);
+	font-size: var(--lgfc-font-size-small); /* 14px, #4612 D-013 */
+	line-height: 1.5;
 	margin: 0 0 18px;
 }
 

@@ -1026,7 +1026,7 @@ function InventoryRecordCard(props: {
           </div>
         </div>
         <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', alignItems: 'center' }}>
-          <label style={{ display: 'grid', gap: 4, fontSize: 12 }}>
+          <label style={{ display: 'grid', gap: 4, fontSize: 13 }}>
             Approver
             <input
               value={approvedBy}
@@ -1035,7 +1035,7 @@ function InventoryRecordCard(props: {
               style={fieldStyle()}
             />
           </label>
-          <label style={{ display: 'grid', gap: 4, fontSize: 12 }}>
+          <label style={{ display: 'grid', gap: 4, fontSize: 13 }}>
             Reason
             <input
               value={reason}
@@ -1044,7 +1044,7 @@ function InventoryRecordCard(props: {
               style={fieldStyle()}
             />
           </label>
-          <label style={{ display: 'grid', gap: 4, fontSize: 12 }}>
+          <label style={{ display: 'grid', gap: 4, fontSize: 13 }}>
             Scheduled at (UTC)
             <input
               value={scheduledAt}
