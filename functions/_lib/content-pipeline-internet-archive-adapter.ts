@@ -1,8 +1,10 @@
 // Internet Archive discovery adapter for #4789.
 //
 // Opt-in only. The scheduled Gehrig discovery workflow passes an explicit
-// --sources list and does not include this source. archive.org is registered
-// in sources by migrations/0088_internet_archive_source_4789.sql.
+// --sources list and does not include this source. archive.org is already
+// registered by scripts/content-pipeline/seeds/4571_story_sources.sql.
+// A second INSERT in a migration would land first and the seed's
+// INSERT OR IGNORE would skip the cost and standing columns that #4571 owns.
 //
 // Metadata only. This module never downloads media and never records a rights
 // conclusion. The search `date` field is a date lead. publicdate is the
