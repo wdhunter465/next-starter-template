@@ -24,7 +24,7 @@ const stagingBannerStyle: React.CSSProperties = {
   borderRadius: 12,
   border: '1px solid rgba(180, 83, 9, 0.35)',
   background: 'rgba(255, 247, 237, 0.95)',
-  color: '#7c2d12',
+  color: 'var(--lgfc-warning)',
   fontWeight: 600,
   lineHeight: 1.5,
 };

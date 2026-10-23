@@ -5,8 +5,8 @@ Authority Level: Procedure (draft until Product Authority accepts it on #4425)
 Owns: The step order for the 2027-01-01 go-live deployment: preconditions, deployment identity, deploy and verify, communications hold, rollback, takedown, and the rollback rehearsal plan and record
 Does Not Own: The Go decision, the freeze declaration, Cloudflare account administration, or any Production action by itself
 Canonical Reference: /docs/reference/operations/2027-launch-calendar-operating-contract.md
-Related Issues: #4425, #4414, #2093, #4417, #4439, #4440, #4421, #4424, #2905, #2901
-Last Reviewed: 2026-10-19
+Related Issues: #4425, #4414, #2093, #4417, #4439, #4440, #4421, #4424, #2905, #2901, #4696
+Last Reviewed: 2026-10-22
 ---
 
 # Go-live deployment runbook
@@ -49,13 +49,13 @@ Every deploy, rollback and roll-forward records the same five facts on #2093:
 
 | Fact | Where to read it |
 | --- | --- |
-| Commit SHA | The merged pull request, and the "Latest commit" in the Cloudflare comment on its pull request |
+| Commit SHA | The live file `/deploy-info.json` (`sha` and `builtAt`), then the merged pull request and the "Latest commit" in the Cloudflare comment on its pull request |
 | Cloudflare Pages deployment ID and its deployment URL | The Pages project's Deployments list (Production environment) |
 | Site build ID | The first comment in the page HTML of any page (`<!--…-->` right after the doctype). Fetch the home page and read it |
 | Time deployed and time verified | Deployments list and the verification record |
 | Person who executed | Operations holder |
 
-Known gap: the site does not publish its own commit SHA, so the build ID cannot be mapped to a commit without the Pages dashboard. Recommended before the freeze: a small bounded change that writes the commit SHA into a static marker file at build time. It needs its own Issue, allowlist and Product Go.
+The live site publishes the commit it was built from at `/deploy-info.json`. Read `sha` and `builtAt`. A build with no commit available writes `sha` as `unknown` and still succeeds (#4696).
 
 ## Procedure
 
@@ -152,7 +152,7 @@ Product Authority approved the standing rollback Go for the launch window (rollb
 
 - **Part A (procedure check):** needs the Cloudflare Pages dashboard, which the agent sessions cannot reach. Someone with dashboard access walks the Roll back and Roll forward sections and confirms each control exists, then records it below.
 - **Part B (live rehearsal):** needs a named quiet window with no staged post due, and a person or a workflow able to roll the Pages project back one deployment and forward again. Agent sessions have no Pages deployment control, and no workflow does this today. Building one would add a Production-capable workflow with the Cloudflare token, which is a protected change for Product Authority to decide. Product Authority names the window, and either runs the dashboard steps with the agent recording, or approves that workflow.
-- **Deployment identity:** the site does not publish its commit SHA, so "deployment identity before and after" cannot be read off the site. #4696 adds a static marker file; until it merges, the identity is read from the Pages dashboard.
+- **Deployment identity:** read `sha` from `/deploy-info.json` on the site before and after the rehearsal (#4696). The Pages dashboard remains the source for the deployment ID.
 
 **Part C (data recovery check): done.** The isolated restore drill of 2026-10-16 (workflow run 38966454925, `restore-verify`, manual dispatch, approved by Product Authority) completed with conclusion `success`: confirmation, restore, evidence upload and result recording all passed, and the alert and failure-record steps were skipped. It follows the 2026-10-01 restore proof recorded on #3268. Aggregate result only; no row content was recorded.
 

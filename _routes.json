@@ -15,6 +15,7 @@
     "/*.webp",
     "/*.css",
     "/*.js",
-    "/*.txt"
+    "/*.txt",
+    "/deploy-info.json"
   ]
 }
