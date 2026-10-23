@@ -5,8 +5,8 @@ Authority Level: Binding
 Owns: LGFC Cursor runtime selection, local-versus-cloud invocation boundary, assignment runtime metadata, and local resume routing
 Does Not Own: Cursor product configuration, local poller implementation, implementation scope, merge approval, or cloud billing
 Canonical Reference: /Agent.md
-Related Issues: #2477, #2489, #2667, #2997, #3013, #3212, #3424, #3605, #3611, #4296, #4311
-Last Reviewed: 2026-09-22
+Related Issues: #2477, #2489, #2667, #2997, #3013, #3212, #3424, #3605, #3611, #4296, #4311, #4783
+Last Reviewed: 2026-10-22
 ---
 
 # Cursor Runtime Routing
@@ -25,7 +25,7 @@ Out of scope: Chromebook sleep policy, creating the `CURSOR_RUNNER_HEALTH_TOKEN`
 
 Two local transports exist and they do different jobs (#4296):
 
-1. **In-session awareness (open Composer Agent chat):** the 1-minute loop from `~/.cursor/lgfc-always-on-loop.sh` must run **inside that chat** with `notify_on_output` on `^AGENT_LOOP_TICK_lgfc_always_on`. Bind with `~/.cursor/lgfc-wake-ctl.sh rebind --session "$CURSOR_CONVERSATION_ID"`. Bare `bind` does not steal a named live session. A systemd/`nohup` loop writing `/tmp/lgfc-always-on-loop.log` can be `poller_ok` while remaining `composer_inject_ok=false`.
+1. **In-session awareness (open Composer Agent chat):** one owner runs the 1-minute loop from `~/.cursor/lgfc-always-on-loop.sh` with `notify_on_output` on `^AGENT_LOOP_TICK_lgfc_always_on`. Every open chat reads `~/.cursor/lgfc-wake-poll-inbox.json`. Startup does not `rebind`. A second chat starts the loop only when `/tmp/lgfc-wake-live-session` is empty, `~/.cursor/lgfc-wake-halt` is absent, and Product Authority has asked for the poll to run. An aborted loop is reported and left stopped (#4783). A systemd/`nohup` loop writing only a logfile can be `poller_ok` while remaining `composer_inject_ok=false`.
 2. **Cold auto-start (no live Composer session):** GitHub Actions `lgfc-cursor-dispatch` on runner label `lgfc-cursor` still launches identifiers-only `agent -p`. That starts a **new** Agent in the runner worktree. It does not inject into an already-open Composer chat. Dispatch preflight must round-trip `agent -p`; `agent status` is not sufficient (#4296).
 
 `lgfc-cursor-runner-health.yml` must stay parse-valid GitHub Actions YAML. `permissions:` must not declare `administration` (invalid key; HTTP 422; empty-job failure on every push — #4311). `GITHUB_TOKEN` cannot call `listSelfHostedRunnersForRepo`. ONLINE/OFFLINE observation uses repository secret `CURSOR_RUNNER_HEALTH_TOKEN` (fine-grained PAT or GitHub App with Administration: Read). If that secret is absent, the job must succeed with `AUTH_NOT_CONFIGURED` and must not claim OFFLINE.
@@ -66,7 +66,7 @@ There is no required resume/response comment. Comments are ordinary context Curs
 
 **Primary local auto-start (no live Composer session, #3212 Phase 4 / #4296):** GitHub Actions `lgfc-cursor-dispatch` on the dedicated Chromebook runner labeled `lgfc-cursor` invokes the fixed identifiers-only wrapper (`scripts/lgfc-cursor-dispatch/dispatch.mjs`), which launches authenticated local `cursor agent` / `agent` after an `agent -p` round-trip preflight. Contract: `config/github-actions/cursor-dispatch-runner.json`. How-to: `docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md`. Independent offline observation: `.github/workflows/lgfc-cursor-runner-health.yml`.
 
-**Primary in-session awareness (live Composer Agent chat, #3605 / #3611 / #4296):** the 1-minute GitHub poller loop bound to `CURSOR_CONVERSATION_ID` with Composer `notify_on_output`. This is how PR gate failures, merges, and review comments reach an already-open chat. It is not a substitute for dispatch when no chat exists.
+**Primary in-session awareness (live Composer Agent chat, #3605 / #3611 / #4296 / #4783):** one owner chat runs the 1-minute GitHub poller with Composer `notify_on_output`. Any open chat reads `~/.cursor/lgfc-wake-poll-inbox.json`. Startup does not `rebind`, and an aborted loop stays stopped. This is how PR gate failures, merges, and review comments stay visible while a chat is open. It is not a substitute for dispatch when no chat exists.
 
 **Decommissioned (#3424):** Cursor Local Bridge is not an operationally supported primary local auto-start path. Host Bridge units stay stopped unless Product Authority authorizes temporary diagnostics.
 
