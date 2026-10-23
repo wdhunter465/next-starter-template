@@ -121,7 +121,7 @@
   padding: 0.4rem 1.15rem;
   font-size: 0.9375rem;
   font-weight: 700;
-  color: #fff;
+  color: var(--lgfc-bg-card);
   background: var(--lgfc-blue);
   border-radius: var(--lgfc-radius-md, 8px);
   text-decoration: none;
@@ -129,8 +129,8 @@
 }
 
 .ctaLink:hover {
-  background: var(--lgfc-blue-hover, #001f4d);
-  color: #fff;
+  background: var(--lgfc-blue-hover, #0028a3);
+  color: var(--lgfc-bg-card);
 }
 
 .ctaLink:focus-visible {

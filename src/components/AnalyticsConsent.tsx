@@ -75,7 +75,7 @@ export default function AnalyticsConsent() {
             right: 0,
             bottom: 0,
             zIndex: 1000,
-            background: '#ffffff',
+            background: 'var(--lgfc-bg-card)',
             borderTop: '1px solid rgba(0,0,0,0.12)',
             boxShadow: '0 -4px 16px rgba(0,0,0,0.08)',
             padding: '14px 16px',
@@ -92,7 +92,7 @@ export default function AnalyticsConsent() {
               justifyContent: 'space-between',
             }}
           >
-            <p style={{ margin: 0, flex: '1 1 280px', fontSize: 14, lineHeight: 1.5, color: '#333333' }}>
+            <p style={{ margin: 0, flex: '1 1 280px', fontSize: 14, lineHeight: 1.5, color: 'var(--lgfc-text-main)' }}>
               This site uses Google Analytics to understand aggregate page usage. Analytics is off until you
               choose Accept.{' '}
               <Link href="/privacy" style={{ color: 'var(--lgfc-blue, #0033cc)', textDecoration: 'underline' }}>
@@ -104,7 +104,7 @@ export default function AnalyticsConsent() {
                 type="button"
                 onClick={decline}
                 style={{
-                  background: '#ffffff',
+                  background: 'var(--lgfc-bg-card)',
                   color: 'var(--lgfc-blue, #0033cc)',
                   border: '1px solid rgba(0, 51, 204, 0.3)',
                   borderRadius: 12,
@@ -121,7 +121,7 @@ export default function AnalyticsConsent() {
                 onClick={accept}
                 style={{
                   background: 'var(--lgfc-blue, #0033cc)',
-                  color: '#ffffff',
+                  color: 'var(--lgfc-bg-card)',
                   border: 'none',
                   borderRadius: 12,
                   padding: '10px 16px',

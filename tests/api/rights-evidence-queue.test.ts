@@ -118,6 +118,8 @@ describe('GET /api/admin/content-pipeline/rights-evidence/queue (#4374 Q3)', () 
     expect(response.status).toBe(200);
     const body = await response.json();
     expect(body.ok).toBe(true);
+    expect(body.condition_policy).toContain('Record usage_decision deny');
+    expect(body.condition_policy).toContain('not a condition');
 
     const heldTitles = body.items.map((item: { title: string }) => item.title);
     expect(heldTitles).toEqual(expect.arrayContaining(['Held candidate', 'Undetermined candidate']));

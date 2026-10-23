@@ -210,7 +210,7 @@ Capture before any promotion or ruleset change. Restoration operator procedure l
 | Component branch head | `component/delivery-system-v1` @ `0767a2125afd55e28be21916960e763e5e29a583` |
 | Promotion PR | #2511 (open draft; held; Quality PASS; awaiting Chat/Bill production authorization) |
 | PR template path | `.github/pull_request_template.md` |
-| Issue templates | `.github/ISSUE_TEMPLATE/{agent-task,bug_report,delivery-task,feature_request,homepage-execution-plan,config}.yml` |
+| Issue templates | `.github/ISSUE_TEMPLATE/{agent-task,bug_report,delivery-task,feature_request}.md` and `.github/ISSUE_TEMPLATE/config.yml` |
 | Recent github-pages deployment SHA (sample) | `9f87b4bcb514bf8feeaee22b688cde704e8eb21b` |
 
 ## Canonical references

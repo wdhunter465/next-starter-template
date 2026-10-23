@@ -1,61 +1,39 @@
 ---
 name: Delivery Task
-about: Model A/B or emergency task with stable delivery metadata
+about: One source Issue with a writable-file allowlist and a rollback
 title: 'TASK: <short title>'
 labels: []
 assignees: []
 ---
 
-## Purpose
+## Objective
 
-<!-- One paragraph: what this task delivers and why. -->
-
-## PMO intake (required before launch)
-
-All work enters as `Size: medium-provisional` until classified. See `docs/how-to/pmo/classify-work-and-select-delivery-model.md`.
-
-```text
-Size: medium-provisional
-Delivery model:
-Change mode:
-Target environment:
-Approval profile:
-Gate profile:
-Rollback profile:
-Component branch:
-Component master:
-Promotion PR:
-Runtime: local
-```
-
-## Classification evidence
-
-Record the matrix row or contract outcome used to finalize fields above:
-
-- Work-size contract row or rationale:
-- Model A/B decision evidence (if Medium):
-- Protected-change paths touched (if any):
-- Emergency exit used: NO / YES — rationale if YES
+<!-- What this task delivers and why. -->
 
 ## Scope
 
-### Allowed paths
+Writable files:
 
 - `path/to/file`
 - `path/to/directory/**`
 
-All other paths are out of scope.
+All other paths are out of scope. One Issue, one pull request, opened ready for review.
 
 ## Acceptance criteria
 
-- [ ] Stable metadata recorded on the issue and matching PR
-- [ ] Changed files stay inside the allowlist
-- [ ] Verification evidence attached to the PR
+- [ ] The change stays inside the writable-file list
+- [ ] Verification is recorded on the pull request
+- [ ] Product Authority merges
+
+## Protected stops
+
+<!-- Name any Production write, merge, or other stop that needs a Go. -->
 
 ## Rollback
 
-<!-- One-step, multi-step, or emergency-stabilization action for this task. -->
+<!-- One step that undoes this change. -->
 
-## Stop rule
+## Owner
 
-Stop only for authority conflict, missing allowlist, or a material business/security decision. Routine template, label, ruleset, and evidence corrections remain in scope.
+Queue: `team:`
+Claim: `agent:`
