@@ -22,8 +22,8 @@ describe('import-seed-candidates batching (#4841)', () => {
     expect(output).toMatch(/in 6 batch\(es\) of up to 5 candidate\(s\)/);
   });
 
-  it('defaults to batches of 10 candidates', () => {
+  it('defaults to one candidate per batch', () => {
     const output = dryRun([]);
-    expect(output).toMatch(/in 3 batch\(es\) of up to 10 candidate\(s\)/);
+    expect(output).toMatch(/in 30 batch\(es\) of up to 1 candidate\(s\)/);
   });
 });
