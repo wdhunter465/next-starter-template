@@ -186,9 +186,19 @@ function nextCandidateSequence() {
   return Math.max(maxSeq, 500); // floor well above known fixture IDs (001-0xx)
 }
 
-function makeCandidateIdFactory() {
-  let seq = nextCandidateSequence();
-  const year = new Date().getUTCFullYear();
+// Candidate ids restarted at the seed-file maximum (501) on every run, so a
+// later run's new candidates reused the ids of rows already in D1. The import
+// upserts on candidate_id, so a reused id overwrites the earlier row instead of
+// adding one (#4841). Each run now starts at its own unix-seconds range
+// (seconds * 1000), which stays unique across runs and still matches
+// lgfc-gehrig-YYYY-NNN+.
+export function runSequenceBase(now = Date.now()) {
+  return Math.floor(now / 1000) * 1000;
+}
+
+export function makeCandidateIdFactory(now = Date.now()) {
+  let seq = Math.max(nextCandidateSequence(), runSequenceBase(now));
+  const year = new Date(now).getUTCFullYear();
   return () => {
     seq += 1;
     return `lgfc-gehrig-${year}-${String(seq).padStart(3, '0')}`;
