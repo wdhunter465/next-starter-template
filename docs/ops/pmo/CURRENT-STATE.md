@@ -6,7 +6,7 @@ Owns: Current LGFC repo/program status routing
 Does Not Own: Detailed implementation scope, PR evidence, or Drive planning authority
 Source Issue: #2086
 Canonical Reference: /docs/ops/pmo/PMO-JULY-2026-OPERATING-MODEL.md
-Last Reviewed: 2026-09-22 (role-name reconciliation, #4214)
+Last Reviewed: 2026-10-22 (live-state refresh, #4770)
 ---
 
 # LGFC Current State
@@ -46,12 +46,14 @@ Out of scope:
 
 ## Current known truth
 
-As of Last Reviewed:
+As of Last Reviewed (2026-10-22, from live Issue labels and the open-Issue list):
 
 - GitHub Issues and PRs are the executable source of truth for work.
 - This file is a routing surface only; when it and a live Issue disagree, the live Issue wins until this page is updated.
-- Active PMO implementation assignments and closeout holds are summarized from `program-registry.md`, `pmo-backlog.md`, and live Issues; those sources must be rechecked before acting.
-- Maturity-gap Issues #2086–#2093 and future collection Issues #2073–#2085 are cataloged here for orientation only until Product Authority promotes them.
+- The objective is the 2027-01-01 website go-live and the 2027 fundraiser. The calendar of record, Go/No-Go, freeze and announcement decisions are on #2093 (Bill decides). Work toward them is tracked on #4414.
+- Review checkpoints for the go-live work: 2026-10-24, 2026-11-23, 2026-12-15 (fundraiser draft review package) and 2026-12-31 (Go/No-Go). Each is reported on #2093.
+- Role holders are recorded only in `docs/governance/AGENT-TEAM.md`. The owner shown below is the `agent:*` label on the Issue (a claim or a Product Authority reservation), not a role assignment.
+- Priority is the order among sibling work under the same parent (`docs/governance/PMO-PORTFOLIO.md`). A priority number has no repository-wide meaning.
 
 ## Intended final state
 
@@ -80,66 +82,68 @@ As of Last Reviewed:
 
 Document precedence follows `docs/governance/REPOSITORY-AUTHORITY.md`.
 
-## Active implementation lane
+## Active parents (Lifecycle: Active)
 
-Current active PMO implementation assignments (reconcile against live Issues):
+Live labels `pmo:active` and `status:active` on 2026-10-22. Ordered by priority label within this table only.
 
-| Project | Status | Implementer | Current task | PMO owner |
-| --- | --- | --- | --- | --- |
-| #2615 | Active | Cursor | #2622 | PMO Admin (interim, per `docs/governance/AGENT-TEAM.md`) |
-| #2784 | Active | Claude | #2918 | PMO Admin (interim, per `docs/governance/AGENT-TEAM.md`) |
-| #2086 | Active | Grok | This dashboard | Product Authority |
+| Parent | Priority label | Owner label | Notes |
+| --- | --- | --- | --- |
+| #2093 2027 launch calendar and Go/No-Go | `pmo:priority:1` | `agent:cursor` | Carries `status:hold`: freeze-in-force and announcement Go wait on Bill. 30-day readiness review 2026-10-24, next 2026-11-23, decision window 2026-12-31. |
+| #3633 CI qualification and Day-2 readiness | `pmo:priority:1` | `agent:claude` | Open children include #4467 (nightly qualification, three consecutive runs before 2026-11-07), #4469, #4470, #4471. |
+| #4368 Copyright permission requests | `pmo:priority:1` | `agent:claude` | Open children include #4526, #4527, #4528, #4592, #4593. Rights and publication decisions are Product Authority's. |
+| #4414 2027 go-live readiness (tracker) | `pmo:priority:1` | `agent:claude` | Tracking record only; grants no Go. Children P-01 to P-36 plus #4762, #4763 and #4764. |
+| #4349 Gehrig timeline on Club Home | `pmo:priority:2` | `agent:cursor` | See Issue. |
+| #2291 SEO strategy and activation control | `pmo:priority:4` | `agent:claude` | Due 10/31 on the dashboard. Open children include #4424 and #4743. |
+| #4138 Documentation architecture completion (Diátaxis) | `pmo:priority:6` | `agent:cursor` | See Issue. |
+| #3234 Dedicated agent GitHub identities | `pmo:priority:45` | `agent:cursor` | Held per the #2093 current-state record. Related: #3407. |
 
-Bill retains Product and Production authority. Post-merge exceptions return to the implementer of the originating PR.
+Label conflict to resolve under #4441: #1039 (Diátaxis curation) carries `status:active` with `pmo:pipeline` and `agent:Bill`.
 
-## Current prioritized queue
+## Pipeline parents
 
-Near-term program anchors (from preparation packet and PMO surfaces; verify live labels/state):
+Live labels `pmo:pipeline` on 2026-10-22. Pipeline placement does not authorize implementation.
 
-| Priority band | Issues | Notes |
+| Parent | Stage / label | Notes |
 | --- | --- | --- |
-| Active product / website | #1685, #2039, #2040, #2072 | Website completion, launch readiness, content publication, CI as-built |
-| Content / member ops | #1738, #1700 | Gehrig content Phase 1, fundraiser/charity ops |
-| Governance / PMO | #1719 (closeout remediation), #2615, #2784 | Workflow automation closeout, active PMO work |
-| Maturity-gap (this family) | #2086–#2093 | Current-state, docs-as-assets, agent rules, release evidence, infra readiness, launch calendar |
+| #3609 Queue-status dashboard | graduation-candidate, priority 5 | `agent:grok` |
+| #2075 Social media strategy | idea, priority 22 | `agent:claude` |
+| #2077 Partner and Friends operations | idea, priority 24 | `agent:claude` |
+| #2079 Community engagement cadence | idea, priority 26 | `agent:claude` |
+| #2082 Store strategy | idea, priority 28 | `agent:claude` |
+| #2083 Store and merchandise operations | idea, priority 29 | `agent:claude` |
+| #3047 Digital Lou Gehrig portrait and voice | idea, priority 31 | no `agent:*` label |
+| #2817 Governance implementation remediation | priority 61, `status:hold` | Children #2818 to #2832 remain open. |
+| #3415 Chatterbox communication layer | development-testing, priority 65, `status:post-merge-verify` | `agent:claude` |
+| #2076 Cost analysis and growth heat map | idea, priority 71 | `agent:claude` |
+| #2081 Monetization strategy | idea, priority 72 | `agent:claude` |
+| #3635 Cloudflare AI Agents pool | sandbox-testing, priority 73 | `agent:cloudflareAI` |
+| #2078 Adam Wilson Award and recognition | idea, no priority number | no `agent:*` label |
 
-Exact ordering is controlled by live Issue labels, assignee, and Product Authority direction. Do not invent priority from this table alone.
+## Blocked / parked work
+
+| Item | Disposition | Action |
+| --- | --- | --- |
+| #2093 freeze and announcement Go | `status:hold`; waits on Bill | Bill decides Go/No-Go on or before 2026-12-31; readiness reviewed on #2093 |
+| #3234 agent identities | Held per #2093 record | Resume only on Product Authority direction |
+| #2817 governance remediation | `status:hold` | Children stay open; do not claim without Product Authority direction |
+| #4537, #4541 (children of #4534) | `status:hold` | See Issues |
+| #3407 agent GitHub identities | `status:hold` | See Issue |
+| #1719 closeout | `CLOSEOUT BLOCKED — DOCUMENTATION INCOMPLETE` in `program-registry.md` | Verify remediation AS-BUILT and reconciliation before relying on closed state |
+| #2678, #2779 | Closure subject to documentation/AS-BUILT verification | Verify before treating closed state as authoritative |
+
+Open Operations exception Issues on 2026-10-22: #4714, #4725, #4726, #4730 (`team:operations`).
+
+## Maturity-gap and collection Issues
+
+- #2086 to #2092 are not in the open-Issue list on 2026-10-22; #2093 is Active (above).
+- Collection Issues #2073 to #2085: only #2075 to #2079 and #2081 to #2083 are open (Pipeline, above). The rest are not open.
+- Treat any collection Issue as future until explicitly claimed and labeled active.
 
 ## Active issues and PRs
 
 - Prefer GitHub search: `is:open label:"status:active"` and `is:pr is:open`.
 - Team queue ownership uses durable `team:*` labels; active claims use `agent:*` labels (see `docs/governance/WORK-QUEUES-AND-COLLABORATION.md`).
 - This section intentionally stays thin. Snapshot the highest-signal items when updating; do not enumerate every open issue.
-
-## Blocked / parked work
-
-| Item | Disposition | Action |
-| --- | --- | --- |
-| #1719 closeout | `CLOSEOUT BLOCKED — DOCUMENTATION INCOMPLETE` | Complete remediation AS-BUILT, PMO/GitHub reconciliation, independent verification |
-| #2678, #2779 | Closure subject to documentation/AS-BUILT verification | Verify before treating closed state as authoritative |
-
-Any other blocked work must be recorded on the live Issue. Do not invent blockers here.
-
-## Maturity-gap work
-
-| Issue | Title (short) |
-| --- | --- |
-| #2086 | Canonical current-state authority dashboard (this work) |
-| #2087 | Documentation as monitored operational assets |
-| #2088 | Agent rule load and onboarding balance |
-| #2089 | Production release evidence ownership |
-| #2090 | Cloudflare token/config readiness |
-| #2091 | D1/B2 daily sync readiness |
-| #2092 | Cursor local runbook |
-| #2093 | 2027 launch calendar and go/no-go plan |
-
-## Future collection backlog
-
-Program collection issues (not active implementation unless Product Authority promotes):
-
-#2073–#2085 (Gehrig content Phase 2, member communications, social, cost analysis, partners, awards, engagement, monetization, store, annual Lou Gehrig Day, admin tools, etc.).
-
-Treat as future until explicitly claimed and labeled active.
 
 ## Historical / superseded surfaces
 
@@ -155,7 +159,7 @@ For any agent or human starting work:
 2. This file (`docs/ops/pmo/CURRENT-STATE.md`)
 3. Source GitHub Issue for the task
 4. Applicable design / governance / PMO docs linked from the Issue
-5. `docs/ops/ai/CORE-RULES.md` and agent-specific rules
+5. `docs/governance/AGENT-EXECUTION.md` and the product-specific rules named in `Agent.md`
 6. `.agents/skills/lgfc-pr-governance/SKILL.md` when PR work is involved
 
 ## Operator stop conditions
@@ -174,7 +178,7 @@ Stop and escalate (do not continue) when:
 | Role | Responsibility |
 | --- | --- |
 | Owner | Product Authority (Bill) or delegated PMO Admin (per `docs/governance/AGENT-TEAM.md`) |
-| Cadence | On material change to active programs, blockers, or maturity-gap status; at minimum when a major program starts/stops or closeout disposition changes |
+| Cadence | At each #2093 readiness review (2026-10-24, 2026-11-23, 2026-12-31), and on material change to active programs, blockers, or maturity-gap status |
 | Updater | Any agent closing or materially advancing work in the tables above must open a follow-up PR or include an update to this file in the same docs PR when the change is in-scope |
 | Reconciliation | After update, confirm consistency with `pmo-backlog.md` and `program-registry.md` |
 

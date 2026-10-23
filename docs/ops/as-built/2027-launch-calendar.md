@@ -67,3 +67,5 @@ Revert PR #4364 (source #3866). Freeze lift requires Bill. Restoring docs is not
 ## Next recommended action
 
 Parent #2093 stays OPEN for Bill's 2026-12-31 decision and PMO closeout. The #3866 implementation docs landed in PR #4364. This child graph is terminal for implementation docs.
+
+Operating procedure for the freeze period (milestone runbook, daily checks, exception log, weekly status): `docs/how-to/ops/run-the-2027-freeze-period.md` (#4763). It runs this calendar and does not change it.
