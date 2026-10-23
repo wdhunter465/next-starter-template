@@ -5,7 +5,7 @@ Authority Level: Operational Authority
 Owns: Documentation remediation project scope, workstream definitions, execution model
 Does Not Own: Design authority; product specs; implementation sequencing outside this project
 Canonical Reference: /docs/ops/OPERATING_MANUAL.md
-Related Issues: #4822, #4827
+Related Issues: #4822, #4824, #4827
 Last Reviewed: 2026-10-23
 ---
 
@@ -104,7 +104,7 @@ A → B → C → D
 
 Section 4 was corrected on 2026-10-23 (#4827) so the execution model matches `docs/governance/AGENT-TEAM.md`. Copilot reviews pull requests only and is not the remediation owner.
 
-Verified against the repository on 2026-10-23 (Issue #4822). Letters follow section 5. The ticket files under `/docs/ops/projects/documentation-remediation/tickets/` use a different lettering (A–L); those tickets all merged on 2026-03-26 (#703, #705, #707, #711, #715, #717, #721, #723, #727, #729, #731, #741) and are not repeated here.
+Verified against the repository on 2026-10-23 (Issue #4822; updated for #4824). Letters follow section 5. The ticket files under `/docs/ops/projects/documentation-remediation/tickets/` use a different lettering (A–L); those tickets all merged on 2026-03-26 (#703, #705, #707, #711, #715, #717, #721, #723, #727, #729, #731, #741) and are not repeated here.
 
 ### Completed
 - B — Canonical Authority Lock: 695 of 701 docs carry a `Canonical Reference` header; the production design doc is the named source.
@@ -115,12 +115,13 @@ Verified against the repository on 2026-10-23 (Issue #4822). Letters follow sect
 - G — Missing Specs: all eight exist under `docs/reference/design/` (`fanclub-home`, `weeklyvote-results`, `health`, `home-friends`, `home-milestones`, `home-calendar`, `home-discussions`, `error-404`).
 - H — Component Mapping: `home.md` maps every homepage section to its component or inline block.
 
+- I — Route Cleanup (#4824): `events.md` and `fundraiser-details.md` added under `docs/reference/design/`. `/ai-review` is documented in `docs/ops/ai/AI-REVIEW-ACCESS.md` and is non-canonical for public design.
+
 ### Pending
 - A — Architecture Purge (partial, #4825):
   - `docs/reference/architecture/cms.md` is already a Historical Pointer stub.
   - `docs/reference/design/dashboard.md` is still `Canonical` and `STATUS: INCOMPLETE`, and describes the live admin dashboard. Product Authority decides whether to archive it or finish it.
   - `/docs/archive/legacy-architecture/` does not exist; the archive uses `docs/archive/superseded/`. Product Authority decides whether to keep the brief path.
-- I — Route Cleanup (#4824): `src/app/events` and `src/app/fundraiser-details` have no spec under `docs/reference/design/`. `/ai-review` is documented in `docs/ops/ai/AI-REVIEW-ACCESS.md` and is non-canonical for public design.
 - Legacy-platform mentions: the remaining hits in `website-as-designed.md`, the identity-provider decision brief and the compliance report are prohibitions or historical context; `lgfc-homepage-legacy-v6.html` has none. No work needed.
 - J — Governance Hardening (#4826): no contradiction audit has been run since the auth and homepage changes. Open check: `health.md` and `error-404.md` cite different Canonical References than the other new specs.
 - Execution model (section 4, #4827): corrected to match `docs/governance/AGENT-TEAM.md`; Copilot is not a role holder. Done once this pull request merges.
