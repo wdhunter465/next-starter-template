@@ -1,55 +1,38 @@
 ---
 name: Agent Task
-about: Small, serialized task for Copilot Agent (1 active PR at a time)
-title: '[Agent]: <short title>'
-labels: ['agent', 'copilot:run', 'spec-locked']
+about: One source Issue for one ready-for-review pull request
+title: 'TASK: <short title>'
+labels: []
 assignees: []
 ---
 
-## Context
+## Objective
 
-<!-- Why are we doing this? Link prior issues/PRs. -->
+<!-- What this Issue delivers, in one paragraph. -->
 
-## PMO intake (required before launch)
+## Scope
 
-All work enters as `Size: medium-provisional` until classified. See `docs/how-to/pmo/classify-work-and-select-delivery-model.md`.
+Writable files:
 
-```text
-Size: medium-provisional
-Delivery model:
-Change mode:
-Target environment:
-Approval profile:
-Gate profile:
-Rollback profile:
-Component branch:
-Component master:
-Promotion PR:
-Runtime: local
-```
+- `path/to/file`
 
-Classify before implementation per `docs/how-to/pmo/classify-work-and-select-delivery-model.md`.
+All other paths are out of scope. One Issue, one pull request, opened ready for review.
 
-## Classification evidence
+## Acceptance criteria
 
-- Work-size contract row or rationale:
-- Model A/B decision evidence (if Medium):
-- Protected-change paths touched (if any):
+- [ ] The change stays inside the writable-file list
+- [ ] Verification is recorded on the pull request
+- [ ] Product Authority merges
 
-## Task
+## Protected stops
 
-<!-- Exact change. Keep it small; UI-only unless stated otherwise. -->
+<!-- Name any Production write, merge, or other stop that needs a Go. -->
 
-## Acceptance Criteria
+## Rollback
 
-- [ ] Matches `docs/HOMEPAGE_SPEC.md` (if applicable)
-- [ ] Passes spec-guard CI
-- [ ] Cloudflare Pages preview ✅
-- [ ] Screenshots attached in PR
-- [ ] No dependency or lockfile changes
+<!-- One step that undoes this change. -->
 
-## Pacing Rules
+## Owner
 
-- Create exactly **one** PR for this issue.
-- If other PRs touch same section/file, mark them **Draft** until this merges.
-- Do not touch `Header.tsx` or `app/page.tsx` unless this issue explicitly says so.
+Queue: `team:`
+Claim: `agent:`
