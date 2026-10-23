@@ -5,7 +5,7 @@ Authority Level: Operational Authority
 Owns: Documentation remediation project scope, workstream definitions, execution model
 Does Not Own: Design authority; product specs; implementation sequencing outside this project
 Canonical Reference: /docs/ops/OPERATING_MANUAL.md
-Last Reviewed: 2026-04-22
+Last Reviewed: 2026-10-23
 ---
 
 # LGFC — DOCUMENTATION REMEDIATION PROJECT (CRITICAL)
@@ -33,9 +33,9 @@ Status: BLOCKER (launch impact)
 4. Incomplete specs
 
 ## 4. Execution Model
-- Copilot = Documentation remediation
-- Cursor/Codex = Website implementation
-- No overlap
+- Claude Code = documentation remediation (Engineering and PMO Admin)
+- Cursor = Governance review and website implementation
+- No overlap on a single Issue
 
 ## 5. Workstreams
 
@@ -100,6 +100,8 @@ Remove orphan routes unless canonical
 A → B → C → D
 
 ## 9. Workstream Status (LIVE — AUTO-SYNC REQUIRED)
+
+Section 4 was corrected on 2026-10-23 (#4827) so the execution model matches `docs/governance/AGENT-TEAM.md`. Copilot reviews pull requests only and is not the remediation owner.
 
 ### Completed (Merged)
 - None (tracker corrected to reflect implementation state)
