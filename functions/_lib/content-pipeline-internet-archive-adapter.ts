@@ -9,8 +9,6 @@
 // archive upload time and is ignored. A date is kept on the pre-1931 path
 // only when it is a year, or a year-month-day, from 1900 through 1930.
 
-import { withBoundedRetry } from "./bounded-retry.ts";
-
 export const INTERNET_ARCHIVE_SEARCH_URL = "https://archive.org/advancedsearch.php";
 export const INTERNET_ARCHIVE_SOURCE_DOMAIN = "archive.org";
 export const PRE_1931_DATE_START = "1900-01-01";
@@ -165,6 +163,38 @@ export function mapInternetArchiveDocToCandidateFields(
   };
 }
 
+function isRetryableArchiveError(error: unknown): boolean {
+  if (error instanceof InternetArchiveHttpError) {
+    return error.status === 429 || error.status >= 500;
+  }
+  return true;
+}
+
+// Same contract as functions/_lib/bounded-retry.ts (3 attempts, exponential
+// backoff). Inlined so this file has no relative import: tsc rejects a
+// ".ts" specifier, and Node's strip-types loader cannot resolve the
+// extensionless path when the collector loads this module.
+async function withArchiveRetry<T>(
+  fn: () => Promise<T>,
+  delay: (ms: number) => Promise<void>,
+): Promise<T> {
+  const maxAttempts = 3;
+  const baseDelayMs = 500;
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    try {
+      return await fn();
+    } catch (error) {
+      lastError = error;
+      if (attempt >= maxAttempts || !isRetryableArchiveError(error)) {
+        throw error;
+      }
+      await delay(baseDelayMs * 2 ** (attempt - 1));
+    }
+  }
+  throw lastError;
+}
+
 export async function fetchInternetArchiveDocs(
   query: string,
   limit: number,
@@ -172,29 +202,17 @@ export async function fetchInternetArchiveDocs(
   delay: (ms: number) => Promise<void> = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
 ): Promise<Record<string, unknown>[]> {
   const url = buildInternetArchiveSearchUrl(query, limit);
-  const data = await withBoundedRetry(
-    async () => {
-      const response = await fetchImpl(url, {
-        headers: {
-          "User-Agent": "LGFC-Gehrig-Content-Discovery/1.0 (lougehrigfanclub.com; contact via site)",
-          Accept: "application/json",
-        },
-      });
-      if (!response.ok) {
-        throw new InternetArchiveHttpError(url, response.status);
-      }
-      return (await response.json()) as { response?: { docs?: Record<string, unknown>[] } };
-    },
-    {
-      baseDelayMs: 500,
-      delay,
-      isRetryable: (error) => {
-        if (error instanceof InternetArchiveHttpError) {
-          return error.status === 429 || error.status >= 500;
-        }
-        return true;
+  const data = await withArchiveRetry(async () => {
+    const response = await fetchImpl(url, {
+      headers: {
+        "User-Agent": "LGFC-Gehrig-Content-Discovery/1.0 (lougehrigfanclub.com; contact via site)",
+        Accept: "application/json",
       },
-    },
-  );
+    });
+    if (!response.ok) {
+      throw new InternetArchiveHttpError(url, response.status);
+    }
+    return (await response.json()) as { response?: { docs?: Record<string, unknown>[] } };
+  }, delay);
   return data.response?.docs ?? [];
 }
