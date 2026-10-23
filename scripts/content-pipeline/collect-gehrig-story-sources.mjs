@@ -29,6 +29,7 @@ import { fileURLToPath } from 'node:url';
 import { withBoundedRetry } from '../../functions/_lib/bounded-retry.ts';
 import { determineSearchRunTerminalStatus } from '../../functions/_lib/content-search-run-outcome.ts';
 import { extractPeopleTags, extractDateOrPeriod } from '../../functions/_lib/content-pipeline-discovery-text-signals.ts';
+import { normalizeSourceUrl } from '../../functions/_lib/content-pipeline-url-normalize.ts';
 import {
   STORY_SOURCES,
   STORY_SOURCE_DOMAINS,
@@ -135,7 +136,7 @@ function loadKnownUrls() {
     try {
       const data = JSON.parse(fs.readFileSync(path.join(dir, file), 'utf8'));
       for (const candidate of data.candidates ?? []) {
-        const url = cleanOriginUrl(candidate.source_url);
+        const url = normalizeSourceUrl(candidate.source_url) ?? cleanOriginUrl(candidate.source_url);
         if (url) known.add(url);
       }
     } catch {
@@ -284,11 +285,12 @@ async function main() {
     let duplicateCount = 0;
     let newCount = 0;
     for (const fields of found) {
-      if (fields.sourceUrl && knownUrls.has(fields.sourceUrl)) {
+      const normalizedSource = normalizeSourceUrl(fields.sourceUrl) ?? fields.sourceUrl;
+      if (normalizedSource && knownUrls.has(normalizedSource)) {
         duplicateCount += 1;
         continue;
       }
-      if (fields.sourceUrl) knownUrls.add(fields.sourceUrl);
+      if (normalizedSource) knownUrls.add(normalizedSource);
       if (fields.classification.ambiguity.length > 0) ambiguousCount += 1;
       candidates.push(toCandidate(nextId(), fields));
       newCount += 1;

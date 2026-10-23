@@ -12,6 +12,7 @@ import {
   getCurrentConclusionForCandidateChannel,
   getCurrentUsageDecisionForCandidate,
   listRightsEvidenceForCandidate,
+  ConditionalEvidenceMustDenyError,
   recordGovernedRightsEvidence,
   requireRightsEvidenceTables,
   type RightsEvidenceChannel,
@@ -139,6 +140,9 @@ export const onRequestPost = async (context: any): Promise<Response> => {
 
     return jsonResponse({ ok: true, candidate_id, evidence: stored }, 201);
   } catch (err: any) {
+    if (err instanceof ConditionalEvidenceMustDenyError) {
+      return jsonResponse({ ok: false, error: err.message }, 400);
+    }
     console.error('admin rights-evidence record error:', err);
     return jsonResponse({ ok: false, error: 'Rights evidence record failed.' }, 500);
   }
