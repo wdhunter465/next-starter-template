@@ -319,7 +319,7 @@ export default function ClubStagingReviewWorkspace({ onPreviewItemsChange }: Clu
           }}
         >
           {blocking ? (
-            <p role="status" style={{ color: '#7c2d12', fontWeight: 600 }}>
+            <p role="status" style={{ color: 'var(--lgfc-warning)', fontWeight: 600 }}>
               Preview may render, but Mark reviewed is refused until source, credit, rights, and privacy are present.
             </p>
           ) : null}

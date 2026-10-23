@@ -170,7 +170,7 @@ export default function AdminCMS() {
             <button
               type="button"
               onClick={() => void load(page || undefined)}
-              style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid #222', cursor: 'pointer' }}
+              style={{ padding: '8px 12px', borderRadius: 8, border: '1px solid var(--lgfc-dark)', cursor: 'pointer' }}
             >
               Refresh
             </button>
@@ -272,7 +272,7 @@ export default function AdminCMS() {
                 <button
                   type="button"
                   onClick={() => void saveDraft()}
-                  style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid #222', cursor: 'pointer' }}
+                  style={{ padding: '10px 14px', borderRadius: 8, border: '1px solid var(--lgfc-dark)', cursor: 'pointer' }}
                 >
                   Save Draft
                 </button>

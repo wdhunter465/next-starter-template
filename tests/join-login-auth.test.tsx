@@ -116,9 +116,9 @@ describe('navigation auth links', () => {
     vi.unstubAllGlobals();
   });
 
-  it('routes header Login to canonical join login tab', () => {
+  it('routes header Login to canonical join login tab', async () => {
     render(<Header showLogo={false} />);
-    expect(screen.getByRole('link', { name: 'Login' })).toHaveAttribute('href', LOGIN_TAB_ROUTE);
+    expect(await screen.findByRole('link', { name: 'Login' })).toHaveAttribute('href', LOGIN_TAB_ROUTE);
   });
 
   it('routes homepage CTA Login to canonical join login tab', () => {

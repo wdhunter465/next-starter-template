@@ -14,7 +14,7 @@ export default function WelcomeSection({ email }: WelcomeSectionProps) {
         padding: 16,
         border: '1px solid rgba(0,0,0,0.12)',
         borderRadius: 12,
-        background: '#fff',
+        background: 'var(--lgfc-bg-card)',
       }}
     >
       <h2 style={{ margin: '0 0 8px 0' }}>Welcome back{emailHint ? `, ${emailHint}` : ''}.</h2>

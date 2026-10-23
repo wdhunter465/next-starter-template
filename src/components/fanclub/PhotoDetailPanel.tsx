@@ -111,7 +111,7 @@ export default function PhotoDetailPanel({
           borderRadius: 16,
           border: '1px solid rgba(255,255,255,0.18)',
           background: '#0f172a',
-          color: '#fff',
+          color: 'var(--lgfc-bg-card)',
           padding: 16,
         }}
         onClick={(event) => event.stopPropagation()}
@@ -125,7 +125,7 @@ export default function PhotoDetailPanel({
             type="button"
             onClick={onClose}
             aria-label="Close photo detail"
-            style={{ padding: '8px 12px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.08)', color: '#fff', cursor: 'pointer' }}
+            style={{ padding: '8px 12px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.08)', color: 'var(--lgfc-bg-card)', cursor: 'pointer' }}
           >
             Close
           </button>
@@ -158,7 +158,7 @@ export default function PhotoDetailPanel({
                 disabled={index <= 0}
                 onClick={() => onNavigate(items[index - 1].id)}
                 aria-label="Previous photo"
-                style={{ padding: '8px 12px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.08)', color: '#fff', cursor: index <= 0 ? 'not-allowed' : 'pointer', opacity: index <= 0 ? 0.45 : 1 }}
+                style={{ padding: '8px 12px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.08)', color: 'var(--lgfc-bg-card)', cursor: index <= 0 ? 'not-allowed' : 'pointer', opacity: index <= 0 ? 0.45 : 1 }}
               >
                 Previous
               </button>
@@ -167,7 +167,7 @@ export default function PhotoDetailPanel({
                 disabled={index >= items.length - 1}
                 onClick={() => onNavigate(items[index + 1].id)}
                 aria-label="Next photo"
-                style={{ padding: '8px 12px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.08)', color: '#fff', cursor: index >= items.length - 1 ? 'not-allowed' : 'pointer', opacity: index >= items.length - 1 ? 0.45 : 1 }}
+                style={{ padding: '8px 12px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.2)', background: 'rgba(255,255,255,0.08)', color: 'var(--lgfc-bg-card)', cursor: index >= items.length - 1 ? 'not-allowed' : 'pointer', opacity: index >= items.length - 1 ? 0.45 : 1 }}
               >
                 Next
               </button>

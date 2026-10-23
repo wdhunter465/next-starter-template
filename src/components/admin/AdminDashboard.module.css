@@ -70,7 +70,7 @@
   padding:10px 14px;
   border-radius:12px;
   border:1px solid rgba(0,0,0,0.22);
-  background:#fff;
+  background:var(--lgfc-bg-card);
   font-weight:700;
   cursor:pointer;
 }
@@ -126,7 +126,7 @@
   border:1px solid rgba(0,0,0,0.10);
   border-radius:12px;
   padding:12px;
-  background:#fff;
+  background:var(--lgfc-bg-card);
 }
 
 .listItem h2{
@@ -157,7 +157,7 @@
   justify-content:center;
   padding:10px 14px;
   border:1px solid rgba(0,0,0,0.18);
-  background:#fff;
+  background:var(--lgfc-bg-card);
   border-radius:12px;
   text-decoration:none;
   color:#111;
@@ -170,7 +170,7 @@
 
 .err{
   margin:10px 0 0 0;
-  color:#b00020;
+  color:var(--lgfc-error);
   font-weight:700;
 }
 
@@ -211,7 +211,7 @@
   border:1px solid rgba(0,0,0,0.10);
   border-radius:12px;
   padding:10px 12px;
-  background:#fff;
+  background:var(--lgfc-bg-card);
 }
 
 .statLabel{
@@ -235,7 +235,7 @@
   border:1px solid rgba(0,0,0,0.10);
   border-radius:12px;
   padding:10px 12px;
-  background:#fff;
+  background:var(--lgfc-bg-card);
 }
 
 .statsKey{

@@ -21,7 +21,7 @@ export default function ClubHomeMediaFeature({ media }: ClubHomeMediaFeatureProp
       <h2 style={clubHomeSectionTitle}>Featured Photo &amp; Memorabilia</h2>
       {hasMedia ? (
         <>
-          <div style={{ marginBottom: 12, border: `2px solid ${clubHomeColors.navy}`, padding: 4, background: '#fff' }}>
+          <div style={{ marginBottom: 12, border: `2px solid ${clubHomeColors.navy}`, padding: 4, background: 'var(--lgfc-bg-card)' }}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={media?.thumbnail_url || ''}

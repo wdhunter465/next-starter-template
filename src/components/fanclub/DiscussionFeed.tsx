@@ -64,7 +64,7 @@ export default function DiscussionFeed({ refreshTrigger }: DiscussionFeedProps) 
         padding: 16,
         border: '1px solid rgba(0,0,0,0.12)',
         borderRadius: 12,
-        background: '#fff',
+        background: 'var(--lgfc-bg-card)',
       }}
     >
       <h2 style={{ margin: '0 0 12px 0' }}>Member Discussions</h2>
@@ -72,7 +72,7 @@ export default function DiscussionFeed({ refreshTrigger }: DiscussionFeedProps) 
       {loading ? (
         <p style={{ margin: 0, color: 'rgba(0,0,0,0.72)' }}>Loading discussions…</p>
       ) : error ? (
-        <p style={{ margin: 0, color: '#b00020' }}>{error}</p>
+        <p style={{ margin: 0, color: 'var(--lgfc-error)' }}>{error}</p>
       ) : items.length === 0 ? (
         <p style={{ margin: 0, color: 'rgba(0,0,0,0.72)' }}>No discussions yet. Be the first to post above.</p>
       ) : (

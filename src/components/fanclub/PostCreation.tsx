@@ -51,7 +51,7 @@ export default function PostCreation({ email, onPostCreated }: PostCreationProps
         padding: 16,
         border: '1px solid rgba(0,0,0,0.12)',
         borderRadius: 12,
-        background: '#fff',
+        background: 'var(--lgfc-bg-card)',
       }}
     >
       <h2 style={{ margin: '0 0 8px 0' }}>Share with the Club</h2>
@@ -91,7 +91,7 @@ export default function PostCreation({ email, onPostCreated }: PostCreationProps
             borderRadius: 10,
             border: '1px solid rgba(0,0,0,0.2)',
             background: 'var(--lgfc-blue)',
-            color: '#fff',
+            color: 'var(--lgfc-bg-card)',
             cursor: submitting ? 'not-allowed' : 'pointer',
           }}
         >
@@ -99,7 +99,7 @@ export default function PostCreation({ email, onPostCreated }: PostCreationProps
         </button>
       </form>
 
-      {error ? <p style={{ margin: '12px 0 0', color: '#b00020' }}>{error}</p> : null}
+      {error ? <p style={{ margin: '12px 0 0', color: 'var(--lgfc-error)' }}>{error}</p> : null}
       {success ? <p style={{ margin: '12px 0 0', color: 'rgba(0,0,0,0.72)' }}>{success}</p> : null}
     </section>
   );

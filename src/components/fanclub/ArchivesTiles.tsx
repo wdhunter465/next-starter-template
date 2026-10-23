@@ -40,7 +40,7 @@ export default function ArchivesTiles() {
               border: '1px solid rgba(0,0,0,0.12)',
               borderRadius: 12,
               padding: 14,
-              background: '#fff',
+              background: 'var(--lgfc-bg-card)',
             }}
           >
             <div style={{ fontSize: 16, fontWeight: 700 }}>{item.title}</div>

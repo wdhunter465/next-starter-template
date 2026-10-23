@@ -71,7 +71,7 @@
   border-radius: 999px;
   border: 1px solid var(--lgfc-blue, #0033cc);
   background: var(--lgfc-blue, #0033cc);
-  color: #fff;
+  color: var(--lgfc-bg-card);
   cursor: pointer;
   font-size: 13px;
 }

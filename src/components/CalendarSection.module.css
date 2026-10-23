@@ -196,17 +196,17 @@
 
 .dayCellSelected {
   background: var(--lgfc-blue);
-  color: #fff;
+  color: var(--lgfc-bg-card);
   border-color: var(--lgfc-blue);
   box-shadow: 0 4px 14px rgba(0, 40, 104, 0.25);
 }
 
 .dayCellSelected .dayNum {
-  color: #fff;
+  color: var(--lgfc-bg-card);
 }
 
 .dayCellSelected .eventDot {
-  background: #fff;
+  background: var(--lgfc-bg-card);
 }
 
 .eventDot {

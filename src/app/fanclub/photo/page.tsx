@@ -22,7 +22,7 @@ const pillActive: React.CSSProperties = {
   ...pillBase,
   background: 'var(--lgfc-blue, #0033cc)',
   borderColor: 'var(--lgfc-blue, #0033cc)',
-  color: '#fff',
+  color: 'var(--lgfc-bg-card)',
 };
 
 function readIdFromLocation(): number | null {

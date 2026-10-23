@@ -57,7 +57,7 @@ function buttonStyle(primary = false, disabled = false): React.CSSProperties {
     borderRadius: 10,
     border: primary ? '1px solid var(--lgfc-blue, #0033cc)' : '1px solid rgba(0,0,0,0.18)',
     background: disabled ? 'rgba(0,0,0,0.05)' : primary ? 'var(--lgfc-blue, #0033cc)' : 'white',
-    color: primary && !disabled ? '#fff' : '#111',
+    color: primary && !disabled ? 'var(--lgfc-bg-card)' : '#111',
     cursor: disabled ? 'not-allowed' : 'pointer',
     fontWeight: 700,
   };
@@ -265,7 +265,7 @@ export default function FundraiserPreviewPage() {
     >
       <AdminNav />
       <div style={{ display: 'grid', gap: 18, marginTop: 16 }}>
-        <section style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: 16, padding: 18, background: '#fff' }}>
+        <section style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: 16, padding: 18, background: 'var(--lgfc-bg-card)' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', alignItems: 'center' }}>
             <div>
               <h2 style={{ margin: 0 }}>Campaign Spotlight Control</h2>
@@ -315,18 +315,18 @@ export default function FundraiserPreviewPage() {
           </div>
         </section>
 
-        <section style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: 16, padding: 18, background: '#fff' }}>
+        <section style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: 16, padding: 18, background: 'var(--lgfc-bg-card)' }}>
           <h2 style={{ marginTop: 0 }}>Fundraiser Source Data</h2>
           <p style={{ opacity: 0.85 }}>
             Leaderboard snapshots for enabled campaigns are derived from <code>data/fundraiser.json</code>. Invalid source data blocks save/publish.
           </p>
 
           {fundraiserError ? (
-            <div style={{ marginTop: 12, padding: 14, borderRadius: 12, border: '1px solid #e7b8b8', background: '#fff7f7' }}>
+            <div style={{ marginTop: 12, padding: 14, borderRadius: 12, border: '1px solid var(--lgfc-error-border)', background: 'var(--lgfc-error-bg)' }}>
               <strong>Fundraiser validation failed:</strong> {fundraiserError}
             </div>
           ) : (
-            <div style={{ marginTop: 12, padding: 14, borderRadius: 12, border: '1px solid #cde4cf', background: '#f6fff6' }}>
+            <div style={{ marginTop: 12, padding: 14, borderRadius: 12, border: '1px solid var(--lgfc-success-border)', background: 'var(--lgfc-success-bg)' }}>
               <strong>Fundraiser source is valid.</strong> {fundraiserTeams.length} team record(s) loaded.
             </div>
           )}
@@ -356,7 +356,7 @@ export default function FundraiserPreviewPage() {
           ) : null}
         </section>
 
-        <section style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: 16, padding: 18, background: '#fff' }}>
+        <section style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: 16, padding: 18, background: 'var(--lgfc-bg-card)' }}>
           <h2 style={{ marginTop: 0 }}>Current Block Status</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
             <div>
@@ -373,20 +373,20 @@ export default function FundraiserPreviewPage() {
             </div>
           </div>
           {publishedConfig && publishedErrors.length === 0 ? (
-            <p style={{ marginTop: 12, marginBottom: 0, color: '#184d12', fontWeight: 700 }}>
+            <p style={{ marginTop: 12, marginBottom: 0, color: 'var(--lgfc-success)', fontWeight: 700 }}>
               Published snapshot is valid and currently{' '}
               {publishedConfig.enabled
                 ? 'eligible to render on the homepage.'
                 : 'hidden because Enabled is off.'}
             </p>
           ) : (
-            <p style={{ marginTop: 12, marginBottom: 0, color: '#7a4b00', fontWeight: 700 }}>
+            <p style={{ marginTop: 12, marginBottom: 0, color: 'var(--lgfc-warning)', fontWeight: 700 }}>
               No valid published snapshot is currently available for the homepage.
             </p>
           )}
         </section>
 
-        <section style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: 16, padding: 18, background: '#fff' }}>
+        <section style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: 16, padding: 18, background: 'var(--lgfc-bg-card)' }}>
           <h2 style={{ marginTop: 0 }}>Editor</h2>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, minmax(0, 1fr))', gap: 14 }}>
             <label style={{ display: 'grid', gap: 6 }}>
@@ -460,7 +460,7 @@ export default function FundraiserPreviewPage() {
           </label>
 
           {validationErrors.length > 0 ? (
-            <div style={{ marginTop: 14, padding: 14, borderRadius: 12, border: '1px solid #e7b8b8', background: '#fff7f7' }}>
+            <div style={{ marginTop: 14, padding: 14, borderRadius: 12, border: '1px solid var(--lgfc-error-border)', background: 'var(--lgfc-error-bg)' }}>
               <div style={{ fontWeight: 800, marginBottom: 8 }}>Campaign validation errors</div>
               <ul style={{ margin: 0, paddingLeft: 18 }}>
                 {validationErrors.map((error) => (
@@ -469,7 +469,7 @@ export default function FundraiserPreviewPage() {
               </ul>
             </div>
           ) : (
-            <div style={{ marginTop: 14, padding: 14, borderRadius: 12, border: '1px solid #cde4cf', background: '#f6fff6', fontWeight: 700 }}>
+            <div style={{ marginTop: 14, padding: 14, borderRadius: 12, border: '1px solid var(--lgfc-success-border)', background: 'var(--lgfc-success-bg)', fontWeight: 700 }}>
               Draft is valid for preview and publish.
             </div>
           )}
