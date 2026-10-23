@@ -6,7 +6,7 @@ Owns: Diataxis folder usage rules and no-drift documentation model
 Does Not Own: Design specifications; operational task details; application behavior
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
 Related Issues: #3752, #4138, #4196, #4137, #4480
-Last Reviewed: 2026-10-08
+Last Reviewed: 2026-10-23
 ---
 
 # DIÁTAXIS FOLDER AUTHORITY (NO-DRIFT MODEL)
@@ -25,10 +25,11 @@ Out of scope: mass file moves; deleting live docs; CI wiring; Task-4 binding-rul
 - Structure now includes `templates/`, which Model C already treats as an approved write surface.
 - `docs/archive/` is a permanent top-level sibling, not nested under a DIATAXIS type.
 - Folder freeze evidence: `docs/ops/reports/diataxis-folder-classification-4138.md` (#4196). #4480 then moved `as-built/`, `postmortems/`, and `reports/` to the recorded targets.
+- On 2026-10-23 the last live legacy-folder file, `docs/governance/ai/AI-GUIDE.md`, moved to `docs/archive/superseded/governance/ai/AI-GUIDE.md`. The recovery-era plan moved with it under #4138. No undecided top-level `docs/` folder remains.
 
 ## Intended final state
 
-Every top-level `docs/` folder is either a retained core/adjacent folder or has an explicit later-child disposition. Migration complete is declared only after later children finish and an audit reports zero remaining undecided folders.
+The folder migration is complete. Every top-level `docs/` folder is a retained core or adjacent folder: `tutorials/`, `how-to/`, `reference/`, `explanation/`, `governance/`, `ops/`, `archive/`, and `templates/`. No undecided folder remains.
 
 ## Authority Resolution
 

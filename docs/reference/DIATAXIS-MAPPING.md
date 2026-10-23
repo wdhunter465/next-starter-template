@@ -5,8 +5,8 @@ Authority Level: Canonical
 Owns: Diataxis mapping coverage and transition model
 Does Not Own: Design authority; execution details
 Canonical Reference: /docs/governance/DOCUMENT-ARCHITECTURE.md
-Related Issues: #1342, #1132, #1134, #3155
-Last Reviewed: 2026-09-27
+Related Issues: #1342, #1132, #1134, #3155, #4138
+Last Reviewed: 2026-10-23
 ---
 
 # DIATAXIS MAPPING
@@ -57,7 +57,7 @@ DIATAXIS is considered 100% complete for Phase 1 when:
 | `docs/ops/ai/pr-lifecycle-standard.md` | — | Operations | **Retired (#4091)** | Deleted — contradicted `PR_PROCESS.md` / `AGENT-TEAM.md` (ChatGPT-as-universal-PR-owner) |
 | `ops/ai/CROSS-AGENT-OPERATING-RULES.md` | `docs/ops/ai/CORE-RULES.md` | Operations | **Retired (#3155)** | Archived with Historical header at `docs/archive/superseded/ops/ai/CROSS-AGENT-OPERATING-RULES.md`; not copied into `docs/ops/ai/` |
 | `governance/ai/AGENT-GOVERNANCE.md` | `docs/governance/AGENT-TEAM.md` | Governance | **Retired (#3155)** | Archived with Historical header at `docs/archive/superseded/governance/ai/AGENT-GOVERNANCE.md`; no second governance standard authored |
-| `docs/governance/ai/AI-GUIDE.md` | `docs/archive/superseded/governance/ai/AI-GUIDE.md` *(planned)* | Governance | **Retain** | Route — historical build prompt; not agent routing authority |
+| `docs/governance/ai/AI-GUIDE.md` | `docs/archive/superseded/governance/ai/AI-GUIDE.md` | Governance | **Retired (#4138)** | Archived 2026-10-23. The live `docs/governance/ai/` folder is gone. |
 | `PROMPTS/Cursor-Rules.md` | `docs/ops/ai/CURSOR-RULES.md` | How-To / Reference | **Retired (#3155)** | Archived with canonical header at `docs/archive/superseded/PROMPTS/Cursor-Rules.md` |
 | `PROMPTS/Codex-Rules.md` | `docs/ops/ai/CODEX-RULES.md` | How-To / Reference | **Removed (#4165)** | Deleted with Codex decommission |
 | `PROMPTS/Cursor-Launch-Prompt.md` | `docs/how-to/cursor/run-program-task.md` | How-To | **Retired (#3155)** | Archived with canonical header at `docs/archive/superseded/PROMPTS/Cursor-Launch-Prompt.md` |
@@ -67,7 +67,7 @@ DIATAXIS is considered 100% complete for Phase 1 when:
 | `docs/reference/lgfc-implementation-coverage-map.md` | `docs/reference/lgfc-implementation-coverage-map.md` | Reference | **Retain** | Route — reference-only; non-authoritative for ops queue |
 | `docs/ops/trackers/IMPLEMENTATION-WORKLIST_Master.md` | `docs/ops/trackers/IMPLEMENTATION-WORKLIST_Master.md` | Operations | **Retain** | Retain — canonical master worklist |
 | `docs/ops/trackers/THREAD-LOG_Master.md` | `docs/ops/trackers/THREAD-LOG_Master.md` | Operations | **Retain** | Retain — historical thread log |
-| `docs/ops/trackers/LGFC-REPO-RECOVERY-AND-IMPLEMENTATION_PLAN.md` | `docs/archive/superseded/ops/trackers/LGFC-REPO-RECOVERY-AND-IMPLEMENTATION_PLAN.md` *(planned)* | Operations | **Deferred Program 3** | Archive — recovery-era plan |
+| `docs/ops/trackers/LGFC-REPO-RECOVERY-AND-IMPLEMENTATION_PLAN.md` | `docs/archive/superseded/ops/trackers/LGFC-REPO-RECOVERY-AND-IMPLEMENTATION_PLAN.md` | Operations | **Retired (#4138)** | Archived 2026-10-23. Live sequencing is the implementation worklist. |
 
 ---
 

@@ -22,7 +22,7 @@ Project documentation (_INCOMPLETE/_DRAFT) is reference-only until turnover.
 
 If documents conflict, follow:
 - `/docs/governance/standards/document-authority-hierarchy_MASTER.md`
-- '/docs/AI-GUIDE.md — Default instruction set for Agent/AI work in this repo (must follow locked design standards).'
+- `Agent.md` is the agent entry point. The old build prompt is archived at `docs/archive/superseded/governance/ai/AI-GUIDE.md` (#4138, 2026-10-23).
   
 ## Category model
 - Category A: Operations authority (production-ready). Stored as `_MASTER.md`.
