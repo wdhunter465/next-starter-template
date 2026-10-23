@@ -124,7 +124,7 @@ export default function FanclubPhotoGalleryPage() {
 
   return (
     <main style={{ maxWidth: 1100, margin: '0 auto', padding: '28px 16px' }}>
-      <h1 style={{ fontSize: 32, margin: '0 0 8px 0' }}>Photo Gallery</h1>
+      <h1 style={{ margin: '0 0 8px 0' }}>Photo Gallery</h1>
       <p style={{ marginTop: 0, opacity: 0.85 }}>
         Browse member-only photos. Use search and tags to narrow the archive. Open any photo for attribution and keyboard navigation.
       </p>
@@ -223,14 +223,14 @@ export default function FanclubPhotoGalleryPage() {
                   {photoUrl ? (
                     <img src={photoUrl} alt={title} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                   ) : (
-                    <span style={{ opacity: 0.75, fontSize: 12, padding: 10 }}>Photo media unavailable</span>
+                    <span style={{ opacity: 0.75, fontSize: 13, padding: 10 }}>Photo media unavailable</span>
                   )}
                 </div>
                 <div style={{ padding: 12 }}>
                   <div style={{ fontWeight: 600 }}>{title}</div>
                   {p.description && p.description !== title ? <p style={{ margin: '8px 0 0', opacity: 0.85 }}>{p.description}</p> : null}
-                  {p.tags ? <div style={{ marginTop: 8, opacity: 0.72, fontSize: 12 }}>Tags: {p.tags}</div> : null}
-                  {credit ? <div style={{ marginTop: 6, opacity: 0.72, fontSize: 12 }}>Credit: {credit}</div> : null}
+                  {p.tags ? <div style={{ marginTop: 8, opacity: 0.72, fontSize: 13 }}>Tags: {p.tags}</div> : null}
+                  {credit ? <div style={{ marginTop: 6, opacity: 0.72, fontSize: 13 }}>Credit: {credit}</div> : null}
                 </div>
               </button>
             );

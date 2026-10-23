@@ -67,7 +67,7 @@ export default function DiscussionFeed({ refreshTrigger }: DiscussionFeedProps) 
         background: 'var(--lgfc-bg-card)',
       }}
     >
-      <h2 style={{ margin: '0 0 12px 0', fontSize: 22 }}>Member Discussions</h2>
+      <h2 style={{ margin: '0 0 12px 0' }}>Member Discussions</h2>
 
       {loading ? (
         <p style={{ margin: 0, color: 'rgba(0,0,0,0.72)' }}>Loading discussions…</p>

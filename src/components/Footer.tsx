@@ -71,7 +71,7 @@ export default function Footer() {
               <span style={{ opacity: 0.7 }}> </span>
             )}
           </div>
-          <div style={{ color: 'rgba(0,0,0,0.65)', fontSize: 12 }}>
+          <div style={{ color: 'rgba(0,0,0,0.65)', fontSize: 13 }}>
             © {new Date().getFullYear()} Lou Gehrig Fan Club
           </div>
         </div>
@@ -99,7 +99,7 @@ export default function Footer() {
             alignItems: 'center',
             columnGap: 14,
             rowGap: 8,
-            fontSize: 12,
+            fontSize: 13,
           }}
         >
           <Link href="/privacy">Privacy</Link>

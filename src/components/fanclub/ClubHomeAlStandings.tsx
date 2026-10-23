@@ -7,7 +7,7 @@ const cell = {
   textAlign: 'right' as const,
   fontVariantNumeric: 'tabular-nums' as const,
   paddingLeft: 6,
-  fontSize: 12,
+  fontSize: 13,
 };
 
 function formatDate(iso: string): string {
@@ -32,7 +32,7 @@ export default function ClubHomeAlStandings({ load }: { load: GehrigGameLoadStat
       {load.status === 'loading' ? null : load.game && load.game.standings.length > 0 ? (
         <>
           <p style={{ ...clubHomeMutedText, marginBottom: 8 }}>As of {formatDate(load.game.game_date)}</p>
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12 }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
             <thead>
               <tr style={{ color: '#4a4238' }}>
                 <th style={{ textAlign: 'left', fontWeight: 600 }}>Team</th>
@@ -54,7 +54,7 @@ export default function ClubHomeAlStandings({ load }: { load: GehrigGameLoadStat
               ))}
             </tbody>
           </table>
-          <p style={{ ...clubHomeMutedText, fontSize: 11, marginTop: 8 }}>{load.game.source_credit}</p>
+          <p style={{ ...clubHomeMutedText, fontSize: 13, marginTop: 8 }}>{load.game.source_credit}</p>
         </>
       ) : (
         <p style={clubHomeMutedText}>

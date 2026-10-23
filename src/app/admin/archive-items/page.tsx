@@ -209,11 +209,11 @@ function IntakeForm(props: { onCreated: () => void }) {
 
       <div style={{ display: 'grid', gap: 10, gridTemplateColumns: '1fr 1fr' }}>
         <label style={{ display: 'grid', gap: 6 }}>
-          <span style={{ fontSize: 12, opacity: 0.85 }}>Title</span>
+          <span style={{ fontSize: 13, opacity: 0.85 }}>Title</span>
           <input value={title} onChange={(e) => setTitle(e.target.value)} style={fieldStyle()} />
         </label>
         <label style={{ display: 'grid', gap: 6 }}>
-          <span style={{ fontSize: 12, opacity: 0.85 }}>Item type</span>
+          <span style={{ fontSize: 13, opacity: 0.85 }}>Item type</span>
           <select value={itemType} onChange={(e) => setItemType(e.target.value)} style={fieldStyle()}>
             {ITEM_TYPE_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>{o.label}</option>
@@ -223,13 +223,13 @@ function IntakeForm(props: { onCreated: () => void }) {
       </div>
 
       <label style={{ display: 'grid', gap: 6 }}>
-        <span style={{ fontSize: 12, opacity: 0.85 }}>Summary</span>
+        <span style={{ fontSize: 13, opacity: 0.85 }}>Summary</span>
         <textarea value={summary} onChange={(e) => setSummary(e.target.value)} rows={2} style={fieldStyle()} />
       </label>
 
       <div style={{ display: 'grid', gap: 10, gridTemplateColumns: '1fr 1fr' }}>
         <label style={{ display: 'grid', gap: 6 }}>
-          <span style={{ fontSize: 12, opacity: 0.85 }}>Custody type</span>
+          <span style={{ fontSize: 13, opacity: 0.85 }}>Custody type</span>
           <select value={custodyType} onChange={(e) => setCustodyType(e.target.value)} style={fieldStyle()}>
             {CUSTODY_TYPE_OPTIONS.map((o) => (
               <option key={o.value} value={o.value}>{o.label}</option>
@@ -238,7 +238,7 @@ function IntakeForm(props: { onCreated: () => void }) {
         </label>
         {custodyType === 'loan' ? (
           <label style={{ display: 'grid', gap: 6 }}>
-            <span style={{ fontSize: 12, opacity: 0.85 }}>Expected return date</span>
+            <span style={{ fontSize: 13, opacity: 0.85 }}>Expected return date</span>
             <input
               type="date"
               value={loanExpectedReturnAt}
@@ -251,11 +251,11 @@ function IntakeForm(props: { onCreated: () => void }) {
 
       <div style={{ display: 'grid', gap: 10, gridTemplateColumns: '1fr 1fr' }}>
         <label style={{ display: 'grid', gap: 6 }}>
-          <span style={{ fontSize: 12, opacity: 0.85 }}>Donor name (admin-only)</span>
+          <span style={{ fontSize: 13, opacity: 0.85 }}>Donor name (admin-only)</span>
           <input value={donorName} onChange={(e) => setDonorName(e.target.value)} style={fieldStyle()} />
         </label>
         <label style={{ display: 'grid', gap: 6 }}>
-          <span style={{ fontSize: 12, opacity: 0.85 }}>Donor contact (admin-only, never public)</span>
+          <span style={{ fontSize: 13, opacity: 0.85 }}>Donor contact (admin-only, never public)</span>
           <input value={donorContact} onChange={(e) => setDonorContact(e.target.value)} style={fieldStyle()} />
         </label>
       </div>
@@ -267,18 +267,18 @@ function IntakeForm(props: { onCreated: () => void }) {
 
       {donorConsent ? (
         <label style={{ display: 'grid', gap: 6 }}>
-          <span style={{ fontSize: 12, opacity: 0.85 }}>Public credit line</span>
+          <span style={{ fontSize: 13, opacity: 0.85 }}>Public credit line</span>
           <input value={creditLine} onChange={(e) => setCreditLine(e.target.value)} style={fieldStyle()} placeholder="e.g. Gift of Jane Donor" />
         </label>
       ) : null}
 
       <label style={{ display: 'grid', gap: 6 }}>
-        <span style={{ fontSize: 12, opacity: 0.85 }}>Storage location</span>
+        <span style={{ fontSize: 13, opacity: 0.85 }}>Storage location</span>
         <input value={storageLocation} onChange={(e) => setStorageLocation(e.target.value)} style={fieldStyle()} />
       </label>
 
       <label style={{ display: 'grid', gap: 6 }}>
-        <span style={{ fontSize: 12, opacity: 0.85 }}>Your name</span>
+        <span style={{ fontSize: 13, opacity: 0.85 }}>Your name</span>
         <input value={actor} onChange={(e) => setActor(e.target.value)} style={fieldStyle()} placeholder="Recorded on the intake audit trail" />
       </label>
 
@@ -376,7 +376,7 @@ function ItemCard(props: { item: ArchiveItem; onChanged: () => void }) {
     <div style={cardStyle()}>
       <div>
         <div style={{ fontWeight: 700, fontSize: 16 }}>{item.candidate_id}</div>
-        <div style={{ fontSize: 12, opacity: 0.75, marginTop: 2 }}>
+        <div style={{ fontSize: 13, opacity: 0.75, marginTop: 2 }}>
           {item.item_type} · {item.custody_type} · <strong>{item.custody_state}</strong>
         </div>
       </div>

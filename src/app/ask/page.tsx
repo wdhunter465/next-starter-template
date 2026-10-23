@@ -69,7 +69,7 @@ function AskForm() {
 
   return (
     <section id="ask-form" aria-labelledby="ask-form-heading" style={{ marginTop: 40 }}>
-      <h2 id="ask-form-heading" style={{ fontSize: 24, margin: '0 0 10px 0' }}>
+      <h2 id="ask-form-heading" style={{ margin: '0 0 10px 0' }}>
         Ask a Question
       </h2>
       <p className="sub" style={{ marginTop: 0 }}>
@@ -185,7 +185,7 @@ function AskPageContent() {
 
   return (
     <>
-      <h1 style={{ fontSize: 34, margin: '0 0 10px 0' }}>FAQ &amp; Ask a Question</h1>
+      <h1 style={{ margin: '0 0 10px 0' }}>FAQ &amp; Ask a Question</h1>
       <p className="sub" style={{ marginTop: 0 }}>
         Browse approved FAQ answers or submit a new question for moderator review. This is the
         canonical public Ask/FAQ workflow.
@@ -206,7 +206,7 @@ export default function AskPage() {
       <Suspense
         fallback={
           <>
-            <h1 style={{ fontSize: 34, margin: '0 0 10px 0' }}>FAQ &amp; Ask a Question</h1>
+            <h1 style={{ margin: '0 0 10px 0' }}>FAQ &amp; Ask a Question</h1>
             <p className="sub" style={{ marginTop: 0 }}>
               Browse approved FAQ answers or submit a new question for moderator review. This is the canonical public
               Ask/FAQ workflow.

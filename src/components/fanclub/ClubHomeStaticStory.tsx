@@ -99,7 +99,7 @@ export default function ClubHomeStaticStory({
         headlineBlock
       )}
       {(credit || sourceName) && (
-        <p style={{ ...clubHomeMutedText, marginTop: 8, fontSize: 12, fontStyle: 'italic' }}>
+        <p style={{ ...clubHomeMutedText, marginTop: 8, fontSize: 13, fontStyle: 'italic' }}>
           {credit ? `Credit: ${credit}` : null}
           {credit && sourceName ? ' · ' : null}
           {sourceName ? `Source: ${sourceName}` : null}
