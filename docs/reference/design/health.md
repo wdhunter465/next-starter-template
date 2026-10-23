@@ -4,14 +4,16 @@ Audience: Human + AI
 Authority Level: Controlled
 Owns: Health route behavior contract and minimal response expectations
 Does Not Own: External uptime monitoring policy; deployment alerting thresholds
-Canonical Reference: /docs/reference/platform/CLOUDFLARE.md
-Last Reviewed: 2026-03-27
+Canonical Reference: /docs/reference/design/LGFC-Production-Design-and-Standards.md
+Last Reviewed: 2026-10-23
 ---
 
 # `/health` — Health Route Specification
 
 ## Purpose
 Define a lightweight route used to verify baseline app routing/runtime availability.
+
+`/health` is a public route in `LGFC-Production-Design-and-Standards.md`. This file owns the response contract only. It does not redefine routing, auth, or the homepage.
 
 ## Route / Path
 - Canonical route: `/health`

@@ -5,7 +5,7 @@ Authority Level: Operational Authority
 Owns: Documentation remediation project scope, workstream definitions, execution model
 Does Not Own: Design authority; product specs; implementation sequencing outside this project
 Canonical Reference: /docs/ops/OPERATING_MANUAL.md
-Related Issues: #4822, #4824
+Related Issues: #4822, #4824, #4826
 Last Reviewed: 2026-10-23
 ---
 
@@ -102,7 +102,7 @@ A → B → C → D
 
 ## 9. Workstream Status (LIVE — AUTO-SYNC REQUIRED)
 
-Verified against the repository on 2026-10-23 (Issue #4822; updated for #4824). Letters follow section 5. The ticket files under `/docs/ops/projects/documentation-remediation/tickets/` use a different lettering (A–L); those tickets all merged on 2026-03-26 (#703, #705, #707, #711, #715, #717, #721, #723, #727, #729, #731, #741) and are not repeated here.
+Verified against the repository on 2026-10-23 (Issue #4822; updated for #4824 and #4826). Letters follow section 5. The ticket files under `/docs/ops/projects/documentation-remediation/tickets/` use a different lettering (A–L); those tickets all merged on 2026-03-26 (#703, #705, #707, #711, #715, #717, #721, #723, #727, #729, #731, #741) and are not repeated here.
 
 ### Completed
 - B — Canonical Authority Lock: 695 of 701 docs carry a `Canonical Reference` header; the production design doc is the named source.
@@ -121,7 +121,14 @@ Verified against the repository on 2026-10-23 (Issue #4822; updated for #4824). 
   - `docs/reference/design/dashboard.md` is still `Canonical` and `STATUS: INCOMPLETE`, and describes the live admin dashboard. Product Authority decides whether to archive it or finish it.
   - `/docs/archive/legacy-architecture/` does not exist; the archive uses `docs/archive/superseded/`. Product Authority decides whether to keep the brief path.
 - Legacy-platform mentions: the remaining hits in `website-as-designed.md`, the identity-provider decision brief and the compliance report are prohibitions or historical context; `lgfc-homepage-legacy-v6.html` has none. No work needed.
-- J — Governance Hardening (#4826): no contradiction audit has been run since the auth and homepage changes. Open check: `health.md` and `error-404.md` cite different Canonical References than the other new specs.
+- J — Governance Hardening (#4826): contradiction audit run 2026-10-23. Production behavior stays in `LGFC-Production-Design-and-Standards.md`, auth stays in `auth-model.md`, and homepage order stays in `home.md`.
+  - `health.md` line 7 cited `CLOUDFLARE.md`, which does not define `/health`. It now cites the production design standard, which lists `/health` as a public route.
+  - `error-404.md` line 7 already cites that same standard, as `home.md` and `auth-model.md` do. No edit.
+  - `faq-system.md` treated `/faq` as a live FAQ page and admin API auth as `ADMIN_TOKEN` plus `sessionStorage`. `/faq` redirects to `/ask/` (`src/app/faq/page.tsx`). Admin API auth is the member session (`functions/_lib/auth.ts`). Those claims were corrected, and the file no longer claims to own system architecture.
+  - `access-model.md`, `cms-data-layer.md`, and `runtime-dependencies_MASTER.md` claimed `Owns: System architecture`. Ownership is now each file's own subject.
+  - `program-5-admin-page-and-tools-design-readiness.md` still described the removed `localStorage` admin token as current. It now matches the session gate.
+  - `LGFC-D1-DATABASE-DESIGN-and-OPERATIONS-GUIDE.md` still described auth as an in-progress move off localStorage. It now points at the locked cookie-session model.
+  - Ruled non-contradictory: `auth-and-logout.md` matches the redirect policy; homepage child specs cite `home.md`; the `member_sessions` note that the table replaced a localStorage gate describes the table's origin, not a second auth model. `cms.md` remains a historical pointer and stays with workstream A (#4825).
 - Execution model (section 4, #4827): Copilot is no longer a role holder (`docs/governance/AGENT-TEAM.md`). Section 4 needs Product Authority's replacement wording.
 
 ### Handoff to Cursor
