@@ -295,12 +295,12 @@ export default function AdminMatchupPage() {
           <AdminStatusText message={status} />
 
           {active ? (
-            <p style={{ marginTop: 12, marginBottom: 0, color: '#184d12', fontWeight: 700 }}>
+            <p style={{ marginTop: 12, marginBottom: 0, color: 'var(--lgfc-success)', fontWeight: 700 }}>
               Active matchup: week {active.week_start} (photos {active.photo_a_id} vs {active.photo_b_id}) — votes{' '}
               {active.votes.a}/{active.votes.b} (winner: {active.votes.winner})
             </p>
           ) : (
-            <p style={{ marginTop: 12, marginBottom: 0, color: '#7a4b00', fontWeight: 700 }}>
+            <p style={{ marginTop: 12, marginBottom: 0, color: 'var(--lgfc-warning)', fontWeight: 700 }}>
               No active matchup in D1. Public `/api/matchup/current` may fall back to photo list behavior.
             </p>
           )}
@@ -431,7 +431,7 @@ export default function AdminMatchupPage() {
                   {publicCurrent.matchup_id ? ` · matchup_id: ${publicCurrent.matchup_id}` : ''}
                 </div>
               ) : (
-                <div style={{ marginTop: 6, color: '#7a4b00' }}>
+                <div style={{ marginTop: 6, color: 'var(--lgfc-warning)' }}>
                   unavailable: {publicCurrent?.error || 'missing matchup content'}
                 </div>
               )}
@@ -448,7 +448,7 @@ export default function AdminMatchupPage() {
                     : ''}
                 </div>
               ) : (
-                <div style={{ marginTop: 6, color: '#7a4b00' }}>
+                <div style={{ marginTop: 6, color: 'var(--lgfc-warning)' }}>
                   unavailable: {publicResults?.error || 'results not available'}
                 </div>
               )}

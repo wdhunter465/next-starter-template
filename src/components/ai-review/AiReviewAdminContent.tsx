@@ -11,7 +11,7 @@ const cardStyle: CSSProperties = {
   border: '1px solid rgba(0,0,0,0.12)',
   borderRadius: 12,
   padding: 16,
-  background: '#fff',
+  background: 'var(--lgfc-bg-card)',
 };
 
 type Props = {

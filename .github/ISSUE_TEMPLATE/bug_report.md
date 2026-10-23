@@ -1,44 +1,40 @@
 ---
 name: Bug Report
-about: Report a defect
-title: "[BUG] "
-labels: bug
-assignees: ''
+about: Report a defect as one source Issue
+title: 'BUG: <short title>'
+labels: []
+assignees: []
 ---
 
-## Description
-Clear description of the issue.
+## Objective
 
-## Steps to Reproduce
+<!-- What is broken, and what correct behavior looks like. -->
+
+## Scope
+
+Writable files:
+
+- `path/to/file`
+
+Steps to reproduce:
+
 1.
-2.
-3.
 
-## Expected Behavior
-What should happen.
+## Acceptance criteria
 
-## Screenshots / Logs
-If applicable.
+- [ ] The defect no longer reproduces
+- [ ] The change stays inside the writable-file list
+- [ ] Verification is recorded on the pull request
 
-## PMO intake (required before launch)
+## Protected stops
 
-All work enters as `Size: medium-provisional` until classified. See `docs/how-to/pmo/classify-work-and-select-delivery-model.md`.
+<!-- Name any Production write, merge, or other stop that needs a Go. -->
 
-```text
-Size: medium-provisional
-Delivery model:
-Change mode:
-Target environment:
-Approval profile:
-Gate profile:
-Rollback profile:
-Component branch:
-Component master:
-Promotion PR:
-```
+## Rollback
 
-## Classification evidence
+<!-- One step that undoes this change. -->
 
-- Work-size contract row or rationale:
-- Emergency exit used: NO / YES — rationale if YES
-- Degraded-service routing (if applicable):
+## Owner
+
+Queue: `team:`
+Claim: `agent:`
