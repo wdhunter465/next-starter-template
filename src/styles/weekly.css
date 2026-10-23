@@ -77,7 +77,7 @@
 
 .btn.primary {
 	background: var(--lgfc-blue);
-	color: #fff;
+	color: var(--lgfc-bg-card);
 	border-color: var(--lgfc-blue);
 }
 
