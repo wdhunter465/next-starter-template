@@ -1,39 +1,38 @@
 ---
 name: Feature Request
-about: Suggest an enhancement
-title: "[FEATURE] "
-labels: enhancement
-assignees: ''
+about: Ask for a change as one source Issue
+title: 'TASK: <short title>'
+labels: []
+assignees: []
 ---
 
-## Summary
-Describe the feature.
+## Objective
 
-## Motivation
-Why is this needed?
+<!-- What should exist, and why. -->
 
-## PMO intake (required before launch)
+## Scope
 
-All work enters as `Size: medium-provisional` until classified. See `docs/how-to/pmo/classify-work-and-select-delivery-model.md`.
+Writable files:
 
-```text
-Size: medium-provisional
-Delivery model:
-Change mode:
-Target environment:
-Approval profile:
-Gate profile:
-Rollback profile:
-Component branch:
-Component master:
-Promotion PR:
-```
+- `path/to/file`
 
-## Classification evidence
+All other paths are out of scope. One Issue, one pull request, opened ready for review.
 
-- Work-size contract row or rationale:
-- Model A/B decision evidence (if Medium):
-- Protected-change paths touched (if any):
+## Acceptance criteria
 
-## Acceptance Criteria
-Define measurable outcome.
+- [ ] The requested behavior is present
+- [ ] The change stays inside the writable-file list
+- [ ] Verification is recorded on the pull request
+
+## Protected stops
+
+<!-- Name any Production write, merge, or other stop that needs a Go. -->
+
+## Rollback
+
+<!-- One step that undoes this change. -->
+
+## Owner
+
+Queue: `team:`
+Claim: `agent:`

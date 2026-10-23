@@ -256,6 +256,11 @@ ALTER TABLE moderation_events_prev RENAME TO moderation_events;
 
 -- rights_evidence -- removes 'donor_agreement' from evidence_type; every
 -- other column matches verbatim.
+-- #4593 triggers on content_items read rights_evidence. Drop them before this
+-- table goes away; Part E recreates them after both tables exist again.
+DROP TRIGGER IF EXISTS trg_content_items_conditions_block_permitted_insert;
+DROP TRIGGER IF EXISTS trg_content_items_conditions_block_permitted_update;
+
 CREATE TABLE rights_evidence_prev (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   content_item_id INTEGER NOT NULL REFERENCES content_items_prev(id) ON DELETE CASCADE,
@@ -299,7 +304,11 @@ CREATE TABLE rights_evidence_prev (
   fee_required INTEGER NOT NULL DEFAULT 0
     CHECK (fee_required IN (0, 1)),
   evidence_text_sha256 TEXT,
-  exchange_id INTEGER
+  exchange_id INTEGER,
+  -- #4593/migration 0087: additive columns, carried over verbatim in ALTER TABLE order.
+  has_conditions INTEGER NOT NULL DEFAULT 0
+    CHECK (has_conditions IN (0, 1)),
+  conditions_text TEXT
 );
 INSERT INTO rights_evidence_prev SELECT * FROM rights_evidence;
 DROP TABLE rights_evidence;
@@ -490,5 +499,60 @@ CREATE INDEX IF NOT EXISTS idx_content_items_permission_exchange
 CREATE INDEX IF NOT EXISTS idx_rights_evidence_exchange
   ON rights_evidence(exchange_id)
   WHERE exchange_id IS NOT NULL;
+
+-- #4593/migration 0087: condition denial triggers, recreated because the rebuild drops them.
+CREATE TRIGGER IF NOT EXISTS trg_rights_evidence_has_conditions_insert
+BEFORE INSERT ON rights_evidence
+WHEN NEW.has_conditions = 1 AND NEW.usage_decision <> 'deny'
+BEGIN
+  SELECT RAISE(ABORT, 'conditional evidence must have usage_decision deny');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_rights_evidence_has_conditions_update
+BEFORE UPDATE ON rights_evidence
+WHEN NEW.has_conditions = 1 AND NEW.usage_decision <> 'deny'
+BEGIN
+  SELECT RAISE(ABORT, 'conditional evidence must have usage_decision deny');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_content_items_conditions_block_permitted_insert
+BEFORE INSERT ON content_items
+WHEN NEW.final_status = 'permitted' AND EXISTS (
+  SELECT 1 FROM rights_evidence
+  WHERE content_item_id = NEW.id AND has_conditions = 1
+)
+BEGIN
+  SELECT RAISE(ABORT, 'conditional evidence cannot support final_status permitted');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_content_items_conditions_block_permitted_update
+BEFORE UPDATE ON content_items
+WHEN NEW.final_status = 'permitted' AND EXISTS (
+  SELECT 1 FROM rights_evidence
+  WHERE content_item_id = NEW.id AND has_conditions = 1
+)
+BEGIN
+  SELECT RAISE(ABORT, 'conditional evidence cannot support final_status permitted');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_rights_evidence_conditions_block_permitted_insert
+BEFORE INSERT ON rights_evidence
+WHEN NEW.has_conditions = 1 AND EXISTS (
+  SELECT 1 FROM content_items
+  WHERE id = NEW.content_item_id AND final_status = 'permitted'
+)
+BEGIN
+  SELECT RAISE(ABORT, 'conditional evidence cannot support final_status permitted');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_rights_evidence_conditions_block_permitted_update
+BEFORE UPDATE ON rights_evidence
+WHEN NEW.has_conditions = 1 AND EXISTS (
+  SELECT 1 FROM content_items
+  WHERE id = NEW.content_item_id AND final_status = 'permitted'
+)
+BEGIN
+  SELECT RAISE(ABORT, 'conditional evidence cannot support final_status permitted');
+END;
 
 COMMIT;
