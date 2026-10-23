@@ -5,7 +5,7 @@
  * Usage:
  *   node --experimental-strip-types scripts/content-pipeline/import-seed-candidates.mjs \
  *     --file data/research/lou-gehrig-content-candidates.json \
- *     [--database lgfc_lite] [--local|--remote] [--dry-run]
+ *     [--database lgfc_lite] [--local|--remote] [--batch-size 10] [--dry-run]
  */
 
 import fs from 'node:fs';
@@ -42,12 +42,15 @@ const {
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, '../..');
+// A 40-candidate registry (320 statements) in one D1 execute fails with
+// SQLITE_NOMEM (#4841), so candidates are imported in small batches.
+const DEFAULT_BATCH_SIZE = 10;
 const MIN_NODE_MAJOR = 22;
 const MIN_NODE_MINOR_FOR_STRIP_TYPES = 6;
 
 function printUsage() {
   console.log(`Usage: node --experimental-strip-types ${path.relative(process.cwd(), fileURLToPath(import.meta.url))} \\
-  --file <registry.json> [--database lgfc_lite] [--local|--remote] [--dry-run]`);
+  --file <registry.json> [--database lgfc_lite] [--local|--remote] [--batch-size 10] [--dry-run]`);
 }
 
 function assertNodeRuntime() {
@@ -79,6 +82,7 @@ function parseArgs(argv) {
     database: 'lgfc_lite',
     target: 'local',
     dryRun: false,
+    batchSize: DEFAULT_BATCH_SIZE,
   };
 
   for (let index = 0; index < argv.length; index += 1) {
@@ -90,6 +94,15 @@ function parseArgs(argv) {
     }
     if (arg === '--database') {
       options.database = readFlagValue(argv, index, '--database');
+      index += 1;
+      continue;
+    }
+    if (arg === '--batch-size') {
+      const parsed = Number(readFlagValue(argv, index, '--batch-size'));
+      if (!Number.isInteger(parsed) || parsed < 1) {
+        throw new Error('--batch-size must be a positive integer');
+      }
+      options.batchSize = parsed;
       index += 1;
       continue;
     }
@@ -208,42 +221,52 @@ function main() {
     process.exit(1);
   }
 
-  const plan = buildCandidateImportPlan(registry);
-  let sqlBatch = buildImportSqlBatch(plan);
-  if (options.target === 'remote') {
-    // Cloudflare D1 remote execute rejects SQL BEGIN/COMMIT; wrangler already
-    // applies the uploaded file atomically and rolls back on failure.
-    sqlBatch = sqlBatch.replace(/^\s*BEGIN;\s*/i, '').replace(/\s*COMMIT;\s*$/i, '');
+  const batches = [];
+  for (let start = 0; start < registry.candidates.length; start += options.batchSize) {
+    batches.push({ ...registry, candidates: registry.candidates.slice(start, start + options.batchSize) });
   }
+  const plans = batches.map((batch) => buildCandidateImportPlan(batch));
+  const statementCount = plans.reduce((sum, plan) => sum + plan.statements.length, 0);
   console.log(
-    `Validated ${plan.candidateCount} candidate(s); prepared ${plan.statements.length} SQL statement(s) in one transaction batch.`,
+    `Validated ${registry.candidates.length} candidate(s); prepared ${statementCount} SQL statement(s) in ${batches.length} batch(es) of up to ${options.batchSize} candidate(s).`,
   );
 
   if (options.dryRun) {
     console.log('Dry run — no SQL executed.');
-    for (const statement of plan.statements.slice(0, 5)) {
+    const preview = plans.flatMap((plan) => plan.statements);
+    for (const statement of preview.slice(0, 5)) {
       console.log(`-- ${statement.description}`);
       console.log(`${statement.sql}\n`);
     }
-    if (plan.statements.length > 5) {
-      console.log(`... ${plan.statements.length - 5} additional statement(s) omitted in dry-run preview.`);
+    if (preview.length > 5) {
+      console.log(`... ${preview.length - 5} additional statement(s) omitted in dry-run preview.`);
     }
     return;
   }
 
-  const tempFile = path.join(
-    os.tmpdir(),
-    `lgfc-content-pipeline-import-${process.pid}-${Date.now()}.sql`,
-  );
-
-  try {
-    fs.writeFileSync(tempFile, sqlBatch, 'utf8');
-    executeSqlFile(options.database, options.target, tempFile);
-  } finally {
+  for (const [index, plan] of plans.entries()) {
+    let sqlBatch = buildImportSqlBatch(plan);
+    if (options.target === 'remote') {
+      // Cloudflare D1 remote execute rejects SQL BEGIN/COMMIT; wrangler already
+      // applies the uploaded file atomically and rolls back on failure.
+      sqlBatch = sqlBatch.replace(/^\s*BEGIN;\s*/i, '').replace(/\s*COMMIT;\s*$/i, '');
+    }
+    const tempFile = path.join(
+      os.tmpdir(),
+      `lgfc-content-pipeline-import-${process.pid}-${Date.now()}-${index}.sql`,
+    );
     try {
-      fs.unlinkSync(tempFile);
-    } catch {
-      // ignore cleanup errors
+      fs.writeFileSync(tempFile, sqlBatch, 'utf8');
+      executeSqlFile(options.database, options.target, tempFile);
+    } catch (err) {
+      console.error(`Import stopped at batch ${index + 1} of ${batches.length}; ${index} batch(es) were applied. Re-running is safe: duplicate source URLs are skipped.`);
+      throw err;
+    } finally {
+      try {
+        fs.unlinkSync(tempFile);
+      } catch {
+        // ignore cleanup errors
+      }
     }
   }
 
