@@ -20,6 +20,7 @@ import {
   SUBMISSION_TYPES,
 } from './content-pipeline-candidate-constants';
 import { permissionFieldsForDiscovery, USAGE_BASIS_SET } from './content-pipeline-usage-basis';
+import { normalizeSourceUrl, normalizedSourceUrlSql } from './content-pipeline-url-normalize';
 
 export const CONTENT_PIPELINE_CORE_TABLES = [
   'sources',
@@ -513,6 +514,20 @@ function buildContentItemUpsert(candidate: CandidateRecord): ImportSqlStatement 
   // active record's last automated capture, the newer record is inserted and
   // the older one is superseded (buildSupersedeOlderRecords), never deleted.
   const sourceUrlSql = sqlString(candidate.source_url ?? null);
+  const normalized = normalizeSourceUrl(candidate.source_url);
+  const samePageSql = normalized
+    ? `${normalizedSourceUrlSql('existing.source_url')} = ${sqlString(normalized)}`
+    : `existing.source_url = ${sourceUrlSql}`;
+  // #4592: a denied, not-permitted, or fee-required page is not re-added under
+  // another spelling, even when the origin's captured terms have changed.
+  const previouslyDeniedSql = `(
+    existing.final_status = 'not_permitted'
+    OR EXISTS (
+      SELECT 1 FROM rights_evidence denied
+      WHERE denied.content_item_id = existing.id
+        AND (denied.usage_decision = 'deny' OR denied.fee_required = 1 OR denied.usage_basis = 'fee_required')
+    )
+  )`;
   const sql = `INSERT INTO content_items (
   ${columns.join(',\n  ')}
 )
@@ -520,10 +535,13 @@ SELECT
   ${values.join(',\n  ')}
 WHERE NOT EXISTS (
   SELECT 1 FROM content_items existing
-  WHERE existing.source_url = ${sourceUrlSql}
+  WHERE ${samePageSql}
     AND existing.candidate_id != ${sqlString(candidate.candidate_id)}
     AND existing.superseded_at IS NULL
-    AND NOT (${termsChangedSql(candidate, 'existing')})
+    AND (
+      NOT (${termsChangedSql(candidate, 'existing')})
+      OR ${previouslyDeniedSql}
+    )
 )
 ON CONFLICT(candidate_id) DO UPDATE SET
   ${updateAssignments};`;
@@ -565,10 +583,14 @@ function buildSupersedeOlderRecords(candidate: CandidateRecord): ImportSqlStatem
     return null;
   }
   const candidateIdSql = sqlString(candidate.candidate_id);
+  const normalized = normalizeSourceUrl(candidate.source_url);
+  const samePageSql = normalized
+    ? `${normalizedSourceUrlSql('source_url')} = ${sqlString(normalized)}`
+    : `source_url = ${sqlString(candidate.source_url)}`;
   const sql = `UPDATE content_items
 SET superseded_at = ${sqlString(candidate.created_at)},
     superseded_by = ${candidateIdSql}
-WHERE source_url = ${sqlString(candidate.source_url)}
+WHERE ${samePageSql}
   AND candidate_id != ${candidateIdSql}
   AND superseded_at IS NULL
   AND created_at < ${sqlString(candidate.created_at)}
