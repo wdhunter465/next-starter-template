@@ -49,6 +49,12 @@ export type CommitIngestedMediaInput = {
   // Optional so existing callers/tests that don't care about cross-source
   // dedupe keep working unchanged.
   perceptualHash?: string | null;
+  // #4859: archive ingest stores a file before written permission exists, so the
+  // new media_assets row starts on rights hold with its own reason. Left unset,
+  // the row is written released (rights_hold 0) with the rights-conclusion
+  // reason, exactly as before.
+  rightsHold?: boolean;
+  rightsHoldReason?: string;
 };
 
 export type CommitIngestedMediaResult = {
@@ -71,7 +77,7 @@ export async function commitIngestedMedia(
       `INSERT OR IGNORE INTO media_assets (
         media_uid, b2_key, b2_file_id, size, etag, perceptual_hash,
         rights_hold, rights_hold_reason, rights_hold_set_at
-      ) VALUES (?, ?, ?, ?, ?, ?, 0, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'))`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, strftime('%Y-%m-%dT%H:%M:%fZ','now'))`,
     )
     .bind(
       input.mediaUid,
@@ -80,7 +86,8 @@ export async function commitIngestedMedia(
       input.size,
       input.etag ?? null,
       input.perceptualHash ?? null,
-      `rights_evidence_conclusion:${input.conclusion} reviewer:${input.reviewer}`,
+      input.rightsHold ? 1 : 0,
+      input.rightsHoldReason ?? `rights_evidence_conclusion:${input.conclusion} reviewer:${input.reviewer}`,
     )
     .run();
 
