@@ -21,6 +21,52 @@ export function textSuggestsWatermark(...parts) {
   return WATERMARK_OR_AGENCY_PATTERN.test(parts.filter(Boolean).map(String).join(' '));
 }
 
+// Website rendition long edges (#3419 contract) and the newspaper floor (#4861).
+export const SIZE_EDGE_PX = { thumbnail: 320, small: 640, medium: 1280, large: 1920 };
+export const NEWSPAPER_MIN_LONG_SIDE_PX = 800;
+
+const NEWSPAPER_PATTERN = /newspaper|halftone|half-tone|newsprint|press clipping|clipping/i;
+
+/** 'newspaper' when the source's own wording says the picture was printed in a newspaper, else 'photograph'. */
+export function pictureKind(...parts) {
+  return NEWSPAPER_PATTERN.test(parts.filter(Boolean).map(String).join(' ')) ? 'newspaper' : 'photograph';
+}
+
+/** The minimum long side for a picture of this kind. */
+export function minimumLongSideFor(kind, photographMinimum) {
+  return kind === 'newspaper' ? Math.min(NEWSPAPER_MIN_LONG_SIDE_PX, photographMinimum) : photographMinimum;
+}
+
+/**
+ * Which standard sizes a master supports without upscaling (#4861). Newspaper
+ * halftone scans are never offered at the large size or on social posts, however
+ * many pixels they have. Unknown dimensions block publication.
+ */
+export function assessPictureQuality({ width, height, kind = 'photograph' }) {
+  const w = Number(width) || 0;
+  const h = Number(height) || 0;
+  const side = longSideOf(w, h);
+  const newspaper = kind === 'newspaper';
+  const ok = {
+    thumbnail: side >= SIZE_EDGE_PX.thumbnail,
+    small: side >= SIZE_EDGE_PX.small,
+    medium: side >= SIZE_EDGE_PX.medium,
+    large: !newspaper && side >= SIZE_EDGE_PX.large,
+    socialLink: !newspaper && w >= 1200 && h >= 630,
+    socialSquare: !newspaper && Math.min(w, h) >= 1080,
+  };
+  let publishBlocked = false;
+  let publishBlockReason = null;
+  if (side === 0) {
+    publishBlocked = true;
+    publishBlockReason = 'pixel size could not be read, so no size could be verified';
+  } else if (!ok.small) {
+    publishBlocked = true;
+    publishBlockReason = `long side ${side}px is too small for even the small (${SIZE_EDGE_PX.small}px) size`;
+  }
+  return { tier: kind, widthPx: w || null, heightPx: h || null, ok, publishBlocked, publishBlockReason };
+}
+
 export function longSideOf(width, height) {
   const w = Number(width);
   const h = Number(height);

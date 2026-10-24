@@ -97,6 +97,30 @@ describe('RECONCILE_PHOTOS_RIGHTS_FROM_MEDIA_ASSETS_SQL (#3552/#3553)', () => {
     expect(row.rights_hold_set_at).toBe('2026-08-18T12:27:31.331Z');
   });
 
+  it('does not release a photo whose media is publish-blocked (#4861)', () => {
+    const db = new DatabaseSync(':memory:');
+    applyRepoMigrations(db);
+
+    insertMediaAsset(db, {
+      mediaUid: 'sha256_blocked',
+      b2Key: 'LGFC_sha256_blocked.jpg',
+      rightsHold: 0,
+      rightsHoldReason: 'rights_evidence_conclusion:public_domain_confirmed reviewer:Bill Hunter',
+      rightsHoldSetAt: '2026-08-18T12:27:31.331Z',
+    });
+    db.prepare("UPDATE media_assets SET publish_blocked = 1, publish_block_reason = 'too small' WHERE media_uid = ?").run('sha256_blocked');
+    insertPhoto(db, { photoId: 'LGFC_sha256_blocked.jpg', url: 'https://example.com/LGFC_sha256_blocked.jpg' });
+
+    db.exec(RECONCILE_PHOTOS_RIGHTS_FROM_MEDIA_ASSETS_SQL);
+
+    const row = db.prepare('SELECT rights_hold, publication_eligible FROM photos WHERE photo_id = ?').get('LGFC_sha256_blocked.jpg') as {
+      rights_hold: number;
+      publication_eligible: number;
+    };
+    expect(row.rights_hold).toBe(1);
+    expect(row.publication_eligible).toBe(0);
+  });
+
   it('also flips is_matchup_eligible so a content-collection rights approval reaches Weekly Matchup (#3551)', () => {
     const db = new DatabaseSync(':memory:');
     applyRepoMigrations(db);

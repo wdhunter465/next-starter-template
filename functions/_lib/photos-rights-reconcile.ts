@@ -78,6 +78,6 @@ SET rights_hold = 0,
 WHERE photos.rights_hold = 1
   AND EXISTS (
     SELECT 1 FROM media_assets ma
-    WHERE ma.b2_key = photos.photo_id AND ma.rights_hold = 0
+    WHERE ma.b2_key = photos.photo_id AND ma.rights_hold = 0 AND ma.publish_blocked = 0
   )
 `.trim();

@@ -134,6 +134,45 @@ describe('commitIngestedMedia dedup-linking correctness (#3716 phase 2a)', () =>
     expect(row.rights_hold_reason).toBe('archived pending written permission');
   });
 
+  it('stores the pixel size, tier, per-size flags and publish block (#4861)', async () => {
+    const { sqlite, db } = freshDb();
+    await upsertCandidate(db, minimalCandidate());
+
+    await commitIngestedMedia(db, {
+      candidateId: 1,
+      candidateExternalId: 'lgfc-gehrig-2026-501',
+      mediaUid: 'sha256_quality',
+      b2Key: 'LGFC_1_GehrigCU.jpg',
+      size: 100,
+      etag: null,
+      reviewer: 'automated:archive-ingest',
+      conclusion: 'unknown',
+      rightsHold: true,
+      quality: {
+        widthPx: 1000,
+        heightPx: 800,
+        tier: 'newspaper',
+        ok: { thumbnail: true, small: true, medium: false, large: false, socialLink: false, socialSquare: false },
+        publishBlocked: false,
+        publishBlockReason: null,
+      },
+    });
+
+    const row = sqlite.prepare('SELECT * FROM media_assets WHERE media_uid = ?').get('sha256_quality') as Record<string, unknown>;
+    expect(row).toMatchObject({
+      width_px: 1000,
+      height_px: 800,
+      quality_tier: 'newspaper',
+      ok_thumbnail: 1,
+      ok_small: 1,
+      ok_medium: 0,
+      ok_large: 0,
+      ok_social_link: 0,
+      ok_social_square: 0,
+      publish_blocked: 0,
+    });
+  });
+
   it('still writes the media row released when no hold is requested', async () => {
     const { sqlite, db } = freshDb();
     await upsertCandidate(db, minimalCandidate());
