@@ -110,6 +110,52 @@ describe('commitIngestedMedia dedup-linking correctness (#3716 phase 2a)', () =>
     expect(row.media_asset_id).toBe('b2://LGFC_1_GehrigCU.jpg');
   });
 
+  it('writes the media row on rights hold when the caller asks for it (#4859)', async () => {
+    const { sqlite, db } = freshDb();
+    await upsertCandidate(db, minimalCandidate());
+
+    await commitIngestedMedia(db, {
+      candidateId: 1,
+      candidateExternalId: 'lgfc-gehrig-2026-501',
+      mediaUid: 'sha256_held',
+      b2Key: 'LGFC_1_GehrigCU.jpg',
+      size: 100,
+      etag: null,
+      reviewer: 'automated:archive-ingest',
+      conclusion: 'unknown',
+      rightsHold: true,
+      rightsHoldReason: 'archived pending written permission',
+    });
+
+    const row = sqlite
+      .prepare('SELECT rights_hold, rights_hold_reason FROM media_assets WHERE media_uid = ?')
+      .get('sha256_held') as { rights_hold: number; rights_hold_reason: string };
+    expect(row.rights_hold).toBe(1);
+    expect(row.rights_hold_reason).toBe('archived pending written permission');
+  });
+
+  it('still writes the media row released when no hold is requested', async () => {
+    const { sqlite, db } = freshDb();
+    await upsertCandidate(db, minimalCandidate());
+
+    await commitIngestedMedia(db, {
+      candidateId: 1,
+      candidateExternalId: 'lgfc-gehrig-2026-501',
+      mediaUid: 'sha256_released',
+      b2Key: 'LGFC_1_GehrigCU.jpg',
+      size: 100,
+      etag: null,
+      reviewer: 'Bill Hunter',
+      conclusion: 'public_domain_confirmed',
+    });
+
+    const row = sqlite
+      .prepare('SELECT rights_hold, rights_hold_reason FROM media_assets WHERE media_uid = ?')
+      .get('sha256_released') as { rights_hold: number; rights_hold_reason: string };
+    expect(row.rights_hold).toBe(0);
+    expect(row.rights_hold_reason).toBe('rights_evidence_conclusion:public_domain_confirmed reviewer:Bill Hunter');
+  });
+
   it('links a dedup-hit candidate to the ORIGINAL row\'s real b2Key, not its own freshly-computed one', async () => {
     const { sqlite, db } = freshDb();
     await upsertCandidate(db, minimalCandidate({ candidate_id: 'lgfc-gehrig-2026-501' }));
