@@ -1,12 +1,12 @@
 ---
 Doc Type: Reference
 Audience: Human + AI
-Authority Level: Canonical Architecture Specification
-Owns: System architecture, data flows, access model, runtime dependencies
-Does Not Own: Operational runbooks; governance policies; UI/UX design specifics
+Authority Level: Controlled
+Owns: Admin access model as built for `/admin` and `/api/admin`
+Does Not Own: Operational runbooks; governance policies; UI/UX design specifics; member auth and redirects (`auth-model.md`); production route list and homepage order
 Canonical Reference: /docs/reference/design/LGFC-Production-Design-and-Standards.md
-Related issues: #1255, #1258, #3552, #3553, #3547
-Last Reviewed: 2026-08-22
+Related issues: #1255, #1258, #3552, #3553, #3547, #4826
+Last Reviewed: 2026-10-23
 ---
 
 # LGFC Admin Access Model — As-Built
