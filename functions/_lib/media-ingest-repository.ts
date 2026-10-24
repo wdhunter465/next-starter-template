@@ -55,6 +55,23 @@ export type CommitIngestedMediaInput = {
   // reason, exactly as before.
   rightsHold?: boolean;
   rightsHoldReason?: string;
+  // #4861: pixel size, quality tier and per-size usability from the archive
+  // quality assessment. Left unset the columns stay NULL (not assessed).
+  quality?: {
+    widthPx: number | null;
+    heightPx: number | null;
+    tier: 'photograph' | 'newspaper';
+    ok: {
+      thumbnail: boolean;
+      small: boolean;
+      medium: boolean;
+      large: boolean;
+      socialLink: boolean;
+      socialSquare: boolean;
+    };
+    publishBlocked: boolean;
+    publishBlockReason: string | null;
+  };
 };
 
 export type CommitIngestedMediaResult = {
@@ -92,6 +109,33 @@ export async function commitIngestedMedia(
     .run();
 
   const alreadyExisted = Number((insertResult as { meta?: { changes?: number } })?.meta?.changes ?? 0) === 0;
+
+  if (input.quality && !alreadyExisted) {
+    const q = input.quality;
+    await db
+      .prepare(
+        `UPDATE media_assets SET width_px = ?, height_px = ?, quality_tier = ?,
+           ok_thumbnail = ?, ok_small = ?, ok_medium = ?, ok_large = ?,
+           ok_social_link = ?, ok_social_square = ?,
+           publish_blocked = ?, publish_block_reason = ?
+         WHERE media_uid = ?`,
+      )
+      .bind(
+        q.widthPx,
+        q.heightPx,
+        q.tier,
+        q.ok.thumbnail ? 1 : 0,
+        q.ok.small ? 1 : 0,
+        q.ok.medium ? 1 : 0,
+        q.ok.large ? 1 : 0,
+        q.ok.socialLink ? 1 : 0,
+        q.ok.socialSquare ? 1 : 0,
+        q.publishBlocked ? 1 : 0,
+        q.publishBlockReason,
+        input.mediaUid,
+      )
+      .run();
+  }
 
   // #3716 phase 2a: the B2 key is no longer a pure function of content bytes
   // (it now embeds content_items.id, see content-pipeline-media-key.ts), so

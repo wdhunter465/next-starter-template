@@ -3,6 +3,9 @@ import { describe, expect, it } from 'vitest';
 import {
   appendArchiveNote,
   archiveVerdict,
+  assessPictureQuality,
+  minimumLongSideFor,
+  pictureKind,
   locItemIsPicture,
   pickBestLocImage,
   pickCommonsFile,
@@ -66,5 +69,41 @@ describe('archive ingest policy (#4859)', () => {
     expect(appendArchiveNote('Existing note.', 'skipped, too small', '2026-10-24')).toBe(
       'Existing note. archive-ingest: skipped, too small (2026-10-24).',
     );
+  });
+});
+
+describe('picture quality standards (#4861)', () => {
+  it('uses the newspaper standard only when the source says newspaper', () => {
+    expect(pictureKind('Lou Gehrig, newspaper halftone')).toBe('newspaper');
+    expect(pictureKind('Lou Gehrig, 1938', 'Library of Congress')).toBe('photograph');
+    expect(minimumLongSideFor('photograph', 1500)).toBe(1500);
+    expect(minimumLongSideFor('newspaper', 1500)).toBe(800);
+  });
+
+  it('marks each standard size from the master without upscaling', () => {
+    const tall = assessPictureQuality({ width: 1600, height: 2000, kind: 'photograph' });
+    expect(tall.ok).toEqual({ thumbnail: true, small: true, medium: true, large: true, socialLink: true, socialSquare: true });
+    const mid = assessPictureQuality({ width: 1500, height: 1000, kind: 'photograph' });
+    expect(mid.ok.medium).toBe(true);
+    expect(mid.ok.large).toBe(false);
+    expect(mid.ok.socialSquare).toBe(false);
+    expect(mid.publishBlocked).toBe(false);
+  });
+
+  it('never offers a newspaper picture at the large size or on social posts', () => {
+    const paper = assessPictureQuality({ width: 3000, height: 2400, kind: 'newspaper' });
+    expect(paper.ok.medium).toBe(true);
+    expect(paper.ok.large).toBe(false);
+    expect(paper.ok.socialLink).toBe(false);
+    expect(paper.ok.socialSquare).toBe(false);
+  });
+
+  it('blocks publication when the size is unknown or too small for the small size', () => {
+    const unknown = assessPictureQuality({ width: 0, height: 0 });
+    expect(unknown.publishBlocked).toBe(true);
+    expect(unknown.publishBlockReason).toMatch(/could not be read/);
+    const tiny = assessPictureQuality({ width: 500, height: 400, kind: 'newspaper' });
+    expect(tiny.ok.small).toBe(false);
+    expect(tiny.publishBlocked).toBe(true);
   });
 });

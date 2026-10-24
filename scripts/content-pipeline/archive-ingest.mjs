@@ -58,17 +58,20 @@ const { buildReadableIntakeKey } = await import('../../functions/_lib/content-pi
 const { findNearDuplicateMediaAssets } = await import('../../functions/_lib/content-pipeline-duplicate-detection.ts');
 const { commitIngestedMedia } = await import('../../functions/_lib/media-ingest-repository.ts');
 const { computePerceptualHash } = await import('../../functions/_lib/perceptual-hash.ts');
-const { PhotonImage } = await import('@cf-wasm/photon');
+const { PhotonImage, SamplingFilter, resize } = await import('@cf-wasm/photon');
 const { loadCopyQualityLists } = await import('./gehrig-copy-quality.mjs');
 const {
   ARCHIVE_HOLD_REASON,
   ARCHIVE_NOTE_MARKER,
   appendArchiveNote,
   archiveVerdict,
+  assessPictureQuality,
   locItemIsPicture,
   longSideOf,
+  minimumLongSideFor,
   pickBestLocImage,
   pickCommonsFile,
+  pictureKind,
 } = await import('./archive-ingest-lib.mjs');
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
@@ -173,6 +176,20 @@ function decodedSize(bytes) {
   }
 }
 
+// A picture that decodes but cannot be resized would fail every rendition, so it is archived
+// but blocked from publication instead of being skipped.
+function canResize(bytes) {
+  try {
+    const image = PhotonImage.new_from_byteslice(bytes);
+    const resized = resize(image, 32, 32, SamplingFilter.Nearest);
+    resized.free();
+    image.free();
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function noteRow(db, row, line, dryRun) {
   if (dryRun) return;
   await db
@@ -184,12 +201,15 @@ async function noteRow(db, row, line, dryRun) {
 async function archiveOne(db, row, context) {
   const resolved = row.source_domain === 'loc.gov' ? await resolveLoc(row) : await resolveCommons(row);
 
+  const kind = pictureKind(row.title, ...resolved.text);
+  const minimumLongSide = minimumLongSideFor(kind, context.lists.minimum_long_side_px);
+
   const early = archiveVerdict({
     imageUrl: resolved.url,
     text: resolved.text,
     width: resolved.width,
     height: resolved.height,
-    minimumLongSide: context.lists.minimum_long_side_px,
+    minimumLongSide,
     denylist: context.lists.denylist,
   });
   if (!early.ok) throw new SkipError(early.reason);
@@ -218,9 +238,15 @@ async function archiveOne(db, row, context) {
   const decoded = decodedSize(bytes);
   if (decoded) {
     const side = longSideOf(decoded.width, decoded.height);
-    if (side < context.lists.minimum_long_side_px) {
-      throw new SkipError(`downloaded file long side ${side}px is under the ${context.lists.minimum_long_side_px}px minimum`);
+    if (side < minimumLongSide) {
+      throw new SkipError(`downloaded file long side ${side}px is under the ${minimumLongSide}px minimum for a ${kind}`);
     }
+  }
+
+  const quality = assessPictureQuality({ width: decoded?.width, height: decoded?.height, kind });
+  if (decoded && !canResize(bytes)) {
+    quality.publishBlocked = true;
+    quality.publishBlockReason = 'the picture decoded but could not be resized to a test size';
   }
 
   let perceptualHash = null;
@@ -259,8 +285,9 @@ async function archiveOne(db, row, context) {
     perceptualHash,
     rightsHold: true,
     rightsHoldReason: ARCHIVE_HOLD_REASON,
+    quality,
   });
-  await noteRow(db, row, `archived ${result.b2Key}, on rights hold`, false);
+  await noteRow(db, row, `archived ${result.b2Key}, on rights hold, ${kind}${quality.publishBlocked ? `, publish blocked: ${quality.publishBlockReason}` : ''}`, false);
   console.log(`${row.candidate_id}: archived ${result.b2Key} (${bytes.byteLength} bytes, ${decoded ? `${decoded.width}x${decoded.height}` : 'size n/a'})`);
   return 'archived';
 }
