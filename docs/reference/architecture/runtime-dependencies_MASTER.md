@@ -1,11 +1,11 @@
 ---
 Doc Type: Specification
 Audience: Human + AI
-Authority Level: Canonical Architecture Specification
-Owns: System architecture, data flows, access model, runtime dependencies
-Does Not Own: Operational runbooks; governance policies; UI/UX design specifics
+Authority Level: Controlled
+Owns: Runtime dependency inventory and outage impact notes
+Does Not Own: Operational runbooks; governance policies; UI/UX design specifics; production behavior, auth, or homepage order
 Canonical Reference: /docs/reference/design/LGFC-Production-Design-and-Standards.md
-Last Reviewed: 2026-02-20
+Last Reviewed: 2026-10-23
 ---
 
 # Runtime Dependency Map (MASTER)
