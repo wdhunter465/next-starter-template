@@ -37,6 +37,7 @@ export async function resolve(specifier, context, nextResolve) {
 const {
   buildCandidateImportPlan,
   buildImportSqlBatch,
+  findSamePageIds,
   validateCandidateRegistry,
 } = await import('../../functions/_lib/content-pipeline-candidate-import.ts');
 
@@ -166,6 +167,26 @@ function executeSqlFile(database, target, sqlFile) {
  * report which of this batch's candidate_ids that happened to, so a
  * skip is visible rather than silent.
  */
+/**
+ * #4841: Cloudflare D1 fails the in-SQL URL normalizer with SQLITE_NOMEM, so the
+ * "same page already imported" match is done here: read the active rows' source
+ * URLs once per batch and hand the matching row ids to the SQL builder.
+ */
+function fetchActiveSourceUrls(database, target) {
+  const args = ['wrangler', 'd1', 'execute', database, '--json'];
+  if (database === 'lgfc-litedev') {
+    args.push('--env', 'preview');
+  }
+  args.push(target === 'local' ? '--local' : '--remote');
+  args.push(
+    '--command',
+    'SELECT id, source_url FROM content_items WHERE superseded_at IS NULL AND source_url IS NOT NULL;',
+  );
+  const stdout = execFileSync('npx', args, { cwd: repoRoot, encoding: 'utf8', env: process.env });
+  const parsed = JSON.parse(stdout);
+  return parsed?.[0]?.results ?? [];
+}
+
 function reportDuplicateSkips(database, target, candidateIds) {
   if (candidateIds.length === 0) return;
 
@@ -245,7 +266,9 @@ function main() {
     return;
   }
 
-  for (const [index, plan] of plans.entries()) {
+  for (const [index, batch] of batches.entries()) {
+    const samePageIds = findSamePageIds(batch.candidates, fetchActiveSourceUrls(options.database, options.target));
+    const plan = buildCandidateImportPlan(batch, { samePageIds });
     let sqlBatch = buildImportSqlBatch(plan);
     if (options.target === 'remote') {
       // Cloudflare D1 remote execute rejects SQL BEGIN/COMMIT; wrangler already

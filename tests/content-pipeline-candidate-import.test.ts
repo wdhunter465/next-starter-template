@@ -8,6 +8,7 @@ import {
   buildCandidateImportPlan,
   buildImportSqlBatch,
   CONTENT_PIPELINE_CORE_TABLES,
+  findSamePageIds,
   validateCandidateRegistry,
   type CandidateRecord,
   type CandidateRegistry,
@@ -507,5 +508,88 @@ describe('content pipeline migration schema (#2288)', () => {
     };
 
     expect(total.count).toBe(2);
+  });
+});
+
+describe('same-page matching without the in-SQL normalizer (#4841)', () => {
+  it('lists existing row ids instead of embedding the recursive URL normalizer', () => {
+    const registry = minimalRegistry([
+      minimalCandidate({
+        candidate_id: 'lgfc-gehrig-2026-801',
+        input_stream: 'scheduled_discovery',
+        source_url: 'https://www.loc.gov/item/abc/',
+      }),
+    ]);
+    const sql = buildCandidateImportPlan(registry, { samePageIds: { 'lgfc-gehrig-2026-801': [7, 9] } })
+      .statements.map((statement) => statement.sql)
+      .join('\n');
+    expect(sql).toContain('existing.id IN (7, 9)');
+    expect(sql).not.toContain('WITH RECURSIVE');
+  });
+
+  it('matches existing rows by normalized spelling in code', () => {
+    const matches = findSamePageIds(
+      [
+        { candidate_id: 'a', source_url: 'https://loc.gov/item/abc?utm_source=x' },
+        { candidate_id: 'b', source_url: 'https://example.org/other' },
+        { candidate_id: 'c', source_url: null },
+      ],
+      [
+        { id: 1, source_url: 'https://www.loc.gov/item/abc/' },
+        { id: 2, source_url: 'https://www.loc.gov/item/different/' },
+        { id: 3, source_url: null },
+      ],
+    );
+    expect(matches).toEqual({ a: [1], b: [], c: [] });
+  });
+
+  it('still skips a rediscovered page when the matching row id is passed in', () => {
+    const db = new DatabaseSync(':memory:');
+    applyRepoMigrations(db);
+    for (const statement of buildCandidateImportPlan(
+      minimalRegistry([
+        minimalCandidate({
+          candidate_id: 'lgfc-gehrig-2026-501',
+          source_url: 'https://www.loc.gov/item/abc/',
+        }),
+      ]),
+    ).statements) {
+      db.exec(statement.sql);
+    }
+    const existing = db.prepare('SELECT id, source_url FROM content_items').all() as Array<{
+      id: number;
+      source_url: string;
+    }>;
+
+    const rediscovered = minimalRegistry([
+      minimalCandidate({
+        candidate_id: 'lgfc-gehrig-2026-777',
+        source_url: 'https://loc.gov/item/abc?utm_source=x',
+      }),
+    ]);
+    const samePageIds = findSamePageIds(rediscovered.candidates, existing);
+    for (const statement of buildCandidateImportPlan(rediscovered, { samePageIds }).statements) {
+      db.exec(statement.sql);
+    }
+
+    const total = db.prepare('SELECT COUNT(*) AS count FROM content_items').get() as { count: number };
+    expect(total.count).toBe(1);
+  });
+
+  it('inserts a new page when no existing row matches', () => {
+    const db = new DatabaseSync(':memory:');
+    applyRepoMigrations(db);
+    const registry = minimalRegistry([
+      minimalCandidate({
+        candidate_id: 'lgfc-gehrig-2026-778',
+        source_url: 'https://www.loc.gov/item/new/',
+      }),
+    ]);
+    const samePageIds = findSamePageIds(registry.candidates, []);
+    for (const statement of buildCandidateImportPlan(registry, { samePageIds }).statements) {
+      db.exec(statement.sql);
+    }
+    const total = db.prepare('SELECT COUNT(*) AS count FROM content_items').get() as { count: number };
+    expect(total.count).toBe(1);
   });
 });

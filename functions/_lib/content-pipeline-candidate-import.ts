@@ -401,7 +401,50 @@ function sqlBooleanAsInteger(value: boolean): string {
   return value ? '1' : '0';
 }
 
-function buildContentItemUpsert(candidate: CandidateRecord): ImportSqlStatement {
+// #4841: the in-SQL URL normalizer (normalizedSourceUrlSql) is a nested CTE with a
+// recursive part, and Cloudflare D1 fails any statement that embeds it with
+// SQLITE_NOMEM -- even a plain SELECT on production. When the caller has already
+// matched the candidate's page against the existing rows (findSamePageIds), the
+// statement lists those row ids instead of re-running the normalizer in SQL.
+function samePageMatchSql(
+  urlColumn: string,
+  idColumn: string,
+  normalized: string,
+  samePageIds: number[] | undefined,
+): string {
+  if (samePageIds === undefined) {
+    return `${normalizedSourceUrlSql(urlColumn)} = ${sqlString(normalized)}`;
+  }
+  const ids = samePageIds.filter((id) => Number.isInteger(id));
+  return ids.length > 0 ? `${idColumn} IN (${ids.join(', ')})` : '0';
+}
+
+export interface ExistingSourceUrlRow {
+  id: number;
+  source_url: string | null;
+}
+
+// Matches each candidate's page to existing active rows in code, with the same
+// normalizer the SQL guard used (normalizeSourceUrl), keyed by candidate_id.
+export function findSamePageIds(
+  candidates: Array<{ candidate_id: string; source_url?: string | null }>,
+  existingRows: ExistingSourceUrlRow[],
+): Record<string, number[]> {
+  const byNormalized = new Map<string, number[]>();
+  for (const row of existingRows) {
+    const key = normalizeSourceUrl(row.source_url ?? undefined);
+    if (!key) continue;
+    byNormalized.set(key, [...(byNormalized.get(key) ?? []), row.id]);
+  }
+  const result: Record<string, number[]> = {};
+  for (const candidate of candidates) {
+    const key = normalizeSourceUrl(candidate.source_url ?? undefined);
+    result[candidate.candidate_id] = key ? [...(byNormalized.get(key) ?? [])] : [];
+  }
+  return result;
+}
+
+function buildContentItemUpsert(candidate: CandidateRecord, samePageIds?: number[]): ImportSqlStatement {
   const sourceMetadata = candidate.source_metadata ?? {};
 
   const columns = [
@@ -524,7 +567,7 @@ function buildContentItemUpsert(candidate: CandidateRecord): ImportSqlStatement 
   const sourceUrlSql = sqlString(candidate.source_url ?? null);
   const normalized = normalizeSourceUrl(candidate.source_url);
   const samePageSql = normalized
-    ? `${normalizedSourceUrlSql('existing.source_url')} = ${sqlString(normalized)}`
+    ? samePageMatchSql('existing.source_url', 'existing.id', normalized, samePageIds)
     : `existing.source_url = ${sourceUrlSql}`;
   // #4592: a denied, not-permitted, or fee-required page is not re-added under
   // another spelling, even when the origin's captured terms have changed.
@@ -586,14 +629,14 @@ function termsChangedSql(candidate: CandidateRecord, alias: string): string {
 
 // #4568: the newest dated record defines use. Once the newer record exists, every older active
 // record for the same source_url is marked superseded by it. No row is deleted.
-function buildSupersedeOlderRecords(candidate: CandidateRecord): ImportSqlStatement | null {
+function buildSupersedeOlderRecords(candidate: CandidateRecord, samePageIds?: number[]): ImportSqlStatement | null {
   if (candidate.input_stream !== 'scheduled_discovery' || !candidate.source_url) {
     return null;
   }
   const candidateIdSql = sqlString(candidate.candidate_id);
   const normalized = normalizeSourceUrl(candidate.source_url);
   const samePageSql = normalized
-    ? `${normalizedSourceUrlSql('source_url')} = ${sqlString(normalized)}`
+    ? samePageMatchSql('source_url', 'id', normalized, samePageIds)
     : `source_url = ${sqlString(candidate.source_url)}`;
   const sql = `UPDATE content_items
 SET superseded_at = ${sqlString(candidate.created_at)},
@@ -871,7 +914,12 @@ ON CONFLICT(content_item_id, publication_target) DO UPDATE SET
   };
 }
 
-export function buildCandidateImportPlan(registry: CandidateRegistry): ImportPlan {
+export interface ImportPlanOptions {
+  // candidate_id -> ids of existing active content_items rows for the same page.
+  samePageIds?: Record<string, number[]>;
+}
+
+export function buildCandidateImportPlan(registry: CandidateRegistry, options: ImportPlanOptions = {}): ImportPlan {
   const validation = validateCandidateRegistry(registry);
   if (!validation.ok) {
     throw new Error(`Registry validation failed: ${validation.errors.join('; ')}`);
@@ -881,8 +929,9 @@ export function buildCandidateImportPlan(registry: CandidateRegistry): ImportPla
 
   for (const candidate of registry.candidates) {
     if (candidate.copy_role === 'pointer') continue;
-    statements.push(buildContentItemUpsert(candidate));
-    const supersedeStatement = buildSupersedeOlderRecords(candidate);
+    const samePageIds = options.samePageIds?.[candidate.candidate_id];
+    statements.push(buildContentItemUpsert(candidate, samePageIds));
+    const supersedeStatement = buildSupersedeOlderRecords(candidate, samePageIds);
     if (supersedeStatement) {
       statements.push(supersedeStatement);
     }
