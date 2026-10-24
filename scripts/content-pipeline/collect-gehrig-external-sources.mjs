@@ -670,12 +670,22 @@ export async function runDiscovery(options, fetchImpl) {
   }
 }
 
+/**
+ * #4868: only curated registries count as already recorded. The discovery run
+ * output (`*external-discovery*.json`) is a leftover of earlier runs, not a
+ * record of what reached production D1, so reading it hid real photograph
+ * records from the importer, which already de-duplicates against D1.
+ */
+export function isKnownUrlRegistryFile(fileName) {
+  return fileName.endsWith('.json') && !fileName.includes('external-discovery');
+}
+
 function loadKnownNormalizedUrls() {
   const known = new Set();
   const dir = path.join(repoRoot, RESEARCH_DIR);
   if (!fs.existsSync(dir)) return known;
   for (const file of fs.readdirSync(dir)) {
-    if (!file.endsWith('.json')) continue;
+    if (!isKnownUrlRegistryFile(file)) continue;
     try {
       const data = JSON.parse(fs.readFileSync(path.join(dir, file), 'utf8'));
       for (const candidate of data.candidates ?? []) {
