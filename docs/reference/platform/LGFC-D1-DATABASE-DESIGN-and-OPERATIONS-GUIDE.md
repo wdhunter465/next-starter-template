@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: D1 schema, migration, and operations facts as a supporting specification
 Does Not Own: Platform and Environment Domain Policy; UI design specifics; PR process; incident response playbooks
 Canonical Reference: /docs/governance/PLATFORM-AND-ENVIRONMENT.md
-Related Issues: #2688
-Last Reviewed: 2026-07-21
+Related Issues: #2688, #4826
+Last Reviewed: 2026-10-23
 ---
 
 # LGFC — D1 DATABASE DESIGN + OPERATIONS GUIDE
@@ -249,17 +249,9 @@ Confirm tables appear in left panel.
 
 # AUTH DESIGN DECISION (CRITICAL)
 
-We are transitioning FROM:
+Day-1 member auth is locked in `docs/reference/design/auth-model.md`.
 
-localStorage-only login
-
-TO:
-
-server-validated sessions
-
-Backed by:
-
-member_sessions table
+localStorage-only login is not the auth model. `member_sessions` is the server-side store for the `lgfc_session` cookie.
 
 This enables:
 

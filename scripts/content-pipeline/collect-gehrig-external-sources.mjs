@@ -68,6 +68,7 @@ import { determineSearchRunTerminalStatus } from '../../functions/_lib/content-s
 import { extractPeopleTags, extractDateOrPeriod } from '../../functions/_lib/content-pipeline-discovery-text-signals.ts';
 import { withBoundedRetry } from '../../functions/_lib/bounded-retry.ts';
 import { buildDplaSearchUrl, mapDplaDocToCandidateFields, requireDplaApiKey } from '../../functions/_lib/content-pipeline-dpla-adapter.ts';
+import { fetchInternetArchiveDocs, mapInternetArchiveDocToCandidateFields } from '../../functions/_lib/content-pipeline-internet-archive-adapter.ts';
 import { normalizeSourceUrl } from '../../functions/_lib/content-pipeline-url-normalize.ts';
 import { withOriginTerms } from './discovery-evidence-terms.mjs';
 import { applyCopyQuality, loadCopyQualityLists } from './gehrig-copy-quality.mjs';
@@ -81,6 +82,7 @@ const SOURCE_DOMAINS = {
   loc: 'loc.gov',
   wikimedia: 'commons.wikimedia.org',
   dpla: 'dp.la',
+  internetarchive: 'archive.org',
 };
 
 const DEFAULT_QUERY = 'Lou Gehrig';
@@ -100,13 +102,14 @@ const DEFAULT_LIMIT = 20;
 const DEFAULT_OUT = 'data/research/lou-gehrig-content-candidates-external-discovery.json';
 const SEED_FILE = 'data/research/lou-gehrig-content-candidates.json';
 const RESEARCH_DIR = 'data/research';
-const KNOWN_SOURCES = ['openverse', 'loc', 'wikimedia', 'dpla'];
+const KNOWN_SOURCES = ['openverse', 'loc', 'wikimedia', 'dpla', 'internetarchive'];
 
 function printUsage() {
   console.log(
-    'Usage: node --experimental-strip-types scripts/content-pipeline/collect-gehrig-external-sources.mjs [--query "Lou Gehrig"] [--sources openverse,loc,wikimedia,dpla] [--limit 20] [--out <file>]',
+    'Usage: node --experimental-strip-types scripts/content-pipeline/collect-gehrig-external-sources.mjs [--query "Lou Gehrig"] [--sources openverse,loc,wikimedia,dpla,internetarchive] [--limit 20] [--out <file>]',
   );
   console.log('  DPLA requires the DPLA_API_KEY environment variable; it is included by default only when that key is set.');
+  console.log('  Internet Archive is opt-in (--sources internetarchive). It is not in the default set. #4789');
 }
 
 function readFlagValue(argv, index, flagName) {
@@ -343,6 +346,7 @@ function baseCandidate({
   topicTags = [],
   rightsStatus = 'unknown',
   rightsEvidence,
+  contentType = 'photo',
   widthPx,
   heightPx,
   fileBytes,
@@ -355,7 +359,7 @@ function baseCandidate({
     title,
     source_name: sourceName,
     source_type: sourceType,
-    content_type: 'photo',
+    content_type: contentType,
     summary,
     people_tags: peopleTags && peopleTags.length > 0 ? [...new Set(peopleTags)] : ['Lou Gehrig'],
     topic_tags: [...new Set(['baseball', ...topicTags])],
@@ -623,11 +627,20 @@ async function collectDpla(query, limit, nextId) {
   return docs.map((doc) => baseCandidate({ id: nextId(), ...mapDplaDocToCandidateFields(doc, query) }));
 }
 
+async function collectInternetArchive(query, limit, nextId) {
+  const docs = await fetchInternetArchiveDocs(query, limit);
+  return docs
+    .map((doc) => mapInternetArchiveDocToCandidateFields(doc, query))
+    .filter((fields) => fields != null)
+    .map((fields) => baseCandidate({ id: nextId(), ...fields }));
+}
+
 const COLLECTORS = {
   openverse: collectOpenverse,
   loc: collectLibraryOfCongress,
   wikimedia: collectWikimediaCommons,
   dpla: collectDpla,
+  internetarchive: collectInternetArchive,
 };
 
 // A finished discovery run exits 0 even when a source stays down. Search-runs

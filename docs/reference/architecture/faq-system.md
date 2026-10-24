@@ -1,11 +1,11 @@
 ---
 Doc Type: Specification
 Audience: Human + AI
-Authority Level: Canonical Architecture Specification
-Owns: System architecture, data flows, access model, runtime dependencies
-Does Not Own: Operational runbooks; governance policies; UI/UX design specifics
+Authority Level: Controlled
+Owns: FAQ and Ask data-flow notes
+Does Not Own: Operational runbooks; governance policies; UI/UX design specifics; public route policy (`/faq` redirects to `/ask/`); admin authorization (member session)
 Canonical Reference: /docs/reference/design/LGFC-Production-Design-and-Standards.md
-Last Reviewed: 2026-02-20
+Last Reviewed: 2026-10-23
 ---
 
 # FAQ System Architecture
@@ -115,7 +115,7 @@ CREATE TABLE IF NOT EXISTS ask_inbox (
 
 ### Admin Endpoints
 
-All require `x-admin-token` header matching `ADMIN_TOKEN` environment variable.
+All require a signed-in admin member session (`functions/_lib/auth.ts`). There is no `ADMIN_TOKEN` header.
 
 **`GET /api/admin/faq/pending`**
 - Returns: All pending FAQ content entries (`faq_entries`), newest first
@@ -180,11 +180,11 @@ All require `x-admin-token` header matching `ADMIN_TOKEN` environment variable.
   - email format
   - question ≥10 chars
 - Submit → `ask_inbox` intake entry
-- Cancel → returns to `/faq`
+- `/faq` is not a second page; it redirects to `/ask/`
 - Success message: "Your question has been submitted. We’ll reply by email."
 
 **`AdminFAQPage` (/admin/faq)**
-- Token-gated (sessionStorage: `lgfc_admin_token`)
+- Session-gated admin member (`/admin` layout). No `sessionStorage` admin token.
 - Pending section: List + Approve/Deny actions
 - Approved section: List + Pin/Unpin toggles
 - Approval requires answer text input
@@ -217,7 +217,7 @@ Admin (FAQ workflow)
 ### View Tracking Flow
 
 ```
-User clicks FAQ item (homepage or /faq)
+User clicks FAQ item (homepage or /ask; /faq only redirects to /ask/)
   → POST /api/faq/view { id } (fire-and-forget)
     → D1: UPDATE view_count = view_count + 1 WHERE status='approved'
   → Next page load shows updated view_count
@@ -226,7 +226,7 @@ User clicks FAQ item (homepage or /faq)
 ### Top FAQs Ordering
 
 ```
-Public pages (/faq, homepage)
+Public pages (/ask, homepage; /faq redirects to /ask/)
   → GET /api/faq/list?limit={5|10|50}
     → D1: SELECT WHERE status='approved' AND answer != ''
           ORDER BY pinned DESC, view_count DESC, updated_at DESC
@@ -247,11 +247,11 @@ Public pages (/faq, homepage)
 
 ### Admin API Protection
 
-- All admin endpoints require `ADMIN_TOKEN` environment variable
-- Token passed via `x-admin-token` header
-- Token stored client-side in sessionStorage (not localStorage for better security)
-- No admin operations allowed without valid token
-- Admin API uses "fail closed" policy (if token not configured, returns 503)
+- Admin endpoints use the member-session gate in `functions/_lib/auth.ts` (`requireAdmin` delegates to `requireAdminMember`)
+- Authorization is a signed-in member whose D1 `members.role` is `admin`
+- Unauthenticated requests fail closed with 401; an authenticated non-admin fails closed with 403
+- There is no `ADMIN_TOKEN`, `x-admin-token`, or browser token in `sessionStorage` or `localStorage`
+- Admin access detail: `docs/reference/architecture/access-model.md`. Member auth detail: `docs/reference/design/auth-model.md`
 
 ### Content Security
 
