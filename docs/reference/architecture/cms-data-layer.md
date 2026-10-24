@@ -5,7 +5,7 @@ Authority Level: Canonical Architecture Specification
 Owns: System architecture, data flows, access model, runtime dependencies
 Does Not Own: Operational runbooks; governance policies; UI/UX design specifics
 Canonical Reference: /docs/reference/design/LGFC-Production-Design-and-Standards.md
-Last Reviewed: 2026-02-20
+Last Reviewed: 2026-10-23
 ---
 
 # CMS Data Layer — Phase 2B
@@ -207,4 +207,4 @@ These features will be implemented in later phases once the foundation is stable
 - Migration: `/migrations/0011_cms_content_blocks.sql`
 - Seed script: `/scripts/seed_cms_content_blocks.mjs`
 - Read helpers: `/src/lib/cmsContent.ts`
-- Overall CMS architecture: `/docs/architecture/cms.md`
+- Overall architecture and design authority: `/docs/reference/design/LGFC-Production-Design-and-Standards.md` (`/docs/reference/architecture/cms.md` is a historical pointer only)
