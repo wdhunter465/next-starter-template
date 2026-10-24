@@ -70,6 +70,7 @@ import { withBoundedRetry } from '../../functions/_lib/bounded-retry.ts';
 import { buildDplaSearchUrl, mapDplaDocToCandidateFields, requireDplaApiKey } from '../../functions/_lib/content-pipeline-dpla-adapter.ts';
 import { normalizeSourceUrl } from '../../functions/_lib/content-pipeline-url-normalize.ts';
 import { withOriginTerms } from './discovery-evidence-terms.mjs';
+import { applyCopyQuality, loadCopyQualityLists } from './gehrig-copy-quality.mjs';
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, '../..');
@@ -186,9 +187,19 @@ function nextCandidateSequence() {
   return Math.max(maxSeq, 500); // floor well above known fixture IDs (001-0xx)
 }
 
-function makeCandidateIdFactory() {
-  let seq = nextCandidateSequence();
-  const year = new Date().getUTCFullYear();
+// Candidate ids restarted at the seed-file maximum (501) on every run, so a
+// later run's new candidates reused the ids of rows already in D1. The import
+// upserts on candidate_id, so a reused id overwrites the earlier row instead of
+// adding one (#4841). Each run now starts at its own unix-seconds range
+// (seconds * 1000), which stays unique across runs and still matches
+// lgfc-gehrig-YYYY-NNN+.
+export function runSequenceBase(now = Date.now()) {
+  return Math.floor(now / 1000) * 1000;
+}
+
+export function makeCandidateIdFactory(now = Date.now()) {
+  let seq = Math.max(nextCandidateSequence(), runSequenceBase(now));
+  const year = new Date(now).getUTCFullYear();
   return () => {
     seq += 1;
     return `lgfc-gehrig-${year}-${String(seq).padStart(3, '0')}`;
@@ -332,6 +343,11 @@ function baseCandidate({
   topicTags = [],
   rightsStatus = 'unknown',
   rightsEvidence,
+  widthPx,
+  heightPx,
+  fileBytes,
+  fileFormat,
+  originalFileUrl,
 }) {
   const candidate = {
     candidate_id: id,
@@ -359,6 +375,11 @@ function baseCandidate({
   };
 
   if (sourceUrl) candidate.source_url = sourceUrl;
+  if (originalFileUrl) candidate.original_file_url = originalFileUrl;
+  if (fileFormat) candidate.file_format = fileFormat;
+  if (Number.isFinite(widthPx)) candidate.width_px = widthPx;
+  if (Number.isFinite(heightPx)) candidate.height_px = heightPx;
+  if (Number.isFinite(fileBytes)) candidate.file_bytes = fileBytes;
   if (sourceOwner) candidate.source_owner = sourceOwner;
   if (sourceDomain) candidate.source_domain = sourceDomain;
   if (dateOrPeriod) candidate.date_or_period = dateOrPeriod;
@@ -402,6 +423,11 @@ async function collectOpenverse(query, limit, nextId) {
       sourceOwner: item.creator || item.source || item.provider || undefined,
       sourceDomain: 'openverse.org',
       sourceUrl: item.foreign_landing_url || item.url || undefined,
+      originalFileUrl: item.url || undefined,
+      widthPx: Number(item.width),
+      heightPx: Number(item.height),
+      fileBytes: Number(item.filesize),
+      fileFormat: item.filetype || undefined,
       summary: `Discovered via Openverse search for "${query}". Provider: ${item.provider ?? 'unknown'}. Treat license metadata as a lead — verify against the originating collection before any rights conclusion.`,
       provenanceNotes,
       sourceRecordId: item.id,
@@ -465,6 +491,7 @@ async function collectLibraryOfCongress(query, limit, nextId) {
       sourceOwner: contributor || 'Library of Congress',
       sourceDomain: 'loc.gov',
       sourceUrl: absoluteHttpUrl(item.url),
+      originalFileUrl: downloadUrl || undefined,
       summary: `Discovered via loc.gov search for "${query}". A rights/advisory statement here (if present) is LOC's own research note, not a legal clearance.`,
       dateOrPeriod: Array.isArray(item.date) ? item.date[0] : item.date || undefined,
       provenanceNotes,
@@ -497,7 +524,7 @@ async function collectWikimediaCommons(query, limit, nextId, licenseNotesOut = [
   if (pages.length === 0) return [];
 
   const titles = pages.map((p) => p.title).join('|');
-  const infoUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(titles)}&prop=imageinfo&iiprop=url|user|extmetadata&format=json&origin=*`;
+  const infoUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(titles)}&prop=imageinfo&iiprop=url|size|mime|user|extmetadata&format=json&origin=*`;
   const infoData = await fetchJson(infoUrl);
   const infoPages = Object.values(infoData.query?.pages ?? {});
 
@@ -554,6 +581,11 @@ async function collectWikimediaCommons(query, limit, nextId, licenseNotesOut = [
       sourceOwner,
       sourceDomain: 'commons.wikimedia.org',
       sourceUrl: info.descriptionurl || undefined,
+      originalFileUrl: info.url || undefined,
+      widthPx: Number(info.width),
+      heightPx: Number(info.height),
+      fileBytes: Number(info.size),
+      fileFormat: info.mime || undefined,
       summary: imageDescription
         ? `${imageDescription} (Wikimedia Commons caption, uploader-provided -- not independently verified.)`
         : `Discovered via Wikimedia Commons search for "${query}". License template is an uploader assertion, not a verified fact.`,
@@ -692,6 +724,8 @@ async function runDiscoveryWithFetch(options) {
     });
   }
 
+  const qualifiedCandidates = applyCopyQuality(allCandidates, loadCopyQualityLists(repoRoot));
+
   const registry = {
     schema_version: '1',
     registry_class: 'operator_export',
@@ -699,7 +733,7 @@ async function runDiscoveryWithFetch(options) {
     registry_purpose: 'operator_export',
     content_evidence_level: 'mixed', // real (non-synthetic) discovery leads, not yet operator-verified -- schema's enum has no exact "pending review" value
     updated_at: new Date().toISOString(),
-    candidates: allCandidates,
+    candidates: qualifiedCandidates,
   };
 
   const outPath = path.isAbsolute(options.out) ? options.out : path.join(repoRoot, options.out);
@@ -709,7 +743,7 @@ async function runDiscoveryWithFetch(options) {
   const runsOutPath = outPath.replace(/\.json$/, '') + '.search-runs.json';
   fs.writeFileSync(runsOutPath, JSON.stringify({ search_runs: searchRuns }, null, 2) + '\n', 'utf8');
 
-  console.log(`\nWrote ${allCandidates.length} candidate(s) to ${path.relative(repoRoot, outPath)}`);
+  console.log(`\nWrote ${qualifiedCandidates.length} candidate(s) to ${path.relative(repoRoot, outPath)}`);
   console.log(`Wrote ${searchRuns.length} search-run record(s) to ${path.relative(repoRoot, runsOutPath)}`);
 
   if (licenseNotes.length > 0) {
@@ -737,7 +771,7 @@ async function runDiscoveryWithFetch(options) {
   console.log('2. Validate and import discovered candidates via');
   console.log(`   node --experimental-strip-types scripts/content-pipeline/import-seed-candidates.mjs --file ${options.out} --database lgfc-litedev --local --dry-run`);
   console.log('   (review the dry-run output, then drop --dry-run once satisfied — Development only, per #3552/#3554)');
-  return { exitCode, candidates: allCandidates, searchRuns, errors };
+  return { exitCode, candidates: qualifiedCandidates, searchRuns, errors };
 }
 
 async function main() {

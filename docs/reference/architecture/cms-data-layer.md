@@ -207,4 +207,4 @@ These features will be implemented in later phases once the foundation is stable
 - Migration: `/migrations/0011_cms_content_blocks.sql`
 - Seed script: `/scripts/seed_cms_content_blocks.mjs`
 - Read helpers: `/src/lib/cmsContent.ts`
-- Overall CMS architecture: `/docs/architecture/cms.md`
+- Overall architecture and design authority: `/docs/reference/design/LGFC-Production-Design-and-Standards.md` (`/docs/reference/architecture/cms.md` is a historical pointer only)

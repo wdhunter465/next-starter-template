@@ -1,0 +1,25 @@
+{
+  "minimum_long_side_px": 1500,
+  "allowlist": [
+    "loc.gov",
+    "commons.wikimedia.org",
+    "upload.wikimedia.org",
+    "openverse.org",
+    "api.openverse.org",
+    "dp.la",
+    "api.dp.la"
+  ],
+  "denylist": [
+    "gettyimages.com",
+    "media.gettyimages.com",
+    "shutterstock.com",
+    "alamy.com",
+    "adobestock.com",
+    "stock.adobe.com",
+    "istockphoto.com",
+    "dreamstime.com",
+    "depositphotos.com",
+    "agefotostock.com",
+    "bridgemanimages.com"
+  ]
+}
