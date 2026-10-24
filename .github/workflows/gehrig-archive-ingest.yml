@@ -65,6 +65,7 @@ jobs:
           B2_APP_KEY: ${{ secrets.B2_APP_KEY }}
           ARCHIVE_LIMIT: ${{ github.event.inputs.limit }}
           ARCHIVE_DRY_RUN: ${{ github.event.inputs.dry_run }}
+        shell: bash
         run: |
           echo "Target database_name=lgfc_lite (Production), limit=${ARCHIVE_LIMIT}, dry_run=${ARCHIVE_DRY_RUN}"
           args=(--database lgfc_lite --remote --limit "${ARCHIVE_LIMIT}")
