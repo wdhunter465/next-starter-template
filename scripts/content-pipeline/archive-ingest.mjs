@@ -63,6 +63,11 @@ const { loadCopyQualityLists } = await import('./gehrig-copy-quality.mjs');
 const {
   ARCHIVE_HOLD_REASON,
   ARCHIVE_NOTE_MARKER,
+  LEGACY_FILE_SKIP_REASONS,
+  LEGACY_NOTE_MARKER,
+  backoffDelayMs,
+  describeLocFiles,
+  isRetryableStatus,
   appendArchiveNote,
   archiveVerdict,
   assessPictureQuality,
@@ -79,7 +84,7 @@ const repoRoot = path.resolve(scriptDir, '../..');
 const USER_AGENT = 'LGFC-Gehrig-Archive-Ingest/1.0 (lougehrigfanclub.com; contact via site)';
 const NEAR_DUPLICATE_SKIP_DISTANCE = 4;
 const MAX_CONSECUTIVE_TRANSIENT_FAILURES = 3;
-const REQUEST_PAUSE_MS = 1500;
+const REQUEST_PAUSE_MS = 3000;
 
 class SkipError extends Error {}
 class TransientError extends Error {}
@@ -117,32 +122,44 @@ function parseArgs(argv) {
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function fetchOk(url, accept) {
-  let response;
-  try {
-    response = await fetch(url, { headers: { 'User-Agent': USER_AGENT, Accept: accept }, signal: AbortSignal.timeout(90_000) });
-  } catch (error) {
-    throw new TransientError(`${url} -> ${error instanceof Error ? error.message : String(error)}`);
+const MAX_FETCH_ATTEMPTS = 3;
+
+async function fetchOk(url, accept, timeoutMs = 90_000) {
+  let lastProblem = '';
+  for (let attempt = 1; attempt <= MAX_FETCH_ATTEMPTS; attempt += 1) {
+    let response;
+    try {
+      response = await fetch(url, { headers: { 'User-Agent': USER_AGENT, Accept: accept }, signal: AbortSignal.timeout(timeoutMs) });
+    } catch (error) {
+      lastProblem = `${url} -> ${error instanceof Error ? error.message : String(error)}`;
+      if (attempt < MAX_FETCH_ATTEMPTS) await sleep(backoffDelayMs(attempt));
+      continue;
+    }
+    if (response.status === 404 || response.status === 410) throw new SkipError(`source returned HTTP ${response.status}`);
+    if (isRetryableStatus(response.status)) {
+      lastProblem = `${url} -> HTTP ${response.status}`;
+      if (attempt < MAX_FETCH_ATTEMPTS) await sleep(backoffDelayMs(attempt, response.headers.get('retry-after')));
+      continue;
+    }
+    if (response.status === 403 || response.status >= 500) throw new TransientError(`${url} -> HTTP ${response.status}`);
+    if (!response.ok) throw new SkipError(`source returned HTTP ${response.status}`);
+    return response;
   }
-  if (response.status === 404 || response.status === 410) throw new SkipError(`source returned HTTP ${response.status}`);
-  if (response.status === 429 || response.status >= 500 || response.status === 403) {
-    throw new TransientError(`${url} -> HTTP ${response.status}`);
-  }
-  if (!response.ok) throw new SkipError(`source returned HTTP ${response.status}`);
-  return response;
+  throw new TransientError(`${lastProblem} (after ${MAX_FETCH_ATTEMPTS} attempts)`);
 }
 
 async function resolveLoc(row) {
   const match = /\/item\/([^/?#]+)/.exec(row.source_url ?? '');
   if (!match) throw new SkipError('source_url is not a loc.gov item page');
-  const response = await fetchOk(`https://www.loc.gov/item/${match[1]}/?fo=json`, 'application/json');
+  const response = await fetchOk(`https://www.loc.gov/item/${match[1]}/?fo=json`, 'application/json', 30_000);
   const data = await response.json();
   if (!locItemIsPicture(data)) throw new SkipError('loc.gov record is not a photograph, print or drawing');
   const file = pickBestLocImage(data);
-  if (!file) throw new SkipError('loc.gov record names no downloadable image file');
+  if (!file) throw new SkipError(`loc.gov record names no downloadable image file (${describeLocFiles(data)})`);
   const item = data.item ?? {};
   return {
     ...file,
+    inventory: describeLocFiles(data),
     text: [item.title, JSON.stringify(item.notes ?? ''), JSON.stringify(item.rights_advisory ?? ''), JSON.stringify(item.contributor_names ?? '')],
   };
 }
@@ -212,7 +229,7 @@ async function archiveOne(db, row, context) {
     minimumLongSide,
     denylist: context.lists.denylist,
   });
-  if (!early.ok) throw new SkipError(early.reason);
+  if (!early.ok) throw new SkipError(`${early.reason}${resolved.inventory ? ` (${resolved.inventory})` : ''}`);
 
   const urlCheck = validateIngestSourceUrl(resolved.url, context.approvedDomains);
   if (!urlCheck.ok) throw new SkipError(urlCheck.error);
@@ -239,7 +256,7 @@ async function archiveOne(db, row, context) {
   if (decoded) {
     const side = longSideOf(decoded.width, decoded.height);
     if (side < minimumLongSide) {
-      throw new SkipError(`downloaded file long side ${side}px is under the ${minimumLongSide}px minimum for a ${kind}`);
+      throw new SkipError(`downloaded file long side ${side}px is under the ${minimumLongSide}px minimum for a ${kind}${resolved.inventory ? ` (${resolved.inventory})` : ''}`);
     }
   }
 
@@ -311,7 +328,11 @@ async function main() {
          FROM content_items
          WHERE media_asset_id IS NULL AND superseded_at IS NULL AND content_type = 'photo'
            AND source_domain IN ('loc.gov', 'commons.wikimedia.org')
-           AND (admin_notes IS NULL OR admin_notes NOT LIKE '%${ARCHIVE_NOTE_MARKER}%')
+           AND (
+             admin_notes IS NULL
+             OR (admin_notes NOT LIKE '%${LEGACY_NOTE_MARKER}%' AND admin_notes NOT LIKE '%${ARCHIVE_NOTE_MARKER}%')
+             OR (admin_notes NOT LIKE '%${ARCHIVE_NOTE_MARKER}%' AND (${LEGACY_FILE_SKIP_REASONS.map((reason) => `admin_notes LIKE '%${LEGACY_NOTE_MARKER} skipped, ${reason}%'`).join(' OR ')}))
+           )
          ORDER BY id LIMIT ?`,
       )
       .bind(options.limit)

@@ -7,7 +7,12 @@
 import { isDeniedImageHost } from './gehrig-copy-quality.mjs';
 
 export const ARCHIVE_HOLD_REASON = 'archived pending written permission (Product Authority 2026-10-24, #4839)';
-export const ARCHIVE_NOTE_MARKER = 'archive-ingest:';
+// v2 (#4870): notes written before the file picker was fixed use LEGACY_NOTE_MARKER. A row whose only
+// notes are legacy file-reason skips is looked at again; every other legacy skip stays final.
+export const ARCHIVE_NOTE_MARKER = 'archive-ingest-v2:';
+export const LEGACY_NOTE_MARKER = 'archive-ingest:';
+export const LEGACY_FILE_SKIP_REASONS = ['loc.gov record names no downloadable image file', 'long side '];
+export const ARCHIVE_MAX_FILE_BYTES = 25 * 1024 * 1024;
 
 const KEEP_MIME_TYPES = ['image/jpeg', 'image/png', 'image/tiff'];
 
@@ -106,8 +111,7 @@ function collectLocFiles(node, found, depth = 0) {
   for (const value of Object.values(node)) collectLocFiles(value, found, depth + 1);
 }
 
-/** Picks the largest keepable image file named in a loc.gov item JSON, or null. */
-export function pickBestLocImage(data) {
+function collectLocCandidates(data) {
   const found = [];
   collectLocFiles(data?.resources, found);
   const imageUrls = [...(Array.isArray(data?.item?.image_url) ? data.item.image_url : []), ...(Array.isArray(data?.image_url) ? data.image_url : [])];
@@ -118,10 +122,55 @@ export function pickBestLocImage(data) {
     const { width, height } = fragmentSize(raw);
     found.push({ url: raw.split('#')[0], mimetype, width, height, size: 0 });
   }
-  const usable = found.filter((file) => !/\/(?:thumb|small|medium)\b|[_/]\d{2,3}px\b/i.test(file.url));
+  return found;
+}
+
+const THUMBNAIL_URL_PATTERN = /\/(?:thumb|small|medium)\b|[_/]\d{2,3}px\b/i;
+
+/**
+ * Picks the image file to archive from a loc.gov item JSON, or null (#4870).
+ * Storage is not free past a few GB, so the largest JPEG wins whenever it meets the minimum size;
+ * a TIFF or PNG master is used only when no JPEG reaches it. Files over the size limit are never
+ * chosen. A file with unknown pixel size ranks by byte size.
+ */
+export function pickBestLocImage(data, minimumLongSide = 1500) {
+  const usable = collectLocCandidates(data).filter(
+    (file) => !THUMBNAIL_URL_PATTERN.test(file.url) && !(file.size > ARCHIVE_MAX_FILE_BYTES),
+  );
   if (usable.length === 0) return null;
-  const score = (file) => (file.mimetype === 'image/jpeg' ? 1e12 : 0) + (longSideOf(file.width, file.height) || 0) * 1e3 + file.size / 1e3;
-  return [...usable].sort((a, b) => score(b) - score(a))[0];
+  const rank = (file) => (longSideOf(file.width, file.height) || 0) * 1e9 + file.size / 1e3;
+  const bySize = (a, b) => rank(b) - rank(a);
+  const bestJpeg = usable.filter((file) => file.mimetype === 'image/jpeg').sort(bySize)[0];
+  if (bestJpeg && (longSideOf(bestJpeg.width, bestJpeg.height) === 0 || longSideOf(bestJpeg.width, bestJpeg.height) >= minimumLongSide)) {
+    return bestJpeg;
+  }
+  return [...usable].sort(bySize)[0];
+}
+
+/** Short description of what a loc.gov record offered, for skip notes (#4870). Capped at 260 characters. */
+export function describeLocFiles(data) {
+  const files = collectLocCandidates(data);
+  const mb = (bytes) => (bytes ? `${Math.round(bytes / 1e5) / 10}MB` : 'size n/a');
+  const parts = files
+    .slice(0, 6)
+    .map((file) => `${file.mimetype.replace('image/', '')} ${file.width && file.height ? `${file.width}x${file.height}` : 'dims n/a'} ${mb(file.size)}`);
+  const text =
+    files.length > 0
+      ? `files found: ${parts.join('; ')}${files.length > 6 ? `; +${files.length - 6} more` : ''}`
+      : `no image files found; record keys: ${Object.keys(data ?? {}).slice(0, 8).join(',')}; resources: ${Array.isArray(data?.resources) ? data.resources.length : 'none'}`;
+  return text.length > 260 ? `${text.slice(0, 257)}...` : text;
+}
+
+/** HTTP statuses worth retrying with backoff. */
+export function isRetryableStatus(status) {
+  return status === 429 || status === 503 || status === 502 || status === 504;
+}
+
+/** Delay before retry number `attempt` (1-based): honours Retry-After seconds, else 5s, 15s, 45s; capped at 60s. */
+export function backoffDelayMs(attempt, retryAfter) {
+  const seconds = Number(retryAfter);
+  if (Number.isFinite(seconds) && seconds > 0) return Math.min(seconds, 60) * 1000;
+  return Math.min(5000 * 3 ** (attempt - 1), 60_000);
 }
 
 /** Commons imageinfo (url|size|mime|extmetadata) to a candidate file, or null when it is not a keepable image. */
