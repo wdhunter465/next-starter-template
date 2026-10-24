@@ -63,9 +63,8 @@ const { loadCopyQualityLists } = await import('./gehrig-copy-quality.mjs');
 const {
   ARCHIVE_HOLD_REASON,
   ARCHIVE_NOTE_MARKER,
-  LEGACY_FILE_SKIP_REASONS,
-  LEGACY_NOTE_MARKER,
   backoffDelayMs,
+  buildArchiveCandidatesSql,
   describeLocFiles,
   isRetryableStatus,
   appendArchiveNote,
@@ -323,18 +322,7 @@ async function main() {
 
   const rows = (
     await db
-      .prepare(
-        `SELECT id, candidate_id, title, source_url, source_domain, admin_notes
-         FROM content_items
-         WHERE media_asset_id IS NULL AND superseded_at IS NULL AND content_type = 'photo'
-           AND source_domain IN ('loc.gov', 'commons.wikimedia.org')
-           AND (
-             admin_notes IS NULL
-             OR (admin_notes NOT LIKE '%${LEGACY_NOTE_MARKER}%' AND admin_notes NOT LIKE '%${ARCHIVE_NOTE_MARKER}%')
-             OR (admin_notes NOT LIKE '%${ARCHIVE_NOTE_MARKER}%' AND (${LEGACY_FILE_SKIP_REASONS.map((reason) => `admin_notes LIKE '%${LEGACY_NOTE_MARKER} skipped, ${reason}%'`).join(' OR ')}))
-           )
-         ORDER BY id LIMIT ?`,
-      )
+      .prepare(buildArchiveCandidatesSql())
       .bind(options.limit)
       .all()
   ).results ?? [];
