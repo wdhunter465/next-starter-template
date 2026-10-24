@@ -213,3 +213,24 @@ export function appendArchiveNote(existing, line, date = new Date().toISOString(
   const note = `${ARCHIVE_NOTE_MARKER} ${line} (${date}).`;
   return base ? `${base} ${note}` : note;
 }
+
+/**
+ * SQL that selects archive candidates (#4859, #4870, #4872). D1 rejects LIKE and GLOB patterns over
+ * 50 bytes, so the skip-reason matches use instr(), which has no such limit. Takes one bound
+ * parameter: the row limit. Selects rows never processed, plus rows whose only archive notes are
+ * legacy file-reason skips; every other skip is final.
+ */
+export function buildArchiveCandidatesSql() {
+  const has = (text) => `instr(admin_notes, '${text}') > 0`;
+  const legacyFileSkips = LEGACY_FILE_SKIP_REASONS.map((reason) => has(`${LEGACY_NOTE_MARKER} skipped, ${reason}`)).join(' OR ');
+  return `SELECT id, candidate_id, title, source_url, source_domain, admin_notes
+         FROM content_items
+         WHERE media_asset_id IS NULL AND superseded_at IS NULL AND content_type = 'photo'
+           AND source_domain IN ('loc.gov', 'commons.wikimedia.org')
+           AND (
+             admin_notes IS NULL
+             OR (NOT ${has(LEGACY_NOTE_MARKER)} AND NOT ${has(ARCHIVE_NOTE_MARKER)})
+             OR (NOT ${has(ARCHIVE_NOTE_MARKER)} AND (${legacyFileSkips}))
+           )
+         ORDER BY id LIMIT ?`;
+}

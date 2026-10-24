@@ -1,8 +1,10 @@
+import { DatabaseSync } from 'node:sqlite';
 import { describe, expect, it } from 'vitest';
 
 import {
   appendArchiveNote,
   backoffDelayMs,
+  buildArchiveCandidatesSql,
   describeLocFiles,
   isRetryableStatus,
   archiveVerdict,
@@ -189,5 +191,34 @@ describe('loc.gov file choice and retry rules (#4870)', () => {
     expect(backoffDelayMs(3, null)).toBe(45000);
     expect(backoffDelayMs(1, '12')).toBe(12000);
     expect(backoffDelayMs(1, '900')).toBe(60000);
+  });
+});
+
+describe('archive candidate selection SQL (#4872)', () => {
+  const sql = buildArchiveCandidatesSql();
+
+  it('keeps every LIKE and GLOB pattern within the 50 byte limit D1 enforces', () => {
+    const patterns = [...sql.matchAll(/\b(?:LIKE|GLOB)\s+'([^']*)'/gi)].map((match) => match[1]);
+    for (const pattern of patterns) expect(Buffer.byteLength(pattern)).toBeLessThanOrEqual(50);
+  });
+
+  it('selects unprocessed rows and legacy file-reason skips, and nothing else', () => {
+    const db = new DatabaseSync(':memory:');
+    db.exec(
+      "CREATE TABLE content_items(id INTEGER, candidate_id TEXT, title TEXT, source_url TEXT, source_domain TEXT, admin_notes TEXT, media_asset_id TEXT, superseded_at TEXT, content_type TEXT)",
+    );
+    const notes: Array<string | null> = [
+      null,
+      'Automated discovery candidate.',
+      'x archive-ingest: skipped, loc.gov record is not a photograph, print or drawing (2026-10-24).',
+      'x archive-ingest: skipped, loc.gov record names no downloadable image file (2026-10-24).',
+      'x archive-ingest: skipped, long side 1024px is under the 1500px minimum (2026-10-24).',
+      'x archive-ingest: skipped, loc.gov record names no downloadable image file (2026-10-24). archive-ingest-v2: skipped, again (2026-10-25).',
+      'x archive-ingest: skipped, Commons file is not a keepable image type (2026-10-24).',
+    ];
+    const insert = db.prepare("INSERT INTO content_items VALUES (?, ?, 't', 'u', 'loc.gov', ?, NULL, NULL, 'photo')");
+    notes.forEach((note, index) => insert.run(index + 1, `c${index + 1}`, note));
+    const ids = (db.prepare(sql).all(100) as Array<{ id: number }>).map((row) => row.id);
+    expect(ids).toEqual([1, 2, 4, 5]);
   });
 });
