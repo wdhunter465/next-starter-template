@@ -5,7 +5,7 @@ Authority Level: Operational Authority
 Owns: Documentation remediation project scope, workstream definitions, execution model
 Does Not Own: Design authority; product specs; implementation sequencing outside this project
 Canonical Reference: /docs/ops/OPERATING_MANUAL.md
-Related Issues: #4822, #4824, #4825, #4827
+Related Issues: #4822, #4824, #4825, #4826, #4827
 Last Reviewed: 2026-10-23
 ---
 
@@ -104,7 +104,7 @@ A → B → C → D
 
 Section 4 was corrected on 2026-10-23 (#4827) so the execution model matches `docs/governance/AGENT-TEAM.md`. Copilot reviews pull requests only and is not the remediation owner.
 
-Verified against the repository on 2026-10-23 (Issue #4822; updated for #4824 and #4825). Letters follow section 5. The ticket files under `/docs/ops/projects/documentation-remediation/tickets/` use a different lettering (A–L); those tickets all merged on 2026-03-26 (#703, #705, #707, #711, #715, #717, #721, #723, #727, #729, #731, #741) and are not repeated here.
+Verified against the repository on 2026-10-23 (Issue #4822; updated for #4824, #4825 and #4826). Letters follow section 5. The ticket files under `/docs/ops/projects/documentation-remediation/tickets/` use a different lettering (A–L); those tickets all merged on 2026-03-26 (#703, #705, #707, #711, #715, #717, #721, #723, #727, #729, #731, #741) and are not repeated here.
 
 ### Completed
 - B — Canonical Authority Lock: 695 of 701 docs carry a `Canonical Reference` header; the production design doc is the named source.
@@ -117,13 +117,15 @@ Verified against the repository on 2026-10-23 (Issue #4822; updated for #4824 an
 - I — Route Cleanup (#4824): `events.md` and `fundraiser-details.md` added under `docs/reference/design/`. `/ai-review` is documented in `docs/ops/ai/AI-REVIEW-ACCESS.md` and is non-canonical for public design.
 - A — Architecture Purge (#4825): `cms.md` is a Historical Pointer stub by design. `dashboard.md` is the live admin dashboard spec, not legacy architecture, so it stays in `docs/reference/design/`; its status banner and Definition of Done now match the 18 built tools. The archive path is `docs/archive/superseded/`; `/docs/archive/legacy-architecture/` is not used. Legacy-folder documents were archived there by #4830, including `AI-GUIDE.md`, which carried one of the `faq_entries` mentions.
 - Legacy-platform mentions: the remaining hits in `website-as-designed.md`, the identity-provider decision brief and the compliance report are prohibitions or historical context; `lgfc-homepage-legacy-v6.html` has none. No work needed.
+- J — Governance Hardening (#4826): contradiction audit run on 2026-10-23 over the active design, auth, platform and governance docs. Homepage order (`home.md`, the production design doc), auth and redirect behavior (`auth-model.md`, `auth-and-logout.md`, `join-login.md`) and the `/ask` data path (`ask_inbox`, checked in `functions/api/ask.ts`) agree; `/api/faq/submit` is a separate endpoint that writes `faq_entries`. No active doc points at a retired platform. Two dead pointers were repaired: `cms.md` named an archived copy deleted in #826, and `cms-data-layer.md` named `/docs/architecture/cms.md`. `health.md` cites `CLOUDFLARE.md` because `/health` is a platform route; `error-404.md` cites the production design doc. Both stay as they are.
+- Execution model (section 4, #4827): corrected in #4831 to match `docs/governance/AGENT-TEAM.md`; Copilot reviews pull requests only.
+- Ticket files: the twelve files under `documentation-remediation/tickets/` are historical records of the March PRs. Their `Status: OPEN` lines and the Copilot owner on ticket A are not live status; this section is.
 
 ### Pending
-- J — Governance Hardening (#4826): no contradiction audit has been run since the auth and homepage changes. Open check: `health.md` and `error-404.md` cite different Canonical References than the other new specs.
-- Execution model (section 4, #4827): corrected to match `docs/governance/AGENT-TEAM.md`; Copilot is not a role holder. Done once this pull request merges.
+- None. Every workstream in section 5 is complete or recorded as superseded above.
 
-### Handoff to Cursor
-Cursor holds Governance as a primary role and Engineering as secondary (`AGENT-TEAM.md`). Handoff goes through GitHub Issues labeled `agent:cursor`, one Issue and one PR per pending item above, not through this file.
+### Handoff
+No handoff is needed. New documentation drift is a new Issue, routed by `AGENT-TEAM.md` (Cursor holds Governance as a primary role, Claude Code holds Engineering and PMO Admin).
 
 ### Enforcement Rule (CRITICAL)
 - This section MUST be updated with every PR open/merge
