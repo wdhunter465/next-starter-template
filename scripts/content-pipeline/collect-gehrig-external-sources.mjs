@@ -452,10 +452,20 @@ async function collectOpenverse(query, limit, nextId) {
   });
 }
 
+/** True when a loc.gov result is a picture record whose own metadata names Gehrig (#4839). */
+export function isLocPhotoAboutGehrig(item) {
+  const formats = JSON.stringify(item?.original_format ?? item?.format ?? '').toLowerCase();
+  if (formats.includes('newspaper')) return false;
+  return JSON.stringify(item ?? {}).toLowerCase().includes('gehrig');
+}
+
 async function collectLibraryOfCongress(query, limit, nextId) {
-  const url = `https://www.loc.gov/search/?q=${encodeURIComponent(query)}&fo=json&c=${limit}`;
+  // #4839: the general loc.gov search is dominated by Chronicling America newspaper
+  // pages (199 of 209 imported loc.gov rows, none about Gehrig). The /photos/ endpoint
+  // searches the photograph, print and drawing records, and a record must name Gehrig.
+  const url = `https://www.loc.gov/photos/?q=${encodeURIComponent(query)}&fo=json&c=${limit}`;
   const data = await fetchJson(url);
-  const results = data.results ?? [];
+  const results = (data.results ?? []).filter(isLocPhotoAboutGehrig);
   return results.map((item) => {
     const nestedItem = item.item && typeof item.item === 'object' ? item.item : {};
     const controlNumber = firstScalar(item.number_lccn) || firstScalar(item.id) || null;
