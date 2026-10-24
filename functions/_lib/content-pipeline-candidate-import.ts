@@ -131,6 +131,14 @@ export type CandidateRecord = {
   credit_line?: string;
   media_asset_id?: string;
   duplicate_of?: string;
+  original_file_url?: string;
+  file_format?: string;
+  file_bytes?: number;
+  width_px?: number;
+  height_px?: number;
+  copy_group_key?: string;
+  copy_role?: 'preferred' | 'alternate' | 'pointer';
+  quality_flag?: 'preferred' | 'alternate' | 'low_resolution' | 'known_not_collected';
   review_priority: string;
   admin_notes?: string;
   source_metadata?: SourceMetadata;
@@ -872,6 +880,7 @@ export function buildCandidateImportPlan(registry: CandidateRegistry): ImportPla
   const statements: ImportSqlStatement[] = [];
 
   for (const candidate of registry.candidates) {
+    if (candidate.copy_role === 'pointer') continue;
     statements.push(buildContentItemUpsert(candidate));
     const supersedeStatement = buildSupersedeOlderRecords(candidate);
     if (supersedeStatement) {
