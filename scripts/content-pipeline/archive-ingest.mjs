@@ -62,10 +62,12 @@ const { PhotonImage, SamplingFilter, resize } = await import('@cf-wasm/photon');
 const { loadCopyQualityLists } = await import('./gehrig-copy-quality.mjs');
 const {
   ARCHIVE_HOLD_REASON,
-  ARCHIVE_NOTE_MARKER,
   backoffDelayMs,
   buildArchiveCandidatesSql,
+  MASTER_JPEG_QUALITY,
+  MASTER_TIFF_MAX_BYTES,
   describeLocFiles,
+  masterTargetSize,
   isRetryableStatus,
   appendArchiveNote,
   archiveVerdict,
@@ -73,7 +75,7 @@ const {
   locItemIsPicture,
   longSideOf,
   minimumLongSideFor,
-  pickBestLocImage,
+  pickLocFile,
   pickCommonsFile,
   pictureKind,
 } = await import('./archive-ingest-lib.mjs');
@@ -147,13 +149,13 @@ async function fetchOk(url, accept, timeoutMs = 90_000) {
   throw new TransientError(`${lastProblem} (after ${MAX_FETCH_ATTEMPTS} attempts)`);
 }
 
-async function resolveLoc(row) {
+async function resolveLoc(row, minimumLongSide) {
   const match = /\/item\/([^/?#]+)/.exec(row.source_url ?? '');
   if (!match) throw new SkipError('source_url is not a loc.gov item page');
   const response = await fetchOk(`https://www.loc.gov/item/${match[1]}/?fo=json`, 'application/json', 30_000);
   const data = await response.json();
   if (!locItemIsPicture(data)) throw new SkipError('loc.gov record is not a photograph, print or drawing');
-  const file = pickBestLocImage(data);
+  const file = pickLocFile(data, minimumLongSide);
   if (!file) throw new SkipError(`loc.gov record names no downloadable image file (${describeLocFiles(data)})`);
   const item = data.item ?? {};
   return {
@@ -192,6 +194,26 @@ function decodedSize(bytes) {
   }
 }
 
+// Decodes a TIFF master and returns a JPEG master, or null when the TIFF cannot be decoded (#4874).
+function convertTiffToJpegMaster(tiffBytes) {
+  let image = null;
+  let scaled = null;
+  try {
+    image = PhotonImage.new_from_byteslice(tiffBytes);
+    const sourceWidth = image.get_width();
+    const sourceHeight = image.get_height();
+    const target = masterTargetSize(sourceWidth, sourceHeight);
+    scaled = target.scaled ? resize(image, target.width, target.height, SamplingFilter.Lanczos3) : null;
+    const jpeg = (scaled ?? image).get_bytes_jpeg(MASTER_JPEG_QUALITY);
+    return { bytes: jpeg, sourceWidth, sourceHeight };
+  } catch {
+    return null;
+  } finally {
+    scaled?.free();
+    image?.free();
+  }
+}
+
 // A picture that decodes but cannot be resized would fail every rendition, so it is archived
 // but blocked from publication instead of being skipped.
 function canResize(bytes) {
@@ -215,7 +237,7 @@ async function noteRow(db, row, line, dryRun) {
 }
 
 async function archiveOne(db, row, context) {
-  const resolved = row.source_domain === 'loc.gov' ? await resolveLoc(row) : await resolveCommons(row);
+  const resolved = row.source_domain === 'loc.gov' ? await resolveLoc(row, context.lists.minimum_long_side_px) : await resolveCommons(row);
 
   const kind = pictureKind(row.title, ...resolved.text);
   const minimumLongSide = minimumLongSideFor(kind, context.lists.minimum_long_side_px);
@@ -238,21 +260,45 @@ async function archiveOne(db, row, context) {
     return 'dry-run';
   }
 
-  const response = await fetchOk(resolved.url, 'image/*');
+  const isTiff = resolved.mimetype === 'image/tiff';
+  const response = await fetchOk(resolved.url, 'image/*', isTiff ? 300_000 : 90_000);
   const finalUrlCheck = validateIngestSourceUrl(response.url, context.approvedDomains);
   if (!finalUrlCheck.ok) throw new SkipError(`redirected off the allowlist: ${finalUrlCheck.error}`);
-  const contentType = (response.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
-  const typeCheck = validateIngestContentType(contentType);
-  if (!typeCheck.ok) throw new SkipError(typeCheck.error);
+  let contentType = isTiff ? 'image/tiff' : (response.headers.get('content-type') || '').split(';')[0].trim().toLowerCase();
+  if (!isTiff) {
+    const typeCheck = validateIngestContentType(contentType);
+    if (!typeCheck.ok) throw new SkipError(typeCheck.error);
+  }
   const body = await response.arrayBuffer();
-  const sizeCheck = validateIngestSize(body.byteLength);
-  if (!sizeCheck.ok) throw new SkipError(sizeCheck.error);
-  const bytes = new Uint8Array(body);
+  if (isTiff) {
+    if (body.byteLength > MASTER_TIFF_MAX_BYTES) throw new SkipError(`TIFF master is ${Math.round(body.byteLength / 1e6)} MB, over the ${Math.round(MASTER_TIFF_MAX_BYTES / 1048576)} MB limit`);
+  } else {
+    const sizeCheck = validateIngestSize(body.byteLength);
+    if (!sizeCheck.ok) throw new SkipError(sizeCheck.error);
+  }
+  let bytes = new Uint8Array(body);
   const magicCheck = validateIngestMagicBytes(contentType, bytes);
   if (!magicCheck.ok) throw new SkipError(magicCheck.error);
 
+  // loc.gov offers JPEG copies only up to 1,024 px, so a TIFF master is decoded, checked against the
+  // minimum, scaled to at most 4,000 px and stored as a JPEG master (#4874).
+  let conversionNote = '';
+  if (isTiff) {
+    const converted = convertTiffToJpegMaster(bytes);
+    if (!converted) throw new SkipError(`TIFF master of ${Math.round(bytes.byteLength / 1e6)} MB could not be decoded`);
+    const sourceSide = longSideOf(converted.sourceWidth, converted.sourceHeight);
+    if (sourceSide < minimumLongSide) {
+      throw new SkipError(`TIFF master long side ${sourceSide}px is under the ${minimumLongSide}px minimum for a ${kind}${resolved.inventory ? ` (${resolved.inventory})` : ''}`);
+    }
+    const sizeCheck = validateIngestSize(converted.bytes.byteLength);
+    if (!sizeCheck.ok) throw new SkipError(`converted master: ${sizeCheck.error}`);
+    conversionNote = `, converted from a ${converted.sourceWidth}x${converted.sourceHeight} TIFF master (${Math.round(bytes.byteLength / 1e6)} MB) to a ${Math.round(converted.bytes.byteLength / 1e5) / 10} MB JPEG`;
+    bytes = converted.bytes;
+    contentType = 'image/jpeg';
+  }
+
   const decoded = decodedSize(bytes);
-  if (decoded) {
+  if (decoded && !isTiff) {
     const side = longSideOf(decoded.width, decoded.height);
     if (side < minimumLongSide) {
       throw new SkipError(`downloaded file long side ${side}px is under the ${minimumLongSide}px minimum for a ${kind}${resolved.inventory ? ` (${resolved.inventory})` : ''}`);
@@ -303,7 +349,7 @@ async function archiveOne(db, row, context) {
     rightsHoldReason: ARCHIVE_HOLD_REASON,
     quality,
   });
-  await noteRow(db, row, `archived ${result.b2Key}, on rights hold, ${kind}${quality.publishBlocked ? `, publish blocked: ${quality.publishBlockReason}` : ''}`, false);
+  await noteRow(db, row, `archived ${result.b2Key}, on rights hold, ${kind}${conversionNote}${quality.publishBlocked ? `, publish blocked: ${quality.publishBlockReason}` : ''}`, false);
   console.log(`${row.candidate_id}: archived ${result.b2Key} (${bytes.byteLength} bytes, ${decoded ? `${decoded.width}x${decoded.height}` : 'size n/a'})`);
   return 'archived';
 }
