@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 
 import {
   appendArchiveNote,
+  backoffDelayMs,
+  describeLocFiles,
+  isRetryableStatus,
   archiveVerdict,
   assessPictureQuality,
   minimumLongSideFor,
@@ -67,7 +70,7 @@ describe('archive ingest policy (#4859)', () => {
 
   it('writes a dated note that the selection query can find', () => {
     expect(appendArchiveNote('Existing note.', 'skipped, too small', '2026-10-24')).toBe(
-      'Existing note. archive-ingest: skipped, too small (2026-10-24).',
+      'Existing note. archive-ingest-v2: skipped, too small (2026-10-24).',
     );
   });
 });
@@ -105,5 +108,86 @@ describe('picture quality standards (#4861)', () => {
     const tiny = assessPictureQuality({ width: 500, height: 400, kind: 'newspaper' });
     expect(tiny.ok.small).toBe(false);
     expect(tiny.publishBlocked).toBe(true);
+  });
+});
+
+describe('loc.gov file choice and retry rules (#4870)', () => {
+  const file = (url: string, mimetype: string, width: number, height: number, size: number) => ({ url, mimetype, width, height, size });
+
+  it('falls back to a larger TIFF master when the best JPEG is under the minimum', () => {
+    const best = pickBestLocImage({
+      resources: [
+        {
+          files: [
+            [
+              file('https://tile.loc.gov/a/r.jpg', 'image/jpeg', 1024, 800, 200000),
+              file('https://tile.loc.gov/a/master.tif', 'image/tiff', 4000, 3200, 20_000_000),
+            ],
+          ],
+        },
+      ],
+    });
+    expect(best?.url).toBe('https://tile.loc.gov/a/master.tif');
+  });
+
+  it('never picks a file over the 25 MB limit', () => {
+    const best = pickBestLocImage({
+      resources: [
+        {
+          files: [
+            [
+              file('https://tile.loc.gov/a/r.jpg', 'image/jpeg', 1600, 1200, 300000),
+              file('https://tile.loc.gov/a/master.tif', 'image/tiff', 6000, 4800, 60_000_000),
+            ],
+          ],
+        },
+      ],
+    });
+    expect(best?.url).toBe('https://tile.loc.gov/a/r.jpg');
+  });
+
+  it('keeps the JPEG when it meets the minimum, even if a TIFF is larger', () => {
+    const best = pickBestLocImage({
+      resources: [
+        {
+          files: [
+            [
+              file('https://tile.loc.gov/a/full.jpg', 'image/jpeg', 3000, 2400, 900000),
+              file('https://tile.loc.gov/a/full.tif', 'image/tiff', 6000, 4800, 20_000_000),
+            ],
+          ],
+        },
+      ],
+    });
+    expect(best?.url).toBe('https://tile.loc.gov/a/full.jpg');
+  });
+
+  it('prefers JPEG when two files have the same size in pixels', () => {
+    const best = pickBestLocImage({
+      resources: [
+        { files: [[file('https://tile.loc.gov/a/x.tif', 'image/tiff', 2000, 1500, 9_000_000), file('https://tile.loc.gov/a/x.jpg', 'image/jpeg', 2000, 1500, 900000)]] },
+      ],
+    });
+    expect(best?.url).toBe('https://tile.loc.gov/a/x.jpg');
+  });
+
+  it('describes what a record offered, or its shape when it offered no file', () => {
+    expect(describeLocFiles({ resources: [{ files: [[file('https://tile.loc.gov/a/r.jpg', 'image/jpeg', 1024, 800, 200000)]] }] })).toBe(
+      'files found: jpeg 1024x800 0.2MB',
+    );
+    const none = describeLocFiles({ item: {}, resources: [{ url: 'x' }] });
+    expect(none).toMatch(/^no image files found; record keys: item,resources; resources: 1/);
+    expect(describeLocFiles({ resources: [] }).length).toBeLessThanOrEqual(260);
+  });
+
+  it('retries throttling and gateway errors with a growing delay, honouring Retry-After', () => {
+    expect(isRetryableStatus(503)).toBe(true);
+    expect(isRetryableStatus(429)).toBe(true);
+    expect(isRetryableStatus(404)).toBe(false);
+    expect(backoffDelayMs(1, null)).toBe(5000);
+    expect(backoffDelayMs(2, null)).toBe(15000);
+    expect(backoffDelayMs(3, null)).toBe(45000);
+    expect(backoffDelayMs(1, '12')).toBe(12000);
+    expect(backoffDelayMs(1, '900')).toBe(60000);
   });
 });
