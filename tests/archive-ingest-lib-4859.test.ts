@@ -6,6 +6,9 @@ import {
   backoffDelayMs,
   buildArchiveCandidatesSql,
   describeLocFiles,
+  masterTargetSize,
+  pickLocFile,
+  pickLocTiffMaster,
   isRetryableStatus,
   archiveVerdict,
   assessPictureQuality,
@@ -72,7 +75,7 @@ describe('archive ingest policy (#4859)', () => {
 
   it('writes a dated note that the selection query can find', () => {
     expect(appendArchiveNote('Existing note.', 'skipped, too small', '2026-10-24')).toBe(
-      'Existing note. archive-ingest-v2: skipped, too small (2026-10-24).',
+      'Existing note. archive-ingest-v3: skipped, too small (2026-10-24).',
     );
   });
 });
@@ -202,23 +205,65 @@ describe('archive candidate selection SQL (#4872)', () => {
     for (const pattern of patterns) expect(Buffer.byteLength(pattern)).toBeLessThanOrEqual(50);
   });
 
-  it('selects unprocessed rows and legacy file-reason skips, and nothing else', () => {
+  it('selects unprocessed rows and older file-reason skips, and nothing else', () => {
     const db = new DatabaseSync(':memory:');
     db.exec(
       "CREATE TABLE content_items(id INTEGER, candidate_id TEXT, title TEXT, source_url TEXT, source_domain TEXT, admin_notes TEXT, media_asset_id TEXT, superseded_at TEXT, content_type TEXT)",
     );
     const notes: Array<string | null> = [
-      null,
-      'Automated discovery candidate.',
-      'x archive-ingest: skipped, loc.gov record is not a photograph, print or drawing (2026-10-24).',
-      'x archive-ingest: skipped, loc.gov record names no downloadable image file (2026-10-24).',
-      'x archive-ingest: skipped, long side 1024px is under the 1500px minimum (2026-10-24).',
-      'x archive-ingest: skipped, loc.gov record names no downloadable image file (2026-10-24). archive-ingest-v2: skipped, again (2026-10-25).',
-      'x archive-ingest: skipped, Commons file is not a keepable image type (2026-10-24).',
+      null, // 1 never processed
+      'Automated discovery candidate.', // 2 never processed
+      'x archive-ingest: skipped, loc.gov record is not a photograph, print or drawing (2026-10-24).', // 3 final
+      'x archive-ingest: skipped, loc.gov record names no downloadable image file (2026-10-24).', // 4 recheck
+      'x archive-ingest: skipped, long side 1024px is under the 1500px minimum (2026-10-24).', // 5 recheck
+      'x archive-ingest-v2: skipped, long side 1024px is under the 1500px minimum (2026-10-24).', // 6 recheck
+      'x archive-ingest: skipped, Commons file is not a keepable image type (2026-10-24).', // 7 final
+      'x archive-ingest-v2: skipped, long side 1024px is under the 1500px minimum (2026-10-24). archive-ingest-v3: skipped, again (2026-10-25).', // 8 already rechecked
+      'x archive-ingest-v2: skipped, loc.gov record is not a photograph, print or drawing (2026-10-24).', // 9 final
     ];
     const insert = db.prepare("INSERT INTO content_items VALUES (?, ?, 't', 'u', 'loc.gov', ?, NULL, NULL, 'photo')");
     notes.forEach((note, index) => insert.run(index + 1, `c${index + 1}`, note));
     const ids = (db.prepare(sql).all(100) as Array<{ id: number }>).map((row) => row.id);
-    expect(ids).toEqual([1, 2, 4, 5]);
+    expect(ids).toEqual([1, 2, 4, 5, 6]);
+  });
+});
+
+describe('TIFF master handling (#4874)', () => {
+  const file = (url: string, mimetype: string, width: number, height: number, size: number) => ({ url, mimetype, width, height, size });
+  const record = (files: Array<ReturnType<typeof file>>) => ({ resources: [{ files: [files] }] });
+
+  it('picks the largest TIFF between 2 MB and 100 MB as the master', () => {
+    const data = record([
+      file('https://tile.loc.gov/a/small.tif', 'image/tiff', 0, 0, 1_100_000),
+      file('https://tile.loc.gov/a/master.tif', 'image/tiff', 0, 0, 21_000_000),
+      file('https://tile.loc.gov/a/huge.tif', 'image/tiff', 0, 0, 163_000_000),
+    ]);
+    expect(pickLocTiffMaster(data)?.url).toBe('https://tile.loc.gov/a/master.tif');
+    expect(pickLocTiffMaster(record([file('https://tile.loc.gov/a/huge.tif', 'image/tiff', 0, 0, 163_000_000)]))).toBeNull();
+  });
+
+  it('uses the TIFF master when the best JPEG is under the minimum', () => {
+    const data = record([
+      file('https://tile.loc.gov/a/r.jpg', 'image/jpeg', 1024, 834, 100000),
+      file('https://tile.loc.gov/a/master.tif', 'image/tiff', 0, 0, 22_000_000),
+    ]);
+    expect(pickLocFile(data, 1500)?.url).toBe('https://tile.loc.gov/a/master.tif');
+  });
+
+  it('keeps the JPEG when it meets the minimum, and falls back to the small JPEG when there is no master', () => {
+    const big = record([
+      file('https://tile.loc.gov/a/x.jpg', 'image/jpeg', 2400, 1800, 900000),
+      file('https://tile.loc.gov/a/x.tif', 'image/tiff', 0, 0, 22_000_000),
+    ]);
+    expect(pickLocFile(big, 1500)?.url).toBe('https://tile.loc.gov/a/x.jpg');
+    const small = record([file('https://tile.loc.gov/a/r.jpg', 'image/jpeg', 1024, 834, 100000)]);
+    expect(pickLocFile(small, 1500)?.url).toBe('https://tile.loc.gov/a/r.jpg');
+    expect(pickLocFile({ resources: [] }, 1500)).toBeNull();
+  });
+
+  it('scales a master to at most 4000 px and never upscales', () => {
+    expect(masterTargetSize(6000, 4800)).toEqual({ width: 4000, height: 3200, scaled: true });
+    expect(masterTargetSize(3000, 2000)).toEqual({ width: 3000, height: 2000, scaled: false });
+    expect(masterTargetSize(4800, 6000)).toEqual({ width: 3200, height: 4000, scaled: true });
   });
 });

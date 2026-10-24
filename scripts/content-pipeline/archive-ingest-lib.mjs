@@ -7,12 +7,19 @@
 import { isDeniedImageHost } from './gehrig-copy-quality.mjs';
 
 export const ARCHIVE_HOLD_REASON = 'archived pending written permission (Product Authority 2026-10-24, #4839)';
-// v2 (#4870): notes written before the file picker was fixed use LEGACY_NOTE_MARKER. A row whose only
-// notes are legacy file-reason skips is looked at again; every other legacy skip stays final.
-export const ARCHIVE_NOTE_MARKER = 'archive-ingest-v2:';
-export const LEGACY_NOTE_MARKER = 'archive-ingest:';
+// Note markers (#4870, #4874). Notes written by earlier versions of the file picker use an older marker.
+// A row whose only notes are older file-reason skips is looked at again; every other skip stays final.
+export const ARCHIVE_NOTE_MARKER = 'archive-ingest-v3:';
+export const LEGACY_NOTE_MARKERS = ['archive-ingest:', 'archive-ingest-v2:'];
 export const LEGACY_FILE_SKIP_REASONS = ['loc.gov record names no downloadable image file', 'long side '];
 export const ARCHIVE_MAX_FILE_BYTES = 25 * 1024 * 1024;
+
+// TIFF masters (#4874): loc.gov offers JPEG copies only up to 1,024 px, so the full-size TIFF is fetched and
+// stored as a JPEG master of at most 4,000 px on the long side.
+export const MASTER_TIFF_MIN_BYTES = 2 * 1024 * 1024;
+export const MASTER_TIFF_MAX_BYTES = 100 * 1024 * 1024;
+export const MASTER_MAX_LONG_SIDE_PX = 4000;
+export const MASTER_JPEG_QUALITY = 92;
 
 const KEEP_MIME_TYPES = ['image/jpeg', 'image/png', 'image/tiff'];
 
@@ -215,22 +222,53 @@ export function appendArchiveNote(existing, line, date = new Date().toISOString(
 }
 
 /**
- * SQL that selects archive candidates (#4859, #4870, #4872). D1 rejects LIKE and GLOB patterns over
+ * SQL that selects archive candidates (#4859, #4870, #4872, #4874). D1 rejects LIKE and GLOB patterns over
  * 50 bytes, so the skip-reason matches use instr(), which has no such limit. Takes one bound
- * parameter: the row limit. Selects rows never processed, plus rows whose only archive notes are
- * legacy file-reason skips; every other skip is final.
+ * parameter: the row limit. Selects rows never processed, plus rows whose only archive notes come from
+ * an older marker and are file-reason skips; every other skip is final.
  */
 export function buildArchiveCandidatesSql() {
   const has = (text) => `instr(admin_notes, '${text}') > 0`;
-  const legacyFileSkips = LEGACY_FILE_SKIP_REASONS.map((reason) => has(`${LEGACY_NOTE_MARKER} skipped, ${reason}`)).join(' OR ');
+  const anyMarker = [ARCHIVE_NOTE_MARKER, ...LEGACY_NOTE_MARKERS].map((marker) => `NOT ${has(marker)}`).join(' AND ');
+  const legacyFileSkips = LEGACY_NOTE_MARKERS.flatMap((marker) =>
+    LEGACY_FILE_SKIP_REASONS.map((reason) => has(`${marker} skipped, ${reason}`)),
+  ).join(' OR ');
   return `SELECT id, candidate_id, title, source_url, source_domain, admin_notes
          FROM content_items
          WHERE media_asset_id IS NULL AND superseded_at IS NULL AND content_type = 'photo'
            AND source_domain IN ('loc.gov', 'commons.wikimedia.org')
            AND (
              admin_notes IS NULL
-             OR (NOT ${has(LEGACY_NOTE_MARKER)} AND NOT ${has(ARCHIVE_NOTE_MARKER)})
+             OR (${anyMarker})
              OR (NOT ${has(ARCHIVE_NOTE_MARKER)} AND (${legacyFileSkips}))
            )
          ORDER BY id LIMIT ?`;
+}
+
+/** The TIFF master of a loc.gov record: the largest TIFF between 2 MB and 100 MB, or null (#4874). */
+export function pickLocTiffMaster(data) {
+  const tiffs = collectLocCandidates(data)
+    .filter((file) => file.mimetype === 'image/tiff' && file.size >= MASTER_TIFF_MIN_BYTES && file.size <= MASTER_TIFF_MAX_BYTES)
+    .sort((a, b) => b.size - a.size);
+  return tiffs[0] ?? null;
+}
+
+/**
+ * Chooses the file to fetch for a loc.gov record (#4874): the best JPEG when it meets the minimum,
+ * else the TIFF master (its pixel size is only known after download), else the best JPEG so the skip
+ * note can say it was too small.
+ */
+export function pickLocFile(data, minimumLongSide = 1500) {
+  const best = pickBestLocImage(data, minimumLongSide);
+  const side = best ? longSideOf(best.width, best.height) : 0;
+  if (best && (side === 0 || side >= minimumLongSide)) return best;
+  return pickLocTiffMaster(data) ?? best;
+}
+
+/** Size of the stored JPEG master for a decoded source: never upscaled, long side capped (#4874). */
+export function masterTargetSize(width, height, maxLongSide = MASTER_MAX_LONG_SIDE_PX) {
+  const side = longSideOf(width, height);
+  if (side <= maxLongSide) return { width, height, scaled: false };
+  const scale = maxLongSide / side;
+  return { width: Math.max(1, Math.round(width * scale)), height: Math.max(1, Math.round(height * scale)), scaled: true };
 }
