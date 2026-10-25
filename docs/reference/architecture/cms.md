@@ -1,5 +1,5 @@
 ---
-Doc Type: Specification
+Doc Type: Reference
 Audience: Human + AI
 Authority Level: Historical Pointer
 Owns: Archive pointer for superseded CMS architecture document
