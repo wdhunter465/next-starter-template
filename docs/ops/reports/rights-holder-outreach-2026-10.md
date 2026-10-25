@@ -5,7 +5,7 @@ Authority Level: Supporting (outreach record and reusable wording; Product Autho
 Owns: The October 2026 rights-holder outreach log, the text of the CMG request as sent, the commitments the sent emails made, and the shared core wording for the remaining requests
 Does Not Own: Rights conclusions, legal advice, publication approval, the standard form letter and schedule (`docs/how-to/website/lou-gehrig-permission-request-form-letter.md`), or the permission archive design (#4526)
 Canonical Reference: /docs/how-to/website/lou-gehrig-permission-request-form-letter.md
-Related Issues: #4810, #4877, #4368, #4526, #3551, #2093
+Related Issues: #4810, #4877, #4882, #4368, #4526, #3551, #2093
 Last Reviewed: 2026-10-25
 ---
 
@@ -26,10 +26,10 @@ This repository is public. The record leaves out recipient email addresses and p
 | New York Yankees (customer service inbox; one Yankees staff contact copied) | 2026-10-22, 12:53 PM | Request for historical content and copyright guidance | Whether the Yankees control or license Gehrig photographs or archives; requirements for team names, logos, uniforms and imagery; fees and conditions; referral to the right archive or rights holder | Awaiting reply |
 | Major League Baseball (MLB Photos, Licensing/Publishing and Legal departments; the same Yankees staff contact copied) | 2026-10-22, 12:58 PM | Request for historical content and licensing guidance | Same four questions as the Yankees email | Awaiting reply. **Wording error, see below** |
 | John Howell (for himself, the Rip Van Winkle Foundation and the Lou Gehrig Society; LouGehrig.com ownership not confirmed) | 2026-10-22 | Informal personal email to an existing partner (2023 event sponsor), not a formal request | Whether he, the foundation or the society have copyright or licensing concerns about the planned archive; whether they hold material they could share or authorize | Awaiting reply |
-| National Baseball Hall of Fame | Not sent | Request for reproduction terms | Whether Gehrig photographs and archive material may be reproduced on a non-commercial fan site, on what terms, and who to ask | Draft in preparation; not sent (draft B below) |
-| ALS Cure Project | Not sent | Courtesy and consent notice | Whether the club may keep listing the project as a friend, with a link | Draft in preparation; not sent (draft A below) |
-| They Played in Color | Not sent | Courtesy and consent notice | Whether the club may keep listing them as a friend, with a link | Draft in preparation; not sent (draft A below) |
-| I AM ALS | Not sent | Courtesy and consent notice | Whether the club may keep listing them as a friend, with a link | Draft in preparation; not sent (draft A below) |
+| National Baseball Hall of Fame | Not sent | Request for reproduction terms | Whether Gehrig photographs and archive material may be reproduced on a non-commercial fan site, on what terms, and who to ask | Withdrawn 2026-10-25: link-only, no request (see Partners: link only) |
+| ALS Cure Project | Not sent | Courtesy and consent notice | Whether the club may keep listing the project as a friend, with a link | Withdrawn 2026-10-25: link-only, no notice (see Partners: link only) |
+| They Played in Color | Not sent | Courtesy and consent notice | Whether the club may keep listing them as a friend, with a link | Withdrawn 2026-10-25: link-only, no notice (see Partners: link only) |
+| I AM ALS | Not sent | Courtesy and consent notice | Whether the club may keep listing them as a friend, with a link | Withdrawn 2026-10-25: link-only, no notice (see Partners: link only) |
 
 Attempt counts and reminders follow the request schedule in the form-letter how-to (day 0, day 30, day 45). The first attempts above are day 0 for Live Like Lou's content question and for CMG.
 
@@ -138,71 +138,13 @@ What this exchange is and is not:
 - Three bodies are named. Confirm in writing which of them owns the material in question, and whether LouGehrig.com is run by one of them. Rights are recorded per source, so each body that grants anything gets its own record.
 - Product Authority's mailbox holds the original. Forward any reply to the permission inbox or paste it onto #4368 so it can be archived.
 
-## Drafts for the remaining holders (added 2026-10-25, #4877)
+## Partners: link only (decision 2026-10-25, #4882)
 
-These are drafts for Product Authority to review, edit and send from the permission mailbox. Nothing here has been sent. Fill every `[bracket]`, add no email address to this file, and put the permission label on each thread when it is sent. The shared core wording above applies; the blocks below repeat only what differs.
+Product Authority decided on 2026-10-25 that no email or notice goes to the friends and charities the site links to: the site uses a link to their websites and calendars only. The four drafts added on 2026-10-25 (#4877, PR #4878) for the National Baseball Hall of Fame, the ALS Cure Project, They Played in Color and I AM ALS are withdrawn and none was sent. The text stays in the repository history (PR #4878).
 
-What the site does with each holder today, from `src/components/FriendsOfFanClub.tsx` and `src/components/CharitySpotlight.tsx`: ALS Cure Project, They Played in Color and I AM ALS appear by name with an outbound link and nothing else. No logos, text or photographs of theirs are used. The Hall of Fame has no live use on the site.
-
-### Draft A: courtesy and consent notice (ALS Cure Project, They Played in Color, I AM ALS)
-
-Send one per organization. This is a consent check for a name and a link. It asks for no content and promises no holding statement.
-
-**Subject:** Listing [organization] as a friend of the Lou Gehrig Fan Club
-
-> Dear [name or "Team"],
->
-> I am writing for the Lou Gehrig Fan Club (LGFC) to ask whether you are comfortable with our website listing [organization] as a "Friend of the Fan Club", with a link to [its website address]. If you would prefer different wording, a different link, or no listing, please tell us and we will change it promptly.
->
-> [Core "Who we are" and "Zero-profit statement" blocks.]
->
-> Today our website shows your organization's name and the link only. We do not use your logo, text, photographs or other material, and we will not do so without asking you first.
->
-> [Per-organization sentence, one of:
-> ALS Cure Project: "Thank you for the support behind our June 2023 event at the National Baseball Hall of Fame in Cooperstown. Funds raised after expenses were donated to the ALS Cure Project, and Mike Piscotty attended as a guest of honor."
-> They Played in Color: "[One sentence on why LGFC lists you, confirmed by Product Authority.]"
-> I AM ALS: "[One sentence on why LGFC lists you, confirmed by Product Authority.]"]
->
-> [Core "No endorsement" and "Removal and contact" blocks.]
->
-> A short reply, even just "that is fine" or "please remove us", is all we need. Thank you for the work you do.
->
-> Sincerely,
-> [name]
-> [role], Lou Gehrig Fan Club
-
-Before sending: the ALS Cure Project link differs between the two components (`https://www.ALSCure.org` in the friends list, `https://alscureproject.org` in the charity spotlight). Confirm the correct address first.
-
-### Draft B: request for reproduction terms (National Baseball Hall of Fame)
-
-**Subject:** Reproduction terms for Lou Gehrig photographs and archive material
-
-> Dear [name or "Rights and Reproductions Team"],
->
-> I am writing for the Lou Gehrig Fan Club (LGFC) to ask whether the Hall of Fame's Lou Gehrig photographs and archive material may be reproduced on a non-commercial fan website and, if so, how to request permission. If another department or person handles this, please point us to them.
->
-> [Core "Who we are", "What the site does" and "Zero-profit statement" blocks.]
->
-> We have so far found material at: [URL list from baseballhall.org, one line each, per the one-letter-per-source rule]. We are asking about those items and, more broadly, about Gehrig and Gehrig-related material the Hall controls, so that we do not need to come back one item at a time. If you would limit the permission by item, media type or use, please tell us and we will follow the limits.
->
-> Could you please clarify:
->
-> 1. **Permission:** Does the Hall require permission to reproduce Gehrig photographs, documents or other archive material on a non-commercial fan site, and how do we request it?
-> 2. **Scope and conditions:** Which uses would a permission cover, and are there fees, size limits, durations or other conditions? (LGFC pays for no content, so if a fee applies we will record the item as not used.)
-> 3. **Credit:** What credit line would you like us to display?
-> 4. **Ownership:** If the Hall does not hold the rights to an item, who does?
->
-> LGFC held an event at the National Baseball Hall of Fame in Cooperstown in June 2023. [Optional fundraiser sentence, only if Product Authority confirms it may be mentioned.]
->
-> [Core "No endorsement" and "Removal and contact" blocks. Add the holding statement only if the club will keep that promise for Hall material, per open point 1.]
->
-> Silence will not be treated as permission. Thank you for preserving this material and for considering our request.
->
-> Sincerely,
-> [name]
-> [role], Lou Gehrig Fan Club
-
-Ask-once rule: the schedule in the form-letter how-to applies from the day each draft is sent (attempt 1 at day 0, then day 30 and day 45).
+- **ALS Cure Project address.** `https://www.ALSCure.org` is correct. `alscureproject.org` is not a valid address and was removed from the charity spotlight (#4880, PR #4881).
+- **Correction to the withdrawn draft.** It said the site uses no logos. That was wrong for the ALS Cure Project: the charity spotlight displays its logo (`/charities/als-cure-project.svg`), as it does for LiveLikeLou and Project ALS. Whether "link only" also means removing those logos is not decided here and is a question for Product Authority.
+- **Scope.** This does not change the requests that were sent (CMG, Live Like Lou, the Yankees, MLB, John Howell). Those holders' content may be hosted by the club, so they stay under the form-letter procedure.
 
 ## Open points for Product Authority
 
@@ -213,8 +155,8 @@ Ask-once rule: the schedule in the form-letter how-to applies from the day each 
 
 5. Whether a formal request to the Lou Gehrig Society or the Rip Van Winkle Foundation follows the informal email now or after a reply.
 6. The date for sending the campaign details to Live Like Lou (working target 2027-01-15).
-7. Whether the three courtesy notices (draft A) are wanted at all. They ask only for consent to a name and a link, so they may be skipped if Product Authority already has that consent.
-8. Confirmation of the rights-holder list on #4368, including the two additional friends the 2026-10-09 inventory found (Phi Delta Theta, and the book *Luckiest Man*). No draft exists for them.
+7. Settled 2026-10-25: no courtesy notices or requests go to the linked friends and charities (see Partners: link only). Open question left from that decision: whether the partner logos in the charity spotlight stay.
+8. Confirmation of the rights-holder list on #4368, including the two additional friends the 2026-10-09 inventory found (Phi Delta Theta, and the book *Luckiest Man*). With the link-only decision, only holders whose content the club wants to host need a request.
 
 ## Validation
 
