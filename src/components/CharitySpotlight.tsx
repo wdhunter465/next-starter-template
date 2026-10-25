@@ -4,7 +4,7 @@ import styles from "./CharitySpotlight.module.css";
 const charities = [
 	{
 		name: "ALS Cure Project",
-		url: "https://alscureproject.org",
+		url: "https://www.ALSCure.org",
 		logo: "/charities/als-cure-project.svg",
 	},
 	{
