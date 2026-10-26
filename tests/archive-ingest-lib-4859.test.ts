@@ -18,6 +18,9 @@ import {
   pickBestLocImage,
   pickCommonsFile,
   textSuggestsWatermark,
+  buildDplaImageLadder,
+  parseDplaLinks,
+  createThrottleTracker,
 } from '../scripts/content-pipeline/archive-ingest-lib.mjs';
 
 const lists = {
@@ -208,7 +211,7 @@ describe('archive candidate selection SQL (#4872)', () => {
   it('selects unprocessed rows and older file-reason skips, and nothing else', () => {
     const db = new DatabaseSync(':memory:');
     db.exec(
-      "CREATE TABLE content_items(id INTEGER, candidate_id TEXT, title TEXT, source_url TEXT, source_domain TEXT, admin_notes TEXT, media_asset_id TEXT, superseded_at TEXT, content_type TEXT)",
+      "CREATE TABLE content_items(id INTEGER, candidate_id TEXT, title TEXT, source_url TEXT, source_domain TEXT, provenance_notes TEXT, admin_notes TEXT, media_asset_id TEXT, superseded_at TEXT, content_type TEXT)",
     );
     const notes: Array<string | null> = [
       null, // 1 never processed
@@ -221,7 +224,7 @@ describe('archive candidate selection SQL (#4872)', () => {
       'x archive-ingest-v2: skipped, long side 1024px is under the 1500px minimum (2026-10-24). archive-ingest-v3: skipped, again (2026-10-25).', // 8 already rechecked
       'x archive-ingest-v2: skipped, loc.gov record is not a photograph, print or drawing (2026-10-24).', // 9 final
     ];
-    const insert = db.prepare("INSERT INTO content_items VALUES (?, ?, 't', 'u', 'loc.gov', ?, NULL, NULL, 'photo')");
+    const insert = db.prepare("INSERT INTO content_items VALUES (?, ?, 't', 'u', 'loc.gov', NULL, ?, NULL, NULL, 'photo')");
     notes.forEach((note, index) => insert.run(index + 1, `c${index + 1}`, note));
     const ids = (db.prepare(sql).all(100) as Array<{ id: number }>).map((row) => row.id);
     expect(ids).toEqual([1, 2, 4, 5, 6]);
@@ -265,5 +268,62 @@ describe('TIFF master handling (#4874)', () => {
     expect(masterTargetSize(6000, 4800)).toEqual({ width: 4000, height: 3200, scaled: true });
     expect(masterTargetSize(3000, 2000)).toEqual({ width: 3000, height: 2000, scaled: false });
     expect(masterTargetSize(4800, 6000)).toEqual({ width: 3200, height: 4000, scaled: true });
+  });
+});
+
+describe('DPLA image ladder (#4902)', () => {
+  it('reads the links back out of the notes discovery wrote', () => {
+    const notes =
+      'DPLA discovery. Contributing institution: Boston Public Library. Provider (hub): Digital Commonwealth. ' +
+      'Original item URL (isShownAt): https://ark.digitalcommonwealth.org/ark:/50959/xyz123. ' +
+      'DPLA thumbnail (object): https://ark.digitalcommonwealth.org/ark:/50959/xyz123/thumbnail. ' +
+      'DPLA media links (hasView): https://a.example/1 https://a.example/2. DPLA is a pure aggregator -- x';
+    expect(parseDplaLinks(notes)).toEqual({
+      thumbnail: 'https://ark.digitalcommonwealth.org/ark:/50959/xyz123/thumbnail',
+      views: ['https://a.example/1', 'https://a.example/2'],
+      institution: 'Boston Public Library',
+    });
+    expect(parseDplaLinks(null)).toEqual({ thumbnail: null, views: [], institution: '' });
+  });
+
+  it('builds full-size links for NYPL and Digital Commonwealth, and nothing else', () => {
+    expect(buildDplaImageLadder({ thumbnail: 'http://images.nypl.org/index.php?id=123&t=t' }).map((s) => s.url)).toEqual([
+      'https://images.nypl.org/index.php?id=123&t=g',
+      'https://images.nypl.org/index.php?id=123&t=q',
+      'https://images.nypl.org/index.php?id=123&t=w',
+    ]);
+    expect(buildDplaImageLadder({ thumbnail: 'https://ark.digitalcommonwealth.org/ark:/50959/xyz123/thumbnail' }).map((s) => s.url)).toEqual([
+      'https://iiif.digitalcommonwealth.org/iiif/2/commonwealth:xyz123/full/!3000,3000/0/default.jpg',
+      'https://ark.digitalcommonwealth.org/ark:/50959/xyz123/large',
+    ]);
+    expect(buildDplaImageLadder({ thumbnail: 'https://cdm1.contentdm.oclc.org/utils/getthumbnail/collection/p1/id/42' })).toEqual([]);
+    expect(buildDplaImageLadder({ thumbnail: 'https://example.org/x.jpg', views: [] })).toEqual([]);
+  });
+
+  it('selects dp.la rows for archiving', () => {
+    expect(buildArchiveCandidatesSql()).toContain("'dp.la'");
+  });
+});
+
+describe('per-domain throttle tracker (#4905)', () => {
+  it('pauses only the domain that failed twice in a row', () => {
+    const tracker = createThrottleTracker(2);
+    tracker.recordFailure('commons.wikimedia.org');
+    expect(tracker.isPaused('commons.wikimedia.org')).toBe(false);
+    tracker.recordFailure('commons.wikimedia.org');
+    expect(tracker.isPaused('commons.wikimedia.org')).toBe(true);
+    expect(tracker.isPaused('dp.la')).toBe(false);
+    expect(tracker.allPaused(['commons.wikimedia.org', 'dp.la'])).toBe(false);
+  });
+
+  it('resets the streak on success and reports when every domain is paused', () => {
+    const tracker = createThrottleTracker(2);
+    tracker.recordFailure('dp.la');
+    tracker.recordSuccess('dp.la');
+    tracker.recordFailure('dp.la');
+    expect(tracker.isPaused('dp.la')).toBe(false);
+    tracker.recordFailure('dp.la');
+    expect(tracker.allPaused(['dp.la'])).toBe(true);
+    expect(tracker.allPaused([])).toBe(false);
   });
 });
