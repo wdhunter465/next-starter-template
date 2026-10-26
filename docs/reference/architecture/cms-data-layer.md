@@ -1,5 +1,5 @@
 ---
-Doc Type: Specification
+Doc Type: Reference
 Audience: Human + AI
 Authority Level: Controlled
 Owns: CMS `content_blocks` data-layer notes for Phase 2B
@@ -82,15 +82,7 @@ Content block keys follow a strict three-part format:
 
 ### Running the Seed
 
-To seed baseline CMS content blocks:
-
-```bash
-# Ensure migration is applied first
-npx wrangler d1 migrations apply lgfc_lite --local
-
-# Run the seed script
-node scripts/seed_cms_content_blocks.mjs
-```
+The commands to seed the baseline blocks locally are in `/docs/how-to/website/seed-cms-content-blocks.md`.
 
 ### Seed Behavior
 
@@ -116,12 +108,7 @@ The seed script creates the following 9 baseline content blocks:
 
 ### Verification
 
-After running the seed, verify the data:
-
-```bash
-npx wrangler d1 execute lgfc_lite --local --command \
-  "SELECT key, page, status FROM content_blocks ORDER BY key;"
-```
+After seeding, the 9 baseline keys listed above are present in `content_blocks` with `status = 'draft'`. The verification query is in `/docs/how-to/website/seed-cms-content-blocks.md`.
 
 ## Read Helper Functions
 
