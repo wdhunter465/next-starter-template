@@ -28,6 +28,7 @@ export const JOBS = [
   { file: 'ops-design-compliance-audit.yml', maxAgeHours: 30 },
   { file: 'ops-post-merge-self-healing.yml', maxAgeHours: 30 },
   { file: 'ops-scheduled-content-publish.yml', maxAgeHours: 30 },
+  { file: 'ops-cert-dns-watch.yml', maxAgeHours: 30 },
   { file: 'lgfc-cursor-runner-health.yml', maxAgeHours: 54 },
   { file: 'ops-asset-register-reconcile.yml', maxAgeHours: 8 * 24 + 6 },
   { file: 'ops-weekly-operations-scorecard.yml', maxAgeHours: 8 * 24 + 6 },
