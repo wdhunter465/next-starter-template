@@ -1,12 +1,12 @@
 ---
 Doc Type: Reference
-Audience: Bill, ChatGPT, Cursor, database implementers, and LGFC maintainers
+Audience: Bill, Governance, Cursor, database implementers, and LGFC maintainers
 Authority Level: Controlled
 Owns: D1/B2 storage boundary design for LGFC content pipeline metadata and media
 Does Not Own: Migration files, runtime code, bucket configuration, or merge approval
 Canonical Reference: /docs/reference/content/lgfc-content-candidate-model.md
 Related issues: #2273, #2278, #2274, #2275, #2312
-Last Reviewed: 2026-09-04
+Last Reviewed: 2026-10-26
 ---
 
 # Content Pipeline Storage Model
