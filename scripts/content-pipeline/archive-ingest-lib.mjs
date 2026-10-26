@@ -324,3 +324,29 @@ export function buildDplaImageLadder({ thumbnail, views = [] }) {
 
 /** Library hosts a DPLA row may be fetched from, added in code so no production allowlist data changes (#4902). */
 export const DPLA_EXTRA_APPROVED_DOMAINS = ['images.nypl.org', 'ark.digitalcommonwealth.org', 'iiif.digitalcommonwealth.org'];
+
+/**
+ * Tracks transient failures per source domain so one throttled host (for example Wikimedia answering
+ * HTTP 429) pauses only its own rows for the rest of the run instead of ending the whole run (#4905).
+ */
+export function createThrottleTracker(maxConsecutive = 2) {
+  const streaks = new Map();
+  const paused = new Set();
+  return {
+    recordFailure(domain) {
+      const streak = (streaks.get(domain) ?? 0) + 1;
+      streaks.set(domain, streak);
+      if (streak >= maxConsecutive) paused.add(domain);
+    },
+    recordSuccess(domain) {
+      streaks.set(domain, 0);
+    },
+    isPaused(domain) {
+      return paused.has(domain);
+    },
+    allPaused(domains) {
+      const list = [...domains];
+      return list.length > 0 && list.every((domain) => paused.has(domain));
+    },
+  };
+}

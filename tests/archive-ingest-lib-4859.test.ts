@@ -20,6 +20,7 @@ import {
   textSuggestsWatermark,
   buildDplaImageLadder,
   parseDplaLinks,
+  createThrottleTracker,
 } from '../scripts/content-pipeline/archive-ingest-lib.mjs';
 
 const lists = {
@@ -301,5 +302,28 @@ describe('DPLA image ladder (#4902)', () => {
 
   it('selects dp.la rows for archiving', () => {
     expect(buildArchiveCandidatesSql()).toContain("'dp.la'");
+  });
+});
+
+describe('per-domain throttle tracker (#4905)', () => {
+  it('pauses only the domain that failed twice in a row', () => {
+    const tracker = createThrottleTracker(2);
+    tracker.recordFailure('commons.wikimedia.org');
+    expect(tracker.isPaused('commons.wikimedia.org')).toBe(false);
+    tracker.recordFailure('commons.wikimedia.org');
+    expect(tracker.isPaused('commons.wikimedia.org')).toBe(true);
+    expect(tracker.isPaused('dp.la')).toBe(false);
+    expect(tracker.allPaused(['commons.wikimedia.org', 'dp.la'])).toBe(false);
+  });
+
+  it('resets the streak on success and reports when every domain is paused', () => {
+    const tracker = createThrottleTracker(2);
+    tracker.recordFailure('dp.la');
+    tracker.recordSuccess('dp.la');
+    tracker.recordFailure('dp.la');
+    expect(tracker.isPaused('dp.la')).toBe(false);
+    tracker.recordFailure('dp.la');
+    expect(tracker.allPaused(['dp.la'])).toBe(true);
+    expect(tracker.allPaused([])).toBe(false);
   });
 });
