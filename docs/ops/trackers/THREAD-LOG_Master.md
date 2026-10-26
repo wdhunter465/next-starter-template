@@ -571,7 +571,7 @@ Resolve the footer authority conflict by aligning `Footer.tsx` and stale documen
 ### Work Performed
 - Updated `src/components/Footer.tsx`: preserved rotating `/api/footer-quote`, dynamic year, center logo scroll-to-top; right-side links ordered Privacy, Terms, Contact (`/contact`), Contact (`mailto:Support@LouGehrigFanClub.com`), Admin when `useMemberSession()` role is `admin` (no new auth helpers).
 - Reconciled `docs/governance/PR_GOVERNANCE.md` footer enforcement to match the locked design doc (removed contradictions such as mandatory "no Admin" / "no mailto").
-- Reconciled `docs/as-built/cloudflare-frontend.md` footer section to the same canonical link order and behaviors.
+- Reconciled `docs/reference/cloudflare-frontend.md` footer section to the same canonical link order and behaviors.
 - Marked T19 CLOSED in `IMPLEMENTATION-WORKLIST_Master.md` with an append-style note clarifying superseded older footer wording elsewhere in the tracker.
 
 ### Result
@@ -606,9 +606,9 @@ Reconcile all documentation to the production footer so no active doc claims the
 ### Work Performed
 - Updated `docs/reference/design/LGFC-Production-Design-and-Standards.md`: footer section now reflects the canonical two-row model (Row 1: Privacy/Terms; Row 2: Contact `/contact`; no mailto; no Admin).
 - Updated `docs/governance/PR_GOVERNANCE.md`: footer enforcement rules and rejection conditions updated to match the canonical model; removed stale mailto/Admin requirements.
-- Updated `docs/as-built/cloudflare-frontend.md`: footer section now matches production (two-row right column, no mailto, no Admin).
+- Updated `docs/reference/cloudflare-frontend.md`: footer section now matches production (two-row right column, no mailto, no Admin).
 - Updated `docs/reference/design/dashboard.md`: removed claim that the public Cloudflare footer contains an Admin link.
-- Added supersession note to `docs/as-built/RECONCILIATION-NOTES_2026-02.md`.
+- Added supersession note to `docs/reference/RECONCILIATION-NOTES_2026-02.md`.
 - Added clarification append to `docs/ops/trackers/IMPLEMENTATION-WORKLIST_Master.md`.
 - Regenerated canonical design hashes in `docs/reference/design/.canonical-hashes.sha256`.
 
