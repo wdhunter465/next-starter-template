@@ -8,6 +8,7 @@
 
 import { requireScheduledContentBridge } from '../../_lib/scheduled-content-auth';
 import { findDueScheduledBlocks, publishScheduledBlock } from '../../_lib/content-blocks-scheduled';
+import { formatSocialPosts } from '../../_lib/social-post-formatter';
 
 function json(data: any, status: number): Response {
   return new Response(JSON.stringify(data, null, 2), { status, headers: { 'Content-Type': 'application/json' } });
@@ -72,6 +73,8 @@ export const onRequestPost = async (context: any): Promise<Response> => {
       if (!result) continue;
 
       const publicUrl = new URL(request.url);
+      const caption = block.social_caption || block.title;
+      const postUrl = postUrlFor(block, publicUrl.origin);
       const social = await postToZapier(env, {
         // #4917: lets the Zap pin the shape it was built for and de-duplicate a
         // retry or manual replay (event_id is stable for one publish of one post).
@@ -81,13 +84,22 @@ export const onRequestPost = async (context: any): Promise<Response> => {
         page: block.page,
         section: block.section,
         title: block.title,
-        caption: block.social_caption || block.title,
+        caption,
         body: block.body_md,
         image_url: block.image_url,
         image_alt: block.image_alt,
         published_at: result.published_at,
         site_origin: publicUrl.origin,
-        post_url: postUrlFor(block, publicUrl.origin),
+        post_url: postUrl,
+        // #4936: a ready-to-post version per platform, so each Zap branch only
+        // maps fields (see functions/_lib/social-post-formatter.ts).
+        posts: formatSocialPosts({
+          title: block.title,
+          caption,
+          post_url: postUrl,
+          image_url: block.image_url,
+          image_alt: block.image_alt,
+        }),
       });
 
       published.push({ ...result, social });
