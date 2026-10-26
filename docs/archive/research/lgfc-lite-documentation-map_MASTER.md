@@ -10,7 +10,7 @@ Last Reviewed: 2026-08-06
 
 # LGFC Lite Project Documentation Map (_MASTER)
 
-> ARCHIVED 2026-08-06. Historical and non-authoritative. Replacement: none. Source: #4896.
+> ARCHIVED 2026-10-26. Historical and non-authoritative. Replacement: none. Source: #4896.
 
 ## Purpose
 Define how project documentation supports development and eventual turnover to Operations.

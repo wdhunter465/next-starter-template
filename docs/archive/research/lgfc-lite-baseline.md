@@ -10,7 +10,7 @@ Last Reviewed: 2026-08-06
 
 # LGFC-Lite v1 Baseline (Lock Point)
 
-> ARCHIVED 2026-08-06. Historical and non-authoritative. Replacement: none. Source: #4896.
+> ARCHIVED 2026-10-26. Historical and non-authoritative. Replacement: none. Source: #4896.
 
 When Steps 1–5 are green and deployed, tag the repository:
 

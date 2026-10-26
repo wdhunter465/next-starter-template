@@ -10,7 +10,7 @@ Last Reviewed: 2026-08-06
 
 # LGFC Strategic Design & Development Notes
 
-> ARCHIVED 2026-08-06. Historical and non-authoritative. Replacement: none. Source: #4896.
+> ARCHIVED 2026-10-26. Historical and non-authoritative. Replacement: none. Source: #4896.
 
 This document captures planning discussions for future implementation.
 It is not a build instruction set. It is a reference for when the
