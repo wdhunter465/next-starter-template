@@ -5,7 +5,7 @@ Authority Level: Historical / Superseded
 Owns: Historical July 2026 PMO issue-contract snapshot
 Does Not Own: Current lifecycle, ordered priority, or dashboard contract
 Canonical Reference: /docs/governance/PMO-PORTFOLIO.md
-Related Issues: #2100, #2296, #2487, #2516, #2610, #2611, #2699, #2709, #3597, #4776
+Related Issues: #2100, #2296, #2487, #2516, #2610, #2611, #2699, #2709, #3597, #4776, #4777
 Last Reviewed: 2026-10-26
 ---
 
@@ -489,7 +489,9 @@ Do not change one PMO authority surface while knowingly leaving conflicting oper
 
 ## Supersession
 
-This model supersedes prior PMO instructions that:
+This file is a historical snapshot. Current lifecycle is `docs/governance/PMO-PORTFOLIO.md`. The list below records what this model superseded in July 2026. It does not control current policy.
+
+This model superseded prior PMO instructions that:
 
 - hard-code website work as automatic P1;
 - use one priority namespace for both Pipeline preparation and Active implementation;

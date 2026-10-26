@@ -5,7 +5,7 @@ Authority Level: Controlled
 Owns: Current post-merge validation, source-issue closeout, evidence, and remediation surface as a supporting specification
 Does Not Own: CI and Verification Domain Policy; pre-merge required checks; branch protection settings; production runtime monitoring
 Canonical Reference: /docs/governance/CI-AND-VERIFICATION.md
-Related Issues: #2689, #1197, #1500, #2175, #2208, #2380, #2469, #2591, #4445, #4776
+Related Issues: #2689, #1197, #1500, #2175, #2208, #2380, #2469, #2591, #4445, #4776, #4777
 Last Reviewed: 2026-10-26
 ---
 
@@ -145,7 +145,7 @@ post-merge failures continue through the single-owner remediation lifecycle.
 Stable PR-body structure defects are owned before merge:
 
 - Advisory detection: `GATE — PR Hygiene` / `scripts/ci/pr_hygiene_audit.mjs` reports missing substantive `Change Summary`, `Verification`, and `Acceptance Criteria` evidence on PR open/edit/synchronize/reopen.
-- Blocking pre-merge readiness: `post-merge-readiness` / `scripts/ci/post_merge_readiness_gate.mjs` continues to fail when required stable sections are absent.
+- Manual backfill only: `GATE — Post-Merge Readiness` does not auto-trigger on pull requests. When an operator runs it, `scripts/ci/post_merge_readiness_gate.mjs` still fails when required stable sections are absent.
 
 After merge, the same section omissions are historical hygiene evidence only:
 
