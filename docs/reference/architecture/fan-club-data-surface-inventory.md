@@ -1,12 +1,12 @@
 ---
 Doc Type: Reference
-Audience: Bill, ChatGPT, Cursor, LGFC maintainers, database implementers, and AI agents
+Audience: Bill, Governance, Cursor, LGFC maintainers, database implementers, and AI agents
 Authority Level: Controlled
 Owns: Fan Club program API-to-data-surface inventory and read/write boundary map for Program #1685
 Does Not Own: Runtime implementation, D1 migrations, B2 configuration, or merge approval
 Canonical Reference: /docs/reference/design/LGFC-Production-Design-and-Standards.md
 Related issues: #1687, #1685, #1686
-Last Reviewed: 2026-06-23
+Last Reviewed: 2026-10-26
 ---
 
 # Fan Club Data-Surface Inventory
