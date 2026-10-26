@@ -120,6 +120,51 @@ describe('POST /api/scheduled-content/publish-due (#4253)', () => {
     expect(payload.image_alt).toBe('The trophy');
   });
 
+  // #4917: fields the Zap uses to de-duplicate, pin a payload shape and link back.
+  it('adds schema_version, event_id and post_url to the Zapier payload (#4917)', async () => {
+    const db = makeScheduledContentDb([dueRow()]);
+    const env = {
+      DB: db,
+      SCHEDULED_CONTENT_BRIDGE_TOKEN: BRIDGE_TOKEN,
+      SCHEDULED_CONTENT_ZAPIER_WEBHOOK_URL: 'https://hooks.zapier.com/hooks/catch/test',
+    };
+
+    const response = await publishDue({ request: postRequest(BRIDGE_TOKEN), env });
+    const body = await response.json();
+    const published = body.published[0];
+
+    const [, init] = fetchMock.mock.calls[0];
+    const payload = JSON.parse(init.body);
+    expect(payload.schema_version).toBe(1);
+    expect(payload.event_id).toBe(`home.fundraiser-daily-details.2027-02-01@v${published.version}`);
+    expect(payload.post_url).toBe('https://www.lougehrigfanclub.com/fundraiser-details/');
+    // The ten existing fields are unchanged.
+    expect(payload.key).toBe('home.fundraiser-daily-details.2027-02-01');
+    expect(payload.title).toBe('Grand prize announced!');
+    expect(payload.caption).toBe('Grand prize day! 🎉');
+    expect(payload.site_origin).toBe('https://www.lougehrigfanclub.com');
+    expect(payload.published_at).toBe(published.published_at);
+  });
+
+  it('sends post_url null for a block outside the Fundraiser Daily Details feed (#4917)', async () => {
+    const db = makeScheduledContentDb([
+      dueRow({ key: 'home.launch-announcement', section: 'launch-announcement' }),
+    ]);
+    const env = {
+      DB: db,
+      SCHEDULED_CONTENT_BRIDGE_TOKEN: BRIDGE_TOKEN,
+      SCHEDULED_CONTENT_ZAPIER_WEBHOOK_URL: 'https://hooks.zapier.com/hooks/catch/test',
+    };
+
+    await publishDue({ request: postRequest(BRIDGE_TOKEN), env });
+
+    const [, init] = fetchMock.mock.calls[0];
+    const payload = JSON.parse(init.body);
+    expect(payload.post_url).toBeNull();
+    expect(payload.schema_version).toBe(1);
+    expect(payload.event_id).toMatch(/^home\.launch-announcement@v\d+$/);
+  });
+
   it('does not publish a row scheduled for the future', async () => {
     const db = makeScheduledContentDb([dueRow({ scheduled_publish_at: FUTURE })]);
     const env = { DB: db, SCHEDULED_CONTENT_BRIDGE_TOKEN: BRIDGE_TOKEN };

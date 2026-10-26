@@ -13,6 +13,18 @@ function json(data: any, status: number): Response {
   return new Response(JSON.stringify(data, null, 2), { status, headers: { 'Content-Type': 'application/json' } });
 }
 
+const ZAPIER_PAYLOAD_SCHEMA_VERSION = 1;
+
+// #4917: the page a social caption should link back to. Only the Fundraiser
+// Daily Details feed has a public page today, and it has no per-post page, so
+// this is the series page. Any other block gets null rather than a guess.
+function postUrlFor(block: { page: string; section: string }, origin: string): string | null {
+  if (block.page === 'home' && block.section === 'fundraiser-daily-details') {
+    return `${origin}/fundraiser-details/`;
+  }
+  return null;
+}
+
 async function postToZapier(env: any, payload: Record<string, unknown>): Promise<{ ok: boolean; error?: string }> {
   const webhookUrl = typeof env?.SCHEDULED_CONTENT_ZAPIER_WEBHOOK_URL === 'string'
     ? env.SCHEDULED_CONTENT_ZAPIER_WEBHOOK_URL.trim()
@@ -61,6 +73,10 @@ export const onRequestPost = async (context: any): Promise<Response> => {
 
       const publicUrl = new URL(request.url);
       const social = await postToZapier(env, {
+        // #4917: lets the Zap pin the shape it was built for and de-duplicate a
+        // retry or manual replay (event_id is stable for one publish of one post).
+        schema_version: ZAPIER_PAYLOAD_SCHEMA_VERSION,
+        event_id: `${block.key}@v${result.version}`,
         key: block.key,
         page: block.page,
         section: block.section,
@@ -71,6 +87,7 @@ export const onRequestPost = async (context: any): Promise<Response> => {
         image_alt: block.image_alt,
         published_at: result.published_at,
         site_origin: publicUrl.origin,
+        post_url: postUrlFor(block, publicUrl.origin),
       });
 
       published.push({ ...result, social });
