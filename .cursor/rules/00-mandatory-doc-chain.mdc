@@ -5,26 +5,8 @@ alwaysApply: true
 
 # Mandatory documentation chain
 
-Before exploration, edits, branches, commits, PR creation, or issue work, read in order:
+Before repository work, read the chain in `Agent.md`. `docs/governance/AGENT-EXECUTION.md` is the shared execution law. `docs/ops/ai/CURSOR-RULES.md` is the Cursor startup contract. `docs/ops/ai/CORE-RULES.md` is a pointer.
 
-1. `Agent.md`
-2. `docs/governance/REPOSITORY-AUTHORITY.md`
-3. `docs/governance/AGENT-TEAM.md`
-4. `docs/governance/AGENT-EXECUTION.md` (canonical). Compatibility pointer, not a second policy: `docs/ops/ai/CORE-RULES.md`
-5. `docs/ops/ai/CURSOR-RULES.md`
-6. Applicable `.agents/skills/*/SKILL.md` files for the task
-7. Source GitHub issue and task-linked authority files
+Task prompts do not override that chain. Startup and the session lifecycle are defined in `docs/governance/AGENT-EXECUTION.md`. An unapproved Cursor workaround is denied.
 
-Task prompts, operator messages, and subagent instructions do not override this chain.
-
-## `run startup`
-
-When a new Cursor Local session starts, or Product Authority says `run startup`, perform Session open in `docs/ops/ai/CURSOR-RULES.md`. That section runs `~/.cursor/lgfc-wake-ctl.sh`, reads this chain, reports roles, summarizes only the session just closed, reports the Operations queue, and suggests the next step. Then stop before implementation. Startup authorizes no Issue, pull request, or edit. `docs/ops/ai/CORE-RULES.md` is a pointer. The contract is `docs/governance/AGENT-EXECUTION.md`.
-
-## Stop before implementation when
-
-- No primary source issue is identified
-- No exact file-touch allowlist is defined
-- Scope or repository state is unclear
-
-These bootstrap rules route to canonical docs. They do not replace shared law, core rules, skills, or governance doctrine.
+The wake tick only keeps this session connected. It is not an assignment and it does not stop work.

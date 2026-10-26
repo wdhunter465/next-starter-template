@@ -5,19 +5,6 @@ alwaysApply: true
 
 # PR governance preflight
 
-For PR creation, PR updates, issue linkage, scope control, labels, or acceptance criteria, read before acting:
+For pull request, issue, review, or remediation work, read `.agents/skills/lgfc-pr-governance/SKILL.md` and `.github/pull_request_template.md` before opening or updating a pull request. Cursor pull requests also read `docs/how-to/cursor/open-task-pr.md`.
 
-1. `.agents/skills/lgfc-pr-governance/SKILL.md`
-2. `.github/pull_request_template.md`
-3. `docs/how-to/cursor/open-task-pr.md` when opening a task PR
-
-## Required before implementation
-
-- Exactly one primary source issue (`- **Issue:** #NNN`)
-- Exact file-touch allowlist defined before edits
-- Exactly one intent label matching changed paths
-- PR body aligned with final diff before ready-for-review claims
-
-Do not open or update a PR until the skill and PR template have been read for the current task.
-
-This rule routes to canonical PR governance. It does not duplicate the full PR template or skill doctrine.
+This rule routes to those documents. It does not add a second pull-request rule. An unapproved Cursor workaround is denied.
