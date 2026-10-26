@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: Rollback profile definitions, deterministic evidence requirements, and component red/green state facts consumed by delivery and operations policy
 Does Not Own: Approval authority, CI gate implementation, workflow behavior, or emergency procedure steps
 Canonical Reference: /docs/governance/DELIVERY-AND-RELEASE.md
-Related Issues: #2495
-Last Reviewed: 2026-07-13
+Related Issues: #2495, #4777
+Last Reviewed: 2026-10-26
 ---
 
 # Delivery and Rollback Profiles
@@ -35,7 +35,7 @@ Record on the source issue and PR before implementation:
 rollback_target_type: revert-commit | deployment-restore
 rollback_target_ref: <commit SHA or Cloudflare deployment ID>
 smoke_tests: <ordered checklist>
-verification_owner: Chat
+verification_owner: PMO Admin
 ```
 
 After merge, if regression is observed:
@@ -61,7 +61,7 @@ deployment_restoration: <previous deployment ID or artifact>
 dependency_order: <ordered list of rollback steps>
 verification_checklist: <post-rollback tests>
 reconciliation: <issues, docs, incident records to update>
-package_owner: Chat
+package_owner: PMO
 package_finalized_before_promotion: yes | no
 ```
 
@@ -87,7 +87,7 @@ Record on the emergency issue and recovery PR:
 ```text
 impact_summary: <what is broken and who is affected>
 stabilization_action: <rollback, hotfix, traffic isolation, or config change>
-approval_ref: <Chat or Bill approval on issue or PR>
+approval_ref: <Product Authority approval on issue or PR>
 recovery_verification: <targeted checks run>
 follow_up_issue: #<number> — mandatory for RCA, hardening, deferred migration
 production_state_after: stabilized | degraded-bounded | restored
@@ -101,7 +101,7 @@ Emergency recovery may defer DIATAXIS migration on touched legacy documents when
 | --- | --- | --- |
 | `green` | Required technical checks passing on component branch head | Eligible when delivery profile and protected-change rules pass |
 | `red` | Failed required check, broken build, or integration regression | Blocked |
-| `hold` | Chat or Bill hold label or explicit issue instruction | Blocked |
+| `hold` | Product Authority hold label or explicit issue instruction | Blocked |
 
 State is derived from GitHub-native checks and branch status — not PR-body lifecycle fields.
 
