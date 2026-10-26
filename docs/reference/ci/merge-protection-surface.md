@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: LGFC merge-protection required check surface, consolidated deterministic blockers, and branch-protection naming alignment as a supporting specification
 Does Not Own: CI and Verification Domain Policy; GitHub branch protection settings UI; reviewer lifecycle policy; PR hygiene policy; OPS runtime workflows
 Canonical Reference: /docs/governance/CI-AND-VERIFICATION.md
-Related Issues: #2689, #2175, #2184, #2208, #2228, #2657, #2271, #3746, #3751, #3771, #2769, #4089, #4200
-Last Reviewed: 2026-09-22
+Related Issues: #2689, #2175, #2184, #2208, #2228, #2657, #2271, #3746, #3751, #3771, #2769, #4089, #4200, #4777
+Last Reviewed: 2026-10-26
 ---
 
 # LGFC Merge Protection Surface
@@ -60,7 +60,7 @@ Advisory checks remain advisory unless a future source issue promotes them after
 | `GATE — PR Issue Accounting` | Manual-only while paused |
 | `GATE — Drift Control` | Manual-only; rebuild later if needed |
 | `GATE — Branch Freshness` | Manual-only; rebuild later if needed |
-| `Docs Guardrails` | Manual-only; rebuild later if needed |
+| `Docs Guardrails` | Path-scoped pull-request check; not ruleset-required |
 | `Design Compliance (Warn)` | Manual-only; rebuild later if needed |
 | `GATE — Post-Merge Readiness` | Manual-only backfill; retired pre-merge auto-trigger |
 
