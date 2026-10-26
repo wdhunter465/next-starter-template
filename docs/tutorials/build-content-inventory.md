@@ -10,6 +10,8 @@ Last Reviewed: 2026-08-06
 
 # Tutorial: Build Content Inventory
 
+## Steps
+
 1. Define story tags from Eig book
 2. Create D1 records (tag, title, text)
 3. Assign story_type and allowed_sections
