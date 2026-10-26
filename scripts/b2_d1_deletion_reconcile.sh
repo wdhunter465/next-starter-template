@@ -159,7 +159,7 @@ require_json_response() {
 }
 
 emit_github_outputs() {
-  local retired="$1" repaired="$2" sample="$3" media_retired="${4:-0}"
+  local retired="$1" repaired="$2" sample="$3" media_retired="${4:-0}" media_stale="${5:-0}"
   local has_findings="false"
   if [[ "$retired" -gt 0 || "$repaired" -gt 0 || "$media_retired" -gt 0 ]]; then
     has_findings="true"
@@ -171,9 +171,10 @@ emit_github_outputs() {
       echo "has_findings=${has_findings}"
       echo "stale_key_sample=${sample}"
       echo "media_assets_retired_count=${media_retired}"
+      echo "media_assets_stale_count=${media_stale}"
     } >> "$GITHUB_OUTPUT"
   fi
-  log "Outputs: retired_count=${retired} repaired_matchups=${repaired} media_assets_retired_count=${media_retired} has_findings=${has_findings}"
+  log "Outputs: retired_count=${retired} repaired_matchups=${repaired} media_assets_retired_count=${media_retired} media_assets_stale_count=${media_stale} has_findings=${has_findings}"
 }
 
 pick_eligible_photo_id() {
@@ -419,6 +420,8 @@ require_json_response "$MEDIA_TABLE_CHECK" "media_assets/content_items table-pre
 MEDIA_TABLES_PRESENT="$(echo "$MEDIA_TABLE_CHECK" | extract_d1_rows name 2>/dev/null | jq 'length' 2>/dev/null || echo 0)"
 
 MEDIA_STALE_COUNT=0
+# #4885: rows actually retired, counted separately from stale register keys.
+MEDIA_RETIRED_COUNT=0
 if [[ "${MEDIA_TABLES_PRESENT:-0}" -lt 2 ]]; then
   log "media_assets/content_items not present in this database -- skipping phase 2b reconciliation."
 else
@@ -474,9 +477,14 @@ else
     MEDIA_NOTE_BASE="b2_object_missing_during_reconciliation_phase2b"
     MEDIA_SQL_FILE="$WORKDIR/media_retire.sql"
     : > "$MEDIA_SQL_FILE"
+    # #4885: every media_asset_id form a content_items row can use to reference a
+    # stale key, so live references can be counted before anything is written.
+    MEDIA_REF_VALUES_FILE="$WORKDIR/media_ref_values.txt"
+    : > "$MEDIA_REF_VALUES_FILE"
     while IFS= read -r stale_key; do
       [[ -z "$stale_key" ]] && continue
       esc_key="$(sql_escape "$stale_key")"
+      printf "'b2://%s'\n" "$esc_key" >> "$MEDIA_REF_VALUES_FILE"
       printf "UPDATE content_items SET deleted_at = strftime('%%Y-%%m-%%dT%%H:%%M:%%fZ','now'), retention_reason = '%s: key=%s' WHERE media_asset_id = 'b2://%s' AND deleted_at IS NULL;\n" \
         "$MEDIA_NOTE_BASE" "$esc_key" "$esc_key" >> "$MEDIA_SQL_FILE"
 
@@ -488,13 +496,41 @@ else
         esc_uid="$(sql_escape "$stale_uid")"
         printf "UPDATE content_items SET deleted_at = strftime('%%Y-%%m-%%dT%%H:%%M:%%fZ','now'), retention_reason = '%s: key=%s' WHERE media_asset_id = 'media_uid:%s' AND deleted_at IS NULL;\n" \
           "$MEDIA_NOTE_BASE" "$esc_key" "$esc_uid" >> "$MEDIA_SQL_FILE"
+        printf "'media_uid:%s'\n" "$esc_uid" >> "$MEDIA_REF_VALUES_FILE"
       fi
     done < "$MEDIA_STALE_KEYS_FILE"
 
     log "Stale media_assets key sample (up to 20):"
     head -n 20 "$MEDIA_STALE_KEYS_FILE" | while IFS= read -r k; do log "  - $k"; done
 
-    if [[ "$DRY_RUN" == "1" ]]; then
+    # #4885: a stale register key only matters here if a live content_items row
+    # points at it. Count those rows (read-only, in chunks) before writing; the
+    # UPDATEs above target exactly the same rows, so this is the retired count.
+    # A key with no live reference is logged and raises no finding.
+    MEDIA_REF_CHUNK_DIR="$WORKDIR/media_ref_chunks"
+    mkdir -p "$MEDIA_REF_CHUNK_DIR"
+    split -l 100 "$MEDIA_REF_VALUES_FILE" "$MEDIA_REF_CHUNK_DIR/c_"
+    for ref_chunk in "$MEDIA_REF_CHUNK_DIR"/c_*; do
+      [[ -f "$ref_chunk" ]] || continue
+      ref_in_list="$(paste -sd',' "$ref_chunk")"
+      REF_OUT="$(wrangler_exec command "SELECT COUNT(*) AS n FROM content_items WHERE deleted_at IS NULL AND media_asset_id IN (${ref_in_list});")" || {
+        log "ERROR: Failed counting live content_items references to stale media_assets keys"
+        log "$REF_OUT"
+        exit 3
+      }
+      require_json_response "$REF_OUT" "live content_items reference count"
+      ref_n="$(echo "$REF_OUT" | extract_d1_rows n | jq -r '.[0].n // empty')"
+      if [[ ! "$ref_n" =~ ^[0-9]+$ ]]; then
+        log "ERROR: live content_items reference count was not a number; refusing to guess."
+        log "$REF_OUT"
+        exit 3
+      fi
+      MEDIA_RETIRED_COUNT=$((MEDIA_RETIRED_COUNT + ref_n))
+    done
+
+    if [[ "$MEDIA_RETIRED_COUNT" -eq 0 ]]; then
+      log "Stale media_assets keys have no live content_items reference; nothing to retire and no finding raised (register rows are kept)."
+    elif [[ "$DRY_RUN" == "1" ]]; then
       log "DRY_RUN=1 -- printing media_assets/content_items retire SQL."
       cat "$MEDIA_SQL_FILE"
     else
@@ -505,7 +541,7 @@ else
       }
     fi
   fi
-  log "Phase 2b summary: media_assets_candidates=$MEDIA_EXISTING_COUNT media_assets_stale=$MEDIA_STALE_COUNT content_items_retired=$MEDIA_STALE_COUNT"
+  log "Phase 2b summary: media_assets_candidates=$MEDIA_EXISTING_COUNT media_assets_stale=$MEDIA_STALE_COUNT content_items_retired=$MEDIA_RETIRED_COUNT"
 fi
 
 # ----------------------------------------------------------------------------
@@ -615,10 +651,10 @@ if [[ "$MATCHUP_COUNT" -gt 0 ]]; then
   done < <(echo "$MATCHUP_ROWS" | jq -c '.[]')
 fi
 
-emit_github_outputs "$STALE_COUNT" "$REPAIRED_COUNT" "${STALE_SAMPLE}" "$MEDIA_STALE_COUNT"
+emit_github_outputs "$STALE_COUNT" "$REPAIRED_COUNT" "${STALE_SAMPLE}" "$MEDIA_RETIRED_COUNT" "$MEDIA_STALE_COUNT"
 
 log "Deletion reconciliation completed successfully"
-log "Summary: total_b2=$TOTAL_OBJECTS candidates=$EXISTING_COUNT retired_attempted=$STALE_COUNT batches=$TOTAL_BATCHES repaired_matchups=$REPAIRED_COUNT unrepaired_matchups=$UNREPAIRED_COUNT key_mode=$KEY_MODE content_items_retired=$MEDIA_STALE_COUNT"
+log "Summary: total_b2=$TOTAL_OBJECTS candidates=$EXISTING_COUNT retired_attempted=$STALE_COUNT batches=$TOTAL_BATCHES repaired_matchups=$REPAIRED_COUNT unrepaired_matchups=$UNREPAIRED_COUNT key_mode=$KEY_MODE content_items_retired=$MEDIA_RETIRED_COUNT media_assets_stale=$MEDIA_STALE_COUNT"
 if [[ -s "$REPAIR_LOG_FILE" ]]; then
   log "Repair evidence:"
   while IFS= read -r line; do log "  $line"; done < "$REPAIR_LOG_FILE"
