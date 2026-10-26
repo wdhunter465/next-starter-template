@@ -13,7 +13,7 @@ Last Reviewed: 2026-02-20
 This is a lightweight, **read-only** smoke test for the public LGFC site.
 It does **not** require auth and it does **not** mutate data.
 
-## Run (Codespaces)
+## Steps: run in Codespaces
 
 ```bash
 bash scripts/prod-smoke.sh https://www.lougehrigfanclub.com

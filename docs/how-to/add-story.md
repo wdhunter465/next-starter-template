@@ -10,6 +10,8 @@ Last Reviewed: 2026-04-28
 
 # How-To: Add Story
 
+## Steps
+
 1. Identify tag
 2. Check for existing tag
 3. Write or update text
