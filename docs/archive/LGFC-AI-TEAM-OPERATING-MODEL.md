@@ -9,6 +9,8 @@ Related Issues: #1754, #2494, #3142, #3755
 Last Reviewed: 2026-08-26
 ---
 
+Relative links in this file are the links from its original location and are not rewritten.
+
 # LGFC AI Team Operating Model
 
 ## Status
