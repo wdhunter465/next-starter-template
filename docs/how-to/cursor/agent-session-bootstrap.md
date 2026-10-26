@@ -5,8 +5,8 @@ Authority Level: Operational Authority
 Owns: Cursor local and Cloud Agent session bootstrap verification
 Does Not Own: Canonical governance doctrine or merge authority
 Canonical Reference: /Agent.md
-Related Issues: #1609, #1614, #2398, #3212, #3424, #3815
-Last Reviewed: 2026-09-18
+Related Issues: #1609, #1614, #2398, #3212, #3424, #3815, #4776
+Last Reviewed: 2026-10-26
 ---
 
 # Agent session bootstrap
@@ -49,7 +49,7 @@ MCP servers are **not** part of session bootstrap. MCP connects external tools; 
    - REPOSITORY-AUTHORITY.md: read
    - AGENT-TEAM.md: read
    - CORE-RULES.md: read
-   - CURSOR-RULES.md: read (Cursor Cloud route only; ChatGPT reports its own product pointer. Codex is retired #4165.)
+   - CURSOR-RULES.md: read (Cursor Cloud route only; ChatGPT is retired (#4173). Codex is retired (#4165).)
 4. For PR work, confirm the first bootstrap report also marks:
    - lgfc-pr-governance/SKILL.md: read
    - .github/pull_request_template.md: read
