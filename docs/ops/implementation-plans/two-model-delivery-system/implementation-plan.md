@@ -282,7 +282,7 @@ Depends On: Tasks 1-3
 - Create/update: `docs/how-to/agents/run-model-a.md`
 - Create/update: `docs/how-to/agents/run-model-b.md`
 - Migrate or archive binding content from:
-  - `docs/ops/ai/LGFC-AI-TEAM-OPERATING-MODEL.md`
+  - `docs/archive/LGFC-AI-TEAM-OPERATING-MODEL.md`
   - `docs/ops/ai/SHARED-AGENT-RULES.md`
   - `docs/ops/ai/CHATGPT-RULES.md`
   - `docs/ops/ai/CURSOR-RULES.md`
