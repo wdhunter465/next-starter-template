@@ -36,7 +36,7 @@ Canonical auth reference: /docs/reference/design/auth-model.md
 
 ### Architecture
 
-#### Layout (`src/appfanclub/layout.tsx`)
+#### Layout (`src/app/fanclub/layout.tsx`)
 FanClub area uses a dedicated layout with:
 - **Header:**
   - Logo (links to `/`)
