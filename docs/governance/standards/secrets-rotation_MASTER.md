@@ -1,10 +1,10 @@
 ---
-Doc Type: How-To
+Doc Type: Governance Standard
 Audience: Human + AI
 Authority Level: Operational
-Owns: Step-by-step procedures to accomplish tasks safely
-Does Not Own: Defining specs; redefining design/architecture/platform rules
-Canonical Reference: /docs/governance/standards/document-authority-hierarchy_MASTER.md
+Owns: Secrets rotation policy: which credentials are covered, where they are stored, and what triggers rotation
+Does Not Own: Platform and environment credential handling rules (PLATFORM-AND-ENVIRONMENT.md); step-by-step rotation runbooks
+Canonical Reference: /docs/governance/PLATFORM-AND-ENVIRONMENT.md
 Last Reviewed: 2026-02-20
 ---
 
