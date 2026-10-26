@@ -131,7 +131,7 @@ PR readiness means the implementation or documentation PR is complete enough for
 Batch review must preserve:
 
 - Bill authority for merges, protected actions, launch gates, destructive actions, production-sensitive work, and strategy decisions;
-- ChatGPT authority for governance review, source-issue accounting, queue conformance, and review disposition;
+- Governance authority for governance review, and PMO Admin authority for source-issue accounting, queue conformance, and review disposition;
 - Cursor responsibility for scoped implementation, validation, PR-body evidence, and stopping at the authorized handoff point.
 
 ### Merge and issue mutation policy
@@ -170,7 +170,7 @@ Closeout automation must not treat merge as sufficient evidence by itself. Futur
 - queue advancement decision;
 - unresolved reviewer, gate, or post-merge blockers.
 
-The selected terminal behavior is: a closed completed source issue retains only stable non-status labels plus `status:complete`. The controller or authorized ChatGPT closeout step must remove active or failure-state labels such as `status:queued`, `status:assigned`, `status:pr-draft`, `status:implementation`, `status:review`, `status:post-merge-verify`, and `status:failed` as part of the same authorized closeout action that closes the issue with `state_reason: completed`. If that reconciliation cannot be verified, queue advancement stops and the blocker is reported.
+The selected terminal behavior is: a closed completed source issue retains only stable non-status labels plus `status:complete`. The controller or authorized PMO Admin closeout step must remove active or failure-state labels such as `status:queued`, `status:assigned`, `status:pr-draft`, `status:implementation`, `status:review`, `status:post-merge-verify`, and `status:failed` as part of the same authorized closeout action that closes the issue with `state_reason: completed`. If that reconciliation cannot be verified, queue advancement stops and the blocker is reported.
 
 ## PMO Backlog Promotion Process
 

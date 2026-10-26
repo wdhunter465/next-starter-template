@@ -84,7 +84,7 @@ Bill decision required: yes
 ## Final verification
 
 ```text
-ChatGPT verification statement:
+PMO Admin verification statement:
 Bill acceptance: [required / recorded / not required]
 Unresolved risks:
 ```

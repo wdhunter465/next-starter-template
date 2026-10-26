@@ -28,13 +28,13 @@ This checklist covers repository-documentation and implementation-control gates.
 - Rejected paths remain `docs/ops/programs/` and `docs/reference/website/content-collection/`.
 - Cursor is sole implementation executor; Codex is inactive.
 - Product Authority retains merge authorization — no pre-approved merge language.
-- GAL / LIB / MEM / CLUB feature code remains blocked until `CONTRACT-FROZEN: content-asset-model v1` is posted and ChatGPT verifies downstream release.
+- GAL / LIB / MEM / CLUB feature code remains blocked until `CONTRACT-FROZEN: content-asset-model v1` is posted and PMO Admin verifies downstream release.
 
 ## Pre-enrichment PR (Phase 0 child issues)
 
 | # | Check | Pass criteria | Status field |
 | ---: | --- | --- | --- |
-| 1 | Source issue open with ChatGPT PR authorization comment | `#2363` / `#2364` etc. | `issue_authorized` |
+| 1 | Source issue open with a Product Authority PR authorization comment | `#2363` / `#2364` etc. | `issue_authorized` |
 | 2 | #2360 audit merged and disposition recorded | Report on `main` | `audit_complete` |
 | 3 | File allowlist defined before edits | Listed in issue or PR body | `allowlist_defined` |
 | 4 | No governance conflict with PMO July 2026 / PR lifecycle / Agent.md chain | Stop and `CHATGPT HANDOFF` if conflict | `governance_clear` |

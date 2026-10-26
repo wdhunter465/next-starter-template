@@ -70,7 +70,7 @@ A dependency boundary is a stop condition. Cursor must report the exact blocker 
 
 The desired steady state for an independent program lane is a queue of review-ready PRs, one per task, waiting for Bill to approve and merge oldest to newest.
 
-ChatGPT then verifies those PRs as a batch and handles post-merge closeout after merge.
+PMO Admin then verifies those PRs as a batch and handles post-merge closeout after merge.
 
 ## Human approval boundary
 
@@ -141,4 +141,4 @@ Dependency boundary: none / <reason>
 
 ## Intended final state
 
-For a launched program with no dependency blockers, Cursor continuously stages the full ordered PR queue for human approval. Bill merges oldest to newest unless there is a reason not to. ChatGPT verifies PRs and post-merge state in batches.
+For a launched program with no dependency blockers, Cursor continuously stages the full ordered PR queue for human approval. Bill merges oldest to newest unless there is a reason not to. PMO Admin verifies PRs and post-merge state in batches.

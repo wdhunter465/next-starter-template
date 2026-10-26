@@ -70,7 +70,7 @@ The project governs:
 - implementation order;
 - technical execution within approved authority.
 
-ChatGPT prepares classifications, recommendations, launch packages, and readiness evidence. Bill makes final Product Authority and priority decisions.
+PMO prepares classifications, recommendations, launch packages, and readiness evidence. Bill makes final Product Authority and priority decisions.
 
 Website delivery may be designated the top portfolio priority by a PMO decision. It is not permanently or automatically Priority 1.
 
@@ -194,7 +194,7 @@ Invalid examples include:
 
 ## Engineering preparation assignment
 
-When a Pipeline parent is assigned Engineering P1, the same PMO closeout creates or reactivates one peer preparation Issue owned by ChatGPT.
+When a Pipeline parent is assigned Engineering P1, the same PMO closeout creates or reactivates one peer preparation Issue owned by PMO.
 
 The preparation Issue:
 
@@ -331,7 +331,7 @@ Planning documents, planning PRs, and Ready for Launch status do not launch a pr
 
 ## Preparation package
 
-Before Cursor implementation, ChatGPT prepares the work to the maximum feasible extent.
+Before Cursor implementation, PMO prepares the work to the maximum feasible extent.
 
 A package includes, as applicable:
 
