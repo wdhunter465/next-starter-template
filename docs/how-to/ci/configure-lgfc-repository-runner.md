@@ -1,12 +1,12 @@
 ---
 Doc Type: How-To
-Audience: Bill, ChatGPT
+Audience: Bill, Governance
 Authority Level: Operational Procedure
 Owns: Chromebook Debian 12 installation and verification sequence for the repository-scoped LGFC GitHub Actions runner
 Does Not Own: Repository runner contract, project launch, workflow migration, or production authorization
 Canonical Reference: /docs/reference/ci/repository-runner-contract.md
-Related Issues: #2294, #2593, #2667, #3212, #3424
-Last Reviewed: 2026-08-13
+Related Issues: #2294, #2593, #2667, #3212, #3424, #4776
+Last Reviewed: 2026-10-26
 ---
 
 # Configure the LGFC Chromebook Repository Runner
