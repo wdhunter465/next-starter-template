@@ -1,12 +1,12 @@
 ---
 Doc Type: Explanation
-Audience: Bill, ChatGPT, Cursor, repository maintainers
+Audience: Bill, Governance, Cursor, repository maintainers
 Authority Level: Supporting design; becomes active only through approved promotion to main
 Owns: Design rationale, operating boundaries, domain segmentation, and target behavior for the two-model delivery system
 Does Not Own: Current PR policy, live CI behavior, GitHub rulesets, production configuration, or active agent authority before promotion
 Canonical Reference: docs/governance/standards/document-authority-hierarchy_MASTER.md
-Related Issues: #2477, #2478, #2479
-Last Reviewed: 2026-07-13
+Related Issues: #2477, #2478, #2479, #4776
+Last Reviewed: 2026-10-26
 ---
 
 # Two-Model Delivery System Design

@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: Post-merge self-healing architecture, trigger model, prevention vs remediation layering, and operational design rationale for Programs #1847 and #1914
 Does Not Own: Classifier outcome tables, workflow YAML implementation, individual script APIs, merge approval, runtime app behavior
 Canonical Reference: /docs/reference/ci/post-merge-self-healing-classification-contract.md
-Related issues: #1847, #1914, #1906, #1921, #1963
-Last Reviewed: 2026-06-29
+Related issues: #1847, #1914, #1906, #1921, #1963, #4776
+Last Reviewed: 2026-10-26
 ---
 
 # Post-Merge Self-Healing Architecture
@@ -30,7 +30,7 @@ reviewer disposition gaps.
 
 Self-healing is the **downstream hygiene and escalation layer**. It does not
 replace PR governance, reviewer-response accounting, source-issue accounting, or
-Bill/ChatGPT merge authorization.
+Product Authority merge authorization.
 
 ## Design principles
 
@@ -245,7 +245,7 @@ Self-healing cannot:
 - broaden a PR file-touch allowlist;
 - modify secrets or production configuration;
 - close, reopen, relabel, or advance issues outside deterministic safe-close rules and the `ops-pr-escalation` handoff label;
-- override Bill/ChatGPT gate, queue, launch, or merge decisions.
+- override Product Authority gate, queue, launch, or merge decisions.
 
 ## Related references
 
