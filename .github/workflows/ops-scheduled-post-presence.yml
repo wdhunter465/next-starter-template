@@ -1,0 +1,40 @@
+name: OPS — Scheduled Post Presence (#4684)
+
+# Twenty minutes after each 10:00 America/New_York publish attempt (14:00 UTC
+# during EDT, 15:00 UTC during EST). Read-only against the public site.
+# A day with no successful publish comment opens nothing. Product Authority
+# merges this workflow. The bridge token stays on #4407.
+
+on:
+  schedule:
+    - cron: '20 14 * * *'
+    - cron: '20 15 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: ops-scheduled-post-presence
+  cancel-in-progress: false
+
+jobs:
+  confirm-post:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout default branch
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Confirm today's published post is on the public list
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          BASE_URL: https://www.lougehrigfanclub.com
+        run: node scripts/ops/scheduled-post-presence.mjs
