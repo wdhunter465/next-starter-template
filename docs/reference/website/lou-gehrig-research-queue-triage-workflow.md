@@ -6,7 +6,7 @@ Owns: Research queue states, triage rules, priority model, and promotion/defer/r
 Does Not Own: Runtime queue implementation, workflow YAML, database migrations, or publication automation
 Canonical Reference: /docs/reference/website/lou-gehrig-source-category-inventory.md
 Related issues: #1738, #1740, #1739
-Last Reviewed: 2026-07-04
+Last Reviewed: 2026-10-26
 ---
 
 # Lou Gehrig Research Queue and Triage Workflow
@@ -101,7 +101,7 @@ Assignment rules:
 
 - one primary owner per active queue item;
 - reassignment requires a queue note;
-- Bill/ChatGPT may override priority for launch-critical content;
+- Product Authority may override priority for launch-critical content;
 - no item may skip provenance or rights review for public-copy promotion.
 
 ## Defer behavior
