@@ -6,7 +6,7 @@ Owns: Admin access model as built for `/admin` and `/api/admin`
 Does Not Own: Operational runbooks; governance policies; UI/UX design specifics; member auth and redirects (`auth-model.md`); production route list and homepage order
 Canonical Reference: /docs/reference/design/LGFC-Production-Design-and-Standards.md
 Related issues: #1255, #1258, #3552, #3553, #3547, #4826
-Last Reviewed: 2026-10-23
+Last Reviewed: 2026-10-26
 ---
 
 # LGFC Admin Access Model — As-Built
@@ -247,7 +247,7 @@ The static `ADMIN_TOKEN` shared-secret path was removed entirely. `requireAdmin`
 | D1 test photo curation UI | `/admin/d1-test` is inspect-only; `photos.is_matchup_eligible` editing deferred to PMO program | PMO admin tools program |
 | `footer-quotes` admin API without admin UI | Config surface still has no dedicated admin UI (same session gate applies at the API layer) | Task 004 (deferred UI) |
 | Further login hardening (OAuth, MFA, passkeys) | Session-only admin API auth landed `#3547`; deeper identity work remains a future consideration per site operator | Future auth program; not `#1258` Task 002 |
-| PMO `production-ready` dependency-map fields | Plan promotion gate | ChatGPT/Bill before child issue creation |
+| PMO `production-ready` dependency-map fields | Plan promotion gate | Product Authority before child issue creation |
 
 ---
 
