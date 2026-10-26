@@ -5,7 +5,7 @@ Authority Level: Historical / Superseded
 Owns: Historical July 2026 PMO issue-contract snapshot
 Does Not Own: Current lifecycle, ordered priority, or dashboard contract
 Canonical Reference: /docs/governance/PMO-PORTFOLIO.md
-Related Issues: #2100, #2296, #2487, #2516, #2610, #2611, #2699, #2709, #3597, #4777
+Related Issues: #2100, #2296, #2487, #2516, #2610, #2611, #2699, #2709, #3597, #4776, #4777
 Last Reviewed: 2026-10-26
 ---
 
@@ -53,7 +53,7 @@ GitHub Issues remain executable authority. Dashboard output, registries, backlog
 
 ## Authority and decision model
 
-Bill and ChatGPT conduct the weekly PMO review.
+Product Authority conducts the weekly PMO review.
 
 The PMO meeting governs:
 
@@ -70,7 +70,7 @@ The project governs:
 - implementation order;
 - technical execution within approved authority.
 
-ChatGPT prepares classifications, recommendations, launch packages, and readiness evidence. Bill makes final Product Authority and priority decisions.
+PMO prepares classifications, recommendations, launch packages, and readiness evidence. Bill makes final Product Authority and priority decisions.
 
 Website delivery may be designated the top portfolio priority by a PMO decision. It is not permanently or automatically Priority 1.
 
@@ -194,7 +194,7 @@ Invalid examples include:
 
 ## Engineering preparation assignment
 
-When a Pipeline parent is assigned Engineering P1, the same PMO closeout creates or reactivates one peer preparation Issue owned by ChatGPT.
+When a Pipeline parent is assigned Engineering P1, the same PMO closeout creates or reactivates one peer preparation Issue owned by PMO.
 
 The preparation Issue:
 
@@ -331,7 +331,7 @@ Planning documents, planning PRs, and Ready for Launch status do not launch a pr
 
 ## Preparation package
 
-Before Cursor implementation, ChatGPT prepares the work to the maximum feasible extent.
+Before Cursor implementation, PMO prepares the work to the maximum feasible extent.
 
 A package includes, as applicable:
 

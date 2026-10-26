@@ -2,11 +2,11 @@
 Doc Type: Operations
 Audience: Human + AI
 Authority Level: Planning Draft
-Owns: Proposed Program 3 project list for Bill/ChatGPT discussion under PMO v2
+Owns: Proposed Program 3 project list for Product Authority discussion under PMO v2
 Does Not Own: Program 3 launch approval, final prioritization, implementation scope, issue creation, or merge authority
 Canonical Reference: /docs/ops/pmo/PMO-V2-OPERATING-MODEL.md
-Related Issues: #1411, #1379, #1255
-Last Reviewed: 2026-06-09
+Related Issues: #1411, #1379, #1255, #4776
+Last Reviewed: 2026-10-26
 ---
 
 # Program 3 Proposed Project List
@@ -15,7 +15,7 @@ Last Reviewed: 2026-06-09
 
 Provide a discussion draft for the next available Programs 1-4 portfolio lane: Program 3.
 
-Program 3 is not an intake bucket. Program 3 is an available rotating portfolio planning/execution lane. It should only receive projects that have been admitted to the execution portfolio, prioritized, and selected by Bill/ChatGPT.
+Program 3 is not an intake bucket. Program 3 is an available rotating portfolio planning/execution lane. It should only receive projects that have been admitted to the execution portfolio, prioritized, and selected by Product Authority.
 
 ## Current status
 
@@ -72,7 +72,7 @@ Program 3 should not include:
 
 Before Program 3 can launch:
 
-1. Bill/ChatGPT must select the actual Program 3 theme.
+1. Product Authority must select the actual Program 3 theme.
 2. Candidate projects must be confirmed as portfolio projects, not Program 5 drafts.
 3. Each selected project needs a short design/readiness document.
 4. A Program 3 source issue must be created or authorized.

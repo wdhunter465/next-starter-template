@@ -5,22 +5,22 @@ Authority Level: Operational Authority
 Owns: Portfolio-level worklist for active and blocked LGFC program work
 Does Not Own: Individual issue bodies, PR content, or launch-gate authorization
 Canonical Reference: /docs/reference/pmo/lgfc-program-portfolio-model.md
-Related Issues: #1335, #1346, #1351
-Last Reviewed: 2026-06-06
+Related Issues: #1335, #1346, #1351, #4776
+Last Reviewed: 2026-10-26
 ---
 
 # Program Portfolio Worklist
 
 ## Purpose
 
-Provide a compact worklist for Cursor and ChatGPT so each task can reference durable portfolio guidance instead of receiving a large prompt.
+Provide a compact worklist for Cursor and PMO so each task can reference durable portfolio guidance instead of receiving a large prompt.
 
 ## Current State Note
 
 As of PR #1375 merge (2026-06-06), Program 1 Tasks 001–007 are **complete**.
 `#1058` remains open as the Program 2 CI maintenance umbrella. Task 008
 (`#1346`) — Program 2 launch gate — is the **final Program 1 task** and remains
-`status:blocked` until queue advancement promotes it for ChatGPT sign-off work.
+`status:blocked` until queue advancement promotes it for PMO Admin sign-off work.
 
 Evidence on `main`:
 
