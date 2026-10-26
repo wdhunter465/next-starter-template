@@ -9,7 +9,7 @@ Before PR work, read:
 1. `Agent.md`
 2. `docs/governance/REPOSITORY-AUTHORITY.md`
 3. `docs/governance/AGENT-TEAM.md`
-4. `docs/ops/ai/CORE-RULES.md`
+4. `docs/governance/AGENT-EXECUTION.md`
 5. `docs/governance/PR_PROCESS.md`
 6. `docs/governance/PR_LIFECYCLE_STATE_MACHINE.md`
 7. `docs/governance/DELIVERY-AND-RELEASE.md`
@@ -20,7 +20,6 @@ For routing, labels, holds, communication, or closeout also read:
 
 - `docs/governance/ADMINISTRATION-AND-COMMUNICATIONS.md`
 - `docs/reference/operations/administrative-control-lane-contract.md`
-- `docs/ops/ai/chatgpt-cursor-handoff-workflow.md`
 - `docs/ops/pmo/queue-watch-and-dispatch-protocol.md`
 - `docs/ops/pmo/github-issue-closeout-protocol.md`
 
