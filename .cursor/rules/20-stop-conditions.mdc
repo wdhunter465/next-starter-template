@@ -1,26 +1,10 @@
 ---
-description: Hard stop conditions for Cursor agents
+description: Stop conditions live in shared execution law
 alwaysApply: true
 ---
 
 # Stop conditions
 
-Stop and report instead of continuing when:
+Stop conditions are stated in `docs/governance/AGENT-EXECUTION.md`. Merge authority is stated in `docs/governance/REPOSITORY-AUTHORITY.md`. This file does not add a stop, a merge ban, or a close ban.
 
-- No source issue
-- No file-touch allowlist
-- Unclear scope
-- Authority conflict with canonical docs
-- Unverified PR or live gate state for readiness claims
-- Mixed intent in one PR
-- Edits outside the approved allowlist
-- GitHub primary rate limit, secondary rate limit, abuse throttling, or suspected unauthenticated GitHub API access
-
-## Boundaries
-
-- Do not expand scope; record discovered work in the source issue
-- Do not merge pull requests unless explicitly authorized
-- Do not close or relabel GitHub issues unless explicitly authorized
-- When cloud workflow instructs branch creation, use `cursor/<descriptive-name>-2e48`
-
-Full stop conditions and execution law live in `docs/ops/ai/CORE-RULES.md`.
+An unapproved Cursor workaround is denied.
