@@ -153,7 +153,9 @@ echo "Test 12: Phase 2b reports what it retired, not the stale-key count (#4885)
 # (gone.jpg) is missing from B2. The fake D1 says how many live content_items rows
 # reference it, so the three cases below exercise the reporting path end to end.
 run_phase2b() {
-  local ref_count="$1" tmp
+  local ref_count="$1" media_rows="${2:-}" photo_keys="${3:-}" tmp
+  [[ -n "$media_rows" ]] || media_rows='[{"k":"p1.jpg","u":"u1"},{"k":"gone.jpg","u":"ugone"}]'
+  [[ -n "$photo_keys" ]] || photo_keys='[{"k":"p1.jpg"},{"k":"p2.jpg"}]'
   tmp="$(mktemp -d)"
   mkdir -p "$tmp/bin" "$tmp/work"
   cat > "$tmp/bin/aws" <<'AWS'
@@ -180,11 +182,11 @@ case "$payload" in
   "PRAGMA table_info(photos);")
     emit '[{"name":"id","type":"INTEGER"},{"name":"url","type":"TEXT"},{"name":"photo_id","type":"TEXT"},{"name":"is_matchup_eligible","type":"INTEGER"},{"name":"rights_notes","type":"TEXT"}]' ;;
   "SELECT \"photo_id\" AS k FROM photos"*)
-    emit '[{"k":"p1.jpg"},{"k":"p2.jpg"}]' ;;
+    emit "$FAKE_PHOTO_KEYS" ;;
   "SELECT name FROM sqlite_master"*)
     emit '[{"name":"media_assets"},{"name":"content_items"}]' ;;
   "SELECT b2_key AS k, media_uid AS u FROM media_assets"*)
-    emit '[{"k":"p1.jpg","u":"u1"},{"k":"gone.jpg","u":"ugone"}]' ;;
+    emit "$FAKE_MEDIA_ROWS" ;;
   "SELECT COUNT(*) AS n FROM content_items"*)
     echo "$payload" >> "$FAKE_COUNT_QUERIES"
     emit "[{\"n\":$FAKE_REF_COUNT}]" ;;
@@ -198,7 +200,7 @@ WR
   : > "$tmp/writes.sql"; : > "$tmp/count_queries.sql"; : > "$tmp/out"
   set +e
   (cd "$tmp/work" && PATH="$tmp/bin:$PATH" FAKE_WRITES="$tmp/writes.sql" FAKE_COUNT_QUERIES="$tmp/count_queries.sql" \
-    FAKE_REF_COUNT="$ref_count" GITHUB_OUTPUT="$tmp/out" \
+    FAKE_REF_COUNT="$ref_count" FAKE_MEDIA_ROWS="$media_rows" FAKE_PHOTO_KEYS="$photo_keys" GITHUB_OUTPUT="$tmp/out" \
     B2_ENDPOINT="https://s3.us-west-004.backblazeb2.com" B2_BUCKET="bucket" B2_KEY_ID="k" B2_APP_KEY="s" \
     D1_DATABASE_NAME="db" CLOUDFLARE_API_TOKEN="t" CLOUDFLARE_ACCOUNT_ID="a" \
     bash "$RECONCILE_SCRIPT" > "$tmp/stdout" 2> "$tmp/stderr")
@@ -235,6 +237,29 @@ if [[ "$RUN_EXIT" -eq 0 ]]; then echo "  ✗ FAILED: a non-numeric reference cou
 if [[ -s "$RUN_DIR/writes.sql" ]]; then echo "  ✗ FAILED: nothing should be written after a failed count"; exit 1; fi
 rm -rf "$RUN_DIR"
 echo "  ✓ PASSED (non-numeric count fails closed, nothing written)"
+
+# Case D (#4893): two stale keys, only one referenced by a live content_items row.
+# The count query covers both keys, so the fake returns the one live row.
+run_phase2b 1 '[{"k":"p1.jpg","u":"u1"},{"k":"gone.jpg","u":"ugone"},{"k":"gone2.jpg","u":"ugone2"}]'
+if [[ "$RUN_EXIT" -ne 0 ]]; then echo "  ✗ FAILED (mixed): script exited $RUN_EXIT"; cat "$RUN_DIR/stderr"; exit 1; fi
+if ! grep -qx "media_assets_stale_count=2" "$RUN_DIR/out"; then echo "  ✗ FAILED: mixed case must report both stale keys"; cat "$RUN_DIR/out"; exit 1; fi
+if ! grep -qx "media_assets_retired_count=1" "$RUN_DIR/out"; then echo "  ✗ FAILED: mixed case must report only the live row as retired"; cat "$RUN_DIR/out"; exit 1; fi
+if ! grep -qx "has_findings=true" "$RUN_DIR/out"; then echo "  ✗ FAILED: mixed case must raise a finding"; cat "$RUN_DIR/out"; exit 1; fi
+if ! grep -q "b2://gone.jpg" "$RUN_DIR/count_queries.sql" || ! grep -q "b2://gone2.jpg" "$RUN_DIR/count_queries.sql"; then echo "  ✗ FAILED: the count must cover every stale key"; cat "$RUN_DIR/count_queries.sql"; exit 1; fi
+rm -rf "$RUN_DIR"
+echo "  ✓ PASSED (mixed: 2 stale keys, 1 retired, finding raised)"
+
+# Case E (#4893): a photos row whose object is gone from B2. Phase 1 retires it by
+# photo_id (the same key space as media_assets.b2_key), so the finding is raised
+# there even when no content_items row references a stale register key.
+run_phase2b 0 '[{"k":"p1.jpg","u":"u1"}]' '[{"k":"p1.jpg"},{"k":"p2.jpg"},{"k":"gone.jpg"}]'
+if [[ "$RUN_EXIT" -ne 0 ]]; then echo "  ✗ FAILED (photos): script exited $RUN_EXIT"; cat "$RUN_DIR/stderr"; exit 1; fi
+if ! grep -qx "has_findings=true" "$RUN_DIR/out"; then echo "  ✗ FAILED: a photos row whose object is gone must raise a finding"; cat "$RUN_DIR/out"; exit 1; fi
+if ! grep -qx "media_assets_retired_count=0" "$RUN_DIR/out"; then echo "  ✗ FAILED: no content_items row was retired in this case"; cat "$RUN_DIR/out"; exit 1; fi
+if ! grep -q "UPDATE photos SET is_matchup_eligible = -1" "$RUN_DIR/writes.sql"; then echo "  ✗ FAILED: the photos row must be soft-retired"; cat "$RUN_DIR/writes.sql"; exit 1; fi
+if grep -qE 'DELETE[[:space:]]+FROM' "$RUN_DIR/writes.sql"; then echo "  ✗ FAILED: no hard delete may be issued"; exit 1; fi
+rm -rf "$RUN_DIR"
+echo "  ✓ PASSED (photos row with missing object: retired in Phase 1, finding raised, no delete)"
 
 echo ""
 echo "============================================"

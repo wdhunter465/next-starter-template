@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest';
 import {
   DplaApiKeyMissingError,
   buildDplaSearchUrl,
+  dplaProviderName,
+  dplaViewUrls,
   mapDplaDocToCandidateFields,
   requireDplaApiKey,
 } from '../functions/_lib/content-pipeline-dpla-adapter';
@@ -29,7 +31,7 @@ describe('requireDplaApiKey (#3826)', () => {
 describe('buildDplaSearchUrl (#3826)', () => {
   it('encodes query, page_size, and api_key as query params against the v2 items endpoint', () => {
     const url = buildDplaSearchUrl('Lou Gehrig', 20, 'test-key-123');
-    expect(url).toBe('https://api.dp.la/v2/items?q=Lou+Gehrig&page_size=20&api_key=test-key-123');
+    expect(url).toBe('https://api.dp.la/v2/items?q=Lou+Gehrig&page_size=20&sourceResource.type=image&api_key=test-key-123');
   });
 });
 
@@ -163,5 +165,36 @@ describe('mapDplaDocToCandidateFields (#3826)', () => {
     const fields = mapDplaDocToCandidateFields(doc, query);
     expect(fields).not.toHaveProperty('rights_status');
     expect(fields).not.toHaveProperty('conclusion');
+  });
+});
+
+describe('library names and media links (#4902)', () => {
+  it('reads a library name from a string, an array or a { name } object', () => {
+    expect(dplaProviderName('Boston Public Library')).toBe('Boston Public Library');
+    expect(dplaProviderName({ name: 'The New York Public Library' })).toBe('The New York Public Library');
+    expect(dplaProviderName([{ name: 'Wayne State University' }])).toBe('Wayne State University');
+    expect(dplaProviderName(undefined)).toBe('');
+  });
+
+  it('collects http(s) media links from any hasView shape', () => {
+    expect(dplaViewUrls([{ '@id': 'https://a.example/1' }, 'https://a.example/1', 'not a link'])).toEqual(['https://a.example/1']);
+    expect(dplaViewUrls(undefined)).toEqual([]);
+  });
+
+  it('records the library name, thumbnail and media links without printing [object Object]', () => {
+    const fields = mapDplaDocToCandidateFields(
+      {
+        id: 'abc',
+        dataProvider: { name: 'Boston Public Library' } as unknown,
+        object: 'https://ark.digitalcommonwealth.org/ark:/50959/xyz123/thumbnail',
+        hasView: { '@id': 'https://ark.digitalcommonwealth.org/ark:/50959/xyz123' },
+        sourceResource: { title: 'Gehrig' },
+      },
+      'Lou Gehrig',
+    );
+    expect(fields.provenanceNotes).not.toContain('[object Object]');
+    expect(fields.provenanceNotes).toContain('Contributing institution: Boston Public Library.');
+    expect(fields.provenanceNotes).toContain('DPLA thumbnail (object): https://ark.digitalcommonwealth.org/ark:/50959/xyz123/thumbnail.');
+    expect(fields.provenanceNotes).toContain('DPLA media links (hasView): https://ark.digitalcommonwealth.org/ark:/50959/xyz123.');
   });
 });
