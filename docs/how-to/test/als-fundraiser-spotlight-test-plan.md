@@ -12,7 +12,11 @@ Last Reviewed: 2026-03-08
 
 Last Updated: 2026-03-08
 
-## Layout Tests
+## Procedure
+
+Run each group of checks below.
+
+### Layout Tests
 
 Verify:
 
@@ -20,11 +24,11 @@ Verify:
 - section spacing matches design system
 - fonts consistent with homepage styles
 
-## Fail Closed Tests
+### Fail Closed Tests
 
 If API fails → section does not render.
 
-## Leaderboard Tests
+### Leaderboard Tests
 
 Validate:
 
@@ -35,7 +39,7 @@ Winner logic:
 - no duplicate winners
 - correct removal order
 
-## Admin Preview Tests
+### Admin Preview Tests
 
 Verify /admin/fundraiser-preview renders section correctly.
 
