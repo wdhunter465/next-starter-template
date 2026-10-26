@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: Stable queue-classification, priority-namespace, Project Graduation, and universal collaboration metadata contract
 Does Not Own: Product priority decisions, project scope, implementation method, recovery strategy, PR approval, Production authorization, or runtime automation
 Canonical Reference: /docs/governance/WORK-QUEUES-AND-COLLABORATION.md
-Related Issues: #2699, #3597
-Last Reviewed: 2026-08-18
+Related Issues: #2699, #3597, #4777
+Last Reviewed: 2026-10-26
 ---
 
 # Work Queue and Collaboration Contract
@@ -89,6 +89,8 @@ pmo:stage:initial-idea | pmo:stage:drafted-design | pmo:stage:pending-launch-pac
 ```
 
 Pipeline priority belongs only to Pipeline portfolio parents. It orders preparation, not implementation, and does not report maturity.
+
+The four `pmo:stage:*` labels above are a legacy subset the dashboard still accepts. The controlling stage list is the 10 stages in `docs/governance/PMO-PORTFOLIO.md`.
 
 ### Engineering qualification
 
