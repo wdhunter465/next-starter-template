@@ -81,6 +81,7 @@ const SOURCE_DOMAINS = {
   openverse: 'openverse.org',
   loc: 'loc.gov',
   wikimedia: 'commons.wikimedia.org',
+  commonscat: 'commons.wikimedia.org',
   dpla: 'dp.la',
   internetarchive: 'archive.org',
 };
@@ -102,11 +103,11 @@ const DEFAULT_LIMIT = 20;
 const DEFAULT_OUT = 'data/research/lou-gehrig-content-candidates-external-discovery.json';
 const SEED_FILE = 'data/research/lou-gehrig-content-candidates.json';
 const RESEARCH_DIR = 'data/research';
-const KNOWN_SOURCES = ['openverse', 'loc', 'wikimedia', 'dpla', 'internetarchive'];
+const KNOWN_SOURCES = ['openverse', 'loc', 'wikimedia', 'commonscat', 'dpla', 'internetarchive'];
 
 function printUsage() {
   console.log(
-    'Usage: node --experimental-strip-types scripts/content-pipeline/collect-gehrig-external-sources.mjs [--query "Lou Gehrig"] [--sources openverse,loc,wikimedia,dpla,internetarchive] [--limit 20] [--out <file>]',
+    'Usage: node --experimental-strip-types scripts/content-pipeline/collect-gehrig-external-sources.mjs [--query "Lou Gehrig"] [--sources openverse,loc,wikimedia,commonscat,dpla,internetarchive] [--limit 20] [--out <file>]',
   );
   console.log('  DPLA requires the DPLA_API_KEY environment variable; it is included by default only when that key is set.');
   console.log('  Internet Archive is opt-in (--sources internetarchive). It is not in the default set. #4789');
@@ -548,17 +549,8 @@ function stripHtml(value) {
   return text || null;
 }
 
-async function collectWikimediaCommons(query, limit, nextId, licenseNotesOut = []) {
-  const searchUrl = `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srnamespace=6&srlimit=${limit}&format=json&origin=*`;
-  const searchData = await fetchJson(searchUrl);
-  const pages = searchData.query?.search ?? [];
-  if (pages.length === 0) return [];
-
-  const titles = pages.map((p) => p.title).join('|');
-  const infoUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(titles)}&prop=imageinfo&iiprop=url|size|mime|user|extmetadata&format=json&origin=*`;
-  const infoData = await fetchJson(infoUrl);
-  const infoPages = Object.values(infoData.query?.pages ?? {});
-
+// Shared by the Commons search and the Commons category crawl (#4892): turns imageinfo pages into candidates.
+function mapCommonsPages(infoPages, discoveryLabel, nextId, licenseNotesOut) {
   return infoPages.map((page) => {
     const info = page.imageinfo?.[0] ?? {};
     const meta = info.extmetadata ?? {};
@@ -578,7 +570,7 @@ async function collectWikimediaCommons(query, limit, nextId, licenseNotesOut = [
     const peopleTags = extractPeopleTags(`${titleText} ${imageDescription ?? ''}`);
 
     const provenanceNotes = [
-      `Wikimedia Commons discovery for query "${query}".`,
+      `${discoveryLabel}.`,
       `File page: ${info.descriptionurl ?? 'none'}.`,
       `Uploader: ${info.user ?? 'unknown'}.`,
       `Asserted creator: ${meta.Artist?.value ?? 'unknown'}.`,
@@ -619,7 +611,7 @@ async function collectWikimediaCommons(query, limit, nextId, licenseNotesOut = [
       fileFormat: info.mime || undefined,
       summary: imageDescription
         ? `${imageDescription} (Wikimedia Commons caption, uploader-provided -- not independently verified.)`
-        : `Discovered via Wikimedia Commons search for "${query}". License template is an uploader assertion, not a verified fact.`,
+        : `Discovered via ${discoveryLabel}. License template is an uploader assertion, not a verified fact.`,
       dateOrPeriod,
       creditLine,
       peopleTags,
@@ -641,6 +633,94 @@ async function collectWikimediaCommons(query, limit, nextId, licenseNotesOut = [
         : undefined,
     });
   });
+}
+
+async function collectWikimediaCommons(query, limit, nextId, licenseNotesOut = []) {
+  const searchUrl = `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srnamespace=6&srlimit=${limit}&format=json&origin=*`;
+  const searchData = await fetchJson(searchUrl);
+  const pages = searchData.query?.search ?? [];
+  if (pages.length === 0) return [];
+
+  const titles = pages.map((p) => p.title).join('|');
+  const infoUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(titles)}&prop=imageinfo&iiprop=url|size|mime|user|extmetadata&format=json&origin=*`;
+  const infoData = await fetchJson(infoUrl);
+  const infoPages = Object.values(infoData.query?.pages ?? {});
+  return mapCommonsPages(infoPages, `Wikimedia Commons discovery for query "${query}"`, nextId, licenseNotesOut);
+}
+
+// ---- Commons category crawl (#4892) --------------------------------------------------------------------
+// Crawls Category:<query> and its sub-categories whose names mention Gehrig, instead of searching, because a
+// Commons search for Gehrig returns mostly scanned PDFs. Only jpeg, png and tiff files at least
+// COMMONS_CRAWL_MIN_LONG_SIDE_PX on the long side are kept, so unusable files never cost database writes;
+// the archive step applies the exact photograph or newspaper minimum.
+export const COMMONS_CRAWL_MIN_LONG_SIDE_PX = 800;
+export const COMMONS_CRAWL_MAX_DEPTH = 2;
+export const COMMONS_CRAWL_MAX_CATEGORIES = 30;
+const COMMONS_KEEP_MIME_TYPES = ['image/jpeg', 'image/png', 'image/tiff'];
+
+/** True for a Commons file record that is a keepable image type and large enough to be worth recording. */
+export function commonsFileIsWorthRecording(info) {
+  if (!info || !COMMONS_KEEP_MIME_TYPES.includes(String(info.mime ?? '').toLowerCase())) return false;
+  const side = Math.max(Number(info.width) || 0, Number(info.height) || 0);
+  return side >= COMMONS_CRAWL_MIN_LONG_SIDE_PX;
+}
+
+async function listCommonsCategoryMembers(categoryTitle) {
+  const files = [];
+  const subcategories = [];
+  let cmcontinue = '';
+  for (let page = 0; page < 20; page += 1) {
+    const url =
+      `https://commons.wikimedia.org/w/api.php?action=query&list=categorymembers&cmtitle=${encodeURIComponent(categoryTitle)}` +
+      `&cmtype=file|subcat&cmlimit=500&format=json&origin=*${cmcontinue ? `&cmcontinue=${encodeURIComponent(cmcontinue)}` : ''}`;
+    const data = await fetchJson(url);
+    for (const member of data.query?.categorymembers ?? []) {
+      if (member.ns === 6) files.push(member.title);
+      else if (member.ns === 14) subcategories.push(member.title);
+    }
+    cmcontinue = data.continue?.cmcontinue ?? '';
+    if (!cmcontinue) break;
+  }
+  return { files, subcategories };
+}
+
+async function collectCommonsCategory(query, limit, nextId, licenseNotesOut = []) {
+  const root = `Category:${query.replace(/^Category:/i, '').trim().replace(/ /g, '_')}`;
+  const seenCategories = new Set([root.toLowerCase()]);
+  const queue = [{ title: root, depth: 0 }];
+  const fileTitles = [];
+  const seenFiles = new Set();
+
+  while (queue.length > 0 && fileTitles.length < limit) {
+    const { title, depth } = queue.shift();
+    const { files, subcategories } = await listCommonsCategoryMembers(title);
+    for (const file of files) {
+      if (!seenFiles.has(file)) {
+        seenFiles.add(file);
+        fileTitles.push(file);
+      }
+    }
+    if (depth >= COMMONS_CRAWL_MAX_DEPTH) continue;
+    for (const sub of subcategories) {
+      const key = sub.toLowerCase();
+      if (seenCategories.has(key) || seenCategories.size >= COMMONS_CRAWL_MAX_CATEGORIES) continue;
+      if (!key.includes('gehrig')) continue;
+      seenCategories.add(key);
+      queue.push({ title: sub, depth: depth + 1 });
+    }
+  }
+
+  const titles = fileTitles.slice(0, limit);
+  const infoPages = [];
+  for (let index = 0; index < titles.length; index += 50) {
+    const batch = titles.slice(index, index + 50);
+    const infoUrl = `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(batch.join('|'))}&prop=imageinfo&iiprop=url|size|mime|user|extmetadata&format=json&origin=*`;
+    const infoData = await fetchJson(infoUrl);
+    infoPages.push(...Object.values(infoData.query?.pages ?? {}));
+  }
+  const usable = infoPages.filter((page) => commonsFileIsWorthRecording(page.imageinfo?.[0]));
+  console.log(`commonscat ${root}: ${seenCategories.size} categor${seenCategories.size === 1 ? 'y' : 'ies'}, ${titles.length} file(s) listed, ${usable.length} usable image(s)`);
+  return mapCommonsPages(usable, `Wikimedia Commons category crawl of ${root}`, nextId, licenseNotesOut);
 }
 
 async function collectDpla(query, limit, nextId) {
@@ -666,6 +746,7 @@ const COLLECTORS = {
   openverse: collectOpenverse,
   loc: collectLibraryOfCongress,
   wikimedia: collectWikimediaCommons,
+  commonscat: collectCommonsCategory,
   dpla: collectDpla,
   internetarchive: collectInternetArchive,
 };
