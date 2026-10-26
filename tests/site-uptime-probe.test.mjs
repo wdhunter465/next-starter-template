@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { checkOnce, checkTarget, failingMarker, renderReport, runProbe } from '../scripts/ops/site-uptime-probe.mjs';
+import { PUBLIC_SITEMAP_ROUTES } from '../src/lib/publicSiteMetadata';
+import { checkOnce, checkTarget, DEFAULT_TARGETS, failingMarker, renderReport, runProbe } from '../scripts/ops/site-uptime-probe.mjs';
 
 function response(status, json) {
   return { status, json: async () => (json === undefined ? JSON.parse('not json') : json) };
@@ -20,6 +21,15 @@ describe('checkOnce', () => {
     const timeout = Object.assign(new Error('timed out'), { name: 'TimeoutError' });
     const result = await checkOnce({ url: 'https://example.test/' }, { fetchImpl: async () => { throw timeout; }, timeoutMs: 50 });
     expect(result).toMatchObject({ ok: false, status: 0, reason: 'timeout after 50 ms' });
+  });
+
+  it('accepts a signed-out redirect and rejects HTTP 200', async () => {
+    const target = { url: 'https://www.lougehrigfanclub.com/fanclub', expectRedirect: true };
+    expect(await checkOnce(target, { fetchImpl: async () => response(302) })).toMatchObject({ ok: true, status: 302 });
+    expect(await checkOnce(target, { fetchImpl: async () => response(200) })).toMatchObject({
+      ok: false,
+      reason: 'expected a sign-in redirect, got HTTP 200',
+    });
   });
 
   it('checks expected JSON fields', async () => {
@@ -78,6 +88,15 @@ describe('runProbe and reporting', () => {
     const probe = await runProbe(withAdvisory, { fetchImpl, retryDelayMs: 0 });
     expect(probe.ok).toBe(false);
     expect(failingMarker(probe)).toBe('<!-- site-uptime-probe:failing=b -->');
+  });
+
+  it('probes every public sitemap route and the signed-out fanclub redirect', () => {
+    const probed = new Set(DEFAULT_TARGETS.map((target) => new URL(target.url).pathname));
+    for (const route of PUBLIC_SITEMAP_ROUTES) {
+      expect(probed.has(route), `sitemap route ${route} is not probed`).toBe(true);
+    }
+    const fanclub = DEFAULT_TARGETS.find((target) => new URL(target.url).pathname === '/fanclub');
+    expect(fanclub?.expectRedirect).toBe(true);
   });
 
   it('reports overall pass when all targets pass', async () => {
