@@ -51,6 +51,8 @@ export function buildDplaSearchUrl(query: string, limit: number, apiKey: string)
   const params = new URLSearchParams({
     q: query,
     page_size: String(limit),
+    // #4902: pictures only; video, text and sound records are not archive candidates.
+    "sourceResource.type": "image",
     api_key: apiKey,
   });
   return `${DPLA_API_BASE}?${params.toString()}`;
@@ -100,8 +102,12 @@ export type DplaSourceResource = {
 export type DplaDoc = {
   id?: string;
   sourceResource?: DplaSourceResource;
-  dataProvider?: string;
+  // Usually a string, but some hubs send { name } objects or arrays (#4902).
+  dataProvider?: unknown;
   provider?: { name?: string };
+  // #4902: DPLA's thumbnail link and the contributing library's media links.
+  object?: string | string[];
+  hasView?: unknown;
   // Documented as a single string, but DPLA providers are inconsistent in
   // practice (see the array-typed-fields test) -- widened defensively like
   // the other sourceResource fields below.
@@ -136,6 +142,40 @@ export type DplaCandidateFields = {
   rightsEvidence: DplaRightsEvidence | undefined;
 };
 
+// #4902: a name from a plain string, an array, or a { name } object; never "[object Object]".
+export function dplaProviderName(value: unknown): string {
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const name = dplaProviderName(item);
+      if (name) return name;
+    }
+    return "";
+  }
+  if (value && typeof value === "object") {
+    const record = value as { name?: unknown; "@id"?: unknown };
+    return firstScalar(record.name).trim();
+  }
+  return value == null ? "" : String(value).trim();
+}
+
+// #4902: every http(s) media link in a hasView value, whatever its shape.
+export function dplaViewUrls(value: unknown): string[] {
+  const urls: string[] = [];
+  const visit = (item: unknown) => {
+    if (Array.isArray(item)) {
+      item.forEach(visit);
+    } else if (typeof item === "string") {
+      if (/^https?:\/\//i.test(item.trim())) urls.push(item.trim());
+    } else if (item && typeof item === "object") {
+      const record = item as { "@id"?: unknown; url?: unknown };
+      visit(record["@id"]);
+      visit(record.url);
+    }
+  };
+  visit(value);
+  return [...new Set(urls)];
+}
+
 function dplaDisplayDate(date: DplaSourceResource["date"]): string {
   if (date == null) return "";
   if (typeof date === "string") return date;
@@ -164,7 +204,9 @@ export function mapDplaDocToCandidateFields(doc: DplaDoc, query: string): DplaCa
   const creator = firstScalar(sourceResource.creator) || "unknown";
   const dplaRights = firstScalar(sourceResource.rights) || "none provided";
   const rightsCategory = doc.rightsCategory || "unknown";
-  const contributingInstitution = doc.dataProvider || "unknown";
+  const contributingInstitution = dplaProviderName(doc.dataProvider) || "unknown";
+  const thumbnailUrl = orUndefined(doc.object);
+  const viewUrls = dplaViewUrls(doc.hasView);
   const providerName = doc.provider?.name || "unknown";
   const collectionTitle = dplaCollectionTitle(sourceResource.collection);
   const isShownAt = orUndefined(firstScalar(doc.isShownAt));
@@ -201,6 +243,8 @@ export function mapDplaDocToCandidateFields(doc: DplaDoc, query: string): DplaCa
     `DPLA rights statement/URI: ${dplaRights}.`,
     `DPLA rightsCategory: ${rightsCategory}.`,
     `Original item URL (isShownAt): ${isShownAt ?? "none"}.`,
+    `DPLA thumbnail (object): ${thumbnailUrl ?? "none"}.`,
+    `DPLA media links (hasView): ${viewUrls.length ? viewUrls.join(" ") : "none"}.`,
     "DPLA is a pure aggregator -- rights and downloadable media must be verified at the contributing institution's own original record, not at DPLA's, before any rights conclusion.",
   ].join(" ");
 
