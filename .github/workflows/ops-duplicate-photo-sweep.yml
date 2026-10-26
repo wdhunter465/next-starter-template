@@ -1,0 +1,40 @@
+name: OPS — Duplicate Photo Sweep
+
+# Reads the public photo list and public image bytes, hashes them in memory, and opens one
+# Operations Issue when a near-duplicate pair has not been reviewed (#4707). Read-only.
+
+on:
+  schedule:
+    - cron: '47 12 * * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: ops-duplicate-photo-sweep
+  cancel-in-progress: false
+
+jobs:
+  sweep:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Sweep published photos
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node --experimental-strip-types scripts/ops/duplicate-photo-sweep.mjs
