@@ -1,4 +1,16 @@
+---
+Doc Type: Archive
+Audience: Human + AI
+Authority Level: Historical Record
+Owns: Historical planning notes for future design and development
+Does Not Own: Active operational authority, design, or implementation instructions
+Canonical Reference: /docs/ops/pmo/diataxis-legacy-retirement-policy.md
+Last Reviewed: 2026-08-06
+---
+
 # LGFC Strategic Design & Development Notes
+
+> ARCHIVED 2026-08-06. Historical and non-authoritative. Replacement: none. Source: #4896.
 
 This document captures planning discussions for future implementation.
 It is not a build instruction set. It is a reference for when the

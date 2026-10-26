@@ -1,3 +1,13 @@
+---
+Doc Type: Tutorial
+Audience: Human + AI
+Authority Level: Informational Draft
+Owns: Short tutorial for building one complete story block in the content inventory
+Does Not Own: Reference contracts or content rights decisions
+Canonical Reference: /docs/how-to/website/add-content-story.md
+Last Reviewed: 2026-08-06
+---
+
 # Tutorial: Build Content Inventory
 
 1. Define story tags from Eig book

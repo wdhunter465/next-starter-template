@@ -1,4 +1,16 @@
+---
+Doc Type: Archive
+Audience: Human + AI
+Authority Level: Historical Record
+Owns: Historical notes on Phase 6 email and admin operations for LGFC-Lite
+Does Not Own: Active operational authority, design, or implementation instructions
+Canonical Reference: /docs/ops/pmo/diataxis-legacy-retirement-policy.md
+Last Reviewed: 2026-08-06
+---
+
 # Phase 6 — Email & Admin Ops (LGFC-Lite)
+
+> ARCHIVED 2026-08-06. Historical and non-authoritative. Replacement: none. Source: #4896.
 
 ## What Phase 6 Does
 When a visitor submits the Join form (`POST /api/join`):

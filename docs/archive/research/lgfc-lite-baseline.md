@@ -1,4 +1,16 @@
+---
+Doc Type: Archive
+Audience: Human + AI
+Authority Level: Historical Record
+Owns: Historical lock-point notes for the LGFC-Lite v1 baseline tag
+Does Not Own: Active operational authority, design, or implementation instructions
+Canonical Reference: /docs/ops/pmo/diataxis-legacy-retirement-policy.md
+Last Reviewed: 2026-08-06
+---
+
 # LGFC-Lite v1 Baseline (Lock Point)
+
+> ARCHIVED 2026-08-06. Historical and non-authoritative. Replacement: none. Source: #4896.
 
 When Steps 1–5 are green and deployed, tag the repository:
 
