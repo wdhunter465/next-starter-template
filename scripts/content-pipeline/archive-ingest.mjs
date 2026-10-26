@@ -64,6 +64,7 @@ const {
   ARCHIVE_HOLD_REASON,
   backoffDelayMs,
   buildDplaImageLadder,
+  createThrottleTracker,
   DPLA_EXTRA_APPROVED_DOMAINS,
   parseDplaLinks,
   buildArchiveCandidatesSql,
@@ -85,9 +86,8 @@ const {
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, '../..');
-const USER_AGENT = 'LGFC-Gehrig-Archive-Ingest/1.0 (lougehrigfanclub.com; contact via site)';
+const USER_AGENT = 'LGFC-Gehrig-Archive-Ingest/1.0 (https://www.lougehrigfanclub.com/; Lou Gehrig Fan Club picture archive)';
 const NEAR_DUPLICATE_SKIP_DISTANCE = 4;
-const MAX_CONSECUTIVE_TRANSIENT_FAILURES = 3;
 const REQUEST_PAUSE_MS = 3000;
 
 class SkipError extends Error {}
@@ -420,28 +420,35 @@ async function main() {
   ).results ?? [];
 
   const counts = { archived: 0, skipped: 0, deferred: 0, dryRun: 0 };
-  let consecutiveTransient = 0;
+  const throttle = createThrottleTracker(2);
+  const domainsInRun = new Set(rows.map((row) => row.source_domain));
   console.log(`${rows.length} candidate(s) selected (limit ${options.limit}).`);
 
   for (const row of rows) {
+    if (throttle.isPaused(row.source_domain)) {
+      counts.deferred += 1;
+      console.error(`${row.candidate_id}: deferred to the next run -- ${row.source_domain} is throttling this run`);
+      continue;
+    }
     try {
       const outcome = await archiveOne(db, row, { options, lists, approvedDomains, b2 });
       if (outcome === 'archived') counts.archived += 1;
       else counts.dryRun += 1;
-      consecutiveTransient = 0;
+      throttle.recordSuccess(row.source_domain);
     } catch (error) {
       const message = error instanceof Error ? error.message : String(error);
       if (error instanceof SkipError) {
         counts.skipped += 1;
-        consecutiveTransient = 0;
+        throttle.recordSuccess(row.source_domain);
         console.log(`${row.candidate_id}: skipped -- ${message}`);
         await noteRow(db, row, `skipped, ${message}`, options.dryRun);
       } else {
         counts.deferred += 1;
-        consecutiveTransient += 1;
+        throttle.recordFailure(row.source_domain);
         console.error(`${row.candidate_id}: deferred to the next run -- ${message}`);
-        if (consecutiveTransient >= MAX_CONSECUTIVE_TRANSIENT_FAILURES) {
-          console.error('Three failures in a row; stopping this run early (source throttling or an outage).');
+        if (throttle.isPaused(row.source_domain)) console.error(`${row.source_domain}: two failures in a row; its remaining rows wait for the next run.`);
+        if (throttle.allPaused(domainsInRun)) {
+          console.error('Every source in this run is failing; stopping early (throttling or an outage).');
           break;
         }
       }
