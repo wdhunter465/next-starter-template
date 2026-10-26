@@ -138,6 +138,15 @@ Names referenced by `.github/workflows/**` or `.env.example` on 2026-10-10. Valu
 | HF_TOKEN | workflows | saas:huggingface:api |
 <!-- asset-register:secrets:end -->
 
+## Recorded secret expiry
+
+A date is listed only when it is already known. No date is known on 2026-10-26. Do not invent dates (#4541). The checker reads this table and names the secret only.
+
+<!-- asset-register:expiry:start -->
+| name | expires |
+| --- | --- |
+<!-- asset-register:expiry:end -->
+
 ## Known gaps on 2026-10-10
 
 - The apex domain returns Cloudflare 522 (#4542).
