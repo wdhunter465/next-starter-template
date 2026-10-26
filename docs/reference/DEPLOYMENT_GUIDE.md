@@ -166,7 +166,7 @@ To rollback to a previous deployment:
 
 If you encounter deployment issues:
 
-1. Check [Incident Response Quickstart](../incident-response/quickstart_MASTER.md) for common solutions
+1. Check [Incident Response Quickstart](../ops/incident-response/quickstart_MASTER.md) for common solutions
 2. Review GitHub Actions logs for error details
 3. Consult Cloudflare Pages documentation
 4. Check repository issues for similar problems
