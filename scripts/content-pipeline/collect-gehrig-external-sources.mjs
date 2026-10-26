@@ -124,6 +124,23 @@ function errorMessage(error) {
   return error instanceof Error ? error.message : String(error);
 }
 
+/**
+ * Splits a `--query` value into separate search queries (#4890). Several queries are separated by `|`;
+ * blanks are dropped and repeats (ignoring case) run once, in the order given. An empty value gives no queries.
+ */
+export function splitQueries(raw) {
+  const seen = new Set();
+  const queries = [];
+  for (const part of String(raw ?? '').split('|')) {
+    const query = part.trim();
+    const key = query.toLowerCase();
+    if (!query || seen.has(key)) continue;
+    seen.add(key);
+    queries.push(query);
+  }
+  return queries;
+}
+
 function parseArgs(argv) {
   const options = {
     query: DEFAULT_QUERY,
@@ -708,53 +725,60 @@ async function runDiscoveryWithFetch(options) {
   const licenseNotes = [];
   const runTimestamp = new Date().toISOString().replace(/[:.]/g, '-');
 
+  const queries = splitQueries(options.query);
+  if (queries.length === 0) throw new Error('--query must contain at least one search query');
+  const pauseMs = Number(process.env.DISCOVERY_QUERY_PAUSE_MS ?? 2000);
+
   for (const source of options.sources) {
     const collector = COLLECTORS[source];
-    const runUid = `run-${source}-${runTimestamp}`;
-    let resultCount = 0;
-    let newCount = 0;
-    let collectionError = null;
-    try {
-      const collected = await collector(options.query, options.limit, nextId, licenseNotes);
-      const candidates = [];
-      let duplicateCount = 0;
-      for (const candidate of collected) {
-        const normalized = normalizeSourceUrl(candidate.source_url);
-        if (normalized && knownUrls.has(normalized)) {
-          duplicateCount += 1;
-          continue;
+    for (const [queryIndex, query] of queries.entries()) {
+      if (queryIndex > 0 && Number.isFinite(pauseMs) && pauseMs > 0) await new Promise((resolve) => setTimeout(resolve, pauseMs));
+      const runUid = `run-${source}-${runTimestamp}${queries.length > 1 ? `-q${queryIndex + 1}` : ''}`;
+      let resultCount = 0;
+      let newCount = 0;
+      let collectionError = null;
+      try {
+        const collected = await collector(query, options.limit, nextId, licenseNotes);
+        const candidates = [];
+        let duplicateCount = 0;
+        for (const candidate of collected) {
+          const normalized = normalizeSourceUrl(candidate.source_url);
+          if (normalized && knownUrls.has(normalized)) {
+            duplicateCount += 1;
+            continue;
+          }
+          if (normalized) knownUrls.add(normalized);
+          candidates.push(candidate);
         }
-        if (normalized) knownUrls.add(normalized);
-        candidates.push(candidate);
+        resultCount = collected.length;
+        newCount = candidates.length;
+        console.log(`${source} "${query}": collected ${collected.length} candidate(s), ${duplicateCount} already recorded`);
+        allCandidates.push(...candidates);
+      } catch (error) {
+        collectionError = error;
+        const message = errorMessage(error);
+        errors.push(`${source} "${query}": ${message}`);
+        console.error(`${source} "${query}" failed: ${message}`);
       }
-      resultCount = collected.length;
-      newCount = candidates.length;
-      console.log(`${source}: collected ${collected.length} candidate(s), ${duplicateCount} already recorded`);
-      allCandidates.push(...candidates);
-    } catch (error) {
-      collectionError = error;
-      const message = errorMessage(error);
-      errors.push(`${source}: ${message}`);
-      console.error(`${source} failed: ${message}`);
+
+      const status = determineSearchRunTerminalStatus({
+        resultCount,
+        requestedLimit: options.limit,
+        error: collectionError,
+      });
+
+      searchRuns.push({
+        run_uid: runUid,
+        source_domain: SOURCE_DOMAINS[source],
+        query,
+        result_limit: options.limit,
+        status,
+        discovered_count: resultCount,
+        new_count: newCount,
+        error_count: collectionError ? 1 : 0,
+        error_summary: collectionError ? errorMessage(collectionError) : null,
+      });
     }
-
-    const status = determineSearchRunTerminalStatus({
-      resultCount,
-      requestedLimit: options.limit,
-      error: collectionError,
-    });
-
-    searchRuns.push({
-      run_uid: runUid,
-      source_domain: SOURCE_DOMAINS[source],
-      query: options.query,
-      result_limit: options.limit,
-      status,
-      discovered_count: resultCount,
-      new_count: newCount,
-      error_count: collectionError ? 1 : 0,
-      error_summary: collectionError ? errorMessage(collectionError) : null,
-    });
   }
 
   const qualifiedCandidates = applyCopyQuality(allCandidates, loadCopyQualityLists(repoRoot));
@@ -762,7 +786,7 @@ async function runDiscoveryWithFetch(options) {
   const registry = {
     schema_version: '1',
     registry_class: 'operator_export',
-    description: `Automated discovery export from Openverse/LOC/Wikimedia Commons for query "${options.query}". Every candidate is unreviewed (rights_status=unknown, review_status=pending_review, publication_status=not_ready). Not approved for publication.`,
+    description: `Automated discovery export from Openverse/LOC/Wikimedia Commons for ${queries.length > 1 ? `${queries.length} queries (${queries.join(' | ')})` : `query "${queries[0]}"`}. Every candidate is unreviewed (rights_status=unknown, review_status=pending_review, publication_status=not_ready). Not approved for publication.`,
     registry_purpose: 'operator_export',
     content_evidence_level: 'mixed', // real (non-synthetic) discovery leads, not yet operator-verified -- schema's enum has no exact "pending review" value
     updated_at: new Date().toISOString(),
@@ -784,11 +808,11 @@ async function runDiscoveryWithFetch(options) {
     fs.writeFileSync(licenseNotesOutPath, JSON.stringify({ license_notes: licenseNotes }, null, 2) + '\n', 'utf8');
     console.log(`Wrote ${licenseNotes.length} Wikimedia Commons license note(s) to ${path.relative(repoRoot, licenseNotesOutPath)}`);
   }
-  const exitCode = decideDiscoveryExit(errors.length, options.sources.length);
+  const exitCode = decideDiscoveryExit(errors.length, options.sources.length * queries.length);
   if (errors.length > 0) {
     console.error(`\n${errors.length} error(s) occurred:`);
     for (const error of errors) console.error(`  - ${error}`);
-    if (errors.length < options.sources.length) {
+    if (errors.length < options.sources.length * queries.length) {
       console.error(
         'Other sources still produced candidates. Import those results. The discovery job reports this source outage after import.',
       );
