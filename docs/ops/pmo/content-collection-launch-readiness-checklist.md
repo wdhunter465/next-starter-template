@@ -1,12 +1,12 @@
 ---
 Doc Type: Operational Checklist
-Audience: Bill, ChatGPT, Cursor, LGFC maintainers
+Audience: Bill, Governance, Cursor, LGFC maintainers
 Authority Level: Operational
 Owns: Go/no-go checklist before Content Collection Phase 0 issue creation, Phase 1 launch, implementation start, and terminal promotion
 Does Not Own: Merge authorization, GitHub issue mutation, feature implementation, or automatic launch authorization
 Canonical Reference: /docs/ops/reports/content-collection-docs-audit-dedup-2360.md
-Related Issues: #2363, #2359, #2360, #2365, #2431, #2432, #2433, #2434, #2435, #2436, #2437, #2438
-Last Reviewed: 2026-07-10
+Related Issues: #2363, #2359, #2360, #2365, #2431, #2432, #2433, #2434, #2435, #2436, #2437, #2438, #4776
+Last Reviewed: 2026-10-26
 ---
 
 # Content Collection Launch Readiness Checklist
@@ -27,7 +27,7 @@ This checklist covers repository-documentation and implementation-control gates.
 - #2431 is the prepared Phase 1 Go / NoGo control issue.
 - Rejected paths remain `docs/ops/programs/` and `docs/reference/website/content-collection/`.
 - Cursor is sole implementation executor; Codex is inactive.
-- Bill/ChatGPT retain merge authorization — no pre-approved merge language.
+- Product Authority retains merge authorization — no pre-approved merge language.
 - GAL / LIB / MEM / CLUB feature code remains blocked until `CONTRACT-FROZEN: content-asset-model v1` is posted and ChatGPT verifies downstream release.
 
 ## Pre-enrichment PR (Phase 0 child issues)
@@ -77,7 +77,7 @@ This checklist covers repository-documentation and implementation-control gates.
 | 26 | CI tooling remains gated | D-009 under review, not auto-launched | `ci_tooling_gated` |
 | 27 | Review throttle accepted | Maximum two to three `READY FOR REVIEW` PRs | `review_throttle_ready` |
 | 28 | No automation overreach | No AI/OCR/crawler/auto-publication authorization | `automation_guardrails_clear` |
-| 29 | Bill / ChatGPT launch decision recorded | Explicit Go / NoGo comment on #2431 | `launch_decision_recorded` |
+| 29 | Product Authority launch decision recorded | Explicit Go / NoGo comment on #2431 | `launch_decision_recorded` |
 
 ## Stop rules
 
@@ -87,7 +87,7 @@ Stop and post `CHATGPT HANDOFF` when:
 - Accelerated Policy / pre-approved merge language appears in promoted docs (C1/C8).
 - Proposed path reintroduces `docs/ops/programs/`.
 - Phase 1 issue attempts to start feature implementation before the freeze marker.
-- CI tooling attempts to bypass Bill / ChatGPT merge, review, or closeout authority.
+- CI tooling attempts to bypass Product Authority merge, review, or closeout authority.
 
 ## Validation
 
@@ -106,7 +106,7 @@ Record PASS/FAIL in PR body.
 1. Copy the relevant gate subset into the source issue or terminal closeout issue.
 2. Mark each row `pass` / `fail` / `deferred` with evidence link.
 3. **No-go** if any blocking row is `fail` without approved deferral issue.
-4. **Go** when all required rows for the target gate are `pass` and Bill / ChatGPT explicitly authorize launch.
+4. **Go** when all required rows for the target gate are `pass` and Product Authority explicitly authorizes launch.
 
 ## Execution
 

@@ -1,12 +1,12 @@
 ---
 Doc Type: Template
-Audience: Bill, ChatGPT, Cursor, LGFC maintainers
+Audience: Bill, Governance, Cursor, LGFC maintainers
 Authority Level: Operational Template
 Owns: Standard sections for Content Collection program closeout and as-built reporting
 Does Not Own: Merge authorization, issue closure, or queue mutation
 Canonical Reference: /docs/ops/pmo/github-issue-closeout-protocol.md
-Related Issues: #2363, #2359, #1738, #2286
-Last Reviewed: 2026-07-10
+Related Issues: #2363, #2359, #1738, #2286, #4776
+Last Reviewed: 2026-10-26
 ---
 
 # Content Collection Program Closeout and As-Built Template
@@ -25,7 +25,7 @@ Does not own merge authorization, issue closure, or queue mutation.
 
 - Closeout evidence follows `docs/ops/pmo/github-issue-closeout-protocol.md`.
 - VAL-001 package path: `docs/ops/implementation-plans/content-collection/packages/val-001-integrated-program-validation-package.md`.
-- Bill/ChatGPT retain merge and program-termination authority.
+- Product Authority retains merge and program-termination authority.
 
 ## Intended final state
 
@@ -39,7 +39,7 @@ Master issue: #[TBD]
 Predecessor: #1738
 Inherited foundation: #2286
 Closeout date:
-Verifier: [Cursor / ChatGPT / Bill]
+Verifier: [Cursor / Product Authority]
 Final status: [complete | complete_with_deferrals | blocked]
 ```
 

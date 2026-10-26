@@ -5,8 +5,8 @@ Authority Level: Historical / Superseded
 Owns: Historical July 2026 PMO issue-contract snapshot
 Does Not Own: Current lifecycle, ordered priority, or dashboard contract
 Canonical Reference: /docs/governance/PMO-PORTFOLIO.md
-Related Issues: #2100, #2296, #2487, #2516, #2610, #2611, #2699, #2709, #3597
-Last Reviewed: 2026-08-18
+Related Issues: #2100, #2296, #2487, #2516, #2610, #2611, #2699, #2709, #3597, #4776
+Last Reviewed: 2026-10-26
 ---
 
 # PMO July 2026 Operating Model
@@ -53,7 +53,7 @@ GitHub Issues remain executable authority. Dashboard output, registries, backlog
 
 ## Authority and decision model
 
-Bill and ChatGPT conduct the weekly PMO review.
+Product Authority conducts the weekly PMO review.
 
 The PMO meeting governs:
 

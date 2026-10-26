@@ -5,8 +5,8 @@ Authority Level: Operational Authority
 Owns: Safe parallel read-only exploration, one-implementer-per-task PR rules, PR readiness handoff, and batch review boundaries for PMO-orchestrated agents
 Does Not Own: Agent routing configuration, workflow implementation, GitHub label automation, legacy issue modifications, or merge authority
 Canonical Reference: /docs/ops/pmo/critical-path.md
-Related Issues: #1411, #1409, #1379, #1255, #1335
-Last Reviewed: 2026-06-07
+Related Issues: #1411, #1409, #1379, #1255, #1335, #4776
+Last Reviewed: 2026-10-26
 ---
 
 # PMO Parallel Agent Rules
@@ -33,7 +33,7 @@ This document does not own:
 - workflow YAML, orchestrator script, runtime, D1, production configuration, or
   secret changes;
 - merge authority;
-- creation of implementation child issues before ChatGPT/Bill walkthrough.
+- creation of implementation child issues before Product Authority walkthrough.
 
 ## Current Known Truth
 
@@ -56,7 +56,7 @@ This document does not own:
 - Each active task has one source issue, one primary implementer, and one PR
   unless the program owner records an explicit exception.
 - PR readiness and batch review improve handoff quality while preserving
-  ChatGPT/Bill review and merge authority.
+  Product Authority review and merge authority.
 - Wave labels and run identifiers are designed before any workflow or label
   implementation changes.
 
@@ -128,11 +128,11 @@ Before setting or reporting `READY FOR REVIEW`, Cursor must confirm:
 - reviewer, bot, and gate blockers are either absent or explicitly dispositioned;
 - no issue closure, relabeling, queue movement, or merge action has been taken.
 
-ChatGPT/Bill review remains required after Cursor handoff.
+Product Authority review remains required after Cursor handoff.
 
 ## Rule 5 — Batch Review Control
 
-Batch review may group related PRs or tasks for ChatGPT/Bill efficiency, but batch
+Batch review may group related PRs or tasks for Product Authority efficiency, but batch
 control must define:
 
 - included PRs/issues;
@@ -174,11 +174,11 @@ Do not create:
 - tracker issues to compensate for missing pre-existing governing Issues (issue-first hard gate).
 
 New orchestrated work enters through production-ready implementation plans,
-ChatGPT/Bill walkthrough, and the approved issue factory path.
+Product Authority walkthrough, and the approved issue factory path.
 
 ## Handoff Checklist
 
-Before requesting ChatGPT/Bill review:
+Before requesting Product Authority review:
 
 - [ ] Changes match the active task allowlist.
 - [ ] Changed active Markdown files have required headers.

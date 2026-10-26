@@ -5,8 +5,8 @@ Authority Level: Planning Draft
 Owns: Program 5 admin page and tools design readiness, admin tool inventory questions, session-gated access review, and promotion criteria for a future Program 1-4 portfolio project
 Does Not Own: Runtime implementation, session secrets, Cloudflare environment configuration, workflow YAML, D1 migrations, production secrets, issue creation, or launch approval
 Canonical Reference: /docs/ops/pmo/PMO-V2-OPERATING-MODEL.md
-Related Issues: #1255, #1379, #1411
-Last Reviewed: 2026-10-23
+Related Issues: #1255, #1379, #1411, #4776
+Last Reviewed: 2026-10-26
 ---
 
 # Program 5 — Admin Page and Tools Design Readiness
@@ -129,7 +129,7 @@ This Program 5 item can be promoted into a Program 1-4 portfolio lane only after
 5. error and empty states are specified;
 6. security boundaries are reviewed against the access model;
 7. implementation scope is split into bounded tasks;
-8. ChatGPT/Bill choose a Program 1-4 lane and explicitly authorize launch.
+8. Product Authority chooses a Program 1-4 lane and explicitly authorizes launch.
 
 ## Recommended PMO classification
 

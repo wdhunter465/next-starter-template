@@ -1,12 +1,12 @@
 ---
 Doc Type: Operational Authority
-Audience: ChatGPT, Bill, Cursor, LGFC maintainers
+Audience: Governance, Bill, Cursor, LGFC maintainers
 Authority Level: Operational Authority
 Owns: Program-level Cursor queue authorization and dependency-stop behavior
 Does Not Own: GitHub merge authority, production deployment authority, branch protection, or human approval requirements
 Canonical Reference: /docs/reference/pmo/lgfc-cursor-execution-contract.md
-Related Issues: #1255, #1256, #1435
-Last Reviewed: 2026-06-07
+Related Issues: #1255, #1256, #1435, #4776
+Last Reviewed: 2026-10-26
 ---
 
 # Program Daisy-Chain Cursor Queue Model
@@ -21,7 +21,7 @@ The prior one-task-at-a-time continuation rule was too conservative for prepared
 
 - Bill approves pull requests oldest to newest unless a dependency, failed gate, reviewer finding, or controller decision changes that order.
 - Cursor remains an implementation agent, not a merge authority.
-- ChatGPT/Bill/controller select and authorize the program queue.
+- Product Authority or the controller selects and authorizes the program queue.
 - Cursor should not sit idle between independent tasks in a prepared program.
 - The only default execution stop is a real blocker: dependency not satisfied, unclear scope, missing source issue, failed validation outside scope, conflicting queue state, or protected human decision.
 
@@ -50,7 +50,7 @@ After a valid program launch authorization, Cursor should:
 5. immediately move to the next executable task in the authorized queue;
 6. repeat until the queue is exhausted or a dependency boundary blocks the next task.
 
-Cursor should not wait for ChatGPT/Bill to merge each prior PR when the next task has no dependency on that merge.
+Cursor should not wait for Product Authority to merge each prior PR when the next task has no dependency on that merge.
 
 ## Dependency boundaries
 
@@ -64,7 +64,7 @@ Cursor must pause instead of staging the next PR when:
 - two queued tasks would edit the same files in a way likely to create preventable PR conflicts;
 - the controller launch comment marks the task as blocked.
 
-A dependency boundary is a stop condition. Cursor must report the exact blocker and the next required ChatGPT/Bill action.
+A dependency boundary is a stop condition. Cursor must report the exact blocker and the next required Product Authority action.
 
 ## PR queue target
 
