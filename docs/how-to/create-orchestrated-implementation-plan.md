@@ -5,8 +5,8 @@ Authority Level: Operational Authority
 Owns: Procedure for preparing an implementation plan for the LGFC orchestration tier
 Does Not Own: Orchestration state contracts; routing configuration; product design
 Canonical Reference: /docs/reference/architecture/orchestration-model.md
-Related Issues: #1449
-Last Reviewed: 2026-06-08
+Related Issues: #1449, #4776
+Last Reviewed: 2026-10-26
 ---
 
 # Create an Orchestrated Implementation Plan
@@ -21,7 +21,7 @@ Last Reviewed: 2026-06-08
    Doc Type: Implementation Plan
    Status: production-ready
    Project: <project-name>
-   Owner: ChatGPT
+   Owner: PMO
    Execution Mode: orchestrated
    ---
    ```
