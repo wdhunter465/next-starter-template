@@ -6,7 +6,7 @@ Owns: Post-merge self-healing classifier outcomes, evidence inputs, safety rules
 Does Not Own: Workflow implementation, detector ingestion, auto-fix action execution, issue mutation, merge approval, runtime app-code remediation
 Canonical Reference: /docs/reference/ci/post-merge-validation-surface.md
 Related issues: #1847, #1848, #1914, #1921, #3069, #3462
-Last Reviewed: 2026-09-18
+Last Reviewed: 2026-10-26
 ---
 
 # Post-Merge Self-Healing Classification Contract
@@ -57,7 +57,7 @@ Findings requiring judgment, authorization, runtime code changes, secrets,
 configuration, or ambiguous evidence are escalated instead of repaired.
 
 Self-healing cannot bypass PR governance, reviewer-response accounting,
-source-issue accounting, branch protection, or Bill/ChatGPT merge authorization.
+source-issue accounting, branch protection, or Product Authority merge authorization.
 
 ## Repository Evidence Inputs
 
@@ -84,7 +84,7 @@ Each classified finding has one outcome and an evidence explanation.
 |---|---|---|
 | `safe_auto_fix` | The finding is a deterministic repo-hygiene defect with complete evidence and no governance ambiguity. | A later authorized auto-fix action may apply the bounded hygiene repair. |
 | `cursor_remediation_required` | The finding is unsafe for automatic repair but fits normal Cursor remediation through a scoped issue or PR. | Create or update a Cursor-ready remediation issue in a later authorized task. |
-| `operator_authorization_required` | The finding involves protected authority, destructive issue action, secrets/config, active program-lane choice, merge/queue authority, or production-sensitive judgment. | Stop for Bill/ChatGPT/operator authorization. |
+| `operator_authorization_required` | The finding involves protected authority, destructive issue action, secrets/config, active program-lane choice, merge/queue authority, or production-sensitive judgment. | Stop for Product Authority or operator authorization. |
 | `intentionally_deferred` | Repository evidence explicitly records that the finding is deferred and no current gate requires immediate repair. | Preserve the defer record and avoid duplicate noise. |
 | `no_action` | Repository evidence proves there is no remaining finding, the finding is already reconciled, or the clean state would produce churn. | Emit no mutation and no remediation issue. |
 
@@ -135,7 +135,7 @@ these signals:
 - required workflow failure without a deterministic hygiene repair;
 - any action that would close, reopen, relabel, or advance issues without
   explicit authority;
-- any action that would bypass PR governance or Bill/ChatGPT merge authorization.
+- any action that would bypass PR governance or Product Authority merge authorization.
 
 ## Backlog disposition and `ops-pr-escalation`
 
@@ -175,7 +175,7 @@ Self-healing is a post-merge hygiene and escalation layer. It cannot:
 - modify secrets or production configuration;
 - close, reopen, relabel, or advance issues without explicit repository
   authority;
-- override Bill/ChatGPT gate, queue, launch, or merge decisions.
+- override Product Authority gate, queue, launch, or merge decisions.
 
 ## Documented Example Fixtures
 
@@ -188,7 +188,7 @@ repository evidence listed in this contract.
 | `safe_auto_fix_duplicate_remediation_superseded` | Two remediation issues reference the same PR, source issue, and failure classification; the newer issue is open and canonical; the older issue contains superseded-by evidence pointing to the newer issue | `safe_auto_fix` | Closing the older duplicate is deterministic hygiene when later action scope authorizes it |
 | `cursor_remediation_missing_reviewer_disposition` | Post-merge report fails reviewer audit; trusted reviewer comment ID is present; PR body lacks a parseable `review-comment:<id>` disposition; no operator authorization issue exists | `cursor_remediation_required` | Reviewer intent cannot be inferred by CI and requires scoped remediation |
 | `cursor_remediation_allowlist_ambiguous` | PR body allowlist and changed-file evidence disagree; no single authoritative allowlist can be derived from repository evidence | `cursor_remediation_required` | Allowlist ambiguity is unsafe for auto-fix |
-| `operator_auth_active_alternate_lane` | Finding references a source issue that belongs to an active alternate program lane; remediation would choose whether to halt, continue, close, or move queue state | `operator_authorization_required` | Program-lane and queue decisions require Bill/ChatGPT/operator authority |
+| `operator_auth_active_alternate_lane` | Finding references a source issue that belongs to an active alternate program lane; remediation would choose whether to halt, continue, close, or move queue state | `operator_authorization_required` | Program-lane and queue decisions require Product Authority or operator authority |
 | `operator_auth_secret_config_failure` | Required workflow failure classification is `auth_secret_config_failure`; logs point to missing or invalid token/configuration | `operator_authorization_required` | CI must not modify secrets or production configuration automatically |
 | `intentionally_deferred_backlog_item` | Closeout report records a non-blocking finding; an open remediation backlog issue references the same finding and is explicitly marked deferred to a later task; no required workflow is failing for that finding | `intentionally_deferred` | The repository already records the defer decision, so duplicate churn is avoided |
 | `no_action_clean_manifest` | Closeout manifest is empty; latest post-merge closeout report is `pass`; no open exception or remediation issue references the PR/source issue pair | `no_action` | Clean state requires no issue and no mutation |

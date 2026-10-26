@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: Current CI workflow classification by lifecycle domain and retirement status as a supporting specification
 Does Not Own: CI and Verification Domain Policy; workflow implementation details; branch protection settings
 Canonical Reference: /docs/governance/CI-AND-VERIFICATION.md
-Related Issues: #2689, #2683, #1058, #2175, #2208, #2469, #2524, #3746, #2769
-Last Reviewed: 2026-09-14
+Related Issues: #2689, #2683, #1058, #2175, #2208, #2469, #2524, #3746, #2769, #4777
+Last Reviewed: 2026-10-26
 ---
 
 # LGFC Workflow Classification Matrix
@@ -46,6 +46,7 @@ Each workflow remains in the correct lifecycle domain, retired assets stay absen
 | `gate-pr-hygiene.yml` | Keep advisory for soft findings; hard-fail selected codes | Stable PR-body hygiene; hard-fails allowlist / unchecked AC / forbidden placeholder |
 | `gate-diff-scope.yml` | Keep advisory | Allowed-path diff assessment |
 | `gate-model-c.yml` | Keep advisory / profile-scoped | Model C documentation path boundary |
+| `docs-guardrails.yml` | Keep advisory, path-scoped | Runs on documentation pull requests; not one of the three ruleset-required checks |
 
 ## Manual-only / paused
 
@@ -55,7 +56,6 @@ Each workflow remains in the correct lifecycle domain, retired assets stay absen
 | `ops-pr-issue-accounting.yml` | Rebuild only if justified | Manual-only |
 | `gate-drift.yml` | Rebuild only if justified | Manual-only |
 | `gate-branch-freshness.yml` | Rebuild only if justified | Manual-only |
-| `docs-guardrails.yml` | Rebuild only if justified | Manual-only |
 | `design-compliance-warn.yml` | Rebuild only if justified | Manual-only |
 | `gate-post-merge-readiness.yml` | Retired automatic role | Manual backfill only |
 
