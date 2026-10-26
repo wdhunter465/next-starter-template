@@ -106,7 +106,7 @@ Recommendation, for Product Authority to decide (a ruleset change is its decisio
 
 **Level 4–5 (procedures, templates, skills)**
 - 230 broken references in 77 files (docs/ops 100, docs/reference 67, archive 23).
-- `.agents` skill points to `CORE-RULES.md` and a retired ChatGPT handoff document; `.cursor/rules/20-stop-conditions` points to `CORE-RULES.md`.
+- `.agents` skill points to `CORE-RULES.md` and a retired ChatGPT handoff document; `.cursor/rules/20-stop-conditions.mdc` points to `CORE-RULES.md`.
 - Issue templates are Copilot-era ("Draft until this merges").
 - `ai/AI-GUIDE.md` is a one-time site build prompt labelled Canonical governance.
 - ChatGPT is referenced in about 190 places across living documents (reference 69, how-to 76, explanation and templates 22, ops/ai 15, entry docs 9).
