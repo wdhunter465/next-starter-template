@@ -1,12 +1,12 @@
 ---
 Doc Type: Reference
-Audience: Bill, ChatGPT, Cursor, LGFC maintainers, editors, and implementation agents
+Audience: Bill, Governance, Cursor, LGFC maintainers, editors, and implementation agents
 Authority Level: Controlled
 Owns: Canonical LGFC content candidate registry field, state, and promotion model for Program #2273
 Does Not Own: D1 migrations, runtime APIs, admin UI, crawler automation, or public publication
 Canonical Reference: /docs/reference/content/lgfc-content-candidate-model.md
 Related issues: #2273, #2275, #2270, #2274
-Last Reviewed: 2026-07-05
+Last Reviewed: 2026-10-26
 ---
 
 # LGFC Content Candidate Model
