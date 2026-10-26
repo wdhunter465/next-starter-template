@@ -1,17 +1,17 @@
 ---
 Doc Type: Operations
-Audience: Bill, ChatGPT, Cursor, LGFC maintainers, implementation agents, and reviewers
+Audience: Bill, Governance, Cursor, LGFC maintainers, implementation agents, and reviewers
 Authority Level: Operational Authority
 Owns: Priority #3 PMO readiness decision, governance/workflow automation program candidate scope, child-project boundaries, design/readiness state, Cursor launch preconditions
 Does Not Own: Runtime implementation, workflow code, CI script changes, issue creation, merge authority, production secrets, vendor configuration, unauthorized GitHub issue mutation
 Canonical Reference: /docs/ops/pmo/PMO-JULY-2026-OPERATING-MODEL.md
-Related Issues: #1713, #1411, #1417, #1418, #1419, #1420, #1421, #1422, #1423, #1424, #1500, #1255, #1259, #1685, #1700, #1719, #1720, #1721, #1722, #1723, #1724, #1725, #1726, #1727, #2640, #2647
-Last Reviewed: 2026-08-18
+Related Issues: #1713, #1411, #1417, #1418, #1419, #1420, #1421, #1422, #1423, #1424, #1500, #1255, #1259, #1685, #1700, #1719, #1720, #1721, #1722, #1723, #1724, #1725, #1726, #1727, #2640, #2647, #4776
+Last Reviewed: 2026-10-26
 ---
 
 # PMO Governance / Workflow Automation Completion Readiness
 
-> **Construction state (2026-07-19):** Program #1719 documentation construction on the project component branch is complete through Task #1727. Closeout packet: `docs/ops/reports/pmo-governance-workflow-automation-closeout-1727.md`. Task #2647 synchronizes the accepted component identity with current `main` (including #2640 four-lane/four-profile authority) and prepares an exact Promotion Candidate for Atlas Go/No-Go. Bill/ChatGPT-approved Production promotion to `main` remains a separate successor. Cursor may not approve, merge to `main`, or mutate issues.
+> **Construction state (2026-07-19):** Program #1719 documentation construction on the project component branch is complete through Task #1727. Closeout packet: `docs/ops/reports/pmo-governance-workflow-automation-closeout-1727.md`. Task #2647 synchronizes the accepted component identity with current `main` (including #2640 four-lane/four-profile authority) and prepares an exact Promotion Candidate for Atlas Go/No-Go. Product Authority-approved Production promotion to `main` remains a separate successor. Cursor may not approve, merge to `main`, or mutate issues.
 
 ## Purpose
 
@@ -44,7 +44,7 @@ This document does not launch implementation, create child issues, authorize Cur
 - #1411 is closed and completed as a planning/control artifact (historical evidence only).
 - #1417–#1424 exist as stale historical task issues with older PMO terminology; they are evidence only and must not be mutated or treated as current source issues.
 - Program #1500 closed complete; Task #1725 recorded queue/wave and closeout reconciliation.
-- Cursor completed the authorized serial docs chain. Production promotion to `main` remains Bill/ChatGPT authority after Atlas Promotion Candidate Go. Deferred workflow/CI candidates require new source issues (`#1726` / `#1727` reports).
+- Cursor completed the authorized serial docs chain. Production promotion to `main` remains Product Authority after Atlas Promotion Candidate Go. Deferred workflow/CI candidates require new source issues (`#1726` / `#1727` reports).
 
 ## Intended final state
 
@@ -66,8 +66,8 @@ The intended final state before implementation launch is:
 | Candidate program name | PMO Governance / Workflow Automation Completion |
 | PMO source | PMO Backlog ranks 3–10 |
 | Source issue | #1719 |
-| Execution agent after launch | Cursor, under continuous reduced-gate + Model B `component-auto-integration` on the project component branch; Bill/ChatGPT for promotion to `main` |
-| Current readiness | Construction complete (component); #2647 Promotion Candidate synchronization with current `main` in progress — Production promotion to `main` still Bill/ChatGPT |
+| Execution agent after launch | Cursor, under continuous reduced-gate + Model B `component-auto-integration` on the project component branch; Product Authority for promotion to `main` |
+| Current readiness | Construction complete (component); #2647 Promotion Candidate synchronization with current `main` in progress — Production promotion to `main` still Product Authority |
 | Primary implementation plan | `docs/ops/implementation-plans/pmo-governance-workflow-automation-completion.md` |
 | Primary governance authority | `docs/ops/pmo/PMO-JULY-2026-OPERATING-MODEL.md` |
 | Product surface | PMO governance, workflow automation design, queue/closeout controls, PR readiness, and execution contracts |
@@ -125,11 +125,11 @@ A later launched Priority #3 program may:
 
 Launch preconditions for Program #1719 were **satisfied on 2026-07-16** by Bill’s continuous reduced-gate authorization on #1719. Remaining operating rules:
 
-1. Cursor receives one child task at a time unless Bill/ChatGPT explicitly approve parallel execution.
+1. Cursor receives one child task at a time unless Product Authority explicitly approves parallel execution.
 2. After a predecessor PR merges and post-merge verification is clean, Cursor may start the next authorized child without another launch prompt.
 3. Protected workflow/script changes require explicit trusted-reviewer expectations before implementation.
 4. Issue mutation permissions remain denied unless a current source issue explicitly grants them.
-5. `#1723` and `#1724` are component-branch documentation tasks under `component-auto-integration`; governance-doc edits alone do not create an intermediate human gate. Promotion to `main` remains Bill/ChatGPT authority.
+5. `#1723` and `#1724` are component-branch documentation tasks under `component-auto-integration`; governance-doc edits alone do not create an intermediate human gate. Promotion to `main` remains Product Authority.
 
 Historical planning-era preconditions (queue behind #1255/#1685/#1700) are superseded for this program by the 2026-07-16 authorization on #1719.
 
@@ -137,4 +137,4 @@ Historical planning-era preconditions (queue behind #1255/#1685/#1700) are super
 
 Priority #3 is a **Construction complete (component)** PMO July 2026 program with master issue #1719 and child task issues #1720 through #1727 dispositioned on `component/pmo-governance-workflow-automation`.
 
-Bill/Atlas should accept the closeout packet in `docs/ops/reports/pmo-governance-workflow-automation-closeout-1727.md`. Repository-wide authority requires Bill/ChatGPT-approved promotion to `main`. Cursor must not close program issues or merge to `main` from this package.
+Bill/Atlas should accept the closeout packet in `docs/ops/reports/pmo-governance-workflow-automation-closeout-1727.md`. Repository-wide authority requires Product Authority-approved promotion to `main`. Cursor must not close program issues or merge to `main` from this package.

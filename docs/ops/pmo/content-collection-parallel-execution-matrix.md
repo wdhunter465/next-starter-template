@@ -1,12 +1,12 @@
 ---
 Doc Type: Operations
-Audience: Bill, ChatGPT, Cursor, LGFC maintainers
+Audience: Bill, Governance, Cursor, LGFC maintainers
 Authority Level: Operational Plan (non-authoritative until linked from program issue)
 Owns: Pairwise parallel matrix, per-lane file allowlists, hot zones, freeze marker, merge order, and review throttle
 Does Not Own: Merge authorization, GitHub issue creation, or CI workflow implementation
 Canonical Reference: /docs/ops/reports/content-collection-docs-audit-dedup-2360.md
-Related Issues: #2363, #2359, #2360
-Last Reviewed: 2026-07-10
+Related Issues: #2363, #2359, #2360, #4776
+Last Reviewed: 2026-10-26
 ---
 
 # Content Collection Parallel Execution Matrix and File Allowlist Plan
@@ -75,7 +75,7 @@ Before P2/P3/P4 **code** work:
 CONTRACT-FROZEN: content-asset-model v1
 ```
 
-Must cite source issue, package path, PR/commit, downstream lanes released, and Bill/ChatGPT authorization.
+Must cite source issue, package path, PR/commit, downstream lanes released, and Product Authority authorization.
 
 ## Per-lane allowlists (repo-verified)
 
@@ -127,7 +127,7 @@ Workflow/script (serialize): `.github/workflows/*`, `scripts/ci/**`, `scripts/or
 
 ## Shared hot zones
 
-Single-lane-at-a-time unless Bill/ChatGPT authorize an exception:
+Single-lane-at-a-time unless Product Authority authorizes an exception:
 
 - `functions/_lib/content-pipeline-*.ts`
 - `src/app/fanclub/layout.tsx`, `src/app/fanclub/page.tsx`
