@@ -1,12 +1,12 @@
 ---
 Doc Type: Operations
-Audience: Bill, ChatGPT, Cursor, LGFC maintainers, implementation agents, and reviewers
+Audience: Bill, Governance, Cursor, LGFC maintainers, implementation agents, and reviewers
 Authority Level: Operational Authority
 Owns: Program #2040 readiness decision, content publication support boundaries, child-task sequence, approval-state requirements, and launch preconditions
 Does Not Own: Program #1738 source collection rules, Program #2039 club staging implementation, merge authority, production secrets, or public content approval decisions
 Canonical Reference: /docs/ops/pmo/PMO-JULY-2026-OPERATING-MODEL.md
-Related Issues: #1738, #2039, #2040, #2043, #2049, #2050, #2051, #2052, #2053, #2054, #2055, #2056
-Last Reviewed: 2026-06-29
+Related Issues: #1738, #2039, #2040, #2043, #2049, #2050, #2051, #2052, #2053, #2054, #2055, #2056, #4776
+Last Reviewed: 2026-10-26
 ---
 
 # Website Automatic Content Publication Capability
@@ -87,7 +87,7 @@ Cursor implementation may begin only when:
 
 1. Program #1738 produces manual workflow evidence.
 2. Program #2039 provides or confirms the required admin staging surface for the relevant task.
-3. Bill/ChatGPT assign a specific Program #2040 child task issue.
+3. Product Authority assigns a specific Program #2040 child task issue.
 4. The assigned task identifies its own file-touch boundary.
 5. The PR body cites exactly one source issue.
 6. The task stops at `READY FOR REVIEW`.
@@ -98,4 +98,4 @@ Program #2040 may support publication operations, but public route exposure must
 
 ## Closeout requirement
 
-Program #2040 closeout requires terminal Task #2056 evidence, validation of publication-state controls, rollback/unpublish evidence, and explicit Bill/ChatGPT acceptance.
+Program #2040 closeout requires terminal Task #2056 evidence, validation of publication-state controls, rollback/unpublish evidence, and explicit Product Authority acceptance.

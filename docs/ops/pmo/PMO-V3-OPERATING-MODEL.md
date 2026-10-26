@@ -5,8 +5,8 @@ Authority Level: Historical PMO Authority
 Owns: LGFC PMO v3 program issue model, PMO meeting issue model, PMO Backlog rules, launch gates, promotion rules, agent authority boundaries, and top-down PMO documentation replacement intent
 Does Not Own: Current PMO operating policy, product-specific design, runtime implementation, workflow YAML, production configuration, secrets, or unauthorized GitHub issue mutation
 Canonical Reference: /docs/ops/pmo/PMO-JULY-2026-OPERATING-MODEL.md
-Related Issues: #1411, #1417, #1418, #1419, #1420, #1421, #1422, #1423, #1424, #1379, #1255, #1501, #1500, #1719, #1725, #1856, #2100
-Last Reviewed: 2026-07-14
+Related Issues: #1411, #1417, #1418, #1419, #1420, #1421, #1422, #1423, #1424, #1379, #1255, #1501, #1500, #1719, #1725, #1856, #2100, #4776
+Last Reviewed: 2026-10-26
 ---
 
 # PMO V3 Operating Model
@@ -68,7 +68,7 @@ This document becomes the controlling PMO authority for new planning and impleme
 - Documentation references use issue-number format:
   `Program #<issue-number> — <program name>`.
 - GitHub issue titles use `Program: <name>` when possible. The issue number is
-  already part of GitHub; do not duplicate it in the title unless Bill/ChatGPT
+  already part of GitHub; do not duplicate it in the title unless Product Authority
   require a specific naming exception.
 
 ## Current program issues
@@ -87,7 +87,7 @@ This document becomes the controlling PMO authority for new planning and impleme
 | --- | --- |
 | Historical label | Program 1 |
 | Status | Completed planning/control artifact (`status:complete`, issue closed) |
-| Execution rule | issue #1411 is not an open blocked program. Any future execution work must be represented by a current open source issue before launch. New PMO automation execution remains blocked until Program #1255 is completed and signed off and ChatGPT/Bill explicitly launch the next cycle. |
+| Execution rule | issue #1411 is not an open blocked program. Any future execution work must be represented by a current open source issue before launch. New PMO automation execution remains blocked until Program #1255 is completed and signed off and Product Authority explicitly launches the next cycle. |
 
 ### Legacy #1379
 
@@ -108,7 +108,7 @@ This document becomes the controlling PMO authority for new planning and impleme
 | Project | A bounded workstream under a program. |
 | Task issue | A single executable unit under a project/program, normally one source issue and one PR. |
 | PR | One scoped change set tied to exactly one source issue unless an approved exception says otherwise. |
-| Launch gate | Explicit Bill/ChatGPT/controller authorization that a program or task sequence may execute. |
+| Launch gate | Explicit Product Authority/controller authorization that a program or task sequence may execute. |
 | Closeout | Post-merge verification and authorized source issue disposition. |
 
 ## Program lifecycle status nomenclature
@@ -229,7 +229,7 @@ PMO meeting issue
 
 A PMO Backlog item may move toward executable work only after these gates are satisfied:
 
-1. Bill or the owner approves the item for promotion review during a PMO meeting or explicit Bill/ChatGPT review.
+1. Bill or the owner approves the item for promotion review during a PMO meeting or explicit Product Authority review.
 2. The item is documented as a project candidate.
 3. Missing design, scope, constraints, and expected outcomes are clarified.
 4. Repository documentation becomes the source of truth.
@@ -288,7 +288,7 @@ A program issue is launch-ready only when:
 - authority boundaries are explicit;
 - validation and closeout expectations are defined;
 - PMO Backlog dependencies, if any, have been promoted into program authority;
-- ChatGPT/Bill explicitly authorize launch.
+- Product Authority explicitly authorizes launch.
 
 ## Historical PMO v2 transition note
 
