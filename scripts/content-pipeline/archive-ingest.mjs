@@ -63,6 +63,9 @@ const { loadCopyQualityLists } = await import('./gehrig-copy-quality.mjs');
 const {
   ARCHIVE_HOLD_REASON,
   backoffDelayMs,
+  buildDplaImageLadder,
+  DPLA_EXTRA_APPROVED_DOMAINS,
+  parseDplaLinks,
   buildArchiveCandidatesSql,
   MASTER_JPEG_QUALITY,
   MASTER_TIFF_MAX_BYTES,
@@ -178,6 +181,43 @@ async function resolveCommons(row) {
   return { ...file, text: [title, file.description, file.credit, file.restrictions, file.categories] };
 }
 
+// DPLA rows: try each full-size link for the contributing library and keep the first that is large enough (#4902).
+async function resolveDpla(row, minimumLongSide) {
+  const links = parseDplaLinks(row.provenance_notes);
+  const ladder = buildDplaImageLadder(links);
+  if (!ladder.length) throw new SkipError(`no known full-size image layout for ${links.institution || 'this library'}${links.thumbnail ? ` (thumbnail ${links.thumbnail})` : ' (no thumbnail recorded)'}`);
+  const tried = [];
+  for (const step of ladder) {
+    let response;
+    try {
+      response = await fetchOk(step.url, 'image/*');
+    } catch (error) {
+      tried.push(`${step.label}: ${error instanceof Error ? error.message.slice(0, 80) : 'failed'}`);
+      continue;
+    }
+    const bytes = new Uint8Array(await response.arrayBuffer());
+    const size = decodedSize(bytes);
+    if (!size) {
+      tried.push(`${step.label}: not a decodable image`);
+      continue;
+    }
+    const side = longSideOf(size.width, size.height);
+    if (side < minimumLongSide) {
+      tried.push(`${step.label}: ${size.width}x${size.height}`);
+      continue;
+    }
+    return {
+      url: step.url,
+      mimetype: (response.headers.get('content-type') || 'image/jpeg').split(';')[0].trim().toLowerCase(),
+      width: size.width,
+      height: size.height,
+      inventory: tried.join('; '),
+      text: [row.title, row.provenance_notes],
+    };
+  }
+  throw new SkipError(`no link reached ${minimumLongSide}px (${tried.join('; ')})`);
+}
+
 async function loadApprovedSourceDomains(db) {
   const result = await db.prepare(`SELECT source_domain FROM sources WHERE source_trust_status = 'trusted'`).all();
   return new Set((result.results ?? []).map((row) => String(row.source_domain || '').trim().toLowerCase()).filter(Boolean));
@@ -237,7 +277,12 @@ async function noteRow(db, row, line, dryRun) {
 }
 
 async function archiveOne(db, row, context) {
-  const resolved = row.source_domain === 'loc.gov' ? await resolveLoc(row, context.lists.minimum_long_side_px) : await resolveCommons(row);
+  const resolved =
+    row.source_domain === 'loc.gov'
+      ? await resolveLoc(row, context.lists.minimum_long_side_px)
+      : row.source_domain === 'dp.la'
+        ? await resolveDpla(row, context.lists.minimum_long_side_px)
+        : await resolveCommons(row);
 
   const kind = pictureKind(row.title, ...resolved.text);
   const minimumLongSide = minimumLongSideFor(kind, context.lists.minimum_long_side_px);
@@ -359,6 +404,7 @@ async function main() {
   const lists = loadCopyQualityLists(repoRoot);
   const db = makeWranglerD1({ database: options.database, target: options.target, cwd: repoRoot });
   const approvedDomains = await loadApprovedSourceDomains(db);
+  for (const domain of DPLA_EXTRA_APPROVED_DOMAINS) approvedDomains.add(domain);
 
   const b2 = requireB2(process.env);
   if (!b2.ok && !options.dryRun) {

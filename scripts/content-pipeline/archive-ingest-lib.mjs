@@ -233,10 +233,10 @@ export function buildArchiveCandidatesSql() {
   const legacyFileSkips = LEGACY_NOTE_MARKERS.flatMap((marker) =>
     LEGACY_FILE_SKIP_REASONS.map((reason) => has(`${marker} skipped, ${reason}`)),
   ).join(' OR ');
-  return `SELECT id, candidate_id, title, source_url, source_domain, admin_notes
+  return `SELECT id, candidate_id, title, source_url, source_domain, provenance_notes, admin_notes
          FROM content_items
          WHERE media_asset_id IS NULL AND superseded_at IS NULL AND content_type = 'photo'
-           AND source_domain IN ('loc.gov', 'commons.wikimedia.org')
+           AND source_domain IN ('loc.gov', 'commons.wikimedia.org', 'dp.la')
            AND (
              admin_notes IS NULL
              OR (${anyMarker})
@@ -272,3 +272,58 @@ export function masterTargetSize(width, height, maxLongSide = MASTER_MAX_LONG_SI
   const scale = maxLongSide / side;
   return { width: Math.max(1, Math.round(width * scale)), height: Math.max(1, Math.round(height * scale)), scaled: true };
 }
+
+/** Thumbnail and media links that discovery recorded in a DPLA row's provenance notes (#4902). */
+export function parseDplaLinks(provenanceNotes) {
+  const notes = String(provenanceNotes ?? '');
+  const thumbnail = /DPLA thumbnail \(object\): (https?:\/\/\S+?)\. DPLA media links/.exec(notes)?.[1] ?? null;
+  const viewText = /DPLA media links \(hasView\): (.+?)\. DPLA is a pure aggregator/.exec(notes)?.[1] ?? '';
+  const views = viewText.split(/\s+/).filter((part) => /^https?:\/\//.test(part));
+  const institution = /Contributing institution: (.+?)\. Provider \(hub\)/.exec(notes)?.[1] ?? '';
+  return { thumbnail, views, institution };
+}
+
+const IIIF_LONG_EDGE = 3000;
+
+function digitalCommonwealthId(url) {
+  return /\/ark:\/50959\/([a-z0-9]+)/i.exec(url)?.[1] ?? null;
+}
+
+/**
+ * Full-size image links to try, best first, for a DPLA record from a library whose layout is known:
+ * NYPL Digital Collections, Boston Public Library via Digital Commonwealth, and ContentDM sites.
+ * Libraries not listed here return an empty ladder. Links are guesses from each library's published
+ * layout, so every one that fails is named in the skip note (#4902).
+ */
+export function buildDplaImageLadder({ thumbnail, views = [] }) {
+  const ladder = [];
+  const add = (url, label) => {
+    if (url && !ladder.some((entry) => entry.url === url)) ladder.push({ url, label });
+  };
+  for (const raw of [thumbnail, ...views].filter(Boolean)) {
+    let parsed;
+    try {
+      parsed = new URL(raw);
+    } catch {
+      continue;
+    }
+    const host = parsed.hostname.toLowerCase();
+    if (host === 'images.nypl.org') {
+      const id = parsed.searchParams.get('id');
+      if (id) for (const size of ['g', 'q', 'w']) add(`https://images.nypl.org/index.php?id=${encodeURIComponent(id)}&t=${size}`, `NYPL size ${size}`);
+    } else if (host === 'ark.digitalcommonwealth.org' || host === 'iiif.digitalcommonwealth.org') {
+      const id = digitalCommonwealthId(raw) ?? /commonwealth:([a-z0-9]+)/i.exec(raw)?.[1] ?? null;
+      if (id) {
+        add(`https://iiif.digitalcommonwealth.org/iiif/2/commonwealth:${id}/full/!${IIIF_LONG_EDGE},${IIIF_LONG_EDGE}/0/default.jpg`, 'Digital Commonwealth IIIF');
+        add(`https://ark.digitalcommonwealth.org/ark:/50959/${id}/large`, 'Digital Commonwealth large');
+      }
+    } else if (host.endsWith('.contentdm.oclc.org')) {
+      const match = /\/collection\/([^/]+)\/id\/(\d+)/.exec(parsed.pathname);
+      if (match) add(`https://${host}/digital/iiif/${match[1]}/${match[2]}/full/!${IIIF_LONG_EDGE},${IIIF_LONG_EDGE}/0/default.jpg`, 'ContentDM IIIF');
+    }
+  }
+  return ladder;
+}
+
+/** Library hosts a DPLA row may be fetched from, added in code so no production allowlist data changes (#4902). */
+export const DPLA_EXTRA_APPROVED_DOMAINS = ['images.nypl.org', 'ark.digitalcommonwealth.org', 'iiif.digitalcommonwealth.org', 'contentdm.oclc.org'];
