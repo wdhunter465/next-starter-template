@@ -44,6 +44,13 @@ export const FOLDER_RULES = [
     prefix: 'docs/ops/',
     folderClass: 'operational',
   },
+  // Approved adjacent folders (DIATAXIS-FOLDER-AUTHORITY.md): header checks only.
+  // They are not DIATAXIS knowledge folders, so no Doc Type or structure rule applies,
+  // and they are not "outside" the approved set either.
+  { prefix: 'docs/governance/', folderClass: 'approved-adjacent' },
+  { prefix: 'docs/archive/', folderClass: 'approved-adjacent' },
+  { prefix: 'docs/templates/', folderClass: 'approved-adjacent' },
+  { prefix: 'docs/README.md', folderClass: 'approved-adjacent' },
 ];
 
 export const REQUIRED_HEADER_FIELDS = [
@@ -65,6 +72,20 @@ export function ruleForFile(file) {
 export function readChangedFiles(path) {
   if (!path || !fs.existsSync(path)) return [];
   return fs.readFileSync(path, 'utf8').split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+}
+
+// Every markdown file under docs/, relative to root, sorted. Used by the full-tree mode.
+export function listDocsMarkdown(root = '.') {
+  const out = [];
+  const walk = (dir) => {
+    for (const entry of fs.readdirSync(`${root}/${dir}`, { withFileTypes: true })) {
+      const rel = `${dir}/${entry.name}`;
+      if (entry.isDirectory()) walk(rel);
+      else if (entry.isFile() && entry.name.endsWith('.md')) out.push(rel);
+    }
+  };
+  if (fs.existsSync(`${root}/docs`)) walk('docs');
+  return out.sort();
 }
 
 export function auditDiataxisFile(file, content) {
@@ -100,6 +121,10 @@ export function auditDiataxisFile(file, content) {
         correction: `Populate ${field} in the document header.`,
       });
     }
+  }
+
+  if (rule.folderClass === 'approved-adjacent') {
+    return findings;
   }
 
   if (rule.folderClass === 'operational') {
@@ -189,9 +214,15 @@ export function renderDiataxisReport(findings) {
 }
 
 export function runCli(env = process.env) {
-  const changedFilesPath = env.DIATAXIS_CHANGED_FILES_FILE;
-  const files = readChangedFiles(changedFilesPath);
-  const findings = auditDiataxisFiles(files, { root: env.DIATAXIS_ROOT || '.' });
+  const root = env.DIATAXIS_ROOT || '.';
+  // DIATAXIS_ALL=1 audits every docs markdown file. Without it, only the files listed in
+  // DIATAXIS_CHANGED_FILES_FILE are audited, and an unset list audits nothing.
+  const files = env.DIATAXIS_ALL === '1'
+    ? listDocsMarkdown(root)
+    : readChangedFiles(env.DIATAXIS_CHANGED_FILES_FILE);
+  const findings = auditDiataxisFiles(files, { root });
+  // stderr keeps the stdout report (posted as a PR comment) unchanged.
+  console.error(`DIATAXIS audit: ${files.length} file(s) audited, ${findings.length} finding(s)`);
   console.log(renderDiataxisReport(findings));
   return findings.length === 0 ? 0 : 1;
 }
