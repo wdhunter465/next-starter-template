@@ -410,3 +410,7 @@ data/b2/new_objects_upsert.sql
 /docs/ops/diagnostics/*.txt
 /docs/ops/diagnostics/*.html
 *.zip
+
+# Output of scripts/ci/post_merge_diataxis_audit.mjs (uploaded as a CI artifact, never committed)
+/post-merge-diataxis.md
+/post-merge-diataxis.json
