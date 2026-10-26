@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Gate profiles, check classification, deterministic evidence, validation ownership, promotion verification criteria, failure routing, remediation boundaries, and post-merge verification ownership
 Does Not Own: Delivery Model A/B selection, agent approval routing, branch-protection UI settings, workflow YAML implementation, product/UX behavior, or platform isolation claims
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2689, #2686, #3668, #3671, #3807, #3746, #3751, #3771, #2769, #4174, #4089, #4200, #4213
-Last Reviewed: 2026-10-16
+Related Issues: #2689, #2686, #3668, #3671, #3807, #3746, #3751, #3771, #2769, #4174, #4089, #4200, #4213, #4775
+Last Reviewed: 2026-10-26
 ---
 
 # CI and Verification
@@ -66,7 +66,7 @@ When CI or verification sources conflict inside this domain, resolve in this ord
 6. Source GitHub issue allowlist and acceptance criteria for the active task
 7. Historical explanation, retired inventories, or evolution records (non-binding)
 
-Live PR check panel state and latest head workflow runs outrank agent memory when readiness is claimed. See `docs/ops/ai/CORE-RULES.md` operational truth hierarchy for gate troubleshooting.
+Live PR check panel state and latest head workflow runs outrank agent memory when readiness is claimed. See `docs/governance/AGENT-EXECUTION.md` for gate troubleshooting.
 
 ## Check classification
 
