@@ -21,6 +21,8 @@ import {
   buildDplaImageLadder,
   parseDplaLinks,
   createThrottleTracker,
+  digitalCommonwealthImageUrl,
+  parseDigitalCommonwealthManifest,
 } from '../scripts/content-pipeline/archive-ingest-lib.mjs';
 
 const lists = {
@@ -286,18 +288,37 @@ describe('DPLA image ladder (#4902)', () => {
     expect(parseDplaLinks(null)).toEqual({ thumbnail: null, views: [], institution: '' });
   });
 
-  it('builds full-size links for NYPL and Digital Commonwealth, and nothing else', () => {
+  it('builds one NYPL link and one Digital Commonwealth manifest link, and nothing else', () => {
     expect(buildDplaImageLadder({ thumbnail: 'http://images.nypl.org/index.php?id=123&t=t' }).map((s) => s.url)).toEqual([
-      'https://images.nypl.org/index.php?id=123&t=g',
-      'https://images.nypl.org/index.php?id=123&t=q',
       'https://images.nypl.org/index.php?id=123&t=w',
     ]);
     expect(buildDplaImageLadder({ thumbnail: 'https://ark.digitalcommonwealth.org/ark:/50959/xyz123/thumbnail' }).map((s) => s.url)).toEqual([
-      'https://iiif.digitalcommonwealth.org/iiif/2/commonwealth:xyz123/full/!3000,3000/0/default.jpg',
-      'https://ark.digitalcommonwealth.org/ark:/50959/xyz123/large',
+      'https://ark.digitalcommonwealth.org/ark:/50959/xyz123/manifest',
     ]);
     expect(buildDplaImageLadder({ thumbnail: 'https://cdm1.contentdm.oclc.org/utils/getthumbnail/collection/p1/id/42' })).toEqual([]);
     expect(buildDplaImageLadder({ thumbnail: 'https://example.org/x.jpg', views: [] })).toEqual([]);
+  });
+
+  it('reads the image service out of a Digital Commonwealth manifest and sizes the JPEG link', () => {
+    const manifest = {
+      sequences: [
+        {
+          canvases: [
+            {
+              images: [
+                { resource: { width: 3816, height: 4872, service: { '@id': 'https://iiif.digitalcommonwealth.org/iiif/2/commonwealth:b5645333w' } } },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const image = parseDigitalCommonwealthManifest(manifest);
+    expect(image).toEqual({ service: 'https://iiif.digitalcommonwealth.org/iiif/2/commonwealth:b5645333w', width: 3816, height: 4872 });
+    expect(digitalCommonwealthImageUrl(image!)).toBe('https://iiif.digitalcommonwealth.org/iiif/2/commonwealth:b5645333w/full/!3000,3000/0/default.jpg');
+    expect(digitalCommonwealthImageUrl({ ...image!, width: 1200, height: 900 })).toBe('https://iiif.digitalcommonwealth.org/iiif/2/commonwealth:b5645333w/full/full/0/default.jpg');
+    expect(parseDigitalCommonwealthManifest({})).toBeNull();
+    expect(parseDigitalCommonwealthManifest({ sequences: [{ canvases: [{ images: [{ resource: { service: { '@id': 'https://evil.example/x' } } }] }] }] })).toBeNull();
   });
 
   it('selects dp.la rows for archiving', () => {

@@ -64,6 +64,8 @@ const {
   ARCHIVE_HOLD_REASON,
   backoffDelayMs,
   buildDplaImageLadder,
+  digitalCommonwealthImageUrl,
+  parseDigitalCommonwealthManifest,
   createThrottleTracker,
   DPLA_EXTRA_APPROVED_DOMAINS,
   parseDplaLinks,
@@ -188,9 +190,28 @@ async function resolveDpla(row, minimumLongSide) {
   if (!ladder.length) throw new SkipError(`no known full-size image layout for ${links.institution || 'this library'}${links.thumbnail ? ` (thumbnail ${links.thumbnail})` : ' (no thumbnail recorded)'}`);
   const tried = [];
   for (const step of ladder) {
+    let imageUrl = step.url;
+    if (step.url.endsWith('/manifest')) {
+      let image = null;
+      try {
+        image = parseDigitalCommonwealthManifest(await (await fetchOk(step.url, 'application/json', 30_000)).json());
+      } catch (error) {
+        tried.push(`${step.label}: ${error instanceof Error ? error.message.slice(0, 80) : 'failed'}`);
+        continue;
+      }
+      if (!image) {
+        tried.push(`${step.label}: no image service in the manifest`);
+        continue;
+      }
+      if (longSideOf(image.width, image.height) < minimumLongSide) {
+        tried.push(`${step.label}: ${image.width}x${image.height}`);
+        continue;
+      }
+      imageUrl = digitalCommonwealthImageUrl(image);
+    }
     let response;
     try {
-      response = await fetchOk(step.url, 'image/*');
+      response = await fetchOk(imageUrl, 'image/*');
     } catch (error) {
       tried.push(`${step.label}: ${error instanceof Error ? error.message.slice(0, 80) : 'failed'}`);
       continue;
@@ -207,7 +228,7 @@ async function resolveDpla(row, minimumLongSide) {
       continue;
     }
     return {
-      url: step.url,
+      url: imageUrl,
       mimetype: (response.headers.get('content-type') || 'image/jpeg').split(';')[0].trim().toLowerCase(),
       width: size.width,
       height: size.height,
