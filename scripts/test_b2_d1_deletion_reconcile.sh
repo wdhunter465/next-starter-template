@@ -107,7 +107,7 @@ if ! grep -q "phase 2b reconciliation" "$RECONCILE_SCRIPT"; then
   echo "  ✗ FAILED: Script should reconcile media_assets/content_items (phase 2b)"
   exit 1
 fi
-if ! grep -q "SELECT b2_key AS k FROM media_assets" "$RECONCILE_SCRIPT"; then
+if ! grep -q "SELECT b2_key AS k, media_uid AS u FROM media_assets" "$RECONCILE_SCRIPT"; then
   echo "  ✗ FAILED: Script should query media_assets.b2_key"
   exit 1
 fi
@@ -147,6 +147,94 @@ if ! grep -q 'require_json_response "\$MEDIA_D1_OUT"' "$RECONCILE_SCRIPT"; then
   exit 1
 fi
 echo "  ✓ PASSED"
+
+echo "Test 12: Phase 2b reports what it retired, not the stale-key count (#4885)..."
+# Runs the real script against fake aws and wrangler binaries. One media_assets key
+# (gone.jpg) is missing from B2. The fake D1 says how many live content_items rows
+# reference it, so the three cases below exercise the reporting path end to end.
+run_phase2b() {
+  local ref_count="$1" tmp
+  tmp="$(mktemp -d)"
+  mkdir -p "$tmp/bin" "$tmp/work"
+  cat > "$tmp/bin/aws" <<'AWS'
+#!/usr/bin/env bash
+echo '{"Contents":[{"Key":"p1.jpg"},{"Key":"p2.jpg"}],"IsTruncated":false}'
+AWS
+  cat > "$tmp/bin/wrangler" <<'WR'
+#!/usr/bin/env bash
+mode=""; payload=""
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --command) mode="command"; payload="$2"; shift 2 ;;
+    --file) mode="file"; payload="$2"; shift 2 ;;
+    *) shift ;;
+  esac
+done
+emit() { echo "[{\"results\":$1,\"success\":true,\"meta\":{}}]"; }
+if [[ "$mode" == "file" ]]; then
+  cat "$payload" >> "$FAKE_WRITES"
+  emit '[]'
+  exit 0
+fi
+case "$payload" in
+  "PRAGMA table_info(photos);")
+    emit '[{"name":"id","type":"INTEGER"},{"name":"url","type":"TEXT"},{"name":"photo_id","type":"TEXT"},{"name":"is_matchup_eligible","type":"INTEGER"},{"name":"rights_notes","type":"TEXT"}]' ;;
+  "SELECT \"photo_id\" AS k FROM photos"*)
+    emit '[{"k":"p1.jpg"},{"k":"p2.jpg"}]' ;;
+  "SELECT name FROM sqlite_master"*)
+    emit '[{"name":"media_assets"},{"name":"content_items"}]' ;;
+  "SELECT b2_key AS k, media_uid AS u FROM media_assets"*)
+    emit '[{"k":"p1.jpg","u":"u1"},{"k":"gone.jpg","u":"ugone"}]' ;;
+  "SELECT COUNT(*) AS n FROM content_items"*)
+    echo "$payload" >> "$FAKE_COUNT_QUERIES"
+    emit "[{\"n\":$FAKE_REF_COUNT}]" ;;
+  *weekly_matchups*)
+    emit '[]' ;;
+  *)
+    echo "unexpected fake wrangler payload: $payload" >&2; exit 97 ;;
+esac
+WR
+  chmod +x "$tmp/bin/aws" "$tmp/bin/wrangler"
+  : > "$tmp/writes.sql"; : > "$tmp/count_queries.sql"; : > "$tmp/out"
+  set +e
+  (cd "$tmp/work" && PATH="$tmp/bin:$PATH" FAKE_WRITES="$tmp/writes.sql" FAKE_COUNT_QUERIES="$tmp/count_queries.sql" \
+    FAKE_REF_COUNT="$ref_count" GITHUB_OUTPUT="$tmp/out" \
+    B2_ENDPOINT="https://s3.us-west-004.backblazeb2.com" B2_BUCKET="bucket" B2_KEY_ID="k" B2_APP_KEY="s" \
+    D1_DATABASE_NAME="db" CLOUDFLARE_API_TOKEN="t" CLOUDFLARE_ACCOUNT_ID="a" \
+    bash "$RECONCILE_SCRIPT" > "$tmp/stdout" 2> "$tmp/stderr")
+  RUN_EXIT=$?
+  set -e
+  RUN_DIR="$tmp"
+}
+
+# Case A: the stale key has no live content_items reference.
+run_phase2b 0
+if [[ "$RUN_EXIT" -ne 0 ]]; then echo "  ✗ FAILED (unreferenced): script exited $RUN_EXIT"; cat "$RUN_DIR/stderr"; exit 1; fi
+if ! grep -qx "media_assets_retired_count=0" "$RUN_DIR/out"; then echo "  ✗ FAILED: an unreferenced stale key must report 0 retired content_items rows"; cat "$RUN_DIR/out"; exit 1; fi
+if ! grep -qx "media_assets_stale_count=1" "$RUN_DIR/out"; then echo "  ✗ FAILED: the stale register key should still be reported separately"; cat "$RUN_DIR/out"; exit 1; fi
+if ! grep -qx "has_findings=false" "$RUN_DIR/out"; then echo "  ✗ FAILED: an unreferenced stale key must not raise a finding"; cat "$RUN_DIR/out"; exit 1; fi
+if [[ -s "$RUN_DIR/writes.sql" ]]; then echo "  ✗ FAILED: nothing should be written when no live row references the key"; cat "$RUN_DIR/writes.sql"; exit 1; fi
+if ! grep -q "'b2://gone.jpg'" "$RUN_DIR/count_queries.sql" || ! grep -q "'media_uid:ugone'" "$RUN_DIR/count_queries.sql"; then echo "  ✗ FAILED: the count must cover both the b2:// and media_uid: reference forms"; cat "$RUN_DIR/count_queries.sql"; exit 1; fi
+if ! grep -q "content_items_retired=0 media_assets_stale=1" "$RUN_DIR/stderr"; then echo "  ✗ FAILED: summary should say 0 retired and 1 stale"; cat "$RUN_DIR/stderr"; exit 1; fi
+rm -rf "$RUN_DIR"
+echo "  ✓ PASSED (unreferenced stale key: 0 retired, no finding, no write)"
+
+# Case B: two live content_items rows reference the stale key.
+run_phase2b 2
+if [[ "$RUN_EXIT" -ne 0 ]]; then echo "  ✗ FAILED (referenced): script exited $RUN_EXIT"; cat "$RUN_DIR/stderr"; exit 1; fi
+if ! grep -qx "media_assets_retired_count=2" "$RUN_DIR/out"; then echo "  ✗ FAILED: retired count must equal the live rows referencing the key"; cat "$RUN_DIR/out"; exit 1; fi
+if ! grep -qx "has_findings=true" "$RUN_DIR/out"; then echo "  ✗ FAILED: a referenced stale key must raise a finding"; cat "$RUN_DIR/out"; exit 1; fi
+if ! grep -q "UPDATE content_items SET deleted_at" "$RUN_DIR/writes.sql" || ! grep -q "b2://gone.jpg" "$RUN_DIR/writes.sql"; then echo "  ✗ FAILED: a referenced stale key must still be soft-deleted"; cat "$RUN_DIR/writes.sql"; exit 1; fi
+if grep -qE 'DELETE[[:space:]]+FROM' "$RUN_DIR/writes.sql"; then echo "  ✗ FAILED: no hard delete may be issued"; exit 1; fi
+rm -rf "$RUN_DIR"
+echo "  ✓ PASSED (referenced stale key: retired count equals rows, finding raised, soft-delete issued)"
+
+# Case C: an unparseable count must fail closed.
+run_phase2b '"oops"'
+if [[ "$RUN_EXIT" -eq 0 ]]; then echo "  ✗ FAILED: a non-numeric reference count must make the script fail, not guess"; exit 1; fi
+if [[ -s "$RUN_DIR/writes.sql" ]]; then echo "  ✗ FAILED: nothing should be written after a failed count"; exit 1; fi
+rm -rf "$RUN_DIR"
+echo "  ✓ PASSED (non-numeric count fails closed, nothing written)"
 
 echo ""
 echo "============================================"
