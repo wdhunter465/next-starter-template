@@ -1,12 +1,12 @@
 ---
 Doc Type: Reference
-Audience: LGFC operators, editors, and Bill/ChatGPT
+Audience: LGFC operators, editors, and Product Authority
 Authority Level: Controlled
 Owns: Clearance states, public-domain review, privacy review, excerpt/summary treatment, and no-publish conditions
 Does Not Own: Legal conclusions, runtime enforcement, or public publication
 Canonical Reference: /docs/ops/pmo/lou-gehrig-content-collection-expansion-readiness.md
 Related issues: #1738, #1742, #1741, #4524, #4727
-Last Reviewed: 2026-10-20
+Last Reviewed: 2026-10-26
 ---
 
 # Lou Gehrig Rights, Privacy, and Publication Review Model
@@ -16,7 +16,7 @@ Last Reviewed: 2026-10-20
 Define operator review workflow for rights clearance, copyright assessment,
 privacy review, excerpt/summary treatment, and conditions that block publication.
 
-This is an operator review workflow, not legal advice. Bill/ChatGPT retain final
+This is an operator review workflow, not legal advice. Product Authority retains final
 authority on ambiguous cases.
 
 ## Clearance states
@@ -243,7 +243,7 @@ mailbox and referenced from `rights_evidence`.
 1. Identify work type (text, photo, government document, etc.).
 2. Determine publication date and jurisdiction considerations.
 3. Document assessment in notes; do not assume PD from age alone.
-4. Set `public-domain-candidate` until Bill/ChatGPT or qualified review confirms. The exception is a work first published before January 1, 1931 whose first-publication date and the source of that date are recorded: it is public domain, needs no confirmation wait, and takes the existing public-domain label (see Old content is not automatically free).
+4. Set `public-domain-candidate` until Product Authority or qualified review confirms. The exception is a work first published before January 1, 1931 whose first-publication date and the source of that date are recorded: it is public domain, needs no confirmation wait, and takes the existing public-domain label (see Old content is not automatically free).
 5. Confirmed public domain may proceed to `approved-for-reference` or public-copy path.
 
 ### Old content is not automatically free (Product Authority, 2026-10-20)
@@ -264,7 +264,7 @@ Age alone does not make content free to use.
 | `none` | Standard review |
 | `living-person` | Verify consent or public-interest editorial justification |
 | `donor/member` | Apply Fan Club privacy rules; no unauthorized disclosure |
-| `minors` | Escalate to Bill/ChatGPT; default reject for public use |
+| `minors` | Escalate to Product Authority; default reject for public use |
 | `sensitive` | Redact or defer; document mitigation |
 | `other` | Document case-specific review in notes |
 
