@@ -1,12 +1,12 @@
 ---
 Doc Type: Operations Report
-Audience: Bill, ChatGPT, PMO operators
+Audience: Bill, Governance, PMO operators
 Authority Level: Evidence / Audit
 Owns: PMO dashboard tracking reconciliation audit for issue #2299
 Does Not Own: Final priority authorization or issue closeout
 Canonical Reference: /docs/ops/pmo/PMO-JULY-2026-OPERATING-MODEL.md
-Related Issues: #2299, #1719, #2313, #2610, #2611
-Last Reviewed: 2026-07-18
+Related Issues: #2299, #1719, #2313, #2610, #2611, #4776
+Last Reviewed: 2026-10-26
 ---
 
 # PMO Dashboard Tracking Audit — Issue #2299
