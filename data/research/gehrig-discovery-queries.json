@@ -1,0 +1,54 @@
+{
+  "description": "Curated search queries for Gehrig content discovery (#4890). Pass a batch to the discovery workflow's query input joined with '|'. A query appears in one batch only.",
+  "batches": {
+    "names": [
+      "Lou Gehrig",
+      "Gehrig, Lou",
+      "Henry Louis Gehrig",
+      "Lou Gehrig baseball",
+      "Iron Horse Gehrig",
+      "Lou Gehrig New York Yankees"
+    ],
+    "teammates": [
+      "Gehrig Babe Ruth",
+      "Gehrig Joe DiMaggio",
+      "Gehrig Bill Dickey",
+      "Gehrig Tony Lazzeri",
+      "Gehrig Earle Combs",
+      "Gehrig Joe McCarthy",
+      "Gehrig Miller Huggins",
+      "Gehrig Murderers Row",
+      "Gehrig Bob Meusel"
+    ],
+    "events": [
+      "Gehrig World Series 1927",
+      "Gehrig World Series 1928",
+      "Gehrig World Series 1932",
+      "Gehrig World Series 1936",
+      "Gehrig World Series 1937",
+      "Gehrig World Series 1938",
+      "Gehrig farewell Yankee Stadium 1939",
+      "Lou Gehrig Appreciation Day",
+      "Gehrig Hall of Fame 1939",
+      "Gehrig all-star game",
+      "Gehrig consecutive games streak",
+      "Gehrig Japan tour 1934",
+      "Gehrig Eleanor Gehrig",
+      "Gehrig ALS"
+    ],
+    "places-and-collections": [
+      "Gehrig Columbia University",
+      "Gehrig Hartford Senators",
+      "Gehrig Yankee Stadium",
+      "Gehrig Bain News Service",
+      "Gehrig Harris Ewing",
+      "Gehrig Washington Senators",
+      "Gehrig Detroit Tigers",
+      "Gehrig Philadelphia Athletics",
+      "Gehrig Boston Red Sox",
+      "Gehrig Cleveland Indians",
+      "Gehrig St. Louis Browns",
+      "Gehrig Chicago White Sox"
+    ]
+  }
+}
