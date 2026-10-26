@@ -1,16 +1,12 @@
 ---
-description: On a new Cursor Local session, run the repo session-open tasks before other work
+description: On a new Cursor Local session, run startup before other work
 alwaysApply: true
 ---
 
-# Session open (#4676)
+# Session open
 
-When this Cursor Local session opens, before other repository work, perform **Session open** in `docs/ops/ai/CURSOR-RULES.md`.
+When this Cursor Local session opens, run the startup contract in `docs/ops/ai/CURSOR-RULES.md`, then follow the session lifecycle in `docs/governance/AGENT-EXECUTION.md`.
 
-Run this script. Do not invent a second stop path:
+Run `~/.cursor/lgfc-wake-ctl.sh startup --session <this chat uuid>`. Do not rebind. Do not stop another session's loop. Do not start a second loop. The wake tick is a keepalive, not the task list.
 
-`~/.cursor/lgfc-wake-ctl.sh startup --session <this chat uuid>`
-
-Do not `rebind`. A second chat may start `~/.cursor/lgfc-always-on-loop.sh` only when `/tmp/lgfc-wake-live-session` is empty, `~/.cursor/lgfc-wake-halt` is absent, and Product Authority has asked for the poll to run. If a live session is recorded and the loop is stopped, report it and leave it stopped. Poll results are in `~/.cursor/lgfc-wake-poll-inbox.json`. Do not kill the GitHub Actions runner.
-
-Then review the Operations queue and suggest the next step. Summarize a session only when this chat is the recorded owner and that session was closed. If the next step is ambiguous or there is no clear next work item, say so in the session prompt and stop. This does not authorize an Issue, a pull request, or a file edit.
+Startup authorizes no Issue, pull request, or file edit. An unapproved Cursor workaround is denied.

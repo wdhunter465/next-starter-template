@@ -6,10 +6,34 @@ import { appendOpsStepSummary, escalateOpsRuntimeFailure } from '../ci/ops_runti
 
 export const ESCALATION_TITLE = 'OPS — Site uptime probe — failure detected';
 
+const SITE = 'https://www.lougehrigfanclub.com';
+
+// Keep in step with PUBLIC_SITEMAP_ROUTES in src/lib/publicSiteMetadata.ts (#4685).
+export const SITEMAP_ROUTE_PATHS = [
+  '/',
+  '/about/',
+  '/accessibility/',
+  '/ask/',
+  '/contact/',
+  '/events/',
+  '/join/',
+  '/privacy/',
+  '/search/',
+  '/terms/',
+];
+
+function pageTarget(path) {
+  return {
+    name: path === '/' ? 'home (www)' : path.replace(/^\/|\/$/g, ''),
+    url: `${SITE}${path}`,
+  };
+}
+
 export const DEFAULT_TARGETS = [
-  { name: 'home (www)', url: 'https://www.lougehrigfanclub.com/' },
-  { name: 'faq (www)', url: 'https://www.lougehrigfanclub.com/faq/' },
-  { name: 'api health + D1', url: 'https://www.lougehrigfanclub.com/api/health', expectJson: { ok: true, db_ok: true } },
+  ...SITEMAP_ROUTE_PATHS.map(pageTarget),
+  { name: 'fanclub (signed out)', url: `${SITE}/fanclub`, expectRedirect: true },
+  { name: 'faq (www)', url: `${SITE}/faq/` },
+  { name: 'api health + D1', url: `${SITE}/api/health`, expectJson: { ok: true, db_ok: true } },
   { name: 'pages.dev host', url: 'https://next-starter-template-6yr.pages.dev/' },
   { name: 'apex domain', url: 'https://lougehrigfanclub.com/' },
 ];
@@ -22,11 +46,19 @@ export async function checkOnce(target, { fetchImpl = fetch, timeoutMs = 15_000 
   const started = Date.now();
   try {
     const response = await fetchImpl(target.url, {
-      redirect: 'follow',
+      redirect: target.expectRedirect ? 'manual' : 'follow',
       signal: AbortSignal.timeout(timeoutMs),
       headers: { 'User-Agent': 'lgfc-site-uptime-probe' },
     });
     const elapsedMs = Date.now() - started;
+    if (target.expectRedirect) {
+      const redirected = response.status >= 300 && response.status < 400 && response.status !== 304;
+      if (redirected) return { ok: true, status: response.status, elapsedMs, reason: '' };
+      const reason = response.status === 200
+        ? 'expected a sign-in redirect, got HTTP 200'
+        : `HTTP ${response.status}`;
+      return { ok: false, status: response.status, elapsedMs, reason };
+    }
     if (response.status < 200 || response.status > 299) {
       return { ok: false, status: response.status, elapsedMs, reason: `HTTP ${response.status}` };
     }
