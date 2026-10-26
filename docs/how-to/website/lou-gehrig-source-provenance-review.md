@@ -6,7 +6,7 @@ Owns: Provenance, rights, credit, factual, and privacy review procedure for Lou 
 Does Not Own: Automated scraping, OCR, enrichment, monitoring, or publication
 Canonical Reference: /docs/reference/website/lou-gehrig-source-provenance-model.md
 Related issues: #1738, #1742, #1741
-Last Reviewed: 2026-07-04
+Last Reviewed: 2026-10-26
 ---
 
 # Lou Gehrig Source Provenance Review
@@ -103,7 +103,7 @@ When rejecting, select or document one or more:
 | medium | Single reputable secondary source |
 | low | Conflicting sources, interpretive content, or single weak source |
 
-Low factual confidence blocks `approved-for-public-copy` unless Bill/ChatGPT approves with stated uncertainty.
+Low factual confidence blocks `approved-for-public-copy` unless Product Authority approves with stated uncertainty.
 
 ## AI-assistance boundary
 
@@ -117,7 +117,7 @@ If rights, factual confidence, or privacy is unclear:
 
 1. Set status to `needs-rights-review`, `needs-source`, or `deferred`.
 2. Document escalation reason in notes.
-3. Notify Bill/ChatGPT for launch-critical or high-risk items.
+3. Notify Product Authority for launch-critical or high-risk items.
 4. Do not publish.
 
 Detailed clearance states: `docs/reference/website/lou-gehrig-rights-privacy-publication-review.md`.

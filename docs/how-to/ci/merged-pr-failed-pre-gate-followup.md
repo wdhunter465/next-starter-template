@@ -5,15 +5,15 @@ Authority Level: Operational
 Owns: Operator procedure when a merged PR still carries failed required pre-merge checks, including verification of automatic remediation and manual fallback when automation does not run
 Does Not Own: Merge authorization, branch protection policy, workflow YAML implementation, or gate definition changes
 Canonical Reference: /docs/reference/ci/post-merge-validation-surface.md
-Related Issues: #2376, #2374, #2380, #2373
-Last Reviewed: 2026-07-08
+Related Issues: #2376, #2374, #2380, #2373, #4776
+Last Reviewed: 2026-10-26
 ---
 
 # Merged PR With Failed Pre-Gate — Operator Follow-Up
 
 ## Purpose
 
-Bill and ChatGPT may authorize merge while a required pre-merge check remains failed on the PR head (for example, an accepted exception during launch). Merge authorization does not resolve the underlying gate failure.
+Product Authority may authorize merge while a required pre-merge check remains failed on the PR head (for example, an accepted exception during launch). Merge authorization does not resolve the underlying gate failure.
 
 This how-to defines what operators must verify after merge, how automatic post-merge remediation should surface the condition, and the manual fallback when automation does not create or update an Ops issue.
 
@@ -44,11 +44,11 @@ Canonical example (Phase 0 launch, 2026-07-08):
 | Role | Owns |
 | --- | --- |
 | Bill | Final merge authorization; deciding whether merge proceeds with a failed required check |
-| ChatGPT | Governance review, remediation routing, merge-readiness synthesis, authorized issue/PR comments |
+| Governance | Governance review, remediation routing, merge-readiness synthesis, authorized issue/PR comments |
 | Cursor | Scoped implementation or docs PRs when a source issue authorizes them; must not infer merge exceptions from chat |
 | Post-Merge Detection | Validates merged state and triggers remediation issue creation or update when validation fails |
 
-Merge with a failed required check is an **accepted exception** only when Bill or ChatGPT records that decision in the PR, source issue, or an authorized ops note before or at merge time.
+Merge with a failed required check is an **accepted exception** only when Product Authority records that decision in the PR, source issue, or an authorized ops note before or at merge time.
 
 ## Expected automatic behavior (post #2380)
 
@@ -122,7 +122,7 @@ Separate process visibility (#2376) from underlying gate failure (#2374 for ZIP 
 | --- | --- |
 | Why no Ops issue appeared (historical gap) | #2376 documentation and automation verification |
 | How to fix the ZIP or other gate failure | Root-cause ops issue (#2374 or successor) |
-| Whether launch may continue | Bill/ChatGPT decision on parent program issue |
+| Whether launch may continue | Product Authority decision on parent program issue |
 
 Do not conflate these tracks in one undifferentiated issue body.
 
@@ -181,7 +181,7 @@ Record whether post-#2380 automation should have caught this case.
 ## What operators must not do
 
 - Do not assume a green merge commit means all gates are resolved.
-- Do not close the source task issue as complete while required failed-check remediation remains open unless Bill/ChatGPT records an accepted exception with authority citation.
+- Do not close the source task issue as complete while required failed-check remediation remains open unless Product Authority records an accepted exception with authority citation.
 - Do not redesign branch protection or merge policy from this procedure.
 - Do not perform repository-history remediation (for example ZIP history rewrite) from this procedure; route to the authorized root-cause issue (#2374).
 - Do not open duplicate Ops issues when an open canonical remediation issue already matches the same PR and failure condition.

@@ -5,8 +5,8 @@ Authority Level: Operational
 Owns: Git worktree setup, branch isolation, and session rules for multiple Cursor Local implementation sessions
 Does Not Own: Merge authorization, GitHub issue creation, CI workflow changes, or program queue dispatch
 Canonical Reference: /docs/ops/pmo/content-collection-parallel-execution-matrix.md
-Related Issues: #2363, #2359, #2360
-Last Reviewed: 2026-07-10
+Related Issues: #2363, #2359, #2360, #4776
+Last Reviewed: 2026-10-26
 ---
 
 # Cursor Parallel Worktree Operating Standard
@@ -23,7 +23,7 @@ Does not own merge authorization, GitHub issue creation, CI workflow changes, or
 
 ## Current known truth
 
-- One task → one branch → one worktree → one PR unless ChatGPT/Bill authorize bundling.
+- One task → one branch → one worktree → one PR unless Product Authority authorizes bundling.
 - Docs-only child issues use `cursor/<issue>-<task>-2e48` branch names (for example `cursor/2363-control-ops-docs-2e48`).
 - Implementation lanes may use descriptive lane branches only when the source issue explicitly assigns them.
 - Hot zones and allowlists are defined in `docs/ops/pmo/content-collection-parallel-execution-matrix.md`.
@@ -46,7 +46,7 @@ Before creating a worktree, verify on the source GitHub issue:
 | Hot-zone review | Yes — see parallel execution matrix |
 | Freeze marker | When lane depends on CC-001/CC-002 |
 | Validation plan | Yes |
-| Bill/ChatGPT execution authorization | Yes |
+| Product Authority execution authorization | Yes |
 
 Stop if any field is missing. Post `CHATGPT HANDOFF` on the issue.
 
@@ -82,7 +82,7 @@ Do not use lane-style branch names for docs-only issues.
 ### Step 4 — Execute within allowlist
 
 1. Edit only allowlisted paths.
-2. One task → one PR unless ChatGPT/Bill authorize bundling.
+2. One task → one PR unless Product Authority authorizes bundling.
 3. Keep PR draft until local validation passes.
 
 ### Step 5 — Collision halt
