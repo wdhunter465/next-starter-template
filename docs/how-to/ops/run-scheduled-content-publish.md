@@ -127,9 +127,10 @@ That endpoint:
 3. Fires one webhook per published post to
    `SCHEDULED_CONTENT_ZAPIER_WEBHOOK_URL` with `{ title, caption, body,
    image_url, image_alt, published_at, site_origin, schema_version, event_id,
-   post_url, ... }` (`image_url`/`image_alt` are `null` when the post has no
+   post_url, posts, ... }` (`image_url`/`image_alt` are `null` when the post has no
    image; `post_url` is `null` outside the Fundraiser Daily Details feed;
-   every field is defined in
+   `posts` holds a ready-to-post version for each social platform; every field
+   is defined in
    `/docs/reference/operations/social-crosspost-zapier-payload-contract.md`). A Zapier failure is
    logged but never rolls back the website publish — the two are
    independent.
