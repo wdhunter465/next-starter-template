@@ -1,12 +1,12 @@
 ---
 Doc Type: Reference
-Audience: LGFC operators, ChatGPT, Bill, and AI agents
+Audience: LGFC operators, Governance, Bill, and AI agents
 Authority Level: Controlled
 Owns: AI-assisted research guardrails, evidence-preservation requirements, and human-review boundaries for Lou Gehrig content collection
 Does Not Own: AI implementation, OCR, scrapers, or autonomous publishing
 Canonical Reference: /docs/ops/pmo/lou-gehrig-content-collection-expansion-readiness.md
 Related issues: #1738, #1745, #2040
-Last Reviewed: 2026-07-04
+Last Reviewed: 2026-10-26
 ---
 
 # Lou Gehrig Research AI Guardrails
