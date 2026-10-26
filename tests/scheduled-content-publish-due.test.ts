@@ -165,6 +165,57 @@ describe('POST /api/scheduled-content/publish-due (#4253)', () => {
     expect(payload.event_id).toMatch(/^home\.launch-announcement@v\d+$/);
   });
 
+  // #4936: a ready-to-post version per platform, so each Zap branch only maps fields.
+  it('adds a ready-to-post version for each platform to the Zapier payload (#4936)', async () => {
+    const db = makeScheduledContentDb([
+      dueRow({ image_url: 'https://b2.example.com/photo.jpg', image_alt: 'The trophy' }),
+    ]);
+    const env = {
+      DB: db,
+      SCHEDULED_CONTENT_BRIDGE_TOKEN: BRIDGE_TOKEN,
+      SCHEDULED_CONTENT_ZAPIER_WEBHOOK_URL: 'https://hooks.zapier.com/hooks/catch/test',
+    };
+
+    await publishDue({ request: postRequest(BRIDGE_TOKEN), env });
+
+    const [, init] = fetchMock.mock.calls[0];
+    const payload = JSON.parse(init.body);
+    const link = 'https://www.lougehrigfanclub.com/fundraiser-details/';
+
+    expect(Object.keys(payload.posts).sort()).toEqual(
+      ['facebook_group', 'facebook_page', 'instagram', 'pinterest', 'x'],
+    );
+    expect(payload.posts.facebook_page.text).toBe('Grand prize day! 🎉');
+    expect(payload.posts.facebook_page.link).toBe(link);
+    expect(payload.posts.instagram.skip).toBe(false);
+    expect(payload.posts.instagram.image_url).toBe('https://b2.example.com/photo.jpg');
+    expect(payload.posts.x.text).toBe(`Grand prize day! 🎉 ${link}`);
+    expect(payload.posts.pinterest.title).toBe('Grand prize announced!');
+    expect(payload.posts.pinterest.link).toBe(link);
+    // The existing fields are unchanged.
+    expect(payload.caption).toBe('Grand prize day! 🎉');
+    expect(payload.schema_version).toBe(1);
+  });
+
+  it('marks Instagram and Pinterest as skipped when the post has no image (#4936)', async () => {
+    const db = makeScheduledContentDb([dueRow()]);
+    const env = {
+      DB: db,
+      SCHEDULED_CONTENT_BRIDGE_TOKEN: BRIDGE_TOKEN,
+      SCHEDULED_CONTENT_ZAPIER_WEBHOOK_URL: 'https://hooks.zapier.com/hooks/catch/test',
+    };
+
+    await publishDue({ request: postRequest(BRIDGE_TOKEN), env });
+
+    const [, init] = fetchMock.mock.calls[0];
+    const payload = JSON.parse(init.body);
+    expect(payload.posts.instagram.skip).toBe(true);
+    expect(payload.posts.instagram.skip_reason).toBe('no_image');
+    expect(payload.posts.pinterest.skip).toBe(true);
+    expect(payload.posts.x.skip).toBe(false);
+    expect(payload.posts.facebook_page.image_url).toBeNull();
+  });
+
   it('does not publish a row scheduled for the future', async () => {
     const db = makeScheduledContentDb([dueRow({ scheduled_publish_at: FUTURE })]);
     const env = { DB: db, SCHEDULED_CONTENT_BRIDGE_TOKEN: BRIDGE_TOKEN };

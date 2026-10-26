@@ -5,7 +5,7 @@ Authority Level: Controlled
 Owns: The payload the scheduled-publish sweep sends to Zapier, the per-platform field mapping, and the Zap design for social cross-posting (plan step 3 of #4785)
 Does Not Own: Zapier account, plan or cost; platform connections or credentials; the decisions in plan step 1 of #4785; public announcement content and timing; the scheduled-publish authoring and sweep steps (see /docs/how-to/ops/run-scheduled-content-publish.md)
 Canonical Reference: /docs/reference/operations/2027-launch-calendar-operating-contract.md
-Related Issues: #4785, #4917, #4253, #4414, #4416, #4435, #4433, #4684, #4407
+Related Issues: #4785, #4917, #4936, #4253, #4414, #4416, #4435, #4433, #4684, #4407
 Last Reviewed: 2026-10-26
 ---
 
@@ -36,6 +36,21 @@ Sent by `functions/api/scheduled-content/publish-due.ts` (`postToZapier`): one `
 | `schema_version` | number | no | constant | `1`. Added in #4917. Bumped when a field is removed or changes meaning; adding a field does not bump it |
 | `event_id` | string | no | `key` and publish result | `<key>@v<version>`, for example `home.fundraiser-daily-details.2027-02-01@v2`. Stable for one publish of one post, so a retry or manual replay carries the same id. A re-publish at a new version is a new event. Added in #4917 |
 | `post_url` | string | yes | `site_origin` and the block's page and section | `https://www.lougehrigfanclub.com/fundraiser-details/` for the Fundraiser Daily Details feed, `null` for any other block. There is no per-post page yet, so it is the series page. Added in #4917 |
+| `posts` | object | no | formatter | One ready-to-post version per platform, described next. Added in #4936. Adding it did not change `schema_version` |
+
+### The `posts` object
+
+The website builds one ready-to-post version of each post per platform (`functions/_lib/social-post-formatter.ts`), so a Zap branch only maps fields and does no trimming of its own. Limits are counted in UTF-16 units, so an emoji counts as 2. That over-counts against every platform's own rule, which keeps a post inside the limit. Text is cut only when it is over the limit, ends with an ellipsis, never splits an emoji, and backs up to a word boundary when one is near the end. No hashtags are added; the hashtag rule is an open decision.
+
+| Entry | Fields | Rules |
+| --- | --- | --- |
+| `posts.facebook_page` | `text`, `link`, `image_url`, `image_alt` | `text` is `caption`. `link` is `post_url`. Posts with or without an image |
+| `posts.facebook_group` | `text`, `link`, `image_url`, `image_alt` | Same as the Page. Zapier cannot post to a Group, so this feeds the Group-admin reminder step |
+| `posts.instagram` | `caption`, `image_url`, `image_alt`, `skip`, `skip_reason` | `caption` is cut to 2,200 and carries no link, since a link in a caption is not clickable. `skip` is `true` with `skip_reason` `no_image` when the post has no image |
+| `posts.x` | `text`, `image_url`, `skip`, `skip_reason` | `text` is the caption, then a space, then `post_url`, within 280 in total. The caption is cut before the link, never through it. With no `post_url`, the caption alone within 280. `skip` is always `false`; a post without an image goes out as text |
+| `posts.pinterest` | `title`, `description`, `link`, `image_url`, `skip`, `skip_reason` | `title` is cut to 100 and `description` (the caption) to 500. `link` is `post_url`. `skip` is `true` with `skip_reason` `no_image` when the post has no image |
+
+`skip_reason` is `null` when `skip` is `false`. The values `title` and `caption` fall back to each other when one is blank.
 
 Delivery behavior: no retry, no queue. A non-2xx response or a network error is returned in the sweep response as `social: { ok: false, error }` and never rolls back the website post. When the secret is unset, the social step is skipped with `error: "SCHEDULED_CONTENT_ZAPIER_WEBHOOK_URL not configured"`.
 
@@ -51,20 +66,20 @@ Delivery behavior: no retry, no queue. A non-2xx response or a network error is 
 
 ## Per-platform field mapping
 
-Every row reads the same Catch Hook fields. Character limits are the commonly published limits and must be re-checked on each platform and in Zapier's own action settings before the build is accepted.
+Each Zap branch maps fields from `posts.<platform>`. Nothing is trimmed in the Zap. Character limits are the commonly published limits and must be re-checked on each platform and in Zapier's own action settings before the build is accepted.
 
-| Platform | Zap action | Text | Image | Link | Limits to enforce in the Zap |
+| Platform | Zap action | Text | Image | Link | Limit already applied by the website |
 | --- | --- | --- | --- | --- | --- |
-| Facebook Page | Create Page post | `caption` | `image_url` if present, else text-only post | Append the site link | Long limit; no truncation needed in practice |
-| Facebook Group | Not postable by Zapier (see Facebook Group) | Same as the Page | Same as the Page | Same as the Page | Not applicable |
-| Instagram | Instagram for Business: create photo post | `caption` | `image_url` required | Link in the caption is not clickable; say "link in bio" | Caption about 2,200 characters; image must be a reachable public URL; skip the platform when `image_url` is null |
-| X | Create post (existence and cost to be verified) | `caption`, truncated | `image_url` if the action supports media | Append the site link | 280 characters including the link; truncate before the link |
-| Pinterest | Create pin | `title` as the pin title, `caption` as the description | `image_url` required | Destination link is the site link | Title about 100 and description about 500 characters; needs a board; skip the platform when `image_url` is null |
+| Facebook Page | Create Page post | `posts.facebook_page.text` | `posts.facebook_page.image_url` if present, else a text post | `posts.facebook_page.link` | None needed in practice |
+| Facebook Group | Not postable by Zapier (see Facebook Group) | `posts.facebook_group.text` | `posts.facebook_group.image_url` | `posts.facebook_group.link` | Not applicable |
+| Instagram | Instagram for Business: create photo post | `posts.instagram.caption` | `posts.instagram.image_url` (required) | None; a caption link is not clickable | Caption 2,200. The branch runs only when `posts.instagram.skip` is `false` |
+| X | Create post (existence and cost to be verified) | `posts.x.text` (link included) | `posts.x.image_url` if the action supports media | In `posts.x.text` | 280 including the link |
+| Pinterest | Create pin | `posts.pinterest.title` and `posts.pinterest.description` | `posts.pinterest.image_url` (required) | `posts.pinterest.link` | Title 100, description 500. Needs a board. The branch runs only when `posts.pinterest.skip` is `false` |
 
 Rules that follow from the table:
 
-1. A post with `image_url: null` is posted to Facebook Page and X only. Instagram and Pinterest are skipped, not failed. This is the working assumption until Product Authority sets the image rule.
-2. Truncate in the Zap with a Formatter step, never by changing the caption on the website.
+1. A post with no image is posted to Facebook Page and X only. The website sets `skip` on Instagram and Pinterest, so those branches stop cleanly instead of failing. This is the working assumption until Product Authority sets the image rule; changing the rule means changing the formatter, not the Zap.
+2. Do not trim in the Zap. If a platform's limit is wrong, fix `SOCIAL_LIMITS` in the formatter and its tests.
 3. `body` is not posted anywhere. It is Markdown and can be long.
 4. The image is posted exactly as the website serves it. Any rights or privacy question about an image is a protected stop (#4785); the permission gate and rights register decide which images may appear on the site at all, and social posting must not widen that.
 
@@ -75,11 +90,12 @@ One Zap, one Catch Hook trigger, parallel branches. Not one Zap per platform, so
 1. **Trigger:** Webhooks by Zapier, Catch Hook. The hook URL is the secret `SCHEDULED_CONTENT_ZAPIER_WEBHOOK_URL`.
 2. **Guard:** Filter that stops the Zap unless `site_origin` equals `https://www.lougehrigfanclub.com`, so a payload from Preview or Development can never post to real accounts.
 3. **De-duplicate:** Filter on whether `event_id` was already posted (Zapier Storage), then record `event_id` after the first platform step succeeds. Reject any payload whose `schema_version` is not `1`.
-4. **Format:** Formatter steps to build the link, truncate for X, and split `caption` and `title` for Pinterest.
+4. **No formatting step.** The website already built each platform's text, link and limits in `posts`. A branch maps fields and does not trim.
 5. **Branches (Paths):**
    - Facebook Page: always.
    - X: always, if X is in scope.
-   - Instagram and Pinterest: only when `image_url` is present.
+   - Instagram: only when `posts.instagram.skip` is `false`.
+   - Pinterest: only when `posts.pinterest.skip` is `false`.
 6. **Errors:** Zapier's error notification emails the Operations holder and Bill when any step fails. A failed platform step must not stop the other branches.
 7. **Facebook Group:** a reminder step to the Group admin (email or Zapier-supported messaging) carrying the Page post link, if Product Authority chooses that route.
 
