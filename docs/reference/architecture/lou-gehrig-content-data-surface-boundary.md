@@ -1,12 +1,12 @@
 ---
 Doc Type: Reference
-Audience: LGFC maintainers, ChatGPT, Bill, and implementation agents
+Audience: LGFC maintainers, Governance, Bill, and implementation agents
 Authority Level: Controlled
 Owns: D1/B2/storage boundary model for Lou Gehrig content candidates without implementing ingestion
 Does Not Own: Migrations, API implementation, admin UI, or B2 uploads
 Canonical Reference: /docs/reference/architecture/fan-club-data-surface-inventory.md
 Related issues: #1738, #1744, #1685
-Last Reviewed: 2026-07-04
+Last Reviewed: 2026-10-26
 ---
 
 # Lou Gehrig Content Data Surface Boundary

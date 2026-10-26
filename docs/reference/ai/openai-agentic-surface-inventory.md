@@ -2,11 +2,11 @@
 Doc Type: Reference
 Audience: Human + AI
 Authority Level: Controlled
-Owns: Inventory of OpenAI-consumed LGFC Agentic/bootstrap/startup/skill/config surfaces for ChatGPT, retired Codex (#4165), and retired OpenAI/Work
+Owns: Inventory of OpenAI-consumed LGFC Agentic/bootstrap/startup/skill/config surfaces. ChatGPT is retired (#4173). Codex is retired (#4165). OpenAI/Work is retired (#4074).
 Does Not Own: Repository-wide governance policy, queue precedence, PR lifecycle, merge authority, or restoring OpenAI/Work as a live product
 Canonical Reference: /Agent.md
-Related Issues: #3815, #3755, #3825, #4074, #4052, #3808, #4091, #4165
-Last Reviewed: 2026-09-19
+Related Issues: #3815, #3755, #3825, #4074, #4052, #3808, #4091, #4165, #4776
+Last Reviewed: 2026-10-26
 ---
 
 # OpenAI Agentic surface inventory
@@ -48,11 +48,11 @@ Product Authority permanently terminated Codex as an LGFC agent on 2026-09-19 (#
 
 | Surface | Purpose | Authority | Canonical owner | Read timing | `run startup` | Disposition |
 | --- | --- | --- | --- | --- | --- | --- |
-| `docs/ops/ai/CHATGPT-RULES.md` | ChatGPT identity, Governance+PMO, continuity, concise default | Agent-specific additive | `AGENT-TEAM.md` | After shared chain | Yes | **Revised** #3815: concise default + live-GitHub continuity |
+| `docs/ops/ai/CHATGPT-RULES.md` | Retired product pointer | Historical only | `AGENT-TEAM.md` | Do not run | **No** | **Retired** #4173. Not live policy. |
 | `docs/ops/ai/chatgpt-cursor-handoff-workflow.md` | ChatGPT↔Cursor handoff technique | Operational | Administration/comms | When handing off | No | Retained |
 | ChatGPT product persistent instructions / Custom GPT | Product-local | None over LGFC | OpenAI product surface | Product load | Documented limitation | Repository cannot mutate external product config; encode required alignment in `CHATGPT-RULES.md` |
 
-ChatGPT mapped roles after startup: Governance and PMO. Independent review only of work ChatGPT did not implement. ChatGPT must execute authorized repository mutations rather than acknowledgement-only responses, and must not ask Product Authority to perform routine work it can perform directly.
+ChatGPT is retired (#4173) and holds no current role. Do not run it as a live product. The table lists the historical surfaces.
 
 ## WORK (retired)
 
