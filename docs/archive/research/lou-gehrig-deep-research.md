@@ -1,5 +1,16 @@
+---
+Doc Type: Archive
+Audience: Human + AI
+Authority Level: Historical Record
+Owns: Historical research notes on Lou Gehrig for Phase 7 content development
+Does Not Own: Active operational authority, design, or implementation instructions
+Canonical Reference: /docs/ops/pmo/diataxis-legacy-retirement-policy.md
+Last Reviewed: 2026-08-06
+---
 
 # Lou Gehrig — Deep Research Report (1903–2025)
+
+> ARCHIVED 2026-10-26. Historical and non-authoritative. Replacement: none. Source: #4896.
 
 ## Overview
 This document consolidates deep research findings on Lou Gehrig for use in Phase 7 content development. It is intended as a canonical internal reference to support public-facing website copy, timelines, milestones, and educational material.
