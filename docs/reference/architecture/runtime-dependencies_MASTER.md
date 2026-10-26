@@ -1,5 +1,5 @@
 ---
-Doc Type: Specification
+Doc Type: Reference
 Audience: Human + AI
 Authority Level: Controlled
 Owns: Runtime dependency inventory and outage impact notes
