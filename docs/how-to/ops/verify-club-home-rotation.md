@@ -15,7 +15,9 @@ Last Reviewed: 2026-10-26
 
 Show that the Club Home "newspaper" (lead story, story rail, archive spotlight, featured photo) keeps changing, shows no story twice in one edition, and uses every eligible story before it leans on repeats.
 
-## Run the simulation
+## Procedure
+
+### Run the simulation
 
 1. Run `npm ci` once, then `npx vitest run tests/club-home-rotation-cycle-simulation.test.ts`.
 2. The test applies the repository migrations to an in-memory database, seeds pools of 8, 12 and 16 stories, regenerates editions day by day and checks each rule below. All tests must pass.
@@ -29,7 +31,7 @@ Show that the Club Home "newspaper" (lead story, story rail, archive spotlight, 
 | Each placed story gets `last_featured` and `usage_count` | Cooldown and fairness have no data to work with |
 | A pool smaller than the zones need still renders | A small pool breaks the page |
 
-## Watch a rotation without touching Production
+### Watch a rotation without touching Production
 
 1. Use a Development or Preview database, never Production `lgfc_lite`. Seed it with published `club_home` stories (the pilot pack in `seed/content/club-home-pilot-pack.json` is one source).
 2. As an admin on that environment, call `POST /api/admin/editorial/club-home-edition-regenerate` and open the Club Home page.
