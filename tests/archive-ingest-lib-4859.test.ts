@@ -285,7 +285,7 @@ describe('DPLA image ladder (#4902)', () => {
     expect(parseDplaLinks(null)).toEqual({ thumbnail: null, views: [], institution: '' });
   });
 
-  it('builds full-size links for NYPL, Digital Commonwealth and ContentDM, and nothing else', () => {
+  it('builds full-size links for NYPL and Digital Commonwealth, and nothing else', () => {
     expect(buildDplaImageLadder({ thumbnail: 'http://images.nypl.org/index.php?id=123&t=t' }).map((s) => s.url)).toEqual([
       'https://images.nypl.org/index.php?id=123&t=g',
       'https://images.nypl.org/index.php?id=123&t=q',
@@ -295,9 +295,7 @@ describe('DPLA image ladder (#4902)', () => {
       'https://iiif.digitalcommonwealth.org/iiif/2/commonwealth:xyz123/full/!3000,3000/0/default.jpg',
       'https://ark.digitalcommonwealth.org/ark:/50959/xyz123/large',
     ]);
-    expect(buildDplaImageLadder({ thumbnail: 'https://cdm1.contentdm.oclc.org/utils/getthumbnail/collection/p1/id/42' }).map((s) => s.url)).toEqual([
-      'https://cdm1.contentdm.oclc.org/digital/iiif/p1/42/full/!3000,3000/0/default.jpg',
-    ]);
+    expect(buildDplaImageLadder({ thumbnail: 'https://cdm1.contentdm.oclc.org/utils/getthumbnail/collection/p1/id/42' })).toEqual([]);
     expect(buildDplaImageLadder({ thumbnail: 'https://example.org/x.jpg', views: [] })).toEqual([]);
   });
 

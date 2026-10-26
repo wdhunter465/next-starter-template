@@ -291,7 +291,7 @@ function digitalCommonwealthId(url) {
 
 /**
  * Full-size image links to try, best first, for a DPLA record from a library whose layout is known:
- * NYPL Digital Collections, Boston Public Library via Digital Commonwealth, and ContentDM sites.
+ * NYPL Digital Collections and Boston Public Library via Digital Commonwealth.
  * Libraries not listed here return an empty ladder. Links are guesses from each library's published
  * layout, so every one that fails is named in the skip note (#4902).
  */
@@ -317,13 +317,10 @@ export function buildDplaImageLadder({ thumbnail, views = [] }) {
         add(`https://iiif.digitalcommonwealth.org/iiif/2/commonwealth:${id}/full/!${IIIF_LONG_EDGE},${IIIF_LONG_EDGE}/0/default.jpg`, 'Digital Commonwealth IIIF');
         add(`https://ark.digitalcommonwealth.org/ark:/50959/${id}/large`, 'Digital Commonwealth large');
       }
-    } else if (host.endsWith('.contentdm.oclc.org')) {
-      const match = /\/collection\/([^/]+)\/id\/(\d+)/.exec(parsed.pathname);
-      if (match) add(`https://${host}/digital/iiif/${match[1]}/${match[2]}/full/!${IIIF_LONG_EDGE},${IIIF_LONG_EDGE}/0/default.jpg`, 'ContentDM IIIF');
     }
   }
   return ladder;
 }
 
 /** Library hosts a DPLA row may be fetched from, added in code so no production allowlist data changes (#4902). */
-export const DPLA_EXTRA_APPROVED_DOMAINS = ['images.nypl.org', 'ark.digitalcommonwealth.org', 'iiif.digitalcommonwealth.org', 'contentdm.oclc.org'];
+export const DPLA_EXTRA_APPROVED_DOMAINS = ['images.nypl.org', 'ark.digitalcommonwealth.org', 'iiif.digitalcommonwealth.org'];
