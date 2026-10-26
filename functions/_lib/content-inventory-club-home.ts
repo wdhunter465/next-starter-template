@@ -11,6 +11,7 @@ import {
   CLUB_HOME_PLACEMENT_ZONES,
   filterRotationFairnessPool,
   recordPlacementHistory,
+  recordRotationFeature,
   type PlacementHistoryRecord,
   type RotationRow,
   sortRotationRows,
@@ -245,8 +246,18 @@ function pickRailStories(rows: ClubHomeInventoryRow[], excludeId: number | null,
   return sortRotationRows(pool, context).slice(0, 4);
 }
 
+/**
+ * The archive spotlight and featured photo prefer non-primary stories so primary stories stay
+ * available to lead; otherwise those zones use them up and the lead story gets stuck (#4900).
+ * Falls back to the full list when no non-primary story is left.
+ */
+function preferNonPrimary<T extends ClubHomeInventoryRow>(rows: T[]): T[] {
+  const nonPrimary = rows.filter((row) => normalizeStoryType(row.story_type) !== PRIMARY_STORY_TYPE);
+  return nonPrimary.length ? nonPrimary : rows;
+}
+
 function pickArchiveSpotlight(rows: ClubHomeInventoryRow[], excludeIds: Set<number>, asOfDate = new Date()): ClubHomeInventoryRow | null {
-  const eligible = rows.filter((row) => !excludeIds.has(Number(row.id)));
+  const eligible = preferNonPrimary(rows.filter((row) => !excludeIds.has(Number(row.id))));
   if (!eligible.length) return null;
   const context = { asOfDate, includeAlternates: true };
   const pool = filterRotationFairnessPool(eligible, context);
@@ -271,7 +282,7 @@ function pickMediaFeatureStory(
 ): ClubHomeInventoryRow | null {
   const context = { asOfDate, includeAlternates: true };
 
-  const distinctFromAllZones = rows.filter((row) => !excludeIds.has(Number(row.id)));
+  const distinctFromAllZones = preferNonPrimary(rows.filter((row) => !excludeIds.has(Number(row.id))));
   const poolDistinct = filterRotationFairnessPool(distinctFromAllZones, context);
   if (poolDistinct.length) return sortRotationRows(poolDistinct, context)[0] ?? null;
 
@@ -1122,6 +1133,11 @@ export async function regenerateClubHomeEdition(
         placed_at: completedAt,
       }));
     await recordPlacementHistory(db, historyPlacements);
+
+    // Stamp each distinct placed story so the cooldown and usage fairness in the next edition see it (#4900).
+    for (const storyId of new Set(historyPlacements.map((row) => row.story_id))) {
+      await recordRotationFeature(db, storyId, completedAt);
+    }
 
     const persisted = await listClubHomeEditionPlacements(db, editionId);
     return {
