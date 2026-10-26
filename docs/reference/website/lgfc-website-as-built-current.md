@@ -120,7 +120,7 @@ Source: `src/app/page.tsx`. Section order as implemented:
 
 1. **FloatingLogo** — `src/components/FloatingLogo`
 2. **Hero banner** (`#banner`) — static welcome copy referencing 2027 public relaunch
-3. **CampaignSpotlightSlot** — `src/components/home/CampaignSpotlightSlot`
+3. **CampaignSpotlightSlot** — `src/components/home/CampaignSpotlightSlot.tsx`
 4. **Weekly Photo Matchup** (`#weekly`) — `WeeklyMatchup` → `/api/matchup/current`
 5. **Join CTA** (`#join-cta`) — `JoinCTA`
 6. **ABOUT LOU GEHRIG** (`#about-lou-gehrig`) — static biography content in page source
@@ -153,7 +153,7 @@ Source: `src/app/page.tsx`. Section order as implemented:
 
 - Client component `src/components/SocialWall.tsx`
 - Loads Elfsight platform script; calls `window.elfsight.reload` when available
-- On load/render failure: fallback headline + platform links from `src/lib/socialFallbacks`
+- On load/render failure: fallback headline + platform links from `src/lib/socialFallbacks.ts`
 - Does not re-evaluate historical Elfsight configuration decisions in this baseline
 
 ---
