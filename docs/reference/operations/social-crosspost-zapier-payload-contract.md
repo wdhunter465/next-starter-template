@@ -5,7 +5,7 @@ Authority Level: Controlled
 Owns: The payload the scheduled-publish sweep sends to Zapier, the per-platform field mapping, and the Zap design for social cross-posting (plan step 3 of #4785)
 Does Not Own: Zapier account, plan or cost; platform connections or credentials; the decisions in plan step 1 of #4785; public announcement content and timing; the scheduled-publish authoring and sweep steps (see /docs/how-to/ops/run-scheduled-content-publish.md)
 Canonical Reference: /docs/reference/operations/2027-launch-calendar-operating-contract.md
-Related Issues: #4785, #4253, #4414, #4416, #4435, #4433, #4684, #4407
+Related Issues: #4785, #4917, #4253, #4414, #4416, #4435, #4433, #4684, #4407
 Last Reviewed: 2026-10-26
 ---
 
@@ -17,7 +17,7 @@ Fixes, in one place, what the website sends to Zapier, how each field maps to ea
 
 Status: design only. Nothing here is provisioned. No Zapier account, webhook URL or platform connection exists or is recorded in the repository.
 
-## Payload contract, version as implemented today
+## Payload contract, schema version 1 as implemented
 
 Sent by `functions/api/scheduled-content/publish-due.ts` (`postToZapier`): one `POST` per published post, `Content-Type: application/json`, to `SCHEDULED_CONTENT_ZAPIER_WEBHOOK_URL`. Sent only after the website publish has succeeded.
 
@@ -33,19 +33,21 @@ Sent by `functions/api/scheduled-content/publish-due.ts` (`postToZapier`): one `
 | `image_alt` | string | yes | `content_blocks.image_alt` | Required by the authoring endpoint whenever `image_url` is set |
 | `published_at` | string | no | publish result | ISO 8601 timestamp of the website publish |
 | `site_origin` | string | no | request origin | `https://www.lougehrigfanclub.com` when called by the Production workflow |
+| `schema_version` | number | no | constant | `1`. Added in #4917. Bumped when a field is removed or changes meaning; adding a field does not bump it |
+| `event_id` | string | no | `key` and publish result | `<key>@v<version>`, for example `home.fundraiser-daily-details.2027-02-01@v2`. Stable for one publish of one post, so a retry or manual replay carries the same id. A re-publish at a new version is a new event. Added in #4917 |
+| `post_url` | string | yes | `site_origin` and the block's page and section | `https://www.lougehrigfanclub.com/fundraiser-details/` for the Fundraiser Daily Details feed, `null` for any other block. There is no per-post page yet, so it is the series page. Added in #4917 |
 
 Delivery behavior: no retry, no queue. A non-2xx response or a network error is returned in the sweep response as `social: { ok: false, error }` and never rolls back the website post. When the secret is unset, the social step is skipped with `error: "SCHEDULED_CONTENT_ZAPIER_WEBHOOK_URL not configured"`.
 
 ### Gaps in the current payload
 
-These make the Zap harder to build safely. None is implemented. Each needs a code change under its own Issue and an approved workflow or endpoint review, so they are proposals, not part of the contract.
+`schema_version`, `event_id` and `post_url` were the first three gaps and are now in the payload (#4917). What remains:
 
-| Proposed field | Why | Interim workaround in the Zap |
+| Gap | Why it matters | Interim workaround in the Zap |
 | --- | --- | --- |
-| `post_url` | Every platform caption should link back to the post on the site. The payload has the origin but not the page path | Build the link from `site_origin` plus the fixed page path for the series (`/fundraiser-details`). It points at the list, not the single post |
-| `event_id` (`key` plus version) | A Zap retry or a manual replay would otherwise post twice with nothing to deduplicate on | De-duplicate in the Zap on `key` using Zapier Storage or a Filter on "already posted" |
-| `schema_version` | Lets the Zap reject a payload shape it was not built for | None. Pin the Zap to this table and re-test after any change to `publish-due.ts` |
-| `is_test` | A clear marker so a test payload can never reach a real account | Use a separate Catch Hook for test (see Test mode) |
+| No per-post page | `post_url` points at the series page, not the single post | Accept the series link until per-post pages exist |
+| No `is_test` marker | A test payload could reach a real account if the wrong hook were used | Use a separate Catch Hook for test (see Test mode) and the `site_origin` guard in the Zap design |
+| A social failure does not fail the workflow run | See Failure visibility today | The Zap's own error email; a workflow change needs Product Authority approval and independent review |
 
 ## Per-platform field mapping
 
@@ -72,7 +74,7 @@ One Zap, one Catch Hook trigger, parallel branches. Not one Zap per platform, so
 
 1. **Trigger:** Webhooks by Zapier, Catch Hook. The hook URL is the secret `SCHEDULED_CONTENT_ZAPIER_WEBHOOK_URL`.
 2. **Guard:** Filter that stops the Zap unless `site_origin` equals `https://www.lougehrigfanclub.com`, so a payload from Preview or Development can never post to real accounts.
-3. **De-duplicate:** Filter on whether `key` was already posted (Zapier Storage), then record `key` after the first platform step succeeds.
+3. **De-duplicate:** Filter on whether `event_id` was already posted (Zapier Storage), then record `event_id` after the first platform step succeeds. Reject any payload whose `schema_version` is not `1`.
 4. **Format:** Formatter steps to build the link, truncate for X, and split `caption` and `title` for Pinterest.
 5. **Branches (Paths):**
    - Facebook Page: always.
@@ -137,6 +139,6 @@ None of these is decided. Each changes only the item named.
 
 Each is a separate Issue and PR, none is started by this one:
 
-1. Add `post_url`, `event_id`, `schema_version` and a visible warning for `social.ok: false` to the sweep and workflow (code, workflow; Product Authority approval and independent review).
+1. Flag `social.ok: false` as a visible warning on the workflow run (workflow change; Product Authority approval and independent review). The payload fields were added in #4917.
 2. Update `/docs/how-to/ops/run-scheduled-content-publish.md` after the Zap exists, so the runbook matches what was built.
 3. Add the scheduled-job health entry if a workflow changes (#4684).
