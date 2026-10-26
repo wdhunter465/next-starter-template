@@ -192,7 +192,7 @@ without greenfield rebuild:
 
 - `functions/api/admin/editorial/list|review|publish|inventory|media-associations`
 - `functions/api/admin/content/**` and `admin/cms/**` for page copy
-- `functions/api/admin/membership-card` for card instructions
+- `functions/api/admin/membership-card.ts` for card instructions
 - `functions/api/admin/media-assets/**` for B2 registry
 
 Task 006 should extend these paths only when a delta row is `accepted` above.

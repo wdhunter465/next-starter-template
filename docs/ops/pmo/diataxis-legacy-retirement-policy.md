@@ -38,7 +38,7 @@ This document does not own:
   `docs/explanation/`, `docs/governance/`, `docs/ops/`) are **current authority**
   for active operational guidance.
 - Repo-root folders `ops/ai/` and `governance/ai/`, and `PROMPTS/`, were archived
-  under #3155. `docs/governance/ai/AI-GUIDE.md` and the recovery-era plan were
+  under #3155. `docs/archive/superseded/governance/ai/AI-GUIDE.md` and the recovery-era plan were
   archived under #4138 on 2026-10-23. No live legacy folder remains.
 - If a DIATAXIS document and a legacy live document conflict on the same topic,
   **DIATAXIS wins**.
