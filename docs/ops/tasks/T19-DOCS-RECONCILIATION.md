@@ -31,13 +31,13 @@ Reconcile documentation to the production public footer now implemented on the C
 2. `docs/governance/PR_GOVERNANCE.md`
    - Update footer enforcement language and rejection conditions to match the canonical footer model.
 
-3. `docs/as-built/cloudflare-frontend.md`
+3. `docs/reference/cloudflare-frontend.md`
    - Reconcile footer/as-built wording to production.
 
 4. `docs/reference/design/dashboard.md`
    - Remove any claim that the public footer exposes Admin.
 
-5. `docs/as-built/RECONCILIATION-NOTES_2026-02.md`
+5. `docs/reference/RECONCILIATION-NOTES_2026-02.md`
    - Add a supersession note that the older five-link footer model is no longer current.
 
 6. `docs/ops/trackers/IMPLEMENTATION-WORKLIST_Master.md`

@@ -132,7 +132,7 @@ All PRs must include:
    - `docs(scope): description`
    - `refactor(scope): description`
 
-2. **PR description** using `.github/PULL_REQUEST_TEMPLATE.md`:
+2. **PR description** using `.github/pull_request_template.md`:
    - Reference to authoritative docs
    - Change summary with exact file paths
    - Acceptance criteria checklist
