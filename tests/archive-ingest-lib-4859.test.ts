@@ -225,11 +225,13 @@ describe('archive candidate selection SQL (#4872)', () => {
       'x archive-ingest: skipped, Commons file is not a keepable image type (2026-10-24).', // 7 final
       'x archive-ingest-v2: skipped, long side 1024px is under the 1500px minimum (2026-10-24). archive-ingest-v3: skipped, again (2026-10-25).', // 8 already rechecked
       'x archive-ingest-v2: skipped, loc.gov record is not a photograph, print or drawing (2026-10-24).', // 9 final
+      'x archive-ingest-v3: skipped, no link reached 1500px (Digital Commonwealth IIIF: source returned HTTP 404; Digital Commonwealth large: source returned HTTP 404) (2026-10-26).', // 10 recheck through the manifest
+      'x archive-ingest-v3: skipped, no link reached 1500px (Digital Commonwealth manifest: 800x600) (2026-10-27).', // 11 final
     ];
     const insert = db.prepare("INSERT INTO content_items VALUES (?, ?, 't', 'u', 'loc.gov', NULL, ?, NULL, NULL, 'photo')");
     notes.forEach((note, index) => insert.run(index + 1, `c${index + 1}`, note));
     const ids = (db.prepare(sql).all(100) as Array<{ id: number }>).map((row) => row.id);
-    expect(ids).toEqual([1, 2, 4, 5, 6]);
+    expect(ids).toEqual([1, 2, 4, 5, 6, 10]);
   });
 });
 

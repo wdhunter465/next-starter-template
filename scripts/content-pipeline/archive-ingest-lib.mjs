@@ -227,6 +227,10 @@ export function appendArchiveNote(existing, line, date = new Date().toISOString(
  * parameter: the row limit. Selects rows never processed, plus rows whose only archive notes come from
  * an older marker and are file-reason skips; every other skip is final.
  */
+// Boston records skipped when the image link was guessed (#4916) are tried once more through the manifest.
+const DPLA_BOSTON_GUESS_SKIP = 'Digital Commonwealth IIIF: source returned HTTP 404';
+const DPLA_BOSTON_MANIFEST_LABEL = 'Digital Commonwealth manifest';
+
 export function buildArchiveCandidatesSql() {
   const has = (text) => `instr(admin_notes, '${text}') > 0`;
   const anyMarker = [ARCHIVE_NOTE_MARKER, ...LEGACY_NOTE_MARKERS].map((marker) => `NOT ${has(marker)}`).join(' AND ');
@@ -241,6 +245,7 @@ export function buildArchiveCandidatesSql() {
              admin_notes IS NULL
              OR (${anyMarker})
              OR (NOT ${has(ARCHIVE_NOTE_MARKER)} AND (${legacyFileSkips}))
+             OR (${has(DPLA_BOSTON_GUESS_SKIP)} AND NOT ${has(DPLA_BOSTON_MANIFEST_LABEL)})
            )
          ORDER BY id LIMIT ?`;
 }
