@@ -6,7 +6,7 @@ Owns: Operator steps for Lou Gehrig research queue triage, assignment, and dispo
 Does Not Own: Runtime queue UI, workflow YAML, or autonomous triage decisions
 Canonical Reference: /docs/reference/website/lou-gehrig-research-queue-triage-workflow.md
 Related issues: #1738, #1740
-Last Reviewed: 2026-07-04
+Last Reviewed: 2026-10-26
 ---
 
 # Lou Gehrig Research Queue Operations
@@ -87,7 +87,7 @@ Promoted items proceed to editorial conversion or reference archive per
 
 ## Stop conditions
 
-Stop and escalate to Bill/ChatGPT when:
+Stop and escalate to Product Authority when:
 
 - rights status is ambiguous after review;
 - privacy involves minors or sensitive donor data;
