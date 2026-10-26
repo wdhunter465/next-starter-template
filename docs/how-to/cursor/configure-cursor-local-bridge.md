@@ -1,12 +1,12 @@
 ---
 Doc Type: How-To
-Audience: Bill, ChatGPT, Day-2 Operations
+Audience: Bill, Governance, Day-2 Operations
 Authority Level: Operational Procedure
 Owns: Historical/diagnostic Chromebook install, auth preflight, systemd enablement, transactional launch verification, heartbeat/watchdog/reconciliation verification, and rollback for the decommissioned Cursor Local Bridge
 Does Not Own: Current Cursor auto-start routing, wake workflow gates, runner registration, or Background Agents
 Canonical Reference: /docs/reference/ci/cursor-local-bridge-contract.md
-Related Issues: #2294, #2667, #2669, #2681, #2694, #2739, #2746, #2814, #2997, #3013, #3212, #3424
-Last Reviewed: 2026-08-13
+Related Issues: #2294, #2667, #2669, #2681, #2694, #2739, #2746, #2814, #2997, #3013, #3212, #3424, #4776
+Last Reviewed: 2026-10-26
 ---
 
 # Configure Cursor Local Bridge

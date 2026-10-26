@@ -1,12 +1,12 @@
 ---
 Doc Type: How-To
-Audience: Bill, ChatGPT/Atlas, Day-2 Operations
+Audience: Bill, Governance, Day-2 Operations
 Authority Level: Operational Authority
 Owns: Controlled CI storm issue triage report/close procedure for LGFC
 Does Not Own: General backlog cleanup, merge authority, or root-cause CI defect repair
 Canonical Reference: /scripts/ops/lgfc-ci-storm-issue-triage.mjs
-Related Issues: #2095, #3215
-Last Reviewed: 2026-08-10
+Related Issues: #2095, #3215, #4776
+Last Reviewed: 2026-10-26
 ---
 
 # LGFC CI storm issue triage
