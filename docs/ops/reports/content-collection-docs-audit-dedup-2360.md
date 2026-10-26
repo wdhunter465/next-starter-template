@@ -82,7 +82,7 @@ Content pipeline / model:
 
 Governance / CI / PMO / PR:
 
-- `Agent.md`, `docs/ops/ai/LGFC-AI-TEAM-OPERATING-MODEL.md`, shared/core/Cursor rules
+- `Agent.md`, `docs/archive/LGFC-AI-TEAM-OPERATING-MODEL.md`, shared/core/Cursor rules
 - `docs/governance/PR_LIFECYCLE_STATE_MACHINE.md`
 - `.agents/skills/lgfc-pr-governance/SKILL.md`
 - `docs/ops/pmo/PMO-V4-OPERATING-MODEL.md` (PR #2282 merged 2026-07-05)

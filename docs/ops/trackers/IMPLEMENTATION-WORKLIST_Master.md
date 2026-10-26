@@ -69,5 +69,5 @@ Notes:
 - `/docs/ops/ai/CODEX-RULES.md` present (Codex-specific rules; PR #1269).
 - `/docs/ops/ai/CURSOR-RULES.md` / cursor rules governance present in repo history and operational use.
 - `/docs/ops/ai/CHATGPT-RULES.md` present (ChatGPT control-plane rules; PR #1263 / #1269).
-- Erroneous duplicate folder `docs/ops/AI/` was removed during cleanup.
+- Erroneous duplicate folder `docs/ops/ai/` was removed during cleanup.
 - Cursor YAML / review workflow update is being handled in PR #544.

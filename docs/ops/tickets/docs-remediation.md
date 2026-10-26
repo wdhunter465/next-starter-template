@@ -13,7 +13,7 @@ Last Reviewed: 2026-04-22
 ## Objective
 Execute documentation remediation workstreams A and B:
 
-1. Fix `docs/as-built/cloudflare-frontend.md` — correct FanClub logo link per canonical design
+1. Fix `docs/reference/cloudflare-frontend.md` — correct FanClub logo link per canonical design
 2. Fix `docs/reference/design/dashboard.md` — remove legacy external platform references, align to Cloudflare D1
 3. Align all architecture references to Cloudflare D1 + Backblaze B2
 4. Add required headers to docs missing them (CI compliance)
