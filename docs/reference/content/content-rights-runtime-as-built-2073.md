@@ -1,12 +1,12 @@
 ---
 Doc Type: Reference
-Audience: Bill, ChatGPT, Cursor, LGFC operators, and implementation agents
+Audience: Bill, Governance, Cursor, LGFC operators, and implementation agents
 Authority Level: Controlled
 Owns: As-built reconciliation of the content/rights runtime that predates #2073, and what #2073's later work packages (2-6) can reuse vs. must build new
 Does Not Own: Product/legal decisions for #2073's own acquisition/custody/donation model (owned by #4059); column-by-column schema (owned by /docs/reference/content-pipeline-rights-data-dictionary.md and the member-submission/content-pipeline-storage-model docs below); the #3551 pipeline's own operational detail (owned by /docs/ops/as-built/gehrig-content-collection-rights-pipeline-as-built-3826.md)
 Canonical Reference: /docs/ops/as-built/gehrig-content-collection-rights-pipeline-as-built-3826.md
-Related Issues: #2073, #3551, #3552, #3553, #3597, #3598, #3827, #4058, #4059, #4060, #4061, #4062, #4063
-Last Reviewed: 2026-09-02
+Related Issues: #2073, #3551, #3552, #3553, #3597, #3598, #3827, #4058, #4059, #4060, #4061, #4062, #4063, #4776
+Last Reviewed: 2026-10-26
 ---
 
 # Content/rights runtime as-built (#2073 Work Package item 1)

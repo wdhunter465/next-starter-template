@@ -69,8 +69,10 @@ import { extractPeopleTags, extractDateOrPeriod } from '../../functions/_lib/con
 import { withBoundedRetry } from '../../functions/_lib/bounded-retry.ts';
 import { buildDplaSearchUrl, mapDplaDocToCandidateFields, requireDplaApiKey } from '../../functions/_lib/content-pipeline-dpla-adapter.ts';
 import { fetchInternetArchiveDocs, mapInternetArchiveDocToCandidateFields } from '../../functions/_lib/content-pipeline-internet-archive-adapter.ts';
+import { fetchChroniclingAmericaItems, mapChroniclingAmericaItemToCandidateFields } from '../../functions/_lib/content-pipeline-chronicling-america-adapter.ts';
 import { fetchNaraCatalogHits, mapNaraHitToCandidateFields } from '../../functions/_lib/content-pipeline-nara-catalog-adapter.ts';
 import { normalizeSourceUrl } from '../../functions/_lib/content-pipeline-url-normalize.ts';
+import { buildDiscoveryUrl } from './discovery-query-plan.mjs';
 import { withOriginTerms } from './discovery-evidence-terms.mjs';
 import { applyCopyQuality, loadCopyQualityLists } from './gehrig-copy-quality.mjs';
 
@@ -85,6 +87,7 @@ const SOURCE_DOMAINS = {
   commonscat: 'commons.wikimedia.org',
   dpla: 'dp.la',
   internetarchive: 'archive.org',
+  chroniclingamerica: 'loc.gov',
   nara: 'catalog.archives.gov',
 };
 
@@ -105,14 +108,15 @@ const DEFAULT_LIMIT = 20;
 const DEFAULT_OUT = 'data/research/lou-gehrig-content-candidates-external-discovery.json';
 const SEED_FILE = 'data/research/lou-gehrig-content-candidates.json';
 const RESEARCH_DIR = 'data/research';
-const KNOWN_SOURCES = ['openverse', 'loc', 'wikimedia', 'commonscat', 'dpla', 'internetarchive', 'nara'];
+const KNOWN_SOURCES = ['openverse', 'loc', 'wikimedia', 'commonscat', 'dpla', 'internetarchive', 'chroniclingamerica', 'nara'];
 
 function printUsage() {
   console.log(
-    'Usage: node --experimental-strip-types scripts/content-pipeline/collect-gehrig-external-sources.mjs [--query "Lou Gehrig"] [--sources openverse,loc,wikimedia,commonscat,dpla,internetarchive,nara] [--limit 20] [--out <file>]',
+    'Usage: node --experimental-strip-types scripts/content-pipeline/collect-gehrig-external-sources.mjs [--query "Lou Gehrig"] [--sources openverse,loc,wikimedia,commonscat,dpla,internetarchive,chroniclingamerica,nara] [--limit 20] [--out <file>]',
   );
   console.log('  DPLA requires the DPLA_API_KEY environment variable; it is included by default only when that key is set.');
   console.log('  Internet Archive is opt-in (--sources internetarchive). It is not in the default set. #4789');
+  console.log('  Chronicling America is opt-in (--sources chroniclingamerica). It is not in the default set. #4788');
   console.log('  National Archives Catalog is opt-in (--sources nara) and sends no request without NARA_CATALOG_API_KEY. #4846');
 }
 
@@ -150,6 +154,8 @@ function parseArgs(argv) {
     query: DEFAULT_QUERY,
     sources: DEFAULT_SOURCES,
     limit: DEFAULT_LIMIT,
+    page: 1,
+    dateEnd: null,
     out: DEFAULT_OUT,
   };
   for (let i = 0; i < argv.length; i += 1) {
@@ -177,6 +183,17 @@ function parseArgs(argv) {
         throw new Error(`--limit must be a positive integer, got: ${raw}`);
       }
       options.limit = parsed;
+    } else if (arg === '--page') {
+      const raw = readFlagValue(argv, i, '--page');
+      i += 1;
+      const parsed = Number(raw);
+      if (!Number.isInteger(parsed) || parsed < 1) throw new Error(`--page must be a positive integer, got: ${raw}`);
+      options.page = parsed;
+    } else if (arg === '--date-end') {
+      const raw = readFlagValue(argv, i, '--date-end');
+      i += 1;
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(raw)) throw new Error(`--date-end must be YYYY-MM-DD, got: ${raw}`);
+      options.dateEnd = raw;
     } else if (arg === '--out') {
       options.out = readFlagValue(argv, i, '--out');
       i += 1;
@@ -420,8 +437,8 @@ function baseCandidate({
   return candidate;
 }
 
-async function collectOpenverse(query, limit, nextId) {
-  const url = `https://api.openverse.org/v1/images/?q=${encodeURIComponent(query)}&page_size=${limit}`;
+async function collectOpenverse(query, limit, nextId, _notes, request = {}) {
+  const url = buildDiscoveryUrl('openverse', { query, limit, page: request.page, dateEnd: request.dateEnd });
   const data = await fetchJson(url);
   const results = data.results ?? [];
   return results.map((item) => {
@@ -480,11 +497,11 @@ export function isLocPhotoAboutGehrig(item) {
   return JSON.stringify(item ?? {}).toLowerCase().includes('gehrig');
 }
 
-async function collectLibraryOfCongress(query, limit, nextId) {
+async function collectLibraryOfCongress(query, limit, nextId, _notes, request = {}) {
   // #4839: the general loc.gov search is dominated by Chronicling America newspaper
   // pages (199 of 209 imported loc.gov rows, none about Gehrig). The /photos/ endpoint
   // searches the photograph, print and drawing records, and a record must name Gehrig.
-  const url = `https://www.loc.gov/photos/?q=${encodeURIComponent(query)}&fo=json&c=${limit}`;
+  const url = buildDiscoveryUrl('loc', { query, limit, page: request.page, dateEnd: request.dateEnd });
   const data = await fetchJson(url);
   const results = (data.results ?? []).filter(isLocPhotoAboutGehrig);
   return results.map((item) => {
@@ -638,8 +655,8 @@ function mapCommonsPages(infoPages, discoveryLabel, nextId, licenseNotesOut) {
   });
 }
 
-async function collectWikimediaCommons(query, limit, nextId, licenseNotesOut = []) {
-  const searchUrl = `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(query)}&srnamespace=6&srlimit=${limit}&format=json&origin=*`;
+async function collectWikimediaCommons(query, limit, nextId, licenseNotesOut = [], request = {}) {
+  const searchUrl = buildDiscoveryUrl('wikimedia', { query, limit, page: request.page, dateEnd: request.dateEnd });
   const searchData = await fetchJson(searchUrl);
   const pages = searchData.query?.search ?? [];
   if (pages.length === 0) return [];
@@ -745,6 +762,14 @@ async function collectInternetArchive(query, limit, nextId) {
     .map((fields) => baseCandidate({ id: nextId(), ...fields }));
 }
 
+async function collectChroniclingAmerica(query, limit, nextId) {
+  const items = await fetchChroniclingAmericaItems(query, limit);
+  return items
+    .map((item) => mapChroniclingAmericaItemToCandidateFields(item, query))
+    .filter((fields) => fields != null)
+    .map((fields) => baseCandidate({ id: nextId(), ...fields }));
+}
+
 async function collectNara(query, limit, nextId) {
   const hits = await fetchNaraCatalogHits(query, limit);
   return hits
@@ -760,6 +785,7 @@ const COLLECTORS = {
   commonscat: collectCommonsCategory,
   dpla: collectDpla,
   internetarchive: collectInternetArchive,
+  chroniclingamerica: collectChroniclingAmerica,
   nara: collectNara,
 };
 
@@ -831,10 +857,13 @@ async function runDiscoveryWithFetch(options) {
       let newCount = 0;
       let collectionError = null;
       try {
-        const collected = await collector(query, options.limit, nextId, licenseNotes);
+        const collected = await collector(query, options.limit, nextId, licenseNotes, { page: options.page, dateEnd: options.dateEnd });
         const candidates = [];
         let duplicateCount = 0;
         for (const candidate of collected) {
+          if (options.dateEnd && candidate.date_or_period) {
+            candidate.provenance_notes = `${candidate.provenance_notes} First-publication date ${candidate.date_or_period} sourced from ${source}.`;
+          }
           const normalized = normalizeSourceUrl(candidate.source_url);
           if (normalized && knownUrls.has(normalized)) {
             duplicateCount += 1;
@@ -870,6 +899,7 @@ async function runDiscoveryWithFetch(options) {
         new_count: newCount,
         error_count: collectionError ? 1 : 0,
         error_summary: collectionError ? errorMessage(collectionError) : null,
+        ...(options.page > 1 || options.dateEnd ? { filters: JSON.stringify({ page: options.page, dateEnd: options.dateEnd }) } : {}),
       });
     }
   }

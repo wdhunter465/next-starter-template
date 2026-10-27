@@ -230,5 +230,5 @@ We proceed with the final header layout stabilization:
 - restore large readable logo behavior
 - keep grouped nav + hamburger centered
 - ensure dropdown anchors under hamburger
-- lock the design in a single spec (see `docs/header-memberheader-logo-banner-design-lock.md`)
+- lock the design in a single spec (see `docs/reference/design/locks/header-memberheader-logo-banner-design-lock.md`)
 

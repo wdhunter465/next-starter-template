@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: PMO intake, Pipeline lifecycle, stage deliverables, scoped priority, Sandbox authority, Project Graduation, Active closeout, portfolio inventory, and PMO continuity
 Does Not Own: Queue-label implementation mechanics, executable implementation, CI implementation, Day-2 recovery strategy, or Production approval
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3134, #3145, #3597, #3823, #4174, #4176
-Last Reviewed: 2026-10-16
+Related Issues: #3134, #3145, #3597, #3823, #4174, #4176, #4775
+Last Reviewed: 2026-10-26
 ---
 
 # PMO Portfolio
@@ -331,7 +331,7 @@ Sandbox evidence is incorporated into the durable design before the Project adva
 
 ## PMO sequencing, holds, and risk-decision exceptions (#3134)
 
-This section is the canonical PMO owner for distinguishing preferred order from an enforceable stop. Continuous parent-level self-claim after deterministic predecessor completion remains #3145 / `docs/ops/ai/CORE-RULES.md`; this section does not create a second owner for that rule.
+This section is the canonical PMO owner for distinguishing preferred order from an enforceable stop. Continuous parent-level self-claim after deterministic predecessor completion remains #3145 / `docs/governance/AGENT-EXECUTION.md`; this section does not create a second owner for that rule.
 
 PMO may define preferred serial implementation order and identify factual prerequisites. PMO administration must not block implementation unless there is a specific, evidence-backed risk-mitigation, protected-boundary, unsafe-collision, true-dependency, or missing-authority reason.
 
