@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Human + AI
-Authority Level: Historical
+Authority Level: Procedure
 Status: Retired
 Owns: Historical #1138 implementation plan for the #1075 CI orchestration package
 Does Not Own: Current CI work authorization or implementation sequencing

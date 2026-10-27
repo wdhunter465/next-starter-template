@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Human + AI
-Authority Level: Operational Authority
+Authority Level: Procedure
 Owns: The repeatable review used to find documentation drift and open a follow-up Issue
 Does Not Own: The authority hierarchy, permission to waive documentation impact, or CI implementation
 Canonical Reference: /docs/explanation/operations/documentation-monitored-assets.md

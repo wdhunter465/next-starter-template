@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Human + AI
-Authority Level: Operational Authority
+Authority Level: Procedure
 Owns: Procedure for preparing an implementation plan for the LGFC orchestration tier
 Does Not Own: Orchestration state contracts; routing configuration; product design
 Canonical Reference: /docs/reference/architecture/orchestration-model.md

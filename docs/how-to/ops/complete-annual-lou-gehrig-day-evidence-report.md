@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Operations, PMO, Product Authority, and editors
-Authority Level: Operational Authority
+Authority Level: Procedure
 Owns: Operator handoff steps and the annual Lou Gehrig Day evidence-report template
 Does Not Own: Filling Product approvals; publication Go; automatic posting; Production mutation
 Canonical Reference: /docs/reference/operations/annual-lou-gehrig-day-operating-contract.md

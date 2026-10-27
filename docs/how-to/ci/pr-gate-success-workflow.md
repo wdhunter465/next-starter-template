@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Human + AI
-Authority Level: Operational
+Authority Level: Procedure
 Owns: Repeatable PR gate-clean execution workflow for Cursor and Governance
 Does Not Own: Canonical PR-process policy or CI implementation design
 Canonical Reference: /docs/governance/PR_PROCESS.md

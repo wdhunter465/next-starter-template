@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Human + AI
-Authority Level: Operational Authority
+Authority Level: Procedure
 Owns: Snapshot publishing procedures for ALS fundraiser data
 Does Not Own: Campaign data structure; homepage layout rules; the 2027 dates themselves (owned by the calendar of record)
 Canonical Reference: /docs/governance/standards/document-authority-hierarchy_MASTER.md

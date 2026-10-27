@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Human + AI
-Authority Level: Operational
+Authority Level: Procedure
 Owns: Operator procedure for OPS — Post-Merge Self-Healing workflow dispatch, artifact review, and Cursor escalation handling
 Does Not Own: Classifier contract, detector implementation, auto-fix execution code, escalation script implementation, merge approval
 Canonical Reference: /docs/reference/ci/post-merge-self-healing-classification-contract.md

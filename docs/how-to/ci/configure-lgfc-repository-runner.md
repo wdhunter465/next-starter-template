@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Bill, Governance
-Authority Level: Operational Procedure
+Authority Level: Procedure
 Owns: Chromebook Debian 12 installation and verification sequence for the repository-scoped LGFC GitHub Actions runner
 Does Not Own: Repository runner contract, project launch, workflow migration, or production authorization
 Canonical Reference: /docs/reference/ci/repository-runner-contract.md

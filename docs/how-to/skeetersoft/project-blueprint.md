@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Project maintainers and future SKEETERSOFT implementers
-Authority Level: Design-stage project guidance
+Authority Level: Procedure
 Owns: SKEETERSOFT project folder placement, design status, launch deferral, and future implementation targets
 Does Not Own: LGFC production website behavior, active LGFC launch scope, runtime implementation, or generated project artifacts
 Canonical Reference: docs/how-to/skeetersoft/project-blueprint.md
