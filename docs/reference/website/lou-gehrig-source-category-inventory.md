@@ -6,7 +6,7 @@ Owns: Approved Lou Gehrig content source categories, intake channels, evidence f
 Does Not Own: Runtime ingestion, scraping, OCR, AI enrichment, publication automation, or public routing
 Canonical Reference: /docs/ops/pmo/lou-gehrig-content-collection-expansion-readiness.md
 Related issues: #1738, #1739, #1685, #1256
-Last Reviewed: 2026-10-10
+Last Reviewed: 2026-10-26
 ---
 
 # Lou Gehrig Source Category Inventory
@@ -69,7 +69,7 @@ wholesale copies of copyrighted works in the repository.
 
 ## Disallowed or high-risk categories
 
-Do not intake the following without explicit Bill/ChatGPT authorization and a
+Do not intake the following without explicit Product Authority authorization and a
 documented exception path:
 
 | Category | Risk | Action |
@@ -89,7 +89,7 @@ documented exception path:
 
 | Channel | Actor | Output |
 | --- | --- | --- |
-| Operator research | Editor, researcher, Bill/ChatGPT | Candidate lead with metadata |
+| Operator research | Editor, researcher, Product Authority | Candidate lead with metadata |
 | Member submission | Authenticated member via `/fanclub/submit` | Queue item or research lead referral |
 | Internal archive review | Operator reviewing LGFC-owned assets | Candidate with `owned` rights status |
 | External lead referral | Partner, donor, institution contact | Candidate with outreach notes |

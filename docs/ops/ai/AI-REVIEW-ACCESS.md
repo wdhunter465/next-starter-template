@@ -5,15 +5,15 @@ Authority Level: Operational Authority
 Owns: Tokenized AI review access configuration, security constraints, and operator usage
 Does Not Own: Member/admin authentication model, production merge approval, or Program #1685 scope
 Canonical Reference: /docs/ops/ai/CORE-RULES.md
-Related Issues: #1973, #2215, #3289
-Last Reviewed: 2026-08-11
+Related Issues: #1973, #2215, #3289, #4776
+Last Reviewed: 2026-10-26
 ---
 
 # AI Review Access
 
 ## Purpose
 
-Provide a **read-only, token-protected, live inspection surface** so ChatGPT can review authenticated LGFC page structure and content without weakening normal `/fanclub` or `/admin` session authentication.
+Provide a **read-only, token-protected, live inspection surface** so Governance can review authenticated LGFC page structure and content without weakening normal `/fanclub` or `/admin` session authentication.
 
 AI review access is **disabled by default** and intended for short, operator-controlled preview or review windows.
 
@@ -59,7 +59,7 @@ Source pages live under `src/app/ai-review/` and are exported to `/_ai-review/` 
 
 1. Enable review on a **preview** deployment first.
 2. Set `AI_REVIEW_ENABLED=true` and configure `AI_REVIEW_TOKEN` in Cloudflare.
-3. Share review URLs with ChatGPT/Bill only through secure channels (not in issues, PRs, or repo files).
+3. Share review URLs with Product Authority only through secure channels (not in issues, PRs, or repo files).
 4. Enable `AI_REVIEW_ALLOW_ADMIN=true` only when admin layout review is explicitly required.
 5. **Disable immediately** after review: set `AI_REVIEW_ENABLED=false` and rotate `AI_REVIEW_TOKEN`.
 

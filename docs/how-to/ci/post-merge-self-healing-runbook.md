@@ -6,7 +6,7 @@ Owns: Operator procedure for OPS — Post-Merge Self-Healing workflow dispatch, 
 Does Not Own: Classifier contract, detector implementation, auto-fix execution code, escalation script implementation, merge approval
 Canonical Reference: /docs/reference/ci/post-merge-self-healing-classification-contract.md
 Related issues: #1847, #1853, #1906, #1914, #1921, #1963, #2308
-Last Reviewed: 2026-07-06
+Last Reviewed: 2026-10-26
 ---
 
 # Post-Merge Self-Healing Operator Runbook
@@ -20,7 +20,7 @@ to scoped remediation issues.
 
 Self-healing CI is a post-merge hygiene and escalation layer. It does not replace
 PR governance, reviewer-response accounting, source-issue accounting, or
-Bill/ChatGPT merge authorization.
+Product Authority merge authorization.
 
 ## What the workflow does
 
@@ -63,7 +63,7 @@ file-touch allowlist recorded in a generated escalation issue.
 
 1. Open GitHub Actions → `OPS — Post-Merge Self-Healing`.
 2. Choose **Run workflow**.
-3. Leave `dry_run=true` unless Bill/ChatGPT has authorized live repairs.
+3. Leave `dry_run=true` unless Product Authority has authorized live repairs.
 4. Set `apply_safe_fixes=false` for inspection-only runs.
 5. Set `open_escalation_issues=false` until safe-fix output has been reviewed.
 6. Run the workflow and download the `post-merge-self-healing-report` artifact.
@@ -133,7 +133,7 @@ Use live manifest repair only when:
 - findings are classified `safe_auto_fix`;
 - evidence is complete in the detection artifact;
 - no operator-authorization finding is present for the same PR/source pair;
-- Bill/ChatGPT has authorized bounded repo-hygiene repair.
+- Product Authority has authorized bounded repo-hygiene repair.
 
 Dispatch with:
 
@@ -202,7 +202,7 @@ Escalation issues include:
 - failing PR and source issue numbers when known;
 - failure class and evidence excerpt;
 - Cursor constraints and acceptance criteria;
-- whether Bill/ChatGPT authorization is required.
+- whether Product Authority authorization is required.
 
 If an open issue already matches PR + source issue + failure class, the
 escalation script updates the issue body and adds a comment instead of opening
@@ -219,7 +219,7 @@ When Cursor receives a generated self-healing escalation issue:
 5. Do not close the escalation issue until post-merge self-healing dry-run reports
    no remaining finding for the same dedupe key.
 
-Operator-authorization findings require Bill/ChatGPT approval before Cursor
+Operator-authorization findings require Product Authority approval before Cursor
 implements any issue or queue mutation.
 
 ### Remediate missing reviewer-disposition closeout failures
@@ -436,7 +436,7 @@ manifest-action planning. Live duplicate exception closure is handled by the
 backlog scanner when a newer canonical post-merge issue or explicit canonical
 evidence makes the duplicate deterministic.
 
-## Bill/ChatGPT authorization required
+## Product Authority authorization required
 
 Stop and request operator authorization when classification is
 `operator_authorization_required` or when findings involve:

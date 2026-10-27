@@ -1,12 +1,12 @@
 ---
 Doc Type: How-To
-Audience: Bill, Operations operators, WORK (ChatGPT), Cursor, LGFC maintainers
+Audience: Bill, Operations operators, PMO Admin, Cursor, LGFC maintainers
 Authority Level: Operational Procedure
 Owns: Operator procedure for B2→D1 daily sync smoke testing, failure detection, bounded retry, recovery, evidence capture, escalation, and stop conditions
 Does Not Own: Live credential creation/rotation, secret values, workflow/script implementation, or Production authority beyond recorded operator steps
 Canonical Reference: /docs/ops/reports/d1-b2-daily-sync-readiness-2091.md
-Related Issues: #2091, #2072, #2090
-Last Reviewed: 2026-08-05
+Related Issues: #2091, #2072, #2090, #4776
+Last Reviewed: 2026-10-26
 ---
 
 # Operate B2 → D1 Daily Sync

@@ -6,7 +6,7 @@ Owns: Source metadata, credit display rules, contributor/researcher records, evi
 Does Not Own: Runtime schema implementation, D1 migrations, or public publication
 Canonical Reference: /docs/reference/website/lou-gehrig-content-metadata-schema.md
 Related issues: #1738, #1741, #1739, #1740
-Last Reviewed: 2026-10-10
+Last Reviewed: 2026-10-26
 ---
 
 # Lou Gehrig Source Provenance Model
@@ -73,7 +73,7 @@ website surfaces (homepage, library, gallery, timeline).
 | Operator researcher | Reviewer name, review date, intake notes |
 | Member submitter | Submission path, submitter ID (internal), submission timestamp |
 | External institution contact | Institution name, contact reference, response date in notes |
-| ChatGPT/Bill escalation | Escalation reason and decision in notes |
+| Product Authority escalation | Escalation reason and decision in notes |
 
 Researcher identity is retained for audit; public pages display source credit,
 not internal researcher notes, unless editorially approved.
@@ -103,7 +103,7 @@ When two or more sources disagree on a fact:
 5. Alternate perspectives may become non-canonical inventory rows per content
    inventory model; do not silently overwrite canonical facts.
 
-Escalate unresolved conflicts to Bill/ChatGPT before public-copy approval.
+Escalate unresolved conflicts to Product Authority before public-copy approval.
 
 ## Relationship to unified workflow
 

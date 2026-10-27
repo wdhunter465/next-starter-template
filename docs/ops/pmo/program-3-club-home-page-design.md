@@ -5,8 +5,8 @@ Authority Level: Planning Draft
 Owns: Program 3 Club Home page design candidate, newspaper-style club homepage layout, Club Home feature links, section source mapping, backend source model, content rotation, and content reuse strategy
 Does Not Own: Runtime implementation, D1 migrations, B2 bucket configuration, production secrets, final Program 3 prioritization, issue creation, or launch approval
 Canonical Reference: /docs/ops/pmo/PMO-V2-OPERATING-MODEL.md
-Related Issues: #1255, #1379, #1411
-Last Reviewed: 2026-06-09
+Related Issues: #1255, #1379, #1411, #4776
+Last Reviewed: 2026-10-26
 ---
 
 # Program 3 — Club Home Page Design
@@ -23,7 +23,7 @@ This document is a Program 3 portfolio project candidate. It does not launch imp
 
 Program 3 is a rotating portfolio planning/execution lane. The Club Home page design belongs in Program 3 because it is an approved portfolio-style project candidate that can build on Program 2 website/content infrastructure and Program 1 PMO execution controls.
 
-This project should not be placed in Program 5 unless Bill/ChatGPT decide it is not yet portfolio-ready.
+This project should not be placed in Program 5 unless Product Authority decides it is not yet portfolio-ready.
 
 ## Existing production feature-link design authority
 

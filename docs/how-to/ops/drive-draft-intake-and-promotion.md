@@ -5,8 +5,8 @@ Authority Level: Operational
 Owns: Drive-to-GitHub intake folder rules, branch lifecycle, and promotion constraints for Content Collection planning drafts
 Does Not Own: Diataxis authority promotion, feature implementation, repository-history rewrite, or ZIP gate policy changes
 Canonical Reference: /docs/ops/reports/content-collection-docs-audit-dedup-2360.md
-Related Issues: #2359, #2360, #2367, #2374, #2366
-Last Reviewed: 2026-07-08
+Related Issues: #2359, #2360, #2367, #2374, #2366, #4776
+Last Reviewed: 2026-10-26
 ---
 
 # Drive Draft Intake and Promotion
@@ -55,7 +55,7 @@ When stale intake branch refs keep ZIP reachable in history, follow #2374 remedi
 Run #2360-style audit steps:
 
 1. Compare each `.docx` draft to existing repo authority (audit report disposition table).
-2. Flag conflicts; stop for ChatGPT/Bill decision.
+2. Flag conflicts; stop for a Product Authority decision.
 3. Record target paths using existing ops tree (`docs/ops/reports/`, `implementation-plans/`, `pmo/`, etc.) — not `docs/ops/programs/`.
 
 ### Step 5 — Promote through PR
@@ -83,7 +83,7 @@ Before marking a promotion PR merge-ready:
 
 - Do not treat Drive drafts or intake README as operational authority.
 - Do not add `_incoming/` paths to routine implementation allowlists without explicit ops authorization.
-- Do not perform repository-history rewrite from this how-to; route to #2374 with Bill/ChatGPT authorization.
+- Do not perform repository-history rewrite from this how-to; route to #2374 with Product Authority authorization.
 
 ## Related authorities
 
