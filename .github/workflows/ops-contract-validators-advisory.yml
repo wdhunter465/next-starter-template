@@ -1,0 +1,81 @@
+# Advisory contract validators (#4778). A finding reports and, on the schedule,
+# opens an Operations exception. It is not a ruleset-required check and does
+# not block a pull request.
+name: OPS — Contract Validators (advisory)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+  schedule:
+    - cron: '15 8 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+  pull-requests: write
+
+jobs:
+  pull-request:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Evaluate the source issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_BODY: ${{ github.event.pull_request.body }}
+          VALIDATOR_ACTOR: ${{ github.actor }}
+        run: |
+          set -euo pipefail
+          number=$(node --input-type=module -e 'import {issueNumberFromText} from "./scripts/ci/run-contract-validators.mjs"; const n=issueNumberFromText(process.env.PR_BODY||""); if(n) process.stdout.write(String(n));')
+          if [ -z "$number" ]; then
+            echo "Contract validators (advisory): no source issue in the pull request body."
+            echo "Contract validators (advisory): no source issue in the pull request body." > /tmp/contract-report.md
+            exit 0
+          fi
+          gh issue view "$number" --json number,title,body,labels > /tmp/contract-issue.json
+          node scripts/ci/run-contract-validators.mjs --mode pr --issue-json /tmp/contract-issue.json | tee /tmp/contract-report.md
+      - name: Comment when there is a finding
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          if grep -q ': findings.$' /tmp/contract-report.md; then
+            gh pr comment "${{ github.event.pull_request.number }}" --body-file /tmp/contract-report.md
+          fi
+
+  scheduled:
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Evaluate open child issues
+        id: evaluate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VALIDATOR_ACTOR: scheduled-advisory
+        run: |
+          set -euo pipefail
+          gh issue list --state open --label pmo:task --limit 30 --json number,title,body,labels > /tmp/contract-issues.json
+          node scripts/ci/run-contract-validators.mjs --mode schedule --issues-json /tmp/contract-issues.json | tee /tmp/contract-report.md
+      - name: Open an Operations exception
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          title='OPS — Contract validator advisory failure'
+          existing=$(gh issue list --state open --search "in:title ${title}" --json number --jq '.[0].number')
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body-file /tmp/contract-report.md
+            exit 0
+          fi
+          url=$(gh issue create --title "$title" --body-file /tmp/contract-report.md --label team:operations --label ops-exception)
+          echo "Opened $url"
