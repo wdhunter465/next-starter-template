@@ -6,7 +6,7 @@ Owns: Production health, degraded-service routing, incident classification, cont
 Does Not Own: Cross-team queue semantics, Administration & Communications policy, delivery-model selection, PMO sizing, PR approval roles, CI implementation, project objectives, or daily operator checklists
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
 Related Issues: #2495, #2640, #2641, #2695, #2699, #4213, #4589, #4637
-Last Reviewed: 2026-10-15
+Last Reviewed: 2026-10-16
 ---
 
 # Operations and Recovery
