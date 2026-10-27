@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Durable LGFC agent roles, recognized agent products, current member mapping, role work-selection order, approval authority, protected stops, and role-transition state
 Does Not Own: PMO lifecycle/stage semantics, detailed queue-label implementation, delivery-profile mechanics, CI implementation, or Production recovery procedure
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3240, #3629, #3693, #3825, #4074, #4134, #4165, #4173, #4174, #4399, #4449
-Last Reviewed: 2026-10-16
+Related Issues: #3240, #3629, #3693, #3825, #4074, #4134, #4165, #4173, #4174, #4399, #4447, #4449
+Last Reviewed: 2026-10-27
 ---
 
 # Agent Team
@@ -36,6 +36,8 @@ A member may act only through its currently assigned role authority plus an open
 ## Role work-selection order
 
 A qualifying numbered Operations interrupt remains repository-wide interrupt work. After that interrupt rule, each durable operating role has its own deterministic eligible-work order.
+
+Until the end of 2027-01-01, the go-live precedence overlay in `docs/governance/WORK-QUEUES-AND-COLLABORATION.md` (Go-live precedence overlay, #4447) orders `go-live-2027` Issues first within a step of any role's order. It changes sequencing only.
 
 ### Operations role
 

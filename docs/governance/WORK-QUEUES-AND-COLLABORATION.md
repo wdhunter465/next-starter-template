@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Repository work-queue classification, queue ownership, team/agent claim semantics, queue-state transitions, Operations interrupt behavior, role-work-selection integration, Project Graduation routing, and universal collaboration
 Does Not Own: Product outcome, final Product priority decisions, PMO lifecycle/stage deliverables, implementation methods, recovery strategy, PR approval decisions, or Production authorization
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3134, #3145, #3240, #3629, #3825, #4818
-Last Reviewed: 2026-10-23
+Related Issues: #3134, #3145, #3240, #3629, #3825, #4447, #4818
+Last Reviewed: 2026-10-27
 ---
 
 # Work Queues and Collaboration
@@ -117,6 +117,18 @@ See:
 - `docs/reference/pmo/pmo-lifecycle-and-priority-contract.md`
 
 Operations, Engineering, and Governance may use their own approved queue-order metadata, but no priority namespace may be interpreted as a repository-global rank unless its owning contract explicitly says so.
+
+### Go-live precedence overlay (#4447)
+
+Product Authority decision, 2026-10-27 (#4447). This is a precedence rule for the 2027 go-live, not a repository-global rank. It does not change the hierarchical priority rule above, and no priority number gains a repository-wide meaning.
+
+Until the end of 2027-01-01, unless Product Authority ends or extends it earlier:
+
+- When two Issues are both eligible in the same step of an agent's role work order (`docs/governance/AGENT-TEAM.md`, Role work-selection order), the one labelled `go-live-2027` is taken first.
+- The order among Issues that both carry the label, or both lack it, is unchanged: sibling priority under the same parent.
+- The overlay changes sequencing only. It never overrides the Operations interrupt, a protected stop or Product Authority decision, a hold or blocked state, an unmet dependency, a valid claim, separation of duties, or the package-complete requirement.
+- Product Authority, or PMO Admin on Product Authority's direction, applies and removes the label. The go-live set is the Issues under #4414.
+- The overlay lapses after 2027-01-01 without a further edit to this file. An extension, for example for the fundraiser period, is a Product Authority decision recorded on #4447.
 
 ## PMO lifecycle ownership
 
