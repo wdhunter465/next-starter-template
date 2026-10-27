@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Operations, editors, PMO, and implementation agents
-Authority Level: Operational Authority
+Authority Level: Procedure
 Owns: Operator procedure for Lou Gehrig Day T-minus/T-plus calendar interfaces, freeze/change rules, readiness gates, smoke tests, rollback/unpublish, incident routing, and evidence retention
 Does Not Own: Product publication Go; public copy; automatic posting; new website routes; Production mutation
 Canonical Reference: /docs/reference/operations/annual-lou-gehrig-day-operating-contract.md

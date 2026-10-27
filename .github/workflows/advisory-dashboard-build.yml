@@ -1,0 +1,43 @@
+name: Advisory dashboard
+
+on:
+  schedule:
+    - cron: '*/30 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: read
+  pull-requests: read
+  checks: read
+
+concurrency:
+  group: advisory-dashboard-${{ github.repository }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Build advisory dashboard
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Build the page
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          ADVISORY_DASHBOARD_OUT: advisory-dashboard-out
+        run: node scripts/ops/advisory-dashboard/build.mjs
+
+      - name: Upload the page
+        uses: actions/upload-artifact@v4
+        with:
+          name: advisory-dashboard
+          path: advisory-dashboard-out/index.html
+          if-no-files-found: error

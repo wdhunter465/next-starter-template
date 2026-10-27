@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Human + AI
-Authority Level: Operational
+Authority Level: Procedure
 Owns: End-to-end launch sequence for Content Collection documentation-promotion Phase 0 (#2359 child chain)
 Does Not Own: Feature implementation, CI workflow changes, merge authorization, or issue closure authority
 Canonical Reference: /docs/ops/pmo/lou-gehrig-content-collection-expansion-readiness.md

@@ -6,7 +6,7 @@ Owns: Priority #2 PMO readiness decision, fundraiser program candidate scope, ch
 Does Not Own: Runtime implementation, issue creation, merge authority, production secrets, vendor configuration, Givebutter account configuration, fundraiser execution launch
 Canonical Reference: /docs/ops/pmo/PMO-JULY-2026-OPERATING-MODEL.md
 Related Issues: #1696, #1379, #1255, #1259, #1685, #1686, #1694, #4414, #4442
-Last Reviewed: 2026-10-09
+Last Reviewed: 2026-10-27
 ---
 
 # Fundraiser / Charity Campaign Operations Buildout Readiness
@@ -14,6 +14,8 @@ Last Reviewed: 2026-10-09
 > **Status update (2026-10-09, #4442).** This document was written in June 2026, before the 2027 calendar decisions. Dates, launch decisions and build tasks for the 2027 fundraiser now live in the 2027 launch calendar operating contract (`docs/reference/operations/2027-launch-calendar-operating-contract.md`) and the go-live program (#4414). Where this document's "blocked until launch" wording or its preconditions conflict with those, they control. This document remains the reference for the website/vendor ownership boundary, the privacy and donor-recognition rules, and the fail-closed campaign-surface rules below. It authorizes no implementation: each build task needs its own Issue, allowlist and Product Authority Go.
 
 > Original June 2026 wording, kept for history: the program was BLOCKED from execution until Product Authority explicitly launched it.
+
+> **Status update (2026-10-27, #4442).** The fundraiser model is recorded on #4415 and the social tooling decision is recorded on #4416. This document uses those answers. It still authorizes no implementation. Still pending, and not guessed here: auction items and the prize list (#4434), whether the public report is split on 2027-06-07 or waits until the morning of 2027-06-08, and the Zapier monthly cost ceiling (decide by 2026-11-06).
 
 ## Purpose
 
@@ -42,7 +44,12 @@ This document does not launch implementation, create child issues, authorize imp
 - PMO Backlog Priority #2 is a future program candidate, not an executable queue by itself.
 - Program #1255 and child #1259 remain ahead of this program unless Product Authority explicitly reprioritizes.
 - Priority #1 Website Completion / Fan Club Product Buildout is parked as #1685 with child issues #1686 through #1694.
-- Givebutter is the likely external campaign platform boundary, but account/vendor configuration is out of scope for this documentation package.
+- Givebutter is the external campaign platform. Registration uses Givebutter peer-to-peer pages, which are enabled. The website does not build a custom registration flow; it links to Givebutter registration, which opens 2027-02-01. The campaign and auction stay unpublished until the Live Like Lou Foundation approves. Account configuration stays out of scope for this document.
+- The goal is $10,000. The fundraiser launches 2027-03-25 and closes 2027-06-07 at 12:00 PM Eastern. The auction closes 2027-06-07 at 11:45 PM Eastern.
+- The leaderboard is individual participants plus an overall total, ranked by plain totals raised. Givebutter is the source of truth. There is no points formula. Teams are included only if Bill later turns on Givebutter team pages.
+- The winner is the highest individual total. The tiebreaker is more distinct donors, then the earlier time of reaching that total. The public label is the participant's chosen display name, otherwise "Anonymous participant". Bill approves the winner list before it is published.
+- No public personal information by default. Donor recognition uses only Givebutter's own opt-in display. Sponsor recognition requires the sponsor's written consent.
+- Zapier is the candidate for social cross-posting. It is not activated, and no paid activation is approved.
 - The LGFC website should own only internal display, routing, campaign spotlight, deterministic website-side state, privacy-safe recognition, and pre-launch verification rules.
 - Donor/sponsor recognition must not expose public PII by default.
 - Campaign surfaces must fail closed when campaign configuration is missing, disabled, invalid, stale, or unpublished.
@@ -81,8 +88,8 @@ The intended final state before implementation launch is:
 | --- | --- | --- | --- | --- | --- |
 | 2 | Fundraiser / Charity Campaign Operations Buildout | PMO July 2026 program candidate | This readiness doc plus PMO backlog row | `fundraiser-charity-campaign-operations-buildout.md` | Ready for Product Authority planning review; no launch without authorization |
 | 2a | Fundraiser operations playbook | Draft concept | This readiness doc; future Task 001 output | Covered by Tasks 001, 007, 008 | Needs documentation before build |
-| 2b | Givebutter integration model | Draft concept | This readiness doc; future Task 002 output | Covered by Tasks 002, 004, 006, 007 | Needs external/internal boundary confirmation |
-| 2c | Leaderboard / winner system | Draft concept | This readiness doc; future Tasks 002 and 003 outputs | Covered by Tasks 003, 006, 007 | Needs scoring and snapshot rules |
+| 2b | Givebutter integration model | Recorded on #4415 | This readiness doc; future Task 002 output | Covered by Tasks 002, 004, 006, 007 | Givebutter owns the campaign and payments; the site links and stores no donor data |
+| 2c | Leaderboard / winner system | Scoring recorded on #4415 | This readiness doc; future Tasks 002 and 003 outputs | Covered by Tasks 003, 006, 007 | Winner rule is recorded; the daily snapshot clock remains #4432 |
 | 2d | Homepage spotlight / campaign surface | Draft concept tied to website production behavior | Production design standards plus future Task 004 output | Covered by Tasks 004, 006, 007 | Must stay fail-closed |
 | 2e | Sponsor / donor recognition | Draft concept with duplicate backlog overlap | This readiness doc; privacy rules in Task 005 | Covered by Tasks 005, 006, 007 | Merge with rank 15 recognition scope for this program |
 | 2f | Testing package | Draft concept | PMO closeout practice plus future Task 007 output | Covered by Tasks 007 and 008 | Required before launch |
@@ -122,9 +129,12 @@ The intended final state before implementation launch is:
 | --- | --- | --- |
 | Givebutter account/campaign owner | Task 002 implementation | External operator-owned; website stores only approved references |
 | Campaign public URL/embed approach | Task 004 | Link-first; embed only if validated and explicitly approved |
-| Leaderboard source of truth | Task 003 | Snapshot/import model; no raw live donor feed assumption |
-| Winner calculation rule | Task 003 | Deterministic snapshot + documented tiebreaker required |
-| Sponsor/donor recognition consent model | Task 005 | No public PII; display only approved public recognition fields |
+| Leaderboard source of truth | Task 003 | Recorded on #4415: Givebutter plain totals, individuals and an overall total. The daily snapshot clock remains #4432 |
+| Winner calculation rule | Task 003 | Recorded on #4415: highest individual total; then more distinct donors; then the earlier time. Bill approves the list before publication |
+| Sponsor/donor recognition consent model | Task 005 | Recorded on #4415: no public personal information by default; Givebutter opt-in for donors; written consent for sponsors |
+| Auction close and public report timing | Closeout | Auction close is 2027-06-07 at 11:45 PM Eastern. Whether the report is split that day or waits until the morning of 2027-06-08 is still Bill's choice |
+| Zapier activation | Social posts | Candidate only (#4416). Not active. The monthly cost ceiling is still open, decide by 2026-11-06 |
+| Auction items and prize list | #4434 | Still pending. Bill authors or approves every prize and rule |
 | Campaign archive policy | Task 001 / Task 008 | Archive public summary only after operator review |
 | Pre-launch acceptance gate | Task 007 | Full checklist required before launch |
 

@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Bill, Governance, Day-2 Operations
-Authority Level: Operational Authority
+Authority Level: Procedure
 Owns: Controlled CI storm issue triage report/close procedure for LGFC
 Does Not Own: General backlog cleanup, merge authority, or root-cause CI defect repair
 Canonical Reference: /scripts/ops/lgfc-ci-storm-issue-triage.mjs
