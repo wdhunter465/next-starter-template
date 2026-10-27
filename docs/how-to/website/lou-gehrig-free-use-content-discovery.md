@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: LGFC content operators, collection run owners, and AI implementation agents
-Authority Level: Operational Procedure
+Authority Level: Procedure
 Owns: Search strategy for finding Lou Gehrig content (stories and images) that is free to use with source credit
 Does Not Own: Rights conclusions, the source allowlist, collector code, or publication approval
 Canonical Reference: /docs/reference/content-pipeline-rights-data-dictionary.md

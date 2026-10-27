@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Human + AI
-Authority Level: Operational
+Authority Level: Procedure
 Owns: Program #2039 production smoke-test procedure
 Does Not Own: Automated CI replacement for operator sign-off
 Canonical Reference: /docs/how-to/website/website-public-launch-checklist.md

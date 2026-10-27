@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: LGFC editors, admins, maintainers, and AI implementation agents
-Authority Level: Operational Procedure
+Authority Level: Procedure
 Owns: Takedown-request intake and recording procedure, member soft-deletion procedure, operational response SLA, and recovery/restore steps
 Does Not Own: Runtime moderation UI, D1 migrations, legal policy, or public-copy authorship
 Canonical Reference: /docs/ops/reports/compliance-product-decision-register-2919.md

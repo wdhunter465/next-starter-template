@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: LGFC operators, researchers, and editors
-Authority Level: Operational Procedure
+Authority Level: Procedure
 Owns: Operator steps for Lou Gehrig research queue triage, assignment, and disposition
 Does Not Own: Runtime queue UI, workflow YAML, or autonomous triage decisions
 Canonical Reference: /docs/reference/website/lou-gehrig-research-queue-triage-workflow.md

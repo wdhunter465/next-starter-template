@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: LGFC operators, editors, and AI implementation agents
-Authority Level: Operational Procedure
+Authority Level: Procedure
 Owns: Operator handoff for Club Home content placement, source/credit review, and member-surface verification after Program #1685 Tasks 004–007
 Does Not Own: Merge authority, production B2 configuration, or issue closure
 Canonical Reference: /docs/reference/website/unified-content-workflow.md

@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Human + AI
-Authority Level: Operational
+Authority Level: Procedure
 Owns: Program #2039 production rollback procedure
 Does Not Own: Cloudflare account administration
 Canonical Reference: /docs/reference/DEPLOYMENT_GUIDE.md

@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: LGFC operators, maintainers, and AI implementation agents
-Authority Level: Operational Procedure
+Authority Level: Procedure
 Owns: Weekly matchup override/emergency ops and public read-path checks
 Does Not Own: Voting model redesign, photo curation UI, or matchup product policy
 Canonical Reference: /docs/reference/weekly-matchup-auto-rotation.md

@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: LGFC operators, maintainers, and AI implementation agents
-Authority Level: Operational Procedure
+Authority Level: Procedure
 Owns: Fundraiser preview and campaign spotlight alignment checks
 Does Not Own: Payment processing, donation flows, or product fundraising strategy
 Canonical Reference: /docs/reference/architecture/access-model.md

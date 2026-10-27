@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: LGFC operators, maintainers, and implementation agents
-Authority Level: Program Implementation Plan
+Authority Level: Procedure
 Owns: Phased implementation sequence, deliverables, child issue rules, validation, rollback, closeout, and handoff checklist for #1255
 Does Not Own: Final editorial content decisions, production secrets, vendor account configuration, or runtime implementation code
 Canonical Reference: docs/how-to/website/website-implementation-and-content-operations-plan.md

@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Human + AI
-Authority Level: Operational
+Authority Level: Procedure
 Owns: Where LGFC API rate limiting is configured and how to change it safely on Pages
 Does Not Own: WAF rule authoring in the Cloudflare dashboard; Workers-only ratelimits bindings
 Canonical Reference: /docs/governance/PLATFORM-AND-ENVIRONMENT.md

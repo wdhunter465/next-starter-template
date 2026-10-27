@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: LGFC operators, maintainers, and AI implementation agents
-Authority Level: Operational Procedure
+Authority Level: Procedure
 Owns: Event calendar administration and public read-path stability checks
 Does Not Own: Homepage section order, ICS feeds, or ticket integrations
 Canonical Reference: /docs/reference/architecture/access-model.md

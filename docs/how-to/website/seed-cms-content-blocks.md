@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Human + AI
-Authority Level: Operational Procedure
+Authority Level: Procedure
 Owns: How to seed the baseline CMS content blocks into the local D1 database and verify them
 Does Not Own: The `content_blocks` schema, key naming and seed behavior (see /docs/reference/architecture/cms-data-layer.md); publishing or editing CMS content (see /docs/how-to/website/admin-cms-and-page-content.md)
 Canonical Reference: /docs/reference/architecture/cms-data-layer.md

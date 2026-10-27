@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Bill, Product Authority, WORK (ChatGPT), Cursor, Claude Code, LGFC operators and maintainers
-Authority Level: Operational Procedure
+Authority Level: Procedure
 Owns: Recurring compliance review ownership, cadence, evidence checklist, and escalation for Project #2784 / candidate tip on `component/compliance-readiness`
 Does Not Own: Runtime implementation, Production mutation, legal conclusions, Component→Production promotion, or replacing one-off task PRs (#2918–#2921)
 Canonical Reference: /docs/ops/reports/compliance-candidate-qualification-2921.md
