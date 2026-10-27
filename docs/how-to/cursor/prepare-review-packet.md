@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: AI
-Authority Level: Operational Authority
+Authority Level: Procedure
 Owns: Cursor review-packet format for ChatGPT review
 Does Not Own: PR review decisions, merge decisions, or issue closeout
 Canonical Reference: /docs/reference/pmo/lgfc-cursor-execution-contract.md

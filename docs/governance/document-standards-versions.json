@@ -1,0 +1,27 @@
+{
+  "owner": "docs/governance/DOCUMENT-MANAGEMENT.md",
+  "standards": [
+    {
+      "id": "1.0",
+      "effective": "retroactive",
+      "appliesTo": "all existing documents",
+      "note": "A document with no Header Standard field is 1.0.",
+      "fields": [
+        "Doc Type",
+        "Audience",
+        "Authority Level",
+        "Owns",
+        "Does Not Own",
+        "Canonical Reference",
+        "Last Reviewed"
+      ]
+    },
+    {
+      "id": "1.1",
+      "effective": "day-after-introducing-pull-request-merges",
+      "appliesTo": "documents created or revised on or after the effective date",
+      "note": "Not backdated. The calendar day is the day after the pull request that introduces DOCUMENT-MANAGEMENT.md merges.",
+      "adds": ["Status", "Version", "Header Standard"]
+    }
+  ]
+}

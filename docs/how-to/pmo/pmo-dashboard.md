@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: PMO operators and AI agents
-Authority Level: Operational Guidance
+Authority Level: Procedure
 Owns: PMO dashboard generation, refresh, validation procedure, operator remediation flow, and GitHub Pages limitations
 Does Not Own: PMO lifecycle definitions, queue and priority policy, PMO issue contract, dashboard JSON specification, GitHub Issues source records, or Cloudflare production deployment
 Canonical Reference: /docs/reference/pmo/pmo-lifecycle-and-priority-contract.md
