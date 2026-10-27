@@ -80,6 +80,28 @@ export function parseDispositionMap(content = '') {
   return entries;
 }
 
+/** Folder row: path ends with `/`. Coverage only. Migration checks stay exact-path. */
+export function isAreaDispositionRow(entry) {
+  return typeof entry?.path === 'string' && entry.path.endsWith('/');
+}
+
+export function fileCoveredByDisposition(filePath, entries = []) {
+  const normalized = String(filePath || '').replace(/^\.\//, '');
+  return entries.some((entry) => {
+    if (!entry?.path) return false;
+    if (entry.path === normalized) return true;
+    return isAreaDispositionRow(entry) && normalized.startsWith(entry.path);
+  });
+}
+
+export function listUnmatchedDocFiles(files = [], entries = []) {
+  return files
+    .map((file) => String(file).replace(/^\.\//, ''))
+    .filter((file) => file.startsWith('docs/') && file.endsWith('.md'))
+    .filter((file) => !fileCoveredByDisposition(file, entries))
+    .sort();
+}
+
 export function loadDispositionMap({ root = '.', mapPath = DEFAULT_DISPOSITION_MAP_PATH } = {}) {
   const content = readOptionalFile(mapPath, root);
   return content ? parseDispositionMap(content) : [];
