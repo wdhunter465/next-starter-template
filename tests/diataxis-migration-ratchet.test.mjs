@@ -8,6 +8,9 @@ import {
   isLegacyAuthorityPath,
   loadDispositionMap,
   normalizeChangedFiles,
+  fileCoveredByDisposition,
+  isAreaDispositionRow,
+  listUnmatchedDocFiles,
   parseDispositionMap,
   referencesLegacyPath,
   renderMigrationRatchetReport,
@@ -351,6 +354,25 @@ describe('DIATAXIS migration ratchet helpers', () => {
     expect(isHeaderOnlyChange(`${HEADER}\nBody`, `${HEADER.replace('2026-07-13', '2026-07-14')}\nBody`)).toBe(true);
     expect(isLegacyAuthorityPath('docs/governance/example.md')).toBe(true);
     expect(isLegacyAuthorityPath('src/app/page.tsx')).toBe(false);
+  });
+
+  it('reads an area row as covering only files under that folder', () => {
+    const entries = parseDispositionMap(`| Current path | Current owner | Target owner | Action | Replacement / notes | Reference-update scope |
+| --- | --- | --- | --- | --- | --- |
+| \`docs/ops/reports/\` | ops | ops | retain | Area row for retained reports | — |
+| \`docs/ops/ai/CORE-RULES.md\` | ops | governance | retain | Exact file row | — |
+`);
+    const area = entries.find((entry) => entry.path === 'docs/ops/reports/');
+    expect(isAreaDispositionRow(area)).toBe(true);
+    expect(fileCoveredByDisposition('docs/ops/reports/a.md', entries)).toBe(true);
+    expect(fileCoveredByDisposition('docs/ops/ai/CORE-RULES.md', entries)).toBe(true);
+    expect(fileCoveredByDisposition('docs/ops/ai/OTHER.md', entries)).toBe(false);
+    expect(listUnmatchedDocFiles([
+      'docs/ops/reports/a.md',
+      'docs/ops/ai/CORE-RULES.md',
+      'docs/ops/ai/OTHER.md',
+      'README.md',
+    ], entries)).toEqual(['docs/ops/ai/OTHER.md']);
   });
 
   it('normalizes changed file inputs', () => {
