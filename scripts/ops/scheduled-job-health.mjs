@@ -41,6 +41,7 @@ export const JOBS = [
   { file: 'ops-halt-repeated-failures.yml', maxAgeHours: 3 },
   { file: 'ops-production-edge-health.yml', maxAgeHours: 26 },
   { file: 'ops-scheduled-qualification.yml', maxAgeHours: 30 },
+  { file: 'ops-contract-validators-advisory.yml', maxAgeHours: 30 },
   { file: 'ops-workflow-failure-exception-issues.yml', maxAgeHours: null },
 ];
 
