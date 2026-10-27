@@ -1,12 +1,12 @@
 ---
 Doc Type: Operations Report
-Audience: Bill, ChatGPT, Cursor, LGFC maintainers
+Audience: Bill, Governance, Cursor, LGFC maintainers
 Authority Level: Planning Map (non-authoritative until items promoted via Issue/PR)
 Owns: Drive-draft → repository path mapping with C7-remapped targets and promotion status fields
 Does Not Own: Diataxis authority of intake `.docx` files or merge authorization
 Canonical Reference: /docs/ops/reports/content-collection-docs-audit-dedup-2360.md
-Related Issues: #2365, #2363, #2360, #2359, #2364, #2367
-Last Reviewed: 2026-07-10
+Related Issues: #2365, #2363, #2360, #2359, #2364, #2367, #4776
+Last Reviewed: 2026-10-26
 ---
 
 # Content Collection Diataxis Promotion Map
@@ -91,7 +91,7 @@ Dedup/merge authority: `docs/ops/reports/content-collection-docs-audit-dedup-236
 
 `planned` | `draft` | `promoted_to_repo` | `pr_open` | `merged_pending_validation` | `validated` | `complete` | `deferred` | `do_not_promote`
 
-## Conflicts — stop without ChatGPT/Bill disposition
+## Conflicts — stop without Product Authority disposition
 
 C1 pre-approved merge; C2 Codex active; C3/C4 parallel contracts; C5 dual validation authority; C6 parallel labels; C8 gate weakening.
 

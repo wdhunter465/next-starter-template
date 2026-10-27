@@ -1,12 +1,12 @@
 ---
 Doc Type: How-To
-Audience: LGFC operators, ChatGPT, Bill, maintainers, and AI implementation agents
+Audience: LGFC operators, Governance, Bill, maintainers, and AI implementation agents
 Authority Level: Operational Procedure
 Owns: Entry-point operator workflow for Website Operations Admin surfaces under Program #1258
 Does Not Own: GitHub issue closure, runtime deployment, schema migration, or auth policy changes
 Canonical Reference: /docs/reference/architecture/access-model.md
 Related issues: #1255, #1258, #1565
-Last Reviewed: 2026-08-22
+Last Reviewed: 2026-10-26
 ---
 
 # Website Operations Admin — Overview

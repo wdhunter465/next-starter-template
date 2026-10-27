@@ -5,8 +5,8 @@ Authority Level: Operational Authority
 Owns: PMO lessons learned, continuous-improvement controls, and reusable launch checkpoints for LGFC programs
 Does Not Own: Program scope, merge authorization, workflow implementation, or issue closure authority
 Canonical Reference: /docs/ops/pmo/PMO-JULY-2026-OPERATING-MODEL.md
-Related Issues: #2366, #2359, #2376, #2380, #2389
-Last Reviewed: 2026-07-08
+Related Issues: #2366, #2359, #2376, #2380, #2389, #4776
+Last Reviewed: 2026-10-26
 ---
 
 # PMO Lessons Learned and Continuous Improvement Register
@@ -15,7 +15,7 @@ Last Reviewed: 2026-07-08
 
 Capture prior LGFC program lessons in repository documentation so no single agent, operator, or chat session is the sole memory for process friction, launch failures, or controls that worked.
 
-This register is a **living document**. Issue #2366 remains open while the Content Collection documentation-promotion launch (#2359) continues to produce lessons. Do not close #2366 until Bill/ChatGPT authorize terminal closeout for the register maintenance tranche.
+This register is a **living document**. Issue #2366 remains open while the Content Collection documentation-promotion launch (#2359) continues to produce lessons. Do not close #2366 until Product Authority authorizes terminal closeout for the register maintenance tranche.
 
 ## Team operating principle
 
@@ -69,7 +69,7 @@ Captured during #2359 documentation-promotion launch. Expand as launch continues
 
 **Observed:** Lessons were captured ad hoc in issue comments before this register existed.
 
-**Control:** Append launch lessons here as they occur; link from #2366 and #2359; close #2366 only after Bill/ChatGPT authorize register maintenance complete.
+**Control:** Append launch lessons here as they occur; link from #2366 and #2359; close #2366 only after Product Authority authorizes register maintenance complete.
 
 ### L-CC-004 — Docs-only ops PR post-merge closeout hygiene (#2376 / #2395)
 
@@ -106,7 +106,7 @@ Captured during #2359 documentation-promotion launch. Expand as launch continues
 
 ### During execution
 
-- [ ] Bill/ChatGPT decisions are written to the relevant GitHub issue before Cursor acts.
+- [ ] Product Authority decisions are written to the relevant GitHub issue before Cursor acts.
 - [ ] `CHATGPT HANDOFF` and `agent:ChatGPT` are used at review points.
 - [ ] Merges with failed required pre-gates follow `docs/how-to/ci/merged-pr-failed-pre-gate-followup.md`.
 - [ ] Launch-halting defects get Ops issues, not chat-only notes.

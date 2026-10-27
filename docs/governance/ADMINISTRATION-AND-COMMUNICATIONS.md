@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Cross-lane and cross-queue communication transport, evidence routing, repository-state reconciliation, acknowledgment, escalation, hold/resume administration, collaboration routing, reporting, closeout policy, and closeout delegation boundaries
 Does Not Own: Product outcomes, priority decisions, queue ownership decisions, design decisions, implementation methods, PR approval decisions, incident recovery strategy, runner host maintenance, or Production authorization
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2640, #2641, #2639, #2648, #2695, #2699, #2700, #2709, #3055, #3113, #3134, #3145, #3188
-Last Reviewed: 2026-09-18
+Related Issues: #2640, #2641, #2639, #2648, #2695, #2699, #2700, #2709, #3055, #3113, #3134, #3145, #3188, #4775
+Last Reviewed: 2026-10-26
 ---
 
 # Administration and Communications
@@ -264,8 +264,8 @@ An explicit incident or protected hold may continue to block covered work indepe
 After verified integration of a project child:
 
 1. Deterministic CI attempts mechanically provable source-Issue closeout first (single automatic closeout owner);
-2. WORK records `ACCEPT` or bounded correction (`REMEDIATE` / `VERIFY MORE`) when substantive assurance is required, without idle delay;
-3. WORK verifies the successor package is complete before implementer idle time;
+2. PMO Admin records `ACCEPT` or bounded correction (`REMEDIATE` / `VERIFY MORE`) when substantive assurance is required, without idle delay;
+3. PMO Admin verifies the successor package is complete before implementer idle time;
 4. an eligible agent self-claims the next package-complete serial successor under standing Project Graduation authority (#3145);
 5. a wake event may transport existing authority; it does not recreate it or require repeat PMO dispatch.
 
