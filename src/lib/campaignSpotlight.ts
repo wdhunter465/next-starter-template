@@ -46,21 +46,21 @@ export type CampaignSpotlightConfig = {
 
 export const defaultCampaignSpotlightConfig: CampaignSpotlightConfig = {
   enabled: false,
-  eyebrow: 'Temporary Campaign Spotlight',
+  eyebrow: '2027 ALS Fundraiser',
   badge: 'Admin Preview Only',
-  title: 'ALS Fundraiser 2026',
+  title: '2027 ALS Fundraiser',
   description:
-    'Support Lou Gehrig’s legacy by helping fund ALS research and patient support. This pilot section is developed in the gated admin area first, then published to the homepage when approved.',
+    'Support Lou Gehrig’s legacy by helping fund ALS research and patient support. The goal is $10,000. Registration is Givebutter peer-to-peer. This preview stays off the public homepage until the 2027 campaign page is published.',
   primaryCtaLabel: 'Donate Now',
   primaryCtaHref: CAMPAIGN_SPOTLIGHT_GIVEBUTTER_CAMPAIGN_URL,
   secondaryCtaLabel: 'View Auction',
   secondaryCtaHref: CAMPAIGN_SPOTLIGHT_GIVEBUTTER_AUCTION_URL,
   progressLabel: 'Campaign Progress',
-  goalAmount: '$25,000',
+  goalAmount: '$10,000',
   raisedAmount: '$0',
   supporterCount: '0 supporters',
-  deadlineLabel: 'Launch target: April 1',
-  note: 'This section remains hidden on the homepage until enabled and published from the admin preview.',
+  deadlineLabel: 'Opens 2027-03-25. Closes 2027-06-07 at 12:00 PM Eastern.',
+  note: 'Hidden on the homepage until enabled and published. The 2027 Givebutter pages are unpublished, so do not publish this spotlight until those URLs are recorded.',
   archiveLabel: 'To archive after the campaign, set Enabled to off and publish again. Prior published versions remain in content_revisions.',
   leaderboard: [],
 };
