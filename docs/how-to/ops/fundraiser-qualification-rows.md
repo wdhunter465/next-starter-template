@@ -26,10 +26,13 @@ The body text in the passing example does not include donor data.
 
 The embedded Givebutter widget row waits for #4139 and #4430. Do not add widget tests on #4470.
 
-## Run
+## Steps
+
+1. From the repository root, run the qualification check:
 
 ```bash
 ./node_modules/.bin/vitest run tests/fundraiser-inactive-degraded.test.tsx --exclude '**/lgfc-*/**'
 ```
 
-Pass means all seven cases pass. A failure is a qualification failure for that row, not a Production change.
+2. Pass means all seven cases pass.
+3. A failure is a qualification failure for that row, not a Production change.
