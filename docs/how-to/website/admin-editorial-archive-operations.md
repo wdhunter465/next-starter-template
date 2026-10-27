@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: LGFC editors, operators, maintainers, and AI implementation agents
-Authority Level: Operational Procedure
+Authority Level: Procedure
 Owns: `/admin/editorial` operator alignment with approved content inventory
 Does Not Own: Content strategy, seed design, or `#1256` program scope
 Canonical Reference: /docs/reference/website/content-inventory-model.md

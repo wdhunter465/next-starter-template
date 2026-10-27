@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: LGFC editors, admins, operators, and AI implementation agents
-Authority Level: Operational Procedure
+Authority Level: Procedure
 Owns: Member submission review procedure within the LGFC content candidate pipeline
 Does Not Own: Runtime admin UI, D1 migrations, legal policy decisions, or autonomous publication
 Canonical Reference: /docs/reference/content/member-submission-content-model.md

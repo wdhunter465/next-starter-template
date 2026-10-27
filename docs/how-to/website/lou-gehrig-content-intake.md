@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Operator + AI
-Authority Level: Operational Procedure
+Authority Level: Procedure
 Owns: Manual Lou Gehrig content intake and staging workflow
 Does Not Own: Automated scraping, OCR, enrichment, monitoring, or publication
 Canonical Reference: /docs/reference/website/lou-gehrig-content-metadata-schema.md

@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: LGFC editors, admins, maintainers, and AI implementation agents
-Authority Level: Operational Procedure
+Authority Level: Procedure
 Owns: Procedure for publishing or updating approved content inventory records
 Does Not Own: Runtime deployment, schema migration, visual layout, or final human approval authority
 Canonical Reference: /docs/reference/website/editorial-placement-and-rotation.md

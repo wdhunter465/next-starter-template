@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: LGFC operators, maintainers, and AI implementation agents
-Authority Level: Operational Procedure
+Authority Level: Procedure
 Owns: Dashboard, join requests, worklist, and member-operations admin procedures
 Does Not Own: Member auth provisioning, D1 schema changes, or join approval policy
 Canonical Reference: /docs/reference/architecture/access-model.md

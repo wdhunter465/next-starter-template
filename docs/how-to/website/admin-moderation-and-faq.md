@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: LGFC operators, maintainers, and AI implementation agents
-Authority Level: Operational Procedure
+Authority Level: Procedure
 Owns: Moderation hub and FAQ queue operator procedures
 Does Not Own: Public FAQ/Ask UX, report creation policy, or automated moderation
 Canonical Reference: /docs/reference/architecture/access-model.md

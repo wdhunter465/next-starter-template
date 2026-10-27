@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: LGFC content operators, outreach owners, and AI implementation agents
-Authority Level: Operational Procedure
+Authority Level: Procedure
 Owns: Standard permission-request form letter and outreach procedure for rights holders of candidate Lou Gehrig content
 Does Not Own: Rights conclusions, legal advice, publication approval, or the rights-evidence data model
 Canonical Reference: /docs/reference/content-pipeline-rights-data-dictionary.md

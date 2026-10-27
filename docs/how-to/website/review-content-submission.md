@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: LGFC editors, admins, moderators, maintainers, and AI implementation agents
-Authority Level: Operational Procedure
+Authority Level: Procedure
 Owns: Submission queue review procedure, manual decision boundaries, and rejected-submission purge preparation
 Does Not Own: Runtime moderation UI, D1 migrations, legal policy, or autonomous factual decisions
 Canonical Reference: /docs/reference/website/content-inventory-model.md

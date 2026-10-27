@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: LGFC operators, Governance, Bill, maintainers, and AI implementation agents
-Authority Level: Operational Procedure
+Authority Level: Procedure
 Owns: Entry-point operator workflow for Website Operations Admin surfaces under Program #1258
 Does Not Own: GitHub issue closure, runtime deployment, schema migration, or auth policy changes
 Canonical Reference: /docs/reference/architecture/access-model.md
