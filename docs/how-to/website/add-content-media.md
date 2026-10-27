@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: LGFC editors, media admins, maintainers, and AI implementation agents
-Authority Level: Operational Procedure
+Authority Level: Procedure
 Owns: Procedure for associating media with content inventory stories
 Does Not Own: B2 bucket configuration, D1 migrations, media upload implementation, or final rights/legal approval
 Canonical Reference: /docs/reference/website/content-inventory-model.md

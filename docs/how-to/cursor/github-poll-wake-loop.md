@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Bill, Governance, Cursor, LGFC maintainers
-Authority Level: Operational Authority
+Authority Level: Procedure
 Owns: Local Cursor GitHub poll-wake loop operation, watch rules, wake semantics, pickup evidence, and known reliability limits
 Does Not Own: Poller script implementation in `~/.cursor/github-poller/`, merge authority, GitHub webhook configuration, or cloud agent billing
 Canonical Reference: /docs/how-to/cursor/agent-session-bootstrap.md

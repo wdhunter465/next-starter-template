@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Bill, Governance, Day-2 Operations
-Authority Level: Operational Procedure
+Authority Level: Procedure
 Owns: Historical/diagnostic Chromebook install, auth preflight, systemd enablement, transactional launch verification, heartbeat/watchdog/reconciliation verification, and rollback for the decommissioned Cursor Local Bridge
 Does Not Own: Current Cursor auto-start routing, wake workflow gates, runner registration, or Background Agents
 Canonical Reference: /docs/reference/ci/cursor-local-bridge-contract.md

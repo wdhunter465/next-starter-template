@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Human + AI
-Authority Level: Operational Authority
+Authority Level: Procedure
 Owns: Development-only multi-agent Chatterbox exercise against the `lgfc-website` room on `main`'s Preview
 Does Not Own: Production Chatterbox, Cloudflare Durable Objects (#3686), or GitHub Actions secret values
 Canonical Reference: /docs/reference/chatterbox-event-schema.md

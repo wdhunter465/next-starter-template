@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Human + AI
-Authority Level: Historical
+Authority Level: Procedure
 Status: Retired
 Owns: Historical record of the #1075 CI implementation issue model
 Does Not Own: Current CI strategy, issue generation, PR policy, or workflow behavior

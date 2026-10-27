@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Human + AI
-Authority Level: Operational Authority
+Authority Level: Procedure
 Owns: Controlled AI execution bridge for approved repository maintenance tasks
 Does Not Own: OpenAI API execution, autonomous code generation, or merge approval
 Canonical Reference: /docs/governance/PR_GOVERNANCE.md

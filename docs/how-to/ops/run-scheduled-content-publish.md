@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Human + AI
-Authority Level: Operational Authority
+Authority Level: Procedure
 Owns: How to author, schedule, and auto-publish dated content_blocks posts (currently the Fundraiser Daily Details feed) and cross-post them to social via Zapier
 Does Not Own: The dynamic donation leaderboard/standings snapshot cadence (see /docs/how-to/ops/als-fundraiser-snapshots-and-publishing.md); the generic CMS draft/publish flow for non-scheduled blocks (/api/admin/cms/save.ts, /api/admin/cms/publish.ts); the 2027 program calendar itself (source: Issue #2093)
 Canonical Reference: /docs/governance/standards/document-authority-hierarchy_MASTER.md

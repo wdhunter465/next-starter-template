@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Human + AI
-Authority Level: Operational
+Authority Level: Procedure
 Owns: Git worktree setup, branch isolation, and session rules for multiple Cursor Local implementation sessions
 Does Not Own: Merge authorization, GitHub issue creation, CI workflow changes, or program queue dispatch
 Canonical Reference: /docs/ops/pmo/content-collection-parallel-execution-matrix.md

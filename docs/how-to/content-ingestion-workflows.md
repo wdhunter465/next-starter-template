@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Human + AI
-Authority Level: Operational Procedure
+Authority Level: Procedure
 Owns: Content ingestion and editorial workflow procedures
 Does Not Own: Runtime architecture or UI implementation
 Canonical Reference: /docs/reference/design/LGFC-Production-Design-and-Standards.md
