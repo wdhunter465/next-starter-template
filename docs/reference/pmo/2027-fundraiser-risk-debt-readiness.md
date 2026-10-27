@@ -5,7 +5,7 @@ Authority Level: Informational
 Owns: The lightweight program-risk field model and register (#2451), the launch-focused technical debt taxonomy and register (#2452), and the launch readiness evidence contract (#2453) for the 2027 fundraiser
 Does Not Own: A separate authority hierarchy, permission to remediate a risk or debt row, a claim that any row is already mitigated or accepted, or replacement of existing launch-readiness checks
 Canonical Reference: /docs/governance/PMO-PORTFOLIO.md
-Related Issues: #2449, #2451, #2452, #2453, #4418
+Related Issues: #2449, #2451, #2452, #2453, #4418, #4423
 Last Reviewed: 2026-10-27
 ---
 
@@ -140,8 +140,8 @@ Production readiness is a set of pass or fail evidence items tied to a named com
 | Authentication and protected routes | `/join`, `/fanclub`, `/fanclub/**` | blocking | Result compared with `docs/reference/design/auth-model.md` | The revision being launched |
 | Homepage and navigation invariants | Public homepage and primary navigation | blocking | Comparison with the production design standard | The revision being launched |
 | Mobile behavior | The same routes at a phone-width viewport | blocking | Recorded pass or fail for that viewport | The revision being launched |
-| Accessibility and visual validation | Pages in the design standard's critical path | advisory until a source Issue names a blocking check | Named finding or explicit pass | The revision being launched |
-| Performance and reliability | Production host | advisory until a threshold is named on a source Issue | Measurement attached to the revision | The revision being launched |
+| Accessibility and visual validation | `/`, `/search/`, `/join/`, `/ask/`, `/about/`, `/events/`, `/fundraiser-details/`, `/contact/` | blocking for the #4423 checks; visual validation stays a named human pass | axe, Lighthouse accessibility, and the 390px phone-width check on the revision | The revision being launched |
+| Performance and reliability | `/`, `/join/`, `/about/`, `/ask/`, `/search/` | blocking at the #4423 floor; stricter scores stay advisory | Lighthouse performance, CLS, and TBT on the revision | The revision being launched |
 | Cloudflare preview | The pull request preview | blocking for merge promotion of that change | Preview check | That pull request |
 | Cloudflare production | The production publish | blocking for launch Go | Production deploy record; see #2089 | That publish |
 | D1 and B2 bindings | Data and media used by the launched routes | blocking | Binding and read evidence for the revision | The revision being launched |
@@ -149,6 +149,25 @@ Production readiness is a set of pass or fail evidence items tied to a named com
 | Content and admin operations | Admin and editorial paths required for the fundraiser | advisory until a source Issue names the path | Operator pass or fail | The revision being launched |
 
 Advisory rows do not block. A blocking row with missing or stale evidence is a fail.
+
+#### Named thresholds (#4423)
+
+Product Authority accepted the 2026-10-09 recommendations on 2026-10-27. This section records that decision. It does not run the checks. The run is on the candidate revision, and the result is attached to that revision's Go packet.
+
+Accessibility is blocking on `/`, `/search/`, `/join/`, `/ask/`, `/about/`, `/events/`, `/fundraiser-details/`, and `/contact/`:
+
+- axe: zero critical or serious violations
+- Lighthouse accessibility score at least 95
+- phone width 390px: no horizontal scroll and no overlapped text or buttons
+- target: WCAG 2.x Level AA, with no certification claim
+
+Performance floor (Option A) is blocking on `/`, `/join/`, `/about/`, `/ask/`, and `/search/`:
+
+- Lighthouse performance at least 60
+- CLS at most 0.25
+- TBT at most 600 ms
+
+Stricter performance targets stay advisory. Visual validation stays a named human pass. The measured home-page score of 67 (LCP 5.7 s) passes this floor and remains the weakest route.
 
 #### Gates and sign-off
 
@@ -172,5 +191,5 @@ Each register started advisory/deferred with unassigned owners. Owners, disposit
 - A risk or debt row gains an owner and a real mitigation only through its own source Issue, never by editing this file directly.
 - A risk's release impact escalates from advisory to a blocking classification only with an explicit Product Authority decision, recorded here as a follow-up edit citing that decision.
 - A debt row's disposition moves from `defer` to `remediate` or `accept` only when a source Issue names the component and, for `accept`, Product Authority records the residual impact as acceptable.
-- The Part 3 evidence matrix's advisory rows (accessibility/visual validation, performance/reliability, content/admin operations) become blocking once a source Issue names the concrete threshold or check that replaces "advisory until named."
+- #4423 named the accessibility checks and the performance floor on 2026-10-27. Those rows are blocking as written above. Content and admin operations stays advisory until a source Issue names that check. Visual validation stays a named human pass.
 - This file is superseded, not further split, if a later reorganization of `docs/reference/pmo/` changes where PMO reference material lives; it is not expected to regrow into three files.
