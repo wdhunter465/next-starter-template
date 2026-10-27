@@ -41,9 +41,13 @@ jobs:
         (
           github.event_name == 'issues' &&
           github.event.action == 'labeled' &&
-          (github.event.label.name == 'handoff:ready' || github.event.label.name == 'agent:cursor') &&
+          github.event.issue.state == 'open' &&
+          (github.event.label.name == 'handoff:ready' || github.event.label.name == 'status:ready' || github.event.label.name == 'agent:cursor') &&
           contains(join(github.event.issue.labels.*.name, ','), 'agent:cursor') &&
-          contains(join(github.event.issue.labels.*.name, ','), 'handoff:ready')
+          (
+            contains(join(github.event.issue.labels.*.name, ','), 'handoff:ready') ||
+            contains(format(',{0},', join(github.event.issue.labels.*.name, ',')), ',status:ready,')
+          )
         )
       )
     runs-on: ubuntu-latest
@@ -73,9 +77,13 @@ jobs:
         (
           github.event_name == 'issues' &&
           github.event.action == 'labeled' &&
-          (github.event.label.name == 'handoff:ready' || github.event.label.name == 'agent:cursor') &&
+          github.event.issue.state == 'open' &&
+          (github.event.label.name == 'handoff:ready' || github.event.label.name == 'status:ready' || github.event.label.name == 'agent:cursor') &&
           contains(join(github.event.issue.labels.*.name, ','), 'agent:cursor') &&
-          contains(join(github.event.issue.labels.*.name, ','), 'handoff:ready')
+          (
+            contains(join(github.event.issue.labels.*.name, ','), 'handoff:ready') ||
+            contains(format(',{0},', join(github.event.issue.labels.*.name, ',')), ',status:ready,')
+          )
         ) ||
         (
           github.event_name == 'workflow_dispatch' &&

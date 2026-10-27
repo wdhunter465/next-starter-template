@@ -5,8 +5,8 @@ Authority Level: Procedure
 Owns: Host registration and verification procedure for the dedicated `lgfc-cursor` GitHub Actions runner used by #3212 dispatch (primary after Phase 4)
 Does Not Own: Historical Cursor Bridge package internals or Production website deployment
 Canonical Reference: /docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md
-Related Issues: #3212, #3347, #2636, #4567, #4570, #4587
-Last Reviewed: 2026-10-14
+Related Issues: #3212, #3347, #2636, #4567, #4570, #4587, #4982
+Last Reviewed: 2026-10-27
 ---
 
 # Configure the LGFC Cursor dispatch runner
@@ -91,7 +91,7 @@ before starting the runner so label-driven wakes exercise the wrapper without in
    Note: manual `workflow_dispatch` for health/dispatch is gated to actor `wdhunter465` (live Product Authority login). The retired `wdhunter645` login is not a trusted dispatch actor.
 
 8. Run `LGFC Cursor Dispatch` via `workflow_dispatch` with:
-   - `issue_number`: a Cursor-owned Issue carrying `agent:cursor` + `handoff:ready`
+   - `issue_number`: a Cursor-owned Issue carrying `agent:cursor` + `handoff:ready` or `status:ready`
    - `confirmation`: `CURSOR_DISPATCH`
    - `dry_run`: `true` for the first proof
 

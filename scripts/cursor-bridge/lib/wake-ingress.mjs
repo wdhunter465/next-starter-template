@@ -17,6 +17,8 @@
 
 export const CURSOR_AGENT_LABEL = 'agent:cursor';
 export const CURSOR_HANDOFF_LABEL = 'handoff:ready';
+/** #4982: a ready, package-complete Issue wakes Cursor the same way `handoff:ready` does. */
+export const CURSOR_STATUS_READY_LABEL = 'status:ready';
 
 /** Agent labels that route work away from Cursor Local. */
 export const NON_CURSOR_AGENT_LABELS = Object.freeze([
@@ -73,10 +75,13 @@ export function isNonCursorDirectedTraffic({ labels = [] } = {}) {
   return hasNonCursorAgent && !hasCursor;
 }
 
-/** True when both required labels for delivery are present on the live label set. */
+/** True when `agent:cursor` and one ready label (`handoff:ready` or `status:ready`) are on the live label set. */
 export function hasReadyCursorHandoff({ labels = [] } = {}) {
   const names = normalizeLabels(labels);
-  return names.includes(CURSOR_AGENT_LABEL) && names.includes(CURSOR_HANDOFF_LABEL);
+  return (
+    names.includes(CURSOR_AGENT_LABEL) &&
+    (names.includes(CURSOR_HANDOFF_LABEL) || names.includes(CURSOR_STATUS_READY_LABEL))
+  );
 }
 
 /**
@@ -125,14 +130,17 @@ export function shouldDeliverCursorWake(event = {}) {
   if (event.eventName === 'issues') {
     const isRoutingLabelEvent =
       event.action === 'labeled' &&
-      (event.labelName === CURSOR_HANDOFF_LABEL || event.labelName === CURSOR_AGENT_LABEL);
+      (event.labelName === CURSOR_HANDOFF_LABEL ||
+        event.labelName === CURSOR_STATUS_READY_LABEL ||
+        event.labelName === CURSOR_AGENT_LABEL);
     if (!isRoutingLabelEvent) {
       return { deliver: false, reason: 'unrelated_issue_label_event' };
     }
     if (!hasReadyCursorHandoff({ labels })) {
       return { deliver: false, reason: 'absent_cursor_routing' };
     }
-    return { deliver: true, reason: 'handoff_ready_on_cursor_issue' };
+    const viaHandoff = labels.includes(CURSOR_HANDOFF_LABEL);
+    return { deliver: true, reason: viaHandoff ? 'handoff_ready_on_cursor_issue' : 'status_ready_on_cursor_issue' };
   }
 
   return { deliver: false, reason: 'unrelated_github_traffic' };
