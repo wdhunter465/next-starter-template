@@ -1,5 +1,7 @@
 #!/usr/bin/env node
 import { cp, mkdir, readFile, writeFile } from 'node:fs/promises';
+import { applyReportNav } from './report-nav.mjs';
+import { generateScorecardPage } from './build-scorecard-page.mjs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -610,8 +612,10 @@ async function main() {
   };
   await mkdir(path.join(OUT_DIR, 'assets'), { recursive: true });
   await writeFile(path.join(OUT_DIR, 'dashboard-data.json'), `${JSON.stringify(data, null, 2)}\n`);
-  await cp(path.join(__dirname, 'static/index.html'), path.join(OUT_DIR, 'index.html'));
-  await cp(path.join(__dirname, 'static/queues.html'), path.join(OUT_DIR, 'queues.html'));
+  await writeFile(path.join(OUT_DIR, 'index.html'), applyReportNav(await readFile(path.join(__dirname, 'static/index.html'), 'utf8'), 'book'));
+  await writeFile(path.join(OUT_DIR, 'queues.html'), applyReportNav(await readFile(path.join(__dirname, 'static/queues.html'), 'utf8'), 'queues'));
+  // Placeholder scorecard page with no network access; run-dashboard-build.mjs replaces it with live data (#4976).
+  await generateScorecardPage({ outDir: OUT_DIR, env: {} });
   await cp(path.join(__dirname, 'static/pmo-dashboard.css'), path.join(OUT_DIR, 'assets/pmo-dashboard.css'));
   await cp(path.join(__dirname, 'static/pmo-dashboard.js'), path.join(OUT_DIR, 'assets/pmo-dashboard.js'));
   await cp(path.join(__dirname, 'static/pmo-queues.js'), path.join(OUT_DIR, 'assets/pmo-queues.js'));

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import { readFile } from 'node:fs/promises';
+import { REPORT_PAGES } from './report-nav.mjs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { TEAM_QUEUE_ORDER, PMO_QUEUE_ORDER } from './team-queue-counts.mjs';
@@ -386,9 +387,15 @@ if (data) {
   }
 }
 
-for (const file of ['index.html', 'queues.html', 'assets/pmo-dashboard.css', 'assets/pmo-dashboard.js', 'assets/pmo-queues.js']) {
+for (const file of ['index.html', 'queues.html', 'scorecard.html', 'assets/pmo-dashboard.css', 'assets/pmo-dashboard.js', 'assets/pmo-queues.js']) {
   try {
-    await readFile(path.join(outDir, file), 'utf8');
+    const text = await readFile(path.join(outDir, file), 'utf8');
+    // #4976: every report page shows links to the other two at the top.
+    if (['index.html', 'queues.html', 'scorecard.html'].includes(file)) {
+      for (const page of REPORT_PAGES) {
+        if (!text.includes(`<a href="${page.href}"`)) errors.push(`${file} is missing the report navigation link to ${page.label}`);
+      }
+    }
   } catch {
     errors.push(`generated ${file} is missing`);
   }

@@ -293,7 +293,7 @@ export async function collectFacts(context, now = new Date(), { jobCheck } = {})
   };
 }
 
-function githubContext() {
+export function githubContext() {
   const token = process.env.GITHUB_TOKEN || process.env.GH_TOKEN;
   const repository = process.env.GITHUB_REPOSITORY || 'wdhunter465/next-starter-template';
   if (!token) return null;
