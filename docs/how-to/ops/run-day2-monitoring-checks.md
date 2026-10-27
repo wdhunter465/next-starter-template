@@ -5,8 +5,8 @@ Authority Level: Procedure
 Owns: Operator steps for the Production health and Day-2 monitoring checks (stage 1): what each check proves, where it alerts, how to respond, how to disable
 Does Not Own: Monitoring strategy and stages (#4468), rollback authority (#3633 decision record), the per-workflow failure watcher procedure (docs/how-to/ci/workflow-failure-exception-issues.md)
 Canonical Reference: /docs/ops/reports/ci-gap-assessment-3633.md
-Related Issues: #4468, #3633, #4444, #4540, #4539, #4599, #4707
-Last Reviewed: 2026-10-26
+Related Issues: #4468, #3633, #4444, #4540, #4539, #4599, #4707, #4976
+Last Reviewed: 2026-10-27
 ---
 
 # Run the Day-2 Monitoring Checks
@@ -28,7 +28,7 @@ Tell an operator, for each stage 1 monitoring check, what it proves, where its a
 | Scheduled job health | `ops-scheduled-job-health.yml` | Every 2 hours at :40 | Every scheduled workflow is enabled and succeeded on `main` within its window | Issue `OPS — Scheduled job health — stale or disabled job` |
 | Repeated failure halt | `ops-halt-repeated-failures.yml` | Hourly at :17 | No scheduled workflow has 3 consecutive failures on `main`. One that does is disabled and gets one Issue; a Production-protecting job alerts and keeps running | Issue `OPS HALTED: <workflow> halted after 3 consecutive failures` or `OPS ALERT: <workflow> failed 3 times in a row (not halted)` |
 | Production edge health | `ops-production-edge-health.yml` | 06:45 and 18:45 UTC | Home and FAQ answer HTTP 2xx, send a cache-control policy that cannot stay stale for more than a day, and respond within 8 seconds. Also checks that scheduled-job health succeeded within 6 hours | Issue `OPS — Production edge health — check failed` |
-| Weekly operations scorecard | `ops-weekly-operations-scorecard.yml` | Mondays 13:00 UTC, and on demand | The last 7 days of uptime, job health, delivery, restore time, the Operations queue, backup age, and Priority 1 projects | Comment on the standing Issue `Weekly scorecard` |
+| Weekly operations scorecard | `ops-weekly-operations-scorecard.yml` | Mondays 13:00 UTC, and on demand | The last 7 days of uptime, job health, delivery, restore time, the Operations queue, backup age, and Priority 1 projects | Comment on the standing Issue `Weekly scorecard`, and a daily-refreshed web page at `https://wdhunter465.github.io/next-starter-template/pmo-dashboard/scorecard.html` (#4976) |
 
 Backup success is visible in two places. `OPS — D1 Backup Scheduled Daily Export (#3268 Phase 3)` and `OPS — Snapshot Backup` are on the failure watcher, so a failed run opens `OPS EXCEPTION: <workflow> failed`. Scheduled job health also fails the daily export when its last success is older than 30 hours.
 
