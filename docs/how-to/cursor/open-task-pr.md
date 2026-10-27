@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: AI
-Authority Level: Operational Authority
+Authority Level: Procedure
 Owns: Cursor procedure for opening a task PR after review approval
 Does Not Own: Merge authority or GitHub issue closeout
 Canonical Reference: /docs/how-to/cursor/prepare-review-packet.md

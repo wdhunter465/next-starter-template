@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Human + AI operators
-Authority Level: Operational Procedure
+Authority Level: Procedure
 Owns: Procedure for moving approved work through Sandbox, Development, Promotion Candidate, Production, and Day-2 Operations
 Does Not Own: Product decisions, role assignments, gate implementation, or production credentials
 Canonical Reference: /docs/reference/operations/operating-lanes-and-promotion-profiles.md

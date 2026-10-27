@@ -13,6 +13,7 @@ const HOUR = 60 * 60 * 1000;
 // maxAgeHours: longest acceptable gap since the last successful run on the default
 // branch (any trigger). null means only the enabled state is checked.
 export const JOBS = [
+  { file: 'advisory-dashboard-build.yml', maxAgeHours: 3 },
   { file: 'ops-site-uptime-probe.yml', maxAgeHours: 3 },
   { file: 'ops-photo-address-check.yml', maxAgeHours: 8 },
   { file: 'ops-stale-communication.yml', maxAgeHours: 3 },
