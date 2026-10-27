@@ -47,8 +47,11 @@
     "wrapper": "scripts/lgfc-cursor-dispatch/dispatch.mjs",
     "purpose": "Wake Cursor Local headlessly with repository/event identifiers only",
     "requiredLabels": [
-      "agent:cursor",
-      "handoff:ready"
+      "agent:cursor"
+    ],
+    "readyLabelsAnyOf": [
+      "handoff:ready",
+      "status:ready"
     ],
     "mayLaunchCursor": true,
     "mayHoldApiKeys": false,

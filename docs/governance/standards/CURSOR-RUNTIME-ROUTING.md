@@ -5,8 +5,8 @@ Authority Level: Binding
 Owns: LGFC Cursor runtime selection, local-versus-cloud invocation boundary, assignment runtime metadata, and local resume routing
 Does Not Own: Cursor product configuration, local poller implementation, implementation scope, merge approval, or cloud billing
 Canonical Reference: /Agent.md
-Related Issues: #2477, #2489, #2667, #2997, #3013, #3212, #3424, #3605, #3611, #4296, #4311, #4783
-Last Reviewed: 2026-10-22
+Related Issues: #2477, #2489, #2667, #2997, #3013, #3212, #3424, #3605, #3611, #4296, #4311, #4783, #4982
+Last Reviewed: 2026-10-27
 ---
 
 # Cursor Runtime Routing
@@ -59,7 +59,7 @@ Runtime: either
 Local Cursor routing uses the following eligibility signal — labels and status only, no comment-marker protocol (#3013):
 
 - source issue label `agent:cursor`;
-- source issue label `handoff:ready`;
+- source issue label `handoff:ready` or `status:ready` (#4982);
 - issue is open and not already carrying an already-handed-off status label (`status:review`, `status:complete`, `status:post-merge-verify`).
 
 There is no required resume/response comment. Comments are ordinary context Cursor reads after launch; they carry no routing or gating authority.
@@ -129,5 +129,5 @@ For agent-authority or assignment-template changes:
 1. Confirm the assignment contains exactly one Runtime field.
 2. Search active authority for `@cursor`.
 3. Retain `@cursor` only where it is explicitly identified as prohibited, historical, or cloud-only.
-4. Confirm local instructions rely on `agent:cursor` + `handoff:ready` labels and status only — no comment-marker requirement.
+4. Confirm local instructions rely on `agent:cursor` + (`handoff:ready` or `status:ready`) labels and status only — no comment-marker requirement.
 5. Run repository documentation-header and DIATAXIS checks.
