@@ -5,7 +5,7 @@ Authority Level: Domain Policy
 Owns: Repository work-queue classification, queue ownership, team/agent claim semantics, queue-state transitions, Operations interrupt behavior, role-work-selection integration, Project Graduation routing, and universal collaboration
 Does Not Own: Product outcome, final Product priority decisions, PMO lifecycle/stage deliverables, implementation methods, recovery strategy, PR approval decisions, or Production authorization
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3134, #3145, #3240, #3629, #3825, #4447, #4818
+Related Issues: #3134, #3145, #3240, #3629, #3825, #4447, #4818, #4982
 Last Reviewed: 2026-10-27
 ---
 
@@ -129,6 +129,21 @@ Until the end of 2027-01-01, unless Product Authority ends or extends it earlier
 - The overlay changes sequencing only. It never overrides the Operations interrupt, a protected stop or Product Authority decision, a hold or blocked state, an unmet dependency, a valid claim, separation of duties, or the package-complete requirement.
 - Product Authority, or PMO Admin on Product Authority's direction, applies and removes the label. The go-live set is the Issues under #4414.
 - The overlay lapses after 2027-01-01 without a further edit to this file. An extension, for example for the fundraiser period, is a Product Authority decision recorded on #4447.
+
+## Queue-state labels (#4982)
+
+These labels say whether an Issue can be worked now and, if not, what it waits on. They sit beside `team:*` (the queue) and `agent:*` (the claim). Each Issue carries at most one of them.
+
+| Label | Meaning | Effect |
+| --- | --- | --- |
+| `status:ready` | Package-complete: source Issue, acceptance criteria, exact allowlist, role authority and an explicit Go are recorded, and no dependency is open | With an `agent:*` claim it is an assignment. Without one it is an invitation to claim in role order |
+| `wait:product` | Only a Product Authority decision or input is missing, and the Issue names it | The agent does not ask again. The Issue is listed for Product Authority to decide |
+| `wait:review` | A pull request is open and waiting on review | The claim is released so the agent starts its next item |
+| `wait:dependency` | Blocked by a named Issue | Not eligible until that Issue closes |
+
+`handoff:ready` stays a routing signal that wakes the Cursor runner. It is not a Go and not an assignment on its own.
+
+**Claim hygiene.** An agent holds `agent:*` only while it works the Issue or has its pull request open. It releases the claim when the Issue is on hold, parked, or waiting on a decision, a review or another agent, and leaves a note naming what it waits on. A reserved claim set by Product Authority is released only by Product Authority. A stale claim set by someone else is reported, not removed.
 
 ## PMO lifecycle ownership
 
