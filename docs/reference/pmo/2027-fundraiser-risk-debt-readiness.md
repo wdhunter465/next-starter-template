@@ -5,7 +5,7 @@ Authority Level: Informational
 Owns: The lightweight program-risk field model and register (#2451), the launch-focused technical debt taxonomy and register (#2452), and the launch readiness evidence contract (#2453) for the 2027 fundraiser
 Does Not Own: A separate authority hierarchy, permission to remediate a risk or debt row, a claim that any row is already mitigated or accepted, or replacement of existing launch-readiness checks
 Canonical Reference: /docs/governance/PMO-PORTFOLIO.md
-Related Issues: #2449, #2451, #2452, #2453, #4423
+Related Issues: #2449, #2451, #2452, #2453, #4418, #4423
 Last Reviewed: 2026-10-27
 ---
 
@@ -45,7 +45,7 @@ Every risk row uses these fields:
 
 #### When a risk blocks
 
-A risk blocks a phase gate, merge, deploy, or launch only when its release impact says so and Product Authority has accepted that row. An advisory row never blocks by itself. This document does not accept any row as a new block.
+A risk blocks a phase gate, merge, deploy, or launch only when its release impact says so and Product Authority has accepted that row. An advisory row never blocks by itself. Product Authority accepted five rows as launch-blocking on 2026-10-27 (#4418): R3, R4, R5, R6 and R7. No other row blocks.
 
 #### Closure
 
@@ -57,17 +57,17 @@ Review open rows when a related source Issue merges, and again before a launch G
 
 #### Initial risk register
 
-These domains are open. Owners are unassigned until Product Authority records one. None of these rows authorize remediation.
+Product Authority recorded owners, dispositions and blocking rows on 2026-10-27 (#4418). Owners are roles from `docs/governance/AGENT-TEAM.md`. A disposition of `remediate` names the intended path only: each remediation still needs its own source Issue, and the Issues in the last column are the ones that already exist.
 
-| ID | Domain | Release impact | Owner | Mitigation recorded here |
-| --- | --- | --- | --- | --- |
-| R1 | Post-merge instability | advisory | unassigned | Existing post-merge closeout |
-| R2 | Soft-fail masking | advisory | unassigned | none recorded |
-| R3 | Launch end-to-end gaps | advisory | unassigned | Existing launch-readiness specs where present |
-| R4 | Authentication and protected routes | advisory | unassigned | `docs/reference/design/auth-model.md` |
-| R5 | Content and admin readiness | advisory | unassigned | none recorded |
-| R6 | Cloudflare deployment and bindings | advisory | unassigned | none recorded |
-| R7 | Production telemetry and recovery | advisory | unassigned | Day-2 Operations role exists; procedure is not defined here |
+| ID | Domain | Release impact | Owner | Disposition | Tracked by | Mitigation recorded here |
+| --- | --- | --- | --- | --- | --- | --- |
+| R1 | Post-merge instability | advisory | Operations | remediate | #4444, #4446 | Existing post-merge closeout |
+| R2 | Soft-fail masking | advisory | Engineering | remediate (launch-critical specs only) | #4421 | none recorded |
+| R3 | Launch end-to-end gaps | blocks launch | Engineering | remediate | #4421, #4422 | Existing launch-readiness specs where present |
+| R4 | Authentication and protected routes | blocks launch | Engineering | remediate | #4422 | `docs/reference/design/auth-model.md` |
+| R5 | Content and admin readiness | blocks launch | PMO | remediate | #4434, #4426 | none recorded |
+| R6 | Cloudflare deployment and bindings | blocks launch | Operations | remediate | #4425, #4440 | none recorded |
+| R7 | Production telemetry and recovery | blocks launch | Day-2 Operations | remediate | #4439, #4762 | Day-2 Operations role exists; procedure is not defined here |
 
 Escalation is an Issue that names the risk ID. This register does not open those Issues.
 
@@ -115,18 +115,18 @@ This file does not assign those dispositions to new work. Action still requires 
 
 #### Initial debt register
 
-| ID | Kind | Domain | Launch impact | Disposition | Owner |
-| --- | --- | --- | --- | --- | --- |
-| D1 | Operational | CI reliability | tolerable until after launch | defer | unassigned |
-| D2 | Operational | Deployment and environment | tolerable until after launch | defer | unassigned |
-| D3 | Technical | Authentication and protected routes | tolerable until after launch | defer | unassigned |
-| D4 | Technical | High-risk component gaps | tolerable until after launch | defer | unassigned |
-| D5 | Operational | Content administration | tolerable until after launch | defer | unassigned |
-| D6 | Technical | Test coverage | tolerable until after launch | defer | unassigned |
-| D7 | Operational | Production observability | tolerable until after launch | defer | unassigned |
-| D8 | Documentation | Authority and drift | tolerable until after launch | defer | unassigned |
+| ID | Kind | Domain | Launch impact | Disposition | Owner | Tracked by |
+| --- | --- | --- | --- | --- | --- | --- |
+| D1 | Operational | CI reliability | tolerable until after launch | defer | Operations | none |
+| D2 | Operational | Deployment and environment | tolerable until after launch | defer | Operations | #4440 |
+| D3 | Technical | Authentication and protected routes | tolerable until after launch | defer | Engineering | none |
+| D4 | Technical | High-risk component gaps | tolerable until after launch | defer | Engineering | none |
+| D5 | Operational | Content administration | tolerable until after launch | defer | Engineering | #4887 |
+| D6 | Technical | Test coverage | tolerable until after launch | defer | Engineering | none |
+| D7 | Operational | Production observability | tolerable until after launch | remediate | Day-2 Operations | #4439 |
+| D8 | Documentation | Authority and drift | tolerable until after launch | remediate | Governance | #4856 |
 
-D8 is watched with the monitored-documentation model in #2087. Rows stay deferred until a source Issue names a component and a disposition. No row here is accepted.
+D8 is watched with the monitored-documentation model in #2087. Product Authority set the owners and dispositions above on 2026-10-27 (#4418). D7 and D8 moved from `defer` to `remediate`; the rest stay deferred. D7 keeps its tolerable-until-after-launch impact and is tracked with R7. No row here is accepted.
 
 ### Part 3 — Fundraiser launch readiness contract (#2453)
 
@@ -186,7 +186,7 @@ Go only when every blocking row for the components in scope has fresh pass evide
 
 ## Intended final state
 
-Each register starts advisory/deferred with unassigned owners, as recorded above. As the program matures:
+Each register started advisory/deferred with unassigned owners. Owners, dispositions and the five launch-blocking risk rows were recorded on 2026-10-27 (#4418), as shown above. As the program matures:
 
 - A risk or debt row gains an owner and a real mitigation only through its own source Issue, never by editing this file directly.
 - A risk's release impact escalates from advisory to a blocking classification only with an explicit Product Authority decision, recorded here as a follow-up edit citing that decision.
