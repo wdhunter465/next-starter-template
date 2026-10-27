@@ -198,6 +198,11 @@ describe('campaignSpotlight config helpers', () => {
   it('uses Givebutter campaign URLs in the default config', () => {
     expect(defaultCampaignSpotlightConfig.primaryCtaHref).toBe(CAMPAIGN_SPOTLIGHT_GIVEBUTTER_CAMPAIGN_URL);
     expect(defaultCampaignSpotlightConfig.secondaryCtaHref).toBe(CAMPAIGN_SPOTLIGHT_GIVEBUTTER_AUCTION_URL);
+    expect(defaultCampaignSpotlightConfig.goalAmount).toBe('$10,000');
+    expect(defaultCampaignSpotlightConfig.deadlineLabel).toBe(
+      'Opens 2027-03-25. Closes 2027-06-07 at 12:00 PM Eastern.',
+    );
+    expect(defaultCampaignSpotlightConfig.enabled).toBe(false);
     expect(defaultCampaignSpotlightConfig.primaryCtaHref).not.toContain('/charities');
     expect(defaultCampaignSpotlightConfig.secondaryCtaHref).not.toContain('/charities');
   });
