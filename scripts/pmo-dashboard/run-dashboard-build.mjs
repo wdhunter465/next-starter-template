@@ -3,6 +3,7 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { generateScorecardPage } from './build-scorecard-page.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const CURRENT_REPOSITORY = 'wdhunter465/next-starter-template';
@@ -93,6 +94,14 @@ async function main() {
 
   await writeFile(dataPath, `${JSON.stringify(data, null, 2)}\n`);
   console.log(`Reconciled PMO dashboard repository and agent:* owner authority for ${data.repository}`);
+
+  // The scorecard page never fails the dashboard build (#4976).
+  try {
+    const scorecard = await generateScorecardPage({ outDir });
+    console.log(`Scorecard page: ${scorecard.status}`);
+  } catch (error) {
+    console.error(`Scorecard page skipped: ${error instanceof Error ? error.message : error}`);
+  }
 }
 
 main().catch((error) => {
