@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "dateEnd": "1930-12-31",
+  "steps": [
+    { "id": "loc-1923", "query": "Lou Gehrig 1923", "source": "loc", "page": 1, "pre1931": true },
+    { "id": "commons-1923", "query": "Lou Gehrig 1923", "source": "wikimedia", "page": 1, "pre1931": true },
+    { "id": "openverse-1923", "query": "Lou Gehrig 1923", "source": "openverse", "page": 1, "pre1931": true },
+    { "id": "loc-1925-first-game", "query": "Lou Gehrig 1925 first game", "source": "loc", "page": 1, "pre1931": true },
+    { "id": "loc-1927", "query": "Lou Gehrig 1927 Murderers Row", "source": "loc", "page": 1, "pre1931": true },
+    { "id": "commons-1927", "query": "Lou Gehrig 1927", "source": "wikimedia", "page": 1, "pre1931": true },
+    { "id": "loc-consecutive", "query": "Lou Gehrig 2130 consecutive games", "source": "loc", "page": 1, "pre1931": true },
+    { "id": "loc-columbia", "query": "Lou Gehrig Columbia University", "source": "loc", "page": 1, "pre1931": true },
+    { "id": "commons-columbia", "query": "Lou Gehrig Columbia", "source": "wikimedia", "page": 1, "pre1931": true },
+    { "id": "loc-barnstorming", "query": "Lou Gehrig barnstorming", "source": "loc", "page": 1, "pre1931": true },
+    { "id": "loc-iron-horse", "query": "Lou Gehrig Iron Horse", "source": "loc", "page": 1, "pre1931": true },
+    { "id": "commons-larrupin", "query": "Larrupin Lou Gehrig", "source": "wikimedia", "page": 1, "pre1931": true },
+    { "id": "openverse-buckeye", "query": "Buckeye Lou Gehrig", "source": "openverse", "page": 1, "pre1931": true },
+    { "id": "loc-1930", "query": "Lou Gehrig 1930", "source": "loc", "page": 1, "pre1931": true },
+    { "id": "commons-hall-of-fame", "query": "Lou Gehrig Hall of Fame", "source": "wikimedia", "page": 1, "pre1931": false },
+    { "id": "loc-gehrig-day", "query": "Lou Gehrig Day", "source": "loc", "page": 1, "pre1931": false },
+    { "id": "openverse-als", "query": "Lou Gehrig ALS", "source": "openverse", "page": 1, "pre1931": false }
+  ]
+}

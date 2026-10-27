@@ -1,10 +1,10 @@
 ---
-Doc Type: How-To
+Doc Type: Report
 Audience: Human + AI
-Authority Level: Operational
-Owns: Step-by-step procedures to accomplish tasks safely
-Does Not Own: Defining specs; redefining design/architecture/platform rules
-Canonical Reference: /docs/governance/standards/document-authority-hierarchy_MASTER.md
+Authority Level: Operational Evidence
+Owns: Point-in-time record of the post-recovery verification run for PR #425 (2026-01-24)
+Does Not Own: The verification script or workflow behavior, current CI policy, or recovery procedure
+Canonical Reference: /docs/ops/workflows-inventory.md
 Last Reviewed: 2026-02-20
 ---
 

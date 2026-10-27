@@ -5,8 +5,8 @@ Authority Level: Operational
 Owns: End-to-end launch sequence for Content Collection documentation-promotion Phase 0 (#2359 child chain)
 Does Not Own: Feature implementation, CI workflow changes, merge authorization, or issue closure authority
 Canonical Reference: /docs/ops/pmo/lou-gehrig-content-collection-expansion-readiness.md
-Related Issues: #2359, #2360, #2366, #2389
-Last Reviewed: 2026-07-08
+Related Issues: #2359, #2360, #2366, #2389, #4776
+Last Reviewed: 2026-10-26
 ---
 
 # Content Collection Phase 0 Launch Playbook
@@ -49,7 +49,7 @@ For each child issue:
 
 1. Cursor posts findings, proposed paths, and blockers in the issue thread.
 2. Use `CHATGPT HANDOFF` and request `agent:ChatGPT` at review points.
-3. ChatGPT writes decisions into the issue before Cursor acts on them.
+3. Product Authority records decisions into the issue before Cursor acts on them.
 4. Open a PR only after issue-level direction is complete.
 
 ### Step 4 — Open a bounded docs PR
@@ -84,7 +84,7 @@ Record on the parent #2359 or predecessor closeout comment:
 
 ## Stop rules
 
-Stop and request ChatGPT/Bill decision when:
+Stop and request a Product Authority decision when:
 
 - repository authority conflicts with a Drive draft;
 - target Diataxis path is ambiguous;

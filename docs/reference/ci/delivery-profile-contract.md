@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: Shared delivery-profile metadata values, parser fields, classification invariants, protected path baseline, and CLI contract
 Does Not Own: Auto-integration enablement, branch protection settings, workflow behavior, or production promotion approval
 Canonical Reference: /docs/governance/DELIVERY-AND-RELEASE.md
-Related Issues: #2485, #3752, #3753, #3465, #4552
-Last Reviewed: 2026-10-10
+Related Issues: #2485, #3752, #3753, #3465, #4552, #4777
+Last Reviewed: 2026-10-26
 ---
 
 # Delivery Profile Contract
@@ -14,9 +14,9 @@ Last Reviewed: 2026-10-10
 This reference defines the stable delivery-profile contract introduced by issue
 #2485 for Delivery System v1, extended by #3752 for Model C documentation-only
 delivery. The contract is intentionally metadata-first: **runtime gate behavior for
-Model C is implemented under issue #3753** and must not invent broader write
-authority than `docs/governance/DELIVERY-AND-RELEASE.md`. Until #3753 merges,
-`scripts/ci/delivery_profile.mjs` on `main` implements Model A/B/emergency only.
+Model C is implemented under issue #3753** in `scripts/ci/delivery_profile.mjs`
+and `scripts/ci/model_c_path_gate.mjs`. It must not invent broader write
+authority than `docs/governance/DELIVERY-AND-RELEASE.md`.
 
 ## Stable PR metadata fields
 

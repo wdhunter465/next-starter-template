@@ -1,17 +1,17 @@
 ---
 Doc Type: Operations
-Audience: Bill, ChatGPT, Cursor, LGFC maintainers, implementation agents, and reviewers
+Audience: Bill, Governance, Cursor, LGFC maintainers, implementation agents, and reviewers
 Authority Level: Operational Authority
 Owns: Priority #1 PMO readiness decision, next-program candidate scope, child-project boundaries, design/readiness state, Cursor launch preconditions
 Does Not Own: Runtime implementation, issue creation, merge authority, production secrets, vendor configuration, fundraiser program scope
 Canonical Reference: /docs/ops/pmo/PMO-JULY-2026-OPERATING-MODEL.md
-Related issues: #1678, #1255, #1256, #1258, #1259, #1379, #1685, #1963
-Last Reviewed: 2026-06-29
+Related issues: #1678, #1255, #1256, #1258, #1259, #1379, #1685, #1963, #4776
+Last Reviewed: 2026-10-26
 ---
 
 # Website Completion / Fan Club Product Buildout Readiness
 
-> Program #1685 structural baseline is **ready for Bill/ChatGPT launch review** after CI Program #1963 closeout. Cursor may not execute Program #2039 work from this package.
+> Program #1685 structural baseline is **ready for Product Authority launch review** after CI Program #1963 closeout. Cursor may not execute Program #2039 work from this package.
 
 ## Purpose
 
@@ -43,7 +43,7 @@ This document does not launch implementation, create child issues, authorize Cur
 - A legacy Fan Club home design draft exists at `docs/ops/pmo/program-3-club-home-page-design.md`; this file is planning evidence, not PMO July 2026 launch authority.
 - Content strategy and editorial inventory planning exists in `docs/ops/implementation-plans/website-content-strategy-editorial-inventory.md` and supporting Diataxis website content documents.
 - Website operations/admin work is documented as completed in `docs/ops/implementation-plans/website-operations-admin.md`; Priority #1 backend work must reconcile against that existing work instead of rebuilding it.
-- PMO July 2026 requires explicit ChatGPT/Bill launch authorization before Cursor implementation.
+- PMO July 2026 requires explicit Product Authority launch authorization before Cursor implementation.
 
 ## Intended final state
 
@@ -64,7 +64,7 @@ The intended final state before implementation launch is:
 | Candidate program name | Website Completion / Fan Club Product Buildout |
 | PMO source | PMO Backlog Priority #1 |
 | Execution agent after launch | Cursor |
-| Current readiness | Structural baseline complete; ready for Bill/ChatGPT launch review after CI #1963 closeout |
+| Current readiness | Structural baseline complete; ready for Product Authority launch review after CI #1963 closeout |
 | Primary implementation plan | `docs/ops/implementation-plans/website-completion-fan-club-product-buildout.md` |
 | Primary design authority | `docs/reference/design/LGFC-Production-Design-and-Standards.md` |
 | Product surface | Authenticated Fan Club experience and supporting backend/content operations |
@@ -74,7 +74,7 @@ The intended final state before implementation launch is:
 
 | Priority item | project name | Current state | Design authority | Implementation plan state | Readiness decision |
 | --- | --- | --- | --- | --- | --- |
-| 1 | Website Completion / Fan Club Product Buildout | PMO July 2026 program candidate | This readiness doc plus production design authority | `website-completion-fan-club-product-buildout.md` | Ready for Bill/ChatGPT launch review |
+| 1 | Website Completion / Fan Club Product Buildout | PMO July 2026 program candidate | This readiness doc plus production design authority | `website-completion-fan-club-product-buildout.md` | Ready for Product Authority launch review |
 | 1a | Fan Club page design | Legacy planning draft with strong design content | `program-3-club-home-page-design.md`, `fanclub-subpages.md`, production design standards | Covered by Tasks 001, 003, 007, 009 | Ready for implementation planning after launch |
 | 1b | Website backend services | Partially implemented across prior content/admin work | production design data model, content inventory model, admin operations plan | Covered by Tasks 001, 002, 004, 005, 006 | Ready for gap-first implementation planning after launch |
 | 1c | Content management strategy | Partially documented and partially implemented | content strategy / content inventory / editorial placement docs | Covered by Tasks 001, 004, 005, 006 | Ready for reconciliation-first implementation planning after launch |
@@ -123,7 +123,7 @@ Cursor must reconcile current `functions/api/**`, D1 tables, B2/media mappings, 
 
 | Decision | Result |
 | --- | --- |
-| Is Priority #1 the next program group? | Yes, pending Bill/ChatGPT launch after planning PR approval. |
+| Is Priority #1 the next program group? | Yes, pending Product Authority launch after planning PR approval. |
 | Is Fan Club page design part of the program? | Yes. It is a core child project. |
 | Is content collection standalone? | No. It is the upstream intake/source-credit layer inside content management strategy. |
 | Should existing admin/content work be rebuilt? | No. Cursor must reconcile first and implement only documented gaps. |
@@ -132,7 +132,7 @@ Cursor must reconcile current `functions/api/**`, D1 tables, B2/media mappings, 
 
 ## Cursor readiness standard
 
-Cursor may receive this program only after Bill/ChatGPT launch it through a program issue or explicit source issue comment.
+Cursor may receive this program only after Product Authority launches it through a program issue or explicit source issue comment.
 
 Cursor assignment must include:
 
@@ -156,4 +156,4 @@ Readiness state after this package:
 - portfolio readiness: ready;
 - design readiness: sufficient for launch review;
 - implementation-plan readiness: sufficient for Cursor task issue creation after launch;
-- execution readiness: structural baseline complete on `main`; ready for Bill/ChatGPT launch review (see `docs/ops/reports/website-completion-program-1685-launch-readiness.md`).
+- execution readiness: structural baseline complete on `main`; ready for Product Authority launch review (see `docs/ops/reports/website-completion-program-1685-launch-readiness.md`).

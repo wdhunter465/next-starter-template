@@ -1,12 +1,12 @@
 ---
 Doc Type: Reference
-Audience: Bill, ChatGPT, Cursor, LGFC operators, editors, and implementation agents
+Audience: Bill, Governance, Cursor, LGFC operators, editors, and implementation agents
 Authority Level: Controlled
 Owns: Member submission intake field and state model for the LGFC content pipeline
 Does Not Own: Upload runtime, B2 configuration, D1 migrations, or admin UI implementation
 Canonical Reference: /docs/reference/content/lgfc-content-candidate-model.md
 Related issues: #2273, #2277, #2275, #3552, #3553, #3597, #3598, #3699
-Last Reviewed: 2026-08-25
+Last Reviewed: 2026-10-26
 ---
 
 # Member Submission Content Model
