@@ -5,8 +5,8 @@ Authority Level: Operational Authority
 Owns: DIATAXIS structure, folder intent, project documentation coverage, merged-state reconciliation, and transition controls
 Does Not Own: Product design decisions, implementation authority, or Production approval
 Canonical Reference: /docs/governance/PROJECT-DOCUMENTATION-AND-AS-BUILT.md
-Related Issues: #1132, #1342, #1719
-Last Reviewed: 2026-10-23
+Related Issues: #1132, #1342, #1719, #4776
+Last Reviewed: 2026-10-26
 ---
 
 # LGFC DIATAXIS Transition and Project Documentation Model
@@ -87,7 +87,7 @@ This validates merged reality, not PR intent.
 
 ## Defect routing
 
-A post-merge DIATAXIS, documentation, or AS-BUILT exception is assigned immediately to the implementer of the originating PR. ChatGPT / Atlas, as PMO / Engineering, defines the defect, routes it, coordinates independent review, verifies remediation, and controls closeout.
+A post-merge DIATAXIS, documentation, or AS-BUILT exception is assigned immediately to the implementer of the originating PR. PMO defines the defect and routes it. PMO Admin coordinates independent review, verifies remediation, and controls closeout.
 
 The project remains open or is reopened as closeout-defective until remediation is merged and verified.
 

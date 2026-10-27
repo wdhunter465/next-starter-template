@@ -22,7 +22,7 @@ Lock the documentation structure after the docs/root cleanup so we do not reintr
 - Governance consolidation was completed previously (OPERATING_MODEL_MASTER is authoritative).
 - Broken link in docs/reference/DEPLOYMENT_GUIDE.md was fixed:
   - Removed reference to missing ./TROUBLESHOOTING.md
-  - Replaced with ../incident-response/quickstart_MASTER.md
+  - Replaced with ../ops/incident-response/quickstart_MASTER.md
 
 ## Current hard rules
 1) Do not add “helper” docs in /docs root unless they are true authority/entry points.

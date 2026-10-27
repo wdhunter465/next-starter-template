@@ -37,7 +37,7 @@ Every prompt below must be wrapped in the mandatory template block (section 4 of
 | Authority | Path |
 | --- | --- |
 | Assignment template (canonical) | `docs/templates/agent-assignment-template.md` |
-| Operating model | `docs/ops/ai/LGFC-AI-TEAM-OPERATING-MODEL.md` |
+| Operating model | `docs/archive/LGFC-AI-TEAM-OPERATING-MODEL.md` |
 | Handoff workflow | `docs/ops/ai/chatgpt-cursor-handoff-workflow.md` |
 | PR governance skill | `.agents/skills/lgfc-pr-governance/SKILL.md` |
 | Foundation packages | `docs/ops/implementation-plans/content-collection/packages/` |
@@ -76,7 +76,7 @@ Parent program: #2359
 ## 5. Repository Authority
 
 1. `Agent.md`
-2. `docs/ops/ai/LGFC-AI-TEAM-OPERATING-MODEL.md`
+2. `docs/archive/LGFC-AI-TEAM-OPERATING-MODEL.md`
 3. `docs/ops/ai/SHARED-AGENT-RULES.md`
 4. `docs/ops/ai/CORE-RULES.md`
 5. `docs/ops/ai/CURSOR-RULES.md`

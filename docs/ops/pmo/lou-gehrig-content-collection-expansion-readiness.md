@@ -1,17 +1,17 @@
 ---
 Doc Type: Operations
-Audience: Bill, ChatGPT, Cursor, LGFC maintainers, implementation agents, and reviewers
+Audience: Bill, Governance, Cursor, LGFC maintainers, implementation agents, and reviewers
 Authority Level: Operational Authority
 Owns: Priority #4 PMO readiness decision, Lou Gehrig content collection expansion scope, child-project boundaries, source/credit/privacy/readiness state, Cursor launch preconditions
 Does Not Own: Runtime implementation, issue creation without launch authorization, merge authority, third-party content rights, bulk ingestion, OCR implementation, AI enrichment implementation, external monitoring implementation
 Canonical Reference: /docs/ops/pmo/PMO-JULY-2026-OPERATING-MODEL.md
-Related Issues: #1736, #1255, #1256, #1685, #1690, #1693, #1379
-Last Reviewed: 2026-06-17
+Related Issues: #1736, #1255, #1256, #1685, #1690, #1693, #1379, #4776
+Last Reviewed: 2026-10-26
 ---
 
 # Lou Gehrig Content Collection / Research Pipeline Expansion Readiness
 
-> This program is BLOCKED from execution until ChatGPT/Bill explicitly launch it. Planning, review, and documentation discussion may continue, but Cursor may not execute implementation work from this program until Bill/ChatGPT explicitly launch it.
+> This program is BLOCKED from execution until Product Authority explicitly launches it. Planning, review, and documentation discussion may continue, but Cursor may not execute implementation work from this program until Product Authority explicitly launches it.
 
 ## Purpose
 
@@ -41,7 +41,7 @@ This document does not implement crawling, scraping, OCR, AI enrichment, externa
 - Normal content management and editorial intake are already partially absorbed into Priority #1.
 - This expansion is for larger-scale discovery, research, provenance, and conversion workflows beyond normal current-site content operations.
 - Program #1255/#1259 remains active and ahead of this program.
-- Priority #1, Priority #2, and Priority #3 already have launch-control structures and remain ahead unless Bill/ChatGPT explicitly reprioritize.
+- Priority #1, Priority #2, and Priority #3 already have launch-control structures and remain ahead unless Product Authority explicitly reprioritizes.
 - Human editorial review remains mandatory before publication.
 - Source/credit/provenance must be captured before content becomes website-ready.
 - Copyright, privacy, and public-domain status must be reviewed before publication.
@@ -129,15 +129,15 @@ This program may define data needs and review states, but any admin implementati
 Before Cursor receives implementation assignment for this program:
 
 1. Program #1255/#1259 status must be resolved or explicitly deprioritized.
-2. Higher queued programs must be launched, deferred, or reprioritized by Bill/ChatGPT.
+2. Higher queued programs must be launched, deferred, or reprioritized by Product Authority.
 3. Project 11 admin/tools readiness should be reviewed because this program may need admin/research queue surfaces.
 4. A current program issue must explicitly launch this program.
 5. Child task issues must exist with predecessor/successor chain.
-6. Cursor must receive one task issue at a time unless Bill/ChatGPT authorize parallel execution.
+6. Cursor must receive one task issue at a time unless Product Authority authorizes parallel execution.
 7. Rights/privacy guardrails must be accepted before any public content publication work.
 
 ## Readiness conclusion
 
 This package makes the Lou Gehrig content collection expansion suitable for launch-control planning.
 
-It is not executable until Bill/ChatGPT explicitly launch the program and authorize Cursor to begin Task 001.
+It is not executable until Product Authority explicitly launches the program and authorizes Cursor to begin Task 001.

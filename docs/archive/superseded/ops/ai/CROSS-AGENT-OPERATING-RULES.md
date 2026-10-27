@@ -10,6 +10,8 @@ Archived Reason: Superseded by #2823; archived under #3155 instead of copying th
 Last Reviewed: 2026-09-27
 ---
 
+Relative links in this file are the links from its original location and are not rewritten.
+
 > **SUPERSEDED (#2823, 2026-09-17):** This document is historical/non-authoritative. It is not part of the canonical agent authority chain and must not be used for conflict resolution. Current authority: `Agent.md` (mandatory authority chain) → `docs/governance/REPOSITORY-AUTHORITY.md` (constitutional) → `docs/governance/AGENT-TEAM.md` → `docs/ops/ai/CORE-RULES.md`. Retained only as a historical record of prior cross-agent operating guidance.
 
 # Cross-Agent Operating Rules
