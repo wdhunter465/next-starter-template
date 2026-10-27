@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Shared execution rules, enforcement model, PR discipline, stop conditions, shared product-startup framework
 Does Not Own: Design authority, platform configuration, tracker content, role mapping
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3055, #3113, #3117, #3134, #3138, #3142, #3145, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4074, #4099, #4131, #4165, #4198, #4314, #4596, #4715, #4716, #4719, #4819
-Last Reviewed: 2026-10-23
+Related Issues: #3055, #3113, #3117, #3134, #3138, #3142, #3145, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4074, #4099, #4131, #4165, #4198, #4314, #4596, #4715, #4716, #4719, #4819, #4982
+Last Reviewed: 2026-10-27
 ---
 
 This document is the canonical shared execution law. It moved here from `docs/ops/ai/CORE-RULES.md` under #4198. The old path is a compatibility pointer and is not a second policy.
@@ -91,6 +91,8 @@ Each product's rules file names where its agent reads this queue. Where it does 
 Do not treat “no new events” or a “brief status + keep looping” as permission to stop while that resume queue is non-empty. One Issue → one PR; do not mix remaining queue items into the just-opened PR. `handoff:ready` is not website Go. Do not merge a Production-tier PR.
 
 Waiting on independent review, merge approval, or another long-running process for a packaged assignment is still not idle (#3611). An item is *waiting* when its linked open authored PR has latest checks SUCCESS, or when it is `handoff:ready` (labels/status only — not website Go). Keep waiting items for gate, reviewer, and post-merge follow-through. Immediately continue the next eligible item that is not merely waiting (`nextExecutable`, where the product tracks it). If none exists, keep looping for follow-through on waiting items; do not idle and do not merge a Production-tier PR. Do not occupy the session with standing-queue status while other assigned work remains.
+
+**Wake and poll ticks are keepalives (#4982).** The local poller, the GitHub runner dispatch and any tick message only keep the session connected to the repository. They are not assignments, not queue rankings and not stop signals. A tick or poll with no new events means: continue the next unfinished item, assigned work first, then the role's queues, then unassigned work (Session lifecycle). This rule is stated here so that every session reads it from the repository. A product file or a local script may repeat it but may not be its only home.
 
 Product-specific resume-queue mechanics and operator-facing reporting bounds live in the product's rules file (for Cursor, `docs/ops/ai/CURSOR-RULES.md`, #4314). They do not relax assigned-queue continuation for work that is actually assigned.
 
@@ -501,11 +503,11 @@ A source Issue, its acceptance criteria, an exact file-touch allowlist, the appl
 A working session has three phases, in this order. This section is the only statement of the sequence; product rules files add their own mechanics and do not redefine the phases.
 
 1. **Run startup: orientation only.** The agent identifies its product and roles, confirms access, reads the authority chain, its product file and the orientation digest, reports, and stops (Shared startup steps above).
-2. **Task definition.** Product Authority and the agent define the task list together. A read-only look at the Operations queue and at the agent's own open PRs and claims may inform the list. That look is preparation: it authorizes no claim, edit or PR. A task joins the list only with a source Issue, acceptance criteria, an exact file allowlist, role authority and an explicit implementation Go, or when it sits inside a graduated Project's prepared child graph (standing authority, below).
-3. **Continuous run.** Once the list exists, the agent works it without being re-prompted:
+2. **Work list (#4982).** The agent reads its working list from GitHub; it is not defined again each session. It is the Issues the agent holds (`agent:*`) that are `status:ready`, its open PRs and their checks, its own `post-merge-failure` Issues, and anything Product Authority names. Product Authority may define or reorder a priority list at any time. Such a list sets priority and is never a precondition to work. A read-only look at the Operations queue may inform the list; that look authorizes no claim, edit or PR. A task is **ready** when it has a source Issue, acceptance criteria, an exact file allowlist, role authority and an explicit implementation Go recorded. The `status:ready` label records that. A task inside a graduated Project's prepared child graph is ready without the label (standing authority, below).
+3. **Continuous run.** The agent works the list without being re-prompted:
    - it prepares each assigned task to a ready-to-merge PR, then starts the next eligible task while that PR waits (Assigned-queue continuation, above);
    - merge authority follows the tiers in `docs/governance/REPOSITORY-AUTHORITY.md` (Merge authority); a PR that waits for the human approver does not stop the run;
-   - when the assigned list is complete it takes ownership of unassigned eligible work in its role order (`docs/governance/AGENT-TEAM.md`): only an Issue its roles cover, with no valid claim by another agent, and package-complete;
+   - when assigned work is resolved or closed, or has reached a stop point (a PR waiting on review, a `wait:*` state, or a HOLD), the agent checks the queues its role owns, **primary first and then secondary** (`docs/governance/AGENT-TEAM.md`), and then reviews every **unassigned** open Issue and takes ownership of it in order to resolve it. It claims an Issue its roles cover that has no valid claim by another agent and is `status:ready`. It completes the package of one that is not ready when the missing parts are within its role. It labels the rest `wait:product` and names the one decision missing. It releases any claim it cannot work. Queue-state labels are defined in `docs/governance/WORK-QUEUES-AND-COLLABORATION.md`;
    - **the Operations interrupt is always on** from the end of startup. Every agent watches for new qualifying Operations Issues, which take precedence over all other work because Production services are expected to be affected. In-flight work stops at the nearest safe checkpoint (`docs/governance/WORK-QUEUES-AND-COLLABORATION.md`, Operations interrupt);
    - the run ends only when no eligible assigned or unassigned work remains, Product Authority says stop, or a protected stop or evidence-specific `HOLD` covers what is left. A protected stop blocks that one action, not the rest of the queue.
 

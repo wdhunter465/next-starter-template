@@ -59,6 +59,13 @@ jobs:
     name: Build PMO dashboard
     if: ${{ github.event_name != 'push' || github.ref == 'refs/heads/main' }}
     runs-on: ubuntu-latest
+    # Read-only. actions, pull-requests and checks feed the scorecard page (#4976).
+    permissions:
+      contents: read
+      issues: read
+      actions: read
+      pull-requests: read
+      checks: read
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
