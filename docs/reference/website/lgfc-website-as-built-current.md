@@ -7,12 +7,14 @@ Does Not Own: Product design intent; design-vs-as-built gap decisions; Productio
 Canonical Reference: /docs/reference/website/lgfc-website-as-built-current.md
 Source Issue: #3324
 Related Issues: #3305, #3074, #3148, #3149, #4409, #4411, #4442
-Last Reviewed: 2026-10-09
+Last Reviewed: 2026-10-27
 ---
 
 # LGFC Website Production As-Built (Current)
 
 > **Status update (2026-10-09, #4442).** The baseline below is dated 2026-08-11. The more recent measured record is `docs/ops/reports/website-design-assessment-2026-10-01/website-as-built.md` (#4409, observed 2026-10-01), which also lists every difference from the design; use it for current measurements. Where the two differ, the 2026-10-01 record controls. One set of findings below is now out of date: the placeholder milestone and event rows were removed from Production and Development by #4411 (verified 2026-10-05). A read-only re-check of the public APIs on 2026-10-09 found no placeholder text. Those rows are marked **Resolved** in place and the rest of this baseline is left as the 2026-08-11 record.
+
+> **Status update (2026-10-27, #4442).** The fundraiser model (#4415) and the social tooling decision (#4416) do not change these measurements. Placeholder milestone and event rows stay resolved (#4411). Current measurements remain the 2026-10-01 record (#4409). This file stays the 2026-08-11 baseline.
 
 ## Purpose
 
