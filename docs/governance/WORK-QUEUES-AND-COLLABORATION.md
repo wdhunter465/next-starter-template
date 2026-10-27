@@ -143,6 +143,8 @@ These labels say whether an Issue can be worked now and, if not, what it waits o
 
 `handoff:ready` stays a routing signal that wakes the Cursor runner. It is not a Go and not an assignment on its own.
 
+**Issues that take more than one pull request.** The post-merge closeout closes a source Issue after a merged pull request unless the Issue is titled PROJECT or PROGRAM, or the pull request body keeps it open. A pull request that does part of a larger Issue carries a line `POST-MERGE ISSUE DISPOSITION: keep #<Issue> open until <what remains>.` and the Issue carries `status:active` while work continues. Without that line the Issue closes after the first merge and drops out of the ready queue.
+
 **Claim hygiene.** An agent holds `agent:*` only while it works the Issue or has its pull request open. It releases the claim when the Issue is on hold, parked, or waiting on a decision, a review or another agent, and leaves a note naming what it waits on. A reserved claim set by Product Authority is released only by Product Authority. A stale claim set by someone else is reported, not removed.
 
 ## PMO lifecycle ownership
