@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Human + AI
-Authority Level: Operational
+Authority Level: Procedure
 Owns: Operator procedure when a merged PR still carries failed required pre-merge checks, including verification of automatic remediation and manual fallback when automation does not run
 Does Not Own: Merge authorization, branch protection policy, workflow YAML implementation, or gate definition changes
 Canonical Reference: /docs/reference/ci/post-merge-validation-surface.md

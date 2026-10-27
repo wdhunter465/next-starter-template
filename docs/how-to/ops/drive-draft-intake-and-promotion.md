@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Human + AI
-Authority Level: Operational
+Authority Level: Procedure
 Owns: Drive-to-GitHub intake folder rules, branch lifecycle, and promotion constraints for Content Collection planning drafts
 Does Not Own: Diataxis authority promotion, feature implementation, repository-history rewrite, or ZIP gate policy changes
 Canonical Reference: /docs/ops/reports/content-collection-docs-audit-dedup-2360.md

@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: AI
-Authority Level: Operational Authority
+Authority Level: Procedure
 Owns: Step-by-step Cursor procedure for executing one LGFC program task
 Does Not Own: Task acceptance criteria or GitHub issue state changes
 Canonical Reference: /docs/reference/pmo/lgfc-cursor-execution-contract.md

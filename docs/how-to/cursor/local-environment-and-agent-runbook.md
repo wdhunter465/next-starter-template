@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Bill, Day-2 Operations, Cursor Local
-Authority Level: Operational Authority
+Authority Level: Procedure
 Owns: Repeatable Chromebook/Linux Cursor Local environment startup, agent operating boundaries, and restart-without-chat-memory checklist
 Does Not Own: PMO governance contracts (#1719), rule-load simplification (#2088), merge authority, secrets storage, or CI behavior changes
 Canonical Reference: /docs/how-to/cursor/local-environment-and-agent-runbook.md
