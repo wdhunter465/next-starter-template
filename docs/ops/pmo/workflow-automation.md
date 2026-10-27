@@ -5,8 +5,8 @@ Authority Level: Operational Authority
 Owns: PMO workflow automation planning authority, Cursor queue-control boundaries, PR readiness rules, wave/run control concepts, and PMO Backlog promotion handoff for workflow automation
 Does Not Own: Workflow YAML implementation, runtime application behavior, D1 migrations, production secrets, GitHub issue mutation, or merge authority
 Canonical Reference: /docs/ops/pmo/PMO-JULY-2026-OPERATING-MODEL.md
-Related Issues: #1411, #1417, #1418, #1419, #1420, #1421, #1422, #1423, #1424, #1379, #1255, #1501, #1719, #1720, #1721, #1722, #1723, #1724, #1725, #1726, #1727
-Last Reviewed: 2026-07-16
+Related Issues: #1411, #1417, #1418, #1419, #1420, #1421, #1422, #1423, #1424, #1379, #1255, #1501, #1719, #1720, #1721, #1722, #1723, #1724, #1725, #1726, #1727, #4776
+Last Reviewed: 2026-10-26
 ---
 
 # PMO Workflow Automation
@@ -43,18 +43,18 @@ This document does not own:
 - D1 migrations;
 - production configuration or secrets;
 - GitHub issue closure, relabeling, or queue mutation;
-- creation of implementation child issues before ChatGPT/Bill launch approval.
+- creation of implementation child issues before Product Authority launch approval.
 
 ## Current Known Truth
 
 - issue `#1411` promoted Workflow Automation from PMO Backlog material into a completed planning/control cycle. `#1411` is **closed complete** historical evidence, not an open staged/blocked program.
 - Issues `#1417`–`#1424` are stale historical task issues from the `#1411` cycle. They are evidence only and must not be mutated or treated as current source issues.
 - Current Priority #3 execution for remaining workflow-automation work is Program `#1719` (Implementation Active as of 2026-07-16). Task `#1720` completed PMO July 2026 authority reconciliation. Task `#1721` completed workflow-automation design migration inventory and gap classification.
-- Project branch for #1719 Model B children: `component/pmo-governance-workflow-automation`. Approval profile: `component-auto-integration` (non-`main` integration). Promotion to `main` remains Bill/ChatGPT authority.
+- Project branch for #1719 Model B children: `component/pmo-governance-workflow-automation`. Approval profile: `component-auto-integration` (non-`main` integration). Promotion to `main` remains Product Authority.
 - legacy issue `#1379` captured Workflow Automation as future candidate material and listed available draft concepts.
 - Program `#1255` remains active and must not be blocked, relabeled, closed, or otherwise mutated by Priority #3 planning or docs work.
 - Completed Program 1 cycle `#1335` remains historical evidence only. It is not the parent issue for Program `#1411` or `#1719`.
-- Cursor may prepare docs-only PRs and run validation when authorized. Merge to `main` remains Bill/ChatGPT only. Component-branch auto-integration may apply when the source issue specifies a non-`main` project branch and `component-auto-integration`.
+- Cursor may prepare docs-only PRs and run validation when authorized. Merge to `main` remains Product Authority only. Component-branch auto-integration may apply when the source issue specifies a non-`main` project branch and `component-auto-integration`.
 - Task `#1725` reconciled Program `#1500` queue/wave and closeout baselines. Do not rebuild `#1500`.
 
 ## Intended Final State
@@ -62,7 +62,7 @@ This document does not own:
 - GitHub documentation, not Google Drive or chat, is the canonical design source for PMO Workflow Automation.
 - Historical Program `#1411` planning outputs feed Priority #3 Program `#1719` child tasks; new execution uses current `#1719`–`#1727` issues only.
 - Wave labels, run identifiers, merge policy labels, and queue-control behavior are specified before workflow code changes begin.
-- Cursor continuation rules distinguish one-task handoff, launched-program queue, continuous reduced-gate serial chains, and Model B component-auto-integration (hardened in `#1722`), and preserve ChatGPT/Bill review and merge authority at every stop.
+- Cursor continuation rules distinguish one-task handoff, launched-program queue, continuous reduced-gate serial chains, and Model B component-auto-integration (hardened in `#1722`), and preserve Product Authority review and merge authority at every stop.
 - Completed source issues have reconciled terminal labels: stable non-status labels plus `status:complete`, with stale active or failure status labels removed during closeout.
 - PMO Backlog remains the documented inventory for work not yet promoted into program issues.
 
@@ -73,7 +73,7 @@ This document does not own:
 | PMO July 2026 authority | Durable language that program issue numbers identify programs and PMO Backlog holds ideas/project drafts | #1720 (complete) | No issue or label mutation |
 | Workflow Automation design migration | This GitHub authority page replaces Drive/chat-only planning for workflow automation | #1721 (complete — inventory) | No workflow YAML edits in #1721; candidates scoped by #1726 |
 | Cursor continuation and queue contract | Rules for when Cursor continues, stops, reports, and waits | #1722 (complete) | Docs hardening; no automated queue advancement unless later authorized |
-| PR readiness and batch review control | Ready-for-review rules that preserve ChatGPT/Bill review on `main` | #1723 (complete on component) | No PR merge or review-state mutation by Cursor on `main` |
+| PR readiness and batch review control | Ready-for-review rules that preserve Product Authority review on `main` | #1723 (complete on component) | No PR merge or review-state mutation by Cursor on `main` |
 | Merge and issue mutation policy | Explicit prohibition on Cursor merge, close, relabel, and issue-state changes without authorization | #1724 (complete on component) | No destructive issue action |
 | Queue/wave model and labels | Planning definitions for wave/run identifiers and stop/continue gates | #1725 (complete); candidates scoped by #1726 (C-01) | No label creation or relabeling in docs tasks |
 | Post-merge closeout evidence stabilization | Evidence and terminal-label reconciliation requirements before issue closeout or queue advancement | #1725 baseline; candidates scoped by #1726 (C-02–C-05) | No closeout automation change without CI source issue |
@@ -101,7 +101,7 @@ When a PR targets `main`, Cursor must:
 1. finish the requested local validation;
 2. update the PR body with exact validation results;
 3. preserve exactly one source issue line;
-4. stop at `READY FOR REVIEW` for ChatGPT/Bill walkthrough;
+4. stop at `READY FOR REVIEW` for Product Authority walkthrough;
 5. avoid merge, close, relabel, queue, or issue-mutation actions unless the active issue explicitly authorizes them.
 
 When a source issue specifies Model B / `component-auto-integration` and a non-`main` project branch (as Program `#1719` children do on `component/pmo-governance-workflow-automation`):
@@ -131,7 +131,7 @@ PR readiness means the implementation or documentation PR is complete enough for
 Batch review must preserve:
 
 - Bill authority for merges, protected actions, launch gates, destructive actions, production-sensitive work, and strategy decisions;
-- ChatGPT authority for governance review, source-issue accounting, queue conformance, and review disposition;
+- Governance authority for governance review, and PMO Admin authority for source-issue accounting, queue conformance, and review disposition;
 - Cursor responsibility for scoped implementation, validation, PR-body evidence, and stopping at the authorized handoff point.
 
 ### Merge and issue mutation policy
@@ -170,11 +170,11 @@ Closeout automation must not treat merge as sufficient evidence by itself. Futur
 - queue advancement decision;
 - unresolved reviewer, gate, or post-merge blockers.
 
-The selected terminal behavior is: a closed completed source issue retains only stable non-status labels plus `status:complete`. The controller or authorized ChatGPT closeout step must remove active or failure-state labels such as `status:queued`, `status:assigned`, `status:pr-draft`, `status:implementation`, `status:review`, `status:post-merge-verify`, and `status:failed` as part of the same authorized closeout action that closes the issue with `state_reason: completed`. If that reconciliation cannot be verified, queue advancement stops and the blocker is reported.
+The selected terminal behavior is: a closed completed source issue retains only stable non-status labels plus `status:complete`. The controller or authorized PMO Admin closeout step must remove active or failure-state labels such as `status:queued`, `status:assigned`, `status:pr-draft`, `status:implementation`, `status:review`, `status:post-merge-verify`, and `status:failed` as part of the same authorized closeout action that closes the issue with `state_reason: completed`. If that reconciliation cannot be verified, queue advancement stops and the blocker is reported.
 
 ## PMO Backlog Promotion Process
 
-Backlog item promotion starts during PMO meeting review or explicit Bill/ChatGPT review.
+Backlog item promotion starts during PMO meeting review or explicit Product Authority review.
 
 Promotion creates or updates:
 
@@ -192,7 +192,7 @@ A PMO Backlog item may feed a future program issue only when:
 3. Repository documentation becomes the design source of truth.
 4. Non-interference with active program work is documented.
 5. Scope is decomposed into tasks with allowlisted files and validation.
-6. Authorized issue creation after ChatGPT/Bill walkthrough.
+6. Authorized issue creation after Product Authority walkthrough.
 7. Cursor receives a bounded source issue and PR scope.
 
 Workflow Automation planning was promoted through historical `#1411`. Design migration inventory and gap classification are complete in Task `#1721` (`docs/ops/reports/workflow-automation-design-gap-inventory-1721.md`). Implementation candidates are scoped (docs vs workflow vs script) in Task `#1726` (`docs/ops/reports/workflow-ci-implementation-candidate-scoping-1726.md`). Remaining terminal closeout continues in `#1727`. This document alone does not authorize workflow YAML, label mutation, or child-issue creation.

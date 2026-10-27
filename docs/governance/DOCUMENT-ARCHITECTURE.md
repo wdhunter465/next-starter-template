@@ -5,8 +5,8 @@ Authority Level: Canonical
 Owns: Document structure, ownership boundaries, path resolution rules
 Does Not Own: Implementation sequencing, tracker state, product/design decisions, platform decisions, or CI verification decisions
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2486, #2686, #2690
-Last Reviewed: 2026-07-21
+Related Issues: #2486, #2686, #2690, #4781
+Last Reviewed: 2026-10-26
 ---
 
 # DOCUMENT ARCHITECTURE (AUTHORITY)
@@ -60,27 +60,27 @@ Does Not Own:
 
 #### docs/ops/ai/
 
-**Interim location** for legacy agent execution material during the delivery-system migration.
+Product pointers and retired historical pointers. Binding execution law is `docs/governance/AGENT-EXECUTION.md`. `CORE-RULES.md` is a compatibility pointer to that file and is not a second policy.
 
-Target routing (binding policy → governance; contracts → reference; procedures → how-to; runtime state → ops):
+Current product pointers:
 
-| Material | Target canonical location |
-| --- | --- |
-| Binding agent policy | `docs/governance/**` |
-| Agent facts and contracts | `docs/reference/**` |
-| Agent execution procedures | `docs/how-to/**` |
-| Live queues, handoffs, poll-wake state | `docs/ops/**` |
-
-Until migrated under an explicit delivery-system child issue, these interim canonical files remain authoritative for execution:
-
-- `CORE-RULES.md`
-- `CHATGPT-RULES.md`
 - `CURSOR-RULES.md`
-- `CODEX-RULES.md` (retired #4165; historical pointer only)
 - `COPILOT-RULES.md` (still in use, #4399)
-- `DEVIN-RULES.md` (retired #4399; historical pointer only)
+- `CLAUDE-CODE-RULES.md`
 
-Do not add new binding policy under `docs/ops/ai/`.
+Retired historical pointers (do not run):
+
+- `CHATGPT-RULES.md` (#4173)
+- `CODEX-RULES.md` (#4165)
+- `DEVIN-RULES.md` (#4399)
+- `WORK-RULES.md` (#4074)
+
+Also present, and not execution law:
+
+- `AI-REVIEW-ACCESS.md`
+- `chatgpt-cursor-handoff-workflow.md`
+
+Target routing remains: binding policy in `docs/governance/**`, contracts in `docs/reference/**`, procedures in `docs/how-to/**`, runtime state in `docs/ops/**`. Do not add new binding policy under `docs/ops/ai/`.
 
 ---
 
@@ -120,10 +120,11 @@ Does Not Own:
 - All references must point to the canonical file
 - Detailed `docs/reference/**` documents are supporting specifications and contracts, not co-owners of domain policy
 
-Interim example (legacy path until Task 4 migration):
+Current example:
 
 ```text
-docs/ops/ai/CURSOR-RULES.md  → interim execution rules; binding policy migrates to governance
+docs/ops/ai/CURSOR-RULES.md  → product pointer; binding execution law is docs/governance/AGENT-EXECUTION.md
+docs/ops/ai/CORE-RULES.md    → compatibility pointer to AGENT-EXECUTION.md
 ```
 
 Invalid duplicate:
@@ -182,7 +183,7 @@ CI check classification, evidence requirements, failure routing, and verificatio
 Each governance topic must have exactly ONE canonical file. No second file may define, restate, or contradict the same authority.
 
 Prohibited patterns:
-- Two files both claiming to define the same process (e.g., two PR process docs)
+- Two files both claiming to be the pull request process. `PR_LIFECYCLE_STATE_MACHINE.md` and `PR_READY_FOR_REVIEW_HANDOFF.md` are supporting documents; they cite `PR_PROCESS.md` and are not a second process.
 - A non-canonical file overriding or restating rules from a canonical file
 - Contradictory definitions of the same concept across multiple docs
 
@@ -192,7 +193,8 @@ Required actions when a duplicate is found:
 3. Update all references to point to the canonical file
 4. Do not create new files that duplicate existing canonical authority
 
-Canonical governance files (single source per topic):
+Canonical governance files (single source per topic). Domain owners match `REPOSITORY-AUTHORITY.md`:
+
 - Repository constitution: `/docs/governance/REPOSITORY-AUTHORITY.md`
 - Product and Design policy: `/docs/governance/PRODUCT-AND-DESIGN.md`
 - Platform and Environment policy: `/docs/governance/PLATFORM-AND-ENVIRONMENT.md`
@@ -200,13 +202,47 @@ Canonical governance files (single source per topic):
 - PMO and Portfolio policy: `/docs/governance/PMO-PORTFOLIO.md`
 - Delivery and Release policy: `/docs/governance/DELIVERY-AND-RELEASE.md`
 - Agent Team policy: `/docs/governance/AGENT-TEAM.md`
+- Agent execution law: `/docs/governance/AGENT-EXECUTION.md`
 - Administration and Communications policy: `/docs/governance/ADMINISTRATION-AND-COMMUNICATIONS.md`
 - Operations and Recovery policy: `/docs/governance/OPERATIONS-AND-RECOVERY.md`
-- PR process: `/docs/governance/PR_PROCESS.md`
-- PR governance support: `/docs/governance/PR_GOVERNANCE.md`
+- Work queues and collaboration: `/docs/governance/WORK-QUEUES-AND-COLLABORATION.md`
+- Project documentation and as-built: `/docs/governance/PROJECT-DOCUMENTATION-AND-AS-BUILT.md`
+- Documentation and knowledge (Diátaxis folders): `/docs/governance/standards/DIATAXIS-FOLDER-AUTHORITY.md`
 - Document architecture: `/docs/governance/DOCUMENT-ARCHITECTURE.md` (this file)
 - Design authority enforcement pointer: `/docs/governance/standards/design-authority_MASTER.md`
 - Change control: `/docs/governance/standards/change-control_MASTER.md`
+
+Pull request documents that exist:
+
+- PR process: `/docs/governance/PR_PROCESS.md`
+- PR lifecycle, supporting: `/docs/governance/PR_LIFECYCLE_STATE_MACHINE.md`
+- Ready-for-review handoff, supporting: `/docs/governance/PR_READY_FOR_REVIEW_HANDOFF.md`
+- PR governance support: `/docs/governance/PR_GOVERNANCE.md`
+- Pull request template: `/.github/pull_request_template.md`
+
+Other files present under `docs/governance/`. Listing them records that they exist. It does not make any of them a second owner of a topic above. Several standards still carry a generic Owns line; that line does not move the pull request process off `PR_PROCESS.md`.
+
+- `/docs/governance/reviewer-gate-simulation-infrastructure.md`
+- `/docs/governance/standards/AGENT-EXECUTION-FIDELITY.md`
+- `/docs/governance/standards/CURSOR-RUNTIME-ROUTING.md`
+- `/docs/governance/standards/DIATAXIS-AUTHORITY-RESOLUTION.md`
+- `/docs/governance/standards/OPERATING_MODEL_MASTER.md`
+- `/docs/governance/standards/change-freeze-policy_MASTER.md`
+- `/docs/governance/standards/ci-preview-invariants.md`
+- `/docs/governance/standards/document-authority-hierarchy_MASTER.md` (historical pointer)
+- `/docs/governance/standards/document-status-and-naming_MASTER.md`
+- `/docs/governance/standards/final-governance-reconciliation-standard.md`
+- `/docs/governance/standards/governance-enforcement-standard.md`
+- `/docs/governance/standards/governance-migration-backlog-standard.md`
+- `/docs/governance/standards/implementation-coverage-audit-standard.md`
+- `/docs/governance/standards/phase-7-guardrails.md`
+- `/docs/governance/standards/pr-intent-labels.md`
+- `/docs/governance/standards/secrets-rotation_MASTER.md`
+- `/docs/governance/standards/stability-playbook_MASTER.md`
+- `/docs/governance/standards/verification-criteria_MASTER.md`
+- `/docs/governance/standards/quality/invariants_MASTER.md`
+- `/docs/governance/standards/quality/tests_MASTER.md`
+- `/docs/governance/standards/quality/verification_MASTER.md`
 
 ---
 

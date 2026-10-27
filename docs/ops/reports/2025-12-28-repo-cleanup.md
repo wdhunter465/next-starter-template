@@ -62,7 +62,7 @@ The script performs the following checks:
 ```
 
 ### CI Integration
-Updated `.github/workflows/quality.yml` to run the structure check:
+Updated `.github/workflows/gate-quality.yml` to run the structure check:
 - Runs on all PRs and pushes to main
 - Executes after `npm ci` and before typecheck
 - Fails fast if structure violations detected
@@ -134,7 +134,7 @@ npm run check:structure # ✅ SUCCESS (all checks passed)
    - `damp-dream-81b5/` (entire directory)
 
 2. **Modified:**
-   - `.github/workflows/quality.yml` (added structure check step)
+   - `.github/workflows/gate-quality.yml` (added structure check step)
    - `package.json` (added `check:structure` script)
 
 3. **Created:**

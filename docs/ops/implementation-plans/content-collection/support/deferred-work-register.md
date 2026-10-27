@@ -38,7 +38,7 @@ Track work intentionally excluded from the current Content Collection program wa
 - Phase 1 preparation parent is #2431; child issues #2432–#2438 are prepared but blocked pending Go / NoGo.
 - GAL/LIB/MEM/CLUB feature implementation remains deferred until `CONTRACT-FROZEN: content-asset-model v1` is posted and ChatGPT verifies downstream release.
 - CI-001 / CI-002 tooling moved from pure deferral to Phase 1 review-gated preparation, but implementation remains blocked until #2431 Go / NoGo and #2435 Stage 0 analysis.
-- Codex is inactive per `docs/ops/ai/LGFC-AI-TEAM-OPERATING-MODEL.md`.
+- Codex is inactive per `docs/archive/LGFC-AI-TEAM-OPERATING-MODEL.md`.
 - Post-merge label transition (`post-merge:failed`) is tracked in #2418; current automation uses `post-merge-failure`.
 
 ## Intended final state
@@ -77,7 +77,7 @@ Every deferred entry must include:
 | D-004 | Automatic public publication | Publish without human editorial review | `docs/reference/website/unified-content-workflow.md` | Human editorial/publication review required | Future governance decision + safety workflow validation | ChatGPT | deferred | — | Publication |
 | D-005 | Paid storage/API expansion | Non-free-tier dependencies | Readiness assumptions | Conservative/free-tier controls assumed | Bill approval after cost/risk review | Bill | deferred | — | Platform |
 | D-006 | Broad admin platform redesign | Full admin UX overhaul | Intake draft | Only content collection support in scope | Separate admin UX program | ChatGPT | deferred | — | Admin |
-| D-007 | Codex implementation role | Codex as executor | `docs/ops/ai/LGFC-AI-TEAM-OPERATING-MODEL.md` | Codex inactive unless reauthorized | Explicit Bill governance update | Bill | deferred | — | Agents |
+| D-007 | Codex implementation role | Codex as executor | `docs/archive/LGFC-AI-TEAM-OPERATING-MODEL.md` | Codex inactive unless reauthorized | Explicit Bill governance update | Bill | deferred | — | Agents |
 | D-008 | GAL/LIB/MEM/CLUB feature implementation | Gallery, Library, Memorabilia, Club routes | #2360 audit; #2362 | Phase 3 — blocked until CC-001/CC-002 frozen | `CONTRACT-FROZEN: content-asset-model v1` + downstream issue authorization | Cursor | deferred | GAL/LIB/MEM/CLUB | Feature |
 | D-009 | CI-001 / CI-002 tooling implementation | PR body generator, closeout auto-repair scripts | #2360 audit; #2361 packages | Phase 1 review-gated; implementation blocked until Stage 0 and Go / NoGo | #2431 Go / NoGo + #2435 Stage 0 recommendation | Cursor | under-review | CI-001/CI-002 | CI |
 | D-010 | Accelerated merge policy | "Pre-approved merge" / continuous execution policy | Intake draft; C1/C8 #2360 | Conflicts with PR lifecycle and merge authority | Rewrite as procedural preclearance only; Bill/ChatGPT approve | ChatGPT | deferred | — | Governance |

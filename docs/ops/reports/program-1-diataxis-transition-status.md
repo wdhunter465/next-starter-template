@@ -103,7 +103,7 @@ Changed-file validation passed.
 | Legacy root | Live files (approx.) | DIATAXIS status | Program disposition |
 |---|---:|---|---|
 | `docs/ops/ai/` | 9 | **Migrated** (canonical agent rules live here) | Retain; legacy root duplicates deferred |
-| `ops/ai/` | 1 | **Deferred Program 3** | `CROSS-AGENT-OPERATING-RULES.md` → target `docs/ops/ai/CROSS-AGENT-OPERATING-RULES.md` |
+| `ops/ai/` | 1 | **Deferred Program 3** | `CROSS-AGENT-OPERATING-RULES.md` → target `docs/archive/superseded/ops/ai/CROSS-AGENT-OPERATING-RULES.md` |
 | `governance/ai/` | 1 | **Deferred Program 3** | `AGENT-GOVERNANCE.md` → target `docs/governance/standards/agent-governance.md` |
 | `docs/governance/ai/` | 1 | **Retain** (historical build prompt) | Non-authority for agent routing; do not expand |
 | `PROMPTS/` | 5 | **Deferred Program 3** | Route to `docs/ops/ai/*-RULES.md` and `docs/how-to/cursor/` |
@@ -121,7 +121,7 @@ topic** below until Program 3 migration PRs retire the legacy live paths.
 | Shared agent law | `docs/ops/ai/SHARED-AGENT-RULES.md` | `PROMPTS/*-Rules.md` summaries |
 | Detailed execution rules | `docs/ops/ai/CORE-RULES.md` | ad-hoc prompt fragments |
 | Tool-specific agent rules | `docs/ops/ai/{CHATGPT,CURSOR,CODEX,COPILOT,DEVIN}-RULES.md` | `PROMPTS/Cursor-Rules.md`, `PROMPTS/Codex-Rules.md` |
-| Cross-agent handoff contract | `docs/ops/ai/CROSS-AGENT-OPERATING-RULES.md` *(target; file migration deferred)* | `ops/ai/CROSS-AGENT-OPERATING-RULES.md` |
+| Cross-agent handoff contract | `docs/archive/superseded/ops/ai/CROSS-AGENT-OPERATING-RULES.md` *(target; file migration deferred)* | `ops/ai/CROSS-AGENT-OPERATING-RULES.md` |
 | Long-form agent governance | `docs/governance/standards/agent-governance.md` *(target; file creation deferred)* | `governance/ai/AGENT-GOVERNANCE.md` |
 | Cursor program execution | `docs/reference/pmo/lgfc-cursor-execution-contract.md` | launch prompts under `PROMPTS/` |
 | Cursor task procedures | `docs/how-to/cursor/run-program-task.md` | `PROMPTS/Cursor-Launch-Prompt.md` |

@@ -5,8 +5,8 @@ Authority Level: Procedure
 Owns: Operator steps for the Production health and Day-2 monitoring checks (stage 1): what each check proves, where it alerts, how to respond, how to disable
 Does Not Own: Monitoring strategy and stages (#4468), rollback authority (#3633 decision record), the per-workflow failure watcher procedure (docs/how-to/ci/workflow-failure-exception-issues.md)
 Canonical Reference: /docs/ops/reports/ci-gap-assessment-3633.md
-Related Issues: #4468, #3633, #4444, #4540, #4539, #4599
-Last Reviewed: 2026-10-18
+Related Issues: #4468, #3633, #4444, #4540, #4539, #4599, #4707
+Last Reviewed: 2026-10-26
 ---
 
 # Run the Day-2 Monitoring Checks
@@ -22,6 +22,7 @@ Tell an operator, for each stage 1 monitoring check, what it proves, where its a
 | Production audit | `production-audit.yml` | 00:15 and 12:15 UTC | Playwright invariants pass against `https://www.lougehrigfanclub.com` (read-only) | Issue `Production Audit Failed (Playwright Invariants)` |
 | Site uptime probe | `ops-site-uptime-probe.yml` | Every 30 minutes | `www`, `/faq/`, `/api/health` with D1, the `pages.dev` host and the apex answer HTTP 2xx | Issue `OPS — Site uptime probe — failure detected` |
 | Photo address check | `ops-photo-address-check.yml` | Every 6 hours at :23 | Every photo address the public photo list and the current Weekly Matchup serve returns an image from Backblaze. A 404, an XML error body, a non-image or a timeout fails it, after one retry | Issue `OPS — Photo address check — failure detected` |
+| Duplicate photo sweep | `ops-duplicate-photo-sweep.yml` | Daily at 12:47 UTC | Every published photo is compared in memory, including a photo with no stored hash. A new near-duplicate pair opens one Issue; a reviewed pair and renditions of one original do not. Nothing is written to Production | Issue `OPS — Near-duplicate published photos` |
 | Asset register reconcile | `ops-asset-register-reconcile.yml` | Mondays 12:30 UTC | The asset register matches the repository's inventories | Issue opened by the reconcile script |
 | Workflow failure watcher | `ops-workflow-failure-exception-issues.yml` | On each watched run | A watched workflow failed on `main` | Issue `OPS EXCEPTION: <workflow> failed` |
 | Scheduled job health | `ops-scheduled-job-health.yml` | Every 2 hours at :40 | Every scheduled workflow is enabled and succeeded on `main` within its window | Issue `OPS — Scheduled job health — stale or disabled job` |
