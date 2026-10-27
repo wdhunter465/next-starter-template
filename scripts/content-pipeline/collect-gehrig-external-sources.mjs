@@ -70,6 +70,7 @@ import { withBoundedRetry } from '../../functions/_lib/bounded-retry.ts';
 import { buildDplaSearchUrl, mapDplaDocToCandidateFields, requireDplaApiKey } from '../../functions/_lib/content-pipeline-dpla-adapter.ts';
 import { fetchInternetArchiveDocs, mapInternetArchiveDocToCandidateFields } from '../../functions/_lib/content-pipeline-internet-archive-adapter.ts';
 import { fetchChroniclingAmericaItems, mapChroniclingAmericaItemToCandidateFields } from '../../functions/_lib/content-pipeline-chronicling-america-adapter.ts';
+import { fetchNaraCatalogHits, mapNaraHitToCandidateFields } from '../../functions/_lib/content-pipeline-nara-catalog-adapter.ts';
 import { normalizeSourceUrl } from '../../functions/_lib/content-pipeline-url-normalize.ts';
 import { buildDiscoveryUrl } from './discovery-query-plan.mjs';
 import { withOriginTerms } from './discovery-evidence-terms.mjs';
@@ -87,6 +88,7 @@ const SOURCE_DOMAINS = {
   dpla: 'dp.la',
   internetarchive: 'archive.org',
   chroniclingamerica: 'loc.gov',
+  nara: 'catalog.archives.gov',
 };
 
 const DEFAULT_QUERY = 'Lou Gehrig';
@@ -106,15 +108,16 @@ const DEFAULT_LIMIT = 20;
 const DEFAULT_OUT = 'data/research/lou-gehrig-content-candidates-external-discovery.json';
 const SEED_FILE = 'data/research/lou-gehrig-content-candidates.json';
 const RESEARCH_DIR = 'data/research';
-const KNOWN_SOURCES = ['openverse', 'loc', 'wikimedia', 'commonscat', 'dpla', 'internetarchive', 'chroniclingamerica'];
+const KNOWN_SOURCES = ['openverse', 'loc', 'wikimedia', 'commonscat', 'dpla', 'internetarchive', 'chroniclingamerica', 'nara'];
 
 function printUsage() {
   console.log(
-    'Usage: node --experimental-strip-types scripts/content-pipeline/collect-gehrig-external-sources.mjs [--query "Lou Gehrig"] [--sources openverse,loc,wikimedia,commonscat,dpla,internetarchive,chroniclingamerica] [--limit 20] [--out <file>]',
+    'Usage: node --experimental-strip-types scripts/content-pipeline/collect-gehrig-external-sources.mjs [--query "Lou Gehrig"] [--sources openverse,loc,wikimedia,commonscat,dpla,internetarchive,chroniclingamerica,nara] [--limit 20] [--out <file>]',
   );
   console.log('  DPLA requires the DPLA_API_KEY environment variable; it is included by default only when that key is set.');
   console.log('  Internet Archive is opt-in (--sources internetarchive). It is not in the default set. #4789');
   console.log('  Chronicling America is opt-in (--sources chroniclingamerica). It is not in the default set. #4788');
+  console.log('  National Archives Catalog is opt-in (--sources nara) and sends no request without NARA_CATALOG_API_KEY. #4846');
 }
 
 function readFlagValue(argv, index, flagName) {
@@ -767,6 +770,14 @@ async function collectChroniclingAmerica(query, limit, nextId) {
     .map((fields) => baseCandidate({ id: nextId(), ...fields }));
 }
 
+async function collectNara(query, limit, nextId) {
+  const hits = await fetchNaraCatalogHits(query, limit);
+  return hits
+    .map((item) => mapNaraHitToCandidateFields(item, query))
+    .filter((fields) => fields != null)
+    .map((fields) => baseCandidate({ id: nextId(), ...fields }));
+}
+
 const COLLECTORS = {
   openverse: collectOpenverse,
   loc: collectLibraryOfCongress,
@@ -775,6 +786,7 @@ const COLLECTORS = {
   dpla: collectDpla,
   internetarchive: collectInternetArchive,
   chroniclingamerica: collectChroniclingAmerica,
+  nara: collectNara,
 };
 
 // A finished discovery run exits 0 even when a source stays down. Search-runs
