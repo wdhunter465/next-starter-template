@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Project maintainers and future SKEETERSOFT implementers
-Authority Level: Design-stage project guidance
+Authority Level: Procedure
 Owns: SKEETERSOFT upstream data pipeline placement, output path, print bridge requirements, and review checklist
 Does Not Own: LGFC production website behavior, launch scope, application runtime implementation, or source-data licensing decisions
 Canonical Reference: docs/how-to/skeetersoft/upstream-data-pipeline.md

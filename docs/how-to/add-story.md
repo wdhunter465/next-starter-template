@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Human + AI
-Authority Level: Operational Authority
+Authority Level: Procedure
 Owns: Procedure for adding or updating a story in the content inventory
 Does Not Own: Content inventory schema; editorial rationale; application implementation
 Canonical Reference: /docs/reference/content-inventory-design-spec.md

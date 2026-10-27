@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Operations, Engineering, and AI agents
-Authority Level: Procedure (exercise record; Product Authority accepts each exercise)
+Authority Level: Procedure
 Owns: The record of the controlled recovery exercises for go-live task #3633-011 (#4469): what was run, where, when, the result, and what is still to run
 Does Not Own: The Go decision, the deployment runbook (docs/how-to/website/go-live-deployment-runbook.md), the D1 backup design (#3268), or any Production change
 Canonical Reference: /docs/governance/OPERATIONS-AND-RECOVERY.md

@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Human + AI
-Authority Level: Operational Authority
+Authority Level: Procedure
 Owns: Cursor local and Cloud Agent session bootstrap verification
 Does Not Own: Canonical governance doctrine or merge authority
 Canonical Reference: /Agent.md

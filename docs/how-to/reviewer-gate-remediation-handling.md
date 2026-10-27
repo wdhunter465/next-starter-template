@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Maintainers and governance operators
-Authority Level: Draft Operational Guidance
+Authority Level: Procedure
 Owns: Remediation handling guidance for reviewer-gate workflows
 Does Not Own: Workflow implementation internals or branch protection policy
 Canonical Reference: Issue #1058

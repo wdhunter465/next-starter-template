@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: AI agents and project maintainers
-Authority Level: supporting
+Authority Level: Procedure
 Owns: Fan Club implementation sequencing and acceptance planning
 Does Not Own: production design authority or as-built architecture
 Canonical Reference: docs/reference/projects/fan-club-production-definition.md

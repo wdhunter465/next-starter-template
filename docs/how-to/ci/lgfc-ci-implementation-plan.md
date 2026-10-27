@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Human + AI
-Authority Level: Controlled
+Authority Level: Procedure
 Owns: CI migration implementation sequencing, orchestration task decomposition, Cursor execution phases
 Does Not Own: Final workflow implementation
 Canonical Reference: /docs/explanation/ci/lgfc-ci-production-design.md
