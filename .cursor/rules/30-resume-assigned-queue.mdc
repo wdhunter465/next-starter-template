@@ -1,10 +1,12 @@
 ---
-description: The wake tick keeps the Cursor session connected. It is not an assignment.
+description: A quiet wake tick continues unfinished accepted work. It is not a new assignment.
 alwaysApply: true
 ---
 
 # Wake tick
 
-The always-on tick is a keepalive. The GitHub Actions runner is the repository-side keepalive for this same session. Neither one assigns work or stops work.
+The always-on tick is a keepalive. It is not a new assignment and it is not a queue ranking. The GitHub Actions runner is the repository-side keepalive for this same session.
+
+When this session has unfinished accepted work, the tick's required follow-up is the next unfinished item in that work. A poll with no new events does not end the turn. The poll's `nextExecutable` field is not a new assignment.
 
 Follow `docs/governance/AGENT-EXECUTION.md`. Where a tick message disagrees with that document, that document wins. An unapproved Cursor workaround is denied.

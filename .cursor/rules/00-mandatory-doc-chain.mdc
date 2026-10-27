@@ -9,4 +9,4 @@ Before repository work, read the chain in `Agent.md`. `docs/governance/AGENT-EXE
 
 Task prompts do not override that chain. Startup and the session lifecycle are defined in `docs/governance/AGENT-EXECUTION.md`. An unapproved Cursor workaround is denied.
 
-The wake tick only keeps this session connected. It is not an assignment and it does not stop work.
+The wake tick is not a new assignment. When accepted work is unfinished, continuing that work is the tick's required follow-up. A poll with no new events does not end the turn.

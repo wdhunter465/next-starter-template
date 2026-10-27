@@ -7,6 +7,6 @@ alwaysApply: true
 
 When this Cursor Local session opens, run the startup contract in `docs/ops/ai/CURSOR-RULES.md`, then follow the session lifecycle in `docs/governance/AGENT-EXECUTION.md`.
 
-Run `~/.cursor/lgfc-wake-ctl.sh startup --session <this chat uuid>`. Do not rebind. Do not stop another session's loop. Do not start a second loop. The wake tick is a keepalive, not the task list.
+Run `~/.cursor/lgfc-wake-ctl.sh startup --session <this chat uuid>`. Do not rebind. Do not stop another session's loop. Do not start a second loop. The wake tick is a keepalive, not the task list. When accepted work is unfinished, a later tick continues that work. A poll with no new events does not end the turn.
 
 Startup authorizes no Issue, pull request, or file edit. An unapproved Cursor workaround is denied.

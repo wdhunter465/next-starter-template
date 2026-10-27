@@ -5,8 +5,8 @@ Authority Level: Agent-Specific
 Owns: Cursor product identity, the Cursor startup contract, and the keepalive statement
 Does Not Own: Agent-team policy, role assignment, PMO lifecycle, shared execution law, merge authority, or approval authority
 Canonical Reference: /docs/governance/AGENT-EXECUTION.md
-Related Issues: #3825, #4314, #4449, #4596, #4676, #4716, #4783, #4928
-Last Reviewed: 2026-10-26
+Related Issues: #3825, #4314, #4449, #4596, #4676, #4716, #4783, #4928, #4966
+Last Reviewed: 2026-10-27
 ---
 
 # CURSOR-RULES.md
@@ -19,7 +19,9 @@ A Cursor workaround is denied unless Product Authority has approved that workaro
 
 ## Wake tick
 
-The local wake tick only keeps this Cursor session connected to the repository. The GitHub Actions runner does the same from the repository side for this same session. The tick is not an assignment, not a queue ranking, and not a stop. Work follows `docs/governance/AGENT-EXECUTION.md`.
+The local wake tick only keeps this Cursor session connected to the repository. The GitHub Actions runner does the same from the repository side for this same session. The tick is not a new assignment and it is not a queue ranking. Work follows `docs/governance/AGENT-EXECUTION.md`.
+
+A tick whose poll has no new events still has a follow-up when this session has unfinished accepted work. That follow-up is the next unfinished item Product Authority named for this session, or the accepted assignment already in progress. Reporting the poll and ending the turn is a stop. A tick must not stop that work. The poll's `nextExecutable` field is not a new assignment.
 
 ## Startup contract
 
