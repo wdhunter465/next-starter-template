@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: LGFC operators, maintainers, and AI implementation agents
-Authority Level: Operational Procedure
+Authority Level: Procedure
 Owns: Audit snapshot, protected CSV export, and report closeout procedures
 Does Not Own: CI reporting, secret rotation, or bulk PII export policy
 Canonical Reference: /docs/reference/architecture/access-model.md

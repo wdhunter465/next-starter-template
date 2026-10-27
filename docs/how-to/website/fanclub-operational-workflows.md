@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: LGFC operators, maintainers, and AI implementation agents
-Authority Level: Operational Procedure
+Authority Level: Procedure
 Owns: Fan Club member operational path verification for operators
 Does Not Own: Member onboarding policy, chat moderation rules, or admin surfaces
 Canonical Reference: /docs/reference/architecture/access-model.md

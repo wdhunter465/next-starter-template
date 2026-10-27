@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: LGFC editors, admins, maintainers, and AI implementation agents
-Authority Level: Operational Procedure
+Authority Level: Procedure
 Owns: Procedure for adding a story to the content inventory model
 Does Not Own: Final factual approval, D1 migration implementation, runtime UI implementation, or media upload tooling
 Canonical Reference: /docs/reference/website/content-inventory-model.md

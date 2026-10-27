@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: LGFC operators, maintainers, and AI implementation agents
-Authority Level: Operational Procedure
+Authority Level: Procedure
 Owns: CMS blocks and page content admin procedures
 Does Not Own: Editorial inventory strategy (#1256) or public page layout design
 Canonical Reference: /docs/reference/website/content-inventory-model.md

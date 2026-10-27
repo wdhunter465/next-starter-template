@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Human + AI
-Authority Level: Procedure (draft until Product Authority accepts it on #4425)
+Authority Level: Procedure
 Owns: The step order for the 2027-01-01 go-live deployment: preconditions, deployment identity, deploy and verify, communications hold, rollback, takedown, and the rollback rehearsal plan and record
 Does Not Own: The Go decision, the freeze declaration, Cloudflare account administration, or any Production action by itself
 Canonical Reference: /docs/reference/operations/2027-launch-calendar-operating-contract.md

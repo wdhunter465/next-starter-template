@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: LGFC operators, member-support staff, editors, and AI implementation agents
-Authority Level: Operational Procedure
+Authority Level: Procedure
 Owns: Member content submission path from `/fanclub/submit` through `submission_queue` and candidate intake
 Does Not Own: Editorial approval decisions, admin UI implementation, or publication into `content_inventory`
 Canonical Reference: /docs/reference/website/unified-content-workflow.md

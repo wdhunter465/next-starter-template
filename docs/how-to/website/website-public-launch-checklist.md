@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Human + AI
-Authority Level: Operational
+Authority Level: Procedure
 Owns: Program #2039 public launch operator checklist
 Does Not Own: Production merge authorization or live campaign launch
 Canonical Reference: /docs/ops/pmo/website-public-launch-relaunch-readiness.md

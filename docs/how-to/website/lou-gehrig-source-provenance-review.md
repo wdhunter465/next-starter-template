@@ -1,7 +1,7 @@
 ---
 Doc Type: How-To
 Audience: Operator + AI
-Authority Level: Operational Procedure
+Authority Level: Procedure
 Owns: Provenance, rights, credit, factual, and privacy review procedure for Lou Gehrig content
 Does Not Own: Automated scraping, OCR, enrichment, monitoring, or publication
 Canonical Reference: /docs/reference/website/lou-gehrig-source-provenance-model.md
