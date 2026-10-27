@@ -37,6 +37,8 @@ is:issue is:open label:team:operations label:ops:priority:1,ops:priority:2,ops:p
 is:issue is:open label:post-merge-failure label:agent:cursor
 # 3 Assigned and ready.
 is:issue is:open label:agent:cursor label:status:ready
+# 3b Assigned and in progress across several pull requests.
+is:issue is:open label:agent:cursor label:status:active
 # 4 Ready and unclaimed.
 is:issue is:open label:status:ready -label:agent:cursor -label:agent:claude
 # 5 Unassigned and not yet reviewed, primary queues.
