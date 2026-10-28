@@ -5,8 +5,8 @@ Authority Level: Procedure
 Owns: PMO dashboard generation, refresh, validation procedure, operator remediation flow, and GitHub Pages limitations
 Does Not Own: PMO lifecycle definitions, queue and priority policy, PMO issue contract, dashboard JSON specification, GitHub Issues source records, or Cloudflare production deployment
 Canonical Reference: /docs/reference/pmo/pmo-lifecycle-and-priority-contract.md
-Related Issues: #2101, #2299, #2313, #2471, #2516, #2610, #2611, #2699, #2702, #3116, #3136, #3597, #3615, #4171, #4174, #4176, #4620, #4976
-Last Reviewed: 2026-10-27
+Related Issues: #2101, #2299, #2313, #2471, #2516, #2610, #2611, #2699, #2702, #3116, #3136, #3597, #3615, #4171, #4174, #4176, #4620, #4976, #4981
+Last Reviewed: 2026-10-28
 ---
 
 # PMO Dashboard
@@ -81,11 +81,12 @@ https://wdhunter465.github.io/next-starter-template/pmo-dashboard/scorecard-data
 The Team queues page reports:
 
 1. **Repository total open issues** (all open Issues; PRs excluded) above the team sections.
-2. **Exclusive team ownership** in this order: Operations, Engineering, Governance.
-3. **PMO parent projects** in this order: PMO tracked, PMO Pipeline, PMO Active. Tracked equals Pipeline plus Active. Child `pmo:task` Issues are omitted from parent tiles.
-4. **PMO child / task** open Issues (`label:pmo:task`).
-5. **Other / unassigned** open Issues not in the exclusive team or PMO task partitions.
-6. An **assignment breakout** whose categories are mutually exclusive and sum to total open issues.
+2. **Exclusive team ownership** in this order: Operations, Engineering, Governance. Project children are omitted: an Issue with `pmo:task` or a parent link is not a team-queue row.
+3. **PMO parent projects** in this order: PMO tracked, PMO Pipeline, PMO Active. Tracked equals Pipeline plus Active. Child Issues are omitted from parent tiles.
+4. **Other / unassigned** open Issues that are not project children and not in the exclusive team or PMO parent partitions.
+5. An **assignment breakout** whose categories are mutually exclusive and sum to total open issues. The child category accounts for volume; it is not a team queue.
+
+The dashboard book page lists parent rows only. Its header counts are Active projects, Pipeline projects, open child Issues, and closed child Issues. Children are found through the parent task columns, not through a team queue.
 
 The `teamQueues` JSON object is reporting-only (`totalOpenIssues`, `queues`, `pmoQueues`, `pmoTaskQueue`, `otherQueue`, `breakout`). GitHub search links follow the same filters.
 

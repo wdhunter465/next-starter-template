@@ -4,10 +4,12 @@ function assert(condition, message) {
   if (!condition) throw new Error(message);
 }
 
-function issue(number, { state = 'open', labels = [], pull_request } = {}) {
+function issue(number, { state = 'open', labels = [], pull_request, body = '', title = '' } = {}) {
   return {
     number,
     state,
+    title,
+    body,
     labels: labels.map((name) => ({ name })),
     pull_request
   };
@@ -79,8 +81,20 @@ assert(
   'partition pmo parent'
 );
 assert(
-  classifyOpenIssuePartition(issue(104, { labels: ['ops-pr-escalation', 'pmo:task'] })) === 'operations',
-  'ops exception wins over task in partition'
+  classifyTeamQueue(issue(104, { labels: ['ops-pr-escalation', 'pmo:task'] })) === null,
+  'project child is excluded from Operations even with an exception label'
+);
+assert(
+  classifyOpenIssuePartition(issue(104, { labels: ['ops-pr-escalation', 'pmo:task'] })) === 'pmoTasks',
+  'project child partition wins over an operations exception'
+);
+assert(
+  classifyTeamQueue(issue(30, { labels: ['team:engineering', 'go-live-2027'], body: 'Parent: #4414' })) === null,
+  'parent-linked child is not an engineering queue row'
+);
+assert(
+  classifyOpenIssuePartition(issue(30, { labels: ['team:engineering', 'go-live-2027'], body: 'Parent: #4414' })) === 'pmoTasks',
+  'parent-linked child counts as a task, not engineering'
 );
 
 const counts = buildTeamQueueCounts(
@@ -135,7 +149,7 @@ assert(
 assert(b.totalOpenIssues === counts.totalOpenIssues, 'breakout total matches top-level');
 
 const expectedOpsQuery = encodeURIComponent(
-  'is:open is:issue label:team:operations,ops-pr-escalation,post-merge-failure'
+  'is:open is:issue label:team:operations,ops-pr-escalation,post-merge-failure -label:pmo:task'
 );
 assert(
   counts.queues[0].issueSearchUrl ===
