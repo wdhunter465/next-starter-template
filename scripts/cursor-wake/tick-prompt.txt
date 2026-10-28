@@ -1,0 +1,1 @@
+Read docs/reference/ci/cursor-ready-queue-contract.md and docs/governance/AGENT-EXECUTION.md from origin/main and follow them. Run the queries in ~/.cursor/lgfc-ready-queue.txt. Skip any Issue labeled wait:* after recording the blocker. Act on the first Issue that can move. Never send a third identical report.

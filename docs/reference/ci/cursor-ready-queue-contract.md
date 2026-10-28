@@ -5,7 +5,7 @@ Authority Level: Reference
 Owns: The Cursor ready-queue file, the queries it holds, what a Cursor tick does with them, and the rule for when Cursor may go quiet
 Does Not Own: Runtime selection (docs/governance/standards/CURSOR-RUNTIME-ROUTING.md), the shared execution law, queue-state label definitions, or the local poller implementation
 Canonical Reference: /docs/governance/AGENT-EXECUTION.md
-Related Issues: #4982, #4362, #4966, #4994, #5007
+Related Issues: #4982, #4362, #4966, #4994, #5016, #5007
 Last Reviewed: 2026-10-28
 ---
 
@@ -21,9 +21,9 @@ This file specifies the Cursor host files and what the Cursor poller does with t
 
 ## Current known truth
 
-- The host files below are outside the repository. This document is their source of truth, so they can be restored on any machine or session. Merging a change here changes none of them.
+- The wake scripts, the tick text, and the seven queries are in `scripts/cursor-wake/`. `scripts/cursor-wake/install.sh` copies them to `~/.cursor`. Merging that change does not replace the host files. The host changes only when `install.sh` is run.
 - Before this contract the poller's `nextExecutable` pointer came from a host-side list. It did not read `status:ready`, so a ready Issue could sit on GitHub while Cursor reported that nothing was ready.
-- Status: specified. Cursor installs the file on its host and records that on #4982. #4982 holds no install record yet.
+- Status: the repository copy is the source. `scripts/cursor-wake/verify.sh` reports match or drift against the installed files. #4982 holds no install record yet.
 
 ## The file
 
@@ -50,6 +50,16 @@ Cursor's own open pull requests are checked on every tick as well: a failing gat
 
 The seven lines are the shared queue order: line 1 is step 1, line 2 is step 2, lines 3 and 3b are step 3, line 4 is step 4, lines 5 and 6 are step 5 (primary, then secondary).
 
+## Canonical tick text
+
+The host loop reads this sentence from `~/.cursor/lgfc-tick-prompt.txt` (the repository file is `scripts/cursor-wake/tick-prompt.txt`) and appends one poll suffix: `Poll fresh=<n> events=<list>.` It does not rewrite the sentence.
+
+```text
+Read docs/reference/ci/cursor-ready-queue-contract.md and docs/governance/AGENT-EXECUTION.md from origin/main and follow them. Run the queries in ~/.cursor/lgfc-ready-queue.txt. Skip any Issue labeled wait:* after recording the blocker. Act on the first Issue that can move. Never send a third identical report.
+```
+
+On every tick, read those two files from `origin/main` and follow them.
+
 ## What a Cursor tick does
 
 1. Refresh the rules (next section), then run the queries in order. Write each result count and the first Issue numbers to `~/.cursor/lgfc-wake-poll-inbox.json` under `readyQueue`. The inbox stays a keepalive record. The queue itself is GitHub.
@@ -75,7 +85,7 @@ The queue is read from GitHub, and so are the rules Cursor acts on. A merged cha
 | `~/.cursor/lgfc-ready-queue.txt` | The seven queries | Only if the block above changes. Confirm it exists and matches. |
 | `~/.cursor/lgfc-wake-poll-inbox.json` | Keepalive record, `readyQueue` counts | No. |
 | `~/.cursor/lgfc-wake-ctl.sh` and the poller | Run the queries and write `readyQueue` | Yes, if the poller picks one "next item" by itself (it must follow step 2 above), or if it does not fetch `origin/main` and report the two SHAs (Fresh rules on every tick). |
-| `~/.cursor/lgfc-always-on-loop.sh` (tick prompt) | The text sent on each tick | Yes. The prompt must not call the tick only a connection check. It must say to run the queries, skip `wait:*` Issues, act on the first Issue that can move, and never send a third identical report. |
+| `~/.cursor/lgfc-always-on-loop.sh` and `~/.cursor/lgfc-tick-prompt.txt` | The loop and the canonical tick sentence | Yes. The sentence is the block under Canonical tick text. The loop appends the poll suffix and does not change the sentence. |
 | `.cursor/rules/*.mdc` in the workspace | Always-apply rules, which only point to the shared law | The shared law is read from `origin/main` each tick, so a stale checkout no longer hides it. These small pointer files still load from the workspace; pull when they change. |
 
 Record the refresh date on #4994, and the first tick that prints the two SHAs on #5007.
@@ -86,4 +96,11 @@ A new `status:ready` label wakes Cursor from the GitHub side (the dispatch trigg
 
 ## Restore
 
-If the file is missing, copy the block above to `~/.cursor/lgfc-ready-queue.txt`, make the poller read it, and record the date on #4982.
+A new machine reaches a working loop from this repository alone:
+
+1. Clone the repository and check out `main`.
+2. Run `scripts/cursor-wake/install.sh`. It copies the wake control script, the loop, the watchdog, the poller, the tick sentence, and the seven queries into `~/.cursor`. It does not rebind and it does not start a loop.
+3. Run `scripts/cursor-wake/verify.sh`. Each file prints `match`. A `drift` line means the installed file differs or is missing.
+4. Start the loop and the watchdog only through the session bind in `docs/ops/ai/CURSOR-RULES.md`. Record the install date on #4982.
+
+`GITHUB_POLL_REPO` and `GITHUB_POLL_LOGIN` override the poller defaults. `LGFC_NEXT_WORK_RESOLVER` is the only optional resolver path. No secret and no home-directory path is stored in the scripts.
