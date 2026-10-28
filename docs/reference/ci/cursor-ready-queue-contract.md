@@ -17,14 +17,13 @@ Keep the Cursor local agent working without a task list from Product Authority. 
 
 ## Scope
 
-This file specifies one local file on the Cursor host and what each tick does with it. It does not define the labels (`docs/governance/WORK-QUEUES-AND-COLLABORATION.md`, Queue-state labels), the session lifecycle (`docs/governance/AGENT-EXECUTION.md`), or how Cursor is started (`docs/governance/standards/CURSOR-RUNTIME-ROUTING.md`).
+This file specifies the Cursor host files and what the Cursor poller does with them. The queue order, the meaning of a tick, the skip, cycle and repeat rules and when an agent may go quiet are shared by every agent and live only in `docs/governance/AGENT-EXECUTION.md` (Assigned-queue continuation). The labels are in `docs/governance/WORK-QUEUES-AND-COLLABORATION.md` (Queue-state labels). Runtime selection is in `docs/governance/standards/CURSOR-RUNTIME-ROUTING.md`.
 
 ## Current known truth
 
-- The wake tick and poll are keepalives. They keep the session connected and never stop work (`docs/governance/AGENT-EXECUTION.md`, Assigned-queue continuation).
+- The host files below are outside the repository. This document is their source of truth, so they can be restored on any machine or session. Merging a change here changes none of them.
 - Before this contract the poller's `nextExecutable` pointer came from a host-side list. It did not read `status:ready`, so a ready Issue could sit on GitHub while Cursor reported that nothing was ready.
-- The host file below is outside the repository. This document is its source of truth, so the file can be restored on any machine or session.
-- Status: specified. Cursor installs the file on its host and records that on #4982.
+- Status: specified. Cursor installs the file on its host and records that on #4982. #4982 holds no install record yet.
 
 ## The file
 
@@ -49,46 +48,27 @@ is:issue is:open label:team:engineering,team:pmo -label:agent:cursor -label:agen
 
 Cursor's own open pull requests are checked on every tick as well: a failing gate is work.
 
-## What a tick does
+The seven lines are the shared queue order: line 1 is step 1, line 2 is step 2, lines 3 and 3b are step 3, line 4 is step 4, lines 5 and 6 are step 5 (primary, then secondary).
+
+## What a Cursor tick does
 
 1. Run the queries in order. Write each result count and the first Issue numbers to `~/.cursor/lgfc-wake-poll-inbox.json` under `readyQueue`. The inbox stays a keepalive record. The queue itself is GitHub.
-2. Work the first non-empty query, one Issue at a time. Query 1 interrupts everything. Queries 5 and 6 mean review the Issue and take ownership: claim it and resolve it, complete its package if the missing parts are within Cursor's roles, or label it `wait:product` and name the one decision missing.
-3. Check Cursor's open pull requests and fix any failing gate.
-4. Report the tick in one line. Do not report "nothing to do" while any step above found work.
+2. Hand Cursor every non-empty query, not one "next item". An Issue labeled `wait:*` is reported as skipped, with the label, so the head of the list is never a waiting Issue.
+3. Cursor works the first Issue that can move and applies the shared rules (Assigned-queue continuation) to the rest. Query 5 and 6 results are reviewed and owned as the shared law says.
+4. Check Cursor's open pull requests and fix any failing gate.
+5. Report the tick in one line. Do not report "nothing to do" while any step found work.
 
-## When the head item cannot move (#4994)
+## Host files
 
-The shared rule is in `docs/governance/AGENT-EXECUTION.md` (A blocked head does not hold the queue). For these queries:
-
-- An Issue that cannot be acted on this tick gets one `wait:*` label and one comment naming the blocker and the event that releases it. Then go to the next Issue in the same query, and then the next query. Queries 3 to 6 are reached whenever query 1 or 2 only holds waiting Issues.
-- A `post-merge-failure` exception (query 2) that waits on its own source Issue's closeout is a cycle. Break it: re-run the closeout, or close the exception with a note on the source Issue. If that needs a decision, label `wait:product` and name it. Do not wait for the exception to clear by itself.
-- When the awaited event has happened (a run finished, an Issue opened by that run), act on the result on that tick. Writing down what happened is not the action. A scoped fix named in a comment means a pull request on the next tick.
-- Two identical tick reports in a row are the limit. The next tick states a changed fact or an action taken, or labels the Issue and moves on.
-- Cursor cannot go quiet while a query holds an Issue with no `wait:*` label and no pull request.
-
-## Host files (#4994)
-
-These live outside the repository, so merging this document changes none of them. After a change here, Cursor refreshes the ones marked.
-
-| Host file | Role | Refresh after this change |
+| Host file | Role | Refresh after a change here |
 | --- | --- | --- |
-| `~/.cursor/lgfc-ready-queue.txt` | The seven queries | No. The queries are unchanged. Confirm it exists with the block above. |
+| `~/.cursor/lgfc-ready-queue.txt` | The seven queries | Only if the block above changes. Confirm it exists and matches. |
 | `~/.cursor/lgfc-wake-poll-inbox.json` | Keepalive record, `readyQueue` counts | No. |
-| `~/.cursor/lgfc-wake-ctl.sh` and the poller | Run the queries and write `readyQueue` | Yes, if the poller picks one "next item" by itself. It must hand Cursor every non-empty query and mark `wait:*` Issues as skipped. |
-| `~/.cursor/lgfc-always-on-loop.sh` (tick prompt) | The text sent on each tick | Yes. The prompt must not say the tick is only a connection check. It must say to run the queries, skip waiting Issues, and act. |
-| `~/.cursor/rules` or workspace `.cursor/rules/*.mdc` | Always-apply rules | Only for a session started before this merged. A new session or `git pull` picks them up. |
+| `~/.cursor/lgfc-wake-ctl.sh` and the poller | Run the queries and write `readyQueue` | Yes, if the poller picks one "next item" by itself. It must follow step 2 above. |
+| `~/.cursor/lgfc-always-on-loop.sh` (tick prompt) | The text sent on each tick | Yes. The prompt must not call the tick only a connection check. It must say to run the queries, skip `wait:*` Issues, act on the first Issue that can move, and never send a third identical report. |
+| `.cursor/rules/*.mdc` in the workspace | Always-apply rules | A session started before the merge needs `git pull` or a new session. |
 
 Record the refresh date on #4994.
-
-## When Cursor may go quiet
-
-Only when all of these hold at the same moment:
-
-- every query returns nothing;
-- no authored pull request has a failing or pending gate that Cursor owns;
-- no Operations interrupt is open.
-
-Going quiet means staying connected and doing nothing until the next tick. It never means ending the session.
 
 ## Intended final state
 

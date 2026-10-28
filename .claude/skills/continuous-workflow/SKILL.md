@@ -18,11 +18,11 @@ If this file and those documents differ, the documents win. Process text names r
 
 1. **Package one Issue.** Open its pull request, or record a real `HOLD` or `PACKAGE-INCOMPLETE` on that Issue.
 2. **Get the PR to ready-to-merge.** Merge it yourself only when it is non-production and every required check passes (`REPOSITORY-AUTHORITY.md`, Merge authority); leave the merge record the constitution defines. Never merge a Production-tier PR: leave it for the human approver and continue.
-3. **Check the Operations interrupt**, then read the resume queue (`CLAUDE-CODE-RULES.md`).
-4. **Start the next eligible item.** One Issue, one pull request; do not mix queue items into the PR just opened. Set the claim when you start; release it, with a note, when the Issue waits on someone else.
+3. **Check the Operations interrupt**, then run the queue searches in order (`CLAUDE-CODE-RULES.md`, Continuous run).
+4. **Start the next item that can move.** One Issue, one pull request; do not mix queue items into the PR just opened. Set the claim when you start; release it, with a note, when the Issue waits on someone else. An item that cannot move this tick gets a `wait:*` label and a comment naming the blocker and its release event, then you take the next one. Break a cycle with the smallest reversible action. When a wait ends, act on the result in the next pass. Never give a third identical status (`AGENT-EXECUTION.md`, A blocked head does not hold the queue).
 5. **Return to a waiting PR only when** a check fails, a reviewer comments, or a post-merge failure opens.
 
-A wake with no new events is not idle while eligible work remains. A protected stop or a real `HOLD` blocks that one action, not the rest of the queue. An item is *waiting* when its linked open PR has the latest checks green or it is `handoff:ready` (not website Go); keep following through on waiting items only when nothing else is eligible.
+A wake with no new events is not idle while eligible work remains. A protected stop or a real `HOLD` blocks that one action, not the rest of the queue. Waiting items (green PR, `handoff:ready`, `wait:*`) get follow-through only when nothing else can move.
 
 ## Stop immediately if
 

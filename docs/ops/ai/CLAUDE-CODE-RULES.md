@@ -5,8 +5,8 @@ Authority Level: Agent-Specific
 Owns: Claude Code product identity, startup steps, continuous-run mechanics, claim handling, Operations monitoring, permission-email monitoring, and Claude-specific operating notes
 Does Not Own: Agent-team policy, role mapping, PMO lifecycle, Governance authority, shared execution law, merge approval, or the permission-request policy
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Related Issues: #3825, #4053, #4718, #4749
-Last Reviewed: 2026-10-21
+Related Issues: #3825, #4053, #4718, #4749, #4994
+Last Reviewed: 2026-10-28
 ---
 
 # CLAUDE-CODE-RULES.md
@@ -39,22 +39,24 @@ When Product Authority says `run startup`, and at the start of every new session
 
 Startup makes no claim, branch, edit or GitHub change. If the permission check finds a response that needs an Issue, the Issue is opened in the continuous run, not during startup.
 
-## Task definition and continuous run
+## Continuous run
 
-After startup, Product Authority and Claude Code define the task list together (Session lifecycle, phase 2). The continuous run then follows the shared law. Claude Code's mechanics:
+After startup the run follows the shared law (`docs/governance/AGENT-EXECUTION.md`, Session lifecycle and Assigned-queue continuation). No task list is needed from Product Authority; a list sets priority only. Claude Code's mechanics:
 
-- **Work order.** Each role's order is in `docs/governance/AGENT-TEAM.md`; take Operations and Governance work, the secondary roles, when higher-priority work is waiting or blocked. PMO Admin duties (lifecycle and label reconciliation, current-state records, dashboard hygiene) are done under the PMO role as `docs/governance/PMO-PORTFOLIO.md` defines. They never outrank an Operations interrupt, and PMO Admin never merges a Production-tier PR or invents Product Go.
-- **Resume queue.** At every safe task boundary read it from GitHub: Issues labeled `agent:claude`; authored open PRs and their checks (subscribe to PR activity so check failures and reviews arrive as events); `post-merge-failure` Issues labeled `agent:claude`; and active claims (`agent:claude` with `status:active`).
+- **Reading the queue.** Claude Code has no host poller. At every safe task boundary, and on every PR event or scheduled check-in, run these GitHub searches in order (the order and the skip, cycle and repeat rules are in the shared law). Subscribe to PR activity so check failures and reviews arrive as events.
+  1. `is:issue is:open label:team:operations label:ops:priority:1,ops:priority:2,ops:priority:3,ops:priority:4`
+  2. `is:issue is:open label:post-merge-failure label:agent:claude`
+  3. `is:issue is:open label:agent:claude label:status:ready`, then the same with `label:status:active`
+  4. `is:issue is:open label:status:ready -label:agent:claude -label:agent:cursor`
+  5. Unassigned and not yet reviewed, primary then secondary: `is:issue is:open label:team:engineering,team:pmo` then `label:team:operations,team:governance`, each with `-label:agent:claude -label:agent:cursor -label:status:ready -label:wait:product -label:wait:review -label:wait:dependency -label:status:hold`
+- **Work order.** Each role's order is in `docs/governance/AGENT-TEAM.md`. PMO Admin duties (lifecycle and label reconciliation, current-state records, dashboard hygiene) are done under the PMO role as `docs/governance/PMO-PORTFOLIO.md` defines. They never outrank an Operations interrupt, and PMO Admin never merges a Production-tier PR or invents Product Go.
 - **Claims.** Set `agent:claude` only when starting work on an Issue. Release it when the Issue waits on a review, a Product Authority decision or another agent, and leave a short note saying what it waits on and what an eligible agent can do next. Never hold a claim on an Issue nobody is working. Only Product Authority releases a Product Authority reservation; report stale claims you did not set instead of removing them.
-- **Taking unassigned work.** Take only an Issue the held roles cover, with no valid `agent:*` claim by another agent, that is package-complete. Record the claim before starting.
 - **Waiting PRs.** A Production-tier PR waits for the human approver while the run continues. Come back to a waiting PR only when a check fails, a reviewer comments, or a post-merge failure opens.
 - **Post-merge exceptions.** Remediate in the same delivery lineage at once, following `docs/ops/as-built/post-merge-originating-agent-remediation-3069.md`.
 
 ## Operations interrupt
 
 A qualifying actionable Operations Issue is an open Issue with `team:operations` and one of `ops:priority:1` to `ops:priority:4`. `ops:monitoring` and `ops:hold` do not interrupt (`docs/governance/OPERATIONS-AND-RECOVERY.md`, `docs/governance/WORK-QUEUES-AND-COLLABORATION.md`). An Issue with `team:operations` and no state label is mislabeled: report it, do not treat it as an interrupt.
-
-Mechanism: search for qualifying Issues when the task list is defined and at every safe task boundary, and treat a new one as the next capacity, stopping in-flight work at the nearest safe checkpoint.
 
 Known limit: nothing in the repository wakes an idle or finished Claude Code session for a new Operations Issue. The wake workflow (`docs/reference/ci/claude-code-wake-contract.md`) is delivery-only for pull requests and the `CLAUDE CODE RESUME` marker, and a session that has ended is not monitoring. While a session is running with only waiting PRs left, keep a scheduled self check-in rather than ending silently. A push mechanism for Operations Issues would be a CI and controller design decision for Product Authority, outside this file.
 
