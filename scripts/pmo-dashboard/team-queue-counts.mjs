@@ -26,6 +26,19 @@ const APPROVED_TEAMS = new Set([
 /** Post-merge / closeout exception labels that count toward Operations (no team:* required). */
 const OPERATIONS_EXCEPTION_LABELS = ['ops-pr-escalation', 'post-merge-failure'];
 
+const PARENT_REF_PATTERN = /^\s*(?:[-*]\s*)?(?:Parent(?:\s+(?:program|project|issue))?)\s*:\s*#?(\d+)\b/im;
+const CHILD_PROJECT_PATTERN = /^PROJECT:\s*(\d+):(\d+)\s*\|\s*(.+)$/i;
+
+/** A project child is a task label or a parent link. Team queues count standalone work only (#4981). */
+export function isProjectChild(issue) {
+  if (!issue || issue.pull_request) return false;
+  const labels = normalizeLabels(issue.labels);
+  if (labels.includes('pmo:task')) return true;
+  if (PARENT_REF_PATTERN.test(issue.body || '')) return true;
+  if (CHILD_PROJECT_PATTERN.test(issue.title || '')) return true;
+  return false;
+}
+
 function normalizeLabels(input) {
   return (input || [])
     .map((label) => (typeof label === 'string' ? label : label?.name))
@@ -52,6 +65,7 @@ function isOpenIssue(issue) {
  */
 export function classifyTeamQueue(issue) {
   if (!isOpenIssue(issue)) return null;
+  if (isProjectChild(issue)) return null;
   const labels = normalizeLabels(issue.labels);
   // Exception / escalated closeout work counts in Operations regardless of team:* exclusivity.
   if (isOperationsException(labels)) return 'operations';
@@ -74,9 +88,9 @@ export function classifyTeamQueue(issue) {
 export function classifyOpenIssuePartition(issue) {
   if (!isOpenIssue(issue)) return null;
   const labels = normalizeLabels(issue.labels);
+  // Children stay out of team tiles, including when a team or exception label is still present (#4981).
+  if (isProjectChild(issue)) return 'pmoTasks';
   if (isOperationsException(labels)) return 'operations';
-  // Child tasks are counted under PMO tasks even when a team label was wrongly applied.
-  if (labels.includes('pmo:task')) return 'pmoTasks';
   const team = exclusiveApprovedTeam(labels);
   if (team === 'team:operations') return 'operations';
   if (team === 'team:engineering') return 'engineering';
@@ -95,6 +109,7 @@ function issueSearchUrl(owner, repo, queue) {
   if (queue.id === 'operations') {
     const opsLabels = [queue.teamLabel, ...OPERATIONS_EXCEPTION_LABELS].join(',');
     query.push(`label:${opsLabels}`);
+    query.push('-label:pmo:task');
   } else if (queue.taskLabel) {
     query.push(`label:${queue.taskLabel}`);
   } else if (queue.id === 'other') {
@@ -108,6 +123,7 @@ function issueSearchUrl(owner, repo, queue) {
     query.push('-label:post-merge-failure');
   } else if (queue.teamLabel) {
     query.push(`label:${queue.teamLabel}`);
+    if (!queue.omitTask) query.push('-label:pmo:task');
   }
   if (queue.lifecycleLabel) query.push(`label:${queue.lifecycleLabel}`);
   if (queue.parentLabel) query.push(`label:${queue.parentLabel}`);

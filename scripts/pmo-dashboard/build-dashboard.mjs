@@ -9,7 +9,7 @@ import {
   isPeerEngineeringPreparation,
   isStandaloneOperationsIssue
 } from './queue-label-contract.mjs';
-import { buildTeamQueueCounts } from './team-queue-counts.mjs';
+import { buildTeamQueueCounts, isProjectChild } from './team-queue-counts.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const OWNER = process.env.GITHUB_REPOSITORY_OWNER || 'wdhunter465';
@@ -591,10 +591,19 @@ async function main() {
   }
   const { views, dataQualityExceptions } = assembleViews(built);
   taskAccounting.sort((a, b) => a.parentIssueNumber - b.parentIssueNumber);
+  let openChildCount = 0;
+  let closedChildCount = 0;
+  for (const issue of issues) {
+    if (!isProjectChild(issue)) continue;
+    if (issue.state === 'open') openChildCount += 1;
+    else if (issue.state === 'closed') closedChildCount += 1;
+  }
   const currentBook = {
     activeCount: views.activePrograms.length,
     pipelineCount: views.pmoPipeline.length,
-    parentStandaloneCount: views.activePrograms.length + views.pmoPipeline.length
+    parentStandaloneCount: views.activePrograms.length + views.pmoPipeline.length,
+    openChildCount,
+    closedChildCount
   };
   const nestedCount = views.activePrograms.reduce((count, row) => count + (row.children?.length || 0), 0);
   const teamQueues = buildTeamQueueCounts(issues, { owner: OWNER, repo: REPO });
