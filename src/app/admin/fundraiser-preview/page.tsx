@@ -20,6 +20,7 @@ import {
   validateCampaignSpotlightConfig,
 } from '@/lib/campaignSpotlight';
 import { safeGetFundraiserTeams, type FundraiserTeam } from '@/lib/fundraiser';
+import LeaderboardPreview from './LeaderboardPreview';
 
 type Block = {
   key: string;
@@ -474,6 +475,8 @@ export default function FundraiserPreviewPage() {
             </div>
           )}
         </section>
+
+        <LeaderboardPreview />
 
         <section style={{ display: 'grid', gap: 16 }}>
           <div>
