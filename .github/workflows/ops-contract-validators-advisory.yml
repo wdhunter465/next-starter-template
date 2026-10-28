@@ -63,7 +63,7 @@ jobs:
           VALIDATOR_ACTOR: scheduled-advisory
         run: |
           set -euo pipefail
-          gh issue list --state open --label pmo:task --limit 30 --json number,title,body,labels > /tmp/contract-issues.json
+          gh issue list --state open --label pmo:task --limit 500 --json number,title,body,labels > /tmp/contract-issues.json
           node scripts/ci/run-contract-validators.mjs --mode schedule --issues-json /tmp/contract-issues.json | tee /tmp/contract-report.md
       - name: Open an Operations exception
         if: failure()
