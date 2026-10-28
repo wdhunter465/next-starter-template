@@ -2,6 +2,8 @@
 // Advisory runner for the four PMO contract validators (#4778).
 // Pull-request mode always exits 0. Scheduled mode exits 1 when an in-scope
 // record has a finding, so the workflow can open an Operations exception.
+// Scheduled mode checks only children that claim to be executable (#5014); pull-request
+// mode still checks the source Issue of the PR, which is being worked by definition.
 
 import { readFileSync } from 'node:fs';
 import { pathToFileURL } from 'node:url';
@@ -26,20 +28,28 @@ function fieldValue(body, label) {
   return match ? match[1].trim() : '';
 }
 
-export function selectScope(issue = {}) {
+const EXECUTABLE_LABELS = ['status:ready', 'status:active', 'handoff:ready'];
+
+// A child claims to be executable when it is ready, active, or claimed by an agent.
+// A parked or future child carries none of these and is not claimable yet (#5014).
+export function claimsToBeExecutable(labels = []) {
+  return labels.some((label) => EXECUTABLE_LABELS.includes(label) || label.startsWith('agent:'));
+}
+
+export function selectScope(issue = {}, options = {}) {
   const labels = labelNames(issue);
   const body = String(issue.body || '');
   const lower = body.toLowerCase();
   const candidateMarkers = CANDIDATE_MARKERS.filter((marker) => lower.includes(marker)).length;
   return {
-    child: labels.includes('pmo:task'),
+    child: labels.includes('pmo:task') && (!options.executableOnly || claimsToBeExecutable(labels)),
     candidate: candidateMarkers >= 2,
     approval: /^gate category:\s*\S+/im.test(body)
   };
 }
 
 export function evaluateRecord(issue = {}, options = {}) {
-  const scope = selectScope(issue);
+  const scope = selectScope(issue, { executableOnly: options.executableOnly });
   const findings = [];
   const labels = labelNames(issue);
   const normalized = { ...issue, labels, body: issue.body || '' };
@@ -140,7 +150,8 @@ function main() {
   const results = records.map((issue) =>
     evaluateRecord(issue, {
       requestingAgent: process.env.VALIDATOR_ACTOR || 'advisory',
-      activeClaims: activeClaims.filter((claim) => claim.id !== issue.number)
+      activeClaims: activeClaims.filter((claim) => claim.id !== issue.number),
+      executableOnly: mode === 'schedule'
     })
   );
   const report = renderReport(results);

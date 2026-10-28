@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  claimsToBeExecutable,
   evaluateRecord,
   exitCodeFor,
   issueNumberFromText,
@@ -64,6 +65,37 @@ describe('run-contract-validators (#4778)', () => {
     const issue = { number: 9, body: 'No contract fields', labels: ['documentation'] };
     expect(selectScope(issue)).toEqual({ child: false, candidate: false, approval: false });
     expect(evaluateRecord(issue).inScope).toBe(false);
+  });
+
+  it('skips a parked child in a scheduled sweep but not in pull-request mode (#5014)', () => {
+    const parked = { number: 4702, body: 'Objective: parked', labels: ['pmo:task', 'team:engineering'] };
+    expect(selectScope(parked, { executableOnly: true }).child).toBe(false);
+    expect(evaluateRecord(parked, { executableOnly: true })).toMatchObject({ inScope: false, findings: [] });
+    expect(selectScope(parked).child).toBe(true);
+    expect(evaluateRecord(parked).findings.length).toBeGreaterThan(0);
+  });
+
+  it('flags a ready, active or claimed child with an incomplete package (#5014)', () => {
+    for (const label of ['status:ready', 'status:active', 'handoff:ready', 'agent:claude']) {
+      const child = { number: 4703, body: 'Objective: only one field', labels: ['pmo:task', label] };
+      expect(claimsToBeExecutable([label])).toBe(true);
+      const result = evaluateRecord(child, { executableOnly: true });
+      expect(result.inScope).toBe(true);
+      expect(result.findings.map((finding) => finding.validator)).toContain('executable-child');
+    }
+  });
+
+  it('keeps a ready child with a complete package clean in a scheduled sweep (#5014)', () => {
+    const result = evaluateRecord(
+      { number: 4704, body: COMPLETE_BODY, labels: ['pmo:task', 'status:ready'] },
+      { executableOnly: true }
+    );
+    expect(result.inScope).toBe(true);
+    expect(result.findings).toEqual([]);
+  });
+
+  it('does not treat wait or hold labels as a claim to be executable (#5014)', () => {
+    expect(claimsToBeExecutable(['pmo:task', 'wait:product', 'status:hold', 'pmo:active'])).toBe(false);
   });
 
   it('reports a named gate category that is not deterministic', () => {
