@@ -63,6 +63,14 @@ describe('evaluateJob', () => {
     expect(evaluateJob(job, { state: null, lastSuccessAt: null }, NOW)).toMatchObject({ ok: false, reason: 'workflow not found' });
   });
 
+  it('treats the contract-validator advisory as enabled-only', () => {
+    const advisory = JOBS.find((job) => job.file === 'ops-contract-validators-advisory.yml');
+    expect(advisory).toMatchObject({ maxAgeHours: null });
+    expect(evaluateJob(advisory, { state: 'active', lastSuccessAt: null }, NOW)).toMatchObject({ ok: true, reason: '' });
+    expect(evaluateJob(advisory, { state: 'disabled_manually', lastSuccessAt: null }, NOW))
+      .toMatchObject({ ok: false, reason: 'workflow state is disabled_manually' });
+  });
+
   it('checks only the enabled state when maxAgeHours is null', () => {
     const watcher = { file: 'watcher.yml', maxAgeHours: null };
     expect(evaluateJob(watcher, { state: 'active', lastSuccessAt: null }, NOW)).toMatchObject({ ok: true });
