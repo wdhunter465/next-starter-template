@@ -42,7 +42,8 @@ export const JOBS = [
   { file: 'ops-halt-repeated-failures.yml', maxAgeHours: 3 },
   { file: 'ops-production-edge-health.yml', maxAgeHours: 26 },
   { file: 'ops-scheduled-qualification.yml', maxAgeHours: 30 },
-  { file: 'ops-contract-validators-advisory.yml', maxAgeHours: 30 },
+  // Advisory findings are the exception record (#4992). Enabled state is the health check (#4991).
+  { file: 'ops-contract-validators-advisory.yml', maxAgeHours: null },
   { file: 'ops-workflow-failure-exception-issues.yml', maxAgeHours: null },
 ];
 
