@@ -5,7 +5,7 @@ Authority Level: Domain Policy
 Owns: Shared execution rules, enforcement model, PR discipline, stop conditions, shared product-startup framework
 Does Not Own: Design authority, platform configuration, tracker content, role mapping
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3055, #3113, #3117, #3134, #3138, #3142, #3145, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4074, #4099, #4131, #4165, #4198, #4314, #4596, #4715, #4716, #4719, #4819, #4982, #4994, #5002, #5004
+Related Issues: #3055, #3113, #3117, #3134, #3138, #3142, #3145, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4074, #4099, #4131, #4165, #4198, #4314, #4596, #4715, #4716, #4719, #4819, #4982, #4994, #5002, #5004, #5006
 Last Reviewed: 2026-10-28
 ---
 
@@ -107,6 +107,8 @@ Waiting on independent review, merge approval, or another long-running process f
 - **Held items are completed by their holder (#5002).** A missing allowlist, package field or acceptance detail on an Issue the agent holds is the agent's to supply on the Issue, within its roles, before it works the item. It is not a wait state.
 - **A stop needs a label.** A tick on a held item ends with a change (a commit, a PR, or an edit to the Issue) or a `wait:*` label naming the blocker and its release event. A decision only Product Authority can make gets `wait:product` and the one decision named. A comment that records a diagnosis and stops is neither.
 - **Review is not work.** Findings about other Issues (their labels, packages, owners) are recorded once, as one comment or one Issue. They are not progress on the held item and never stand in for the change or the label above.
+- **An assignment is recorded and acknowledged (#5006).** An assignment made in a message is recorded on the Issue by the agent that receives it, on its first tick: `agent:<product>` with `status:ready` when the package is complete and a Go is recorded, otherwise `status:active`, and a comment citing the message and its date. A message alone is not the assignment. The same comment states the first action, or the one blocker with a `wait:*` label. Any agent that finds an assignment recorded nowhere may record it the same way and say so on the Issue.
+- **An assignment authorizes the ownership steps.** When Product Authority assigns an Issue, the receiving agent looks at it, takes ownership, updates the queue-state labels on it, completes the package its roles allow, and works it. These actions are authorized by the assignment, are not workarounds, and need no further approval. A Production-tier merge, a Production write without an explicit Go, and a decision reserved to Product Authority stay stopped: label `wait:product` and name the one decision.
 
 **Going quiet.** An agent may go quiet for a tick (stay connected and do nothing) only when all of these hold at once: nothing in the queue order can move, no authored PR has a failing or pending gate the agent owns, and no Operations interrupt is open. An item with no `wait:*` label and no PR is not an item that cannot move. Quiet is never a stop signal for the work.
 
