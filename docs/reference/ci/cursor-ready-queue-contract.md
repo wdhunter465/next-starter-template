@@ -5,7 +5,7 @@ Authority Level: Reference
 Owns: The Cursor ready-queue file, the queries it holds, what a Cursor tick does with them, and the rule for when Cursor may go quiet
 Does Not Own: Runtime selection (docs/governance/standards/CURSOR-RUNTIME-ROUTING.md), the shared execution law, queue-state label definitions, or the local poller implementation
 Canonical Reference: /docs/governance/AGENT-EXECUTION.md
-Related Issues: #4982, #4362, #4966, #4994
+Related Issues: #4982, #4362, #4966, #4994, #5007
 Last Reviewed: 2026-10-28
 ---
 
@@ -52,11 +52,21 @@ The seven lines are the shared queue order: line 1 is step 1, line 2 is step 2, 
 
 ## What a Cursor tick does
 
-1. Run the queries in order. Write each result count and the first Issue numbers to `~/.cursor/lgfc-wake-poll-inbox.json` under `readyQueue`. The inbox stays a keepalive record. The queue itself is GitHub.
+1. Refresh the rules (next section), then run the queries in order. Write each result count and the first Issue numbers to `~/.cursor/lgfc-wake-poll-inbox.json` under `readyQueue`. The inbox stays a keepalive record. The queue itself is GitHub.
 2. Hand Cursor every non-empty query, not one "next item". An Issue labeled `wait:*` is reported as skipped, with the label, so the head of the list is never a waiting Issue.
 3. Cursor works the first Issue that can move and applies the shared rules (Assigned-queue continuation) to the rest. Query 5 and 6 results are reviewed and owned as the shared law says.
 4. Check Cursor's open pull requests and fix any failing gate.
 5. Report the tick in one line. Do not report "nothing to do" while any step found work.
+
+## Fresh rules on every tick (#5007)
+
+The queue is read from GitHub, and so are the rules Cursor acts on. A merged change to the shared law must reach a running session without anyone running `git pull`.
+
+- **Fetch, do not pull.** Run `git fetch origin main` in the workspace. Do not check out, merge or reset anything, and leave the branch Cursor is on and its working tree alone.
+- **Read from `origin/main`.** Read the rule files with `git show origin/main:<path>` (or the GitHub contents API), not from the working copy: `docs/governance/AGENT-EXECUTION.md`, `docs/ops/ai/CURSOR-RULES.md` and `docs/governance/AGENT-TEAM.md`.
+- **Report the version.** Write the `origin/main` commit SHA and the blob SHA of `AGENT-EXECUTION.md` (`git rev-parse origin/main:docs/governance/AGENT-EXECUTION.md`) into `readyQueue` in `~/.cursor/lgfc-wake-poll-inbox.json` and print both in the tick line.
+- **Reload on change.** When the blob SHA differs from the previous tick's, the next action starts by re-reading Assigned-queue continuation. A changed rule is never left for a person to notice.
+- **A failed fetch is visible.** If the fetch fails, the tick says so once and works from the last good copy of the rules. It does not silently use the checkout.
 
 ## Host files
 
@@ -64,11 +74,11 @@ The seven lines are the shared queue order: line 1 is step 1, line 2 is step 2, 
 | --- | --- | --- |
 | `~/.cursor/lgfc-ready-queue.txt` | The seven queries | Only if the block above changes. Confirm it exists and matches. |
 | `~/.cursor/lgfc-wake-poll-inbox.json` | Keepalive record, `readyQueue` counts | No. |
-| `~/.cursor/lgfc-wake-ctl.sh` and the poller | Run the queries and write `readyQueue` | Yes, if the poller picks one "next item" by itself. It must follow step 2 above. |
+| `~/.cursor/lgfc-wake-ctl.sh` and the poller | Run the queries and write `readyQueue` | Yes, if the poller picks one "next item" by itself (it must follow step 2 above), or if it does not fetch `origin/main` and report the two SHAs (Fresh rules on every tick). |
 | `~/.cursor/lgfc-always-on-loop.sh` (tick prompt) | The text sent on each tick | Yes. The prompt must not call the tick only a connection check. It must say to run the queries, skip `wait:*` Issues, act on the first Issue that can move, and never send a third identical report. |
-| `.cursor/rules/*.mdc` in the workspace | Always-apply rules | A session started before the merge needs `git pull` or a new session. |
+| `.cursor/rules/*.mdc` in the workspace | Always-apply rules, which only point to the shared law | The shared law is read from `origin/main` each tick, so a stale checkout no longer hides it. These small pointer files still load from the workspace; pull when they change. |
 
-Record the refresh date on #4994.
+Record the refresh date on #4994, and the first tick that prints the two SHAs on #5007.
 
 ## Intended final state
 
