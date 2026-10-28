@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Shared execution rules, enforcement model, PR discipline, stop conditions, shared product-startup framework
 Does Not Own: Design authority, platform configuration, tracker content, role mapping
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3055, #3113, #3117, #3134, #3138, #3142, #3145, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4074, #4099, #4131, #4165, #4198, #4314, #4596, #4715, #4716, #4719, #4819, #4982
-Last Reviewed: 2026-10-27
+Related Issues: #3055, #3113, #3117, #3134, #3138, #3142, #3145, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4074, #4099, #4131, #4165, #4198, #4314, #4596, #4715, #4716, #4719, #4819, #4982, #4994
+Last Reviewed: 2026-10-28
 ---
 
 This document is the canonical shared execution law. It moved here from `docs/ops/ai/CORE-RULES.md` under #4198. The old path is a compatibility pointer and is not a second policy.
@@ -93,6 +93,13 @@ Do not treat “no new events” or a “brief status + keep looping” as permi
 Waiting on independent review, merge approval, or another long-running process for a packaged assignment is still not idle (#3611). An item is *waiting* when its linked open authored PR has latest checks SUCCESS, or when it is `handoff:ready` (labels/status only — not website Go). Keep waiting items for gate, reviewer, and post-merge follow-through. Immediately continue the next eligible item that is not merely waiting (`nextExecutable`, where the product tracks it). If none exists, keep looping for follow-through on waiting items; do not idle and do not merge a Production-tier PR. Do not occupy the session with standing-queue status while other assigned work remains.
 
 **Wake and poll ticks are keepalives (#4982).** The local poller, the GitHub runner dispatch and any tick message only keep the session connected to the repository. They are not assignments, not queue rankings and not stop signals. A tick or poll with no new events means: continue the next unfinished item, assigned work first, then the role's queues, then unassigned work (Session lifecycle). This rule is stated here so that every session reads it from the repository. A product file or a local script may repeat it but may not be its only home.
+
+**A blocked head does not hold the queue (#4994).** The resume queue is worked in order, but an item that cannot be acted on this tick never stops the items behind it.
+
+- **Skip.** An item waiting on a named external event, or in a cycle, gets one `wait:*` label and one comment on its Issue naming the blocker and the event that releases it. The tick then takes the next item.
+- **Cycle.** If an item's release condition is waiting on that same item, break it with the smallest reversible action (re-run the closeout, or close the exception with a note on the source Issue). If that needs a decision, label it `wait:product` and name the decision.
+- **Act when a wait ends.** Once the awaited event has happened, the next tick acts on the result. Recording the result is not the action.
+- **Repeat guard.** A tick report that matches the previous one needs a changed fact or a stated action. After two identical reports, act or label the item and move on. Never send a third.
 
 Product-specific resume-queue mechanics and operator-facing reporting bounds live in the product's rules file (for Cursor, `docs/ops/ai/CURSOR-RULES.md`, #4314). They do not relax assigned-queue continuation for work that is actually assigned.
 

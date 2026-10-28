@@ -5,8 +5,8 @@ Authority Level: Reference
 Owns: The Cursor ready-queue file, the queries it holds, what a Cursor tick does with them, and the rule for when Cursor may go quiet
 Does Not Own: Runtime selection (docs/governance/standards/CURSOR-RUNTIME-ROUTING.md), the shared execution law, queue-state label definitions, or the local poller implementation
 Canonical Reference: /docs/governance/AGENT-EXECUTION.md
-Related Issues: #4982, #4362, #4966
-Last Reviewed: 2026-10-27
+Related Issues: #4982, #4362, #4966, #4994
+Last Reviewed: 2026-10-28
 ---
 
 # Cursor ready-queue contract
@@ -55,6 +55,30 @@ Cursor's own open pull requests are checked on every tick as well: a failing gat
 2. Work the first non-empty query, one Issue at a time. Query 1 interrupts everything. Queries 5 and 6 mean review the Issue and take ownership: claim it and resolve it, complete its package if the missing parts are within Cursor's roles, or label it `wait:product` and name the one decision missing.
 3. Check Cursor's open pull requests and fix any failing gate.
 4. Report the tick in one line. Do not report "nothing to do" while any step above found work.
+
+## When the head item cannot move (#4994)
+
+The shared rule is in `docs/governance/AGENT-EXECUTION.md` (A blocked head does not hold the queue). For these queries:
+
+- An Issue that cannot be acted on this tick gets one `wait:*` label and one comment naming the blocker and the event that releases it. Then go to the next Issue in the same query, and then the next query. Queries 3 to 6 are reached whenever query 1 or 2 only holds waiting Issues.
+- A `post-merge-failure` exception (query 2) that waits on its own source Issue's closeout is a cycle. Break it: re-run the closeout, or close the exception with a note on the source Issue. If that needs a decision, label `wait:product` and name it. Do not wait for the exception to clear by itself.
+- When the awaited event has happened (a run finished, an Issue opened by that run), act on the result on that tick. Writing down what happened is not the action. A scoped fix named in a comment means a pull request on the next tick.
+- Two identical tick reports in a row are the limit. The next tick states a changed fact or an action taken, or labels the Issue and moves on.
+- Cursor cannot go quiet while a query holds an Issue with no `wait:*` label and no pull request.
+
+## Host files (#4994)
+
+These live outside the repository, so merging this document changes none of them. After a change here, Cursor refreshes the ones marked.
+
+| Host file | Role | Refresh after this change |
+| --- | --- | --- |
+| `~/.cursor/lgfc-ready-queue.txt` | The seven queries | No. The queries are unchanged. Confirm it exists with the block above. |
+| `~/.cursor/lgfc-wake-poll-inbox.json` | Keepalive record, `readyQueue` counts | No. |
+| `~/.cursor/lgfc-wake-ctl.sh` and the poller | Run the queries and write `readyQueue` | Yes, if the poller picks one "next item" by itself. It must hand Cursor every non-empty query and mark `wait:*` Issues as skipped. |
+| `~/.cursor/lgfc-always-on-loop.sh` (tick prompt) | The text sent on each tick | Yes. The prompt must not say the tick is only a connection check. It must say to run the queries, skip waiting Issues, and act. |
+| `~/.cursor/rules` or workspace `.cursor/rules/*.mdc` | Always-apply rules | Only for a session started before this merged. A new session or `git pull` picks them up. |
+
+Record the refresh date on #4994.
 
 ## When Cursor may go quiet
 

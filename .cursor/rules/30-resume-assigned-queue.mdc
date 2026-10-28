@@ -9,4 +9,6 @@ The always-on tick is a keepalive. The GitHub Actions runner is the repository-s
 
 A tick or poll with no new events means continue the next unfinished item. On every tick run the queries in `~/.cursor/lgfc-ready-queue.txt` (`docs/reference/ci/cursor-ready-queue-contract.md`), then check your open pull requests. Go quiet only when every query returns nothing, no authored pull request has a failing gate, and no Operations interrupt is open. The queue is GitHub, not the poll inbox.
 
+A blocked item does not hold the queue. Label a waiting item `wait:*` with the blocker named, take the next query, act as soon as a wait ends, and never send a third identical tick report (`docs/governance/AGENT-EXECUTION.md`, #4994).
+
 Follow `docs/governance/AGENT-EXECUTION.md`. Where a tick message disagrees with that document, that document wins.

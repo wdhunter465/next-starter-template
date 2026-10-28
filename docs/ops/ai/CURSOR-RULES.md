@@ -5,8 +5,8 @@ Authority Level: Agent-Specific
 Owns: Cursor product identity, the Cursor startup contract, and the keepalive statement
 Does Not Own: Agent-team policy, role assignment, PMO lifecycle, shared execution law, merge authority, or approval authority
 Canonical Reference: /docs/governance/AGENT-EXECUTION.md
-Related Issues: #3825, #4314, #4449, #4596, #4676, #4716, #4783, #4928, #4982
-Last Reviewed: 2026-10-27
+Related Issues: #3825, #4314, #4449, #4596, #4676, #4716, #4783, #4928, #4982, #4994
+Last Reviewed: 2026-10-28
 ---
 
 # CURSOR-RULES.md
@@ -22,6 +22,8 @@ A Cursor workaround is denied unless Product Authority has approved that workaro
 The local wake tick only keeps this Cursor session connected to the repository. The GitHub Actions runner does the same from the repository side for this same session. The tick is not an assignment, not a queue ranking, and not a stop. Work follows `docs/governance/AGENT-EXECUTION.md`.
 
 A tick or poll with no new events means continue the next unfinished item. On every tick, run the queries in `~/.cursor/lgfc-ready-queue.txt` (`docs/reference/ci/cursor-ready-queue-contract.md`). Cursor may go quiet only when every query returns nothing, no authored pull request has a failing gate, and no Operations interrupt is open. The poll inbox is a keepalive record. The queue is GitHub.
+
+A queue item that cannot move this tick does not hold the queue: skip it with a `wait:*` label and a comment, take the next one, act as soon as a wait ends, and never send a third identical tick report. The rule is in `docs/governance/AGENT-EXECUTION.md` (A blocked head does not hold the queue, #4994) and the query handling is in `docs/reference/ci/cursor-ready-queue-contract.md`.
 
 ## Startup contract
 
