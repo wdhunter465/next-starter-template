@@ -54,7 +54,6 @@ fetch('dashboard-data.json')
   .then((data) => {
     const teams = data.teamQueues?.queues || [];
     const pmo = data.teamQueues?.pmoQueues || [];
-    const pmoTask = data.teamQueues?.pmoTaskQueue ? [data.teamQueues.pmoTaskQueue] : [];
     const other = data.teamQueues?.otherQueue ? [data.teamQueues.otherQueue] : [];
     const teamsRow = teams.length
       ? `<section class="queue-row"><h2>Team queues</h2>${cardGrid(teams)}</section>`
@@ -62,16 +61,13 @@ fetch('dashboard-data.json')
     const pmoRow = pmo.length
       ? `<section class="queue-row"><h2>PMO parent projects</h2>${cardGrid(pmo)}</section>`
       : '';
-    const pmoTaskRow = pmoTask.length
-      ? `<section class="queue-row"><h2>PMO child / task issues</h2>${cardGrid(pmoTask)}</section>`
-      : '';
     const otherRow = other.length
       ? `<section class="queue-row"><h2>Other / unassigned</h2>${cardGrid(other)}</section>`
       : '';
-    const body = teamsRow || pmoRow || pmoTaskRow
-      ? `${totalBanner(data)}${teamsRow}${pmoRow}${pmoTaskRow}${otherRow}${breakoutSection(data)}`
+    const body = teamsRow || pmoRow || otherRow
+      ? `${totalBanner(data)}${teamsRow}${pmoRow}${otherRow}${breakoutSection(data)}`
       : '<p class="empty">Team-queue counts are not available in this generated snapshot.</p>';
-    document.getElementById('dashboard').innerHTML = `<p class="meta">Generated ${esc(new Date(data.generatedAt).toLocaleString())} from ${esc(data.repository)} GitHub Issues. Total open issues is the repository-wide open issue count (PRs excluded). Team tiles count exclusive team owners. PMO parent tiles omit child tasks. PMO child/task and Other complete the assignment breakout so categories sum to total open issues.</p>${body}`;
+    document.getElementById('dashboard').innerHTML = `<p class="meta">Generated ${esc(new Date(data.generatedAt).toLocaleString())} from ${esc(data.repository)} GitHub Issues. Total open issues is the repository-wide open issue count (PRs excluded). Team tiles count standalone work only. Project children (a parent link or pmo:task) are omitted here and counted on the dashboard. The assignment breakout still accounts for every open Issue.</p>${body}`;
   })
   .catch((error) => {
     document.getElementById('dashboard').textContent = `Team-queue data could not be loaded: ${error.message}`;

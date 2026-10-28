@@ -76,9 +76,7 @@ function exceptionRowHtml(row) {
 }
 
 function rowsHtml(row) {
-  const parts = [portfolioRowHtml(row, false)];
-  for (const child of row.children || []) parts.push(portfolioRowHtml(child, true));
-  return parts.join('');
+  return portfolioRowHtml(row, false);
 }
 
 fetch('dashboard-data.json')
@@ -88,8 +86,8 @@ fetch('dashboard-data.json')
       ? ' PMO July 2026 contract.'
       : (data.trackingModel === 'pmo-label' ? ' PMO-label tracking.' : '');
     const book = data.currentBook || {};
-    const bookNote = Number.isInteger(book.parentStandaloneCount)
-      ? ` Current book: ${esc(fmt(book.parentStandaloneCount))} open parent/standalone records (${esc(fmt(book.activeCount))} Active, ${esc(fmt(book.pipelineCount))} Pipeline).`
+    const bookNote = Number.isInteger(book.activeCount)
+      ? ` Active projects: ${esc(fmt(book.activeCount))}. Pipeline projects: ${esc(fmt(book.pipelineCount))}. Open child Issues: ${esc(fmt(book.openChildCount, '0'))}. Closed child Issues: ${esc(fmt(book.closedChildCount, '0'))}.`
       : '';
     const sections = views.map(([key, title]) => {
       const rows = data.views?.[key] || [];

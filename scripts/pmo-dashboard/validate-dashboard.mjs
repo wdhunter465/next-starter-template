@@ -339,6 +339,12 @@ if (data) {
     if (data.currentBook.parentStandaloneCount !== activeCount + pipelineCount) {
       errors.push('currentBook.parentStandaloneCount must equal activeCount + pipelineCount');
     }
+    if (!Number.isInteger(data.currentBook.openChildCount) || data.currentBook.openChildCount < 0) {
+      errors.push('currentBook.openChildCount must be a non-negative integer');
+    }
+    if (!Number.isInteger(data.currentBook.closedChildCount) || data.currentBook.closedChildCount < 0) {
+      errors.push('currentBook.closedChildCount must be a non-negative integer');
+    }
   }
   for (const view of currentBookViews) {
     for (const [index, row] of (data.views?.[view] || []).entries()) validateRow(row, `${view}[${index}]`, rowByNumber, rowDataByNumber);
