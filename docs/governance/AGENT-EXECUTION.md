@@ -5,7 +5,7 @@ Authority Level: Domain Policy
 Owns: Shared execution rules, enforcement model, PR discipline, stop conditions, shared product-startup framework
 Does Not Own: Design authority, platform configuration, tracker content, role mapping
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3055, #3113, #3117, #3134, #3138, #3142, #3145, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4074, #4099, #4131, #4165, #4198, #4314, #4596, #4715, #4716, #4719, #4819, #4982, #4994, #5002
+Related Issues: #3055, #3113, #3117, #3134, #3138, #3142, #3145, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4074, #4099, #4131, #4165, #4198, #4314, #4596, #4715, #4716, #4719, #4819, #4982, #4994, #5002, #5004
 Last Reviewed: 2026-10-28
 ---
 
@@ -162,7 +162,7 @@ Non-compliant sequences (examples):
 
 ---
 
-# CURSOR-STYLE PR PREFLIGHT STANDARD
+# PR PREFLIGHT STANDARD
 
 All agents must follow the execution pattern that has produced the lowest-friction PRs:
 
@@ -174,7 +174,7 @@ All agents must follow the execution pattern that has produced the lowest-fricti
 6. Run task-relevant local checks before marking the PR ready.
 7. Update the PR body so the allowlist, change summary, acceptance criteria, and verification evidence match the final diff.
 8. Do not include unrelated tracker, documentation, runtime, workflow, or cleanup edits.
-9. When the scoped PR is ready for review or blocked by a documented gate, stop *that Issue's implementation* and immediately return to the remaining assigned/resume queue (#3605). Select `nextExecutable`; do not wait silently on independent review (#3611). Do not idle the session.
+9. When the scoped PR is ready for review or blocked by a documented gate, stop *that Issue's implementation* and continue the queue order (Assigned-queue continuation, #3605 / #3611). Do not wait silently on independent review, and do not idle the session.
 
 This standard applies to every live LGFC implementation agent per the current role holders mapped in `docs/governance/AGENT-TEAM.md`.
 
