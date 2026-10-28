@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Shared execution rules, enforcement model, PR discipline, stop conditions, shared product-startup framework
 Does Not Own: Design authority, platform configuration, tracker content, role mapping
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3055, #3113, #3117, #3134, #3138, #3142, #3145, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4074, #4099, #4131, #4165, #4198, #4314, #4596, #4715, #4716, #4719, #4819, #4982
-Last Reviewed: 2026-10-27
+Related Issues: #3055, #3113, #3117, #3134, #3138, #3142, #3145, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4074, #4099, #4131, #4165, #4198, #4314, #4596, #4715, #4716, #4719, #4819, #4982, #4994
+Last Reviewed: 2026-10-28
 ---
 
 This document is the canonical shared execution law. It moved here from `docs/ops/ai/CORE-RULES.md` under #4198. The old path is a compatibility pointer and is not a second policy.
@@ -74,27 +74,40 @@ If additional work is discovered → log it in the source Issue or PR, do not ex
 
 ---
 
-# ASSIGNED-QUEUE CONTINUATION (#3605 / #3611)
+# ASSIGNED-QUEUE CONTINUATION (#3605 / #3611 / #4982 / #4994)
 
-A wake with no *new* GitHub events is not idle when discovered work remains.
+A wake with no *new* GitHub events is not idle when discovered work remains. This section is the one home for queue order, ticks, waiting items and going quiet. Product rules files add only how their product reads the queue.
 
-After packaging one assignment (PR opened, HOLD, or PACKAGE-INCOMPLETE recorded on the source Issue), immediately re-evaluate and continue the next eligible item from this agent's resume queue:
+## Queue order
 
-- numbered Operations interrupts;
-- Issues assigned to this agent;
-- this agent's open authored PRs with failing or pending gates;
-- this agent's own `post-merge-failure` exceptions;
-- active claims (the `agent:*` label for this agent's product, with `status:active`) assigned to this agent, or that Product Authority named as this session's work.
+Every agent reads its queue from GitHub, not from a local list or a poll inbox, and works the first item that can move. `<product>` is the agent's own `agent:` label.
 
-Each product's rules file names where its agent reads this queue. Where it does not, read the queue directly from GitHub: assigned Issues, authored open PRs and their checks, own `post-merge-failure` Issues, and active claims.
+1. **Operations interrupts:** open `team:operations` Issues with `ops:priority:1` to `ops:priority:4`. They stop in-flight work at the nearest safe checkpoint (`docs/governance/WORK-QUEUES-AND-COLLABORATION.md`, Operations interrupt).
+2. **Own exceptions:** the agent's `post-merge-failure` Issues with `agent:<product>`.
+3. **Assigned work:** Issues with `agent:<product>` that are `status:ready` or `status:active`, and anything Product Authority named as this session's work.
+4. **Ready and unclaimed:** `status:ready` Issues with no valid `agent:*` claim, in a queue the agent's roles cover.
+5. **Unassigned and not yet reviewed:** open Issues in the agent's primary queues, then its secondary queues (`docs/governance/AGENT-TEAM.md`), with no `agent:*` claim and no `wait:*` or `status:hold` label. Review each and take ownership: claim it and resolve it, complete its package if the missing parts are within the agent's roles, or label it `wait:product` and name the one decision missing. Release any claim the agent cannot work.
 
-Do not treat “no new events” or a “brief status + keep looping” as permission to stop while that resume queue is non-empty. One Issue → one PR; do not mix remaining queue items into the just-opened PR. `handoff:ready` is not website Go. Do not merge a Production-tier PR.
+Every tick also checks the agent's open authored PRs. A failing or pending gate that the agent owns is work. Product Authority may name or reorder work at any time; such a list sets priority and is never a precondition to work.
 
-Waiting on independent review, merge approval, or another long-running process for a packaged assignment is still not idle (#3611). An item is *waiting* when its linked open authored PR has latest checks SUCCESS, or when it is `handoff:ready` (labels/status only — not website Go). Keep waiting items for gate, reviewer, and post-merge follow-through. Immediately continue the next eligible item that is not merely waiting (`nextExecutable`, where the product tracks it). If none exists, keep looping for follow-through on waiting items; do not idle and do not merge a Production-tier PR. Do not occupy the session with standing-queue status while other assigned work remains.
+## Continuing
 
-**Wake and poll ticks are keepalives (#4982).** The local poller, the GitHub runner dispatch and any tick message only keep the session connected to the repository. They are not assignments, not queue rankings and not stop signals. A tick or poll with no new events means: continue the next unfinished item, assigned work first, then the role's queues, then unassigned work (Session lifecycle). This rule is stated here so that every session reads it from the repository. A product file or a local script may repeat it but may not be its only home.
+After packaging one assignment (PR opened, HOLD, or PACKAGE-INCOMPLETE recorded on the source Issue), immediately continue with the next item in the queue order above. One Issue → one PR; do not mix remaining queue items into the just-opened PR. `handoff:ready` is not website Go. Do not merge a Production-tier PR.
 
-Product-specific resume-queue mechanics and operator-facing reporting bounds live in the product's rules file (for Cursor, `docs/ops/ai/CURSOR-RULES.md`, #4314). They do not relax assigned-queue continuation for work that is actually assigned.
+Waiting on independent review, merge approval, or another long-running process for a packaged assignment is still not idle (#3611). An item is *waiting* when its linked open authored PR has latest checks SUCCESS, or when it is `handoff:ready` (labels/status only), or when it carries a `wait:*` label. Keep waiting items for gate, reviewer, and post-merge follow-through, and immediately continue the next item that is not merely waiting. Do not occupy the session with standing-queue status while other work remains.
+
+**Wake and poll ticks are keepalives (#4982).** The local poller, the GitHub runner dispatch and any tick message only keep the session connected to the repository. They are not assignments, not queue rankings and not stop signals. A tick or poll with no new events means: continue the next unfinished item in the queue order. A product file or a local script may repeat this rule but may not be its only home.
+
+**A blocked head does not hold the queue (#4994).** An item that cannot be acted on this tick never stops the items behind it.
+
+- **Skip.** An item waiting on a named external event, or in a cycle, gets one `wait:*` label and one comment on its Issue naming the blocker and the event that releases it. The tick then takes the next item.
+- **Cycle.** If an item's release condition is waiting on that same item (a `post-merge-failure` exception whose source Issue cannot close while the exception is open is one), break it with the smallest reversible action: re-run the closeout, or close the exception with a note on the source Issue. If that needs a decision, label it `wait:product` and name the decision.
+- **Act when a wait ends.** Once the awaited event has happened, the next tick acts on the result. Recording the result is not the action. A fix named in a comment means a pull request on the next tick.
+- **Repeat guard.** A tick report that matches the previous one needs a changed fact or a stated action. After two identical reports, act or label the item and move on. Never send a third.
+
+**Going quiet.** An agent may go quiet for a tick (stay connected and do nothing) only when all of these hold at once: nothing in the queue order can move, no authored PR has a failing or pending gate the agent owns, and no Operations interrupt is open. An item with no `wait:*` label and no PR is not an item that cannot move. Quiet is never a stop signal for the work.
+
+Product-specific mechanics live in the product's rules file (`docs/ops/ai/CURSOR-RULES.md`, `docs/ops/ai/CLAUDE-CODE-RULES.md`). They do not relax assigned-queue continuation for work that is actually assigned.
 
 ## Accepted-assignment continuity (#3693)
 
@@ -503,12 +516,12 @@ A source Issue, its acceptance criteria, an exact file-touch allowlist, the appl
 A working session has three phases, in this order. This section is the only statement of the sequence; product rules files add their own mechanics and do not redefine the phases.
 
 1. **Run startup: orientation only.** The agent identifies its product and roles, confirms access, reads the authority chain, its product file and the orientation digest, reports, and stops (Shared startup steps above).
-2. **Work list (#4982).** The agent reads its working list from GitHub; it is not defined again each session. It is the Issues the agent holds (`agent:*`) that are `status:ready`, its open PRs and their checks, its own `post-merge-failure` Issues, and anything Product Authority names. Product Authority may define or reorder a priority list at any time. Such a list sets priority and is never a precondition to work. A read-only look at the Operations queue may inform the list; that look authorizes no claim, edit or PR. A task is **ready** when it has a source Issue, acceptance criteria, an exact file allowlist, role authority and an explicit implementation Go recorded. The `status:ready` label records that. A task inside a graduated Project's prepared child graph is ready without the label (standing authority, below).
+2. **Work list (#4982).** The agent reads its working list from GitHub, in the queue order of Assigned-queue continuation; it is not defined again each session. Product Authority may define or reorder a priority list at any time. Such a list sets priority and is never a precondition to work. A read-only look at the Operations queue may inform the list; that look authorizes no claim, edit or PR. A task is **ready** when it has a source Issue, acceptance criteria, an exact file allowlist, role authority and an explicit implementation Go recorded. The `status:ready` label records that. A task inside a graduated Project's prepared child graph is ready without the label (standing authority, below).
 3. **Continuous run.** The agent works the list without being re-prompted:
    - it prepares each assigned task to a ready-to-merge PR, then starts the next eligible task while that PR waits (Assigned-queue continuation, above);
    - merge authority follows the tiers in `docs/governance/REPOSITORY-AUTHORITY.md` (Merge authority); a PR that waits for the human approver does not stop the run;
-   - when assigned work is resolved or closed, or has reached a stop point (a PR waiting on review, a `wait:*` state, or a HOLD), the agent checks the queues its role owns, **primary first and then secondary** (`docs/governance/AGENT-TEAM.md`), and then reviews every **unassigned** open Issue and takes ownership of it in order to resolve it. It claims an Issue its roles cover that has no valid claim by another agent and is `status:ready`. It completes the package of one that is not ready when the missing parts are within its role. It labels the rest `wait:product` and names the one decision missing. It releases any claim it cannot work. Queue-state labels are defined in `docs/governance/WORK-QUEUES-AND-COLLABORATION.md`;
-   - **the Operations interrupt is always on** from the end of startup. Every agent watches for new qualifying Operations Issues, which take precedence over all other work because Production services are expected to be affected. In-flight work stops at the nearest safe checkpoint (`docs/governance/WORK-QUEUES-AND-COLLABORATION.md`, Operations interrupt);
+   - when assigned work is resolved, closed, or at a stop point (a PR waiting on review, a `wait:*` state, or a HOLD), it continues down the queue order, including the unassigned Issues it takes ownership of (Assigned-queue continuation). Queue-state labels are defined in `docs/governance/WORK-QUEUES-AND-COLLABORATION.md`;
+   - **the Operations interrupt is always on** from the end of startup and takes precedence over all other work because Production services are expected to be affected;
    - the run ends only when no eligible assigned or unassigned work remains, Product Authority says stop, or a protected stop or evidence-specific `HOLD` covers what is left. A protected stop blocks that one action, not the rest of the queue.
 
 ## Continuous parent-level execution (#3055 / #3145)
@@ -517,7 +530,7 @@ For a graduated Project or Program, the exact prepared child graph is standing a
 
 Missing package fields produce `PACKAGE-INCOMPLETE`; a substantive dependency or protected boundary produces an evidence-specific `HOLD` scoped to the affected action — not queue-wide freeze for ordinary sequencing. A valid `HOLD` records affected scope, evidence, why continuation is unsafe or unauthorized, mitigation owner, release condition, parallel-safe work, and the disputed-risk decision owner (`docs/governance/PMO-PORTFOLIO.md`, #3134). Generic `BLOCKED` / `waiting on PMO` language is not a hold. Disputed risk uses `RISK IDENTIFIED` and a recorded `HOLD` | `MITIGATE AND CONTINUE` | `BOUNDED EXCEPTION` | `RESEQUENCE` decision. Merge alone is not substantive acceptance. Current role ownership for preparation, monitoring, assurance, exception handling, and parent/program acceptance in this workflow is defined in [`docs/governance/AGENT-TEAM.md`](./AGENT-TEAM.md), not restated here. No implementer may be the sole independent reviewer/approver of its own protected work.
 
-PMO defines sequencing and readiness coordination, not a general execution gate (#3113 / #3134 / #3145). Ordinary predecessor and advisory conditions are comments, package notes, and order metadata. Administrative incompleteness (missing repeat dispatch or preferred review timing) does not suppress an otherwise executable package. When only part of a task is gated, split bounded increments and continue collision-safe work. PMO (current holder per `docs/governance/AGENT-TEAM.md`) prepares successor packages before implementer idle time. Product-authorized agent routing (Cursor Local for Operations + PMO + Governance; Claude Code for PMO + Engineering, and Governance when assigned) is preserved per Team eligibility and claim (#3152).
+PMO defines sequencing and readiness coordination, not a general execution gate (#3113 / #3134 / #3145). Ordinary predecessor and advisory conditions are comments, package notes, and order metadata. Administrative incompleteness (missing repeat dispatch or preferred review timing) does not suppress an otherwise executable package. When only part of a task is gated, split bounded increments and continue collision-safe work. PMO (current holder per `docs/governance/AGENT-TEAM.md`) prepares successor packages before implementer idle time. Role holders and Team eligibility are in `docs/governance/AGENT-TEAM.md`; claims follow `docs/governance/WORK-QUEUES-AND-COLLABORATION.md` (#3152).
 
 ## Execution Contract Fidelity (#3138)
 

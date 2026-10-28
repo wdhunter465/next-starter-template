@@ -5,8 +5,4 @@ alwaysApply: true
 
 # Wake tick
 
-The always-on tick is a keepalive. The GitHub Actions runner is the repository-side keepalive for this same session. Neither one assigns work, and neither one stops work.
-
-A tick or poll with no new events means continue the next unfinished item. On every tick run the queries in `~/.cursor/lgfc-ready-queue.txt` (`docs/reference/ci/cursor-ready-queue-contract.md`), then check your open pull requests. Go quiet only when every query returns nothing, no authored pull request has a failing gate, and no Operations interrupt is open. The queue is GitHub, not the poll inbox.
-
-Follow `docs/governance/AGENT-EXECUTION.md`. Where a tick message disagrees with that document, that document wins.
+The always-on tick is a keepalive, not an assignment and not a stop. On every tick run the queries in `~/.cursor/lgfc-ready-queue.txt` (`docs/reference/ci/cursor-ready-queue-contract.md`), then check your open pull requests. The queue order and the skip, cycle, act-when-a-wait-ends, repeat-guard and go-quiet rules are in `docs/governance/AGENT-EXECUTION.md` (Assigned-queue continuation). Where a tick message disagrees with that document, that document wins.
