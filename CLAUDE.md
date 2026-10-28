@@ -17,7 +17,7 @@ before it is actually mergeable.
 
 ## Session start and continuous workflow
 
-Every new session begins with the Claude Code startup in `docs/ops/ai/CLAUDE-CODE-RULES.md`. It includes the read-only permission inbox check (`.claude/skills/permission-inbox-check/SKILL.md`). Startup is orientation only and stops; the task list is then defined with Product Authority.
+Every new session begins with the Claude Code startup in `docs/ops/ai/CLAUDE-CODE-RULES.md`. It includes the read-only permission inbox check (`.claude/skills/permission-inbox-check/SKILL.md`). Startup is orientation only and stops; work then comes from the ready queue in role order (`docs/governance/AGENT-EXECUTION.md`, Session lifecycle). A list from Product Authority sets priority only and is never a precondition to work.
 
 After that, work continuously: finishing one assignment is not a stop, and waiting on review, checks or a merge is not a stop. The sequence is `docs/governance/AGENT-EXECUTION.md` (Session lifecycle, Assigned-queue continuation); the mechanics are in `docs/ops/ai/CLAUDE-CODE-RULES.md`; the working checklist is the `continuous-workflow` skill (`.claude/skills/continuous-workflow/SKILL.md`).
 
