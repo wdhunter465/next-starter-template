@@ -16,7 +16,7 @@ src/app/admin/editorial/page.tsx:953:#eeeeee
 src/app/admin/faq/page.tsx:217:#dddddd
 src/app/admin/faq/page.tsx:313:#dddddd
 src/app/admin/faq/page.tsx:407:#dddddd
-src/app/admin/fundraiser-preview/page.tsx:60:#111111
+src/app/admin/fundraiser-preview/page.tsx:61:#111111
 src/app/admin/media-assets/page.tsx:142:#dddddd
 src/app/admin/media-assets/page.tsx:158:#dddddd
 src/app/admin/media-assets/page.tsx:188:#eeeeee
