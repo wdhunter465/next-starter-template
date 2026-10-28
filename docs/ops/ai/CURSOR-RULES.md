@@ -5,7 +5,7 @@ Authority Level: Agent-Specific
 Owns: Cursor product identity, the Cursor startup contract, and the keepalive statement
 Does Not Own: Agent-team policy, role assignment, PMO lifecycle, shared execution law, merge authority, or approval authority
 Canonical Reference: /docs/governance/AGENT-EXECUTION.md
-Related Issues: #3825, #4314, #4449, #4596, #4676, #4716, #4783, #4928, #4982, #4994
+Related Issues: #3825, #4314, #4449, #4596, #4676, #4716, #4783, #4928, #4982, #4994, #5016
 Last Reviewed: 2026-10-28
 ---
 
@@ -25,7 +25,7 @@ The local wake tick and the GitHub Actions runner are the two keepalives for thi
 
 `docs/governance/AGENT-EXECUTION.md` (Product startup framework) requires this file to carry the Cursor `run startup` contract. The shared steps in that framework are the contract. This section adds the connection check that framework names. It does not replace the framework or the session lifecycle.
 
-1. Report wake status. Run `~/.cursor/lgfc-wake-ctl.sh startup --session <this chat uuid>`, then `status`. Do not rebind. Do not stop another session's loop. Do not start a second loop. If a live session is recorded and the loop is stopped or stalled, report it and leave the loop stopped. Read `~/.cursor/lgfc-wake-poll-inbox.json` as a keepalive record only.
+1. Report wake status. Run `~/.cursor/lgfc-wake-ctl.sh startup --session <this chat uuid>`, then `status`. From the doctor `repo_root`, run `scripts/cursor-wake/verify.sh` and report each file as match or drift. Do not rebind. Do not stop another session's loop. Do not start a second loop. If a live session is recorded and the loop is stopped or stalled, report it and leave the loop stopped. Read `~/.cursor/lgfc-wake-poll-inbox.json` as a keepalive record only.
 2. Read the authority chain from the doctor `repo_root`, in the order `Agent.md` gives, including this file. `docs/ops/ai/CORE-RULES.md` is a pointer, not the contract.
 3. Report each file as read.
 4. Report Cursor's roles from `docs/governance/AGENT-TEAM.md`.
