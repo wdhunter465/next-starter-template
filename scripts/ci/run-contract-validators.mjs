@@ -36,6 +36,17 @@ export function claimsToBeExecutable(labels = []) {
   return labels.some((label) => EXECUTABLE_LABELS.includes(label) || label.startsWith('agent:'));
 }
 
+// The scheduled sweep audits claims, it does not make one. A package-complete child held by
+// exactly one agent is the healthy state, so it is evaluated as that holder rather than as the
+// advisory actor, which would report BLOCKED-CLAIM-STATE for every claimed child (#5027).
+// Conflicting agent labels still fail. Pull-request mode keeps the caller's requester.
+export function claimRequester(labels = [], options = {}) {
+  const requester = options.requestingAgent || 'unassigned';
+  if (!options.executableOnly) return requester;
+  const agents = labels.filter((label) => label.startsWith('agent:'));
+  return agents.length === 1 ? agents[0] : requester;
+}
+
 export function selectScope(issue = {}, options = {}) {
   const labels = labelNames(issue);
   const body = String(issue.body || '');
@@ -66,7 +77,7 @@ export function evaluateRecord(issue = {}, options = {}) {
     if (child.claimable) {
       const claim = evaluateAtomicClaim({
         issue: normalized,
-        requestingAgent: options.requestingAgent || 'unassigned',
+        requestingAgent: claimRequester(labels, options),
         activeClaims: options.activeClaims || []
       });
       if (!claim.allowed) {

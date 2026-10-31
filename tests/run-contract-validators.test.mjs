@@ -94,6 +94,22 @@ describe('run-contract-validators (#4778)', () => {
     expect(result.findings).toEqual([]);
   });
 
+  it('accepts a package-complete child held by one agent in a scheduled sweep (#5027)', () => {
+    const child = { number: 4705, body: COMPLETE_BODY, labels: ['pmo:task', 'status:active', 'agent:claude'] };
+    const swept = evaluateRecord(child, { executableOnly: true, requestingAgent: 'advisory' });
+    expect(swept.inScope).toBe(true);
+    expect(swept.findings).toEqual([]);
+    // Without the scheduled-sweep option the requester is unchanged, so a stranger still cannot claim it.
+    const asStranger = evaluateRecord(child, { requestingAgent: 'advisory' });
+    expect(asStranger.findings.map((finding) => finding.validator)).toContain('claim-collision');
+  });
+
+  it('still flags a child with conflicting agent labels in a scheduled sweep (#5027)', () => {
+    const child = { number: 4706, body: COMPLETE_BODY, labels: ['pmo:task', 'status:active', 'agent:claude', 'agent:cursor'] };
+    const result = evaluateRecord(child, { executableOnly: true, requestingAgent: 'advisory' });
+    expect(result.findings.map((finding) => finding.validator)).toContain('claim-collision');
+  });
+
   it('does not treat wait or hold labels as a claim to be executable (#5014)', () => {
     expect(claimsToBeExecutable(['pmo:task', 'wait:product', 'status:hold', 'pmo:active'])).toBe(false);
   });
