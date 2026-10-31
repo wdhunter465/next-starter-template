@@ -11,12 +11,18 @@ permissions:
 
 jobs:
   opencode:
-    # Only runs if you comment /oc on an issue
-    if: contains(github.event.comment.body, '/oc')
+    # Only runs if a repository owner, member or collaborator comments /oc.
+    # Comments from anyone else (issue_comment fires for any GitHub user on a
+    # public repo) never start this job, which holds write permissions and secrets.
+    if: >-
+      contains(github.event.comment.body, '/oc') &&
+      contains(fromJSON('["OWNER","MEMBER","COLLABORATOR"]'), github.event.comment.author_association)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: anomalyco/opencode/github@latest
+      # Pinned to the commit the `latest` tag pointed to on 2026-10-29 (issue #5018).
+      # Update deliberately; do not switch back to a moving tag.
+      - uses: anomalyco/opencode/github@77fc88c8ade8e5a620ebbe1197f3a572d29ae91a # latest
         env:
           HF_TOKEN: ${{ secrets.HF_TOKEN }}
         with:
