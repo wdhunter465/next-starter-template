@@ -14,13 +14,20 @@
 #   ~/.cursor/lgfc-wake-ctl.sh status
 #   ~/.cursor/lgfc-wake-ctl.sh start-fallback
 #
-# `halt` stops the loop and the watchdog, clears the live session, and
-# refuses bind, rebind, startup bind, and start-fallback until `resume`.
-# The halt file is ~/.cursor/lgfc-wake-halt. It survives /tmp cleanup.
+# `stop` kills matching wake processes and leaves the recorded owner in place.
+# `halt` stops the loop and the watchdog, clears the owner, and refuses a
+# new loop until `resume`. The halt file is ~/.cursor/lgfc-wake-halt.
+# `release` stops wake processes and clears the owner when this chat owns it.
+# `rebind` stops other wake processes and binds this chat. It is the takeover
+# command, and it is not a startup step (#5034).
+#
+# Product Authority "close prior sessions" means `halt`.
+# Product Authority "take over" means `resume` when halted, then
+# `rebind --session <this chat uuid>`. Startup never runs that sequence.
 #
 # `startup` reports status. It does not take ownership from another chat.
 # A second chat may bind only when the live-session file is empty (#4783).
-# `rebind` is not a startup step. An aborted loop is left stopped.
+# An aborted loop is left stopped.
 # Poll results: ~/.cursor/lgfc-wake-poll-inbox.json
 # First-turn bind MUST pass --session <this chat uuid>.
 # Product `run startup` executes the PRODUCT STARTUP FRAMEWORK in
@@ -442,6 +449,8 @@ LGFC_SESSION_HALTED
 Wake loop, watchdog restart, bind, and rebind are refused while $HALT_FILE exists.
 Do not start a loop. Do not rebind. Do not start the watchdog.
 Clear only with: ~/.cursor/lgfc-wake-ctl.sh resume
+Product Authority "take over" is that resume, then: ~/.cursor/lgfc-wake-ctl.sh rebind --session <this chat uuid>
+Startup does not run that sequence.
 EOF
     return 0
   fi
@@ -471,9 +480,10 @@ Cursor Local \`run startup\`:
 Wake ownership (#4783):
 - One owner. Identify this chat uuid. Never run unnamed \`bind\`.
 - Do not \`rebind\` during startup. Do not stop another session's loop.
-- If live_session is non-empty: that chat stays the owner. Report the PID
-  when the loop is ok. If the loop is stopped or stalled, report it and
-  leave it stopped.
+- If live_session is another chat: that chat stays the owner. Name the
+  next command and do not run it: \`resume\` when halted, then
+  \`rebind --session <this chat uuid>\`. Report the PID when the loop is
+  ok. If the loop is stopped or stalled, report it and leave it stopped.
 - A chat may start exactly one loop only when the live-session file is
   empty, the halt file is absent, and Product Authority asked for the poll.
 - Latest poll for every open chat: ~/.cursor/lgfc-wake-poll-inbox.json
@@ -517,10 +527,17 @@ startup() {
   fi
   current="$(live_session)"
   state="$(loop_state)"
-  if [[ -n "$current" && "$current" != "unknown" ]]; then
+  if [[ -n "$current" && "$current" != "unknown" && "$current" != "$sid" ]]; then
     log "startup left session=$sid live=$current loop=$state pid=$(loop_pid)"
     echo "Wake owner is session=$current loop=$state pid=$(loop_pid)."
-    echo "Do not rebind. Do not start a loop. An aborted loop stays stopped."
+    echo "Startup does not take over. Do not start a second loop. An aborted loop stays stopped."
+    echo "After Product Authority says \"take over\", run: ~/.cursor/lgfc-wake-ctl.sh resume"
+    echo "then: ~/.cursor/lgfc-wake-ctl.sh rebind --session $sid"
+    echo "Poll inbox: ${HOME}/.cursor/lgfc-wake-poll-inbox.json"
+  elif [[ -n "$current" && "$current" != "unknown" ]]; then
+    log "startup left session=$sid live=$current loop=$state pid=$(loop_pid)"
+    echo "Wake owner is this chat session=$current loop=$state pid=$(loop_pid)."
+    echo "Do not start a second loop. An aborted loop stays stopped."
     echo "Poll inbox: ${HOME}/.cursor/lgfc-wake-poll-inbox.json"
   elif [[ "$state" == "ok" ]]; then
     write_live "$sid"
@@ -551,6 +568,7 @@ bind() {
     log "bind refused session=$sid live=$current loop=$(loop_state)"
     echo "bind refused session=$sid live=$current"
     echo "Do not rebind during startup. Owner stays $current."
+    echo "After Product Authority says \"take over\": ~/.cursor/lgfc-wake-ctl.sh resume && ~/.cursor/lgfc-wake-ctl.sh rebind --session $sid"
     return 0
   fi
   if [[ "$sid" == "unknown" && -n "$current" && "$current" != "unknown" ]]; then
