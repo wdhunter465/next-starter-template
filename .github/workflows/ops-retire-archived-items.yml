@@ -1,0 +1,102 @@
+name: OPS — Retire archived items (#5044)
+
+# Soft-deletes archived content_items on Product Authority's word, for example items outside the
+# club's scope (ALS, medical or patient subjects). Soft delete only: the row stays for audit, the
+# item leaves every query that filters deleted_at IS NULL, and purge_eligible_at is set. It does
+# not remove the Backblaze object or the media_assets row.
+#
+# Manual only. apply defaults to false (a dry run that lists what would be retired). An apply run
+# must also type "confirm". Inputs reach the script through env:, never through ${{ }} in run:.
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue:
+        description: "Issue number that authorizes this retirement"
+        required: true
+      reason:
+        description: "Why these items are retired (at least 10 characters)"
+        required: true
+      candidate_ids:
+        description: "Comma-separated candidate ids (optional if title_match is set)"
+        required: false
+        default: ""
+      title_match:
+        description: "Case-insensitive title pattern (optional if candidate_ids is set); at most 25 matches"
+        required: false
+        default: ""
+      apply:
+        description: "true: soft-delete the matches. false: list them only"
+        required: false
+        default: "false"
+      confirm:
+        description: 'Required when apply is true: type "confirm"'
+        required: false
+        default: ""
+
+concurrency:
+  group: ops-retire-archived-items
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  retire:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Require confirmation to apply
+        env:
+          APPLY: ${{ github.event.inputs.apply }}
+          CONFIRM: ${{ github.event.inputs.confirm }}
+        run: |
+          if [ "$APPLY" = "true" ] && [ "$CONFIRM" != "confirm" ]; then
+            echo "apply is true but confirm != 'confirm' -- refusing to write to production D1."
+            exit 1
+          fi
+
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify Cloudflare D1 credentials
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DATABASE_NAME: lgfc_lite
+        run: node scripts/ci/verify_cloudflare_d1_auth.mjs
+
+      - name: Retire archived items
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          RETIRE_ISSUE: ${{ github.event.inputs.issue }}
+          RETIRE_REASON: ${{ github.event.inputs.reason }}
+          RETIRE_IDS: ${{ github.event.inputs.candidate_ids }}
+          RETIRE_MATCH: ${{ github.event.inputs.title_match }}
+          RETIRE_APPLY: ${{ github.event.inputs.apply }}
+        shell: bash
+        run: |
+          echo "Target database_name=lgfc_lite (Production), apply=${RETIRE_APPLY}"
+          args=(--database lgfc_lite --remote --issue "${RETIRE_ISSUE}" --reason "${RETIRE_REASON}")
+          if [ -n "${RETIRE_IDS}" ]; then args+=(--candidate-id "${RETIRE_IDS}"); fi
+          if [ -n "${RETIRE_MATCH}" ]; then args+=(--title-match "${RETIRE_MATCH}"); fi
+          if [ "${RETIRE_APPLY}" = "true" ]; then args+=(--apply); fi
+          node --experimental-strip-types scripts/content-pipeline/retire-candidates.mjs "${args[@]}" | tee retire.log
+          {
+            echo "## Retire archived items"
+            echo
+            echo "apply=${RETIRE_APPLY}"
+            echo
+            echo '```'
+            tail -n 60 retire.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
