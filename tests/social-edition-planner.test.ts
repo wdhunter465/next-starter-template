@@ -75,6 +75,14 @@ describe('social-edition-planner (#5039)', () => {
     expect(plan.summary.budget_deferred_days).toContain(january[0].date);
   });
 
+  it('plans an edition on every day of every month by default, inside the 100-task free plan', () => {
+    const plan = planEditions({ ...WINDOW, pool: makePool(200) });
+    expect(plan.social.every((d) => d.active)).toBe(true);
+    expect(plan.summary.social_days_by_month).toEqual({ '2027-01': 31, '2027-02': 28, '2027-03': 31 });
+    expect(plan.summary.tasks_by_month).toEqual({ '2027-01': 93, '2027-02': 84, '2027-03': 93 });
+    expect(plan.summary.budget_deferred_days).toEqual([]);
+  });
+
   it('plans a daily edition when the budget allows', () => {
     const plan = planEditions({ ...WINDOW, pool: makePool(200), monthlyTaskBudget: 400 });
     expect(plan.social.every((d) => d.active)).toBe(true);

@@ -63,7 +63,7 @@ export type PlannerInput = {
   platforms?: PlatformKey[];
   /** Platforms that cost one Zapier task per post. Defaults to DEFAULT_ZAPIER_PLATFORMS. */
   zapierPlatforms?: PlatformKey[];
-  /** Tasks the plan may use in one calendar month. Default 90 of the 100 on the free plan. */
+  /** Tasks the plan may use in one calendar month. Default 100, the free plan's limit: three Zapier platforms on a 31-day month use 93. */
   monthlyTaskBudget?: number;
   /** The social sequence starts this many places into the pool order. Default 3. */
   socialShift?: number;
@@ -212,7 +212,7 @@ export function planEditions(input: PlannerInput): EditionPlan {
   const days = listDays(input.startDate, input.endDate);
   const platforms = input.platforms ?? ALL_PLATFORMS;
   const zapier = (input.zapierPlatforms ?? DEFAULT_ZAPIER_PLATFORMS).filter((p) => platforms.includes(p));
-  const budget = input.monthlyTaskBudget ?? 90;
+  const budget = input.monthlyTaskBudget ?? 100;
   const shift = input.socialShift ?? 3;
   const imageFit = input.imageFit ?? (() => true);
   const order = poolOrder(input.pool);
