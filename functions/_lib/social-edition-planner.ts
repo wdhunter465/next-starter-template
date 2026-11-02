@@ -9,13 +9,18 @@
 
 import { formatSocialPosts, SOCIAL_LIMITS, truncateText, type SocialPostInput } from './social-post-formatter';
 
-export type PlatformKey = 'facebook_page' | 'facebook_group' | 'instagram' | 'x' | 'pinterest';
+export type PlatformKey = 'facebook_page' | 'instagram' | 'x' | 'pinterest';
 
-export const ALL_PLATFORMS: PlatformKey[] = ['facebook_page', 'facebook_group', 'instagram', 'x', 'pinterest'];
+/** Which service posts a platform: Zapier (one task per post) or Buffer (no Zapier task). */
+export type Channel = 'zapier' | 'buffer';
 
-// Zapier cannot post to a Facebook Group (its Groups app was removed in 2024), so the Group is a
-// manual share and costs no task by default.
-export const DEFAULT_ZAPIER_PLATFORMS: PlatformKey[] = ['facebook_page', 'instagram', 'x', 'pinterest'];
+export const ALL_PLATFORMS: PlatformKey[] = ['facebook_page', 'instagram', 'x', 'pinterest'];
+
+// Product Authority, 2026-11-02 (#4938): Zapier posts to the Facebook Page, Instagram and Pinterest;
+// Buffer posts to X because Zapier has no X connector. The Facebook Group is deprecated as a posting
+// target (Meta closed its Groups API in 2024), so it is not planned at all.
+export const BUFFER_PLATFORMS: PlatformKey[] = ['x'];
+export const DEFAULT_ZAPIER_PLATFORMS: PlatformKey[] = ['facebook_page', 'instagram', 'pinterest'];
 
 export type PoolItem = SocialPostInput & {
   id: string | number;
@@ -32,8 +37,8 @@ export type PlannedVariant = {
   image_alt: string | null;
   skip: boolean;
   skip_reason: SkipReason;
-  /** True when Zapier cannot post this platform and a person shares it. */
-  manual: boolean;
+  /** The service that posts this platform. */
+  channel: Channel;
 };
 
 export type WebsiteDay = { date: string; item_id: string | number | null };
@@ -58,7 +63,7 @@ export type PlannerInput = {
   platforms?: PlatformKey[];
   /** Platforms that cost one Zapier task per post. Defaults to DEFAULT_ZAPIER_PLATFORMS. */
   zapierPlatforms?: PlatformKey[];
-  /** Tasks the plan may use in one calendar month. Default 90 of the 100 on the free plan. */
+  /** Tasks the plan may use in one calendar month. Default 100, the free plan's limit: three Zapier platforms on a 31-day month use 93. */
   monthlyTaskBudget?: number;
   /** The social sequence starts this many places into the pool order. Default 3. */
   socialShift?: number;
@@ -126,7 +131,6 @@ function appendMessage(base: string, message: string, max: number | null, reserv
 function variantsFor(
   item: PoolItem,
   platforms: PlatformKey[],
-  zapier: PlatformKey[],
   message: string | null,
   imageFit: (item: PoolItem, platform: PlatformKey) => boolean,
 ): Partial<Record<PlatformKey, PlannedVariant>> {
@@ -136,7 +140,7 @@ function variantsFor(
   const out: Partial<Record<PlatformKey, PlannedVariant>> = {};
 
   for (const platform of platforms) {
-    const manual = !zapier.includes(platform);
+    const channel: Channel = BUFFER_PLATFORMS.includes(platform) ? 'buffer' : 'zapier';
     const fits = !item.image_url || imageFit(item, platform);
     let text = '';
     let imageUrl: string | null = item.image_url || null;
@@ -144,7 +148,7 @@ function variantsFor(
     let skip = false;
     let skipReason: SkipReason = null;
 
-    if (platform === 'facebook_page' || platform === 'facebook_group') {
+    if (platform === 'facebook_page') {
       text = message ? appendMessage(posts.facebook_page.text, message, null) : posts.facebook_page.text;
     } else if (platform === 'instagram') {
       text = message ? appendMessage(caption, message, SOCIAL_LIMITS.instagramCaption) : posts.instagram.caption;
@@ -186,7 +190,7 @@ function variantsFor(
       image_alt: imageAlt,
       skip,
       skip_reason: skipReason,
-      manual,
+      channel,
     };
   }
   return out;
@@ -208,7 +212,7 @@ export function planEditions(input: PlannerInput): EditionPlan {
   const days = listDays(input.startDate, input.endDate);
   const platforms = input.platforms ?? ALL_PLATFORMS;
   const zapier = (input.zapierPlatforms ?? DEFAULT_ZAPIER_PLATFORMS).filter((p) => platforms.includes(p));
-  const budget = input.monthlyTaskBudget ?? 90;
+  const budget = input.monthlyTaskBudget ?? 100;
   const shift = input.socialShift ?? 3;
   const imageFit = input.imageFit ?? (() => true);
   const order = poolOrder(input.pool);
@@ -279,7 +283,7 @@ export function planEditions(input: PlannerInput): EditionPlan {
 
       const inFundraiser =
         input.fundraiserMessage && date >= input.fundraiserMessage.from && date <= input.fundraiserMessage.to;
-      const variants = variantsFor(item, platforms, zapier, inFundraiser ? message : null, imageFit);
+      const variants = variantsFor(item, platforms, inFundraiser ? message : null, imageFit);
       const tasks = zapier.filter((p) => variants[p] && !variants[p]!.skip).length;
       tasksByMonth[month] += tasks;
       socialDaysByMonth[month] += 1;
