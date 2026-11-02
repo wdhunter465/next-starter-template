@@ -67,4 +67,19 @@ describe('retire-candidates (#5044)', () => {
     expect(() => selectTargets(many, parseArgs([...BASE, '--title-match', 'yankee']))).toThrow(/limit is 25/);
     expect(selectTargets(many, parseArgs([...BASE, '--title-match', 'yankee', '--max', '30']))).toHaveLength(30);
   });
+
+  it('restore mode is off by default and turned on by --restore (#5051)', () => {
+    expect(parseArgs([...BASE, '--candidate-id', 'c-1']).restore).toBe(false);
+    const options = parseArgs([...BASE, '--candidate-id', 'c-1', '--restore']);
+    expect(options.restore).toBe(true);
+    expect(options.apply).toBe(false);
+  });
+
+  it('selects retired rows by id or pattern in restore mode and names the right state when one is missing (#5051)', () => {
+    const retired = [{ candidate_id: 'r-1', title: 'Derek Jeter surpasses Gehrig hits record' }];
+    expect(selectTargets(retired, parseArgs([...BASE, '--candidate-id', 'r-1', '--restore'])).map((row) => row.candidate_id)).toEqual(['r-1']);
+    expect(selectTargets(retired, parseArgs([...BASE, '--title-match', 'jeter', '--restore']))).toHaveLength(1);
+    expect(() => selectTargets(retired, parseArgs([...BASE, '--candidate-id', 'nope', '--restore']))).toThrow(/retired archived candidates: nope/);
+    expect(() => selectTargets(ROWS, parseArgs([...BASE, '--candidate-id', 'nope']))).toThrow(/active archived candidates: nope/);
+  });
 });

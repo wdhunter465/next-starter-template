@@ -19,6 +19,7 @@ export function parseArgs(argv) {
     database: 'lgfc_lite',
     target: 'local',
     apply: false,
+    restore: false,
     actor: 'wdhunter465',
     max: DEFAULT_MAX_TARGETS,
     candidateIds: [],
@@ -58,6 +59,8 @@ export function parseArgs(argv) {
       options.target = 'remote';
     } else if (arg === '--apply') {
       options.apply = true;
+    } else if (arg === '--restore') {
+      options.restore = true;
     } else {
       throw new Error(`Unknown argument: ${arg}`);
     }
@@ -68,7 +71,7 @@ export function parseArgs(argv) {
     throw new Error('--reason is required (at least 10 characters).');
   }
   if (!options.candidateIds.length && !options.titleMatch) {
-    throw new Error('Name what to retire: --candidate-id <id[,id]> and/or --title-match <pattern>.');
+    throw new Error('Name what to retire or restore: --candidate-id <id[,id]> and/or --title-match <pattern>.');
   }
   if (options.titleMatch) {
     try {
@@ -81,7 +84,8 @@ export function parseArgs(argv) {
 }
 
 /**
- * Picks the archived rows to retire. `rows` are active archived candidates
+ * Picks the archived rows to retire (or, with --restore, to restore). `rows` are the archived
+ * candidates in the matching state: active ones to retire, soft-deleted ones to restore
  * ({ candidate_id, title }). Named ids must all be present; a title pattern is matched
  * case-insensitively. More than `max` targets is refused so a loose pattern cannot sweep the
  * archive.
@@ -92,7 +96,7 @@ export function selectTargets(rows, options) {
 
   const missing = options.candidateIds.filter((id) => !byId.has(id));
   if (missing.length) {
-    throw new Error(`Not found among active archived candidates: ${missing.join(', ')}`);
+    throw new Error(`Not found among ${options.restore ? 'retired' : 'active'} archived candidates: ${missing.join(', ')}`);
   }
   for (const id of options.candidateIds) chosen.set(id, byId.get(id));
 
