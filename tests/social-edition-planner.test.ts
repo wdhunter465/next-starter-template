@@ -68,10 +68,10 @@ describe('social-edition-planner (#5039)', () => {
   it('keeps tasks inside the monthly budget and reports the deferred days', () => {
     const plan = planEditions({ ...WINDOW, pool: makePool(200), monthlyTaskBudget: 90 });
     for (const tasks of Object.values(plan.summary.tasks_by_month)) expect(tasks).toBeLessThanOrEqual(90);
-    // Four Zapier platforms cost 4 tasks, so 22 editions fit 90: Jan has 31 days, 9 are deferred.
-    expect(plan.summary.social_days_by_month['2027-01']).toBe(22);
+    // Three Zapier platforms cost 3 tasks, so 30 editions fit 90: Jan has 31 days, 1 is deferred.
+    expect(plan.summary.social_days_by_month['2027-01']).toBe(30);
     const january = plan.social.filter((d) => d.date.startsWith('2027-01') && d.reason === 'budget');
-    expect(january).toHaveLength(9);
+    expect(january).toHaveLength(1);
     expect(plan.summary.budget_deferred_days).toContain(january[0].date);
   });
 
@@ -80,11 +80,15 @@ describe('social-edition-planner (#5039)', () => {
     expect(plan.social.every((d) => d.active)).toBe(true);
   });
 
-  it('counts no task for the Facebook Group, which a person shares', () => {
+  it('plans no Facebook Group, posts X through Buffer, and counts only the three Zapier platforms', () => {
     const plan = planEditions({ ...WINDOW, pool: makePool(100) });
     const day = plan.social.find((d) => d.active)!;
-    expect(day.platforms.facebook_group).toMatchObject({ manual: true });
-    expect(day.tasks).toBe(4);
+    expect(Object.keys(day.platforms).sort()).toEqual(['facebook_page', 'instagram', 'pinterest', 'x']);
+    expect(day.platforms.x).toMatchObject({ channel: 'buffer' });
+    for (const platform of ['facebook_page', 'instagram', 'pinterest'] as const) {
+      expect(day.platforms[platform]).toMatchObject({ channel: 'zapier' });
+    }
+    expect(day.tasks).toBe(3);
   });
 
   it('appends the fundraiser message only inside its dates and keeps every platform within its limit', () => {
@@ -94,7 +98,7 @@ describe('social-edition-planner (#5039)', () => {
     const before = plan.social.find((d) => d.date === '2027-01-31')!;
     const inside = plan.social.find((d) => d.date === '2027-02-01')!;
     expect(before.platforms.facebook_page!.text).not.toContain(FUNDRAISER.text);
-    for (const platform of ['facebook_page', 'facebook_group', 'instagram', 'pinterest'] as const) {
+    for (const platform of ['facebook_page', 'instagram', 'pinterest'] as const) {
       expect(inside.platforms[platform]!.text.endsWith(FUNDRAISER.text)).toBe(true);
     }
     expect(inside.platforms.instagram!.text.length).toBeLessThanOrEqual(SOCIAL_LIMITS.instagramCaption);
@@ -111,7 +115,7 @@ describe('social-edition-planner (#5039)', () => {
     expect(day.platforms.instagram).toMatchObject({ skip: true, skip_reason: 'no_image' });
     expect(day.platforms.pinterest).toMatchObject({ skip: true, skip_reason: 'no_image' });
     expect(day.platforms.x).toMatchObject({ skip: false });
-    expect(day.tasks).toBe(2);
+    expect(day.tasks).toBe(1);
   });
 
   it('skips a platform whose picture shape is not met and drops the picture on X', () => {
