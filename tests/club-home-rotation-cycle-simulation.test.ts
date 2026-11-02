@@ -4,7 +4,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { DatabaseSync, type SQLInputValue } from 'node:sqlite';
-import { describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 
 import {
   getActiveClubHomeEdition,
@@ -30,6 +30,11 @@ function makeSimulationDb() {
   }
 
   let nowMs = START_MS;
+  // #5046: the rotation scoring reads the JavaScript clock (`new Date()`), not only SQL
+  // datetime('now'). Pin Date to the simulated clock so the result does not depend on the day the
+  // suite runs. Before this, the test passed only while the real clock was before START_MS.
+  vi.useFakeTimers({ toFake: ['Date'] });
+  vi.setSystemTime(nowMs);
   const withClock = (sql: string) => sql.replaceAll("datetime('now')", `'${sqliteTime(nowMs)}'`);
 
   const db = {
@@ -56,6 +61,7 @@ function makeSimulationDb() {
     sqlite,
     advanceDays(days: number) {
       nowMs += days * DAY_MS;
+      vi.setSystemTime(nowMs);
     },
     now: () => new Date(nowMs),
   };
@@ -112,6 +118,10 @@ const POOLS = [
 ];
 
 describe('Club Home rotation cycle simulation (#4900)', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
   for (const pool of POOLS) {
     describe(`pool of ${pool.label}`, () => {
       it('shows no story twice inside one edition', async () => {
