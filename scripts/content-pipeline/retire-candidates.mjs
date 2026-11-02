@@ -15,7 +15,10 @@
  *   node --experimental-strip-types scripts/content-pipeline/retire-candidates.mjs \
  *     --issue 5044 --reason "Outside the club's scope (Product Authority 2026-11-01)" \
  *     [--candidate-id id[,id]] [--title-match 'pattern'] [--max 25] \
- *     [--actor wdhunter465] [--database lgfc_lite] [--local|--remote] [--apply]
+ *     [--actor wdhunter465] [--database lgfc_lite] [--local|--remote] [--restore] [--apply]
+ *
+ * --restore (#5051) selects retired rows instead and puts them back: it clears deleted_at, then
+ * retention_reason and purge_eligible_at, each with its own moderation event.
  */
 
 import path from 'node:path';
@@ -40,7 +43,7 @@ export async function resolve(specifier, context, nextResolve) {
 );
 
 const { makeWranglerD1 } = await import('../ci/wrangler-d1-adapter.mjs');
-const { softDeleteCandidate } = await import('../../functions/_lib/content-pipeline-candidate-repository.ts');
+const { softDeleteCandidate, restoreSoftDeletedCandidate, updateCandidateRetention } = await import('../../functions/_lib/content-pipeline-candidate-repository.ts');
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, '../..');
@@ -49,25 +52,49 @@ async function main() {
   const options = parseArgs(process.argv.slice(2));
   const db = makeWranglerD1({ database: options.database, target: options.target, cwd: repoRoot });
 
-  // Active (not already retired) rows that have a picture in the archive.
+  // Rows that have a picture in the archive: active ones to retire, retired ones to restore.
+  const deletedClause = options.restore ? 'deleted_at IS NOT NULL' : 'deleted_at IS NULL';
   const rows =
     (
       await db
         .prepare(
           `SELECT candidate_id, title FROM content_items
-           WHERE media_asset_id IS NOT NULL AND deleted_at IS NULL AND superseded_at IS NULL
+           WHERE media_asset_id IS NOT NULL AND ${deletedClause} AND superseded_at IS NULL
            ORDER BY id`,
         )
         .all()
     ).results ?? [];
 
   const targets = selectTargets(rows, options);
-  console.log(`${targets.length} archived candidate(s) selected${options.apply ? '' : ' (dry run, nothing will be written)'}:`);
+  const verb = options.restore ? 'restore' : 'retire';
+  console.log(`${targets.length} ${options.restore ? 'retired' : 'archived'} candidate(s) selected${options.apply ? '' : ' (dry run, nothing will be written)'}:`);
   for (const row of targets) console.log(`  ${row.candidate_id}  ${row.title ?? ''}`);
 
   if (!targets.length) return;
   if (!options.apply) {
-    console.log(`\nDry run. Re-run with --apply to soft-delete these, citing #${options.issue}.`);
+    console.log(`\nDry run. Re-run with --apply to ${verb} these, citing #${options.issue}.`);
+    return;
+  }
+
+  if (options.restore) {
+    let restored = 0;
+    for (const row of targets) {
+      const notes = `Restored per #${options.issue}: ${options.reason}`;
+      const back = await restoreSoftDeletedCandidate(db, row.candidate_id, { actor: options.actor, notes });
+      if (!back) {
+        console.log(`Skipped ${row.candidate_id}: not found.`);
+        continue;
+      }
+      await updateCandidateRetention(
+        db,
+        row.candidate_id,
+        { retention_reason: null, purge_eligible_at: null },
+        { actor: options.actor, notes: `Cleared retention marks on restore per #${options.issue}` },
+      );
+      restored += 1;
+      console.log(`Restored ${row.candidate_id}.`);
+    }
+    console.log(`\nRestored ${restored} of ${targets.length}.`);
     return;
   }
 
