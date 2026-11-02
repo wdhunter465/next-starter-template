@@ -25,6 +25,10 @@ on:
         description: "Case-insensitive title pattern (optional if candidate_ids is set); at most 25 matches"
         required: false
         default: ""
+      restore:
+        description: "true: restore retired items instead of retiring active ones (#5051)"
+        required: false
+        default: "false"
       apply:
         description: "true: soft-delete the matches. false: list them only"
         required: false
@@ -83,12 +87,14 @@ jobs:
           RETIRE_IDS: ${{ github.event.inputs.candidate_ids }}
           RETIRE_MATCH: ${{ github.event.inputs.title_match }}
           RETIRE_APPLY: ${{ github.event.inputs.apply }}
+          RETIRE_RESTORE: ${{ github.event.inputs.restore }}
         shell: bash
         run: |
           echo "Target database_name=lgfc_lite (Production), apply=${RETIRE_APPLY}"
           args=(--database lgfc_lite --remote --issue "${RETIRE_ISSUE}" --reason "${RETIRE_REASON}")
           if [ -n "${RETIRE_IDS}" ]; then args+=(--candidate-id "${RETIRE_IDS}"); fi
           if [ -n "${RETIRE_MATCH}" ]; then args+=(--title-match "${RETIRE_MATCH}"); fi
+          if [ "${RETIRE_RESTORE}" = "true" ]; then args+=(--restore); fi
           if [ "${RETIRE_APPLY}" = "true" ]; then args+=(--apply); fi
           node --experimental-strip-types scripts/content-pipeline/retire-candidates.mjs "${args[@]}" | tee retire.log
           {
