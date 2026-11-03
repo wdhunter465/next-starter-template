@@ -5,6 +5,12 @@ import {
   logMatchupRepairAudit,
   normalizeSourceIssue,
 } from "../../_lib/matchup-repair-audit";
+import {
+  attachMatchupToBracket,
+  finalizeClosedMatchups,
+  selectBracketPair,
+  type BracketPick,
+} from "../../_lib/matchup-bracket";
 
 /** Monday-inclusive week anchor for weekly_matchups.week_start (YYYY-MM-DD). */
 export const MATCHUP_WEEK_START_SQL =
@@ -733,9 +739,29 @@ export const onRequestGet = async (context: any): Promise<Response> => {
 
     await closeStaleActiveMatchups(db, weekStart);
 
+    // Bracket: note last week's winner (a tie advances both), then pick the next pair from the
+    // round's unplayed photos. If the bracket tables are not there yet, or anything in the
+    // bracket fails, fall back to the old random pair so the homepage never goes blank.
+    try {
+      await finalizeClosedMatchups(db);
+    } catch (err) {
+      console.error("matchup bracket: could not record last week's winner", err);
+    }
+
     const eligiblePhotos = await fetchEligiblePhotos(db);
     const recentIds = await getRecentMatchupPhotoIds(db);
-    const selected = selectTwoPhotoIds(eligiblePhotos, recentIds);
+    let bracketPick: BracketPick | null = null;
+    try {
+      bracketPick = await selectBracketPair(
+        db,
+        eligiblePhotos.map((photo) => Number(photo.id)),
+      );
+    } catch (err) {
+      console.error("matchup bracket unavailable; using a random pair", err);
+    }
+    const selected: [number, number] | null = bracketPick
+      ? [bracketPick.photoAId, bracketPick.photoBId]
+      : selectTwoPhotoIds(eligiblePhotos, recentIds);
 
     if (!selected) {
       if (eligibilityIssue) {
@@ -768,6 +794,14 @@ export const onRequestGet = async (context: any): Promise<Response> => {
     const resolved = await findCurrentWeekMatchup(db, weekStart);
     if (!resolved) {
       return jsonResponse({ ok: true, week_start: weekStart, matchup_id: null, items: [] });
+    }
+
+    if (bracketPick) {
+      try {
+        await attachMatchupToBracket(db, matchupId || resolved.id, bracketPick);
+      } catch (err) {
+        console.error("matchup bracket: could not attach this week's matchup", err);
+      }
     }
 
     if (eligibilityIssue) {
