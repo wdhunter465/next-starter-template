@@ -7,7 +7,12 @@ name: OPS — Production Edge Health
 on:
   schedule:
     - cron: '45 6,18 * * *'
-  workflow_dispatch: {}
+  workflow_dispatch:
+    inputs:
+      skip_liveness:
+        description: 'Bootstrap only (#5058): run the route checks and skip the monitor-liveness check. Use once when Edge Health and Scheduled Job Health are both stale. Scheduled runs always require liveness.'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -37,4 +42,6 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
           OPS_ESCALATION_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          # Only a manual run can set this; the scheduled run always gets 'false'.
+          SKIP_LIVENESS: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_liveness && 'true' || 'false' }}
         run: node scripts/ops/production-edge-health.mjs --escalate
