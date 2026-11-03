@@ -26,6 +26,7 @@
     "/fanclub/myprofile",
     "/fanclub/photo",
     "/fanclub/submit",
+    "/fanclub/timeline",
     "/admin",
     "/admin/audit",
     "/admin/cms",

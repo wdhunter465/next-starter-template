@@ -35,7 +35,8 @@ Newspaper-style order (fail-closed static fallbacks when inventory is empty). Th
 | 6 | Member prompt | `ClubHomeMemberPrompt` (links to `/fanclub/chat`) |
 | 7 | Archive spotlight | `ClubHomeArchiveSpotlight` |
 | 8–10 | Campaign / events / recognition | `ClubHomeEventsModule`, `ClubHomeRecognitionModule`, `ClubHomeDeferredModule` (campaign fail-closed) |
-| 10a | Gehrig timeline (center column, below the media feature; moved from the left rail, #5066) | `GehrigTimeline` (Club Home only; fail-closed empty copy; not TimelineJS3) |
+| 10a | Gehrig timeline teaser (center column, below the media feature; moved from the left rail, #5066). Four entries spread across the timeline, the whole section links to `/fanclub/timeline` (#5068) | `GehrigTimeline` (Club Home only; fail-closed empty copy; not TimelineJS3) |
+| 10b | Full Gehrig timeline page (`/fanclub/timeline`, members only): every entry with narrative and source | `GehrigTimelineFull` |
 | 11 | Lou Gehrig box score (left margin, bottom) | `ClubHomeGehrigBoxScore` |
 | 12 | AL standings as of that game (right margin, bottom) | `ClubHomeAlStandings` |
 | 13 | Submission CTA | `ClubHomeSubmissionCta` (links to `/fanclub/submit`) |
