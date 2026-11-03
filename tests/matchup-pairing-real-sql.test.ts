@@ -171,15 +171,18 @@ describe('selection stays inside the eligible pool (row 39)', () => {
     expect([...seen].sort()).toEqual([...eligible].sort());
   });
 
-  it('prefers non-memorabilia photos while two are available', async () => {
+  it('puts memorabilia photos in the bracket too, so every eligible photo gets a turn', async () => {
+    // Replaces the old "prefer non-memorabilia" rule. The bracket plays every eligible photo (Product Authority direction, 2026-11-03).
     const plain = [addPhoto(), addPhoto()];
-    addPhoto({ memorabilia: 1 });
-    addPhoto({ memorabilia: 1 });
-    for (let draw = 0; draw < 20; draw += 1) {
-      sqlite.exec('DELETE FROM weekly_matchups');
-      const { body } = await getCurrent();
-      expect(body.items.map((i) => Number(i.id)).sort()).toEqual([...plain].sort());
-    }
+    const memorabilia = [addPhoto({ memorabilia: 1 }), addPhoto({ memorabilia: 1 })];
+
+    const { body } = await getCurrent();
+
+    const entries = (sqlite.prepare('SELECT photo_id FROM matchup_entries').all() as Array<{ photo_id: number }>)
+      .map((r) => r.photo_id)
+      .sort();
+    expect(entries).toEqual([...plain, ...memorabilia].sort());
+    expect(body.items).toHaveLength(2);
   });
 });
 
@@ -211,15 +214,25 @@ describe('pairing, placement and edition history (row 40)', () => {
     expect(rows.find((r) => r.week_start === currentWeek())).toMatchObject({ status: 'active' });
   });
 
-  it('avoids photos used in recent editions when enough fresh ones exist', async () => {
-    const used = [addPhoto(), addPhoto(), addPhoto(), addPhoto()];
-    const fresh = [addPhoto(), addPhoto()];
-    sqlite.prepare("INSERT INTO weekly_matchups (week_start, photo_a_id, photo_b_id, status) VALUES (?, ?, ?, 'closed')").run(pastWeek(14), used[0], used[1]);
-    sqlite.prepare("INSERT INTO weekly_matchups (week_start, photo_a_id, photo_b_id, status) VALUES (?, ?, ?, 'closed')").run(pastWeek(21), used[2], used[3]);
+  it('starts the bracket with every eligible photo, whatever earlier weeks used', async () => {
+    // Replaces the old "avoid the last eight editions" rule. Editions from before the bracket belong to no
+    // tournament, so they no longer exclude anything; the bracket itself guarantees each photo plays once per round.
+    const all = [addPhoto(), addPhoto(), addPhoto(), addPhoto(), addPhoto(), addPhoto()];
+    sqlite.prepare("INSERT INTO weekly_matchups (week_start, photo_a_id, photo_b_id, status) VALUES (?, ?, ?, 'closed')").run(pastWeek(14), all[0], all[1]);
+    sqlite.prepare("INSERT INTO weekly_matchups (week_start, photo_a_id, photo_b_id, status) VALUES (?, ?, ?, 'closed')").run(pastWeek(21), all[2], all[3]);
 
     const { body } = await getCurrent();
 
-    expect(body.items.map((i) => Number(i.id)).sort()).toEqual([...fresh].sort());
+    const picked = body.items.map((i) => Number(i.id));
+    expect(picked).toHaveLength(2);
+    expect(new Set(picked).size).toBe(2);
+    for (const id of picked) expect(all).toContain(id);
+    const entries = (sqlite.prepare('SELECT photo_id FROM matchup_entries').all() as Array<{ photo_id: number }>)
+      .map((r) => r.photo_id)
+      .sort();
+    expect(entries).toEqual([...all].sort());
+    const current = matchupRows().find((r) => r.week_start === currentWeek()) as any;
+    expect(current.tournament_id).toBeTruthy();
     expect(matchupRows()).toHaveLength(3);
   });
 
