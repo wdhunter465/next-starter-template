@@ -19,9 +19,10 @@ A rights holder may ask for the permission log. This export produces it from D1 
 
 An authenticated admin member session. Unauthenticated requests get 401, non-admin members 403, and a missing D1 binding 503.
 
-## How to run it
+## Steps
 
-Signed in as an admin on the site, open one of these in the browser. The file downloads.
+1. Sign in to the site as an admin.
+2. Open one of these addresses in the same browser. The file downloads.
 
 | Need | Address |
 | --- | --- |
