@@ -10,6 +10,8 @@ import {
   judgeRoute,
   renderReport,
   runEdgeChecks,
+  runHealth,
+  shouldSkipLiveness,
 } from '../scripts/ops/production-edge-health.mjs';
 import { runCheck } from '../scripts/ops/scheduled-job-health.mjs';
 
@@ -123,5 +125,78 @@ describe('watch list', () => {
     ]) {
       expect(workflow).toContain(`"${name}"`);
     }
+  });
+});
+
+describe('bootstrap run (#5058)', () => {
+  const now = new Date('2026-11-02T12:00:00Z');
+  const home = [{ name: 'home', url: 'https://example.test/' }];
+  const healthyEdge = async () => ({
+    status: 200,
+    headers: { get: (name) => (name === 'cache-control' ? 'public, max-age=0, must-revalidate' : null) },
+  });
+  const brokenEdge = async () => ({ status: 500, headers: { get: () => '' } });
+  // Scheduled Job Health last succeeded two days ago: past its 6 h window.
+  const staleJobHealth = async (url) => {
+    if (url.includes('/runs')) {
+      return { status: 200, ok: true, json: async () => ({ workflow_runs: [{ updated_at: '2026-10-31T12:00:00Z' }] }) };
+    }
+    return { status: 200, ok: true, json: async () => ({ state: 'active', created_at: '2026-01-01T00:00:00Z' }) };
+  };
+  const context = { repository: 'o/r', branch: 'main', headers: {}, fetchImpl: staleJobHealth };
+
+  it('reads the skip from the flag or from SKIP_LIVENESS=true, and defaults to required', () => {
+    expect(shouldSkipLiveness(['node', 'x', '--skip-liveness'], {})).toBe(true);
+    expect(shouldSkipLiveness([], { SKIP_LIVENESS: 'true' })).toBe(true);
+    expect(shouldSkipLiveness([], { SKIP_LIVENESS: 'TRUE' })).toBe(true);
+    expect(shouldSkipLiveness([], { SKIP_LIVENESS: 'false' })).toBe(false);
+    expect(shouldSkipLiveness([], { SKIP_LIVENESS: '' })).toBe(false);
+    expect(shouldSkipLiveness(['node', 'x', '--escalate'], {})).toBe(false);
+  });
+
+  it('with the skip, a healthy edge passes even when scheduled-job health is stale', async () => {
+    const result = await runHealth({ routes: home, edgeOptions: { fetchImpl: healthyEdge }, context, skipLiveness: true, now });
+    expect(result.ok).toBe(true);
+    expect(result.liveness).toBeNull();
+    expect(result.livenessSkipped).toBe(true);
+  });
+
+  it('without the skip, stale scheduled-job health still fails the run', async () => {
+    const result = await runHealth({ routes: home, edgeOptions: { fetchImpl: healthyEdge }, context, skipLiveness: false, now });
+    expect(result.ok).toBe(false);
+    expect(result.liveness.ok).toBe(false);
+    expect(result.livenessSkipped).toBe(false);
+  });
+
+  it('the skip never hides an unhealthy edge', async () => {
+    const result = await runHealth({ routes: home, edgeOptions: { fetchImpl: brokenEdge }, context, skipLiveness: true, now });
+    expect(result.ok).toBe(false);
+    expect(result.edge.ok).toBe(false);
+  });
+
+  it('a local run with no GitHub context has no liveness section and no skip note', async () => {
+    const result = await runHealth({ routes: home, edgeOptions: { fetchImpl: healthyEdge }, context: null, skipLiveness: true, now });
+    expect(result).toMatchObject({ ok: true, liveness: null, livenessSkipped: false });
+  });
+
+  it('says in the report that liveness was skipped, and still decides on the routes', async () => {
+    const pass = await runHealth({ routes: home, edgeOptions: { fetchImpl: healthyEdge }, context, skipLiveness: true, now });
+    const passReport = renderReport(pass);
+    expect(passReport).toContain('Overall: PASS');
+    expect(passReport).toContain('SKIPPED');
+    expect(passReport).toContain('A scheduled run always requires liveness');
+
+    const fail = await runHealth({ routes: home, edgeOptions: { fetchImpl: brokenEdge }, context, skipLiveness: true, now });
+    expect(renderReport(fail)).toContain('Overall: FAIL');
+  });
+
+  it('the workflow takes the input only on a manual run and passes it through env, not run', () => {
+    const wf = fs.readFileSync(path.join(process.cwd(), '.github/workflows/ops-production-edge-health.yml'), 'utf8');
+    expect(wf).toMatch(/schedule:\s*\n\s*- cron:/);
+    expect(wf).toMatch(/skip_liveness:\s*\n\s*description:[^\n]*\n\s*type: boolean\s*\n\s*default: false/);
+    expect(wf).toContain("SKIP_LIVENESS: ${{ github.event_name == 'workflow_dispatch' && inputs.skip_liveness && 'true' || 'false' }}");
+    const runLines = wf.split('\n').filter((line) => /^\s*run:/.test(line));
+    expect(runLines).toEqual(['        run: node scripts/ops/production-edge-health.mjs --escalate']);
+    for (const line of runLines) expect(line).not.toContain('${{');
   });
 });

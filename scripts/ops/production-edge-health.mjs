@@ -20,6 +20,15 @@ export const LIVENESS_JOBS = [
   { file: 'ops-scheduled-job-health.yml', maxAgeHours: 6 },
 ];
 
+// Bootstrap (#5058). Edge Health requires Scheduled Job Health to have succeeded recently, and
+// Scheduled Job Health requires Edge Health to have succeeded recently. When both have been off
+// longer than their windows, neither can pass first. A manual run with skip_liveness=true runs the
+// route checks and skips only the liveness section, which breaks the cycle once. A scheduled run
+// never skips: the workflow only reads the input on workflow_dispatch.
+export function shouldSkipLiveness(argv = [], env = {}) {
+  return argv.includes('--skip-liveness') || String(env.SKIP_LIVENESS || '').toLowerCase() === 'true';
+}
+
 export function assessCacheControl(header) {
   if (!header || !String(header).trim()) {
     return { ok: false, reason: 'cache-control header is missing' };
@@ -86,7 +95,7 @@ export async function runEdgeChecks(routes = ROUTES, options = {}) {
   return { ok: results.every((result) => result.ok), results };
 }
 
-export function renderReport({ edge, liveness }, checkedAt = new Date().toISOString()) {
+export function renderReport({ edge, liveness, livenessSkipped = false }, checkedAt = new Date().toISOString()) {
   const ok = edge.ok && (!liveness || liveness.ok);
   const lines = [
     '## Production edge health',
@@ -100,13 +109,29 @@ export function renderReport({ edge, liveness }, checkedAt = new Date().toISOStr
   for (const result of edge.results) {
     lines.push(`| ${result.name} | ${result.status} | ${result.cacheControl || '-'} | ${result.elapsedMs} ms | ${result.ok ? 'PASS' : `FAIL — ${result.reason}`} |`);
   }
-  if (liveness) {
+  if (livenessSkipped) {
+    lines.push(
+      '',
+      '### Monitor liveness',
+      '',
+      '- SKIPPED: this was a manual bootstrap run (skip_liveness=true). The route checks above still ran and still decide PASS or FAIL. A scheduled run always requires liveness.',
+    );
+  } else if (liveness) {
     lines.push('', '### Monitor liveness', '');
     for (const result of liveness.results) {
       lines.push(`- ${result.file}: ${result.ok ? 'PASS' : `FAIL — ${result.reason}`}`);
     }
   }
   return lines.join('\n');
+}
+
+/** Run the route checks and, unless skipped, the monitor-liveness check. */
+export async function runHealth({ routes = ROUTES, edgeOptions = {}, context = null, skipLiveness = false, now } = {}) {
+  const edge = await runEdgeChecks(routes, edgeOptions);
+  const liveness = context && !skipLiveness ? await runCheck(LIVENESS_JOBS, context, now) : null;
+  const livenessSkipped = Boolean(context) && skipLiveness;
+  const ok = edge.ok && (!liveness || liveness.ok);
+  return { edge, liveness, livenessSkipped, ok };
 }
 
 export function failingMarker({ edge, liveness }) {
@@ -132,11 +157,10 @@ function githubContext() {
 }
 
 async function main() {
-  const edge = await runEdgeChecks();
   const context = githubContext();
-  const liveness = context ? await runCheck(LIVENESS_JOBS, context) : null;
-  const report = renderReport({ edge, liveness });
-  const ok = edge.ok && (!liveness || liveness.ok);
+  const skipLiveness = shouldSkipLiveness(process.argv, process.env);
+  const { edge, liveness, livenessSkipped, ok } = await runHealth({ context, skipLiveness });
+  const report = renderReport({ edge, liveness, livenessSkipped });
   console.log(report);
   appendOpsStepSummary(report);
   if (!process.argv.includes('--escalate')) return ok ? 0 : 1;
