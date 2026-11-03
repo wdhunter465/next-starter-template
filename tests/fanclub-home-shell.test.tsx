@@ -64,17 +64,32 @@ describe('Fan Club home newspaper shell (#1688 Task 003)', () => {
     expect(screen.getByLabelText('Submission call to action')).toBeInTheDocument();
   });
 
-  it('places Gehrig timeline in the left column below Events and above Archive spotlight (#4349)', () => {
+  it('places Gehrig timeline in the center column below the media feature (#4349, moved by #5066)', () => {
+    render(<MemberHomePage />);
+
+    const timeline = screen.getByLabelText('Gehrig timeline');
+    const lead = screen.getByLabelText('Lead story');
+    const media = screen.getByLabelText('Photo and memorabilia feature');
+    const center = timeline.closest('.club-home-col--center');
+
+    expect(center).not.toBeNull();
+    expect(center).toContainElement(lead);
+    expect(center).toContainElement(media);
+    expect(media.compareDocumentPosition(timeline) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('keeps Events, Archive spotlight, Recognition and the box score in the left column in order', () => {
     render(<MemberHomePage />);
 
     const events = screen.getByLabelText('Events & Calendar');
-    const timeline = screen.getByLabelText('Gehrig timeline');
     const archive = screen.getByLabelText('Archive spotlight');
     const recognition = screen.getByLabelText('Recognition & Partners');
     const boxScore = screen.getByLabelText('Lou Gehrig box score');
 
-    expect(events.compareDocumentPosition(timeline) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(timeline.compareDocumentPosition(archive) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    for (const section of [events, archive, recognition, boxScore]) {
+      expect(section.closest('.club-home-col--left')).not.toBeNull();
+    }
+    expect(events.compareDocumentPosition(archive) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(archive.compareDocumentPosition(recognition) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(recognition.compareDocumentPosition(boxScore) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });

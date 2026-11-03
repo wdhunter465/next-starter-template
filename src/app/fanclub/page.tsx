@@ -56,11 +56,11 @@ export default function MemberHomePage() {
               image={clubHome.lead?.image ? { url: clubHome.lead.image.url, alt: clubHome.lead.image.alt } : null}
             />
             <ClubHomeMediaFeature media={clubHome.mediaFeature} />
+            <GehrigTimeline />
           </div>
 
           <div className={clubHomeColumnClassName.left}>
             <ClubHomeEventsModule />
-            <GehrigTimeline />
             <ClubHomeArchiveSpotlight story={clubHome.archiveSpotlight} />
             <ClubHomeRecognitionModule />
             <ClubHomeGehrigBoxScore load={gehrigGame} />

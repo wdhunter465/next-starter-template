@@ -35,7 +35,7 @@ Newspaper-style order (fail-closed static fallbacks when inventory is empty). Th
 | 6 | Member prompt | `ClubHomeMemberPrompt` (links to `/fanclub/chat`) |
 | 7 | Archive spotlight | `ClubHomeArchiveSpotlight` |
 | 8–10 | Campaign / events / recognition | `ClubHomeEventsModule`, `ClubHomeRecognitionModule`, `ClubHomeDeferredModule` (campaign fail-closed) |
-| 10a | Gehrig timeline (left column, below Events) | `GehrigTimeline` (Club Home only; fail-closed empty copy; not TimelineJS3) |
+| 10a | Gehrig timeline (center column, below the media feature; moved from the left rail, #5066) | `GehrigTimeline` (Club Home only; fail-closed empty copy; not TimelineJS3) |
 | 11 | Lou Gehrig box score (left margin, bottom) | `ClubHomeGehrigBoxScore` |
 | 12 | AL standings as of that game (right margin, bottom) | `ClubHomeAlStandings` |
 | 13 | Submission CTA | `ClubHomeSubmissionCta` (links to `/fanclub/submit`) |
@@ -55,7 +55,7 @@ The following legacy dashboard modules are **not** part of the newspaper Club Ho
 - Member session state from `useMemberSession`
 - Dynamic Club Home inventory: `GET /api/fanclub/home` (`club_home` section in `content_inventory`)
 - Daily Gehrig box score + AL standings: `GET /api/fanclub/gehrig-box-score` (member session; one hashed-random `retrosheet_gehrig_games` row for the America/New_York calendar day, plus batting lines and standings snapshot; fail-closed empty copy when ingest tables are empty)
-- Gehrig timeline: `GET /api/fanclub/timeline?limit=100` (member session required; Club Home left column below Events; not rendered on public `/`). One `milestones` table stores the whole record. This endpoint returns every posted row — birth, death, marriage, school, public appearances, and baseball — with narrative detail and sourcing. The public homepage `#milestones` section (`GET /api/milestones/list`) shows only baseball milestones (`event_type='career'` and `visibility='public'`); see `docs/reference/design/home-milestones.md`.
+- Gehrig timeline: `GET /api/fanclub/timeline?limit=100` (member session required; Club Home center column below the media feature; not rendered on public `/`). One `milestones` table stores the whole record. This endpoint returns every posted row — birth, death, marriage, school, public appearances, and baseball — with narrative detail and sourcing. The public homepage `#milestones` section (`GET /api/milestones/list`) shows only baseball milestones (`event_type='career'` and `visibility='public'`); see `docs/reference/design/home-milestones.md`.
 - Recognition & Partners: `GET /api/friends/list?surface=club-home` (posted partners; The Lou Gehrig Society is second, immediately below ALS Cure Project; LouGehrig.com remains; no partner is dropped for a four-item cap)
 - Feature-link card targets: `/fanclub/photo`, `/fanclub/library`, `/fanclub/memorabilia`
 - Discussion workflows: `/fanclub/chat` and discussion APIs
