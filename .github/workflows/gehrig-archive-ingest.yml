@@ -24,6 +24,10 @@ on:
         description: "true: check candidates only, write nothing. false: archive to Backblaze and record in production D1"
         required: false
         default: "true"
+      evaluate_archived:
+        description: "true: run the quality gate over pictures already archived (#5053) instead of archiving new ones. dry_run still decides whether it writes."
+        required: false
+        default: "false"
 
 concurrency:
   group: gehrig-archive-ingest
@@ -65,12 +69,16 @@ jobs:
           B2_APP_KEY: ${{ secrets.B2_APP_KEY }}
           ARCHIVE_LIMIT: ${{ github.event.inputs.limit }}
           ARCHIVE_DRY_RUN: ${{ github.event.inputs.dry_run }}
+          ARCHIVE_EVALUATE: ${{ github.event.inputs.evaluate_archived }}
         shell: bash
         run: |
           echo "Target database_name=lgfc_lite (Production), limit=${ARCHIVE_LIMIT}, dry_run=${ARCHIVE_DRY_RUN}"
           args=(--database lgfc_lite --remote --limit "${ARCHIVE_LIMIT}")
           if [ "${ARCHIVE_DRY_RUN}" != "false" ]; then
             args+=(--dry-run)
+          fi
+          if [ "${ARCHIVE_EVALUATE}" = "true" ]; then
+            args+=(--evaluate-archived)
           fi
           node --experimental-strip-types scripts/content-pipeline/archive-ingest.mjs "${args[@]}" | tee archive-ingest.log
           {
