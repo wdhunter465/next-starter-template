@@ -103,3 +103,16 @@ export function summarizeVerdicts(verdicts) {
   }
   return { counts, reasons };
 }
+
+/**
+ * "Unchecked in" (Product Authority, 2026-11-04): a search result that was brought in quickly as metadata and
+ * has no quality-gate verdict yet. The evaluation checks it in (good) or holds it. Counted by gate state, so
+ * no extra column is needed.
+ */
+export function buildUncheckedInCountSql() {
+  return `SELECT COUNT(*) AS unchecked_in,
+                 SUM(CASE WHEN media_asset_id IS NULL THEN 1 ELSE 0 END) AS not_yet_archived,
+                 SUM(CASE WHEN media_asset_id IS NOT NULL THEN 1 ELSE 0 END) AS archived
+          FROM content_items
+          WHERE content_type = 'photo' AND deleted_at IS NULL AND superseded_at IS NULL AND gate_decision IS NULL`;
+}

@@ -6,6 +6,7 @@ import { describe, expect, it } from 'vitest';
 import { evaluateQuality } from '../functions/_lib/content-quality-gate';
 import {
   buildGateUpdate,
+  buildUncheckedInCountSql,
   buildUnevaluatedArchivedSql,
   gateInputForRow,
   gateRecord,
@@ -164,5 +165,17 @@ describe('migration 0091 and the SQL that uses it (#5053)', () => {
     const ids = rows.map((r) => r.candidate_id);
     expect(ids).not.toContain(done.candidate_id);
     expect(ids).not.toContain(retired.candidate_id);
+  });
+
+  it('counts what is unchecked in: imported photos with no gate verdict, split by archived or not (#5074)', () => {
+    const db = migratedDb();
+    db.prepare("INSERT INTO media_assets (media_uid, b2_key, size) VALUES ('sha256_ccc', 'k.jpg', 1)").run();
+    addItem(db); // unchecked, not archived
+    addItem(db); // unchecked, not archived
+    addItem(db, { media_asset_id: 'b2://k.jpg' }); // unchecked, archived
+    addItem(db, { gate_decision: 'good' }); // checked in
+    addItem(db, { gate_decision: 'not_good' }); // held
+    addItem(db, { deleted_at: NOW }); // retired
+    expect(db.prepare(buildUncheckedInCountSql()).get()).toEqual({ unchecked_in: 3, not_yet_archived: 2, archived: 1 });
   });
 });

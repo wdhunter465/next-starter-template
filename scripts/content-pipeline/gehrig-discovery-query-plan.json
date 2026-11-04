@@ -17,7 +17,6 @@
     { "id": "openverse-buckeye", "query": "Buckeye Lou Gehrig", "source": "openverse", "page": 1, "pre1931": true },
     { "id": "loc-1930", "query": "Lou Gehrig 1930", "source": "loc", "page": 1, "pre1931": true },
     { "id": "commons-hall-of-fame", "query": "Lou Gehrig Hall of Fame", "source": "wikimedia", "page": 1, "pre1931": false },
-    { "id": "loc-gehrig-day", "query": "Lou Gehrig Day", "source": "loc", "page": 1, "pre1931": false },
-    { "id": "openverse-als", "query": "Lou Gehrig ALS", "source": "openverse", "page": 1, "pre1931": false }
+    { "id": "loc-gehrig-day", "query": "Lou Gehrig Day", "source": "loc", "page": 1, "pre1931": false }
   ]
 }

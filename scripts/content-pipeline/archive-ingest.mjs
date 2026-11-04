@@ -63,6 +63,7 @@ const { loadCopyQualityLists } = await import('./gehrig-copy-quality.mjs');
 const { evaluateQuality } = await import('../../functions/_lib/content-quality-gate.ts');
 const {
   buildGateUpdate,
+  buildUncheckedInCountSql,
   buildUnevaluatedArchivedSql,
   gateInputForRow,
   gateRecord,
@@ -462,6 +463,10 @@ async function main() {
   const db = makeWranglerD1({ database: options.database, target: options.target, cwd: repoRoot });
   const approvedDomains = await loadApprovedSourceDomains(db);
   for (const domain of DPLA_EXTRA_APPROVED_DOMAINS) approvedDomains.add(domain);
+
+  // "Unchecked in": brought in by a search, no quality-gate verdict yet.
+  const unchecked = (await db.prepare(buildUncheckedInCountSql()).first()) ?? {};
+  console.log(`Unchecked in (imported, awaiting evaluation): ${unchecked.unchecked_in ?? 0} (${unchecked.not_yet_archived ?? 0} not yet archived, ${unchecked.archived ?? 0} already archived).`);
 
   if (options.evaluateArchived) {
     await evaluateArchived(db, options);

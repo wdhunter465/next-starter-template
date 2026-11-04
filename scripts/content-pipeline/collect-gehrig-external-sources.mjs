@@ -268,11 +268,44 @@ function retryDelayMs() {
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : 500;
 }
 
+// #5074: loc.gov and chroniclingamerica.loc.gov answer HTTP 429 when two requests arrive close
+// together (seen 2026-11-02: the second query of a run, and every Chronicling America query). During
+// a discovery run each request to the same Library of Congress host waits for a minimum gap since the
+// previous one. Direct calls to a collector (the unit tests) are not spaced: only the run turns it on.
+let hostSpacing = null;
+const lastRequestAtByHost = new Map();
+
+/** The host family a URL belongs to for spacing, or null when it needs no spacing. */
+export function spacingKeyFor(url) {
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+    return host === 'loc.gov' || host.endsWith('.loc.gov') ? 'loc.gov' : null;
+  } catch {
+    return null;
+  }
+}
+
+/** How long to wait before a request so it is at least `intervalMs` after the previous one for that host. */
+export function waitBeforeRequestMs(lastAt, now, intervalMs) {
+  if (lastAt === undefined || !Number.isFinite(intervalMs) || intervalMs <= 0) return 0;
+  return Math.max(0, lastAt + intervalMs - now);
+}
+
+async function spaceRequest(url) {
+  if (!hostSpacing) return;
+  const key = spacingKeyFor(url);
+  if (!key) return;
+  const wait = waitBeforeRequestMs(lastRequestAtByHost.get(key), Date.now(), hostSpacing[key] ?? 0);
+  if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
+  lastRequestAtByHost.set(key, Date.now());
+}
+
 async function fetchJson(url, headers = {}) {
   const baseDelayMs = retryDelayMs();
   const timeoutMs = Number(process.env.DISCOVERY_FETCH_TIMEOUT_MS ?? 30000);
   return withBoundedRetry(
     async () => {
+      await spaceRequest(url);
       const response = await fetch(url, {
         headers: {
           'User-Agent': 'LGFC-Gehrig-Content-Discovery/1.0 (lougehrigfanclub.com; contact via site)',
@@ -860,6 +893,8 @@ function loadKnownNormalizedUrls() {
 }
 
 async function runDiscoveryWithFetch(options) {
+  const locGapMs = Number(process.env.DISCOVERY_LOC_INTERVAL_MS ?? 4000);
+  hostSpacing = { 'loc.gov': Number.isFinite(locGapMs) ? locGapMs : 4000 };
   const nextId = makeCandidateIdFactory();
   const knownUrls = loadKnownNormalizedUrls();
   const allCandidates = [];

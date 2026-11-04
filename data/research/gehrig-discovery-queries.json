@@ -1,5 +1,5 @@
 {
-  "description": "Curated search queries for Gehrig content discovery (#4890). Pass a batch to the discovery workflow's query input joined with '|'. A query appears in one batch only.",
+  "description": "Curated search queries for Gehrig content discovery (#4890). Pass a batch to the discovery workflow's query input joined with '|'. A query appears in one batch only. Content rule (Product Authority, 2026-11-02, #5038): every query names Gehrig; no query is about the disease, patients or awareness. Gehrig's own diagnosis, the Mayo Clinic and his funeral are in scope.",
   "batches": {
     "names": [
       "Lou Gehrig",
@@ -33,8 +33,7 @@
       "Gehrig all-star game",
       "Gehrig consecutive games streak",
       "Gehrig Japan tour 1934",
-      "Gehrig Eleanor Gehrig",
-      "Gehrig ALS"
+      "Gehrig Eleanor Gehrig"
     ],
     "places-and-collections": [
       "Gehrig Columbia University",
@@ -49,6 +48,42 @@
       "Gehrig Cleveland Indians",
       "Gehrig St. Louis Browns",
       "Gehrig Chicago White Sox"
+    ],
+    "life-and-family": [
+      "Gehrig Eleanor Gehrig wedding",
+      "Gehrig Eleanor Gehrig widow",
+      "Gehrig Columbia Lions baseball 1923",
+      "Gehrig Commerce High School",
+      "Gehrig Mayo Clinic 1939",
+      "Gehrig funeral 1941"
+    ],
+    "seasons-and-records": [
+      "Gehrig 1927 Yankees",
+      "Gehrig 1928 Yankees",
+      "Gehrig 1931 home runs",
+      "Gehrig 1934 Triple Crown",
+      "Gehrig 1936 MVP",
+      "Gehrig 1938 Yankees",
+      "Gehrig four home runs 1932",
+      "Gehrig grand slam record"
+    ],
+    "memorabilia-and-tributes": [
+      "Gehrig baseball card",
+      "Gehrig monument Yankee Stadium",
+      "Gehrig Monument Park",
+      "Gehrig uniform number 4",
+      "Gehrig postage stamp",
+      "Gehrig plaque",
+      "Gehrig statue",
+      "Gehrig autograph"
+    ],
+    "newspapers-and-media": [
+      "Gehrig newsreel",
+      "Gehrig Pride of the Yankees film",
+      "Gehrig Daily News",
+      "Gehrig Sporting News",
+      "Gehrig Life magazine",
+      "Gehrig Spalding guide"
     ]
   }
 }
