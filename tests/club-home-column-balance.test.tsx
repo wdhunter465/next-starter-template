@@ -13,6 +13,8 @@ type Column = 'center' | 'left' | 'right' | 'leftFoot' | 'rightFoot';
 const ORDER: Column[] = ['center', 'left', 'right', 'leftFoot', 'rightFoot'];
 
 function marker(name: Column): string {
+  if (name === 'leftFoot') return 'clubHomeColumnFootClassName.left}';
+  if (name === 'rightFoot') return 'clubHomeColumnFootClassName.right}';
   return `clubHomeColumnClassName.${name}}`;
 }
 

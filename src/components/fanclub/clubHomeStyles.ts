@@ -164,10 +164,6 @@ export const clubHomeColumnClassName = {
   left: 'club-home-col club-home-col--left',
   center: 'club-home-col club-home-col--center',
   right: 'club-home-col club-home-col--right',
-  /** Second grid row under the left column (box score). */
-  leftFoot: 'club-home-col club-home-col--left-foot',
-  /** Second grid row under the right column (AL standings), level with leftFoot. */
-  rightFoot: 'club-home-col club-home-col--right-foot',
 } as const;
 export const clubHomeFooterRowClassName = 'club-home-footer-row';
 
@@ -278,3 +274,13 @@ export const clubHomePageLayoutCss = `
   }
 }
 `;
+
+/**
+ * Second grid row of the Club Home columns (#5072): the box score sits under the left column and
+ * the AL standings under the right column, level with each other. Kept at the end of this file so
+ * the hex-literal baseline (#4627, keyed by line number) is unaffected.
+ */
+export const clubHomeColumnFootClassName = {
+  left: 'club-home-col club-home-col--left-foot',
+  right: 'club-home-col club-home-col--right-foot',
+} as const;

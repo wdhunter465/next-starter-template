@@ -19,6 +19,7 @@ import { useClubHomeContent } from '@/components/fanclub/useClubHomeContent';
 import { useGehrigRandomGame } from '@/components/fanclub/useGehrigRandomGame';
 import {
   clubHomeColumnClassName,
+  clubHomeColumnFootClassName,
   clubHomeColumnsClassName,
   clubHomeFooterRowClassName,
   clubHomeMastheadRowClassName,
@@ -75,11 +76,11 @@ export default function MemberHomePage() {
             <ClubHomeRecognitionModule />
           </div>
 
-          <div className={clubHomeColumnClassName.leftFoot}>
+          <div className={clubHomeColumnFootClassName.left}>
             <ClubHomeGehrigBoxScore load={gehrigGame} />
           </div>
 
-          <div className={clubHomeColumnClassName.rightFoot}>
+          <div className={clubHomeColumnFootClassName.right}>
             <ClubHomeAlStandings load={gehrigGame} />
           </div>
         </div>
