@@ -36,4 +36,11 @@ describe('Club Home column balance (#5066)', () => {
     expect(columnBlock('left')).toContain('<ClubHomeGehrigBoxScore');
     expect(columnBlock('right')).toContain('<ClubHomeAlStandings');
   });
+
+  it('puts Events & Calendar last in the right column and not in the left (#5070)', () => {
+    const right = columnBlock('right');
+    expect(right).toContain('<ClubHomeEventsModule />');
+    expect(right.indexOf('<ClubHomeAlStandings')).toBeLessThan(right.indexOf('<ClubHomeEventsModule />'));
+    expect(columnBlock('left')).not.toContain('<ClubHomeEventsModule');
+  });
 });
