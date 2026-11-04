@@ -268,10 +268,11 @@ function retryDelayMs() {
   return Number.isFinite(parsed) && parsed >= 0 ? parsed : 500;
 }
 
-// #5074: loc.gov and chroniclingamerica.loc.gov answer HTTP 429 when two requests arrive close
-// together (seen 2026-11-02: the second query of a run, and every Chronicling America query). During
-// a discovery run each request to the same Library of Congress host waits for a minimum gap since the
-// previous one. Direct calls to a collector (the unit tests) are not spaced: only the run turns it on.
+// #5074: loc.gov, chroniclingamerica.loc.gov and Wikimedia answer HTTP 429 when requests arrive close
+// together (seen 2026-11-02: the second Library of Congress query of a run and every Chronicling America
+// query; 2026-11-04: the last three of eight Commons queries). During a discovery run each request to the
+// same host family waits for a minimum gap since the previous one. Direct calls to a collector (the unit
+// tests) are not spaced: only the run turns it on.
 let hostSpacing = null;
 const lastRequestAtByHost = new Map();
 
@@ -279,7 +280,9 @@ const lastRequestAtByHost = new Map();
 export function spacingKeyFor(url) {
   try {
     const host = new URL(url).hostname.toLowerCase();
-    return host === 'loc.gov' || host.endsWith('.loc.gov') ? 'loc.gov' : null;
+    if (host === 'loc.gov' || host.endsWith('.loc.gov')) return 'loc.gov';
+    if (host === 'wikimedia.org' || host.endsWith('.wikimedia.org')) return 'wikimedia.org';
+    return null;
   } catch {
     return null;
   }
@@ -893,8 +896,14 @@ function loadKnownNormalizedUrls() {
 }
 
 async function runDiscoveryWithFetch(options) {
-  const locGapMs = Number(process.env.DISCOVERY_LOC_INTERVAL_MS ?? 4000);
-  hostSpacing = { 'loc.gov': Number.isFinite(locGapMs) ? locGapMs : 4000 };
+  const gap = (name, fallback) => {
+    const parsed = Number(process.env[name] ?? fallback);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  };
+  hostSpacing = {
+    'loc.gov': gap('DISCOVERY_LOC_INTERVAL_MS', 4000),
+    'wikimedia.org': gap('DISCOVERY_WIKIMEDIA_INTERVAL_MS', 3000),
+  };
   const nextId = makeCandidateIdFactory();
   const knownUrls = loadKnownNormalizedUrls();
   const allCandidates = [];

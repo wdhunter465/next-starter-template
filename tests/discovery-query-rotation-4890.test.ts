@@ -75,11 +75,12 @@ describe('curated query list follows the content rule (#5074)', () => {
 });
 
 describe('Library of Congress request spacing (#5074)', () => {
-  it('spaces only loc.gov hosts', async () => {
+  it('spaces loc.gov and Wikimedia hosts and nothing else', async () => {
     const { spacingKeyFor, waitBeforeRequestMs } = await import('../scripts/content-pipeline/collect-gehrig-external-sources.mjs');
     expect(spacingKeyFor('https://www.loc.gov/photos/?q=x')).toBe('loc.gov');
     expect(spacingKeyFor('https://chroniclingamerica.loc.gov/search/pages/results/')).toBe('loc.gov');
-    expect(spacingKeyFor('https://commons.wikimedia.org/w/api.php')).toBeNull();
+    expect(spacingKeyFor('https://commons.wikimedia.org/w/api.php')).toBe('wikimedia.org');
+    expect(spacingKeyFor('https://upload.wikimedia.org/x.jpg')).toBe('wikimedia.org');
     expect(spacingKeyFor('https://archive.org/advancedsearch.php')).toBeNull();
     expect(spacingKeyFor('not a url')).toBeNull();
     expect(waitBeforeRequestMs(undefined, 1000, 4000)).toBe(0);
