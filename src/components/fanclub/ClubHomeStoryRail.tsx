@@ -1,5 +1,5 @@
 import ClubHomeStaticStory from './ClubHomeStaticStory';
-import { clubHomeSectionTitle } from './clubHomeStyles';
+import { clubHomeColors, clubHomeSectionCard, clubHomeSectionTitle } from './clubHomeStyles';
 import type { ClubHomeStory } from '@/lib/clubHomeApi';
 
 const STATIC_RAIL_ITEMS = [
@@ -32,21 +32,26 @@ export default function ClubHomeStoryRail({ stories }: ClubHomeStoryRailProps) {
       : STATIC_RAIL_ITEMS.map((item) => ({ ...item, credit: null, sourceName: null, image: null }));
 
   return (
-    <section aria-label="Secondary story rail">
+    <section aria-label="Secondary story rail" style={clubHomeSectionCard}>
       <h2 style={clubHomeSectionTitle}>More Stories</h2>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 18 }}>
-        {items.map((item) => (
-          <ClubHomeStaticStory
+      <div style={{ display: 'flex', flexDirection: 'column' }}>
+        {items.map((item, index) => (
+          <div
             key={item.headline}
-            ariaLabel={`Secondary story: ${item.headline}`}
-            title="Story"
-            headline={item.headline}
-            summary={item.summary}
-            credit={item.credit}
-            sourceName={item.sourceName}
-            image={item.image}
-            compact
-          />
+            style={index > 0 ? { borderTop: `1px solid ${clubHomeColors.rule}`, marginTop: 16, paddingTop: 16 } : undefined}
+          >
+            <ClubHomeStaticStory
+              ariaLabel={`Secondary story: ${item.headline}`}
+              title="Story"
+              headline={item.headline}
+              summary={item.summary}
+              credit={item.credit}
+              sourceName={item.sourceName}
+              image={item.image}
+              compact
+              bare
+            />
+          </div>
         ))}
       </div>
     </section>
