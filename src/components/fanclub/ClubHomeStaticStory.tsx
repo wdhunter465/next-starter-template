@@ -20,6 +20,8 @@ type ClubHomeStaticStoryProps = {
   summary: string;
   ariaLabel: string;
   compact?: boolean;
+  /** No section title or heavy top rule: for a card nested inside a section that already has both (#5072). */
+  bare?: boolean;
   credit?: string | null;
   sourceName?: string | null;
   /** Zone-sized image for this posting space — large hero framing when !compact, a small thumbnail when compact (#4180). */
@@ -40,6 +42,7 @@ export default function ClubHomeStaticStory({
   summary,
   ariaLabel,
   compact = false,
+  bare = false,
   credit,
   sourceName,
   image,
@@ -80,8 +83,8 @@ export default function ClubHomeStaticStory({
   );
 
   return (
-    <article aria-label={ariaLabel} style={clubHomeSectionCard}>
-      <h2 style={{ ...clubHomeSectionTitle, fontSize: compact ? 12 : 13 }}>{title}</h2>
+    <article aria-label={ariaLabel} style={bare ? undefined : clubHomeSectionCard}>
+      {bare ? null : <h2 style={{ ...clubHomeSectionTitle, fontSize: compact ? 12 : 13 }}>{title}</h2>}
       {!compact &&
         (image ? (
           <img src={image.url} alt={image.alt} style={{ ...clubHomeStoryHeroImage, marginBottom: 14 }} />

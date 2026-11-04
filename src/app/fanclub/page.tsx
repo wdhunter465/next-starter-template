@@ -19,6 +19,7 @@ import { useClubHomeContent } from '@/components/fanclub/useClubHomeContent';
 import { useGehrigRandomGame } from '@/components/fanclub/useGehrigRandomGame';
 import {
   clubHomeColumnClassName,
+  clubHomeColumnFootClassName,
   clubHomeColumnsClassName,
   clubHomeFooterRowClassName,
   clubHomeMastheadRowClassName,
@@ -61,11 +62,6 @@ export default function MemberHomePage() {
 
           <div className={clubHomeColumnClassName.left}>
             <ClubHomeArchiveSpotlight story={clubHome.archiveSpotlight} />
-            <ClubHomeRecognitionModule />
-            <ClubHomeGehrigBoxScore load={gehrigGame} />
-          </div>
-
-          <div className={clubHomeColumnClassName.right}>
             <ClubHomeStoryRail stories={clubHome.railStories} />
             <ClubHomeMemberPrompt />
             <ClubHomeDeferredModule
@@ -73,8 +69,19 @@ export default function MemberHomePage() {
               title="Campaign & Fundraiser"
               reason="No active campaign module is configured. Fundraiser operations remain a separate program; this slot fails closed until explicitly scoped."
             />
-            <ClubHomeAlStandings load={gehrigGame} />
+          </div>
+
+          <div className={clubHomeColumnClassName.right}>
             <ClubHomeEventsModule />
+            <ClubHomeRecognitionModule />
+          </div>
+
+          <div className={clubHomeColumnFootClassName.left}>
+            <ClubHomeGehrigBoxScore load={gehrigGame} />
+          </div>
+
+          <div className={clubHomeColumnFootClassName.right}>
+            <ClubHomeAlStandings load={gehrigGame} />
           </div>
         </div>
 

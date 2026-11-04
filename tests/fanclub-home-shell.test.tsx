@@ -78,31 +78,40 @@ describe('Fan Club home newspaper shell (#1688 Task 003)', () => {
     expect(media.compareDocumentPosition(timeline) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
   });
 
-  it('keeps Archive spotlight, Recognition and the box score in the left column in order', () => {
+  it('puts Archive spotlight, More Stories, Join the Conversation and Campaign in the left column (#5072)', () => {
     render(<MemberHomePage />);
 
-    const archive = screen.getByLabelText('Archive spotlight');
-    const recognition = screen.getByLabelText('Recognition & Partners');
-    const boxScore = screen.getByLabelText('Lou Gehrig box score');
+    const sections = [
+      screen.getByLabelText('Archive spotlight'),
+      screen.getByLabelText('Secondary story rail'),
+      screen.getByLabelText('Member prompt'),
+      screen.getByLabelText('Campaign module'),
+    ];
 
-    for (const section of [archive, recognition, boxScore]) {
+    for (const section of sections) {
       expect(section.closest('.club-home-col--left')).not.toBeNull();
     }
-    expect(archive.compareDocumentPosition(recognition) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(recognition.compareDocumentPosition(boxScore) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    for (let i = 0; i < sections.length - 1; i += 1) {
+      expect(sections[i].compareDocumentPosition(sections[i + 1]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    }
   });
 
-  it('puts Events & Calendar at the bottom of the right column, after AL standings (#5070)', () => {
+  it('puts Events & Calendar first and Recognition & Partners second in the right column (#5072)', () => {
     render(<MemberHomePage />);
 
     const events = screen.getByLabelText('Events & Calendar');
-    const standings = screen.getByLabelText('American League standings');
-    const right = events.closest('.club-home-col--right');
+    const recognition = screen.getByLabelText('Recognition & Partners');
 
-    expect(right).not.toBeNull();
-    expect(right).toContainElement(standings);
-    expect(standings.compareDocumentPosition(events) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
-    expect(events.closest('.club-home-col--left')).toBeNull();
+    expect(events.closest('.club-home-col--right')).not.toBeNull();
+    expect(recognition.closest('.club-home-col--right')).not.toBeNull();
+    expect(events.compareDocumentPosition(recognition) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('puts the box score and AL standings in the two foot cells, level with each other (#5072)', () => {
+    render(<MemberHomePage />);
+
+    expect(screen.getByLabelText('Lou Gehrig box score').closest('.club-home-col--left-foot')).not.toBeNull();
+    expect(screen.getByLabelText('American League standings').closest('.club-home-col--right-foot')).not.toBeNull();
   });
 
   it('uses Gallery, Library, and Memorabilia feature link labels', () => {
