@@ -147,15 +147,22 @@ describe('migration 0091 and the SQL that uses it (#5053)', () => {
     expect(rows.find((r) => r.candidate_id === free.candidate_id)?.fee_required).toBe(0);
   });
 
-  it('lists archived pictures the gate has not seen, with their stored size and kind', () => {
+  it('lists archived pictures the gate has not seen, linked the way the ingest links them (b2:// key or media_uid:), with stored size and kind', () => {
     const db = migratedDb();
-    const media = db.prepare("INSERT INTO media_assets (media_uid, b2_key, size, width_px, height_px, quality_tier) VALUES ('m1', 'k1', 10, 2000, 1400, 'photograph')").run();
-    const archived = addItem(db, { media_asset_id: Number(media.lastInsertRowid) });
-    const done = addItem(db, { media_asset_id: Number(media.lastInsertRowid), gate_decision: 'good' });
+    db.prepare("INSERT INTO media_assets (media_uid, b2_key, size, width_px, height_px, quality_tier) VALUES ('sha256_aaa', 'LGFC_1_A.jpg', 10, 2000, 1400, 'photograph')").run();
+    db.prepare("INSERT INTO media_assets (media_uid, b2_key, size, width_px, height_px, quality_tier) VALUES ('sha256_bbb', 'LGFC_2_B.jpg', 10, 900, 600, 'newspaper')").run();
+    const viaKey = addItem(db, { media_asset_id: 'b2://LGFC_1_A.jpg' });
+    const viaUid = addItem(db, { media_asset_id: 'media_uid:sha256_bbb' });
+    const done = addItem(db, { media_asset_id: 'b2://LGFC_1_A.jpg', gate_decision: 'good' });
+    const retired = addItem(db, { media_asset_id: 'b2://LGFC_1_A.jpg', deleted_at: NOW });
     addItem(db); // not archived
-    const rows = db.prepare(buildUnevaluatedArchivedSql()).all(50) as Array<{ candidate_id: string; width_px: number; quality_tier: string }>;
-    expect(rows.map((r) => r.candidate_id)).toEqual([archived.candidate_id]);
-    expect(rows[0]).toMatchObject({ width_px: 2000, quality_tier: 'photograph' });
-    expect(rows.map((r) => r.candidate_id)).not.toContain(done.candidate_id);
+    addItem(db, { media_asset_id: 'b2://missing-from-media-assets.jpg' });
+    const rows = db.prepare(buildUnevaluatedArchivedSql()).all(50) as Array<{ candidate_id: string; width_px: number; height_px: number; quality_tier: string }>;
+    expect(rows.map((r) => r.candidate_id).sort()).toEqual([viaKey.candidate_id, viaUid.candidate_id].sort());
+    expect(rows.find((r) => r.candidate_id === viaKey.candidate_id)).toMatchObject({ width_px: 2000, height_px: 1400, quality_tier: 'photograph' });
+    expect(rows.find((r) => r.candidate_id === viaUid.candidate_id)).toMatchObject({ width_px: 900, quality_tier: 'newspaper' });
+    const ids = rows.map((r) => r.candidate_id);
+    expect(ids).not.toContain(done.candidate_id);
+    expect(ids).not.toContain(retired.candidate_id);
   });
 });
