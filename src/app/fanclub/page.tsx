@@ -60,7 +60,6 @@ export default function MemberHomePage() {
           </div>
 
           <div className={clubHomeColumnClassName.left}>
-            <ClubHomeEventsModule />
             <ClubHomeArchiveSpotlight story={clubHome.archiveSpotlight} />
             <ClubHomeRecognitionModule />
             <ClubHomeGehrigBoxScore load={gehrigGame} />
@@ -75,6 +74,7 @@ export default function MemberHomePage() {
               reason="No active campaign module is configured. Fundraiser operations remain a separate program; this slot fails closed until explicitly scoped."
             />
             <ClubHomeAlStandings load={gehrigGame} />
+            <ClubHomeEventsModule />
           </div>
         </div>
 
