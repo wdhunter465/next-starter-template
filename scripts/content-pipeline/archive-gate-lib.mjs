@@ -30,7 +30,10 @@ function textParts(parts) {
     .filter(Boolean);
 }
 
-/** The quality gate's input for one row. `text` is the source record's own descriptive text. */
+/**
+ * The quality gate's input for one row. `text` is the source record's own descriptive text.
+ * @returns {{ title: string, text: string[], widthPx: number | null, heightPx: number | null, kind: 'photograph' | 'newspaper', feeRequired: boolean, isDuplicate: boolean, manualKeep: boolean }}
+ */
 export function gateInputForRow(row, { widthPx, heightPx, kind, text } = {}) {
   return {
     title: stripDiscoveryBoilerplate(row.title),
