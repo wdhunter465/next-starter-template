@@ -87,7 +87,8 @@ export function buildUnevaluatedArchivedSql() {
                         WHERE re.content_item_id = ci.id AND (re.fee_required = 1 OR re.usage_basis = 'fee_required')
                       ) THEN 1 ELSE 0 END AS fee_required
           FROM content_items ci
-          JOIN media_assets ma ON ma.id = ci.media_asset_id
+          JOIN media_assets ma ON (ci.media_asset_id LIKE 'b2://%' AND ma.b2_key = substr(ci.media_asset_id, 6))
+                               OR (ci.media_asset_id LIKE 'media_uid:%' AND ma.media_uid = substr(ci.media_asset_id, 11))
           WHERE ci.deleted_at IS NULL AND ci.superseded_at IS NULL AND ci.gate_decision IS NULL
           ORDER BY ci.id LIMIT ?`;
 }
