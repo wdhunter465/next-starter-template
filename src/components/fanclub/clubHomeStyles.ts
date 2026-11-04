@@ -164,6 +164,10 @@ export const clubHomeColumnClassName = {
   left: 'club-home-col club-home-col--left',
   center: 'club-home-col club-home-col--center',
   right: 'club-home-col club-home-col--right',
+  /** Second grid row under the left column (box score). */
+  leftFoot: 'club-home-col club-home-col--left-foot',
+  /** Second grid row under the right column (AL standings), level with leftFoot. */
+  rightFoot: 'club-home-col club-home-col--right-foot',
 } as const;
 export const clubHomeFooterRowClassName = 'club-home-footer-row';
 
@@ -237,9 +241,21 @@ export const clubHomePageLayoutCss = `
     align-items: start;
   }
 
-  .club-home-col--left { order: 1; }
-  .club-home-col--center { order: 2; }
-  .club-home-col--right { order: 3; }
+  /*
+   * Two grid rows: the left and right columns sit in row 1; the box score (left foot) and AL
+   * standings (right foot) sit in row 2 so they start on the same line. The center column spans
+   * both rows. Row 1 is as tall as the taller of the left/right blocks; row 2 takes the rest
+   * (#5072). DOM order stays center, left, right, feet for the single-column mobile reading order.
+   */
+  .club-home-columns {
+    grid-template-rows: auto 1fr;
+  }
+
+  .club-home-col--center { grid-column: 2; grid-row: 1 / span 2; }
+  .club-home-col--left { grid-column: 1; grid-row: 1; }
+  .club-home-col--right { grid-column: 3; grid-row: 1; }
+  .club-home-col--left-foot { grid-column: 1; grid-row: 2; }
+  .club-home-col--right-foot { grid-column: 3; grid-row: 2; }
 }
 
 @media (min-width: 920px) {

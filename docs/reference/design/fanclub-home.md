@@ -34,11 +34,11 @@ Newspaper-style order (fail-closed static fallbacks when inventory is empty). Th
 | 5 | Photo / memorabilia feature | `ClubHomeMediaFeature` |
 | 6 | Member prompt | `ClubHomeMemberPrompt` (links to `/fanclub/chat`) |
 | 7 | Archive spotlight | `ClubHomeArchiveSpotlight` |
-| 8–10 | Campaign / events / recognition. Recognition is in the left column; Campaign is in the right column; Events & Calendar is last in the right column (moved from the left rail, #5070) | `ClubHomeEventsModule`, `ClubHomeRecognitionModule`, `ClubHomeDeferredModule` (campaign fail-closed) |
+| 8–10 | Campaign / events / recognition. Campaign is in the left column (after More Stories and Join the Conversation); Events & Calendar is first in the right column, then Recognition & Partners (#5072) | `ClubHomeEventsModule`, `ClubHomeRecognitionModule`, `ClubHomeDeferredModule` (campaign fail-closed) |
 | 10a | Gehrig timeline teaser (center column, below the media feature; moved from the left rail, #5066). Four entries spread across the timeline, the whole section links to `/fanclub/timeline` (#5068) | `GehrigTimeline` (Club Home only; fail-closed empty copy; not TimelineJS3) |
 | 10b | Full Gehrig timeline page (`/fanclub/timeline`, members only): every entry with narrative and source | `GehrigTimelineFull` |
-| 11 | Lou Gehrig box score (left margin, bottom) | `ClubHomeGehrigBoxScore` |
-| 12 | AL standings as of that game (right margin, bottom) | `ClubHomeAlStandings` |
+| 11 | Lou Gehrig box score (bottom row, under the left column; level with AL standings, #5072) | `ClubHomeGehrigBoxScore` |
+| 12 | AL standings as of that game (bottom row, under the right column; level with the box score, #5072) | `ClubHomeAlStandings` |
 | 13 | Submission CTA | `ClubHomeSubmissionCta` (links to `/fanclub/submit`) |
 | 14 | Admin link (conditional) | `AdminLink` |
 

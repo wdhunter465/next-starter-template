@@ -162,3 +162,23 @@ describe('ClubHomeArchiveSpotlight image routing (#4180)', () => {
     expect(screen.queryByRole('img')).not.toBeInTheDocument();
   });
 });
+
+describe('ClubHomeStaticStory bare variant and the More Stories rail (#5072)', () => {
+  it('renders no section title when bare, and keeps the default title otherwise', () => {
+    const { rerender } = render(
+      <ClubHomeStaticStory ariaLabel="Secondary story" title="Story" headline="Headline" summary="Summary." compact bare />,
+    );
+    expect(screen.queryByRole('heading', { level: 2, name: 'Story' })).not.toBeInTheDocument();
+
+    rerender(<ClubHomeStaticStory ariaLabel="Secondary story" title="Story" headline="Headline" summary="Summary." compact />);
+    expect(screen.getByRole('heading', { level: 2, name: 'Story' })).toBeInTheDocument();
+  });
+
+  it('shows one More Stories heading and no repeated "Story" labels in the rail', () => {
+    render(<ClubHomeStoryRail />);
+
+    expect(screen.getAllByRole('heading', { level: 2 }).map((h) => h.textContent)).toEqual(['More Stories']);
+    expect(screen.queryByText('Story')).not.toBeInTheDocument();
+  });
+});
+
