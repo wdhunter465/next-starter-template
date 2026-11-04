@@ -211,8 +211,10 @@ describe('archive candidate selection SQL (#4872)', () => {
   it('selects unprocessed rows and older file-reason skips, and nothing else', () => {
     const db = new DatabaseSync(':memory:');
     db.exec(
-      "CREATE TABLE content_items(id INTEGER, candidate_id TEXT, title TEXT, source_url TEXT, source_domain TEXT, provenance_notes TEXT, admin_notes TEXT, media_asset_id TEXT, superseded_at TEXT, content_type TEXT)",
+      "CREATE TABLE content_items(id INTEGER, candidate_id TEXT, title TEXT, source_url TEXT, source_domain TEXT, provenance_notes TEXT, admin_notes TEXT, media_asset_id TEXT, superseded_at TEXT, content_type TEXT, gate_manual_keep INTEGER DEFAULT 0, gate_decision TEXT, outcome_basis TEXT)",
     );
+    // #5053: the selection SQL also reads the fee flag from rights evidence.
+    db.exec('CREATE TABLE rights_evidence(content_item_id INTEGER, fee_required INTEGER, usage_basis TEXT)');
     const notes: Array<string | null> = [
       null, // 1 never processed
       'Automated discovery candidate.', // 2 never processed
@@ -224,7 +226,9 @@ describe('archive candidate selection SQL (#4872)', () => {
       'x archive-ingest-v2: skipped, long side 1024px is under the 1500px minimum (2026-10-24). archive-ingest-v3: skipped, again (2026-10-25).', // 8 already rechecked
       'x archive-ingest-v2: skipped, loc.gov record is not a photograph, print or drawing (2026-10-24).', // 9 final
     ];
-    const insert = db.prepare("INSERT INTO content_items VALUES (?, ?, 't', 'u', 'loc.gov', NULL, ?, NULL, NULL, 'photo')");
+    const insert = db.prepare(
+      "INSERT INTO content_items (id, candidate_id, title, source_url, source_domain, provenance_notes, admin_notes, media_asset_id, superseded_at, content_type) VALUES (?, ?, 't', 'u', 'loc.gov', NULL, ?, NULL, NULL, 'photo')",
+    );
     notes.forEach((note, index) => insert.run(index + 1, `c${index + 1}`, note));
     const ids = (db.prepare(sql).all(100) as Array<{ id: number }>).map((row) => row.id);
     expect(ids).toEqual([1, 2, 4, 5, 6]);

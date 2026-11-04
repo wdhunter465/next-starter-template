@@ -169,6 +169,14 @@ CREATE TABLE content_items_prev (
   superseded_at TEXT,
   superseded_by TEXT,
   permission_exchange_id INTEGER,
+  -- #5053/migration 0091: the quality-gate verdict and the release for edition use.
+  gate_decision TEXT CHECK (gate_decision IS NULL OR gate_decision IN ('good', 'needs_review', 'not_good')),
+  gate_relevance TEXT CHECK (gate_relevance IS NULL OR gate_relevance IN ('gehrig-primary', 'gehrig-linked', 'manual-keep', 'excluded')),
+  gate_reasons TEXT,
+  gate_evaluated_at TEXT,
+  gate_manual_keep INTEGER NOT NULL DEFAULT 0 CHECK (gate_manual_keep IN (0, 1)),
+  released_for_editions_at TEXT,
+  release_basis TEXT,
   FOREIGN KEY (duplicate_of) REFERENCES content_items_prev(candidate_id) DEFERRABLE INITIALLY DEFERRED
 );
 
@@ -495,6 +503,11 @@ END;
 CREATE INDEX IF NOT EXISTS idx_content_items_permission_exchange
   ON content_items(permission_exchange_id)
   WHERE permission_exchange_id IS NOT NULL;
+
+-- #5053/migration 0091: index on the release column.
+CREATE INDEX IF NOT EXISTS idx_content_items_released_for_editions
+  ON content_items(released_for_editions_at)
+  WHERE released_for_editions_at IS NOT NULL;
 
 CREATE INDEX IF NOT EXISTS idx_rights_evidence_exchange
   ON rights_evidence(exchange_id)

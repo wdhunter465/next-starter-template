@@ -233,7 +233,12 @@ export function buildArchiveCandidatesSql() {
   const legacyFileSkips = LEGACY_NOTE_MARKERS.flatMap((marker) =>
     LEGACY_FILE_SKIP_REASONS.map((reason) => has(`${marker} skipped, ${reason}`)),
   ).join(' OR ');
-  return `SELECT id, candidate_id, title, source_url, source_domain, provenance_notes, admin_notes
+  // gate_manual_keep = 1 (#5053): Product Authority kept an item the gate had held, so it is tried again.
+  return `SELECT id, candidate_id, title, source_url, source_domain, provenance_notes, admin_notes, gate_manual_keep,
+                CASE WHEN outcome_basis = 'fee_required' OR EXISTS (
+                       SELECT 1 FROM rights_evidence re
+                       WHERE re.content_item_id = content_items.id AND (re.fee_required = 1 OR re.usage_basis = 'fee_required')
+                     ) THEN 1 ELSE 0 END AS fee_required
          FROM content_items
          WHERE media_asset_id IS NULL AND superseded_at IS NULL AND content_type = 'photo'
            AND source_domain IN ('loc.gov', 'commons.wikimedia.org', 'dp.la')
@@ -241,6 +246,7 @@ export function buildArchiveCandidatesSql() {
              admin_notes IS NULL
              OR (${anyMarker})
              OR (NOT ${has(ARCHIVE_NOTE_MARKER)} AND (${legacyFileSkips}))
+             OR (gate_manual_keep = 1 AND (gate_decision IS NULL OR gate_decision != 'good'))
            )
          ORDER BY id LIMIT ?`;
 }

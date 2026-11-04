@@ -60,6 +60,14 @@ const { commitIngestedMedia } = await import('../../functions/_lib/media-ingest-
 const { computePerceptualHash } = await import('../../functions/_lib/perceptual-hash.ts');
 const { PhotonImage, SamplingFilter, resize } = await import('@cf-wasm/photon');
 const { loadCopyQualityLists } = await import('./gehrig-copy-quality.mjs');
+const { evaluateQuality } = await import('../../functions/_lib/content-quality-gate.ts');
+const {
+  buildGateUpdate,
+  buildUnevaluatedArchivedSql,
+  gateInputForRow,
+  gateRecord,
+  summarizeVerdicts,
+} = await import('./archive-gate-lib.mjs');
 const {
   ARCHIVE_HOLD_REASON,
   backoffDelayMs,
@@ -100,7 +108,7 @@ function readFlagValue(argv, index, flagName) {
 }
 
 function parseArgs(argv) {
-  const options = { database: 'lgfc_lite', target: 'local', limit: 20, dryRun: false };
+  const options = { database: 'lgfc_lite', target: 'local', limit: 20, dryRun: false, evaluateArchived: false };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === '--database') {
@@ -117,6 +125,8 @@ function parseArgs(argv) {
       index += 1;
     } else if (arg === '--dry-run') {
       options.dryRun = true;
+    } else if (arg === '--evaluate-archived') {
+      options.evaluateArchived = true;
     } else {
       throw new Error(`Unknown argument: ${arg}`);
     }
@@ -276,6 +286,13 @@ async function noteRow(db, row, line, dryRun) {
     .run();
 }
 
+// #5053: writes the quality-gate verdict, and the release for a `good` one, onto the row.
+async function recordGate(db, row, verdict, dryRun) {
+  if (dryRun) return;
+  const { sql, params } = buildGateUpdate(row.id, gateRecord(verdict, new Date().toISOString()));
+  await db.prepare(sql).bind(...params).run();
+}
+
 async function archiveOne(db, row, context) {
   const resolved =
     row.source_domain === 'loc.gov'
@@ -296,6 +313,14 @@ async function archiveOne(db, row, context) {
     denylist: context.lists.denylist,
   });
   if (!early.ok) throw new SkipError(`${early.reason}${resolved.inventory ? ` (${resolved.inventory})` : ''}`);
+
+  // #5053: the quality gate decides before anything is downloaded or stored. A held item is never
+  // archived, so the archive stays free of other people's stories and of the disease itself.
+  const verdict = evaluateQuality(gateInputForRow(row, { widthPx: resolved.width, heightPx: resolved.height, kind, text: resolved.text }));
+  if (verdict.decision !== 'good') {
+    await recordGate(db, row, verdict, context.options.dryRun);
+    throw new SkipError(`quality gate: ${verdict.decision === 'needs_review' ? 'needs review' : 'not good'} (${verdict.reasons.join(', ')})`);
+  }
 
   const urlCheck = validateIngestSourceUrl(resolved.url, context.approvedDomains);
   if (!urlCheck.ok) throw new SkipError(urlCheck.error);
@@ -394,9 +419,41 @@ async function archiveOne(db, row, context) {
     rightsHoldReason: ARCHIVE_HOLD_REASON,
     quality,
   });
-  await noteRow(db, row, `archived ${result.b2Key}, on rights hold, ${kind}${conversionNote}${quality.publishBlocked ? `, publish blocked: ${quality.publishBlockReason}` : ''}`, false);
+  await recordGate(db, row, verdict, false);
+  await noteRow(db, row, `archived ${result.b2Key}, on rights hold, released for editions, ${kind}${conversionNote}${quality.publishBlocked ? `, publish blocked: ${quality.publishBlockReason}` : ''}`, false);
   console.log(`${row.candidate_id}: archived ${result.b2Key} (${bytes.byteLength} bytes, ${decoded ? `${decoded.width}x${decoded.height}` : 'size n/a'})`);
   return 'archived';
+}
+
+// #5053: runs the gate over pictures already in the archive. The source record is fetched again for
+// its descriptive text, because the stored summary only repeats the search query. Dry run writes nothing.
+async function evaluateArchived(db, options) {
+  const rows = (await db.prepare(buildUnevaluatedArchivedSql()).bind(options.limit).all()).results ?? [];
+  console.log(`${rows.length} archived picture(s) not yet evaluated (limit ${options.limit}).`);
+  const verdicts = [];
+  let failed = 0;
+  for (const row of rows) {
+    try {
+      const resolved =
+        row.source_domain === 'loc.gov'
+          ? await resolveLoc(row, 0)
+          : row.source_domain === 'commons.wikimedia.org'
+            ? await resolveCommons(row)
+            : { text: [row.title] };
+      const kind = row.quality_tier === 'newspaper' ? 'newspaper' : 'photograph';
+      const verdict = evaluateQuality(gateInputForRow(row, { widthPx: row.width_px, heightPx: row.height_px, kind, text: resolved.text }));
+      verdicts.push(verdict);
+      console.log(`${row.candidate_id}: ${verdict.decision} (${verdict.relevance}; ${verdict.reasons.join(', ')}) ${row.title ?? ''}`);
+      await recordGate(db, row, verdict, options.dryRun);
+    } catch (error) {
+      failed += 1;
+      console.error(`${row.candidate_id}: not evaluated -- ${error instanceof Error ? error.message : String(error)}`);
+    }
+    await sleep(REQUEST_PAUSE_MS);
+  }
+  const { counts, reasons } = summarizeVerdicts(verdicts);
+  console.log(`\nGate over archived pictures: ${counts.good} good, ${counts.needs_review} need review, ${counts.not_good} not good, ${failed} not evaluated${options.dryRun ? ' (dry run, nothing written)' : ''}.`);
+  if (Object.keys(reasons).length) console.log(`Why held: ${Object.entries(reasons).map(([reason, count]) => `${reason} x${count}`).join('; ')}.`);
 }
 
 async function main() {
@@ -405,6 +462,11 @@ async function main() {
   const db = makeWranglerD1({ database: options.database, target: options.target, cwd: repoRoot });
   const approvedDomains = await loadApprovedSourceDomains(db);
   for (const domain of DPLA_EXTRA_APPROVED_DOMAINS) approvedDomains.add(domain);
+
+  if (options.evaluateArchived) {
+    await evaluateArchived(db, options);
+    return;
+  }
 
   const b2 = requireB2(process.env);
   if (!b2.ok && !options.dryRun) {
