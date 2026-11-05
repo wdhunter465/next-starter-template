@@ -8,6 +8,7 @@ import {
   buildGateUpdate,
   buildUncheckedInCountSql,
   buildUnevaluatedArchivedSql,
+  EDITION_RELEASE_PAUSED,
   gateInputForRow,
   gateRecord,
   MANUAL_KEEP_CANDIDATE_IDS,
@@ -89,14 +90,27 @@ describe('archive gate glue (#5053)', () => {
     expect(evaluateQuality(mixed).decision).toBe('needs_review');
   });
 
+  it('records a good verdict but releases nothing while the release is paused (#5088)', () => {
+    expect(EDITION_RELEASE_PAUSED).toBe(true);
+    const verdict = evaluateQuality(gateInputForRow({ candidate_id: 'c5', title: 'Lou Gehrig at bat' }, { widthPx: 2000, heightPx: 1400 }));
+    expect(gateRecord(verdict, NOW)).toEqual({
+      gate_decision: 'good',
+      gate_relevance: 'gehrig-primary',
+      gate_reasons: 'names_gehrig',
+      gate_evaluated_at: NOW,
+      released_for_editions_at: null,
+      release_basis: null,
+    });
+  });
+
   it('writes a release only for a good verdict and never claims a rights release', () => {
-    const good = gateRecord(evaluateQuality(gateInputForRow({ candidate_id: 'c5', title: 'Lou Gehrig at bat' }, { widthPx: 2000, heightPx: 1400 })), NOW);
+    const good = gateRecord(evaluateQuality(gateInputForRow({ candidate_id: 'c5', title: 'Lou Gehrig at bat' }, { widthPx: 2000, heightPx: 1400 })), NOW, { releasePaused: false });
     expect(good).toMatchObject({ gate_decision: 'good', released_for_editions_at: NOW, release_basis: RELEASE_BASIS });
     expect(RELEASE_BASIS).toMatch(/^Product Authority direction 2026-10-31/);
     expect(RELEASE_BASIS).toMatch(/not a person's rights release/);
-    const held = gateRecord(evaluateQuality(gateInputForRow({ candidate_id: 'c6', title: 'Someone else' }, { widthPx: 2000, heightPx: 1400 })), NOW);
+    const held = gateRecord(evaluateQuality(gateInputForRow({ candidate_id: 'c6', title: 'Someone else' }, { widthPx: 2000, heightPx: 1400 })), NOW, { releasePaused: false });
     expect(held).toMatchObject({ gate_decision: 'not_good', released_for_editions_at: null, release_basis: null, gate_reasons: 'no_gehrig_reference' });
-    const fee = gateRecord(evaluateQuality(gateInputForRow({ candidate_id: 'c7', title: 'Lou Gehrig', fee_required: 1 }, { widthPx: 2000, heightPx: 1400 })), NOW);
+    const fee = gateRecord(evaluateQuality(gateInputForRow({ candidate_id: 'c7', title: 'Lou Gehrig', fee_required: 1 }, { widthPx: 2000, heightPx: 1400 })), NOW, { releasePaused: false });
     expect(fee).toMatchObject({ gate_decision: 'not_good', released_for_editions_at: null, gate_reasons: 'fee_required' });
   });
 
@@ -112,7 +126,7 @@ describe('migration 0091 and the SQL that uses it (#5053)', () => {
   it('adds the gate and release columns, with checks, and the documented re-hold statement works', () => {
     const db = migratedDb();
     const a = addItem(db);
-    const update = buildGateUpdate(a.id, gateRecord(evaluateQuality(gateInputForRow({ candidate_id: a.candidate_id, title: 'Lou Gehrig' }, { widthPx: 2000, heightPx: 1400 })), NOW));
+    const update = buildGateUpdate(a.id, gateRecord(evaluateQuality(gateInputForRow({ candidate_id: a.candidate_id, title: 'Lou Gehrig' }, { widthPx: 2000, heightPx: 1400 })), NOW, { releasePaused: false }));
     db.prepare(update.sql).run(...(update.params as never[]));
     const stored = db.prepare('SELECT gate_decision, gate_relevance, released_for_editions_at, release_basis, gate_manual_keep FROM content_items WHERE id = ?').get(a.id) as Record<string, unknown>;
     expect(stored).toMatchObject({ gate_decision: 'good', gate_relevance: 'gehrig-primary', released_for_editions_at: NOW, gate_manual_keep: 0 });
