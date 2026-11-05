@@ -46,11 +46,15 @@ describe('Commons category crawl (#4894)', () => {
   beforeEach(() => {
     process.env.DISCOVERY_RETRY_BASE_DELAY_MS = '0';
     process.env.DISCOVERY_QUERY_PAUSE_MS = '0';
+    process.env.DISCOVERY_LOC_INTERVAL_MS = '0'; // #5074: no request spacing in tests
+    process.env.DISCOVERY_WIKIMEDIA_INTERVAL_MS = '0';
     outDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gehrig-commonscat-'));
   });
   afterEach(() => {
     delete process.env.DISCOVERY_RETRY_BASE_DELAY_MS;
     delete process.env.DISCOVERY_QUERY_PAUSE_MS;
+    delete process.env.DISCOVERY_LOC_INTERVAL_MS;
+    delete process.env.DISCOVERY_WIKIMEDIA_INTERVAL_MS;
     fs.rmSync(outDir, { recursive: true, force: true });
   });
 
