@@ -197,3 +197,57 @@ export async function listB2Objects(cfg: B2Bindings, opts?: { maxObjects?: numbe
 
   return all;
 }
+
+export type B2ObjectVersion = {
+  key: string;
+  versionId: string;
+  isDeleteMarker: boolean;
+};
+
+/**
+ * Parses an S3 ListObjectVersions response into the versions and delete markers it lists.
+ * Used by deleteB2ObjectAllVersions; exported so it can be tested without B2.
+ */
+export function parseListObjectVersionsXml(xml: string): B2ObjectVersion[] {
+  const out: B2ObjectVersion[] = [];
+  const blockRe = /<(Version|DeleteMarker)>([\s\S]*?)<\/\1>/g;
+  let m: RegExpExecArray | null;
+  while ((m = blockRe.exec(xml)) !== null) {
+    const key = extractXmlTag(m[2], "Key");
+    const versionId = extractXmlTag(m[2], "VersionId");
+    if (key && versionId) out.push({ key, versionId, isDeleteMarker: m[1] === "DeleteMarker" });
+  }
+  return out;
+}
+
+/**
+ * Permanently deletes one file from B2: every stored version and every delete marker of exactly
+ * this key. A plain S3 DeleteObject on a B2 bucket only hides the file (the old version stays and
+ * keeps costing storage), so this lists the versions and deletes each by version id. A key with no
+ * versions counts as already deleted.
+ *
+ * Written from the S3 API and B2's documented behaviour; it has not been run against the live
+ * bucket from the build environment. The first real use should be a single disposable file.
+ */
+export async function deleteB2ObjectAllVersions(cfg: B2Bindings, key: string): Promise<{ versionsDeleted: number }> {
+  const aws = b2AwsClient(cfg);
+  const pathBucket = cfg.B2_BUCKET.split("/").map(encodeURIComponent).join("/");
+  const qs = new URLSearchParams({ versions: "", prefix: key, "max-keys": "1000" });
+  const listUrl = `${cfg.B2_ENDPOINT}/${pathBucket}?${qs.toString().replace("versions=", "versions")}`;
+  const listRes = await aws.fetch(listUrl, { method: "GET" });
+  if (!listRes.ok) {
+    const text = await listRes.text();
+    throw new Error(`B2 ListObjectVersions failed: HTTP ${listRes.status} ${text.slice(0, 400)}`);
+  }
+  const versions = parseListObjectVersionsXml(await listRes.text()).filter((v) => v.key === key);
+  let deleted = 0;
+  for (const v of versions) {
+    const res = await aws.fetch(`${b2ObjectUrl(cfg, key)}?versionId=${encodeURIComponent(v.versionId)}`, { method: "DELETE" });
+    if (!res.ok && res.status !== 404) {
+      const text = await res.text();
+      throw new Error(`B2 DeleteObject failed for ${key} version ${v.versionId}: HTTP ${res.status} ${text.slice(0, 400)}`);
+    }
+    deleted += 1;
+  }
+  return { versionsDeleted: deleted };
+}

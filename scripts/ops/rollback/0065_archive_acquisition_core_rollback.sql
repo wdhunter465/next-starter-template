@@ -183,6 +183,13 @@ CREATE TABLE content_items_prev (
   gate_manual_keep INTEGER NOT NULL DEFAULT 0 CHECK (gate_manual_keep IN (0, 1)),
   released_for_editions_at TEXT,
   release_basis TEXT,
+  -- #5098/migration 0094: archive lifecycle.
+  lifecycle_state TEXT NOT NULL DEFAULT 'active' CHECK (lifecycle_state IN ('active', 'not_to_be_used', 'ok_to_delete', 'purged')),
+  lifecycle_reason TEXT,
+  lifecycle_set_at TEXT,
+  lifecycle_set_by TEXT,
+  lifecycle_issue INTEGER,
+  delete_after TEXT,
   FOREIGN KEY (duplicate_of) REFERENCES content_items_prev(candidate_id) DEFERRABLE INITIALLY DEFERRED
 );
 
@@ -460,7 +467,52 @@ CREATE INDEX IF NOT EXISTS idx_content_items_source_url_active
   WHERE superseded_at IS NULL AND source_url IS NOT NULL;
 
 CREATE VIEW IF NOT EXISTS active_content_items AS
-  SELECT * FROM content_items WHERE superseded_at IS NULL;
+  SELECT * FROM content_items WHERE superseded_at IS NULL AND lifecycle_state = 'active';
+
+-- #5098/migration 0094: the lifecycle index and triggers, recreated unchanged.
+CREATE INDEX IF NOT EXISTS idx_content_items_lifecycle_state
+  ON content_items (lifecycle_state) WHERE lifecycle_state <> 'active';
+
+CREATE TRIGGER IF NOT EXISTS trg_content_items_lifecycle_legal_move
+BEFORE UPDATE OF lifecycle_state ON content_items
+WHEN NEW.lifecycle_state IS NOT OLD.lifecycle_state
+ AND NOT ((OLD.lifecycle_state = 'active' AND NEW.lifecycle_state = 'not_to_be_used')
+       OR (OLD.lifecycle_state = 'not_to_be_used' AND NEW.lifecycle_state IN ('active', 'ok_to_delete'))
+       OR (OLD.lifecycle_state = 'ok_to_delete' AND NEW.lifecycle_state IN ('not_to_be_used', 'purged')))
+BEGIN
+  SELECT RAISE(ABORT, 'illegal lifecycle move: active, not_to_be_used, ok_to_delete, purged only move one legal step at a time');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_content_items_lifecycle_needs_reason
+BEFORE UPDATE OF lifecycle_state ON content_items
+WHEN NEW.lifecycle_state IS NOT OLD.lifecycle_state
+ AND (NEW.lifecycle_reason IS NULL OR trim(NEW.lifecycle_reason) = '' OR NEW.lifecycle_reason IS OLD.lifecycle_reason)
+BEGIN
+  SELECT RAISE(ABORT, 'a lifecycle move needs a new reason');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_content_items_lifecycle_delete_after
+BEFORE UPDATE OF lifecycle_state ON content_items
+WHEN NEW.lifecycle_state = 'ok_to_delete' AND NEW.delete_after IS NULL
+BEGIN
+  SELECT RAISE(ABORT, 'ok_to_delete needs delete_after, the end of the waiting period');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_content_items_lifecycle_waiting_period
+BEFORE UPDATE OF lifecycle_state ON content_items
+WHEN NEW.lifecycle_state = 'purged' AND OLD.lifecycle_state = 'ok_to_delete'
+ AND (OLD.delete_after IS NULL OR OLD.delete_after > strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+BEGIN
+  SELECT RAISE(ABORT, 'purged needs the waiting period to have passed (delete_after)');
+END;
+
+CREATE TRIGGER IF NOT EXISTS trg_content_items_lifecycle_event
+AFTER UPDATE OF lifecycle_state ON content_items
+WHEN NEW.lifecycle_state IS NOT OLD.lifecycle_state
+BEGIN
+  INSERT INTO archive_lifecycle_events (content_item_id, from_state, to_state, reason, actor, issue_number, delete_after)
+  VALUES (NEW.id, OLD.lifecycle_state, NEW.lifecycle_state, NEW.lifecycle_reason, NEW.lifecycle_set_by, NEW.lifecycle_issue, NEW.delete_after);
+END;
 
 -- #5095/migration 0093: the permission views, recreated unchanged.
 -- One row per live content record and per active grant that covers it.
