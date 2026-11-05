@@ -256,11 +256,31 @@ export function makeCandidateIdFactory(now = Date.now()) {
 // Carries the raw HTTP status so isRetryable below can classify it without
 // parsing the error message string.
 class HttpStatusError extends Error {
-  constructor(url, status) {
+  constructor(url, status, retryAfterMs = null) {
     super(`${url} -> HTTP ${status}`);
     this.name = 'HttpStatusError';
     this.status = status;
+    this.retryAfterMs = retryAfterMs;
   }
+}
+
+// #5082: raised, without any network call, for a host family that already refused us (HTTP 429 after
+// its last attempt) earlier in this run. Never retried: asking again only extends a block.
+class HostRefusedError extends Error {
+  constructor(url) {
+    super(`${url} -> HTTP 429 (not sent: this host refused earlier requests in this run)`);
+    this.name = 'HostRefusedError';
+    this.status = 429;
+  }
+}
+
+/** Milliseconds a Retry-After header asks us to wait (seconds or an HTTP date), or null. */
+export function parseRetryAfterMs(value, now = Date.now()) {
+  if (value === null || value === undefined || value === '') return null;
+  const seconds = Number(value);
+  if (Number.isFinite(seconds) && seconds >= 0) return Math.round(seconds * 1000);
+  const at = Date.parse(String(value));
+  return Number.isFinite(at) ? Math.max(0, at - now) : null;
 }
 
 function retryDelayMs() {
@@ -274,7 +294,9 @@ function retryDelayMs() {
 // same host family waits for a minimum gap since the previous one. Direct calls to a collector (the unit
 // tests) are not spaced: only the run turns it on.
 let hostSpacing = null;
+let locRetryBaseDelayMs = null; // #5082: set only during a run
 const lastRequestAtByHost = new Map();
+const refusedHostFamilies = new Set();
 
 /** The host family a URL belongs to for spacing, or null when it needs no spacing. */
 export function spacingKeyFor(url) {
@@ -298,45 +320,66 @@ async function spaceRequest(url) {
   if (!hostSpacing) return;
   const key = spacingKeyFor(url);
   if (!key) return;
+  if (refusedHostFamilies.has(key)) throw new HostRefusedError(url);
   const wait = waitBeforeRequestMs(lastRequestAtByHost.get(key), Date.now(), hostSpacing[key] ?? 0);
   if (wait > 0) await new Promise((resolve) => setTimeout(resolve, wait));
   lastRequestAtByHost.set(key, Date.now());
 }
 
 async function fetchJson(url, headers = {}) {
-  const baseDelayMs = retryDelayMs();
+  const familyKey = hostSpacing ? spacingKeyFor(url) : null;
+  // #5082: the Library of Congress asks callers to back off after HTTP 429, so its retries wait 20 s, then 40 s,
+  // or the server's own Retry-After if that is longer (capped at two minutes).
+  const baseDelayMs = familyKey === 'loc.gov' && locRetryBaseDelayMs !== null ? locRetryBaseDelayMs : retryDelayMs();
   const timeoutMs = Number(process.env.DISCOVERY_FETCH_TIMEOUT_MS ?? 30000);
-  return withBoundedRetry(
-    async () => {
-      await spaceRequest(url);
-      const response = await fetch(url, {
-        headers: {
-          'User-Agent': 'LGFC-Gehrig-Content-Discovery/1.0 (lougehrigfanclub.com; contact via site)',
-          Accept: 'application/json',
-          ...headers,
-        },
-        signal: AbortSignal.timeout(Number.isFinite(timeoutMs) && timeoutMs > 0 ? timeoutMs : 30000),
-      });
-      if (!response.ok) {
-        throw new HttpStatusError(url, response.status);
-      }
-      return response.json();
-    },
-    {
-      baseDelayMs,
-      delay: baseDelayMs === 0 ? async () => {} : undefined,
-      isRetryable: (error) => {
-        if (error instanceof HttpStatusError) {
-          // 429 (rate limited) and 5xx (server-side) are transient --
-          // worth retrying. Other 4xx responses (bad request, not found,
-          // etc.) mean the request itself is wrong and retrying cannot help.
-          return error.status === 429 || error.status >= 500;
+  let retryAfterMs = null;
+  const realDelay = (ms) => new Promise((resolve) => setTimeout(resolve, Math.min(120_000, Math.max(ms, retryAfterMs ?? 0))));
+  try {
+    return await withBoundedRetry(
+      async () => {
+        await spaceRequest(url);
+        let response;
+        try {
+          response = await fetch(url, {
+            headers: {
+              'User-Agent': 'LGFC-Gehrig-Content-Discovery/1.0 (lougehrigfanclub.com; contact via site)',
+              Accept: 'application/json',
+              ...headers,
+            },
+            signal: AbortSignal.timeout(Number.isFinite(timeoutMs) && timeoutMs > 0 ? timeoutMs : 30000),
+          });
+        } catch (error) {
+          retryAfterMs = null;
+          throw error;
         }
-        // A thrown fetch (network/DNS/TLS/timeout) is always transient.
-        return true;
+        if (!response.ok) {
+          const error = new HttpStatusError(url, response.status, parseRetryAfterMs(response.headers?.get?.('retry-after')));
+          retryAfterMs = error.retryAfterMs;
+          throw error;
+        }
+        return response.json();
       },
-    },
-  );
+      {
+        baseDelayMs,
+        delay: baseDelayMs === 0 ? async () => {} : realDelay,
+        isRetryable: (error) => {
+          if (error instanceof HostRefusedError) return false;
+          if (error instanceof HttpStatusError) {
+            // 429 (rate limited) and 5xx (server-side) are transient --
+            // worth retrying. Other 4xx responses (bad request, not found,
+            // etc.) mean the request itself is wrong and retrying cannot help.
+            return error.status === 429 || error.status >= 500;
+          }
+          // A thrown fetch (network/DNS/TLS/timeout) is always transient.
+          return true;
+        },
+      },
+    );
+  } catch (error) {
+    // #5082: a Library of Congress host that still answers 429 after its last attempt gets no more requests this run.
+    if (familyKey && error instanceof HttpStatusError && error.status === 429) refusedHostFamilies.add(familyKey);
+    throw error;
+  }
 }
 
 function todayDateOnly() {
@@ -900,6 +943,9 @@ async function runDiscoveryWithFetch(options) {
     const parsed = Number(process.env[name] ?? fallback);
     return Number.isFinite(parsed) ? parsed : fallback;
   };
+  refusedHostFamilies.clear();
+  lastRequestAtByHost.clear();
+  locRetryBaseDelayMs = gap('DISCOVERY_LOC_RETRY_BASE_DELAY_MS', 20000);
   hostSpacing = {
     'loc.gov': gap('DISCOVERY_LOC_INTERVAL_MS', 4000),
     'wikimedia.org': gap('DISCOVERY_WIKIMEDIA_INTERVAL_MS', 3000),
