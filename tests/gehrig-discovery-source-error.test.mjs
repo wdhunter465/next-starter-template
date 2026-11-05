@@ -4,7 +4,7 @@ import path from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { decideDiscoveryExit, runDiscovery } from '../scripts/content-pipeline/collect-gehrig-external-sources.mjs';
+import { decideDiscoveryExit, parseRetryAfterMs, runDiscovery } from '../scripts/content-pipeline/collect-gehrig-external-sources.mjs';
 import {
   countConsecutiveFailures,
   countSourceOutages,
@@ -43,6 +43,7 @@ describe('Gehrig discovery source errors (#4588)', () => {
     process.env.DISCOVERY_RETRY_BASE_DELAY_MS = '0';
     process.env.DISCOVERY_LOC_INTERVAL_MS = '0'; // #5074: no request spacing in tests
     process.env.DISCOVERY_WIKIMEDIA_INTERVAL_MS = '0';
+    process.env.DISCOVERY_LOC_RETRY_BASE_DELAY_MS = '0';
     outDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gehrig-discovery-'));
   });
 
@@ -50,6 +51,7 @@ describe('Gehrig discovery source errors (#4588)', () => {
     delete process.env.DISCOVERY_RETRY_BASE_DELAY_MS;
     delete process.env.DISCOVERY_LOC_INTERVAL_MS;
     delete process.env.DISCOVERY_WIKIMEDIA_INTERVAL_MS;
+    delete process.env.DISCOVERY_LOC_RETRY_BASE_DELAY_MS;
     fs.rmSync(outDir, { recursive: true, force: true });
   });
 
@@ -156,5 +158,56 @@ describe('Gehrig discovery halt (#4588)', () => {
     expect(workflow).toContain('issues: write');
     expect(workflow).toContain('actions: read');
     expect(workflow).not.toContain('runner-health-halted');
+  });
+
+  it('stops asking a Library of Congress host that refused us, and keeps the other sources running (#5082)', async () => {
+    const outDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gehrig-discovery-'));
+    const env = { DISCOVERY_RETRY_BASE_DELAY_MS: '0', DISCOVERY_LOC_INTERVAL_MS: '0', DISCOVERY_WIKIMEDIA_INTERVAL_MS: '0', DISCOVERY_LOC_RETRY_BASE_DELAY_MS: '0', DISCOVERY_QUERY_PAUSE_MS: '0' };
+    Object.assign(process.env, env);
+    const locCalls = [];
+    const wikimediaCalls = [];
+    let result;
+    try {
+    result = await runDiscovery(
+      {
+        query: 'Lou Gehrig|Gehrig Eleanor Gehrig wedding|Gehrig funeral 1941',
+        sources: ['loc', 'wikimedia'],
+        limit: 10,
+        out: path.join(outDir, 'candidates.json'),
+      },
+      async (url) => {
+        const href = String(url);
+        if (href.includes('loc.gov')) {
+          locCalls.push(href);
+          return jsonResponse(429, {});
+        }
+        if (href.includes('commons.wikimedia.org')) {
+          wikimediaCalls.push(href);
+          return wikimediaEmpty();
+        }
+        throw new Error(`unexpected url ${href}`);
+      },
+    );
+    } finally {
+      for (const key of Object.keys(env)) delete process.env[key];
+      fs.rmSync(outDir, { recursive: true, force: true });
+    }
+    // First query: three attempts, then the host is marked refused. Queries two and three send nothing.
+    expect(locCalls).toHaveLength(3);
+    const locRuns = result.searchRuns.filter((run) => run.source_domain === 'loc.gov');
+    expect(locRuns).toHaveLength(3);
+    for (const run of locRuns) expect(run.error_summary).toMatch(/HTTP 429/);
+    expect(locRuns[1].error_summary).toMatch(/not sent/);
+    // Wikimedia is a different host family and runs every query.
+    expect(wikimediaCalls.length).toBeGreaterThanOrEqual(3);
+    for (const run of result.searchRuns.filter((r) => r.source_domain === 'commons.wikimedia.org')) expect(run.status).toBe('no_results');
+  });
+
+  it('reads Retry-After as seconds or as an HTTP date (#5082)', () => {
+    expect(parseRetryAfterMs('30')).toBe(30000);
+    expect(parseRetryAfterMs('0')).toBe(0);
+    expect(parseRetryAfterMs('Thu, 05 Nov 2026 10:00:30 GMT', Date.parse('Thu, 05 Nov 2026 10:00:00 GMT'))).toBe(30000);
+    expect(parseRetryAfterMs('Thu, 05 Nov 2026 09:00:00 GMT', Date.parse('Thu, 05 Nov 2026 10:00:00 GMT'))).toBe(0);
+    for (const bad of [null, undefined, '', 'soon']) expect(parseRetryAfterMs(bad)).toBeNull();
   });
 });
