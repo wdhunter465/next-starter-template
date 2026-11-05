@@ -256,12 +256,25 @@ export function makeCandidateIdFactory(now = Date.now()) {
 // Carries the raw HTTP status so isRetryable below can classify it without
 // parsing the error message string.
 class HttpStatusError extends Error {
-  constructor(url, status, retryAfterMs = null) {
-    super(`${url} -> HTTP ${status}`);
+  // `detail` (#5093) is what the server said about the refusal: its Retry-After header and the start of its
+  // response body, on one line. It is added to the message so a run log states the reason for an HTTP 429.
+  constructor(url, status, retryAfterMs = null, detail = '') {
+    super(`${url} -> HTTP ${status}${detail ? ` (${detail})` : ''}`);
     this.name = 'HttpStatusError';
     this.status = status;
     this.retryAfterMs = retryAfterMs;
   }
+}
+
+/** One-line description of a refusal: the Retry-After header (if sent) and up to 200 characters of the body. */
+export function describeRefusal(retryAfterHeader, bodyText) {
+  const parts = [];
+  if (retryAfterHeader !== null && retryAfterHeader !== undefined && String(retryAfterHeader).trim() !== '') {
+    parts.push(`Retry-After: ${String(retryAfterHeader).trim()}`);
+  }
+  const body = String(bodyText ?? '').replace(/\s+/g, ' ').trim();
+  if (body) parts.push(`body: ${body.length > 200 ? `${body.slice(0, 200)}...` : body}`);
+  return parts.join('; ');
 }
 
 // #5082: raised, without any network call, for a host family that already refused us (HTTP 429 after
@@ -353,7 +366,14 @@ async function fetchJson(url, headers = {}) {
           throw error;
         }
         if (!response.ok) {
-          const error = new HttpStatusError(url, response.status, parseRetryAfterMs(response.headers?.get?.('retry-after')));
+          const retryAfterHeader = response.headers?.get?.('retry-after') ?? null;
+          let bodyText = '';
+          try {
+            bodyText = typeof response.text === 'function' ? await response.text() : '';
+          } catch {
+            bodyText = '';
+          }
+          const error = new HttpStatusError(url, response.status, parseRetryAfterMs(retryAfterHeader), describeRefusal(retryAfterHeader, bodyText));
           retryAfterMs = error.retryAfterMs;
           throw error;
         }
