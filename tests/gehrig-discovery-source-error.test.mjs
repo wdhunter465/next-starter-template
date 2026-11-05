@@ -4,7 +4,7 @@ import path from 'node:path';
 
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
-import { decideDiscoveryExit, parseRetryAfterMs, runDiscovery } from '../scripts/content-pipeline/collect-gehrig-external-sources.mjs';
+import { decideDiscoveryExit, describeRefusal, parseRetryAfterMs, runDiscovery } from '../scripts/content-pipeline/collect-gehrig-external-sources.mjs';
 import {
   countConsecutiveFailures,
   countSourceOutages,
@@ -209,5 +209,40 @@ describe('Gehrig discovery halt (#4588)', () => {
     expect(parseRetryAfterMs('Thu, 05 Nov 2026 10:00:30 GMT', Date.parse('Thu, 05 Nov 2026 10:00:00 GMT'))).toBe(30000);
     expect(parseRetryAfterMs('Thu, 05 Nov 2026 09:00:00 GMT', Date.parse('Thu, 05 Nov 2026 10:00:00 GMT'))).toBe(0);
     for (const bad of [null, undefined, '', 'soon']) expect(parseRetryAfterMs(bad)).toBeNull();
+  });
+
+  it('puts the Retry-After header and the start of the body in a refusal message (#5093)', () => {
+    expect(describeRefusal('30', 'Too many requests.\n  Slow   down')).toBe('Retry-After: 30; body: Too many requests. Slow down');
+    expect(describeRefusal(null, '')).toBe('');
+    expect(describeRefusal(undefined, 'blocked')).toBe('body: blocked');
+    expect(describeRefusal(' 5 ', null)).toBe('Retry-After: 5');
+    const long = describeRefusal(null, 'x'.repeat(500));
+    expect(long).toBe(`body: ${'x'.repeat(200)}...`);
+  });
+
+  it('records that detail on the search run when a source answers HTTP 429 (#5093)', async () => {
+    const outDir = fs.mkdtempSync(path.join(os.tmpdir(), 'gehrig-discovery-'));
+    const env = { DISCOVERY_RETRY_BASE_DELAY_MS: '0', DISCOVERY_LOC_INTERVAL_MS: '0', DISCOVERY_WIKIMEDIA_INTERVAL_MS: '0', DISCOVERY_LOC_RETRY_BASE_DELAY_MS: '0', DISCOVERY_QUERY_PAUSE_MS: '0' };
+    Object.assign(process.env, env);
+    let result;
+    try {
+      result = await runDiscovery(
+        { query: 'Lou Gehrig', sources: ['loc'], limit: 10, out: path.join(outDir, 'candidates.json') },
+        async () => ({
+          ok: false,
+          status: 429,
+          headers: { get: (name) => (name.toLowerCase() === 'retry-after' ? '3600' : null) },
+          text: async () => 'Rate limit exceeded for this address. Try again in one hour.',
+          json: async () => ({}),
+        }),
+      );
+    } finally {
+      for (const key of Object.keys(env)) delete process.env[key];
+      fs.rmSync(outDir, { recursive: true, force: true });
+    }
+    const run = result.searchRuns.find((r) => r.source_domain === 'loc.gov');
+    expect(run.error_summary).toMatch(/HTTP 429/);
+    expect(run.error_summary).toMatch(/Retry-After: 3600/);
+    expect(run.error_summary).toMatch(/Rate limit exceeded for this address/);
   });
 });
