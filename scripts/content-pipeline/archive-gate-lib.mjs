@@ -6,6 +6,14 @@
 export const RELEASE_BASIS =
   "Product Authority direction 2026-10-31 (#5038, #5053): quality-gate release for edition use; not a person's rights release";
 
+/**
+ * #5088: Product Authority paused the 2026-10-31 direction on 2026-11-05 (counsel's guidance and the
+ * CMG, MLB and Yankees responses are pending). While true, a `good` verdict is recorded but nothing
+ * is released for edition use. Lifting the pause is one reviewed change to this constant, after
+ * Product Authority lifts it on #5088.
+ */
+export const EDITION_RELEASE_PAUSED = true;
+
 /** Items Product Authority said to keep although the text does not name Gehrig. */
 export const MANUAL_KEEP_CANDIDATE_IDS = ['lgfc-gehrig-2026-1793621199065'];
 
@@ -47,16 +55,19 @@ export function gateInputForRow(row, { widthPx, heightPx, kind, text } = {}) {
   };
 }
 
-/** The columns to write for a verdict. Only a `good` verdict carries a release. */
-export function gateRecord(verdict, nowIso) {
-  const good = verdict.decision === 'good';
+/**
+ * The columns to write for a verdict. Only a `good` verdict carries a release, and none does while
+ * the release is paused (#5088); the verdict itself is always recorded.
+ */
+export function gateRecord(verdict, nowIso, { releasePaused = EDITION_RELEASE_PAUSED } = {}) {
+  const release = verdict.decision === 'good' && !releasePaused;
   return {
     gate_decision: verdict.decision,
     gate_relevance: verdict.relevance,
     gate_reasons: verdict.reasons.join(','),
     gate_evaluated_at: nowIso,
-    released_for_editions_at: good ? nowIso : null,
-    release_basis: good ? RELEASE_BASIS : null,
+    released_for_editions_at: release ? nowIso : null,
+    release_basis: release ? RELEASE_BASIS : null,
   };
 }
 

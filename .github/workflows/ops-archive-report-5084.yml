@@ -1,0 +1,58 @@
+name: OPS — Archive report (#5084)
+
+# Manual, read-only report of every B2 picture with its rights state, subject verdict and whether it
+# may be used today. Runs SELECT statements against Production D1 and uploads a CSV and a Markdown
+# summary as a run artifact. It writes nothing to D1 or B2. It does not run on pull_request or
+# schedule.
+
+on:
+  workflow_dispatch: {}
+
+concurrency:
+  group: ops-archive-report-5084
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  report:
+    if: >-
+      github.repository == 'wdhunter465/next-starter-template' &&
+      github.actor == 'wdhunter465'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify Cloudflare D1 credentials
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DATABASE_NAME: lgfc_lite
+        run: node scripts/ci/verify_cloudflare_d1_auth.mjs
+
+      - name: Build the report (read-only)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: node scripts/ops/archive-report.mjs --remote --out-dir archive-report
+
+      - name: Add the summary to the run page
+        run: cat archive-report/archive-report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload the report
+        uses: actions/upload-artifact@v4
+        with:
+          name: archive-report
+          path: archive-report/
+          retention-days: 30
