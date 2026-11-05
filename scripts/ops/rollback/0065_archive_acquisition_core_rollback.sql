@@ -63,6 +63,12 @@ DROP TABLE _rollback_0065_guard;
 -- renames; drop it here and recreate it, unchanged, before COMMIT.
 DROP VIEW IF EXISTS active_content_items;
 
+-- #5095/migration 0093: the permission views read content_items; drop them here (dependents
+-- first) and recreate them, unchanged, before COMMIT. permission_grants itself is untouched.
+DROP VIEW IF EXISTS content_item_permission_status;
+DROP VIEW IF EXISTS content_item_party_grants;
+DROP VIEW IF EXISTS permission_grant_matches;
+
 DROP TABLE archive_item_custody_events;
 DROP TABLE archive_items;
 
@@ -455,6 +461,110 @@ CREATE INDEX IF NOT EXISTS idx_content_items_source_url_active
 
 CREATE VIEW IF NOT EXISTS active_content_items AS
   SELECT * FROM content_items WHERE superseded_at IS NULL;
+
+-- #5095/migration 0093: the permission views, recreated unchanged.
+-- One row per live content record and per active grant that covers it.
+CREATE VIEW IF NOT EXISTS permission_grant_matches AS
+SELECT ci.id AS content_item_id, g.id AS grant_id, g.party, g.status, g.permitted_website, g.permitted_social
+  FROM content_items ci
+  JOIN permission_grants g
+    ON g.revoked_at IS NULL
+   AND (g.effective_from IS NULL OR g.effective_from <= strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+   AND (g.effective_until IS NULL OR g.effective_until > strftime('%Y-%m-%dT%H:%M:%fZ', 'now'))
+   AND (g.scope_type = 'all'
+        OR (g.scope_type = 'content_item' AND g.scope_value = CAST(ci.id AS TEXT))
+        OR (g.scope_type = 'source_domain' AND g.scope_value = ci.source_domain)
+        OR (g.scope_type = 'source_owner' AND g.scope_value = ci.source_owner)
+        OR (g.scope_type = 'content_type' AND g.scope_value = ci.content_type))
+ WHERE ci.superseded_at IS NULL;
+
+-- Per record: for each party, whether an active grant denies, approves each channel, approves
+-- at all, or says not in purview.
+CREATE VIEW IF NOT EXISTS content_item_party_grants AS
+SELECT content_item_id,
+       MAX(party = 'cmg' AND status = 'denied') AS cmg_denied,
+       MAX(party = 'cmg' AND status = 'approved' AND permitted_website = 1) AS cmg_approved_website,
+       MAX(party = 'cmg' AND status = 'approved' AND permitted_social = 1) AS cmg_approved_social,
+       MAX(party = 'cmg' AND status = 'approved') AS cmg_approved_any,
+       MAX(party = 'cmg' AND status = 'not_in_purview') AS cmg_not_in_purview,
+       MAX(party = 'mlb' AND status = 'denied') AS mlb_denied,
+       MAX(party = 'mlb' AND status = 'approved' AND permitted_website = 1) AS mlb_approved_website,
+       MAX(party = 'mlb' AND status = 'approved' AND permitted_social = 1) AS mlb_approved_social,
+       MAX(party = 'mlb' AND status = 'approved') AS mlb_approved_any,
+       MAX(party = 'mlb' AND status = 'not_in_purview') AS mlb_not_in_purview,
+       MAX(party = 'yankees' AND status = 'denied') AS yankees_denied,
+       MAX(party = 'yankees' AND status = 'approved' AND permitted_website = 1) AS yankees_approved_website,
+       MAX(party = 'yankees' AND status = 'approved' AND permitted_social = 1) AS yankees_approved_social,
+       MAX(party = 'yankees' AND status = 'approved') AS yankees_approved_any,
+       MAX(party = 'yankees' AND status = 'not_in_purview') AS yankees_not_in_purview
+  FROM permission_grant_matches
+ GROUP BY content_item_id;
+
+CREATE VIEW IF NOT EXISTS content_item_permission_status AS
+SELECT content_item_id, candidate_id, origin_permission, privacy_status, outcome_basis,
+       cmg_website, mlb_website, yankees_website, cmg_social, mlb_social, yankees_social,
+       CASE
+         WHEN origin_permission = 'not_permitted' OR privacy_status = 'not_permitted' OR outcome_basis = 'fee_required'
+           OR cmg_website IN ('denied', 'not_covered') OR mlb_website IN ('denied', 'not_covered') OR yankees_website IN ('denied', 'not_covered') THEN 'not_permitted'
+         WHEN origin_permission = 'permitted' AND privacy_status IN ('permitted', 'not_applicable')
+           AND cmg_website IN ('approved', 'not_applicable') AND mlb_website IN ('approved', 'not_applicable') AND yankees_website IN ('approved', 'not_applicable') THEN 'permitted'
+         ELSE 'for_admin_review'
+       END AS computed_status_website,
+       CASE
+         WHEN origin_permission = 'not_permitted' OR privacy_status = 'not_permitted' OR outcome_basis = 'fee_required'
+           OR cmg_social IN ('denied', 'not_covered') OR mlb_social IN ('denied', 'not_covered') OR yankees_social IN ('denied', 'not_covered') THEN 'not_permitted'
+         WHEN origin_permission = 'permitted' AND privacy_status IN ('permitted', 'not_applicable')
+           AND cmg_social IN ('approved', 'not_applicable') AND mlb_social IN ('approved', 'not_applicable') AND yankees_social IN ('approved', 'not_applicable') THEN 'permitted'
+         ELSE 'for_admin_review'
+       END AS computed_status_social
+  FROM (
+    SELECT ci.id AS content_item_id, ci.candidate_id, ci.origin_permission, ci.privacy_status, ci.outcome_basis,
+           CASE
+             WHEN COALESCE(pg.cmg_denied, 0) = 1 OR ci.cmg_permission = 'not_permitted' THEN 'denied'
+             WHEN COALESCE(pg.cmg_approved_website, 0) = 1 OR ci.cmg_permission = 'permitted' THEN 'approved'
+             WHEN COALESCE(pg.cmg_approved_any, 0) = 1 THEN 'not_covered'
+             WHEN COALESCE(pg.cmg_not_in_purview, 0) = 1 OR ci.cmg_permission = 'not_applicable' THEN 'not_applicable'
+             ELSE 'pending'
+           END AS cmg_website,
+           CASE
+             WHEN COALESCE(pg.mlb_denied, 0) = 1 OR ci.mlb_permission = 'not_permitted' THEN 'denied'
+             WHEN COALESCE(pg.mlb_approved_website, 0) = 1 OR ci.mlb_permission = 'permitted' THEN 'approved'
+             WHEN COALESCE(pg.mlb_approved_any, 0) = 1 THEN 'not_covered'
+             WHEN COALESCE(pg.mlb_not_in_purview, 0) = 1 OR ci.mlb_permission = 'not_applicable' THEN 'not_applicable'
+             ELSE 'pending'
+           END AS mlb_website,
+           CASE
+             WHEN COALESCE(pg.yankees_denied, 0) = 1 OR ci.yankees_permission = 'not_permitted' THEN 'denied'
+             WHEN COALESCE(pg.yankees_approved_website, 0) = 1 OR ci.yankees_permission = 'permitted' THEN 'approved'
+             WHEN COALESCE(pg.yankees_approved_any, 0) = 1 THEN 'not_covered'
+             WHEN COALESCE(pg.yankees_not_in_purview, 0) = 1 OR ci.yankees_permission = 'not_applicable' THEN 'not_applicable'
+             ELSE 'pending'
+           END AS yankees_website,
+           CASE
+             WHEN COALESCE(pg.cmg_denied, 0) = 1 OR ci.cmg_permission = 'not_permitted' THEN 'denied'
+             WHEN COALESCE(pg.cmg_approved_social, 0) = 1 OR ci.cmg_permission = 'permitted' THEN 'approved'
+             WHEN COALESCE(pg.cmg_approved_any, 0) = 1 THEN 'not_covered'
+             WHEN COALESCE(pg.cmg_not_in_purview, 0) = 1 OR ci.cmg_permission = 'not_applicable' THEN 'not_applicable'
+             ELSE 'pending'
+           END AS cmg_social,
+           CASE
+             WHEN COALESCE(pg.mlb_denied, 0) = 1 OR ci.mlb_permission = 'not_permitted' THEN 'denied'
+             WHEN COALESCE(pg.mlb_approved_social, 0) = 1 OR ci.mlb_permission = 'permitted' THEN 'approved'
+             WHEN COALESCE(pg.mlb_approved_any, 0) = 1 THEN 'not_covered'
+             WHEN COALESCE(pg.mlb_not_in_purview, 0) = 1 OR ci.mlb_permission = 'not_applicable' THEN 'not_applicable'
+             ELSE 'pending'
+           END AS mlb_social,
+           CASE
+             WHEN COALESCE(pg.yankees_denied, 0) = 1 OR ci.yankees_permission = 'not_permitted' THEN 'denied'
+             WHEN COALESCE(pg.yankees_approved_social, 0) = 1 OR ci.yankees_permission = 'permitted' THEN 'approved'
+             WHEN COALESCE(pg.yankees_approved_any, 0) = 1 THEN 'not_covered'
+             WHEN COALESCE(pg.yankees_not_in_purview, 0) = 1 OR ci.yankees_permission = 'not_applicable' THEN 'not_applicable'
+             ELSE 'pending'
+           END AS yankees_social
+      FROM content_items ci
+      LEFT JOIN content_item_party_grants pg ON pg.content_item_id = ci.id
+     WHERE ci.superseded_at IS NULL
+  );
 
 CREATE TRIGGER IF NOT EXISTS trg_content_items_final_status_insert
 BEFORE INSERT ON content_items
