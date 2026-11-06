@@ -51,6 +51,28 @@ describe('Join drops the new member on the check-your-email page (#5112)', () =>
     expect(window.sessionStorage.getItem(PENDING_EMAIL_STORAGE_KEY)).toBe('jane@example.com');
   });
 
+  it('lets a signed-in member add another household member: no login, no logout, own session untouched (#5118)', async () => {
+    const location = stubLocation();
+    const fetchMock = vi.fn(async (url: string) => {
+      if (url === '/api/session/me') return jsonResponse(true, { ok: true, email: 'admin@example.com', role: 'admin' });
+      if (url === '/api/join') return jsonResponse(true, { ok: true, status: 'joined', verification_required: true });
+      throw new Error(`unexpected request to ${url}`);
+    });
+    vi.stubGlobal('fetch', fetchMock);
+
+    render(<AuthClient defaultMode="join" />);
+    expect(await screen.findByTestId('signed-in-note')).toHaveTextContent('admin@example.com');
+    const user = userEvent.setup();
+    await user.type(screen.getByLabelText(/screen name/i), 'spouse');
+    await user.type(screen.getByLabelText(/full name/i), 'Pat Doe');
+    await user.type(screen.getByLabelText(/^email$/i), 'pat@example.com');
+    await user.click(screen.getByRole('button', { name: 'Join' }));
+
+    await waitFor(() => expect(location.href).toBe(CHECK_EMAIL_ROUTE));
+    expect(fetchMock.mock.calls.map((call) => call[0])).toEqual(['/api/session/me', '/api/join']);
+    expect(location.replace).not.toHaveBeenCalled();
+  });
+
   it('sends an unverified member who tries to log in to the check-email page', async () => {
     const location = stubLocation();
     vi.stubGlobal(
