@@ -77,6 +77,11 @@ const {
   parseDigitalCommonwealthManifest,
   createThrottleTracker,
   DPLA_EXTRA_APPROVED_DOMAINS,
+  INTERNET_ARCHIVE_APPROVED_DOMAINS,
+  describeInternetArchiveFiles,
+  internetArchiveIdentifier,
+  internetArchiveRecordText,
+  pickInternetArchiveImage,
   parseDplaLinks,
   buildArchiveCandidatesSql,
   MASTER_JPEG_QUALITY,
@@ -195,6 +200,16 @@ async function resolveCommons(row) {
 }
 
 // DPLA rows: try each full-size link for the contributing library and keep the first that is large enough (#4902).
+async function resolveInternetArchive(row, minimumLongSide) {
+  const identifier = internetArchiveIdentifier(row.source_url);
+  if (!identifier) throw new SkipError('source_url is not an archive.org item page');
+  const response = await fetchOk(`https://archive.org/metadata/${encodeURIComponent(identifier)}`, 'application/json', 30_000);
+  const metadata = await response.json();
+  const file = pickInternetArchiveImage(metadata, minimumLongSide);
+  if (!file) throw new SkipError(`archive.org item names no usable JPEG or PNG (${describeInternetArchiveFiles(metadata)})`);
+  return { ...file, inventory: file.name, text: [row.title, ...internetArchiveRecordText(metadata)] };
+}
+
 async function resolveDpla(row, minimumLongSide) {
   const links = parseDplaLinks(row.provenance_notes);
   const ladder = buildDplaImageLadder(links);
@@ -321,7 +336,9 @@ async function archiveOne(db, row, context) {
       ? await resolveLoc(row, context.lists.minimum_long_side_px)
       : row.source_domain === 'dp.la'
         ? await resolveDpla(row, context.lists.minimum_long_side_px)
-        : await resolveCommons(row);
+        : row.source_domain === 'archive.org'
+          ? await resolveInternetArchive(row, context.lists.minimum_long_side_px)
+          : await resolveCommons(row);
 
   const kind = pictureKind(row.title, ...resolved.text);
   const minimumLongSide = minimumLongSideFor(kind, context.lists.minimum_long_side_px);
@@ -484,6 +501,7 @@ async function main() {
   const db = makeWranglerD1({ database: options.database, target: options.target, cwd: repoRoot });
   const approvedDomains = await loadApprovedSourceDomains(db);
   for (const domain of DPLA_EXTRA_APPROVED_DOMAINS) approvedDomains.add(domain);
+  for (const domain of INTERNET_ARCHIVE_APPROVED_DOMAINS) approvedDomains.add(domain);
 
   // "Unchecked in": brought in by a search, no quality-gate verdict yet.
   const unchecked = (await db.prepare(buildUncheckedInCountSql()).first()) ?? {};
