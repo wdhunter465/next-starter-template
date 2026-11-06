@@ -227,6 +227,10 @@ export function appendArchiveNote(existing, line, date = new Date().toISOString(
  * parameter: the row limit. Selects rows never processed, plus rows whose only archive notes come from
  * an older marker and are file-reason skips; every other skip is final.
  */
+// Boston records skipped when the image link was guessed (#4916) are tried once more through the manifest.
+const DPLA_BOSTON_GUESS_SKIP = 'Digital Commonwealth IIIF: source returned HTTP 404';
+const DPLA_BOSTON_MANIFEST_LABEL = 'Digital Commonwealth manifest';
+
 export function buildArchiveCandidatesSql() {
   const has = (text) => `instr(admin_notes, '${text}') > 0`;
   const anyMarker = [ARCHIVE_NOTE_MARKER, ...LEGACY_NOTE_MARKERS].map((marker) => `NOT ${has(marker)}`).join(' AND ');
@@ -247,6 +251,7 @@ export function buildArchiveCandidatesSql() {
              OR (${anyMarker})
              OR (NOT ${has(ARCHIVE_NOTE_MARKER)} AND (${legacyFileSkips}))
              OR (gate_manual_keep = 1 AND (gate_decision IS NULL OR gate_decision != 'good'))
+             OR (${has(DPLA_BOSTON_GUESS_SKIP)} AND NOT ${has(DPLA_BOSTON_MANIFEST_LABEL)})
            )
          ORDER BY id LIMIT ?`;
 }
@@ -315,14 +320,14 @@ export function buildDplaImageLadder({ thumbnail, views = [] }) {
     }
     const host = parsed.hostname.toLowerCase();
     if (host === 'images.nypl.org') {
+      // NYPL's public image service stops at 760 px (t=g and t=q answer 404), so this one link is expected
+      // to fall under the 1,500 px and 800 px minimums; trying it records that in the skip note (#4902).
       const id = parsed.searchParams.get('id');
-      if (id) for (const size of ['g', 'q', 'w']) add(`https://images.nypl.org/index.php?id=${encodeURIComponent(id)}&t=${size}`, `NYPL size ${size}`);
+      if (id) add(`https://images.nypl.org/index.php?id=${encodeURIComponent(id)}&t=w`, 'NYPL public service (760 px maximum)');
     } else if (host === 'ark.digitalcommonwealth.org' || host === 'iiif.digitalcommonwealth.org') {
       const id = digitalCommonwealthId(raw) ?? /commonwealth:([a-z0-9]+)/i.exec(raw)?.[1] ?? null;
-      if (id) {
-        add(`https://iiif.digitalcommonwealth.org/iiif/2/commonwealth:${id}/full/!${IIIF_LONG_EDGE},${IIIF_LONG_EDGE}/0/default.jpg`, 'Digital Commonwealth IIIF');
-        add(`https://ark.digitalcommonwealth.org/ark:/50959/${id}/large`, 'Digital Commonwealth large');
-      }
+      // The picture lives under its own file id, so the link comes from the item's IIIF manifest (#4902).
+      if (id) add(`https://ark.digitalcommonwealth.org/ark:/50959/${id}/manifest`, 'Digital Commonwealth manifest');
     }
   }
   return ladder;
@@ -355,4 +360,23 @@ export function createThrottleTracker(maxConsecutive = 2) {
       return list.length > 0 && list.every((domain) => paused.has(domain));
     },
   };
+}
+
+/**
+ * The first image of a Digital Commonwealth IIIF v2 manifest: the image service and its pixel size, or null.
+ * The service answers `/full/!N,N/0/default.jpg` with a JPEG no larger than N px on a side (#4902).
+ */
+export function parseDigitalCommonwealthManifest(manifest) {
+  const image = manifest?.sequences?.[0]?.canvases?.[0]?.images?.[0]?.resource;
+  const service = image?.service?.['@id'];
+  if (typeof service !== 'string' || !/^https:\/\/iiif\.digitalcommonwealth\.org\/iiif\/2\/commonwealth:[a-z0-9]+$/i.test(service)) return null;
+  const width = Number(image.width);
+  const height = Number(image.height);
+  return { service, width: Number.isFinite(width) ? width : null, height: Number.isFinite(height) ? height : null };
+}
+
+/** The JPEG link for a manifest image, scaled down to at most `maxEdge` px on its long side. */
+export function digitalCommonwealthImageUrl({ service, width, height }, maxEdge = IIIF_LONG_EDGE) {
+  const side = longSideOf(width, height);
+  return side > maxEdge || !side ? `${service}/full/!${maxEdge},${maxEdge}/0/default.jpg` : `${service}/full/full/0/default.jpg`;
 }

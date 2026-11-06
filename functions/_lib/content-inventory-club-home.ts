@@ -391,6 +391,9 @@ async function mediaFeatureDuplicatesLead(
   return Number((leadPrimary as any).media_id || 0) === Number((mediaPrimary as any).media_id || 0);
 }
 
+/** The photo id behind a resolved media feature, kept off the public payload (#5076 snapshots). */
+const MEDIA_FEATURE_IDS = new WeakMap<object, number>();
+
 async function resolveMediaFeature(
   db: any,
   leadStory: ClubHomeStoryPayload | null,
@@ -417,7 +420,7 @@ async function resolveMediaFeature(
             publicB2BaseUrl,
           );
       const isMemorabilia = Number((primary as any).is_memorabilia) === 1;
-      return {
+      const feature: ClubHomeMediaFeaturePayload = {
         thumbnail_url: rendition?.url ?? null,
         media_rendition: rendition?.size ?? null,
         title:
@@ -430,6 +433,8 @@ async function resolveMediaFeature(
         href: isMemorabilia ? "/fanclub/memorabilia" : "/fanclub/photo",
         is_memorabilia: isMemorabilia,
       };
+      MEDIA_FEATURE_IDS.set(feature, Number((primary as any).media_id || 0));
+      return feature;
     }
   }
 
@@ -449,7 +454,7 @@ async function resolveMediaFeature(
   const mediaId = Number((photoRow as any).id || 0);
   const rendition = await resolveReadyClubHomeRenditionUrl(db, mediaId, CLUB_HOME_MEDIA_RENDITION_SIZE, request, publicB2BaseUrl);
   const isMemorabilia = Number((photoRow as any).is_memorabilia) === 1;
-  return {
+  const feature: ClubHomeMediaFeaturePayload = {
     thumbnail_url: rendition?.url ?? null,
     media_rendition: rendition?.size ?? null,
     title: typeof (photoRow as any).title === "string" ? (photoRow as any).title : null,
@@ -459,6 +464,8 @@ async function resolveMediaFeature(
     href: isMemorabilia ? "/fanclub/memorabilia" : "/fanclub/photo",
     is_memorabilia: isMemorabilia,
   };
+  MEDIA_FEATURE_IDS.set(feature, mediaId);
+  return feature;
 }
 
 /**
@@ -871,10 +878,30 @@ async function markEditionFailed(db: any, editionId: number, reason: string): Pr
     .run();
 }
 
+type ActivationReason = "regenerate" | "rollback" | "manual";
+
+/** Append one row to the activation log (#5076). Skipped when the log table is not migrated yet. */
+async function logEditionActivation(db: any, editionId: number, activatedBy: string, reason: ActivationReason): Promise<void> {
+  const now = await nowIso(db);
+  try {
+    await db
+      .prepare(
+        `INSERT INTO club_home_edition_activations (edition_id, activated_at, activated_by, reason)
+         VALUES (?, ?, ?, ?)`,
+      )
+      .bind(editionId, now, activatedBy, reason)
+      .run();
+  } catch (err: any) {
+    // Deploy can land before the migration; the live page must not fail because the log is missing.
+    if (!/no such table/i.test(String(err?.message || err || ""))) throw err;
+  }
+}
+
 async function activateEditionPointer(
   db: any,
   editionId: number,
   activatedBy: string,
+  reason: ActivationReason,
 ): Promise<{ ok: true } | { ok: false; error: string; status: number; building_edition_id?: number }> {
   const now = await nowIso(db);
   const result = await db
@@ -909,7 +936,119 @@ async function activateEditionPointer(
       building_edition_id: building?.id ? Number(building.id) : undefined,
     };
   }
+  await logEditionActivation(db, editionId, activatedBy, reason);
   return { ok: true };
+}
+
+type PlacementSnapshot = {
+  title: string | null;
+  text_sha256: string | null;
+  credit_line: string | null;
+  source_name: string | null;
+  media_id: number | null;
+  media_url: string | null;
+  media_rendition: string | null;
+  rights_status: string | null;
+  final_status: string | null;
+  rights_hold: number | null;
+  publication_eligible: number | null;
+};
+
+async function sha256HexOfText(text: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(digest), (byte) => byte.toString(16).padStart(2, "0")).join("");
+}
+
+function textOrNull(value: unknown): string | null {
+  return typeof value === "string" && value.trim() ? value : null;
+}
+
+/**
+ * What a placement showed at build time (#5076): the story's title, a hash of its text, its credit
+ * line, the picture behind it and that picture's rights state. Later edits to the story or the
+ * photo do not change the snapshot. The picture and rights lookups are best effort: a lookup that
+ * fails leaves those fields empty and never stops an edition from being built.
+ */
+async function buildPlacementSnapshot(
+  db: any,
+  storyRow: ClubHomeInventoryRow | null,
+  mediaId: number | null,
+  mediaFeature: ClubHomeMediaFeaturePayload | null,
+): Promise<PlacementSnapshot> {
+  const snapshot: PlacementSnapshot = {
+    title: textOrNull(storyRow?.title),
+    text_sha256: storyRow ? await sha256HexOfText(String(storyRow.text ?? (storyRow as any).summary ?? "")) : null,
+    credit_line: textOrNull((storyRow as any)?.credit_line),
+    source_name: textOrNull((storyRow as any)?.source_name),
+    media_id: mediaId && mediaId > 0 ? mediaId : null,
+    media_url: mediaFeature?.thumbnail_url ?? null,
+    media_rendition: mediaFeature?.media_rendition ?? null,
+    rights_status: null,
+    final_status: null,
+    rights_hold: null,
+    publication_eligible: null,
+  };
+  if (!snapshot.media_id) return snapshot;
+  try {
+    const photo = await db
+      .prepare(`SELECT url, rights_hold, publication_eligible FROM photos WHERE id = ?`)
+      .bind(snapshot.media_id)
+      .first();
+    if (photo) {
+      snapshot.rights_hold = photo.rights_hold == null ? null : Number(photo.rights_hold);
+      snapshot.publication_eligible = photo.publication_eligible == null ? null : Number(photo.publication_eligible);
+      const key = String(photo.url || "").split("?")[0].split("/").pop() || "";
+      if (key) {
+        const item = await db
+          .prepare(`SELECT rights_status, final_status FROM content_items WHERE media_asset_id = ? LIMIT 1`)
+          .bind(`b2://${decodeURIComponent(key)}`)
+          .first();
+        snapshot.rights_status = textOrNull(item?.rights_status);
+        snapshot.final_status = textOrNull(item?.final_status);
+      }
+    }
+  } catch {
+    // Best effort only; see the note above.
+  }
+  return snapshot;
+}
+
+async function insertPlacementWithSnapshot(
+  db: any,
+  editionId: number,
+  row: { zone_id: string; story_id: number | null; position: number; selection_mode: string; feature_size: string | null },
+  snapshot: PlacementSnapshot,
+  createdAt: string,
+): Promise<void> {
+  try {
+    await db
+      .prepare(
+        `INSERT INTO content_inventory_club_home_edition_placements
+           (edition_id, zone_id, story_id, position, selection_mode, feature_size, created_at,
+            snapshot_taken_at, snapshot_title, snapshot_text_sha256, snapshot_credit_line, snapshot_source_name,
+            snapshot_media_id, snapshot_media_url, snapshot_media_rendition, snapshot_rights_status,
+            snapshot_final_status, snapshot_rights_hold, snapshot_publication_eligible)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .bind(
+        editionId, row.zone_id, row.story_id, row.position, row.selection_mode, row.feature_size, createdAt,
+        createdAt, snapshot.title, snapshot.text_sha256, snapshot.credit_line, snapshot.source_name,
+        snapshot.media_id, snapshot.media_url, snapshot.media_rendition, snapshot.rights_status,
+        snapshot.final_status, snapshot.rights_hold, snapshot.publication_eligible,
+      )
+      .run();
+  } catch (err: any) {
+    // Deploy can land before migration 0095; fall back to the original columns.
+    if (!/no such column|has no column named/i.test(String(err?.message || err || ""))) throw err;
+    await db
+      .prepare(
+        `INSERT INTO content_inventory_club_home_edition_placements
+           (edition_id, zone_id, story_id, position, selection_mode, feature_size, created_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      )
+      .bind(editionId, row.zone_id, row.story_id, row.position, row.selection_mode, row.feature_size, createdAt)
+      .run();
+  }
 }
 
 export type ClubHomeEditionMutationResult =
@@ -1088,15 +1227,27 @@ export async function regenerateClubHomeEdition(
     }
 
     const completedAt = await nowIso(db);
+    const storyRowsById = new Map<number, ClubHomeInventoryRow>();
+    for (const candidate of [composed.leadRow, ...composed.railRows, composed.spotlightRow, composed.mediaFeatureRow]) {
+      if (candidate) storyRowsById.set(Number(candidate.id), candidate);
+    }
+    let primaryMediaByStory = new Map<number, number>();
+    try {
+      const associations = await listStoryMediaAssociations(db, [...storyRowsById.keys()]);
+      for (const [storyId, rows] of associations) {
+        const primary = rows.find((entry) => String((entry as any).media_role || "") === "primary_image") || rows[0];
+        if (primary) primaryMediaByStory.set(Number(storyId), Number((primary as any).media_id || 0));
+      }
+    } catch {
+      primaryMediaByStory = new Map();
+    }
+    const featureMediaId = mediaFeature ? (MEDIA_FEATURE_IDS.get(mediaFeature) ?? null) : null;
     for (const row of placementRows) {
-      await db
-        .prepare(
-          `INSERT INTO content_inventory_club_home_edition_placements
-             (edition_id, zone_id, story_id, position, selection_mode, feature_size, created_at)
-           VALUES (?, ?, ?, ?, ?, ?, ?)`,
-        )
-        .bind(editionId, row.zone_id, row.story_id, row.position, row.selection_mode, row.feature_size, completedAt)
-        .run();
+      const isFeatureZone = row.zone_id === CLUB_HOME_PLACEMENT_ZONES.mediaFeature;
+      const storyRow = row.story_id != null ? (storyRowsById.get(Number(row.story_id)) ?? null) : null;
+      const mediaId = isFeatureZone && featureMediaId ? featureMediaId : row.story_id != null ? (primaryMediaByStory.get(Number(row.story_id)) ?? null) : null;
+      const snapshot = await buildPlacementSnapshot(db, storyRow, mediaId, isFeatureZone ? mediaFeature : null);
+      await insertPlacementWithSnapshot(db, editionId, row, snapshot, completedAt);
     }
 
     await db
@@ -1109,7 +1260,7 @@ export async function regenerateClubHomeEdition(
       .run();
 
     // Activate only after the edition is complete/valid.
-    const activated = await activateEditionPointer(db, editionId, createdBy);
+    const activated = await activateEditionPointer(db, editionId, createdBy, "regenerate");
     if (!activated.ok) {
       // Leave the ready edition in place but do not steal activation from a concurrent build.
       return {
@@ -1208,7 +1359,7 @@ export async function rollbackClubHomeEdition(
     }
 
     const previous = await getActiveClubHomeEdition(db);
-    const activated = await activateEditionPointer(db, targetId, activatedBy);
+    const activated = await activateEditionPointer(db, targetId, activatedBy, "rollback");
     if (!activated.ok) {
       return {
         ok: false,

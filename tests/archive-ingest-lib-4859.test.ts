@@ -21,6 +21,8 @@ import {
   buildDplaImageLadder,
   parseDplaLinks,
   createThrottleTracker,
+  digitalCommonwealthImageUrl,
+  parseDigitalCommonwealthManifest,
 } from '../scripts/content-pipeline/archive-ingest-lib.mjs';
 
 const lists = {
@@ -225,13 +227,15 @@ describe('archive candidate selection SQL (#4872)', () => {
       'x archive-ingest: skipped, Commons file is not a keepable image type (2026-10-24).', // 7 final
       'x archive-ingest-v2: skipped, long side 1024px is under the 1500px minimum (2026-10-24). archive-ingest-v3: skipped, again (2026-10-25).', // 8 already rechecked
       'x archive-ingest-v2: skipped, loc.gov record is not a photograph, print or drawing (2026-10-24).', // 9 final
+      'x archive-ingest-v3: skipped, no link reached 1500px (Digital Commonwealth IIIF: source returned HTTP 404; Digital Commonwealth large: source returned HTTP 404) (2026-10-26).', // 10 recheck through the manifest
+      'x archive-ingest-v3: skipped, no link reached 1500px (Digital Commonwealth manifest: 800x600) (2026-10-27).', // 11 final
     ];
     const insert = db.prepare(
       "INSERT INTO content_items (id, candidate_id, title, source_url, source_domain, provenance_notes, admin_notes, media_asset_id, superseded_at, content_type) VALUES (?, ?, 't', 'u', 'loc.gov', NULL, ?, NULL, NULL, 'photo')",
     );
     notes.forEach((note, index) => insert.run(index + 1, `c${index + 1}`, note));
     const ids = (db.prepare(sql).all(100) as Array<{ id: number }>).map((row) => row.id);
-    expect(ids).toEqual([1, 2, 4, 5, 6]);
+    expect(ids).toEqual([1, 2, 4, 5, 6, 10]);
   });
 });
 
@@ -290,18 +294,37 @@ describe('DPLA image ladder (#4902)', () => {
     expect(parseDplaLinks(null)).toEqual({ thumbnail: null, views: [], institution: '' });
   });
 
-  it('builds full-size links for NYPL and Digital Commonwealth, and nothing else', () => {
+  it('builds one NYPL link and one Digital Commonwealth manifest link, and nothing else', () => {
     expect(buildDplaImageLadder({ thumbnail: 'http://images.nypl.org/index.php?id=123&t=t' }).map((s) => s.url)).toEqual([
-      'https://images.nypl.org/index.php?id=123&t=g',
-      'https://images.nypl.org/index.php?id=123&t=q',
       'https://images.nypl.org/index.php?id=123&t=w',
     ]);
     expect(buildDplaImageLadder({ thumbnail: 'https://ark.digitalcommonwealth.org/ark:/50959/xyz123/thumbnail' }).map((s) => s.url)).toEqual([
-      'https://iiif.digitalcommonwealth.org/iiif/2/commonwealth:xyz123/full/!3000,3000/0/default.jpg',
-      'https://ark.digitalcommonwealth.org/ark:/50959/xyz123/large',
+      'https://ark.digitalcommonwealth.org/ark:/50959/xyz123/manifest',
     ]);
     expect(buildDplaImageLadder({ thumbnail: 'https://cdm1.contentdm.oclc.org/utils/getthumbnail/collection/p1/id/42' })).toEqual([]);
     expect(buildDplaImageLadder({ thumbnail: 'https://example.org/x.jpg', views: [] })).toEqual([]);
+  });
+
+  it('reads the image service out of a Digital Commonwealth manifest and sizes the JPEG link', () => {
+    const manifest = {
+      sequences: [
+        {
+          canvases: [
+            {
+              images: [
+                { resource: { width: 3816, height: 4872, service: { '@id': 'https://iiif.digitalcommonwealth.org/iiif/2/commonwealth:b5645333w' } } },
+              ],
+            },
+          ],
+        },
+      ],
+    };
+    const image = parseDigitalCommonwealthManifest(manifest);
+    expect(image).toEqual({ service: 'https://iiif.digitalcommonwealth.org/iiif/2/commonwealth:b5645333w', width: 3816, height: 4872 });
+    expect(digitalCommonwealthImageUrl(image!)).toBe('https://iiif.digitalcommonwealth.org/iiif/2/commonwealth:b5645333w/full/!3000,3000/0/default.jpg');
+    expect(digitalCommonwealthImageUrl({ ...image!, width: 1200, height: 900 })).toBe('https://iiif.digitalcommonwealth.org/iiif/2/commonwealth:b5645333w/full/full/0/default.jpg');
+    expect(parseDigitalCommonwealthManifest({})).toBeNull();
+    expect(parseDigitalCommonwealthManifest({ sequences: [{ canvases: [{ images: [{ resource: { service: { '@id': 'https://evil.example/x' } } }] }] }] })).toBeNull();
   });
 
   it('selects dp.la rows for archiving', () => {
