@@ -263,3 +263,56 @@ This link works once and expires in 24 hours. If you did not join, you can ignor
 
 	return sendMailChannels({ env: opts.env, to: [to], subject, text, html });
 }
+
+// #5120: the one email a new member gets at join. It carries the welcome text and its link is the
+// verification link (there is no separate homepage link). Members who did not opt in to periodic
+// updates get the strictly transactional wording (#2919), never the promotional intro.
+export async function sendWelcomeVerificationEmail(opts: {
+	env: any;
+	toEmail: string;
+	toName?: string;
+	link: string;
+	emailOptIn: boolean;
+	introMd?: string; // optional: admin-managed welcome email top-half copy (opted-in members only)
+}): Promise<MailSendResult> {
+	const to: MailChannelsAddress = { email: opts.toEmail, name: opts.toName || undefined };
+	const subject = 'Welcome to the Lou Gehrig Fan Club: please verify your email';
+	const greeting = `Hi${opts.toName ? ` ${opts.toName}` : ''},`;
+	const greetingHtml = `<p>Hi${opts.toName ? ` ${escapeHtml(opts.toName)}` : ''},</p>`;
+
+	let introText: string;
+	let introHtml: string;
+	if (opts.emailOptIn) {
+		const introMd = String(opts.introMd || '').trim();
+		introText = introMd
+			? mdToPlain(introMd)
+			: `Welcome to the Lou Gehrig Fan Club, a fan-run community honoring Lou Gehrig's legacy and supporting ALS awareness. Membership is free.`;
+		introHtml = introMd
+			? mdToBasicHtml(introMd)
+			: `<p>Welcome to the <strong>Lou Gehrig Fan Club</strong>, a fan-run community honoring Lou Gehrig's legacy and supporting ALS awareness. Membership is free.</p>`;
+	} else {
+		introText = `This confirms your Lou Gehrig Fan Club account was created. You did not opt in to periodic email updates, so apart from messages about your account this is the only email you will receive unless you take further action on the site.`;
+		introHtml = `<p>This confirms your <strong>Lou Gehrig Fan Club</strong> account was created. You did not opt in to periodic email updates, so apart from messages about your account this is the only email you will receive unless you take further action on the site.</p>`;
+	}
+
+	const text = `${greeting}
+
+${introText}
+
+To finish joining, verify your email address and enter the club:
+
+${opts.link}
+
+This link works once and expires in 24 hours. If you did not join, you can ignore this message. Questions? Just reply to this email.
+
+— Lou Gehrig Fan Club`;
+
+	const html = `${greetingHtml}
+${introHtml}
+<p>To finish joining, verify your email address and enter the club:</p>
+<p><a href="${escapeHtml(opts.link)}">Verify my email address</a></p>
+<p>This link works once and expires in 24 hours. If you did not join, you can ignore this message. Questions? Just reply to this email.</p>
+<p>— Lou Gehrig Fan Club</p>`;
+
+	return sendMailChannels({ env: opts.env, to: [to], subject, text, html });
+}
