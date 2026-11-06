@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useMemo, useState, type FormEvent } from 'react';
+import { Suspense, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { CHECK_EMAIL_ROUTE, isValidEmail, JOIN_ROUTE, PENDING_EMAIL_STORAGE_KEY, POST_LOGIN_ROUTE } from '@/lib/auth-routes';
 
@@ -42,6 +42,8 @@ function InnerAuthClient({ defaultMode }: { defaultMode?: Mode }) {
   }, [sp, defaultMode]);
 
   const [mode, setMode] = useState<Mode>(initialMode);
+  // The session check below runs once when the page opens, so it reads the mode the page opened in.
+  const openedInMode = useRef<Mode>(initialMode);
 
   const [screenName, setScreenName] = useState('');
   const [fullName, setFullName] = useState('');
@@ -52,6 +54,8 @@ function InnerAuthClient({ defaultMode }: { defaultMode?: Mode }) {
 
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  // #5118: who this browser is already signed in as, if anyone.
+  const [signedInAs, setSignedInAs] = useState<string | null>(null);
 
   useEffect(() => {
     setMode(initialMode);
@@ -75,7 +79,13 @@ function InnerAuthClient({ defaultMode }: { defaultMode?: Mode }) {
         const email = isRecord(json) && typeof json.email === 'string' ? json.email.trim() : '';
 
         if (!cancelled && ok && email) {
-          window.location.replace(POST_LOGIN_ROUTE);
+          // #5118: the Login tab sends a signed-in visitor to the member area, as before. The Join tab
+          // keeps the form so another household member can join from this browser without logging out.
+          if (openedInMode.current === 'login') {
+            window.location.replace(POST_LOGIN_ROUTE);
+          } else {
+            setSignedInAs(email);
+          }
         }
       } catch {
         // Fail closed to guest join/login surface — keep form visible (#3305).
@@ -230,6 +240,14 @@ function InnerAuthClient({ defaultMode }: { defaultMode?: Mode }) {
           Login
         </button>
       </div>
+
+      {signedInAs && (
+        <div role="status" data-testid="signed-in-note" style={{ marginBottom: 14, padding: 10, border: '1px solid rgba(0,0,0,0.2)', borderRadius: 8, lineHeight: 1.5 }}>
+          You are signed in as <strong>{signedInAs}</strong>. To add another member from this computer, fill in the form below.
+          This does not change your own session; the new member signs in when they verify their email.{' '}
+          <a href={POST_LOGIN_ROUTE}>Go to my member page</a> or <a href="/logout">log out</a>.
+        </div>
+      )}
 
       {msg && (
         <div role="alert" style={{ marginBottom: 14, padding: 10, border: '1px solid #ccc', borderRadius: 8 }}>

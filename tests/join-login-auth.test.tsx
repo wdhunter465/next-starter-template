@@ -58,7 +58,35 @@ describe('AuthClient auth-state behavior', () => {
     vi.unstubAllGlobals();
   });
 
-  it('redirects authenticated users to /fanclub', async () => {
+  it('keeps the join form for a signed-in visitor and says who they are signed in as (#5118)', async () => {
+    mockSearchParams.mockReturnValue(new URLSearchParams(''));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        json: async () => ({ ok: true, email: 'fan@example.com', role: 'member' }),
+      }),
+    );
+
+    render(<AuthClient defaultMode="join" />);
+
+    const note = await screen.findByTestId('signed-in-note');
+    expect(note).toHaveTextContent('You are signed in as fan@example.com');
+    expect(note).toHaveTextContent('does not change your own session');
+    expect(screen.getByRole('link', { name: 'Go to my member page' })).toHaveAttribute('href', '/fanclub');
+    expect(screen.getByRole('link', { name: 'log out' })).toHaveAttribute('href', '/logout');
+    expect(screen.getByLabelText(/full name/i)).toBeInTheDocument();
+    expect(window.location.replace).not.toHaveBeenCalled();
+  });
+
+  it('shows no signed-in note to a guest', async () => {
+    mockSearchParams.mockReturnValue(new URLSearchParams(''));
+    render(<AuthClient defaultMode="join" />);
+    await waitFor(() => expect(screen.getByLabelText(/full name/i)).toBeInTheDocument());
+    expect(screen.queryByTestId('signed-in-note')).not.toBeInTheDocument();
+  });
+
+  it('still sends a signed-in visitor on /join?mode=login to /fanclub', async () => {
+    mockSearchParams.mockReturnValue(new URLSearchParams('mode=login'));
     vi.stubGlobal(
       'fetch',
       vi.fn().mockResolvedValue({
