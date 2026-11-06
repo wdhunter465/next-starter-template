@@ -13,6 +13,8 @@
     "/fundraiser-details",
     "/health",
     "/join",
+    "/join/check-email",
+    "/join/verified",
     "/login",
     "/logout",
     "/privacy",

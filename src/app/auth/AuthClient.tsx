@@ -2,7 +2,7 @@
 
 import { Suspense, useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { isValidEmail, JOIN_ROUTE, POST_LOGIN_ROUTE } from '@/lib/auth-routes';
+import { CHECK_EMAIL_ROUTE, isValidEmail, JOIN_ROUTE, PENDING_EMAIL_STORAGE_KEY, POST_LOGIN_ROUTE } from '@/lib/auth-routes';
 
 type Mode = 'login' | 'join';
 
@@ -133,25 +133,14 @@ function InnerAuthClient({ defaultMode }: { defaultMode?: Mode }) {
         return;
       }
 
-      setMsg('Joined. Logging you in…');
-
-      const res2 = await fetch('/api/login', {
-        method: 'POST',
-        credentials: 'include',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ email: emailJoin }),
-      });
-
-      const data2: unknown = await res2.json().catch(() => null);
-
-      if (!res2.ok) {
-        setMsg(pickServerMsg(data2, 'Joined, but login failed. Try the Login tab.'));
-        setMode('login');
-        setEmailLogin(emailJoin);
-        return;
+      // #5112: the new member is not signed in. They are sent to a page that tells them to check their
+      // email; the emailed link verifies the address and signs them in.
+      try {
+        window.sessionStorage.setItem(PENDING_EMAIL_STORAGE_KEY, emailJoin.trim());
+      } catch {
+        // Storage can be blocked; the check-email page works without it.
       }
-
-      window.location.href = POST_LOGIN_ROUTE;
+      window.location.href = CHECK_EMAIL_ROUTE;
     } catch (err: unknown) {
       setMsg(pickErrMsg(err, 'Join failed.'));
     } finally {
@@ -180,6 +169,17 @@ function InnerAuthClient({ defaultMode }: { defaultMode?: Mode }) {
       const data: unknown = await res.json().catch(() => null);
 
       if (!res.ok) {
+        // #5112: a member who has not used the verification link goes to the page that tells them to
+        // check their email and offers a new link.
+        if (isRecord(data) && data.code === 'email_not_verified') {
+          try {
+            window.sessionStorage.setItem(PENDING_EMAIL_STORAGE_KEY, emailLogin.trim());
+          } catch {
+            // Storage can be blocked; the check-email page works without it.
+          }
+          window.location.href = CHECK_EMAIL_ROUTE;
+          return;
+        }
         setMsg(pickServerMsg(data, 'Login failed.'));
         return;
       }

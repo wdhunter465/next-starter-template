@@ -6,12 +6,14 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 const sendWelcomeEmail = vi.fn().mockResolvedValue({ sent: false, provider: 'disabled' });
 const sendTransactionalJoinConfirmation = vi.fn().mockResolvedValue({ sent: false, provider: 'disabled' });
 const sendAdminJoinNotification = vi.fn().mockResolvedValue({ sent: false, provider: 'disabled' });
+const sendVerificationEmail = vi.fn().mockResolvedValue({ sent: false, provider: 'disabled' });
 
 vi.mock('../../functions/_lib/email', () => ({
   assertEmailEnvOrThrow: vi.fn(),
   sendWelcomeEmail: (...args: unknown[]) => sendWelcomeEmail(...args),
   sendTransactionalJoinConfirmation: (...args: unknown[]) => sendTransactionalJoinConfirmation(...args),
   sendAdminJoinNotification: (...args: unknown[]) => sendAdminJoinNotification(...args),
+  sendVerificationEmail: (...args: unknown[]) => sendVerificationEmail(...args),
 }));
 
 // Imported after the mock so the handler picks up the mocked module.

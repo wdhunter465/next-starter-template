@@ -1,15 +1,18 @@
 // Cloudflare Pages Function for POST /api/join
 // - Stores a join request in D1 `join_requests`
 // - Sends welcome email via MailChannels
+// - Sends the email verification link (#5112); the new member has no session until it is used
 // - Returns 409 for duplicate emails (idempotent)
 
 import {
   assertEmailEnvOrThrow,
   sendAdminJoinNotification,
   sendTransactionalJoinConfirmation,
+  sendVerificationEmail,
   sendWelcomeEmail,
 } from "../_lib/email";
 import { requireD1, requireTables, jsonResponse, type Env } from "../_lib/d1";
+import { issueVerificationToken, siteUrlFor, verificationLink } from "../_lib/email-verification";
 
 type EmailLogResult = {
   result: "sent" | "failed" | "skipped";
@@ -21,7 +24,7 @@ type EmailLogResult = {
 async function logEmailAttempt(opts: {
   db: any;
   requestId: string;
-  messageType: "welcome" | "admin";
+  messageType: "welcome" | "admin" | "verification";
   recipientEmail: string;
   sendResult: { sent: boolean; provider: string; statusCode?: number; error?: string; skipped?: boolean };
 }) {
@@ -88,6 +91,27 @@ async function insertJoinRequest(
   return result.meta.changes === 1;
 }
 
+// #5112: issues a link token and emails it. A token issued less than a minute ago is not repeated.
+async function sendVerificationLink(opts: {
+  db: any;
+  env: any;
+  email: string;
+  name: string;
+  requestId: string;
+}): Promise<{ sent: boolean; provider: string; throttled?: boolean; error?: string }> {
+  const { db, env, email, name, requestId } = opts;
+  try {
+    const token = await issueVerificationToken(db, email);
+    if (!token) return { sent: false, provider: "none", throttled: true };
+    const result = await sendVerificationEmail({ env, toEmail: email, toName: name, link: verificationLink(siteUrlFor(env), token) });
+    await logEmailAttempt({ db, requestId, messageType: "verification", recipientEmail: email, sendResult: result });
+    return { sent: Boolean(result?.sent), provider: String(result?.provider || "") };
+  } catch (e: any) {
+    console.error("verification link failed:", e);
+    return { sent: false, provider: "none", error: "verification link could not be created" };
+  }
+}
+
 export async function onRequestPost(context: { env: Env; request: Request }): Promise<Response> {
   const { request, env } = context;
   const requestId = `req_${Date.now()}_${Math.random()
@@ -103,7 +127,7 @@ export async function onRequestPost(context: { env: Env; request: Request }): Pr
   const db = d1Check.db;
 
   // Step 2: Check required tables exist
-  const tablesCheck = await requireTables(db, ['join_requests', 'join_email_log', 'members']);
+  const tablesCheck = await requireTables(db, ['join_requests', 'join_email_log', 'members', 'email_verification_tokens']);
   if (!tablesCheck.ok) {
     return jsonResponse(tablesCheck.body, tablesCheck.status);
   }
@@ -207,6 +231,9 @@ export async function onRequestPost(context: { env: Env; request: Request }): Pr
         sendResult: welcomeResult,
       });
 
+      // #5112: the member must verify the address with a single-use link before they can sign in.
+      const verification = await sendVerificationLink({ db, env, email, name, requestId });
+
       const adminRecipients = String(env?.MAIL_ADMIN_TO || "")
         .split(",")
         .map((s: string) => s.trim())
@@ -228,9 +255,11 @@ export async function onRequestPost(context: { env: Env; request: Request }): Pr
           ok: true,
           status: "joined",
           requestId,
+          verification_required: true,
           email: {
             welcome: welcomeResult,
             admin: adminResult,
+            verification,
           },
         },
         200

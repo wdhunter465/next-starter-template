@@ -233,3 +233,33 @@ Site: ${siteUrl}`;
 	// Sent from support@ so the notice is never from and to the same address (admin@).
 	return sendMailChannels({ env: opts.env, to: recipients, subject, text, html, senderOverride: 'Lou Gehrig Fan Club <support@lougehrigfanclub.com>' });
 }
+
+// #5112: the link that verifies a new member's email address. Sent at join; the member cannot sign in
+// until the link is used.
+export async function sendVerificationEmail(opts: {
+	env: any;
+	toEmail: string;
+	toName?: string;
+	link: string;
+}): Promise<MailSendResult> {
+	const to: MailChannelsAddress = { email: opts.toEmail, name: opts.toName || undefined };
+	const subject = 'Verify your email for the Lou Gehrig Fan Club';
+
+	const text = `Hi${opts.toName ? ` ${opts.toName}` : ''},
+
+Thank you for joining the Lou Gehrig Fan Club. Please verify your email address to finish joining:
+
+${opts.link}
+
+This link works once and expires in 24 hours. If you did not join, you can ignore this message.
+
+— Lou Gehrig Fan Club`;
+
+	const html = `<p>Hi${opts.toName ? ` ${escapeHtml(opts.toName)}` : ''},</p>
+<p>Thank you for joining the <strong>Lou Gehrig Fan Club</strong>. Please verify your email address to finish joining:</p>
+<p><a href="${escapeHtml(opts.link)}">Verify my email address</a></p>
+<p>This link works once and expires in 24 hours. If you did not join, you can ignore this message.</p>
+<p>— Lou Gehrig Fan Club</p>`;
+
+	return sendMailChannels({ env: opts.env, to: [to], subject, text, html });
+}

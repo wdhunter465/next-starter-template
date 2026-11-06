@@ -59,7 +59,7 @@ function wrapSqliteAsD1(sqlite: DatabaseSync) {
 
 function seedMember(sqlite: DatabaseSync, email = 'member@example.com') {
   sqlite.exec(`
-    INSERT INTO members (email, role, created_at) VALUES ('${email}', 'member', datetime('now'));
+    INSERT INTO members (email, role, created_at, email_verified_at) VALUES ('${email}', 'member', datetime('now'), datetime('now'));
     INSERT INTO join_requests (name, email, created_at) VALUES ('Member Name', '${email}', datetime('now'));
   `);
 }
