@@ -5,7 +5,7 @@ Authority Level: Controlled
 Owns: Authentication and redirect behavior definitions as a supporting specification
 Does Not Own: Product and Design Domain Policy; Join/Login UI composition; FanClub content layout; admin feature requirements
 Canonical Reference: /docs/reference/design/LGFC-Production-Design-and-Standards.md
-Related Issues: #2687, #5112, #5120
+Related Issues: #2687, #5112, #5118, #5120
 Last Reviewed: 2026-11-06
 ---
 
@@ -32,6 +32,7 @@ LGFC Day 1 member access uses a **cookie-backed server session model** with **Cl
 - Login tab entry point: `/join?mode=login`
 - Login creates session + cookie, then redirects to `/fanclub`
 - Login refuses a member whose email address is not verified (see Email verification)
+- A signed-in visitor on the Login tab (`/join?mode=login`) goes to `/fanclub`. A signed-in visitor on the Join tab keeps the join form and sees a note naming the account they are signed in as, with links to the member page and to log out, so another household member can join from the same browser without logging out (#5118). Joining does not change the visitor's own session; the new member signs in when they use their verification link, which replaces the session cookie in the browser that opens it.
 - Logout clears the cookie and invalidates the session, then redirects to `/`
 - Closing the browser does not immediately log the member out
 - Online status is approximate and based on session records + `last_seen_at`

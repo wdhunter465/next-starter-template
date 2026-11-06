@@ -20,7 +20,7 @@ src/app/admin/fundraiser-preview/page.tsx:61:#111111
 src/app/admin/media-assets/page.tsx:142:#dddddd
 src/app/admin/media-assets/page.tsx:158:#dddddd
 src/app/admin/media-assets/page.tsx:188:#eeeeee
-src/app/auth/AuthClient.tsx:235:#cccccc
+src/app/auth/AuthClient.tsx:253:#cccccc
 src/components/CalendarSection.module.css:152:#666666
 src/components/admin/AdminDashboard.module.css:163:#111111
 src/components/admin/AdminDashboard.module.css:25:#111111
