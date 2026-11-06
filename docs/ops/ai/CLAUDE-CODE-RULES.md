@@ -5,8 +5,8 @@ Authority Level: Agent-Specific
 Owns: Claude Code product identity, startup steps, continuous-run mechanics, claim handling, Operations monitoring, permission-email monitoring, and Claude-specific operating notes
 Does Not Own: Agent-team policy, role mapping, PMO lifecycle, Governance authority, shared execution law, merge approval, or the permission-request policy
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Related Issues: #3825, #4053, #4718, #4749, #4994
-Last Reviewed: 2026-10-28
+Related Issues: #3825, #4053, #4718, #4749, #4994, #5108
+Last Reviewed: 2026-11-06
 ---
 
 # CLAUDE-CODE-RULES.md
@@ -77,6 +77,17 @@ Product Authority direction, 2026-10-20: Claude Code monitors the permission inb
 - Only the source line in a PR body may begin with the word `Issue`. `scripts/ci/issue_accounting.mjs` treats any body line that starts with `Issue` as a source-Issue line, so prose such as `Issue criteria met:` fails post-merge closeout (`invalid_source_issue_reference`, `duplicate_source_issue_metadata`; see #4711 and #4712). Write `Acceptance criteria met:` instead.
 - A PR that changes any path outside the approved Model C documentation namespaces (`docs/governance/DELIVERY-AND-RELEASE.md`, Model C), such as `Agent.md`, `AGENTS.md`, `CLAUDE.md`, `context.md`, `.claude/**` or `.github/**`, cannot use Model C. Use the Model A profile #4661 used. Such a PR is Production-tier.
 - Editing a PR body does not re-run `quality` or `model-c-path`; they read the live body when they run. After correcting the body, re-run the failed jobs.
+
+## Cloudflare access (verified 2026-11-06, #5108)
+
+Claude Code has two routes into Cloudflare. Check both before reporting that Cloudflare cannot be read.
+
+- **Cloudflare connector** (`mcp__Cloudflare_Developer_Platform__*`, load with ToolSearch). It lists and queries D1 databases, and lists KV, R2 and Workers. The Production database is `lgfc_lite`; `lgfc-litedev` is the other. Use `d1_databases_list` for the ids. It has no Cloudflare Pages deployment controls, so a rollback is clicked by Bill in the Pages dashboard (#4469). Its server marks it deprecated in favor of the Cloudflare API server, and that server can fail to connect, so tools can be missing or drop mid-session: search again, and say so if they stay unavailable. Use it for reads (SELECT, schema, counts). Do not write through it.
+- **GitHub Actions secrets** `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` (some workflows read `CF_ACCOUNT_ID`, `CLOUDFLARE_PAGES_PROJECT` or `CF_PAGES_PROJECT`). Claude Code cannot read the values and must never ask for them. Workflows use them for Production D1 writes: the archive retire and restore workflow, the archive ingest, the archive sweep and the D1 migrations on `main`.
+
+To run a workflow from a session, use the REST dispatch, because `gh workflow run` needs GraphQL, which is not available in cloud sessions: `gh api -X POST repos/{owner}/{repo}/actions/workflows/<file>.yml/dispatches -f ref=main -f 'inputs[name]=value'`. To re-enable a disabled workflow, `gh workflow enable <file>.yml` works. Read the result with `gh api repos/{owner}/{repo}/actions/runs/<id>/jobs` and the job logs.
+
+These routes do not widen authority. A Production write still needs an explicit Go from Product Authority and an authorizing source Issue, and a workflow's dry run (`apply=false`) runs first. Record management goes through the ingestion and evaluation tools or an Issue-labelled workflow, never hand-edited rows (Product Authority, 2026-11-05, #5098).
 
 ## Final
 
