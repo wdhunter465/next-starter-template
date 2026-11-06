@@ -354,3 +354,74 @@ describe('per-domain throttle tracker (#4905)', () => {
     expect(tracker.allPaused([])).toBe(false);
   });
 });
+
+// #5081: Internet Archive resolver. The sample is a real /metadata/ response for Liberty 1933-08-19
+// (recorded 2026-11-06, trimmed to the fields the resolver reads); no live network in tests.
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
+import {
+  describeInternetArchiveFiles,
+  internetArchiveIdentifier,
+  internetArchiveRecordText,
+  pickInternetArchiveImage,
+} from '../scripts/content-pipeline/archive-ingest-lib.mjs';
+
+describe('Internet Archive resolver (#5081)', () => {
+  const sample = JSON.parse(readFileSync(path.join(process.cwd(), 'tests', 'fixtures', 'internet-archive-metadata-Liberty19330819.json'), 'utf8'));
+
+  it('reads the identifier from an item page address only', () => {
+    expect(internetArchiveIdentifier('https://archive.org/details/Liberty19330819')).toBe('Liberty19330819');
+    expect(internetArchiveIdentifier('https://archive.org/details/Liberty19330819?q=gehrig')).toBe('Liberty19330819');
+    expect(internetArchiveIdentifier('https://archive.org/download/Liberty19330819/x.jpg')).toBeNull();
+    expect(internetArchiveIdentifier('https://example.com/details/abc')).toBeNull();
+    expect(internetArchiveIdentifier(null)).toBeNull();
+  });
+
+  it('picks the original JPEG and never the derivative thumbnail', () => {
+    const file = pickInternetArchiveImage(sample);
+    expect(file).toMatchObject({ name: 'Liberty 1933-08-19.jpg', mimetype: 'image/jpeg', size: 106588 });
+    expect(file?.url).toBe('https://archive.org/download/Liberty19330819/Liberty%201933-08-19.jpg');
+  });
+
+  it('prefers the larger of two originals and skips files known to be under the minimum', () => {
+    const metadata = {
+      metadata: { identifier: 'abc' },
+      files: [
+        { name: 'small.jpg', format: 'JPEG', source: 'original', size: '900', width: '800', height: '600' },
+        { name: 'big.png', format: 'PNG', source: 'original', size: '5000', width: '3000', height: '2000' },
+        { name: 'mid.jpg', format: 'JPEG', source: 'original', size: '4000', width: '1600', height: '1200' },
+        { name: 'abc_thumb.jpg', format: 'JPEG Thumb', source: 'derivative', size: '50' },
+      ],
+    };
+    expect(pickInternetArchiveImage(metadata, 1080)?.name).toBe('big.png');
+    expect(pickInternetArchiveImage(metadata, 1080)?.mimetype).toBe('image/png');
+    expect(pickInternetArchiveImage(metadata, 2500)?.name).toBe('big.png');
+    expect(pickInternetArchiveImage(metadata, 4000)).toBeNull();
+  });
+
+  it('returns null for an item with no JPEG or PNG, or no identifier', () => {
+    expect(pickInternetArchiveImage({ metadata: { identifier: 'x' }, files: [{ name: 'x.pdf', format: 'Text PDF' }] })).toBeNull();
+    expect(pickInternetArchiveImage({ files: [{ name: 'a.jpg', format: 'JPEG' }] })).toBeNull();
+    expect(describeInternetArchiveFiles({ files: [] })).toBe('no files');
+  });
+
+  it('hands the record text to the quality gate, including the description and subjects', () => {
+    const text = internetArchiveRecordText(sample).join(' ');
+    expect(text).toContain('Am I Jealous of Babe Ruth?');
+    expect(text).toContain('Lou Gehrig');
+    expect(text).toContain('Weekly Magazines');
+  });
+
+  it('selects archive.org candidates for ingest, and a watermark in the record still rejects them', () => {
+    expect(buildArchiveCandidatesSql()).toContain("'archive.org'");
+    const verdict = archiveVerdict({
+      imageUrl: 'https://archive.org/download/x/y.jpg',
+      text: ['Photo (c) Getty Images'],
+      width: 3000,
+      height: 2000,
+      minimumLongSide: 1500,
+      denylist: lists.denylist,
+    });
+    expect(verdict.ok).toBe(false);
+  });
+});

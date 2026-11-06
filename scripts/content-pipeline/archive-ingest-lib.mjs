@@ -245,7 +245,7 @@ export function buildArchiveCandidatesSql() {
                      ) THEN 1 ELSE 0 END AS fee_required
          FROM content_items
          WHERE media_asset_id IS NULL AND superseded_at IS NULL AND content_type = 'photo'
-           AND source_domain IN ('loc.gov', 'commons.wikimedia.org', 'dp.la')
+           AND source_domain IN ('loc.gov', 'commons.wikimedia.org', 'dp.la', 'archive.org')
            AND (
              admin_notes IS NULL
              OR (${anyMarker})
@@ -379,4 +379,81 @@ export function parseDigitalCommonwealthManifest(manifest) {
 export function digitalCommonwealthImageUrl({ service, width, height }, maxEdge = IIIF_LONG_EDGE) {
   const side = longSideOf(width, height);
   return side > maxEdge || !side ? `${service}/full/!${maxEdge},${maxEdge}/0/default.jpg` : `${service}/full/full/0/default.jpg`;
+}
+
+// #5081: Internet Archive. A discovery candidate is an item page (https://archive.org/details/<id>); the
+// pictures live in the item's file list (https://archive.org/metadata/<id>).
+export const INTERNET_ARCHIVE_APPROVED_DOMAINS = ['archive.org'];
+
+const IA_PICTURE_FORMATS = new Set(['jpeg', 'jpg', 'png']);
+
+/** The identifier in an https://archive.org/details/<id> page address, or null. */
+export function internetArchiveIdentifier(sourceUrl) {
+  const match = /^https:\/\/archive\.org\/details\/([^/?#]+)/.exec(String(sourceUrl ?? ''));
+  if (!match) return null;
+  try {
+    return decodeURIComponent(match[1]);
+  } catch {
+    return null;
+  }
+}
+
+function iaList(value) {
+  if (value == null) return [];
+  return (Array.isArray(value) ? value : [value]).map((entry) => String(entry)).filter(Boolean);
+}
+
+/**
+ * The best picture in an item's metadata response: the largest JPEG or PNG that is not one of the
+ * site's own derivative thumbnails, tiles or sprites. When the file list gives pixel sizes, a file
+ * under the minimum is passed over; when it does not (most items), the size is read after download.
+ * Returns { name, url, mimetype, width, height, size } or null.
+ */
+export function pickInternetArchiveImage(metadata, minimumLongSide = 1080) {
+  const identifier = String(metadata?.metadata?.identifier ?? '');
+  if (!identifier) return null;
+  const candidates = [];
+  for (const file of metadata?.files ?? []) {
+    const name = String(file?.name ?? '');
+    const format = String(file?.format ?? '').toLowerCase();
+    const extension = name.split('.').pop()?.toLowerCase() ?? '';
+    const isPicture = IA_PICTURE_FORMATS.has(extension) && /^(jpeg|jpg|png)( \(.*\))?$/.test(format.replace(/^"|"$/g, '').trim());
+    if (!isPicture) continue;
+    if (/_thumb\.|__ia_thumb|_itemimage|_spectrogram|_tile/i.test(name)) continue;
+    const width = Number(file.width) || 0;
+    const height = Number(file.height) || 0;
+    if (longSideOf(width, height) > 0 && longSideOf(width, height) < minimumLongSide) continue;
+    candidates.push({
+      name,
+      url: `https://archive.org/download/${encodeURIComponent(identifier)}/${name.split('/').map(encodeURIComponent).join('/')}`,
+      mimetype: extension === 'png' ? 'image/png' : 'image/jpeg',
+      width,
+      height,
+      size: Number(file.size) || 0,
+      original: String(file.source ?? '') === 'original' ? 1 : 0,
+    });
+  }
+  if (!candidates.length) return null;
+  candidates.sort((a, b) => b.original - a.original || longSideOf(b.width, b.height) - longSideOf(a.width, a.height) || b.size - a.size);
+  const { original, ...best } = candidates[0];
+  return best;
+}
+
+/** The descriptive text the quality gate reads for an item: title, description, subjects, creator, credit and rights. */
+export function internetArchiveRecordText(metadata) {
+  const item = metadata?.metadata ?? {};
+  return [
+    ...iaList(item.title),
+    ...iaList(item.description),
+    ...iaList(item.subject),
+    ...iaList(item.creator),
+    ...iaList(item.credit),
+    ...iaList(item.rights),
+  ];
+}
+
+/** A short list of the files an item offers, for the skip note when nothing usable is found. */
+export function describeInternetArchiveFiles(metadata) {
+  const names = (metadata?.files ?? []).map((file) => `${file?.name}${file?.format ? ` [${file.format}]` : ''}`);
+  return names.slice(0, 6).join('; ') || 'no files';
 }
