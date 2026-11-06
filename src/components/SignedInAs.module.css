@@ -1,0 +1,14 @@
+.bar{
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 0 16px 6px;
+  text-align: right;
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--lgfc-text-muted, rgba(0,0,0,0.72));
+  overflow-wrap: anywhere;
+}
+
+.bar strong{
+  font-weight: 700;
+}
