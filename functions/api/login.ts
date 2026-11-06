@@ -1,9 +1,11 @@
 // Cloudflare Pages Function for POST /api/login
 // - Validates that the email exists in join_requests
+// - Refuses a member whose email address is not verified yet (#5112)
 // - Creates a cookie-backed session in member_sessions (30 days)
 // - Rate limits: max 3 failed attempts per IP per hour
 
 import { requireD1, requireTables, jsonResponse, type Env } from '../_lib/d1';
+import { isEmailUnverified } from '../_lib/email-verification';
 import { isMemberSoftDeleted, newSessionIdHex, setSessionCookie } from '../_lib/session';
 
 function getIp(request: Request): string {
@@ -106,14 +108,41 @@ const emailRaw = (body?.email ?? '').toString();
       return jsonResponse({ ok: false, error: 'Email not found.', requestId }, 404);
     }
 
+    // #5112: a member who joined but never used the verification link cannot sign in. Before the
+    // migration that adds the column, the check is skipped so nobody is locked out.
+    let unverified = false;
+    try {
+      unverified = await isEmailUnverified(db, email);
+    } catch {
+      unverified = false;
+    }
+    if (unverified) {
+      return jsonResponse(
+        {
+          ok: false,
+          code: 'email_not_verified',
+          error: 'Please verify your email address first. Check your inbox for the link we sent when you joined.',
+          requestId,
+        },
+        403
+      );
+    }
+
     // Mark OK attempt
     await logAttempt(db, ip, email, true);
 
     // Ensure member exists (default role=member). Admins should be seeded separately.
+    // A member row created here belongs to someone who joined before email verification existed (a new
+    // join creates its own row at join time), so it starts verified (#5112).
     try {
-      await db.prepare("INSERT OR IGNORE INTO members (email, role) VALUES (?1, 'member');")
+      await db.prepare("INSERT OR IGNORE INTO members (email, role, email_verified_at) VALUES (?1, 'member', strftime('%Y-%m-%dT%H:%M:%fZ','now'));")
         .bind(email).run();
-    } catch {}
+    } catch {
+      try {
+        await db.prepare("INSERT OR IGNORE INTO members (email, role) VALUES (?1, 'member');")
+          .bind(email).run();
+      } catch {}
+    }
 
     // Create session (30 days)
     const sessionId = newSessionIdHex(24);

@@ -106,7 +106,8 @@ describe('POST /api/login against the real schema (rows 80, 81)', () => {
 
   it('refuses a soft-deleted member, and signs them in again once restored', async () => {
     join('gone@example.com');
-    sqlite.prepare("INSERT OR IGNORE INTO members (email, role) VALUES ('gone@example.com', 'member')").run();
+    // A member who joined before email verification existed (#5112): their address is already verified.
+    sqlite.prepare("INSERT OR IGNORE INTO members (email, role, email_verified_at) VALUES ('gone@example.com', 'member', datetime('now'))").run();
     sqlite.prepare("UPDATE members SET deleted_at = datetime('now') WHERE email = 'gone@example.com'").run();
 
     expect((await login({ email: 'gone@example.com' })).status).toBe(404);
