@@ -137,6 +137,7 @@
     { "method": "POST", "path": "/api/login", "handler": "functions/api/login.ts", "classification": "production-shared", "tables": ["login_attempts", "member_sessions"] },
     { "method": "POST", "path": "/api/verify-email", "handler": "functions/api/verify-email.ts", "classification": "production-shared", "tables": ["email_verification_tokens", "members", "member_sessions"] },
     { "method": "POST", "path": "/api/verify-email-resend", "handler": "functions/api/verify-email-resend.ts", "classification": "production-shared", "tables": ["email_verification_tokens", "members"] },
+    { "method": "POST", "path": "/api/social-wall-event", "handler": "functions/api/social-wall-event.ts", "classification": "production-shared", "tables": ["social_wall_events"] },
     { "method": "POST", "path": "/api/logout", "handler": "functions/api/logout.ts", "classification": "production-shared", "tables": ["member_sessions"] },
     { "method": "POST", "path": "/api/matchup/vote", "handler": "functions/api/matchup/vote.ts", "classification": "production-shared", "tables": ["weekly_votes"] },
     { "method": "GET", "path": "/api/matchup/current", "handler": "functions/api/matchup/current.ts", "classification": "production-shared", "tables": ["weekly_matchups"], "sideEffect": true },

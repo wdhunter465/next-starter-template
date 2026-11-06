@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   getSocialFallbackPlatforms,
   hasRenderedSocialWidget,
@@ -12,6 +12,7 @@ import styles from './social-wall.module.css';
 const PLATFORM_SRC = 'https://elfsightcdn.com/platform.js';
 const FAIL_AFTER_MS = 15000;
 const POLL_MS = 500;
+export const SOCIAL_WALL_EVENT_URL = '/api/social-wall-event';
 
 declare global {
   interface Window {
@@ -95,6 +96,22 @@ export default function SocialWall() {
   }, []);
 
   const showFallback = status === 'error' && !hasRenderedSocialWidget();
+
+  // #5116: tell the site once per page load that the fallback was shown. The page sends no data; the
+  // server records the time and Elfsight's reason (for example APP_VIEWS_LIMIT_REACHED). A failure
+  // here is ignored: logging must never change what the visitor sees.
+  const reported = useRef(false);
+  useEffect(() => {
+    if (!showFallback || reported.current) return;
+    reported.current = true;
+    try {
+      if (typeof fetch === 'function') {
+        void fetch(SOCIAL_WALL_EVENT_URL, { method: 'POST', keepalive: true }).catch(() => undefined);
+      }
+    } catch {
+      // Ignored on purpose.
+    }
+  }, [showFallback]);
 
   return (
     <section id="social-wall" className={styles.section}>
