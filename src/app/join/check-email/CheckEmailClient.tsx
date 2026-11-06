@@ -8,6 +8,7 @@ export default function CheckEmailClient() {
   const [email, setEmail] = useState('');
   const [note, setNote] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [linkUsed, setLinkUsed] = useState(false);
 
   useEffect(() => {
     try {
@@ -15,6 +16,7 @@ export default function CheckEmailClient() {
     } catch {
       // Storage can be blocked; the member can type the address to ask for a new link.
     }
+    setLinkUsed(new URLSearchParams(window.location.search).get('link') === 'used');
   }, []);
 
   async function resend() {
@@ -41,6 +43,11 @@ export default function CheckEmailClient() {
   return (
     <main style={{ maxWidth: 560, margin: '40px auto', padding: 20 }}>
       <h1 style={{ textAlign: 'center', marginBottom: 8 }}>Check your email</h1>
+      {linkUsed && (
+        <p role="status" style={{ textAlign: 'center', lineHeight: 1.55 }}>
+          That link has expired or was already used. Enter your email below and we will send a new one.
+        </p>
+      )}
       <p style={{ textAlign: 'center', lineHeight: 1.55 }}>
         {email ? (
           <>

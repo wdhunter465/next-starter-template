@@ -1,15 +1,14 @@
 // Cloudflare Pages Function for POST /api/join
 // - Stores a join request in D1 `join_requests`
-// - Sends welcome email via MailChannels
-// - Sends the email verification link (#5112); the new member has no session until it is used
+// - Sends ONE email via MailChannels: the welcome text with the email verification link inside it
+//   (#5112, #5120). The new member has no session until the link is used.
 // - Returns 409 for duplicate emails (idempotent)
 
 import {
   assertEmailEnvOrThrow,
   sendAdminJoinNotification,
-  sendTransactionalJoinConfirmation,
   sendVerificationEmail,
-  sendWelcomeEmail,
+  sendWelcomeVerificationEmail,
 } from "../_lib/email";
 import { requireD1, requireTables, jsonResponse, type Env } from "../_lib/d1";
 import { issueVerificationToken, siteUrlFor, verificationLink } from "../_lib/email-verification";
@@ -91,20 +90,25 @@ async function insertJoinRequest(
   return result.meta.changes === 1;
 }
 
-// #5112: issues a link token and emails it. A token issued less than a minute ago is not repeated.
+// #5112 / #5120: issues a link token and emails it. A token issued less than a minute ago is not repeated.
+// At join the one email is the welcome email, with the verification link inside it.
 async function sendVerificationLink(opts: {
   db: any;
   env: any;
   email: string;
   name: string;
   requestId: string;
+  welcome?: { emailOptIn: boolean; introMd?: string };
 }): Promise<{ sent: boolean; provider: string; throttled?: boolean; error?: string }> {
-  const { db, env, email, name, requestId } = opts;
+  const { db, env, email, name, requestId, welcome } = opts;
   try {
     const token = await issueVerificationToken(db, email);
     if (!token) return { sent: false, provider: "none", throttled: true };
-    const result = await sendVerificationEmail({ env, toEmail: email, toName: name, link: verificationLink(siteUrlFor(env), token) });
-    await logEmailAttempt({ db, requestId, messageType: "verification", recipientEmail: email, sendResult: result });
+    const link = verificationLink(siteUrlFor(env), token);
+    const result = welcome
+      ? await sendWelcomeVerificationEmail({ env, toEmail: email, toName: name, link, emailOptIn: welcome.emailOptIn, introMd: welcome.introMd })
+      : await sendVerificationEmail({ env, toEmail: email, toName: name, link });
+    await logEmailAttempt({ db, requestId, messageType: welcome ? "welcome" : "verification", recipientEmail: email, sendResult: result });
     return { sent: Boolean(result?.sent), provider: String(result?.provider || "") };
   } catch (e: any) {
     console.error("verification link failed:", e);
@@ -216,23 +220,19 @@ export async function onRequestPost(context: { env: Env; request: Request }): Pr
         // ignore; fallback to default welcome copy
       }
 
-      // Email (optional). Join succeeds even if email fails; results are returned and logged.
-      // #2919: email_opt_in gates the promotional/periodic-update welcome message.
-      // Members who did not opt in still receive a strictly-transactional
-      // confirmation that their account was created — never the promotional copy.
-      const welcomeResult = email_opt_in
-        ? await sendWelcomeEmail({ env, toEmail: email, toName: name, introMd: welcomeIntroMd })
-        : await sendTransactionalJoinConfirmation({ env, toEmail: email, toName: name });
-      await logEmailAttempt({
+      // The one email a new member gets (#5120): the welcome text with the verification link inside it.
+      // Join succeeds even if email fails; the result is returned and logged.
+      // #2919: email_opt_in gates the promotional/periodic-update intro. Members who did not opt in get
+      // the strictly transactional wording, never the promotional copy.
+      // #5112: the member must use the link to verify the address before they can sign in.
+      const welcomeResult = await sendVerificationLink({
         db,
+        env,
+        email,
+        name,
         requestId,
-        messageType: "welcome",
-        recipientEmail: email,
-        sendResult: welcomeResult,
+        welcome: { emailOptIn: email_opt_in, introMd: welcomeIntroMd },
       });
-
-      // #5112: the member must verify the address with a single-use link before they can sign in.
-      const verification = await sendVerificationLink({ db, env, email, name, requestId });
 
       const adminRecipients = String(env?.MAIL_ADMIN_TO || "")
         .split(",")
@@ -259,7 +259,6 @@ export async function onRequestPost(context: { env: Env; request: Request }): Pr
           email: {
             welcome: welcomeResult,
             admin: adminResult,
-            verification,
           },
         },
         200

@@ -7,7 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import AuthClient from '@/app/auth/AuthClient';
 import CheckEmailClient from '@/app/join/check-email/CheckEmailClient';
 import VerifiedClient, { VERIFIED_MESSAGE } from '@/app/join/verified/VerifiedClient';
-import { CHECK_EMAIL_ROUTE, PENDING_EMAIL_STORAGE_KEY, POST_LOGIN_ROUTE, VERIFIED_PAGE_DELAY_MS } from '@/lib/auth-routes';
+import { CHECK_EMAIL_LINK_USED_ROUTE, CHECK_EMAIL_ROUTE, PENDING_EMAIL_STORAGE_KEY, POST_LOGIN_ROUTE, VERIFIED_PAGE_DELAY_MS } from '@/lib/auth-routes';
 
 vi.mock('next/navigation', () => ({
   useSearchParams: () => new URLSearchParams(''),
@@ -117,6 +117,18 @@ describe('check-your-email page (#5112)', () => {
     expect(fetchMock).toHaveBeenCalledWith('/api/verify-email-resend', expect.objectContaining({ method: 'POST', body: JSON.stringify({ email: 'jane@example.com' }) }));
   });
 
+  it('explains in one line when it was reached from an expired or used link (#5120)', async () => {
+    stubLocation('?link=used');
+    render(<CheckEmailClient />);
+    expect(await screen.findByText(/That link has expired or was already used/)).toBeInTheDocument();
+  });
+
+  it('shows no such line on a normal visit', async () => {
+    stubLocation('');
+    render(<CheckEmailClient />);
+    expect(screen.queryByText(/That link has expired or was already used/)).not.toBeInTheDocument();
+  });
+
   it('does not call the server for an invalid address', async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);
@@ -147,6 +159,8 @@ describe('verified page (#5112)', () => {
     render(<VerifiedClient />);
     expect(await screen.findByText(VERIFIED_MESSAGE)).toBeInTheDocument();
     expect(VERIFIED_MESSAGE).toBe('Email address verification completed. Thank you and welcome to the Lou Gehrig Fan Club.');
+    // If the automatic redirect ever does not happen, the member can still go on by hand.
+    expect(screen.getByRole('link', { name: 'Go to the member page now' })).toHaveAttribute('href', POST_LOGIN_ROUTE);
     expect(fetchMock).toHaveBeenCalledWith('/api/verify-email', expect.objectContaining({ method: 'POST', credentials: 'include', body: JSON.stringify({ token }) }));
 
     // The member page opens after exactly one 3-second pause, not before.
@@ -159,22 +173,31 @@ describe('verified page (#5112)', () => {
     vi.restoreAllMocks();
   });
 
-  it('shows the error and a way to get a new link for a used or expired link, and does not redirect', async () => {
+  it('sends an expired or used link to the check-your-email page, with no failure page (#5120)', async () => {
     const location = stubLocation(`?token=${'b'.repeat(64)}`);
     vi.stubGlobal('fetch', vi.fn(async () => jsonResponse(false, { ok: false, code: 'invalid_token', error: 'This verification link has expired or was already used.' })));
+
     render(<VerifiedClient />);
-    expect(await screen.findByText('This verification link has expired or was already used.')).toBeInTheDocument();
+    await waitFor(() => expect(location.replace).toHaveBeenCalledWith(CHECK_EMAIL_LINK_USED_ROUTE));
+    expect(location.replace).toHaveBeenCalledTimes(1);
     expect(screen.queryByText(VERIFIED_MESSAGE)).not.toBeInTheDocument();
-    expect(screen.getByRole('link', { name: 'Send me a new link' })).toHaveAttribute('href', CHECK_EMAIL_ROUTE);
-    expect(location.replace).not.toHaveBeenCalled();
+    expect(screen.queryByText(/could not verify/i)).not.toBeInTheDocument();
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument();
   });
 
-  it('does not call the server when the link has no token', async () => {
-    stubLocation('');
+  it('sends a link the server cannot be reached for to the check-your-email page too', async () => {
+    const location = stubLocation(`?token=${'c'.repeat(64)}`);
+    vi.stubGlobal('fetch', vi.fn(async () => { throw new Error('offline'); }));
+    render(<VerifiedClient />);
+    await waitFor(() => expect(location.replace).toHaveBeenCalledWith(CHECK_EMAIL_LINK_USED_ROUTE));
+  });
+
+  it('does not call the server when the link has no token, and goes to the check-your-email page', async () => {
+    const location = stubLocation('');
     const fetchMock = vi.fn();
     vi.stubGlobal('fetch', fetchMock);
     render(<VerifiedClient />);
-    expect(await screen.findByText('This verification link is incomplete.')).toBeInTheDocument();
+    await waitFor(() => expect(location.replace).toHaveBeenCalledWith(CHECK_EMAIL_LINK_USED_ROUTE));
     expect(fetchMock).not.toHaveBeenCalled();
   });
 });

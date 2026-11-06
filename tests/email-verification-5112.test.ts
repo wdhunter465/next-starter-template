@@ -15,6 +15,7 @@ vi.mock('../functions/_lib/email', () => ({
   sendTransactionalJoinConfirmation: vi.fn().mockResolvedValue({ sent: false, provider: 'disabled' }),
   sendAdminJoinNotification: vi.fn().mockResolvedValue({ sent: false, provider: 'disabled' }),
   sendVerificationEmail: (...args: unknown[]) => verificationMail(...args),
+  sendWelcomeVerificationEmail: (...args: unknown[]) => verificationMail(...args),
 }));
 
 const join = (await import('../functions/api/join')).onRequestPost;
@@ -96,8 +97,10 @@ describe('joining no longer signs the new member in (#5112)', () => {
       email: 'jane@example.com',
       email_verified_at: null,
     });
+    // #5120: exactly one email to the member, and it is the one that carries the link.
     expect(verificationMail).toHaveBeenCalledTimes(1);
     expect((verificationMail.mock.calls[0][0] as any).toEmail).toBe('jane@example.com');
+    expect((verificationMail.mock.calls[0][0] as any).emailOptIn).toBe(true);
     expect(sqlite.prepare(`SELECT COUNT(*) AS n FROM member_sessions`).get()).toEqual({ n: 0 });
   });
 

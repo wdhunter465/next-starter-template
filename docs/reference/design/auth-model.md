@@ -5,7 +5,7 @@ Authority Level: Controlled
 Owns: Authentication and redirect behavior definitions as a supporting specification
 Does Not Own: Product and Design Domain Policy; Join/Login UI composition; FanClub content layout; admin feature requirements
 Canonical Reference: /docs/reference/design/LGFC-Production-Design-and-Standards.md
-Related Issues: #2687, #5112, #5118
+Related Issues: #2687, #5112, #5118, #5120
 Last Reviewed: 2026-11-06
 ---
 
@@ -45,9 +45,10 @@ LGFC Day 1 member access uses a **cookie-backed server session model** with **Cl
 
 A new member must prove they own the email address before they can enter the member area. This uses a single-use emailed link for verification only; it is not a general sign-in method.
 
-1. Join creates the member with `members.email_verified_at` empty and emails a verification link. Join does **not** create a session.
+1. Join creates the member with `members.email_verified_at` empty and sends **one** email: the welcome text, with the verification link as its only link (#5120). Members who did not opt in to updates get the plain transactional wording, never the promotional intro. Join does **not** create a session.
 2. The browser goes to `/join/check-email/`, which tells the member to open the email and offers to send a new link (`POST /api/verify-email-resend`, one new link per address per minute, the same answer for every address).
 3. The link opens `/join/verified/?token=...`. That page sends the token to `POST /api/verify-email`, which marks the address verified, creates the session cookie, and answers. The page then shows "Email address verification completed. Thank you and welcome to the Lou Gehrig Fan Club.", waits 3 seconds, and goes to `/fanclub`.
+   A link that is expired, already used or incomplete has no failure page: the member goes to `/join/check-email/?link=used`, which says in one line that the link has expired or was already used and offers a new link (#5120).
 4. `/api/login` answers 403 `email_not_verified` for a member whose address is not verified. The login tab sends that member to `/join/check-email/`.
 5. Tokens are 32 random bytes. Only the SHA-256 is stored (`email_verification_tokens`). A token works once and expires 24 hours after it is issued.
 6. Members who existed before this change were marked verified by migration 0096.
