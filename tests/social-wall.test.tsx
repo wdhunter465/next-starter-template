@@ -69,4 +69,47 @@ describe('SocialWall (#2044 / #4346)', () => {
     });
     expect(screen.queryByRole('region', { name: /Follow the Lou Gehrig Fan Club/i })).not.toBeInTheDocument();
   });
+
+  describe('fallback log (#5116)', () => {
+    it('tells the site once when the fallback is shown, sending no data', () => {
+      const fetchMock = vi.fn().mockResolvedValue({ ok: true });
+      vi.stubGlobal('fetch', fetchMock);
+      render(<SocialWall />);
+      expect(fetchMock).not.toHaveBeenCalled();
+
+      act(() => {
+        vi.advanceTimersByTime(15000);
+      });
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      expect(fetchMock).toHaveBeenCalledWith('/api/social-wall-event', { method: 'POST', keepalive: true });
+
+      act(() => {
+        vi.advanceTimersByTime(60000);
+      });
+      expect(fetchMock).toHaveBeenCalledTimes(1);
+      vi.unstubAllGlobals();
+    });
+
+    it('sends nothing when the widget renders', () => {
+      const fetchMock = vi.fn().mockResolvedValue({ ok: true });
+      vi.stubGlobal('fetch', fetchMock);
+      render(<SocialWall />);
+      document.querySelector(`.${SOCIAL_WALL_WIDGET_ID}`)!.appendChild(document.createElement('iframe'));
+      act(() => {
+        vi.advanceTimersByTime(20000);
+      });
+      expect(fetchMock).not.toHaveBeenCalled();
+      vi.unstubAllGlobals();
+    });
+
+    it('still shows the fallback links if the log request fails', () => {
+      vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('offline')));
+      render(<SocialWall />);
+      act(() => {
+        vi.advanceTimersByTime(15000);
+      });
+      expect(screen.getByRole('link', { name: /Facebook/i })).toBeInTheDocument();
+      vi.unstubAllGlobals();
+    });
+  });
 });
