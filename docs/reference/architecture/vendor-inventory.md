@@ -5,8 +5,8 @@ Authority Level: Supporting
 Owns: Current LGFC vendor inventory for architecture and workflow documentation
 Does Not Own: Vendor contracts, credentials, runtime configuration, implementation code, or diagram assets
 Canonical Reference: /docs/reference/architecture/vendor-inventory.md
-Related Issues: #4442, #4416, #4430, #4399, #4165, #4173, #4074, #4749
-Last Reviewed: 2026-10-27
+Related Issues: #4442, #4416, #4430, #4399, #4165, #4173, #4074, #4749, #5114
+Last Reviewed: 2026-11-06
 ---
 
 # LGFC Vendor Inventory
@@ -89,6 +89,10 @@ Retired, not in use: the OpenAI-based members ChatGPT, Work and Codex ChatBot (#
 - Instagram
 - Pinterest
 - X (Twitter)
+
+## Vendor notes
+
+- **Elfsight** (homepage social wall): free plan. When the plan's views limit is reached the widget cannot show posts, and after 15 seconds the homepage `SocialWall` shows its own fallback panel with direct links to the club's Facebook, Instagram, X and Pinterest accounts (`src/components/SocialWall.tsx`, `src/lib/socialFallbacks.ts`). Product Authority, 2026-11-06 (#5114): this is the accepted behavior. Visitors still see content and can reach the accounts, so no monitor is added for the widget. Elfsight's boot endpoint (`https://core.service.elfsight.com/p/boot/?page=<page>&w=<widget id>`) answers HTTP 200 either way and states the real condition in its body: `"reason":"APP_VIEWS_LIMIT_REACHED"` when the plan limit is hit (observed 2026-11-06), `WIDGET_DISABLED` for an unknown widget. Revisit a paid Elfsight plan when website usage warrants it. Adding a paid plan is a Product Authority decision.
 
 ## Future / Available Vendors
 
