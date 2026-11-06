@@ -67,6 +67,9 @@ export default function VerifiedClient() {
             {VERIFIED_MESSAGE}
           </p>
           <p style={{ color: 'rgba(0,0,0,0.72)' }}>Taking you to the member page…</p>
+          <p>
+            <a href={POST_LOGIN_ROUTE}>Go to the member page now</a>
+          </p>
         </>
       )}
     </main>

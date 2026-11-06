@@ -137,6 +137,8 @@ describe('verified page (#5112)', () => {
     render(<VerifiedClient />);
     expect(await screen.findByText(VERIFIED_MESSAGE)).toBeInTheDocument();
     expect(VERIFIED_MESSAGE).toBe('Email address verification completed. Thank you and welcome to the Lou Gehrig Fan Club.');
+    // If the automatic redirect ever does not happen, the member can still go on by hand.
+    expect(screen.getByRole('link', { name: 'Go to the member page now' })).toHaveAttribute('href', POST_LOGIN_ROUTE);
     expect(fetchMock).toHaveBeenCalledWith('/api/verify-email', expect.objectContaining({ method: 'POST', credentials: 'include', body: JSON.stringify({ token }) }));
 
     // The member page opens after exactly one 3-second pause, not before.
