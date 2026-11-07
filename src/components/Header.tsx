@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useEffect, useRef, useState } from 'react';
 import { LOGIN_TAB_ROUTE } from '@/lib/auth-routes';
 import styles from './Header.module.css';
+import SignedInAs from './SignedInAs';
 import HamburgerMenu from './HamburgerMenu';
 
 type HeaderProps = {
@@ -146,6 +147,7 @@ export default function Header({ showLogo = true }: HeaderProps = {}) {
           </div>
         </nav>
       </div>
+      {session.status === 'member' ? <SignedInAs email={session.email} /> : null}
     </header>
   );
 }

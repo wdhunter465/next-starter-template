@@ -1,9 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import styles from './FanClubHeader.module.css';
 import HamburgerMenu from './HamburgerMenu';
+import SignedInAs from './SignedInAs';
 
 type FanClubHeaderProps = {
   showLogo?: boolean;
@@ -12,6 +13,27 @@ type FanClubHeaderProps = {
 export default function FanClubHeader({ showLogo = true }: FanClubHeaderProps = {}) {
   const [open, setOpen] = useState(false);
   const toggleRef = useRef<HTMLButtonElement>(null);
+  // #5122: which account is signed in. Nothing is shown if the check fails.
+  const [accountEmail, setAccountEmail] = useState('');
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      try {
+        if (typeof fetch !== 'function') return;
+        const res = await fetch('/api/session/me', { credentials: 'include', cache: 'no-store' });
+        const json: unknown = await res.json().catch(() => null);
+        const record = typeof json === 'object' && json !== null ? (json as { ok?: unknown; email?: unknown }) : null;
+        if (!cancelled && record?.ok === true && typeof record.email === 'string') setAccountEmail(record.email);
+      } catch {
+        // No account line if the check cannot be made.
+      }
+    }
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const leftClassName = showLogo ? styles.left : `${styles.left} ${styles.leftOffset}`;
 
   return (
@@ -71,6 +93,7 @@ export default function FanClubHeader({ showLogo = true }: FanClubHeaderProps = 
           </div>
         </nav>
       </div>
+      <SignedInAs email={accountEmail} />
     </header>
   );
 }
