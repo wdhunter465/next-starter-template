@@ -247,4 +247,43 @@ describe('run against a real-schema database (#5124)', () => {
     expect(() => planRun([{ id: 1, role: 'member', deleted_at: '2026-01-01' }], [1], { promote: true, expect: 1 })).toThrow(/soft-deleted/);
     expect(() => parseArgs(['--ids', '1', '--issue', '1', '--reason', 'ten chars ok', '--expect', '1', '--promote', '--restore'])).toThrow(/cannot be combined/);
   });
+  it('purges only soft-deleted members and their sign-up leftovers, so the address can join again (#5126)', async () => {
+    const { sqlite, id } = seed();
+    const log = () => undefined;
+    const gone = PEOPLE[0].email.toLowerCase();
+    const kept = PEOPLE[2].email.toLowerCase();
+    for (const email of [gone, kept]) {
+      sqlite.prepare(`INSERT INTO login_attempts (ip, email, ok) VALUES ('1.1.1.1', ?, 0)`).run(email);
+      sqlite.prepare(`INSERT INTO email_verification_tokens (token_hash, email, expires_at) VALUES (?, ?, datetime('now','+1 day'))`).run(`h-${email}`, email);
+      sqlite.prepare(`INSERT INTO discussions (title, body, author_email) VALUES ('t', 'b', ?)`).run(email);
+      sqlite.prepare(`INSERT INTO join_email_log (request_id, message_type, recipient_email, result, provider) VALUES (1, 'join', ?, 'ok', 'x')`).run(email);
+    }
+    const goneId = id(gone);
+    const count = (table: string, column: string, email: string) =>
+      (sqlite.prepare(`SELECT COUNT(*) AS n FROM ${table} WHERE lower(${column}) = ?`).get(email) as { n: number }).n;
+
+    // An active member cannot be purged, and nothing is written.
+    await expect(run({ ...baseOptions, purge: true, ids: [goneId], expect: 1 }, d1(sqlite), log)).rejects.toThrow(/not soft-deleted/);
+    expect(count('members', 'email', gone)).toBe(1);
+
+    await run({ ...baseOptions, ids: [goneId], expect: 1 }, d1(sqlite), log);
+    const lines: string[] = [];
+    await run({ ...baseOptions, purge: true, apply: false, ids: [goneId], expect: 1 }, d1(sqlite), (l: string) => lines.push(l));
+    expect(count('members', 'email', gone)).toBe(1); // dry run wrote nothing
+    expect(lines.join('\n')).toContain('PERMANENTLY DELETE');
+
+    await run({ ...baseOptions, purge: true, ids: [goneId], expect: 1 }, d1(sqlite), log);
+    for (const [table, column] of [['members', 'email'], ['join_requests', 'email'], ['member_sessions', 'email'], ['login_attempts', 'email'], ['email_verification_tokens', 'email']]) {
+      expect(count(table, column, gone)).toBe(0);
+      expect(count(table, column, kept)).toBeGreaterThanOrEqual(table === 'member_sessions' ? 0 : 1);
+    }
+    // History is kept for the purged address, and the other member is untouched.
+    expect(count('discussions', 'author_email', gone)).toBe(1);
+    expect(count('join_email_log', 'recipient_email', gone)).toBe(1);
+
+    // The address can join again.
+    sqlite.prepare(`INSERT INTO members (email, role) VALUES (?, 'member')`).run(gone);
+    expect(count('members', 'email', gone)).toBe(1);
+    expect(() => parseArgs(['--ids', '1', '--issue', '1', '--reason', 'ten chars ok', '--expect', '1', '--purge', '--restore'])).toThrow(/cannot be combined/);
+  });
 });

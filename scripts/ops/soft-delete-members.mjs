@@ -5,7 +5,7 @@
  * Usage:
  *   CLOUDFLARE_API_TOKEN=... CLOUDFLARE_ACCOUNT_ID=... \
  *   node scripts/ops/soft-delete-members.mjs --issue 5124 --reason "Test accounts (Product Authority 2026-11-07)" \
- *     --ids 4,5,6 --expect 3 [--restore|--promote] [--allow-admin] [--database lgfc_lite] [--local|--remote] [--apply]
+ *     --ids 4,5,6 --expect 3 [--restore|--promote|--purge] [--allow-admin] [--database lgfc_lite] [--local|--remote] [--apply]
  *
  * Writes only with --apply. The writes match the admin endpoint (#2919); nothing is hard-deleted.
  * Output is by id with a masked address, because the repository and its Actions logs are public.
@@ -14,7 +14,7 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { makeWranglerD1 } from '../ci/wrangler-d1-adapter.mjs';
-import { buildStatements, describeMember, parseArgs, planRun } from './soft-delete-members-lib.mjs';
+import { PURGE_TABLES, buildStatements, describeMember, parseArgs, planRun } from './soft-delete-members-lib.mjs';
 
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..');
 
@@ -25,10 +25,33 @@ export async function run(options, db, log = console.log) {
 
   const adminRow = await db.prepare("SELECT COUNT(*) AS n FROM members WHERE role = 'admin' AND deleted_at IS NULL").first();
   const { targets, skipped } = planRun(rows, options.ids, { ...options, activeAdminCount: Number(adminRow?.n ?? 0) });
-  const verb = options.promote ? 'make admin' : options.restore ? 'restore' : 'soft-delete';
+  const verb = options.purge ? 'PERMANENTLY DELETE' : options.promote ? 'make admin' : options.restore ? 'restore' : 'soft-delete';
   log(`${targets.length} member(s) selected to ${verb}${options.apply ? '' : ' (dry run, nothing will be written)'}:`);
   for (const row of targets) log(`  ${describeMember(row)}`);
   for (const item of skipped) log(`  skipped #${item.id}: ${item.why}`);
+
+  const emails = targets.map((row) => String(row.email).trim().toLowerCase());
+  const leftovers = async () => {
+    const counts = {};
+    for (const { table, column } of PURGE_TABLES) {
+      let n = 0;
+      for (const email of emails) {
+        try {
+          const row = await db.prepare(`SELECT COUNT(*) AS n FROM ${table} WHERE lower(${column}) = ?`).bind(email).first();
+          n += Number(row?.n ?? 0);
+        } catch (error) {
+          if (!/no such table/i.test(String(error?.message ?? error))) throw error; // a table some databases do not have
+        }
+      }
+      counts[table] = n;
+    }
+    return counts;
+  };
+  if (options.purge) {
+    const before = await leftovers();
+    log(`rows that would be deleted: ${PURGE_TABLES.map(({ table }) => `${table} ${before[table]}`).join(', ')}`);
+    log('kept: discussions and join_email_log');
+  }
 
   if (!options.apply) {
     log(`\nDry run. Re-run with apply to ${verb} these, citing #${options.issue}.`);
@@ -39,10 +62,22 @@ export async function run(options, db, log = console.log) {
   const now = String(nowRow?.now ?? new Date().toISOString().slice(0, 19).replace('T', ' '));
   const deletedBy = `ops-workflow #${options.issue}`;
   for (const row of targets) {
-    for (const statement of buildStatements(row.email, { now, reason: options.reason, deletedBy, restore: options.restore, promote: options.promote })) {
-      await db.prepare(statement.sql).bind(...statement.params).run();
+    for (const statement of buildStatements(row.email, { now, reason: options.reason, deletedBy, restore: options.restore, promote: options.promote, purge: options.purge })) {
+      try {
+        await db.prepare(statement.sql).bind(...statement.params).run();
+      } catch (error) {
+        if (!(options.purge && /no such table/i.test(String(error?.message ?? error)))) throw error;
+      }
     }
     log(`  done #${row.id}`);
+  }
+
+  if (options.purge) {
+    const remaining = await leftovers();
+    const left = Object.entries(remaining).filter(([, n]) => n > 0);
+    if (left.length) throw new Error(`purge verification failed, rows remain: ${left.map(([t, n]) => `${t} ${n}`).join(', ')}`);
+    log(`\n${targets.length} member(s) and their sign-up leftovers permanently deleted, citing #${options.issue}. Verified: none remain.`);
+    return { changed: targets.length, targets, skipped };
   }
 
   const after =

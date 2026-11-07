@@ -3,7 +3,8 @@ name: OPS — Soft-delete members (#5124)
 # Soft-deletes (or restores) members by id on Product Authority's word, for example test accounts.
 # The writes match the admin endpoint POST /api/admin/member-operations/delete (#2919): the member and
 # join request are hidden and the member's sessions are removed. Nothing is hard-deleted, and a removal
-# can be undone with restore=true.
+# can be undone with restore=true. purge=true (#5126) permanently deletes members that are already
+# soft-deleted, plus their sign-up leftovers; that cannot be undone.
 #
 # Manual only. apply defaults to false (a dry run that lists what would change). An apply run must also
 # type "confirm". Inputs reach the script through env:, never through ${{ }} in run:. This repository
@@ -34,6 +35,10 @@ on:
         default: "false"
       allow_admin:
         description: "true: allow removing an admin (never the last active one)"
+        required: false
+        default: "false"
+      purge:
+        description: "true: PERMANENTLY delete already-soft-deleted members and their sign-up leftovers (cannot be undone)"
         required: false
         default: "false"
       apply:
@@ -96,6 +101,7 @@ jobs:
           MEMBERS_RESTORE: ${{ github.event.inputs.restore }}
           MEMBERS_PROMOTE: ${{ github.event.inputs.promote }}
           MEMBERS_ALLOW_ADMIN: ${{ github.event.inputs.allow_admin }}
+          MEMBERS_PURGE: ${{ github.event.inputs.purge }}
           MEMBERS_APPLY: ${{ github.event.inputs.apply }}
         shell: bash
         run: |
@@ -104,6 +110,7 @@ jobs:
           if [ "${MEMBERS_RESTORE}" = "true" ]; then args+=(--restore); fi
           if [ "${MEMBERS_PROMOTE}" = "true" ]; then args+=(--promote); fi
           if [ "${MEMBERS_ALLOW_ADMIN}" = "true" ]; then args+=(--allow-admin); fi
+          if [ "${MEMBERS_PURGE}" = "true" ]; then args+=(--purge); fi
           if [ "${MEMBERS_APPLY}" = "true" ]; then args+=(--apply); fi
           node scripts/ops/soft-delete-members.mjs "${args[@]}" | tee members.log
           {
