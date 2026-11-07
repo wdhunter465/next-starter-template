@@ -96,7 +96,7 @@ export function planRun(rows, ids, { restore = false, promote = false, allowAdmi
 }
 
 /** The writes for one member, in the order the admin endpoint runs them. */
-export function buildStatements(email, { now, reason, deletedBy, restore, promote }) {
+export function buildStatements(email, { now, reason, deletedBy, restore = false, promote = false }) {
   const key = String(email).trim().toLowerCase();
   if (promote) {
     return [{ sql: "UPDATE members SET role = 'admin', updated_at = ? WHERE lower(email) = ? AND deleted_at IS NULL", params: [now, key] }];
