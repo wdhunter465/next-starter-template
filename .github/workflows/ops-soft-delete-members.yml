@@ -1,0 +1,117 @@
+name: OPS — Soft-delete members (#5124)
+
+# Soft-deletes (or restores) members by id on Product Authority's word, for example test accounts.
+# The writes match the admin endpoint POST /api/admin/member-operations/delete (#2919): the member and
+# join request are hidden and the member's sessions are removed. Nothing is hard-deleted, and a removal
+# can be undone with restore=true.
+#
+# Manual only. apply defaults to false (a dry run that lists what would change). An apply run must also
+# type "confirm". Inputs reach the script through env:, never through ${{ }} in run:. This repository
+# and its logs are public, so members are given by id and the log shows only masked addresses.
+
+on:
+  workflow_dispatch:
+    inputs:
+      issue:
+        description: "Issue number that authorizes this change"
+        required: true
+      reason:
+        description: "Why these members are removed (at least 10 characters; no personal details)"
+        required: true
+      member_ids:
+        description: "Comma-separated member ids (at most 50)"
+        required: true
+      expect_count:
+        description: "How many members this should change; the run stops if the list does not match"
+        required: true
+      restore:
+        description: "true: restore soft-deleted members instead of removing them"
+        required: false
+        default: "false"
+      promote:
+        description: "true: make these members admins (instead of removing them)"
+        required: false
+        default: "false"
+      allow_admin:
+        description: "true: allow removing an admin (never the last active one)"
+        required: false
+        default: "false"
+      apply:
+        description: "true: make the change. false: list only"
+        required: false
+        default: "false"
+      confirm:
+        description: 'Required when apply is true: type "confirm"'
+        required: false
+        default: ""
+
+concurrency:
+  group: ops-soft-delete-members
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  members:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Require confirmation to apply
+        env:
+          APPLY: ${{ github.event.inputs.apply }}
+          CONFIRM: ${{ github.event.inputs.confirm }}
+        run: |
+          if [ "$APPLY" = "true" ] && [ "$CONFIRM" != "confirm" ]; then
+            echo "apply is true but confirm != 'confirm' -- refusing to write to production D1."
+            exit 1
+          fi
+
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify Cloudflare D1 credentials
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DATABASE_NAME: lgfc_lite
+        run: node scripts/ci/verify_cloudflare_d1_auth.mjs
+
+      - name: Soft-delete members
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          MEMBERS_ISSUE: ${{ github.event.inputs.issue }}
+          MEMBERS_REASON: ${{ github.event.inputs.reason }}
+          MEMBERS_IDS: ${{ github.event.inputs.member_ids }}
+          MEMBERS_EXPECT: ${{ github.event.inputs.expect_count }}
+          MEMBERS_RESTORE: ${{ github.event.inputs.restore }}
+          MEMBERS_PROMOTE: ${{ github.event.inputs.promote }}
+          MEMBERS_ALLOW_ADMIN: ${{ github.event.inputs.allow_admin }}
+          MEMBERS_APPLY: ${{ github.event.inputs.apply }}
+        shell: bash
+        run: |
+          echo "Target database_name=lgfc_lite (Production), apply=${MEMBERS_APPLY}, restore=${MEMBERS_RESTORE}"
+          args=(--database lgfc_lite --remote --issue "${MEMBERS_ISSUE}" --reason "${MEMBERS_REASON}" --ids "${MEMBERS_IDS}" --expect "${MEMBERS_EXPECT}")
+          if [ "${MEMBERS_RESTORE}" = "true" ]; then args+=(--restore); fi
+          if [ "${MEMBERS_PROMOTE}" = "true" ]; then args+=(--promote); fi
+          if [ "${MEMBERS_ALLOW_ADMIN}" = "true" ]; then args+=(--allow-admin); fi
+          if [ "${MEMBERS_APPLY}" = "true" ]; then args+=(--apply); fi
+          node scripts/ops/soft-delete-members.mjs "${args[@]}" | tee members.log
+          {
+            echo "## Soft-delete members"
+            echo
+            echo "apply=${MEMBERS_APPLY} restore=${MEMBERS_RESTORE}"
+            echo
+            echo '```'
+            tail -n 60 members.log
+            echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"
