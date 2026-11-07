@@ -6,7 +6,7 @@ Owns: Cloudflare Pages and D1 resource inventory facts as a supporting specifica
 Does Not Own: Platform and Environment Domain Policy; delivery approval; incident response playbooks
 Canonical Reference: /docs/governance/PLATFORM-AND-ENVIRONMENT.md
 Related Issues: #2688, #3355, #3357, #3268, #4534, #4537, #4542
-Last Reviewed: 2026-10-10
+Last Reviewed: 2026-11-07
 ---
 
 # CLOUDFLARE — Resource Inventory (LGFC)
@@ -118,7 +118,14 @@ A read-only listing of the Cloudflare account on 2026-10-13 (Product Authority's
 - KV: no namespaces.
 - Workers: one, `lgfc-agent-eval`, a temporary Worker from the abandoned Cloudflare AI agent evaluation (created 2026-08-22). Product plans to re-evaluate Cloudflare AI in 2027 (#3635). It is recorded in the asset register as `retired`; removing it is a Product decision.
 
-**Not verified:** the Pages project list and its custom domains. That listing is not available through the tools used, so the Pages facts above still rest on HTTP checks and workflow evidence (2026-10-10). The 2026-10-10 reconciliation was limited the same way: Cursor Local's wrangler login had expired (HOLD on #4537). The asset register is `docs/reference/platform/lgfc-asset-register.md`.
+**Pages and DNS verified 2026-11-07** from the Cloudflare dashboard, on Product Authority's screenshots (read-only; nothing changed):
+
+- Workers & Pages lists two items. Pages project `next-starter-template` (default domain `next-starter-template-6yr.pages.dev`, connected to `wdhunter465/next-starter-template`; last deployment the merge of PR #5127) and the Worker `lgfc-agent-eval` (created about two months earlier), matching the Workers entry above. There is no other Pages project.
+- The project's Custom domains tab lists one domain, `www.lougehrigfanclub.com` (Active, SSL enabled). The apex has no Pages custom domain.
+- The `lougehrigfanclub.com` zone (plan: free) holds 10 of 200 DNS records: the apex `A` placeholder `192.0.2.1` (proxied; it only carries the dashboard redirect to `www`), the proxied `www` `CNAME` to the Pages project, three Cloudflare Email Routing `MX` records, and `TXT` records for DKIM, DMARC (`p=none`), Google site verification, SPF and MailChannels (`_mailchannels`).
+- The names `lgfc_lite` and `lgfc-lite-token` are the D1 database and the GitHub API token. They are not the Pages project name.
+
+The asset register is `docs/reference/platform/lgfc-asset-register.md`.
 
 ---
 
