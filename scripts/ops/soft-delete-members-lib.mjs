@@ -31,7 +31,7 @@ export function parseMemberIds(value) {
 }
 
 export function parseArgs(argv) {
-  const options = { restore: false, promote: false, allowAdmin: false, apply: false, database: 'lgfc_lite', target: 'remote', issue: '', reason: '', ids: [], expect: null };
+  const options = { restore: false, promote: false, purge: false, allowAdmin: false, apply: false, database: 'lgfc_lite', target: 'remote', issue: '', reason: '', ids: [], expect: null };
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
     const next = () => argv[++i];
@@ -44,12 +44,14 @@ export function parseArgs(argv) {
     else if (arg === '--remote') options.target = 'remote';
     else if (arg === '--restore') options.restore = true;
     else if (arg === '--promote') options.promote = true;
+    else if (arg === '--purge') options.purge = true;
     else if (arg === '--allow-admin') options.allowAdmin = true;
     else if (arg === '--apply') options.apply = true;
     else throw new Error(`unknown argument ${arg}`);
   }
   if (!options.ids.length) throw new Error('--ids is required');
   if (options.promote && (options.restore || options.allowAdmin)) throw new Error('--promote cannot be combined with --restore or --allow-admin');
+  if (options.purge && (options.restore || options.promote || options.allowAdmin)) throw new Error('--purge cannot be combined with --restore, --promote or --allow-admin');
   if (!/^\d+$/.test(options.issue)) throw new Error('--issue must be an issue number');
   if (options.reason.length < 10) throw new Error('--reason must be at least 10 characters');
   if (!Number.isInteger(options.expect) || options.expect < 0) throw new Error('--expect must be the number of members you intend to change');
@@ -60,7 +62,7 @@ export function parseArgs(argv) {
  * Decides what a run will do. `rows` are the members found for the ids. Returns
  * { targets, skipped } or throws, so a bad list stops before any write.
  */
-export function planRun(rows, ids, { restore = false, promote = false, allowAdmin = false, expect, activeAdminCount = 0 }) {
+export function planRun(rows, ids, { restore = false, promote = false, purge = false, allowAdmin = false, expect, activeAdminCount = 0 }) {
   const byId = new Map(rows.map((row) => [Number(row.id), row]));
   const missing = ids.filter((id) => !byId.has(id));
   if (missing.length) throw new Error(`no member with id ${missing.join(', ')}; nothing was changed`);
@@ -69,7 +71,11 @@ export function planRun(rows, ids, { restore = false, promote = false, allowAdmi
 
   const targets = [];
   const skipped = [];
-  if (promote) {
+  if (purge) {
+    const active = ids.filter((id) => !isDeleted(byId.get(id)));
+    if (active.length) throw new Error(`id ${active.join(', ')} is not soft-deleted; only soft-deleted members are purged; nothing was changed`);
+    targets.push(...ids.map((id) => byId.get(id)));
+  } else if (promote) {
     for (const id of ids) {
       const row = byId.get(id);
       if (isDeleted(row)) throw new Error(`id ${id} is soft-deleted and cannot be made an admin; nothing was changed`);
@@ -96,8 +102,24 @@ export function planRun(rows, ids, { restore = false, promote = false, allowAdmi
 }
 
 /** The writes for one member, in the order the admin endpoint runs them. */
-export function buildStatements(email, { now, reason, deletedBy, restore = false, promote = false }) {
+/** Tables holding a member's sign-up leftovers, by email column. Members goes last. Discussions and the send log are kept. */
+export const PURGE_TABLES = [
+  { table: 'member_sessions', column: 'email' },
+  { table: 'email_verification_tokens', column: 'email' },
+  { table: 'join_verifications', column: 'email' },
+  { table: 'login_attempts', column: 'email' },
+  { table: 'join_requests', column: 'email' },
+  { table: 'members', column: 'email' },
+];
+
+export function buildStatements(email, { now, reason, deletedBy, restore = false, promote = false, purge = false }) {
   const key = String(email).trim().toLowerCase();
+  if (purge) {
+    return PURGE_TABLES.map(({ table, column }) => ({
+      sql: `DELETE FROM ${table} WHERE lower(${column}) = ?${table === 'members' ? ' AND deleted_at IS NOT NULL' : ''}`,
+      params: [key],
+    }));
+  }
   if (promote) {
     return [{ sql: "UPDATE members SET role = 'admin', updated_at = ? WHERE lower(email) = ? AND deleted_at IS NULL", params: [now, key] }];
   }
