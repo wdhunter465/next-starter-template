@@ -19,16 +19,24 @@ describe('diagnoseB2Signing (#5131)', () => {
     expect(JSON.stringify(d)).not.toContain('secret-app-key-value');
   });
 
-  it('flags an endpoint without https', () => {
+  it('reports a bare-host endpoint as not https but signing still enabled', () => {
     const d = diagnoseB2Signing({ ...good, B2_ENDPOINT: 's3.us-east-005.backblazeb2.com' });
-    expect(d.signing_enabled).toBe(false);
     expect(d.endpoint_starts_with_https).toBe(false);
-    expect(d.endpoint_host_shape_ok).toBe(false);
+    expect(d.endpoint_normalized_host_shape_ok).toBe(true);
+    expect(d.signing_enabled).toBe(true);
   });
 
-  it('flags a bucket with a folder or another name', () => {
-    expect(diagnoseB2Signing({ ...good, B2_BUCKET: 'LouGehrigFanClub/uploads' }).bucket_contains_slash).toBe(true);
+  it('reports a bucket with a folder or another name, signing still enabled', () => {
+    const slash = diagnoseB2Signing({ ...good, B2_BUCKET: 'LouGehrigFanClub/uploads' });
+    expect(slash.bucket_contains_slash).toBe(true);
+    expect(slash.signing_enabled).toBe(true);
     expect(diagnoseB2Signing({ ...good, B2_BUCKET: 'other' }).bucket_equals_expected).toBe(false);
+  });
+
+  it('flags an endpoint that is not a Backblaze S3 host', () => {
+    const d = diagnoseB2Signing({ ...good, B2_ENDPOINT: 'https://example.com' });
+    expect(d.endpoint_normalized_host_shape_ok).toBe(false);
+    expect(d.signing_enabled).toBe(false);
   });
 
   it('flags missing keys', () => {

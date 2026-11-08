@@ -26,20 +26,27 @@ type B2SignConfig = {
   publicBase: string;
 };
 
+/** B2_ENDPOINT as the origin `https://s3.<region>.backblazeb2.com`; tolerates a bare host, http:// and a trailing path. */
+function normalizeEndpoint(raw: string): string {
+  const trimmed = raw.trim();
+  if (!trimmed) return "";
+  const withScheme = /^https?:\/\//i.test(trimmed) ? trimmed.replace(/^http:\/\//i, "https://") : `https://${trimmed}`;
+  try {
+    return new URL(withScheme).origin;
+  } catch {
+    return "";
+  }
+}
+
 function readConfig(env: B2Env): B2SignConfig | null {
   if (!env) return null;
-  const endpoint = String(env.B2_ENDPOINT ?? "").trim().replace(/\/$/, "");
-  const bucket = String(env.B2_BUCKET ?? "").trim();
+  const endpoint = normalizeEndpoint(String(env.B2_ENDPOINT ?? ""));
+  // The bucket is only needed to map PUBLIC_B2_BASE_URL addresses; s3 and friendly addresses carry their own.
+  const bucket = String(env.B2_BUCKET ?? "").trim() || "LouGehrigFanClub";
   const keyId = String(env.B2_KEY_ID ?? "").trim();
   const appKey = String(env.B2_APP_KEY ?? "").trim();
-  if (!endpoint || !bucket || !keyId || !appKey) return null;
-  const host = (() => {
-    try {
-      return new URL(endpoint).hostname;
-    } catch {
-      return "";
-    }
-  })();
+  if (!endpoint || !keyId || !appKey) return null;
+  const host = new URL(endpoint).hostname;
   const region = host.match(/^s3\.([^.]+)\.backblazeb2\.com$/)?.[1];
   if (!region) return null;
   const rawBase = String(env.PUBLIC_B2_BASE_URL ?? "").trim();
@@ -49,16 +56,15 @@ function readConfig(env: B2Env): B2SignConfig | null {
 
 /** The S3-endpoint address of the object a stored value points at, or null when it is not ours. */
 function toObjectUrl(cfg: B2SignConfig, value: string): string | null {
-  if (value.startsWith(`${cfg.endpoint}/${cfg.bucket}/`)) return value;
+  // Stored address on our endpoint: https://s3.<region>.backblazeb2.com/<bucket>/<key>
+  if (value.startsWith(`${cfg.endpoint}/`) && value.slice(cfg.endpoint.length + 1).includes("/")) return value;
   if (cfg.publicBase && value.startsWith(cfg.publicBase) && value.length > cfg.publicBase.length) {
     const key = value.slice(cfg.publicBase.length).replace(/^\/+/, "");
     return `${cfg.endpoint}/${encodeURIComponent(cfg.bucket)}/${key}`;
   }
   // Backblaze "friendly" download address: https://f005.backblazeb2.com/file/<bucket>/<key>
   const friendly = value.match(/^https:\/\/f\d+\.backblazeb2\.com\/file\/([^/]+)\/(.+)$/);
-  if (friendly && decodeURIComponent(friendly[1]) === cfg.bucket) {
-    return `${cfg.endpoint}/${encodeURIComponent(cfg.bucket)}/${friendly[2]}`;
-  }
+  if (friendly) return `${cfg.endpoint}/${friendly[1]}/${friendly[2]}`;
   return null;
 }
 
@@ -143,21 +149,15 @@ export async function signB2UrlsDeep<T>(env: B2Env, value: T, expiresSeconds: nu
  */
 export function diagnoseB2Signing(env: B2Env, expectedBucket = "LouGehrigFanClub") {
   const e = (env ?? {}) as Record<string, unknown>;
-  const endpoint = String(e.B2_ENDPOINT ?? "").trim();
+  const rawEndpoint = String(e.B2_ENDPOINT ?? "").trim();
+  const endpoint = normalizeEndpoint(rawEndpoint);
   const bucket = String(e.B2_BUCKET ?? "").trim();
-  let host = "";
-  try {
-    host = new URL(endpoint).hostname;
-  } catch {
-    host = "";
-  }
-  const region = host.match(/^s3\.([^.]+)\.backblazeb2\.com$/)?.[1] ?? null;
+  const region = endpoint ? new URL(endpoint).hostname.match(/^s3\.([^.]+)\.backblazeb2\.com$/)?.[1] ?? null : null;
   return {
     signing_enabled: readConfig(env) !== null,
-    endpoint_present: endpoint.length > 0,
-    endpoint_starts_with_https: endpoint.startsWith("https://"),
-    endpoint_has_path_or_slash_suffix: /^https:\/\/[^/]+\/.+/.test(endpoint),
-    endpoint_host_shape_ok: region !== null,
+    endpoint_present: rawEndpoint.length > 0,
+    endpoint_starts_with_https: rawEndpoint.startsWith("https://"),
+    endpoint_normalized_host_shape_ok: region !== null,
     region,
     bucket_present: bucket.length > 0,
     bucket_equals_expected: bucket === expectedBucket,

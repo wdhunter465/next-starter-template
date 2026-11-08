@@ -36,18 +36,30 @@ describe('signB2Url (#5131)', () => {
     expect(signed.origin).toBe('https://s3.us-east-005.backblazeb2.com');
     expect(signed.pathname).toBe('/LouGehrigFanClub/LGFC_sha256_def.jpg');
     expect(signed.searchParams.get('X-Amz-Signature')).toBeTruthy();
-    // a friendly address for another bucket is not ours
-    expect(await signB2Url(env, 'https://f005.backblazeb2.com/file/OtherBucket/x.jpg')).toBe(
-      'https://f005.backblazeb2.com/file/OtherBucket/x.jpg',
+  });
+
+  it('returns an address on another host unchanged', async () => {
+    const other = 'https://example.com/pic.jpg';
+    expect(await signB2Url(env, other)).toBe(other);
+    expect(await signB2Url(env, 'https://s3.us-west-004.backblazeb2.com/LouGehrigFanClub/x.jpg')).toBe(
+      'https://s3.us-west-004.backblazeb2.com/LouGehrigFanClub/x.jpg',
     );
   });
 
-  it('returns a foreign address unchanged', async () => {
-    const other = 'https://example.com/pic.jpg';
-    expect(await signB2Url(env, other)).toBe(other);
-    expect(await signB2Url(env, 'https://s3.us-east-005.backblazeb2.com/OtherBucket/x.jpg')).toBe(
-      'https://s3.us-east-005.backblazeb2.com/OtherBucket/x.jpg',
-    );
+  it('tolerates a B2_ENDPOINT written as a bare host or with http://', async () => {
+    for (const endpoint of ['s3.us-east-005.backblazeb2.com', 'http://s3.us-east-005.backblazeb2.com/', 'https://s3.us-east-005.backblazeb2.com/']) {
+      const signed = new URL(await signB2Url({ ...env, B2_ENDPOINT: endpoint }, stored));
+      expect(signed.origin).toBe('https://s3.us-east-005.backblazeb2.com');
+      expect(signed.searchParams.get('X-Amz-Signature')).toBeTruthy();
+    }
+  });
+
+  it('signs a stored address even when B2_BUCKET is missing or written differently', async () => {
+    for (const bucket of ['', 'lougehrigfanclub', 'LouGehrigFanClub/uploads']) {
+      const signed = new URL(await signB2Url({ ...env, B2_BUCKET: bucket }, stored));
+      expect(signed.pathname).toBe('/LouGehrigFanClub/LGFC_sha256_abc.jpg');
+      expect(signed.searchParams.get('X-Amz-Signature')).toBeTruthy();
+    }
   });
 
   it('does not sign an address twice', async () => {
