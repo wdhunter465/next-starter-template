@@ -6,7 +6,7 @@ Owns: Backblaze B2 resource inventory and B2↔D1 sync facts as a supporting spe
 Does Not Own: Platform and Environment Domain Policy; UI design specifics; PR process; incident response playbooks
 Canonical Reference: /docs/governance/PLATFORM-AND-ENVIRONMENT.md
 Related Issues: #2688, #4534, #4538
-Last Reviewed: 2026-10-10
+Last Reviewed: 2026-11-08
 ---
 
 # Backblaze B2 — Resource Inventory (LGFC)
@@ -177,7 +177,9 @@ Automation:
 
 ## CORS / Public Access
 
-Bucket is public. The site expects direct GET access to objects via the public base URL.  
+Bucket is **private** (Product Authority, 2026-11-08, #5131; 170 files, 422 MB). A direct GET of a stored address returns HTTP 401.  
+The site serves images through short-lived signed links: `functions/_lib/b2-presign.ts` signs each stored bucket address (SigV4 query signing, expiry 3600 seconds) in the API response, after the endpoint's own access check. Stored addresses in D1 stay unchanged. With the B2 secrets missing, addresses are returned unsigned and will not load. `PUBLIC_B2_BASE_URL`, if set, is mapped back to the same bucket keys before signing.  
+Before 2026-11-08 the bucket was public and the site read objects by direct address.  
 CORS rules (if needed) should be documented here once finalized in console.
 
 ---

@@ -1,5 +1,6 @@
 import { requireMember } from '../../_lib/session';
 import { normalizePhotoUrl } from '../../_lib/photo-url';
+import { signB2UrlsDeep } from '../../_lib/b2-presign';
 import { rightsClearedClause } from '../../_lib/rights-hold';
 
 const PAGE_SIZE = 24;
@@ -80,7 +81,7 @@ export const onRequestGet = async (context: any): Promise<Response> => {
     }));
 
     return new Response(
-      JSON.stringify({ ok: true, items, page, page_size: PAGE_SIZE, total }, null, 2),
+      JSON.stringify(await signB2UrlsDeep(context.env, { ok: true, items, page, page_size: PAGE_SIZE, total }), null, 2),
       { status: 200, headers: { 'Content-Type': 'application/json' } }
     );
   } catch (err: any) {

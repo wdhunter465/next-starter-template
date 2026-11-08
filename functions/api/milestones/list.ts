@@ -1,5 +1,6 @@
 import { requireD1, requireTables, jsonResponse } from "../../_lib/d1";
 import { normalizePhotoUrl } from "../../_lib/photo-url";
+import { signB2UrlsDeep } from "../../_lib/b2-presign";
 import { rightsClearedClause } from "../../_lib/rights-hold";
 
 export const onRequestGet = async (context: any): Promise<Response> => {
@@ -67,7 +68,8 @@ export const onRequestGet = async (context: any): Promise<Response> => {
       }) || null,
     }));
 
-    return new Response(JSON.stringify({ ok: true, items }, null, 2), {
+    const body = await signB2UrlsDeep(env, { ok: true, items });
+    return new Response(JSON.stringify(body, null, 2), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });

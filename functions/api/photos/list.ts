@@ -1,4 +1,5 @@
 import { normalizePhotoUrl } from "../../_lib/photo-url";
+import { signB2UrlsDeep } from "../../_lib/b2-presign";
 import { rightsClearedClause } from "../../_lib/rights-hold";
 
 export const onRequestGet = async (context: any): Promise<Response> => {
@@ -28,7 +29,7 @@ export const onRequestGet = async (context: any): Promise<Response> => {
     }));
 
     return new Response(
-      JSON.stringify({ ok: true, items: normalizedItems, limit, offset }, null, 2),
+      JSON.stringify(await signB2UrlsDeep(env, { ok: true, items: normalizedItems, limit, offset }), null, 2),
       { status: 200, headers: { "Content-Type": "application/json" } }
     );
   } catch (err: any) {
