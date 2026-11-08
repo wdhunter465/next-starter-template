@@ -29,6 +29,19 @@ describe('signB2Url (#5131)', () => {
     expect(await signB2Url(undefined, stored)).toBe(stored);
   });
 
+  it('maps the Backblaze friendly download address to the same bucket key', async () => {
+    const signed = new URL(
+      await signB2Url(env, 'https://f005.backblazeb2.com/file/LouGehrigFanClub/LGFC_sha256_def.jpg'),
+    );
+    expect(signed.origin).toBe('https://s3.us-east-005.backblazeb2.com');
+    expect(signed.pathname).toBe('/LouGehrigFanClub/LGFC_sha256_def.jpg');
+    expect(signed.searchParams.get('X-Amz-Signature')).toBeTruthy();
+    // a friendly address for another bucket is not ours
+    expect(await signB2Url(env, 'https://f005.backblazeb2.com/file/OtherBucket/x.jpg')).toBe(
+      'https://f005.backblazeb2.com/file/OtherBucket/x.jpg',
+    );
+  });
+
   it('returns a foreign address unchanged', async () => {
     const other = 'https://example.com/pic.jpg';
     expect(await signB2Url(env, other)).toBe(other);
