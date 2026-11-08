@@ -43,8 +43,13 @@ function readConfig(env: B2Env): B2SignConfig | null {
   const endpoint = normalizeEndpoint(String(env.B2_ENDPOINT ?? ""));
   // The bucket is only needed to map PUBLIC_B2_BASE_URL addresses; s3 and friendly addresses carry their own.
   const bucket = String(env.B2_BUCKET ?? "").trim() || "LouGehrigFanClub";
-  const keyId = String(env.B2_KEY_ID ?? "").trim();
-  const appKey = String(env.B2_APP_KEY ?? "").trim();
+  // Image reading prefers a dedicated read-only application key (B2_READ_KEY_ID / B2_READ_APP_KEY);
+  // B2_KEY_ID / B2_APP_KEY remain the fallback. The S3 API needs an application key, not the master key.
+  const readKeyId = String(env.B2_READ_KEY_ID ?? "").trim();
+  const readAppKey = String(env.B2_READ_APP_KEY ?? "").trim();
+  const useRead = readKeyId.length > 0 && readAppKey.length > 0;
+  const keyId = useRead ? readKeyId : String(env.B2_KEY_ID ?? "").trim();
+  const appKey = useRead ? readAppKey : String(env.B2_APP_KEY ?? "").trim();
   if (!endpoint || !keyId || !appKey) return null;
   const host = new URL(endpoint).hostname;
   const region = host.match(/^s3\.([^.]+)\.backblazeb2\.com$/)?.[1];
@@ -162,7 +167,11 @@ export function diagnoseB2Signing(env: B2Env, expectedBucket = "LouGehrigFanClub
     bucket_present: bucket.length > 0,
     bucket_equals_expected: bucket === expectedBucket,
     bucket_contains_slash: bucket.includes("/"),
+    read_key_pair_present:
+      String(e.B2_READ_KEY_ID ?? "").trim().length > 0 && String(e.B2_READ_APP_KEY ?? "").trim().length > 0,
     key_id_present: String(e.B2_KEY_ID ?? "").trim().length > 0,
+    key_id_length: String(e.B2_KEY_ID ?? "").trim().length,
+    read_key_id_length: String(e.B2_READ_KEY_ID ?? "").trim().length,
     app_key_present: String(e.B2_APP_KEY ?? "").trim().length > 0,
     public_base_url_set: String(e.PUBLIC_B2_BASE_URL ?? "").trim().length > 0,
   };

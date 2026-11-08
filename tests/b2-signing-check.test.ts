@@ -39,6 +39,14 @@ describe('diagnoseB2Signing (#5131)', () => {
     expect(d.signing_enabled).toBe(false);
   });
 
+  it('reports key id lengths and read-pair presence, never the values', () => {
+    const d = diagnoseB2Signing({ ...good, B2_READ_KEY_ID: 'abc', B2_READ_APP_KEY: 'def' });
+    expect(d.read_key_pair_present).toBe(true);
+    expect(d.read_key_id_length).toBe(3);
+    expect(d.key_id_length).toBe('secret-key-id-value'.length);
+    expect(JSON.stringify(d)).not.toContain('abc');
+  });
+
   it('flags missing keys', () => {
     const d = diagnoseB2Signing({ B2_ENDPOINT: good.B2_ENDPOINT, B2_BUCKET: good.B2_BUCKET });
     expect(d.key_id_present).toBe(false);
