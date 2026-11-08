@@ -1,4 +1,5 @@
 import { normalizePhotoUrl } from "../../_lib/photo-url";
+import { signB2UrlsDeep } from "../../_lib/b2-presign";
 import { rightsClearedClause } from "../../_lib/rights-hold";
 
 export const onRequestGet = async (context: any): Promise<Response> => {
@@ -34,7 +35,8 @@ export const onRequestGet = async (context: any): Promise<Response> => {
       url: normalizePhotoUrl({ rawUrl: row.url, request, publicB2BaseUrl: env.PUBLIC_B2_BASE_URL }),
     };
 
-    return new Response(JSON.stringify({ ok: true, item }, null, 2), {
+    const body = await signB2UrlsDeep(env, { ok: true, item });
+    return new Response(JSON.stringify(body, null, 2), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });

@@ -1,5 +1,6 @@
 import { fetchClubHomeContent } from '../../_lib/content-inventory-club-home';
 import { requireMember } from '../../_lib/session';
+import { signB2UrlsDeep } from '../../_lib/b2-presign';
 import { jsonResponse, requireTables } from '../../_lib/d1';
 
 export const onRequestGet = async (context: any): Promise<Response> => {
@@ -19,7 +20,7 @@ export const onRequestGet = async (context: any): Promise<Response> => {
       request: context.request,
       publicB2BaseUrl: context.env?.PUBLIC_B2_BASE_URL,
     });
-    return new Response(JSON.stringify(payload, null, 2), {
+    return new Response(JSON.stringify(await signB2UrlsDeep(context.env, payload), null, 2), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });

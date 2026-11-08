@@ -6,6 +6,7 @@
 import { requireD1, requireTables, jsonResponse } from "../../_lib/d1";
 import { requireMember } from "../../_lib/session";
 import { normalizePhotoUrl } from "../../_lib/photo-url";
+import { signB2UrlsDeep } from "../../_lib/b2-presign";
 import { rightsClearedClause } from "../../_lib/rights-hold";
 
 export const onRequestGet = async (context: any): Promise<Response> => {
@@ -51,7 +52,7 @@ export const onRequestGet = async (context: any): Promise<Response> => {
       }) || null,
     }));
 
-    return jsonResponse({ ok: true, items }, 200);
+    return jsonResponse(await signB2UrlsDeep(env, { ok: true, items }), 200);
   } catch (err: any) {
     return jsonResponse({ ok: false, error: String(err?.message ?? err) }, 500);
   }

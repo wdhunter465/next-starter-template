@@ -1,5 +1,6 @@
 import { requireMember } from '../../_lib/session';
 import { normalizePhotoUrl } from '../../_lib/photo-url';
+import { signB2UrlsDeep } from '../../_lib/b2-presign';
 import { resolveRelatedStories, toLegacyRelatedLibraryEntries } from '../../_lib/content-inventory-public';
 import { rightsClearedClause } from '../../_lib/rights-hold';
 
@@ -81,7 +82,7 @@ export const onRequestGet = async (context: any): Promise<Response> => {
 
     return new Response(
       JSON.stringify(
-        {
+        await signB2UrlsDeep(context.env, {
           ok: true,
           items,
           related_library_entries,
@@ -89,7 +90,7 @@ export const onRequestGet = async (context: any): Promise<Response> => {
           page,
           page_size: PAGE_SIZE,
           total,
-        },
+        }),
         null,
         2,
       ),

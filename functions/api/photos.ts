@@ -1,4 +1,5 @@
 import { normalizePhotoUrl } from '../_lib/photo-url';
+import { signB2UrlsDeep } from "../_lib/b2-presign";
 import { rightsClearedClause } from '../_lib/rights-hold';
 
 function parseLimit(raw: string | null): number {
@@ -43,7 +44,8 @@ export const onRequestGet = async (context: any): Promise<Response> => {
       url: normalizePhotoUrl({ rawUrl: row?.url, request, publicB2BaseUrl: env.PUBLIC_B2_BASE_URL }),
     }));
 
-    return new Response(JSON.stringify({ ok: true, items, limit, offset }, null, 2), {
+    const body = await signB2UrlsDeep(env, { ok: true, items, limit, offset });
+    return new Response(JSON.stringify(body, null, 2), {
       status: 200,
       headers: { 'Content-Type': 'application/json' },
     });
