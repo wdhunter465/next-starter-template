@@ -20,6 +20,15 @@ describe('signB2Url (#5131)', () => {
     expect(signed.searchParams.get('X-Amz-Signature')).toMatch(/^[0-9a-f]{64}$/);
   });
 
+  it('prefers the dedicated read key pair over the general key', async () => {
+    const withRead = { ...env, B2_READ_KEY_ID: 'read-key-id', B2_READ_APP_KEY: 'read-app-key' };
+    const signed = new URL(await signB2Url(withRead, stored));
+    expect(signed.searchParams.get('X-Amz-Credential')).toMatch(/^read-key-id\//);
+    // a half-set read pair falls back to the general key
+    const half = new URL(await signB2Url({ ...env, B2_READ_KEY_ID: 'read-key-id' }, stored));
+    expect(half.searchParams.get('X-Amz-Credential')).toMatch(/^test-key-id\//);
+  });
+
   it('never exposes the application key', async () => {
     expect(await signB2Url(env, stored)).not.toContain('test-app-key');
   });
