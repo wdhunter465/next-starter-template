@@ -136,3 +136,34 @@ export async function signB2UrlsDeep<T>(env: B2Env, value: T, expiresSeconds: nu
 
   return (await visit(value)) as T;
 }
+
+/**
+ * Why signing is or is not active, as yes/no facts only (#5131). Never returns a key,
+ * key id or secret. The region and the expected bucket name are not secrets.
+ */
+export function diagnoseB2Signing(env: B2Env, expectedBucket = "LouGehrigFanClub") {
+  const e = (env ?? {}) as Record<string, unknown>;
+  const endpoint = String(e.B2_ENDPOINT ?? "").trim();
+  const bucket = String(e.B2_BUCKET ?? "").trim();
+  let host = "";
+  try {
+    host = new URL(endpoint).hostname;
+  } catch {
+    host = "";
+  }
+  const region = host.match(/^s3\.([^.]+)\.backblazeb2\.com$/)?.[1] ?? null;
+  return {
+    signing_enabled: readConfig(env) !== null,
+    endpoint_present: endpoint.length > 0,
+    endpoint_starts_with_https: endpoint.startsWith("https://"),
+    endpoint_has_path_or_slash_suffix: /^https:\/\/[^/]+\/.+/.test(endpoint),
+    endpoint_host_shape_ok: region !== null,
+    region,
+    bucket_present: bucket.length > 0,
+    bucket_equals_expected: bucket === expectedBucket,
+    bucket_contains_slash: bucket.includes("/"),
+    key_id_present: String(e.B2_KEY_ID ?? "").trim().length > 0,
+    app_key_present: String(e.B2_APP_KEY ?? "").trim().length > 0,
+    public_base_url_set: String(e.PUBLIC_B2_BASE_URL ?? "").trim().length > 0,
+  };
+}
