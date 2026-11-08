@@ -54,6 +54,11 @@ function toObjectUrl(cfg: B2SignConfig, value: string): string | null {
     const key = value.slice(cfg.publicBase.length).replace(/^\/+/, "");
     return `${cfg.endpoint}/${encodeURIComponent(cfg.bucket)}/${key}`;
   }
+  // Backblaze "friendly" download address: https://f005.backblazeb2.com/file/<bucket>/<key>
+  const friendly = value.match(/^https:\/\/f\d+\.backblazeb2\.com\/file\/([^/]+)\/(.+)$/);
+  if (friendly && decodeURIComponent(friendly[1]) === cfg.bucket) {
+    return `${cfg.endpoint}/${encodeURIComponent(cfg.bucket)}/${friendly[2]}`;
+  }
   return null;
 }
 
