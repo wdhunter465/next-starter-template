@@ -1,0 +1,54 @@
+name: OPS — B2 bucket CORS rule for the site (#5131)
+
+# Reads the CORS rules of the private B2 bucket and, with apply=true, adds one rule named
+# lgfc-site-images that lets www.lougehrigfanclub.com read signed image links from page script
+# (the admin rendition tool). Existing rules with other names are kept.
+# Uses the repo secrets B2_KEY_ID and B2_APP_KEY (the pair the daily b2-s3-smoke-test uses).
+# Never prints a key. Dry run by default; Product Authority Go on #5131 for apply.
+on:
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: Set the CORS rule (default false = dry run, writes nothing)
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+permissions:
+  contents: read
+
+jobs:
+  cors:
+    runs-on: ubuntu-latest
+    env:
+      B2_KEY_ID: ${{ secrets.B2_KEY_ID }}
+      B2_APP_KEY: ${{ secrets.B2_APP_KEY }}
+      APPLY: ${{ inputs.apply }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Read, and set when apply=true, the bucket CORS rules
+        run: node scripts/ops/b2-cors-rules.mjs
+
+      - name: Verify CORS headers on a signed link (apply only)
+        if: ${{ inputs.apply == 'true' }}
+        run: |
+          set -uo pipefail
+          J=$(curl -s -m 30 "https://www.lougehrigfanclub.com/api/photos/list?limit=100")
+          U=$(printf '%s' "$J" | node -e 'let d="";process.stdin.on("data",c=>d+=c);process.stdin.on("end",()=>{try{const a=JSON.parse(d).items||[];const x=a.find(i=>(i.url||"").includes("X-Amz-Signature"));console.log(x?x.url:"")}catch{console.log("")}})')
+          if [ -z "$U" ]; then echo "No signed link returned."; exit 1; fi
+          for i in 1 2 3 4 5 6; do
+            H=$(curl -s -m 30 -D - -o /dev/null -H "Origin: https://www.lougehrigfanclub.com" "$U" | tr -d '\r')
+            echo "$H" | grep -i -E "^HTTP|^access-control" || true
+            echo "$H" | grep -qi "^access-control-allow-origin" && break
+            sleep 20
+          done
