@@ -104,6 +104,20 @@ describe('signB2UrlsDeep (#5131)', () => {
     expect(body.items[0].url).toBe(stored); // input is not mutated
   });
 
+  it('signs addresses inside the admin editorial response shapes', async () => {
+    const body = {
+      ok: true,
+      submissions: [],
+      inventory: [{ id: 1, media_associations: [{ media_id: 7, url: stored, source_url: 'https://example.com/s' }] }],
+    };
+    const out = await signB2UrlsDeep(env, body);
+    expect(out.inventory[0].media_associations[0].url).toContain('X-Amz-Signature=');
+    expect(out.inventory[0].media_associations[0].source_url).toBe('https://example.com/s');
+    const one = await signB2UrlsDeep(env, { ok: true, story_id: 1, media_associations: [{ url: stored }], rendition_sizes: ['thumbnail'] });
+    expect(one.media_associations[0].url).toContain('X-Amz-Signature=');
+    expect(one.rendition_sizes).toEqual(['thumbnail']);
+  });
+
   it('returns the body untouched when B2 is not configured', async () => {
     const body = { items: [{ url: stored }] };
     expect(await signB2UrlsDeep({}, body)).toBe(body);
