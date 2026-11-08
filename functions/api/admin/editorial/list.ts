@@ -4,6 +4,7 @@
 import { requireAdmin } from "../../../_lib/auth";
 import { listStoryMediaAssociations } from "../../../_lib/content-inventory-media";
 import { jsonResponse, requireD1, requireTables } from "../../../_lib/d1";
+import { signB2UrlsDeep } from "../../../_lib/b2-presign";
 
 const VALID_SUBMISSION_STATUSES = new Set([
   "pending",
@@ -143,11 +144,11 @@ export const onRequestGet = async (context: any): Promise<Response> => {
     }));
 
     return jsonResponse(
-      {
+      await signB2UrlsDeep(env, {
         ok: true,
         submissions: submissionRows?.results || [],
         inventory: inventoryWithMedia,
-      },
+      }),
       200,
     );
   } catch (err: any) {

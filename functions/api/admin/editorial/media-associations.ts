@@ -23,6 +23,7 @@ import {
   type RenditionSize,
 } from "../../../_lib/content-inventory-media";
 import { jsonResponse, requireD1, requireTables } from "../../../_lib/d1";
+import { signB2UrlsDeep } from "../../../_lib/b2-presign";
 
 function asInt(value: unknown): number {
   const n = typeof value === "number" ? value : Number(value);
@@ -55,13 +56,13 @@ export const onRequestGet = async (context: any): Promise<Response> => {
 
     const grouped = await listStoryMediaAssociations(d1.db, [storyId]);
     return jsonResponse(
-      {
+      await signB2UrlsDeep(env, {
         ok: true,
         story_id: storyId,
         media_associations: grouped.get(storyId) || [],
         rendition_sizes: RENDITION_SIZES,
         club_home_rendition_size: CLUB_HOME_MEDIA_RENDITION_SIZE,
-      },
+      }),
       200,
     );
   } catch (err: any) {
