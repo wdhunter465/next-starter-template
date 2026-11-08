@@ -254,6 +254,7 @@ Every current `.github/workflows/*` file as of 2026-09-14 (`HEAD` at inventory r
 | `opencode.yml` | OpenCode Maintenance |
 | `ops-agent-doctrine-issue-closeout.yml` | OPS — Agent Doctrine Issue Closeout |
 | `ops-ai-review-enable.yml` | OPS — Enable AI Review Access (#2215) |
+| `ops-pages-b2-secrets-sync-5131.yml` | OPS — Sync B2 secrets to Cloudflare Pages (#5131) |
 | `ops-assess.yml` | OPS — Site Assessment |
 | `ops-cf-pages-retry.yml` | OPS — Cloudflare Pages Auto-Retry |
 | `ops-chatterbox-command-bridge.yml` | OPS — Chatterbox Command Bridge (#3415) |
