@@ -6,7 +6,7 @@ Owns: The design for publishing the daily social posts from a scheduled GitHub A
 Does Not Own: The daily post recipe (recorded on #4416); the posts themselves (see /docs/reference/operations/social-daily-post-queue-2026-11.md); the Zapier payload contract for fundraiser posts (see /docs/reference/operations/social-crosspost-zapier-payload-contract.md); platform accounts, plans, costs and credentials; the 2026-12-01 and 2027-01-01 footer wording (see #2093)
 Canonical Reference: /docs/reference/operations/social-crosspost-zapier-payload-contract.md
 Related Issues: #5143, #5144, #4785, #4416, #4938, #4253, #4917, #5075, #2093, #5131
-Last Reviewed: 2026-11-08
+Last Reviewed: 2026-11-09
 ---
 
 # Daily social posts from a schedule, not from a session
@@ -71,6 +71,8 @@ public feed on the site  --->  one Zap per platform (Facebook Page, Instagram, P
 ```
 
 ### Public social-image location
+
+**Decision update, 2026-11-09 (#5156):** the second public bucket is replaced by an image route on the site, `/api/social/image/<post id>`. It streams the one photo of one queued post from the private bucket, and only after that post's publish time has arrived and while the photo is still rights-cleared. It needs no new bucket, key or secret, copies nothing and has nothing to delete. The paragraph below describes the bucket option that was considered first and stays available if the route's bandwidth ever matters.
 
 The photo has to be downloadable by the platforms at the moment they fetch it, and the main bucket is private. A post's photo is public the moment it is posted, so the job copies only that photo to a small separate public location (a second B2 bucket set to public, kept to images already published to social platforms, named by hash). No other file is ever copied there. The copy is deleted after a set number of days. This keeps the private bucket private and respects the rule that only rights-cleared items are public.
 
