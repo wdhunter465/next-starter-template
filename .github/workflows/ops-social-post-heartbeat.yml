@@ -1,0 +1,48 @@
+name: OPS — Social Post Heartbeat (#5159)
+
+# Phase 5 of the daily social posting design (#5143). Runs after the posting window (12:00 New York
+# is 17:00 UTC in EST and 16:00 UTC in EDT; the script only checks once it is 12:00 or later in New
+# York). If today's automated post is missing from the ledger (X), the public feed or its image, it
+# fails and opens or updates one Operations Issue. Read-only against the public site.
+on:
+  schedule:
+    - cron: '0 16 * * *'
+    - cron: '0 17 * * *'
+  workflow_dispatch: {}
+
+concurrency:
+  group: ops-social-post-heartbeat
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  heartbeat:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Check today's post
+        env:
+          SCHEDULED_CONTENT_BRIDGE_TOKEN: ${{ secrets.SCHEDULED_CONTENT_BRIDGE_TOKEN }}
+        run: node scripts/ops/social-post-heartbeat.mjs
+
+      - name: Open or update an Operations Issue on failure
+        if: ${{ failure() }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          OPS_ESCALATION_WORKFLOW: OPS — Social Post Heartbeat
+          OPS_ESCALATION_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          OPS_ESCALATION_DETAILS: Today's automated social post is missing from the ledger (X), the public feed or its image. Open the run log for the exact problem. Facebook, Instagram and Pinterest are posted by Zapier Zaps that this check cannot read; check the Zaps in Zapier if those platforms show no post.
+          OPS_ESCALATION_LABELS: ops-runtime-failure
+        run: node scripts/ci/ops_runtime_escalation.mjs
