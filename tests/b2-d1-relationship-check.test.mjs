@@ -63,3 +63,25 @@ describe('B2/D1 relationship check (#4469)', () => {
     expect(renderReport(report)).toContain('- id 2: http_404 (HTTP 404)');
   });
 });
+
+describe('checkPhotoAddress probes with GET, not HEAD (#5137)', () => {
+  it('sends a ranged GET so a signed link validates, and accepts a 206 image', async () => {
+    let seen = null;
+    const fetchImpl = async (url, init) => {
+      seen = { url, method: init.method, range: init.headers?.Range };
+      return new Response('x', { status: 206, headers: { 'content-type': 'image/jpeg' } });
+    };
+    const result = await checkPhotoAddress({ id: 1, url: 'https://s3.example/b/k.jpg?X-Amz-Signature=abc' }, { fetchImpl });
+    expect(seen.method).toBe('GET');
+    expect(seen.range).toBe('bytes=0-0');
+    expect(result.ok).toBe(true);
+    expect(result.status).toBe(206);
+  });
+
+  it('still fails a non-image or an error status', async () => {
+    const xml = async () => new Response('<Error/>', { status: 403, headers: { 'content-type': 'application/xml' } });
+    expect((await checkPhotoAddress({ id: 2, url: 'https://s3.example/b/k.jpg' }, { fetchImpl: xml })).reason).toBe('http_403');
+    const html = async () => new Response('<html/>', { status: 200, headers: { 'content-type': 'text/html' } });
+    expect((await checkPhotoAddress({ id: 3, url: 'https://s3.example/b/k.jpg' }, { fetchImpl: html })).reason).toBe('not_an_image');
+  });
+});
