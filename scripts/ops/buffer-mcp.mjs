@@ -46,6 +46,17 @@ export function toolResultData(result) {
   }
 }
 
+/** First value stored under `key` anywhere in a nested object or array, or undefined. */
+export function findFirst(node, key) {
+  if (!node || typeof node !== 'object') return undefined;
+  if (!Array.isArray(node) && key in node) return node[key];
+  for (const child of Array.isArray(node) ? node : Object.values(node)) {
+    const found = findFirst(child, key);
+    if (found !== undefined) return found;
+  }
+  return undefined;
+}
+
 export class BufferMcp {
   constructor(apiKey, fetchImpl = fetch) {
     if (!apiKey) throw new Error('BUFFER_API_KEY is required');
@@ -104,12 +115,20 @@ export async function runCheck(env = process.env, fetchImpl = fetch) {
   const names = (tools?.tools ?? []).map((t) => t.name);
   const report = { ok: true, tool_count: names.length, has_create_post: names.includes('create_post'), tools: names };
   const account = await client.callTool('get_account', {});
-  report.organizations = (account?.organizations ?? []).map((o) => ({ id: o.id, name: o.name }));
+  report.account_top_level_keys = account && typeof account === 'object' ? Object.keys(account) : typeof account;
+  const orgs = findFirst(account, 'organizations') ?? [];
+  report.organizations = (Array.isArray(orgs) ? orgs : []).map((o) => ({ id: o.id, name: o.name }));
   const orgId = report.organizations[0]?.id;
   if (orgId) {
     const channels = await client.callTool('list_channels', { organizationId: orgId });
-    const list = Array.isArray(channels) ? channels : (channels?.channels ?? []);
-    report.channels = list.map((c) => ({ id: c.id, name: c.name, service: c.service, is_disconnected: c.isDisconnected ?? null }));
+    report.channels_top_level_keys = channels && typeof channels === 'object' ? Object.keys(channels) : typeof channels;
+    const list = Array.isArray(channels) ? channels : (findFirst(channels, 'channels') ?? []);
+    report.channels = (Array.isArray(list) ? list : []).map((c) => ({
+      id: c.id,
+      name: c.name,
+      service: c.service,
+      is_disconnected: c.isDisconnected ?? null,
+    }));
   }
   const createPost = (tools?.tools ?? []).find((t) => t.name === 'create_post');
   report.create_post_input_properties = Object.keys(createPost?.inputSchema?.properties ?? {});

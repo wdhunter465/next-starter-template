@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BufferMcp, parseRpcBody, runCheck, toolResultData } from '../scripts/ops/buffer-mcp.mjs';
+import { BufferMcp, findFirst, parseRpcBody, runCheck, toolResultData } from '../scripts/ops/buffer-mcp.mjs';
 
 describe('buffer mcp client', () => {
   it('parses plain JSON and SSE bodies', () => {
@@ -12,6 +12,12 @@ describe('buffer mcp client', () => {
   it('parses JSON tool text and leaves other text alone', () => {
     expect(toolResultData({ content: [{ text: '{"x":1}' }] })).toEqual({ x: 1 });
     expect(toolResultData({ content: [{ text: 'plain' }] })).toBe('plain');
+  });
+
+  it('finds a key nested in an object or array', () => {
+    expect(findFirst({ data: { account: { organizations: [{ id: 'o' }] } } }, 'organizations')).toEqual([{ id: 'o' }]);
+    expect(findFirst([{ a: 1 }, { b: { channels: [] } }], 'channels')).toEqual([]);
+    expect(findFirst({ a: 1 }, 'channels')).toBeUndefined();
   });
 
   it('requires a key', () => {
