@@ -46,6 +46,11 @@ export function toolResultData(result) {
   }
 }
 
+/** Hides anything that looks like an email address before text is printed. */
+export function maskEmails(text) {
+  return String(text ?? '').replace(/[\w.+-]+@[\w-]+\.[\w.-]+/g, '[email]');
+}
+
 /** First value stored under `key` anywhere in a nested object or array, or undefined. */
 export function findFirst(node, key) {
   if (!node || typeof node !== 'object') return undefined;
@@ -116,12 +121,14 @@ export async function runCheck(env = process.env, fetchImpl = fetch) {
   const report = { ok: true, tool_count: names.length, has_create_post: names.includes('create_post'), tools: names };
   const account = await client.callTool('get_account', {});
   report.account_top_level_keys = account && typeof account === 'object' ? Object.keys(account) : typeof account;
+  if (typeof account === 'string') report.account_text = maskEmails(account).slice(0, 1500);
   const orgs = findFirst(account, 'organizations') ?? [];
   report.organizations = (Array.isArray(orgs) ? orgs : []).map((o) => ({ id: o.id, name: o.name }));
   const orgId = report.organizations[0]?.id;
   if (orgId) {
     const channels = await client.callTool('list_channels', { organizationId: orgId });
     report.channels_top_level_keys = channels && typeof channels === 'object' ? Object.keys(channels) : typeof channels;
+    if (typeof channels === 'string') report.channels_text = maskEmails(channels).slice(0, 2500);
     const list = Array.isArray(channels) ? channels : (findFirst(channels, 'channels') ?? []);
     report.channels = (Array.isArray(list) ? list : []).map((c) => ({
       id: c.id,

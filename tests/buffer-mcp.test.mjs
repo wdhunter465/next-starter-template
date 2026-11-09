@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { BufferMcp, findFirst, parseRpcBody, runCheck, toolResultData } from '../scripts/ops/buffer-mcp.mjs';
+import { BufferMcp, findFirst, maskEmails, parseRpcBody, runCheck, toolResultData } from '../scripts/ops/buffer-mcp.mjs';
 
 describe('buffer mcp client', () => {
   it('parses plain JSON and SSE bodies', () => {
@@ -18,6 +18,10 @@ describe('buffer mcp client', () => {
     expect(findFirst({ data: { account: { organizations: [{ id: 'o' }] } } }, 'organizations')).toEqual([{ id: 'o' }]);
     expect(findFirst([{ a: 1 }, { b: { channels: [] } }], 'channels')).toEqual([]);
     expect(findFirst({ a: 1 }, 'channels')).toBeUndefined();
+  });
+
+  it('masks email addresses in printed text', () => {
+    expect(maskEmails('Owner: a.b+c@example.com, org')).toBe('Owner: [email], org');
   });
 
   it('requires a key', () => {
