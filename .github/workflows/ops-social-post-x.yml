@@ -31,6 +31,7 @@ concurrency:
 
 permissions:
   contents: read
+  issues: write
 
 jobs:
   post:
@@ -50,3 +51,14 @@ jobs:
 
       - name: Post due X posts
         run: node scripts/ops/social-post-x.mjs
+
+      - name: Open or update an Operations Issue on failure
+        if: ${{ failure() && github.event_name == 'schedule' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          OPS_ESCALATION_WORKFLOW: OPS — Social Post to X
+          OPS_ESCALATION_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          OPS_ESCALATION_DETAILS: The scheduled X post failed (Buffer error or the ledger could not be read or written). Open the run log. A post already recorded in the ledger is not sent again; if Buffer posted but the ledger write failed, check X before rerunning.
+          OPS_ESCALATION_LABELS: ops-runtime-failure
+        run: node scripts/ci/ops_runtime_escalation.mjs
