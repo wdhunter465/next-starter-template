@@ -36,12 +36,23 @@ export function parseRpcBody(text, contentType = '') {
   return JSON.parse(trimmed);
 }
 
-/** The text content of an MCP tool result, parsed as JSON when possible. */
+/**
+ * The text content of an MCP tool result, parsed as JSON when possible. Buffer appends a second
+ * JSON line with rate-limit data, so when the whole text is not one JSON value the first line
+ * that parses is the answer.
+ */
 export function toolResultData(result) {
   const text = (result?.content ?? []).map((c) => c?.text ?? '').join('\n');
   try {
     return JSON.parse(text);
   } catch {
+    for (const line of text.split(/\r?\n/)) {
+      try {
+        return JSON.parse(line);
+      } catch {
+        /* try the next line */
+      }
+    }
     return text;
   }
 }

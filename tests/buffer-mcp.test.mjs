@@ -24,6 +24,11 @@ describe('buffer mcp client', () => {
     expect(maskEmails('Owner: a.b+c@example.com, org')).toBe('Owner: [email], org');
   });
 
+  it('reads the first JSON line when Buffer appends rate-limit data', () => {
+    const text = '{"organizations":[{"id":"o"}]}\n{"rateLimit":[{"remaining":1}]}';
+    expect(toolResultData({ content: [{ text }] })).toEqual({ organizations: [{ id: 'o' }] });
+  });
+
   it('requires a key', () => {
     expect(() => new BufferMcp('')).toThrow(/BUFFER_API_KEY/);
   });
