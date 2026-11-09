@@ -5,8 +5,8 @@ Authority Level: Supporting
 Owns: LGFC asset register schema, asset rows, and secret-name catalog as a supporting specification
 Does Not Own: Platform and Environment Domain Policy; vendor contracts; credential values; delivery approval; incident response
 Canonical Reference: /docs/governance/PLATFORM-AND-ENVIRONMENT.md
-Related Issues: #4534, #4535, #4539, #4540, #4541, #4542
-Last Reviewed: 2026-10-21
+Related Issues: #4534, #4535, #4539, #4540, #4541, #4542, #5131
+Last Reviewed: 2026-11-09
 ---
 
 # LGFC Asset Register
@@ -67,6 +67,7 @@ When this register and a detailed inventory disagree, the detailed inventory's c
 | cf:pages:next-starter-template | platform | Pages project `next-starter-template` | Cloudflare | shared | Product Authority | team:operations | `docs/reference/platform/CLOUDFLARE.md` | app:build:nextjs; cf:d1:lgfc_lite; cf:d1:lgfc-litedev | member | CLOUDFLARE_API_TOKEN; CLOUDFLARE_ACCOUNT_ID | Cloudflare Pages PR check; `ops-cf-pages-retry.yml`; uptime probe (#4540) | active | 2026-10-10 |
 | cf:domain:www.lougehrigfanclub.com | platform | `www.lougehrigfanclub.com` | Cloudflare | production | Product Authority | team:operations | HTTP 200 on 2026-10-10 | cf:pages:next-starter-template | public | — | uptime probe (#4540) | active | 2026-10-10 |
 | cf:domain:lougehrigfanclub.com | platform | Apex `lougehrigfanclub.com` | Cloudflare | production | Product Authority | team:operations | HTTPS 301 to `www` on 2026-10-13 after the dashboard redirect rule added 2026-10-12 (was 522 on 2026-10-10, #4542) | cf:pages:next-starter-template | public | — | uptime probe (#4540) | active | 2026-10-13 |
+| cf:registrar:lougehrigfanclub.com | platform | Domain registration `lougehrigfanclub.com` (Cloudflare Registrar, auto-renew on, expires 2027-01-25) | Cloudflare | production | Product Authority | team:operations | Cloudflare dashboard, Domains, Registrations (screenshot 2026-11-07) | cf:domain:lougehrigfanclub.com | none | — | none | active | 2026-11-07 |
 | cf:domain:next-starter-template-6yr.pages.dev | platform | `next-starter-template-6yr.pages.dev` | Cloudflare | production | Product Authority | team:operations | HTTP 200 on 2026-10-10 | cf:pages:next-starter-template | public | — | uptime probe (#4540) | active | 2026-10-10 |
 | cf:token:lgfc-lite-token | platform | Cloudflare API token `lgfc-lite-token` (primary GitHub-to-Cloudflare connection; do not change; `docs/reference/platform/lgfc-lite-token.md`) | Cloudflare | production | Product Authority | team:operations | Product Authority 2026-10-13; Cloudflare token list | cf:d1:lgfc_lite; cf:d1:lgfc-litedev; cf:r2:lgfc-d1-backups; cf:pages:next-starter-template | secrets | CLOUDFLARE_API_TOKEN; CLOUDFLARE_ACCOUNT_ID | workflow runs (migrations, daily backup); Cloudflare shows no reliable last-used date | active | 2026-10-13 |
 | cf:d1:lgfc_lite | platform | Production D1 `lgfc_lite` (`22d0dc3e-ad34-43af-8e6a-2063df1a1e04`) | Cloudflare | production | Product Authority | team:operations | `wrangler.toml`; backup run 2026-10-10; D1 listing 2026-10-13 | — | member | D1_DATABASE_NAME; D1_DATABASE_ID; CLOUDFLARE_API_TOKEN | `ops-d1-backup-scheduled-daily-3268.yml`; `d1-migrations.yml` identity check | active | 2026-10-10 |
@@ -74,7 +75,7 @@ When this register and a detailed inventory disagree, the detailed inventory's c
 | cf:r2:lgfc-d1-backups | storage | R2 bucket `lgfc-d1-backups` | Cloudflare | production | Product Authority | team:operations | #3268 backup report 2026-10-10; R2 listing 2026-10-13 | cf:d1:lgfc_lite | member | R2_ACCESS_KEY_ID; R2_SECRET_ACCESS_KEY; R2_BUCKET_NAME | daily backup re-verify; `ops-d1-backup-scheduled-quarterly-drill-3268.yml` | active | 2026-10-10 |
 | cf:worker:lgfc-agent-eval | agent | Worker `lgfc-agent-eval` (temporary Cloudflare AI agent evaluation; evaluation abandoned 2026-10, re-evaluation planned 2027, #3635) | Cloudflare | shared | Product Authority | team:operations | Cloudflare Workers listing 2026-10-13 (created 2026-08-22) | — | none | — | none | retired | 2026-10-13 |
 | cf:waf:rate-limiting | platform | Rate limiting / WAF (dashboard-owned, `API_RATE_LIMITER`) | Cloudflare | production | Product Authority | team:operations | `docs/how-to/website/api-rate-limiting.md` | cf:pages:next-starter-template | none | — | none | active | — |
-| b2:bucket:LouGehrigFanClub | storage | B2 bucket `LouGehrigFanClub` | Backblaze | shared | Product Authority | team:operations | `docs/reference/platform/Backblaze_B2.md`; `b2-s3-smoke-test.yml` | — | public | B2_KEY_ID; B2_APP_KEY; B2_BUCKET; B2_ENDPOINT; PUBLIC_B2_BASE_URL | `b2-s3-smoke-test.yml` (daily); `b2-d1-daily-sync.yml` | active | 2026-10-10 |
+| b2:bucket:LouGehrigFanClub | storage | B2 bucket `LouGehrigFanClub` (private since 2026-11-08; 170 files, 422 MB; images served through signed links, #5131) | Backblaze | shared | Product Authority | team:operations | `docs/reference/platform/Backblaze_B2.md`; `b2-s3-smoke-test.yml`; Backblaze console screenshot 2026-11-08 | — | member | B2_KEY_ID; B2_APP_KEY; B2_BUCKET; B2_ENDPOINT; PUBLIC_B2_BASE_URL | `b2-s3-smoke-test.yml` (daily); `b2-d1-daily-sync.yml`; `ops-photo-address-check.yml` | active | 2026-11-08 |
 | email:icloud:domain-mailbox | email | Inbound club mail (Cloudflare Email Routing forwards admin@, support@ and the test@ testing address to the club mailbox; Apple provides address masking only, no hosted mailbox or routing, #4757) | Apple | production | Product Authority | team:operations | `vendor-inventory.md` | — | member | — | none | active | — |
 | email:mailchannels:transactional | email | Transactional email (off unless `MAILCHANNELS_ENABLED=1`) | MailChannels | production | Product Authority | team:operations | `component-environment-isolation.md` | cf:pages:next-starter-template | member | MAILCHANNELS_API_KEY | none | active | — |
 | saas:ga4:G-BRV48J1VEJ | saas | Google Analytics 4 property | Google | production | Product Authority | team:operations | `component-environment-isolation.md` (#4350) | app:build:nextjs | public | NEXT_PUBLIC_GA_ID | none | active | — |
@@ -82,7 +83,8 @@ When this register and a detailed inventory disagree, the detailed inventory's c
 | saas:bonfire:store | saas | Merchandise store | Bonfire | production | Product Authority | team:operations | `vendor-inventory.md` | — | none | — | none | active | — |
 | saas:elfsight:widgets | saas | Site widgets | Elfsight | production | Product Authority | team:operations | `vendor-inventory.md` | app:build:nextjs | public | — | none | active | — |
 | saas:social:accounts | saas | Facebook, Instagram, Pinterest, X accounts | Meta; Pinterest; X | production | Product Authority | team:operations | `vendor-inventory.md` | — | public | — | none | active | — |
-| saas:zapier:automation | saas | Social announcement automation | Zapier | n/a | Product Authority | team:operations | `vendor-inventory.md` (P-02, #4416) | — | none | — | none | future | — |
+| saas:zapier:automation | saas | Social posting automation (Free plan; Facebook Page, Instagram and Pinterest actions, today through Claude's connector only; unattended posting is designed in #5143) | Zapier | production | Product Authority | team:operations | `vendor-inventory.md` (P-02, #4416); `social-daily-post-automation-design.md` | saas:social:accounts | none | — | none | active | 2026-11-09 |
+| saas:buffer:social-scheduling | saas | Buffer (Free plan; X channel `GehrigFanClub`; 10 queued posts, 3 channels) | Buffer | production | Product Authority | team:operations | #4416 (2026-11-04, 2026-11-08) | saas:social:accounts | none | — | none | active | 2026-11-09 |
 | saas:dpla:api | saas | Digital Public Library of America API | DPLA | n/a | Product Authority | team:operations | `secrets.DPLA_API_KEY` in workflows | — | none | DPLA_API_KEY | none | active | — |
 | saas:huggingface:api | saas | Hugging Face API | Hugging Face | n/a | Product Authority | team:operations | `secrets.HF_TOKEN` in workflows | — | none | HF_TOKEN | none | active | — |
 | saas:gitleaks:license | build | Gitleaks secret scan | Gitleaks | n/a | Product Authority | team:operations | `secrets.GITLEAKS_LICENSE` in workflows | gh:actions:workflows | none | GITLEAKS_LICENSE | `gitleaks` required check | active | 2026-10-10 |
@@ -138,6 +140,28 @@ Names referenced by `.github/workflows/**` or `.env.example` on 2026-10-10. Valu
 | HF_TOKEN | workflows | saas:huggingface:api |
 <!-- asset-register:secrets:end -->
 
+## Vendor lifecycle and renewal (#4541)
+
+Recorded 2026-11-09 from Product Authority's answers (2026-11-07) and the `LGFC Expense Tracker 2026` spreadsheet. Plan tier, renewal and cost owner only; credentials and values are never recorded here. Cost owner for every row is Product Authority. This table is outside the asset table and the secret catalog, which the reconciliation job parses.
+
+| vendor | asset_id | status | plan or tier | cost | renewal | note |
+| --- | --- | --- | --- | --- | --- | --- |
+| Cloudflare (Pages, Functions, D1, Workers) | `cf:pages:next-starter-template` | active | Free | none | none | A one-time Workers Paid upgrade in 2026-09 for D1 ingestion was reverted |
+| Cloudflare R2 (D1 backups) | `cf:r2:lgfc-d1-backups` | active | Free tier, $10 monthly cap | none within the free allowance | none | |
+| Domain `lougehrigfanclub.com` | `cf:registrar:lougehrigfanclub.com` | active | Cloudflare Registrar | about $10.46 a year, rising to $11.17 from 2026-11-01 | 2027-01-25, auto-renew on | Expiry falls inside the repository freeze that starts 2026-12-31; confirm the payment method on the Cloudflare account stays valid |
+| Backblaze B2 | `b2:bucket:LouGehrigFanClub` | active | Free (first 10 GB; 422 MB used) | none | none | Private bucket since 2026-11-08 |
+| GitHub Pro | `gh:repo:next-starter-template` | active | Pro | $48 a year | September | GitHub Copilot is on the free tier |
+| Claude.ai | `agent:vendors` | active | paid plan | $216 for 18 months | October | |
+| Cursor Pro | `agent:vendors` | active | Pro | $576 on the expense tracker | June 10 | Target to cancel in June 2027 |
+| MailChannels | `email:mailchannels:transactional` | active | Free tier | none | none | Transactional email is on in Production (`MAILCHANNELS_ENABLED=1`, #4690) |
+| Zapier | `saas:zapier:automation` | active | Free (100 tasks a month, two-step Zaps) | none | none | No trial or paid plan (Product Authority, 2026-11-04) |
+| Buffer | `saas:buffer:social-scheduling` | active | Free | none | none | |
+| Elfsight | `saas:elfsight:widgets` | active | Free | none | none | |
+| Givebutter | `saas:givebutter:fundraising` | active | No cost; the campaign uses the LiveLikeLou account, so all money routes as 100% donations to the LiveLikeLou Foundation | none | none | |
+| Bonfire | `saas:bonfire:store` | active | Free; each sale pays Bonfire for the service and profits go directly to the ALS Cure Project as a 100% donation | none | none | |
+| Apple iCloud Mail | `email:icloud:domain-mailbox` | active | Part of Product Authority's personal Apple account | none | none | Not an LGFC cost |
+| ChatGPT | `agent:vendors` | retired | cancelled 2026-09 | none | none | |
+
 ## Recorded secret expiry
 
 A date is listed only when it is already known. No date is known on 2026-10-26. Do not invent dates (#4541). The checker reads this table and names the secret only.
@@ -154,5 +178,5 @@ A date is listed only when it is already known. No date is known on 2026-10-26. 
 - No scheduled reconciliation of this register (#4539).
 - Google Analytics, DPLA, Hugging Face, and Gitleaks are used but are not listed in `vendor-inventory.md`.
 - `@pinecone-database/pinecone` is declared in `package.json` with no source import (#4536).
-- Vendor plan tiers, renewal dates, and cost owners are not recorded (#4541).
+- Vendor plan tiers, renewal dates, and cost owners were not recorded on 2026-10-10; they are recorded in the vendor lifecycle section above (#4541).
 - `CLOUDFLARE.md` (2026-08-11) and `Backblaze_B2.md` (2026-07-21) predate this register (#4537, #4538).
