@@ -150,6 +150,7 @@ export async function runCheck(env = process.env, fetchImpl = fetch) {
   }
   const createPost = (tools?.tools ?? []).find((t) => t.name === 'create_post');
   report.create_post_input_properties = Object.keys(createPost?.inputSchema?.properties ?? {});
+  report.create_post_input_schema = createPost?.inputSchema ?? null;
   return report;
 }
 
