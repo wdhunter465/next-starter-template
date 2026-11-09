@@ -1,0 +1,32 @@
+name: OPS — Buffer API Check (#5157)
+
+# Read-only. Proves the BUFFER_API_KEY repository secret works against Buffer's MCP endpoint and
+# prints the tools, the organization and the connected channels (names, ids, services). It
+# posts nothing and never prints the key. Runs on demand and on pull requests that change the
+# Buffer client, so the result is visible before merge.
+on:
+  workflow_dispatch: {}
+  pull_request:
+    paths:
+      - 'scripts/ops/buffer-mcp.mjs'
+      - '.github/workflows/ops-buffer-check.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    env:
+      BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Check the Buffer key and list channels
+        run: node scripts/ops/buffer-mcp.mjs check
