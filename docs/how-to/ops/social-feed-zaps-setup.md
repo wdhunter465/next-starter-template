@@ -13,13 +13,13 @@ Last Reviewed: 2026-11-09
 
 ## What this is
 
-The site publishes `https://www.lougehrigfanclub.com/api/social/feed`, an RSS feed. A post appears in it at its publish time (10:00 America/New_York) and not before. Each Zap watches the feed and posts each new item to one platform. On the Free plan, RSS by Zapier checks about every 15 minutes, so a post can go out up to a quarter hour late. Each Zap uses 1 task per post, 3 tasks a day, about 90 of the 100 free tasks a month.
+The site publishes an RSS feed, `https://www.lougehrigfanclub.com/api/social/feed`, and one feed per platform: `...?platform=facebook`, `...?platform=instagram` and `...?platform=pinterest`. A post lists the platforms it is meant for, so a post can skip a platform (for example a photo outside Instagram's aspect ratio of 4:5 to 1.91:1) without changing a Zap. Use each platform's own feed in its Zap. A post appears in it at its publish time (10:00 America/New_York) and not before. Each Zap watches the feed and posts each new item to one platform. On the Free plan, RSS by Zapier checks about every 15 minutes, so a post can go out up to a quarter hour late. Each Zap uses 1 task per post, 3 tasks a day, about 90 of the 100 free tasks a month.
 
 X is not part of these Zaps (see #5157).
 
 ## Steps: create each Zap (three times)
 
-1. Trigger: **RSS by Zapier**, event **New Item in Feed**. Feed URL: `https://www.lougehrigfanclub.com/api/social/feed`.
+1. Trigger: **RSS by Zapier**, event **New Item in Feed**. Feed URL: the platform's own feed, `https://www.lougehrigfanclub.com/api/social/feed?platform=<facebook|instagram|pinterest>`.
 2. Action, one per Zap:
    - **Facebook Pages**, **Create Page Post**. Page: Lou Gehrig Fan Club (103961431551844). Message: the item's Description. Link: leave empty. Photo: the item's Enclosure URL.
    - **Instagram for Business**, **Publish Photo(s)**. Account: lougehrigfanclub (17841451674874751). Caption: the item's Description. Photo URL: the item's Enclosure URL.
@@ -29,7 +29,7 @@ X is not part of these Zaps (see #5157).
 ## Test before turning on
 
 1. Zapier loads a sample item from the feed. Before 10:00 on a day with a queued post the feed is empty; use the previous day's item as the sample, and use Zapier's **Test action** only if you accept that it posts for real.
-2. The Instagram image must be a JPEG within Instagram's aspect-ratio limits. Photo 864 is taller than 4:5 and photo 859 is wide; check each post's crop (see /docs/reference/operations/social-daily-post-queue-2026-11.md) or skip Instagram for that day.
+2. The Instagram image must be a JPEG within Instagram's aspect-ratio limits. Photos 860 (2026-11-11) and 864 (2026-11-12) are taller than 4:5, so those two posts leave Instagram out of their platform list and do not appear in the Instagram feed.
 3. Turn a Zap on, and confirm the next 10:00 post appears once on that platform.
 
 ## Turn off
