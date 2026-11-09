@@ -13,7 +13,7 @@ import { pathToFileURL } from 'node:url';
 
 export const PLATFORMS = ['x', 'facebook', 'instagram', 'pinterest'];
 export const X_LIMIT = 280;
-export const DEFAULT_QUEUE = 'docs/reference/operations/social-post-queue.json';
+export const DEFAULT_QUEUE = 'data/social-post-queue.json';
 
 /** Problems with the queue itself (photo lists, footer, lateness). */
 export function validateQueueShape(queue) {

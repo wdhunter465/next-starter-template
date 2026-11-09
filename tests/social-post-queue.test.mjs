@@ -2,7 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { classifyPosts, validatePost, validateQueue } from '../scripts/ops/social-post-queue.mjs';
 
-const real = JSON.parse(readFileSync('docs/reference/operations/social-post-queue.json', 'utf8'));
+const real = JSON.parse(readFileSync('data/social-post-queue.json', 'utf8'));
 const footer = real.footer_required;
 
 const queue = () => ({
