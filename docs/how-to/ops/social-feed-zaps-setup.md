@@ -17,7 +17,7 @@ The site publishes `https://www.lougehrigfanclub.com/api/social/feed`, an RSS fe
 
 X is not part of these Zaps (see #5157).
 
-## Create each Zap (three times)
+## Steps: create each Zap (three times)
 
 1. Trigger: **RSS by Zapier**, event **New Item in Feed**. Feed URL: `https://www.lougehrigfanclub.com/api/social/feed`.
 2. Action, one per Zap:
