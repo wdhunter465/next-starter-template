@@ -26,11 +26,15 @@ export async function listPublicPhotos(base, { fetchImpl = fetch, timeoutMs = 20
 export async function checkPhotoAddress(photo, { fetchImpl = fetch, timeoutMs = 20_000 } = {}) {
   const result = { id: photo.id, photoId: photo.photo_id ?? null, ok: false, status: null, contentType: null, reason: null };
   try {
+    // A signed link (private bucket, #5131) is valid only for the method it was signed for, GET, so a HEAD
+    // probe is refused with 403. Ask for the first byte with a GET instead (206 or 200, tiny body).
     const response = await fetchImpl(photo.url, {
-      method: 'HEAD',
+      method: 'GET',
+      headers: { Range: 'bytes=0-0' },
       redirect: 'follow',
       signal: AbortSignal.timeout(timeoutMs),
     });
+    await response.body?.cancel?.().catch?.(() => {});
     result.status = response.status;
     result.contentType = (response.headers.get('content-type') || '').split(';')[0].trim().toLowerCase() || null;
     if (response.status < 200 || response.status > 299) result.reason = `http_${response.status}`;
