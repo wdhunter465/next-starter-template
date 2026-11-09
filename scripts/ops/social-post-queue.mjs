@@ -24,6 +24,9 @@ export function validateQueueShape(queue) {
     problems.push('rights_cleared_photo_ids must be a non-empty array');
   }
   if (!(Number(queue.lateness_hours) > 0)) problems.push('lateness_hours must be a positive number');
+  if (queue.automation_starts_at !== undefined && Number.isNaN(Date.parse(queue.automation_starts_at))) {
+    problems.push('automation_starts_at must be an ISO time with an offset');
+  }
   if (typeof queue.footer_required !== 'string' || !queue.footer_required.trim()) {
     problems.push('footer_required must be set');
   }

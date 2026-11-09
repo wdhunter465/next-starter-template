@@ -258,6 +258,7 @@ Every current `.github/workflows/*` file as of 2026-09-14 (`HEAD` at inventory r
 | `ops-b2-cors-5131.yml` | OPS — B2 bucket CORS rule for the site (#5131) |
 | `ops-social-post-dry-run.yml` | OPS — Social Post Dry Run (#5155) |
 | `ops-buffer-check.yml` | OPS — Buffer API Check (#5157) |
+| `ops-social-post-x.yml` | OPS — Social Post to X (#5157) |
 | `ops-assess.yml` | OPS — Site Assessment |
 | `ops-cf-pages-retry.yml` | OPS — Cloudflare Pages Auto-Retry |
 | `ops-chatterbox-command-bridge.yml` | OPS — Chatterbox Command Bridge (#3415) |

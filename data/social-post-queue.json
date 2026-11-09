@@ -1,6 +1,7 @@
 {
   "_comment": "Reviewed by pull request only (#5155, design #5143). Times are America/New_York. A post later than lateness_hours after publish_at is skipped, never sent late. Footer changes on 2026-12-01 and 2027-01-01 (#2093).",
   "lateness_hours": 4,
+  "automation_starts_at": "2026-11-10T00:00:00-05:00",
   "rights_cleared_photo_ids": [
     858,
     859,

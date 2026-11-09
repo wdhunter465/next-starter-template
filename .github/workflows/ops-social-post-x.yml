@@ -1,0 +1,52 @@
+name: OPS — Social Post to X (#5157)
+
+# Phase 3 of the daily social posting design (#5143). Posts the due, approved queue posts to X
+# through Buffer, once each (the ledger on the site records what was sent). Scheduled runs post for
+# real; a pull request or a manual run is a dry run unless apply=true. Posts earlier than the
+# queue's automation_starts_at are left to the manual process.
+#
+# Cron: every 30 minutes across the posting window (10:00 New York is 14:00 UTC in EDT and 15:00
+# UTC in EST); the ledger makes extra ticks harmless.
+on:
+  schedule:
+    - cron: '0,30 14-19 * * *'
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: Post for real (default false = dry run)
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+  pull_request:
+    paths:
+      - 'scripts/ops/social-post-x.mjs'
+      - '.github/workflows/ops-social-post-x.yml'
+
+concurrency:
+  group: ops-social-post-x
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    env:
+      BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
+      SCHEDULED_CONTENT_BRIDGE_TOKEN: ${{ secrets.SCHEDULED_CONTENT_BRIDGE_TOKEN }}
+      APPLY: ${{ github.event_name == 'schedule' && 'true' || (github.event_name == 'workflow_dispatch' && inputs.apply) || 'false' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Post due X posts
+        run: node scripts/ops/social-post-x.mjs
