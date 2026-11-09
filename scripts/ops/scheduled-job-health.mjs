@@ -30,6 +30,7 @@ export const JOBS = [
   { file: 'ops-post-merge-self-healing.yml', maxAgeHours: 30 },
   { file: 'ops-scheduled-content-publish.yml', maxAgeHours: 30 },
   { file: 'ops-scheduled-post-presence.yml', maxAgeHours: 30 },
+  { file: 'ops-social-post-dry-run.yml', maxAgeHours: 30 },
   { file: 'ops-cert-dns-watch.yml', maxAgeHours: 30 },
   { file: 'ops-secret-expiry-watch.yml', maxAgeHours: 30 },
   { file: 'ops-duplicate-photo-sweep.yml', maxAgeHours: 30 },

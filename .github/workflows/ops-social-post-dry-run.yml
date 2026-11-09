@@ -1,0 +1,42 @@
+name: OPS — Social Post Dry Run (#5155)
+
+# Phase 1 of the daily social posting design (#5143). Read-only: validates the
+# reviewed queue and prints which posts are due, late or upcoming. It posts
+# nothing, calls no platform and uses no secret. Phases 2 to 5 add the ledger,
+# platform posting and alerts.
+#
+# Cron: every 30 minutes from 09:30 to 14:30 New York time. 13:30-19:30 UTC covers
+# the window in EDT; the EST window is 14:30-19:30 UTC. The extra early ticks are
+# harmless because a dry run changes nothing.
+
+on:
+  schedule:
+    - cron: '30 13-19 * * *'
+    - cron: '0 14-19 * * *'
+  workflow_dispatch: {}
+  pull_request:
+    paths:
+      - 'data/social-post-queue.json'
+      - 'scripts/ops/social-post-queue.mjs'
+
+concurrency:
+  group: ops-social-post-dry-run
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  dry-run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Validate queue and report what is due
+        run: node scripts/ops/social-post-queue.mjs
