@@ -1,0 +1,66 @@
+name: OPS — Social Post Hand-off to Zapier (#5173)
+
+# Revised social posting strategy (#5173). At each post's publish time (10:00 New York, plus
+# 18:00 from 2027-06-01) this opens one labelled GitHub Issue per platform. One Zap per platform
+# (Facebook Page, Instagram, Pinterest) watches for it and posts through the existing Zapier
+# connection. X is sent by OPS — Social Post to X. Scheduled runs post for real; a pull request
+# or a manual run is a dry run unless apply=true.
+#
+# Cron: every 30 minutes, 10:00 to 15:00 New York time in either clock setting (14:00-20:00 UTC),
+# and 18:00-20:00 New York (22:00-01:00 UTC, EDT and EST); the ledger makes extra ticks harmless.
+on:
+  schedule:
+    - cron: '0,30 14-20 * * *'
+    - cron: '0,30 22,23,0,1 * * *'
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: Hand off for real (default false = dry run)
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+  pull_request:
+    paths:
+      - 'scripts/ops/social-post-dispatch.mjs'
+      - '.github/workflows/ops-social-post-dispatch.yml'
+
+concurrency:
+  group: ops-social-post-dispatch
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  dispatch:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_TOKEN: ${{ github.token }}
+      SCHEDULED_CONTENT_BRIDGE_TOKEN: ${{ secrets.SCHEDULED_CONTENT_BRIDGE_TOKEN }}
+      APPLY: ${{ github.event_name == 'schedule' && 'true' || (github.event_name == 'workflow_dispatch' && inputs.apply) || 'false' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Hand off due posts
+        run: node scripts/ops/social-post-dispatch.mjs
+
+      - name: Open or update an Operations Issue on failure
+        if: ${{ failure() && github.event_name == 'schedule' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          OPS_ESCALATION_WORKFLOW: OPS — Social Post Hand-off to Zapier
+          OPS_ESCALATION_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          OPS_ESCALATION_DETAILS: The scheduled hand-off of a social post to Zapier failed (GitHub Issue creation or the ledger). Open the run log. A platform already recorded in the ledger is not handed off again.
+          OPS_ESCALATION_LABELS: ops-runtime-failure
+        run: node scripts/ci/ops_runtime_escalation.mjs
