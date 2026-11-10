@@ -48,6 +48,23 @@ describe('social feed', () => {
     expect(xml).not.toContain('>draft<');
   });
 
+  it('lists a post only in the feeds of its platforms', () => {
+    const posts = [post({ id: 'a', platforms: ['facebook', 'instagram'] }), post({ id: 'b', platforms: ['facebook'] })];
+    const now = Date.parse('2026-11-10T00:00:00Z');
+    const ig = buildFeed('https://example.test', posts, now, 'instagram');
+    expect(ig).toContain('>a<');
+    expect(ig).not.toContain('>b<');
+    expect(buildFeed('https://example.test', posts, now, 'facebook')).toContain('>b<');
+    expect(buildFeed('https://example.test', posts, now)).toContain('>b<');
+  });
+
+  it('filters by the platform query and rejects an unknown platform', async () => {
+    const ok = await onRequestGet({ request: new Request('https://example.test/api/social/feed?platform=instagram') });
+    expect(ok.status).toBe(200);
+    const bad = await onRequestGet({ request: new Request('https://example.test/api/social/feed?platform=myspace') });
+    expect(bad.status).toBe(400);
+  });
+
   it('serves RSS from the handler', async () => {
     const res = await onRequestGet({ request: new Request('https://example.test/api/social/feed') });
     expect(res.status).toBe(200);

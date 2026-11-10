@@ -85,3 +85,13 @@ describe('social post queue', () => {
     expect(classifyPosts(q, Date.parse('2026-11-09T14:00:01-05:00')).late).toHaveLength(1);
   });
 });
+
+describe('queue platform rules for Instagram', () => {
+  it('keeps Instagram off the posts whose photo is outside its aspect ratio', () => {
+    const queue = JSON.parse(readFileSync('data/social-post-queue.json', 'utf8'));
+    const byPhoto = (id) => queue.posts.find((p) => p.photo_id === id);
+    expect(byPhoto(859).platforms).toContain('instagram');
+    expect(byPhoto(860).platforms).not.toContain('instagram');
+    expect(byPhoto(864).platforms).not.toContain('instagram');
+  });
+});
