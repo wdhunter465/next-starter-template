@@ -2,35 +2,35 @@
 Doc Type: How-To
 Audience: Human + AI
 Authority Level: Procedure
-Owns: How to create the three Zapier Zaps that post the daily social post to the Facebook Page, Instagram and Pinterest from the site's social feed, and how to test and turn them off
-Does Not Own: The feed and image routes (see functions/api/social/feed.ts and functions/api/social/image/[id].ts); the posts themselves (see data/social-post-queue.json); the design and its decisions (see /docs/reference/operations/social-daily-post-automation-design.md); the daily recipe on #4416
-Canonical Reference: /docs/reference/operations/social-daily-post-automation-design.md
-Related Issues: #5158, #5143, #4416
-Last Reviewed: 2026-11-09
+Owns: How to create the three Zapier Zaps that post the daily social post to the Facebook Page, Instagram and Pinterest from GitHub hand-off Issues, and how to test and turn them off
+Does Not Own: The hand-off job (see scripts/ops/social-post-dispatch.mjs); the posts themselves (see data/social-post-queue.json); the strategy (see /docs/reference/operations/social-posting-strategy-revised-2026-11.md)
+Canonical Reference: /docs/reference/operations/social-posting-strategy-revised-2026-11.md
+Related Issues: #5173, #5158, #5143
+Last Reviewed: 2026-11-10
 ---
 
-# Zapier Zaps for the daily social feed
+# Zapier Zaps for the daily social posts
 
 ## What this is
 
-The site publishes `https://www.lougehrigfanclub.com/api/social/feed`, an RSS feed. A post appears in it at its publish time (10:00 America/New_York) and not before. Each Zap watches the feed and posts each new item to one platform. On the Free plan, RSS by Zapier checks about every 15 minutes, so a post can go out up to a quarter hour late. Each Zap uses 1 task per post, 3 tasks a day, about 90 of the 100 free tasks a month.
+At each post's time (10:00 New York) the GitHub job `OPS — Social Post Hand-off to Zapier` opens one Issue per platform, labelled `social-post` and `social:<platform>`. The Issue **title** is the photo address and the Issue **body** is the post text. Each Zap watches for its label and posts. These replace the RSS Zaps (#5158). X is sent by Buffer from GitHub and needs no Zap.
 
-X is not part of these Zaps (see #5157).
+## Before you start
+
+Turn the three old RSS Zaps **off**. If both sets are on, each post goes out twice.
 
 ## Steps: create each Zap (three times)
 
-1. Trigger: **RSS by Zapier**, event **New Item in Feed**. Feed URL: `https://www.lougehrigfanclub.com/api/social/feed`.
-2. Action, one per Zap:
-   - **Facebook Pages**, **Create Page Post**. Page: Lou Gehrig Fan Club (103961431551844). Message: the item's Description. Link: leave empty. Photo: the item's Enclosure URL.
-   - **Instagram for Business**, **Publish Photo(s)**. Account: lougehrigfanclub (17841451674874751). Caption: the item's Description. Photo URL: the item's Enclosure URL.
-   - **Pinterest**, **Create Pin**. Board: lougehrigfanclub (1041176076293290189). Title: the item's Title. Description: the item's Description. Image URL: the item's Enclosure URL. Link: `https://lougehrigfanclub.com`.
-3. Leave each Zap **off** until the test below passes.
+1. Trigger: **GitHub**, event **New Labeled Issue** (if Zapier offers only **New Issue**, use it and tell Claude Code). Repository: `wdhunter465/next-starter-template`. Label: the platform's label below.
+2. Action, one per Zap, using only the Issue's **Body** and **Title**:
+   - Label `social:facebook`. **Facebook Pages**, **Create Page Post**. Page: Lou Gehrig Fan Club. Message: Body. Photo: Title. Link: empty.
+   - Label `social:instagram`. **Instagram for Business**, **Publish Photo(s)**. Account: lougehrigfanclub. Caption: Body. Photo URL: Title.
+   - Label `social:pinterest`. **Pinterest**, **Create Pin**. Board: lougehrigfanclub. Title: a fixed title such as `Lou Gehrig Fan Club`. Description: Body. Image URL: Title. Link: `https://lougehrigfanclub.com`.
+3. Leave each Zap off until you have checked the field mapping.
 
-## Test before turning on
+## Test
 
-1. Zapier loads a sample item from the feed. Before 10:00 on a day with a queued post the feed is empty; use the previous day's item as the sample, and use Zapier's **Test action** only if you accept that it posts for real.
-2. The Instagram image must be a JPEG within Instagram's aspect-ratio limits. Photo 864 is taller than 4:5 and photo 859 is wide; check each post's crop (see /docs/reference/operations/social-daily-post-queue-2026-11.md) or skip Instagram for that day.
-3. Turn a Zap on, and confirm the next 10:00 post appears once on that platform.
+Do not use **Test action** on a live account: it posts for real. Use the sample Issue Zapier loads to check that Body and Title land in the right fields, then turn the Zap on. The first live run is the next 10:00 post. A Zap may post up to about 15 minutes after 10:00 on the Free plan.
 
 ## Turn off
 
@@ -38,5 +38,6 @@ Turn the Zap off in Zapier. Posts already published stay.
 
 ## Known limits
 
-- The feed lists the 20 newest published posts. A Zap created late does not repost old items; it starts from the newest item at creation.
-- A post that fails in a Zap is not retried by the site. Zapier's task history shows the failure; the Phase 5 heartbeat (#5159) will flag a missing post.
+- A post that fails in a Zap is not retried by the site. Zapier's task history shows it, and the heartbeat (#5159) flags a post with no ledger row.
+- A photo unsuitable for Instagram is left off Instagram in the queue; no Issue is opened for that platform.
+- Hand-off Issues close themselves after 3 days.

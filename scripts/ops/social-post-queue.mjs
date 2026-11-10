@@ -14,6 +14,7 @@ import { pathToFileURL } from 'node:url';
 export const PLATFORMS = ['x', 'facebook', 'instagram', 'pinterest'];
 export const X_LIMIT = 280;
 export const DEFAULT_QUEUE = 'data/social-post-queue.json';
+export const DEFAULT_CALENDAR = 'data/social-messaging-calendar.json';
 
 /** Problems with the queue itself (photo lists, footer, lateness). */
 export function validateQueueShape(queue) {
@@ -74,6 +75,56 @@ export function validateQueue(queue) {
   return problems;
 }
 
+
+/** The calendar phase for a New York calendar date (YYYY-MM-DD), or null. */
+export function phaseForDate(calendar, date) {
+  return (calendar?.phases ?? []).find((ph) => date >= ph.from && date <= ph.through) ?? null;
+}
+
+/** Messaging problems: each approved post at or after enforce_from must fit its phase (#5173). */
+export function validateMessaging(queue, calendar) {
+  const problems = [];
+  if (!calendar) return problems;
+  const from = calendar.enforce_from ?? '0000-00-00';
+  for (const post of queue.posts ?? []) {
+    if (post.status !== 'approved') continue;
+    const date = String(post.publish_at).slice(0, 10);
+    if (date < from) continue;
+    const phase = phaseForDate(calendar, date);
+    if (!phase) {
+      problems.push(`${post.id}: no messaging phase covers ${date}`);
+      continue;
+    }
+    for (const needle of phase.must_match ?? []) {
+      if (!post.text.toLowerCase().includes(needle.toLowerCase())) problems.push(`${post.id}: phase ${phase.id} needs "${needle}" in the text`);
+    }
+    for (const needle of phase.must_not_match ?? []) {
+      if (post.text.toLowerCase().includes(needle.toLowerCase())) problems.push(`${post.id}: phase ${phase.id} must not mention "${needle}"`);
+    }
+  }
+  return problems;
+}
+
+/**
+ * Days and slots in [fromDate, throughDate] with no approved post. A missing slot is how the queue
+ * runs dry, which is the main way a daily post gets missed.
+ */
+export function findCoverageGaps(queue, calendar, fromDate, throughDate) {
+  const have = new Set(
+    (queue.posts ?? []).filter((p) => p.status === 'approved').map((p) => String(p.publish_at).slice(0, 16)),
+  );
+  const gaps = [];
+  for (let t = Date.parse(`${fromDate}T12:00:00Z`); t <= Date.parse(`${throughDate}T12:00:00Z`); t += 86_400_000) {
+    const date = new Date(t).toISOString().slice(0, 10);
+    const phase = phaseForDate(calendar, date);
+    if (!phase) continue;
+    for (const slot of phase.slots ?? ['10:00']) {
+      if (!have.has(`${date}T${slot}`)) gaps.push(`${date} ${slot}`);
+    }
+  }
+  return gaps;
+}
+
 /**
  * Classifies approved posts at `now`:
  * - due: publish_at has arrived and is within lateness_hours
@@ -111,7 +162,8 @@ function arg(name) {
 
 export function main() {
   const queue = JSON.parse(readFileSync(arg('--queue') ?? DEFAULT_QUEUE, 'utf8'));
-  const problems = validateQueue(queue);
+  const calendar = JSON.parse(readFileSync(arg('--calendar') ?? DEFAULT_CALENDAR, 'utf8'));
+  const problems = [...validateQueue(queue), ...validateMessaging(queue, calendar)];
   if (problems.length > 0) {
     console.error(`Queue is invalid (${problems.length}):\n${problems.map((p) => `  - ${p}`).join('\n')}`);
     process.exit(1);
@@ -123,6 +175,10 @@ export function main() {
   }
   const posted = (arg('--posted') ?? '').split(',').map((s) => s.trim()).filter(Boolean);
   console.log(formatReport(classifyPosts(queue, now, posted), now));
+  const today = new Date(now).toISOString().slice(0, 10);
+  const horizon = new Date(now + 14 * 86_400_000).toISOString().slice(0, 10);
+  const gaps = findCoverageGaps(queue, calendar, today, horizon);
+  console.log(gaps.length ? `Queue gaps in the next 14 days (${gaps.length}): ${gaps.join(', ')}` : 'No queue gaps in the next 14 days.');
 }
 
 if (import.meta.url === pathToFileURL(process.argv[1] ?? '').href) main();

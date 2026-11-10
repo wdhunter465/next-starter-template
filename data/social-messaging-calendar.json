@@ -1,0 +1,12 @@
+{
+  "_comment": "Messaging calendar for the daily social posts (#5173, Product Authority 2026-11-10). Dates are America/New_York calendar dates. Every approved post on or after enforce_from must satisfy its phase: each pattern in must_match has to appear in the text, and no pattern in must_not_match may. Posts before enforce_from are grandfathered.",
+  "enforce_from": "2026-11-13",
+  "phases": [
+    { "id": "website-launch", "from": "2026-11-10", "through": "2027-01-31", "slots": ["10:00"], "must_match": ["website"], "must_not_match": [] },
+    { "id": "fundraiser", "from": "2027-02-01", "through": "2027-04-30", "slots": ["10:00"], "must_match": ["fundraiser"], "must_not_match": [] },
+    { "id": "fundraiser-auction", "from": "2027-05-01", "through": "2027-05-27", "slots": ["10:00"], "must_match": ["fundraiser", "auction"], "must_not_match": [] },
+    { "id": "fundraiser-auction-lgd", "from": "2027-05-28", "through": "2027-05-31", "slots": ["10:00"], "must_match": ["fundraiser", "auction", "Lou Gehrig Day"], "must_not_match": [] },
+    { "id": "final-push-twice-daily", "from": "2027-06-01", "through": "2027-06-08", "slots": ["10:00", "18:00"], "must_match": ["fundraiser", "auction", "Lou Gehrig Day"], "must_not_match": [] },
+    { "id": "after-campaign", "from": "2027-06-09", "through": "2099-12-31", "slots": ["10:00"], "must_match": [], "must_not_match": ["fundraiser", "auction", "new website", "website launch"] }
+  ]
+}

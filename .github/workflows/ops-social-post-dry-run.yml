@@ -18,6 +18,7 @@ on:
     paths:
       - 'data/social-post-queue.json'
       - 'scripts/ops/social-post-queue.mjs'
+      - 'data/social-messaging-calendar.json'
 
 concurrency:
   group: ops-social-post-dry-run
