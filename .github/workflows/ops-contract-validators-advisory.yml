@@ -64,9 +64,21 @@ jobs:
         run: |
           set -euo pipefail
           gh issue list --state open --label pmo:task --limit 500 --json number,title,body,labels > /tmp/contract-issues.json
-          node scripts/ci/run-contract-validators.mjs --mode schedule --issues-json /tmp/contract-issues.json | tee /tmp/contract-report.md
+          # The validator exits 1 on findings. A finding is reported through the Operations
+          # exception below, so it must not fail this run: repeated failed runs make the halt
+          # automation disable the workflow (#5172). A run that produced no report, or exited
+          # non-zero without a findings report, is a real error and still fails.
+          status=0
+          node scripts/ci/run-contract-validators.mjs --mode schedule --issues-json /tmp/contract-issues.json > /tmp/contract-report.md || status=$?
+          cat /tmp/contract-report.md
+          if grep -q ': findings.$' /tmp/contract-report.md; then
+            echo "findings=true" >> "$GITHUB_OUTPUT"
+          elif [ "$status" -ne 0 ]; then
+            echo "Contract validators: exit $status without a findings report." >&2
+            exit "$status"
+          fi
       - name: Open an Operations exception
-        if: failure()
+        if: steps.evaluate.outputs.findings == 'true'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
