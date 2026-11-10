@@ -1,0 +1,33 @@
+name: OPS — Social Monthly Check Reminder (#5143)
+
+# Opens one Operations Issue on the first of each month (and on demand) reminding the team to check
+# what GitHub cannot read: Zapier's task count against the 100 free tasks, and the Meta token behind
+# the Facebook Page and Instagram connections. An open Issue for the same month is updated, not
+# duplicated. 14:00 UTC is 10:00 America/New_York in EDT and 09:00 in EST.
+on:
+  schedule:
+    - cron: '0 14 1 * *'
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  remind:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Open or update this month's reminder Issue
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+        run: node scripts/ops/social-monthly-check-reminder.mjs
