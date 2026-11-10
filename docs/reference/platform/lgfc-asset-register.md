@@ -138,6 +138,7 @@ Names referenced by `.github/workflows/**` or `.env.example` on 2026-10-10. Valu
 | GITLEAKS_LICENSE | workflows | saas:gitleaks:license |
 | DPLA_API_KEY | workflows | saas:dpla:api |
 | HF_TOKEN | workflows | saas:huggingface:api |
+| BUFFER_API_KEY | workflows | saas:buffer:social-scheduling |
 <!-- asset-register:secrets:end -->
 
 ## Vendor lifecycle and renewal (#4541)
