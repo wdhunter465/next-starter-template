@@ -15,10 +15,6 @@ Last Reviewed: 2026-11-10
 
 At each post's time (10:00 New York) the GitHub job `OPS — Social Post Hand-off to Zapier` opens one Issue per platform, labelled `social-post` and `social:<platform>`. The Issue **title** is the photo address and the Issue **body** is the post text. Each Zap watches for its label and posts. These replace the RSS Zaps (#5158). X is sent by Buffer from GitHub and needs no Zap.
 
-## Before you start
-
-Turn the three old RSS Zaps **off**. If both sets are on, each post goes out twice.
-
 ## Steps: create each Zap (three times)
 
 1. Trigger: **GitHub**, event **New Labeled Issue** (if Zapier offers only **New Issue**, use it and tell Claude Code). Repository: `wdhunter465/next-starter-template`. Label: the platform's label below.

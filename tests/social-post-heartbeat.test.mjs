@@ -32,17 +32,17 @@ describe('social post heartbeat', () => {
     expect(postsDueToday(q, Date.parse('2026-11-10T17:00:00Z')).map((p) => p.id)).toEqual(['p1']);
   });
 
-  it('is clean when X is posted, the item is in the feed and the image works', () => {
-    const facts = { p1: { ledgerRows: [{ platform: 'x', status: 'posted' }], inFeed: true, imageOk: true } };
+  it('is clean when X is posted and the image works', () => {
+    const facts = { p1: { ledgerRows: [{ platform: 'x', status: 'posted' }], imageOk: true } };
     expect(evaluateHeartbeat([post()], facts)).toEqual([]);
   });
 
-  it('reports a missing X row, a failed attempt, a missing feed item and a bad image', () => {
-    expect(evaluateHeartbeat([post()], { p1: { ledgerRows: [], inFeed: true, imageOk: true } }).join()).toMatch(/X has no posted ledger row/);
+  it('reports a missing X row, a failed attempt and a bad image', () => {
+    expect(evaluateHeartbeat([post()], { p1: { ledgerRows: [], imageOk: true } }).join()).toMatch(/X has no posted ledger row/);
     expect(
-      evaluateHeartbeat([post()], { p1: { ledgerRows: [{ platform: 'x', status: 'failed', error: 'boom' }], inFeed: true, imageOk: true } }).join(),
+      evaluateHeartbeat([post()], { p1: { ledgerRows: [{ platform: 'x', status: 'failed', error: 'boom' }], imageOk: true } }).join(),
     ).toMatch(/last attempt failed: boom/);
-    expect(evaluateHeartbeat([post()], { p1: { ledgerRows: [{ platform: 'x', status: 'posted' }], inFeed: false, imageOk: false } })).toHaveLength(2);
+    expect(evaluateHeartbeat([post()], { p1: { ledgerRows: [{ platform: 'x', status: 'posted' }], imageOk: false } })).toHaveLength(1);
   });
 
   it('does nothing before the deadline hour', async () => {
@@ -50,9 +50,8 @@ describe('social post heartbeat', () => {
     expect(report.note).toMatch(/before 12:00/);
   });
 
-  it('fetches the feed, ledger and image after the deadline and reports problems', async () => {
+  it('fetches the ledger and image after the deadline and reports problems', async () => {
     const fetchImpl = async (url) => {
-      if (url.endsWith('/api/social/feed')) return new Response('<guid isPermaLink="false">p1</guid>', { status: 200 });
       if (url.includes('/api/social/ledger')) return new Response(JSON.stringify({ rows: [] }), { status: 200 });
       return new Response('IMG', { status: 200, headers: { 'content-type': 'image/jpeg' } });
     };

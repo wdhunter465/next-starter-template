@@ -28,7 +28,7 @@ export function reminderBody(now = new Date()) {
     '## Checklist',
     '- [ ] **Zapier tasks:** open Zapier, Settings, Usage. The Free plan allows 100 tasks a month and the daily post uses about 3 a day (about 90 a month). Record the number used on #4416. If it is above 80 before the month ends, tell Product Authority; do not upgrade (no paid plan is approved).',
     '- [ ] **Meta token:** open Zapier, My apps, Facebook Pages and Instagram for Business; both must show as connected. Reconnect an expired one, and confirm a test post still works.',
-    '- [ ] **Zaps on:** the three RSS Zaps (Facebook Page, Instagram, Pinterest) are on and show last-run times this week (`docs/how-to/ops/social-feed-zaps-setup.md`).',
+    '- [ ] **Zaps on:** the three GitHub-triggered Zaps (Facebook Page, Instagram, Pinterest) are on and show last-run times this week (`docs/how-to/ops/social-feed-zaps-setup.md`).',
     '- [ ] **Buffer:** the BUFFER_API_KEY works (run the `OPS — Buffer API Check` workflow) and the X channel `GehrigFanClub` shows as connected.',
     '',
     'Close this Issue when the checklist is done.',
