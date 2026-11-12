@@ -37,6 +37,7 @@ One record per post per platform. A record is never edited: a correction is a ne
 | `platform_record` | The platform's own `post_id`, `url`, `created_at_utc` and `created_at_new_york`, as read from the platform. Absent when no post was found |
 | `anomalies[]` | Posts that appeared on the platform but were not made by the queue (for example a text-only post), with id, time and text |
 | `verified` | When (`on`), by whom and by which lookup the platform was read |
+| `content_item_id` | Added when #5097 lands: the archive row for this text and photo |
 | `note` | Anything a reader in 2029 needs that the fields do not say |
 
 ### Status
@@ -55,6 +56,10 @@ One record per post per platform. A record is never edited: a correction is a ne
 - **Repository:** an append-only export, `data/social-audit/<year>/<month>/<date>.json`, one file per day, committed by a job or a reviewed pull request. The GitHub history then answers the 2029 question on its own, with no database, Zapier or Buffer account.
 - **Backups:** the D1 table is covered by the existing backups (`lgfc-d1-backups`).
 - **Retention:** indefinite. Nothing in this record is member data; all of it is already public.
+
+## Relation to the archive record (#5097)
+
+#5097 saves the text and photo of each daily post in the D1 archive tables (`content_items`, with its source, credit and rights fields), because text plus photo make up the archive. The evidence record does not copy that: it holds only what the platforms did with the post (attempts, platform id and created time, status, failures) and the hash of the bytes sent. When #5097 lands, an evidence record gains a `content_item_id` pointing at the archive row, and the text and picture in the export remain as a self-contained copy so that the 2029 recall does not depend on either database.
 
 ## Platform lookups (tested 2026-11-12, read-only)
 
