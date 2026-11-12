@@ -6,7 +6,7 @@ Owns: The queued daily social posts for 2026-11-09 to 2026-11-12: topic, final t
 Does Not Own: The daily post recipe (recorded on #4416); the platform connections and credentials; the design of the unattended posting job (see /docs/reference/operations/social-daily-post-automation-design.md); the 2026-12-01 and 2027-01-01 footer changes (see #2093)
 Canonical Reference: /docs/reference/operations/social-crosspost-zapier-payload-contract.md
 Related Issues: #5144, #5143, #4416, #4785, #2093
-Last Reviewed: 2026-11-08
+Last Reviewed: 2026-11-12
 ---
 
 # Social daily post queue, 2026-11-09 to 2026-11-12
@@ -24,7 +24,7 @@ Footer (until 2026-11-30; it changes from 2026-12-01, see #2093): the last two l
 ## Rules applied (from the recipe on #4416)
 
 1. Facts only, in the club's own words; no copied text, tables or images.
-2. One rights-cleared photo from the public list, never used before; alt text describes what is visible.
+2. One rights-cleared photo from the public list; alt text describes what is visible. A photo may repeat, but not within 4 days of its last use (Product Authority, 2026-11-12, #5173), so the five cleared photos rotate. Instagram is listed only for photos inside its 4:5 to 1.91:1 limits (`instagram_ok_photo_ids` in the queue).
 3. A topic is never repeated. Used so far: 2,130 consecutive games and "The Iron Horse" (2026-11-04); the .340 lifetime average and the Hall of Fame plaque (2026-11-05); the 1934 Triple Crown (2026-11-08).
 4. Text within 280 characters including the footer.
 
@@ -46,7 +46,7 @@ Footer (until 2026-11-30; it changes from 2026-12-01, see #2093): the last two l
 
 ## Notes and limits
 
-- **Photo supply:** after 2026-11-12 the only unused public rights-cleared photo is 862 (Gehrig and Ruth in "Larrupin' Lous" and "Bustin' Babes" jerseys, same tour as 2026-11-09, so held for a different topic). Photo 856 is flagged as a near-duplicate and held. More days need more cleared photos (#4791, #4794) or Product Authority relaxing the never-reuse rule after a set number of days.
+- **Photo supply (updated 2026-11-12):** Product Authority allowed the five cleared photos to repeat with new text, so 2026-11-13 to 2026-11-30 are queued as website-launch posts in `data/social-post-queue.json` (messaging calendar in `data/social-messaging-calendar.json`). The posts from 2026-12-01 wait for the new footer wording (#2093). The earlier note follows: after 2026-11-12 the only unused public rights-cleared photo is 862 (Gehrig and Ruth in "Larrupin' Lous" and "Bustin' Babes" jerseys, same tour as 2026-11-09, so held for a different topic). Photo 856 is flagged as a near-duplicate and held. More days need more cleared photos (#4791, #4794) or Product Authority relaxing the never-reuse rule after a set number of days.
 - **Instagram:** photo 864 is taller than Instagram's 4:5 limit and photo 859 is wide. Check the crop before posting, or skip Instagram for that day.
 - **Facebook size limit:** a photo must be under 4 MB; photo 864 is about 3.2 MB.
 - **Zapier cost:** each day uses 3 of the 100 free monthly tasks (Facebook Page, Instagram, Pinterest); X goes through Buffer.

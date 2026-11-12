@@ -55,12 +55,45 @@ describe('social post queue', () => {
     expect(validatePost(post({ publish_at: '2026-11-09T10:00:00' }), queue()).join()).toMatch(/offset/);
   });
 
-  it('rejects a duplicate id and a reused photo', () => {
+  it('rejects a duplicate id', () => {
     const q = queue();
     q.posts = [post(), post()];
-    const text = validateQueue(q).join();
-    expect(text).toMatch(/duplicate id/);
-    expect(text).toMatch(/used twice/);
+    expect(validateQueue(q).join()).toMatch(/duplicate id/);
+  });
+
+  it('lets a photo repeat only after the minimum gap (Product Authority, 2026-11-12)', () => {
+    const q = { ...queue(), photo_reuse_min_gap_days: 4 };
+    q.posts = [
+      post({ id: 'a', publish_at: '2026-11-09T10:00:00-05:00' }),
+      post({ id: 'b', publish_at: '2026-11-12T10:00:00-05:00' }),
+    ];
+    expect(validateQueue(q).join()).toMatch(/b: photo 1 is used again within 4 days/);
+    q.posts[1] = post({ id: 'b', publish_at: '2026-11-13T10:00:00-05:00' });
+    expect(validateQueue(q)).toEqual([]);
+  });
+
+  it('checks the gap in time order, not file order', () => {
+    const q = { ...queue(), photo_reuse_min_gap_days: 4 };
+    q.posts = [
+      post({ id: 'later', publish_at: '2026-11-12T10:00:00-05:00' }),
+      post({ id: 'earlier', publish_at: '2026-11-10T10:00:00-05:00' }),
+    ];
+    expect(validateQueue(q).join()).toMatch(/later: photo 1 is used again/);
+  });
+
+  it('keeps Instagram off photos outside its aspect-ratio limits', () => {
+    const q = { ...queue(), instagram_ok_photo_ids: [2] };
+    q.posts = [post({ id: 'tall', photo_id: 1, platforms: ['x', 'instagram'] })];
+    expect(validateQueue(q).join()).toMatch(/tall: photo 1 is outside Instagram's aspect-ratio limits/);
+    q.posts = [post({ id: 'fits', photo_id: 2, platforms: ['x', 'instagram'] }), post({ id: 'tallNoIg', photo_id: 1, publish_at: '2026-11-10T10:00:00-05:00' })];
+    expect(validateQueue(q)).toEqual([]);
+  });
+
+  it('the real queue rotates the five cleared photos and keeps Instagram to the photos that fit', () => {
+    expect(validateQueue(real)).toEqual([]);
+    expect(real.photo_reuse_min_gap_days).toBeGreaterThanOrEqual(4);
+    const instagram = real.posts.filter((p) => p.platforms.includes('instagram'));
+    expect(instagram.every((p) => real.instagram_ok_photo_ids.includes(p.photo_id))).toBe(true);
   });
 
   it('classifies due, late and upcoming posts and skips posted ones', () => {
