@@ -2,11 +2,11 @@
 Doc Type: Operational Rules
 Audience: AI (Claude Code)
 Authority Level: Agent-Specific
-Owns: Claude Code product identity, startup steps, continuous-run mechanics, claim handling, Operations monitoring, permission-email monitoring, and Claude-specific operating notes
+Owns: Claude Code product identity, startup steps, continuous-run mechanics, claim handling, Operations monitoring, permission-email monitoring, connector access (Cloudflare, Buffer, Zapier), and Claude-specific operating notes
 Does Not Own: Agent-team policy, role mapping, PMO lifecycle, Governance authority, shared execution law, merge approval, or the permission-request policy
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Related Issues: #3825, #4053, #4718, #4749, #4994, #5108
-Last Reviewed: 2026-11-06
+Related Issues: #3825, #4053, #4718, #4749, #4994, #5108, #5192
+Last Reviewed: 2026-11-12
 ---
 
 # CLAUDE-CODE-RULES.md
@@ -78,16 +78,44 @@ Product Authority direction, 2026-10-20: Claude Code monitors the permission inb
 - A PR that changes any path outside the approved Model C documentation namespaces (`docs/governance/DELIVERY-AND-RELEASE.md`, Model C), such as `Agent.md`, `AGENTS.md`, `CLAUDE.md`, `context.md`, `.claude/**` or `.github/**`, cannot use Model C. Use the Model A profile #4661 used. Such a PR is Production-tier.
 - Editing a PR body does not re-run `quality` or `model-c-path`; they read the live body when they run. After correcting the body, re-run the failed jobs.
 
-## Cloudflare access (verified 2026-11-06, #5108)
+## Connectors: finding and using them (verified 2026-11-12, #5192)
+
+Claude Code reaches Cloudflare, Buffer and Zapier through connectors (MCP servers) set up in Product Authority's account. They are not configured in this repository. Their tools are named `mcp__<Server>__<tool>`.
+
+### Before reporting "no tool access"
+
+A connector that is connected can still look missing. In a session, connector tools often appear only as names (deferred) and cannot be called until their schema is loaded, and a server can still be connecting when the session starts. Missing the tool in the callable list is not proof of no access. This is the likely cause of sessions wrongly reporting no access, including scheduled sessions (the 10:00 posts, #5192). Before telling anyone a connector is unavailable:
+
+1. Run ToolSearch with `select:<exact tool name>` for the tools you expect, or a keyword (`cloudflare`, `buffer`, `zapier`). ToolSearch waits for servers that are still connecting. Load the schema, then call the tool.
+2. If the tool is listed as unavailable or its server failed to connect, search once more, then make one cheap read-only call to confirm (`whoami`, `get_account`, `inspect_zapier_actions` with no arguments).
+3. Only if that fails, report it. Name the server, what you ran and the exact error. Say "the server failed to connect" when that is what the notice says, never "this session has no connector".
+4. A scheduled or unattended run that cannot reach a connector after these steps opens or comments on an Operations Issue instead of ending silently.
+
+### Cloudflare (replaces the retired connector, #5108, #5192)
 
 Claude Code has two routes into Cloudflare. Check both before reporting that Cloudflare cannot be read.
 
-- **Cloudflare connector** (`mcp__Cloudflare_Developer_Platform__*`, load with ToolSearch). It lists and queries D1 databases, and lists KV, R2 and Workers. The Production database is `lgfc_lite`; `lgfc-litedev` is the other. Use `d1_databases_list` for the ids. It has no Cloudflare Pages deployment controls, so a rollback is clicked by Bill in the Pages dashboard (#4469). Its server marks it deprecated in favor of the Cloudflare API server, and that server can fail to connect, so tools can be missing or drop mid-session: search again, and say so if they stay unavailable. Use it for reads (SELECT, schema, counts). Do not write through it.
+- **Cloudflare API MCP server** (`https://mcp.cloudflare.com/mcp`, tools `mcp__Cloudflare_MCP__search`, `execute`, `docs`, `whoami`; load with ToolSearch). It reaches the whole Cloudflare API: use `search` to find an endpoint, `execute` to call it with `cloudflare.request()`, `docs` for Cloudflare documentation. Verified reads: D1 (the Production database `lgfc_lite` and `lgfc-litedev`; list them through the D1 API, do not hard-code ids), Workers, R2, and Pages projects and deployments. The old Cloudflare Developer Platform connector was deprecated by Cloudflare and removed on 2026-11-12; do not look for its tools.
+- **Read-only by rule.** `execute` can write, and the only technical limit is the scopes granted when Product Authority connected it. Use it for reads (SELECT, schema, counts, listings). Do not write through it, and never create, change or delete a Cloudflare resource with it. Pages is now readable, but a rollback is a Production action: it needs an explicit Go and is clicked by Bill in the Pages dashboard (#4469).
 - **GitHub Actions secrets** `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID` (some workflows read `CF_ACCOUNT_ID`, `CLOUDFLARE_PAGES_PROJECT` or `CF_PAGES_PROJECT`). Claude Code cannot read the values and must never ask for them. Workflows use them for Production D1 writes: the archive retire and restore workflow, the archive ingest, the archive sweep and the D1 migrations on `main`.
 
 To run a workflow from a session, use the REST dispatch, because `gh workflow run` needs GraphQL, which is not available in cloud sessions: `gh api -X POST repos/{owner}/{repo}/actions/workflows/<file>.yml/dispatches -f ref=main -f 'inputs[name]=value'`. To re-enable a disabled workflow, `gh workflow enable <file>.yml` works. Read the result with `gh api repos/{owner}/{repo}/actions/runs/<id>/jobs` and the job logs.
 
 These routes do not widen authority. A Production write still needs an explicit Go from Product Authority and an authorizing source Issue, and a workflow's dry run (`apply=false`) runs first. Record management goes through the ingestion and evaluation tools or an Issue-labelled workflow, never hand-edited rows (Product Authority, 2026-11-05, #5098).
+
+### Buffer (X)
+
+- **Tools:** `mcp__Buffer__*` (load with ToolSearch). Start with `get_account` (organization LGFC, account timezone America/New_York, free plan: 3 channels, 10 scheduled posts) and pass the organization id to the other tools; then `list_channels`. Never guess a channel id.
+- **Channel:** one channel is connected, the X profile `GehrigFanClub`. Facebook, Instagram and Pinterest are not in Buffer; they go through Zapier.
+- **Posting:** `create_post` publishes or schedules. A post is a public, outward-facing act. Post only what the posting rules authorize, `docs/reference/operations/social-daily-post-queue-2026-11.md` (the standing authorization of 2026-11-04, text, photo, 10:00 America/New_York) and `docs/reference/operations/social-posting-strategy-revised-2026-11.md`. This file does not change them. Use `get_account`'s `currentTime`; a post is never scheduled in the past.
+- A connector or key failure is reported with the exact error, not as "no access".
+
+### Zapier (Facebook Page, Instagram, Pinterest)
+
+- **Tools:** `mcp__Zapier__*` (load with ToolSearch). Always call `inspect_zapier_actions` first (no arguments lists the enabled apps; then pass an app's `selected_api`, then `tool_name` for the parameter schema), then `execute_zapier_write_action`. Gmail and Google Calendar are listed but have no connection; do not use them.
+- **Enabled and connected (2026-11-12):** Facebook Pages (`Create Page Post`, `Create Page Photo`, `Create Page Post as Draft`), Instagram for Business (`Publish Photo(s)`), Pinterest (`Create Pin`). Each app has one default connection. Do not switch connections without a reason, and do not post to the other Page on the same Meta login.
+- **Posting rules** are in the social docs named above and are not restated here. Instagram and Pinterest take the photo only. The photo address is a signed link that expires after one hour, so fetch it immediately before posting. Use `Create Page Post as Draft` to test a call; `Test action` and any write action post for real.
+- **Zapier is also driven from GitHub.** The 10:00 hand-off job opens Issues labelled `social-post` and `social:<platform>` that Zaps watch (`docs/how-to/ops/social-feed-zaps-setup.md`). That route does not need a Claude session. A session posting by connector is the fallback.
 
 ## Final
 
