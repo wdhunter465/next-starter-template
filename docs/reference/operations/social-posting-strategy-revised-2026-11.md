@@ -65,6 +65,6 @@ $0. Zapier Free allows 100 tasks a month; three Zaps at one post a day use about
 
 ## Open items
 
-- **Content supply.** Only five photos are rights-cleared and all are used by 2026-11-12. Each day needs an approved post with a photo, and a photo cannot be used twice. Product Authority to decide the image source for launch-hype posts (for example site screenshots or club graphics) and the pace of clearing more photos.
+- **Content supply (decided 2026-11-12).** Only five photos are rights-cleared. Product Authority chose to reuse them with new launch text: a photo may repeat but not within 4 days of its last use, and Instagram is listed only for the photos that fit its aspect ratio. Posts for 2026-11-13 to 2026-11-30 are queued; the posts from 2026-12-01 need the new footer wording (#2093). More cleared photos still make the rotation less repetitive.
 - **Zaps.** Product Authority creates the three GitHub-triggered Zaps (`docs/how-to/ops/social-feed-zaps-setup.md`) and turns the three RSS Zaps off first, or each post goes out twice.
 - **Verification.** Confirm the Zapier GitHub "New Labeled Issue" trigger is on the Free plan.
