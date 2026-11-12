@@ -15,6 +15,16 @@ Last Reviewed: 2026-11-12
 
 Product Authority, 2026-11-12: on a date years from now (for example 2029-09-10) the club must be able to say what was posted on an earlier date (for example 2027-03-03): the text, the picture used, the date and time the post was created on each platform in use at that time, and any attempt that failed. This document defines the record that answers that question, and shows it filled in by hand for three days.
 
+## Two logs and one report
+
+Product Authority, 2026-11-12:
+
+- **The edition log** records what was published: the content of each edition or post (text, picture, source, rights snapshot) and when it went live. For the website this is the Club Home edition archive (#5076: `club_home_edition_activations`, append-only, and the placement snapshots). For the daily social posts the content is today in `data/social-post-queue.json`; the social edition planner (#5039) will feed it later.
+- **The posting log** (this document) records whether each post actually completed as planned: every attempt, retry and failure on each platform, with the platform's own id and created time. It includes **retries** and **ad hoc posts** (any post made outside the queue, by a person, a session or a tool). It is the log of success and failure.
+- **A report draws from both.** The edition log says what should have gone out and what it contained; the posting log says what happened. The two are joined by `post_id`.
+- **Collected the same day.** Whatever Zapier, Buffer or a platform can tell us about an attempt is collected when the post is attempted, so the repository's log is complete the same day and does not depend on someone looking later.
+- **Kept for at least 10 years.**
+
 ## Why the ledger is not enough
 
 `social_post_ledger` (#5156) was built to stop a post going out twice. For Facebook, Instagram and Pinterest its `posted` row means "the hand-off Issue was opened", with `platform_post_id` set to `issue#<n>`. It carries no platform id, no platform created time, and no failure from Zapier. On 2026-11-11 it says `posted` for Facebook and Pinterest although no photo post was found on either platform (see the records below). The picture is stored as a photo id only, and the file behind an id can change by 2029.
@@ -27,12 +37,13 @@ One record per post per platform. A record is never edited: a correction is a ne
 | --- | --- |
 | `schema` | `social_post_evidence/1` |
 | `post_id`, `platform` | The queue id (for example `2026-11-12-daily`) and `x`, `facebook`, `instagram` or `pinterest` |
+| `origin` | `queue` for a planned post, `ad_hoc` for any post made outside the queue. An ad hoc post gets `post_id` `adhoc-<date>-<n>` and a `note` saying who asked for it and why |
 | `version`, `supersedes` | Version number of this record and the version it replaces |
 | `scheduled_for` | Planned send time from the queue (New York time) |
 | `text`, `text_sha256` | The text that was queued, and its SHA-256 |
 | `photo` | `photo_id`, `variant` (`original`, or a platform variant once #5196 lands), `image_url`, `image_sha256`, `image_bytes`, `width`, `height`, `alt_text`. The hash is of the bytes sent. If the photo file changes later, the hash still proves what went out |
 | `status` | See the next table |
-| `attempts[]` | Every try: `at_utc`, `by` (job, Zap, session or person), `outcome` (`ok`, `error` or `handed_off`), `detail`/error text |
+| `attempts[]` | Every try, including every retry: `at_utc`, `by` (job, Zap, session or person), `outcome` (`ok`, `error` or `handed_off`), `detail`/error text. A retry is a new entry, never an overwrite |
 | `handoff` | For Zapier platforms: the hand-off Issue number and the time it was opened |
 | `platform_record` | The platform's own `post_id`, `url`, `created_at_utc` and `created_at_new_york`, as read from the platform. Absent when no post was found |
 | `anomalies[]` | Posts that appeared on the platform but were not made by the queue (for example a text-only post), with id, time and text |
@@ -52,10 +63,10 @@ One record per post per platform. A record is never edited: a correction is a ne
 
 ## Where it is kept
 
-- **D1:** a table `social_post_evidence`, one row per record version, for queries.
-- **Repository:** an append-only export, `data/social-audit/<year>/<month>/<date>.json`, one file per day, committed by a job or a reviewed pull request. The GitHub history then answers the 2029 question on its own, with no database, Zapier or Buffer account.
-- **Backups:** the D1 table is covered by the existing backups (`lgfc-d1-backups`).
-- **Retention:** indefinite. Nothing in this record is member data; all of it is already public.
+- **Repository (the log of record):** one file per day, `data/social-audit/<year>/<month>/<date>.json`, written the same day by the posting job and the read-back. Files are appended to and never rewritten; a correction is a new record version. They are committed to a dedicated data branch, `social-audit`, so the log does not need a pull request every day and `main` is untouched. The branch is never deleted or force-pushed. Recorded on #5197 before it is created.
+- **D1:** a table `social_post_evidence`, one row per record version, for queries and reports.
+- **Retention: at least 10 years** (Product Authority, 2026-11-12), in the repository and in D1. D1 is covered by the existing backups (`lgfc-d1-backups`), whose own retention must be confirmed to cover 10 years.
+- Nothing in the record is member data; all of it is already public.
 
 ## Relation to the archive record (#5097)
 
@@ -81,9 +92,22 @@ To answer "what was posted on date D":
 3. To confirm a record against the platform, use the lookup for that platform above.
 4. Report per platform: text, picture, created time, status, and any failed attempt with its error.
 
-## Reading the platforms back
+## Collecting the platform facts the same day
 
-Filling `platform_record` needs a read-back after each posting window. Options (decision pending, #5197): (a) a GitHub job with platform API tokens, which needs developer apps and renewal of Meta tokens; (b) a scheduled Claude session that reads through the Buffer and Zapier connectors, which can already read all four platforms; (c) a Zapier write-back step, which the free plan's two-step limit does not allow. The heartbeat (#5159) should flag any day that has no `confirmed` or `not_eligible` record for a platform in the queue.
+What each platform can tell us is collected at the time of the attempt, and again after the window to confirm.
+
+| Platform | At the attempt | After the window (confirm) | Cost |
+| --- | --- | --- | --- |
+| X (Buffer) | The job gets the Buffer post id and status in the reply and reads the post back | Buffer list by date | Free |
+| Facebook, Instagram, Pinterest (Zapier) | The hand-off Issue and its time | A read of each platform | **See below** |
+
+**Zapier reads are not free.** Zapier counts each successful call through its MCP connector as **2 tasks** from the same monthly allowance as the Zaps (Free plan: 100 tasks). The three Zaps use about 90 tasks a month, so a daily read of three platforms (about 6 tasks a day) does not fit the Free plan, and calls made from a session count too. Options for Product Authority:
+
+1. **Upgrade the Zapier plan** (a cost commitment, Product Authority). Simplest; the read-back runs from a GitHub job with a Zapier connection token held as a repository secret, with no session needed.
+2. **Read the platforms directly from a GitHub job** with their own API tokens (a Meta app for Facebook and Instagram, a Pinterest app). Free, but needs developer apps and renewal of tokens, and the Pinterest and Meta tokens expire.
+3. **A reduced read**, only for days where the hand-off Issue shows an attempt: still about 6 tasks a day, so no saving.
+
+Until one is chosen, Facebook, Instagram and Pinterest records stay `handed_off` and the scorecard shows them as such; X is confirmed the same day. The heartbeat (#5159) flags any day with an unconfirmed Zapier platform.
 
 ## Records for 2026-11-10 to 2026-11-12 (by hand)
 
@@ -590,10 +614,12 @@ Findings from filling the records in:
 ]
 ```
 
-## Child Issues (proposed order)
+## Child Issues (order)
 
-1. Change the ledger status meaning (`posted` becomes `handed_off` for Zapier platforms) and add the evidence table.
-2. The read-back step and the heartbeat check for a missing record.
-3. The daily export to `data/social-audit/`.
-4. Back-fill of 2026-11-04 to 2026-11-12 into D1 (a Production write; needs an explicit Go).
-5. Weekly scorecard counts and the trend history (#5198), which read these statuses.
+1. The evidence record library: build, validate and append a record, with tests (no workflow change).
+2. X same-day capture: the posting job reads the Buffer post back and appends the record to the data branch.
+3. Ledger meaning: `posted` becomes `handed_off` for the Zapier platforms, and the evidence table is added in D1 (a Production migration; needs an explicit Go).
+4. Zapier-platform read-back, once Product Authority chooses the option above.
+5. Ad hoc post logging: any post made outside the queue is recorded the same day.
+6. Back-fill of 2026-11-04 to 2026-11-12 (a Production write; needs an explicit Go).
+7. The weekly scorecard counts and the trend graph (#5198), which read this log and the edition log.
