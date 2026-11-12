@@ -59,22 +59,38 @@ export function validatePost(post, queue) {
   return problems;
 }
 
-/** Whole-queue problems: shape, each post, duplicate ids, a photo used twice. */
+/**
+ * Whole-queue problems: shape, each post, duplicate ids, a photo reused too soon, and Instagram
+ * posts whose photo is outside Instagram's 4:5 to 1.91:1 limits (instagram_ok_photo_ids, #5173).
+ * A photo may repeat (Product Authority, 2026-11-12) but not within photo_reuse_min_gap_days of its
+ * last use, so the five cleared photos can rotate.
+ */
 export function validateQueue(queue) {
   const problems = validateQueueShape(queue);
   if (problems.length > 0 || !Array.isArray(queue.posts)) return problems;
   const ids = new Set();
-  const photos = new Set();
+  const gapDays = Number(queue.photo_reuse_min_gap_days ?? 0);
+  const instagramOk = new Set(queue.instagram_ok_photo_ids ?? []);
+  const lastUse = new Map();
+  const ordered = [...queue.posts].sort((a, b) => Date.parse(a.publish_at) - Date.parse(b.publish_at));
   for (const post of queue.posts) {
     problems.push(...validatePost(post, queue));
     if (ids.has(post.id)) problems.push(`${post.id}: duplicate id`);
     ids.add(post.id);
-    if (photos.has(post.photo_id)) problems.push(`${post.id}: photo ${post.photo_id} is used twice`);
-    photos.add(post.photo_id);
+  }
+  for (const post of ordered) {
+    const at = Date.parse(post.publish_at);
+    const previous = lastUse.get(post.photo_id);
+    if (previous !== undefined && (at - previous) / 86_400_000 < gapDays) {
+      problems.push(`${post.id}: photo ${post.photo_id} is used again within ${gapDays} days`);
+    }
+    lastUse.set(post.photo_id, at);
+    if (queue.instagram_ok_photo_ids && post.platforms?.includes('instagram') && !instagramOk.has(post.photo_id)) {
+      problems.push(`${post.id}: photo ${post.photo_id} is outside Instagram's aspect-ratio limits; leave instagram off this post`);
+    }
   }
   return problems;
 }
-
 
 /** The calendar phase for a New York calendar date (YYYY-MM-DD), or null. */
 export function phaseForDate(calendar, date) {

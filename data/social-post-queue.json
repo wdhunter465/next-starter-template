@@ -1,5 +1,5 @@
 {
-  "_comment": "Reviewed by pull request only (#5155, design #5143). Times are America/New_York. A post later than lateness_hours after publish_at is skipped, never sent late. Footer changes on 2026-12-01 and 2027-01-01 (#2093).",
+  "_comment": "Reviewed by pull request only (#5155, design #5143). Times are America/New_York. A post later than lateness_hours after publish_at is skipped, never sent late. Footer changes on 2026-12-01 and 2027-01-01 (#2093). Photos may repeat, but not within photo_reuse_min_gap_days (Product Authority, 2026-11-12). instagram_ok_photo_ids lists the photos inside Instagram's 4:5 to 1.91:1 limits; a post may list instagram only for those (#5173).",
   "lateness_hours": 4,
   "automation_starts_at": "2026-11-10T00:00:00-05:00",
   "rights_cleared_photo_ids": [
@@ -24,7 +24,6 @@
       "platforms": [
         "x",
         "facebook",
-        "instagram",
         "pinterest"
       ],
       "sources": "The program itself (printed date and park); Baseball Hall of Fame collection and SABR accounts of the 1927 barnstorming tour.",
@@ -75,6 +74,289 @@
       ],
       "sources": "Wikipedia, Lou Gehrig; ESPN Classic. Confirm \"first\" wording against the Baseball Hall of Fame before posting.",
       "status": "approved"
+    },
+    {
+      "id": "2026-11-13-daily",
+      "publish_at": "2026-11-13T10:00:00-05:00",
+      "topic": "Website relaunch: Lou Gehrig was born June 19, 1903, in New York C",
+      "text": "Lou Gehrig was born June 19, 1903, in New York City. His story is getting a new home: the Lou Gehrig Fan Club website relaunches in 2027.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 862,
+      "alt_text": "Sepia photo of four men standing in front of a crowd behind chicken-wire fencing. One wears a \"Larrupin' Lous\" jersey and one wears a \"Bustin' Babes\" jersey and a bowler hat. Between them a man in an overcoat and a cap marked \"LL\" holds a baseball, and at the left a man wears a white cardigan and a bow tie.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Club website (lougehrigfanclub.com) home page: biography section (born June 19, 1903, 17-year Yankees career 1923 to 1939, Columbia University, 493 home runs, 1,995 RBI, 7-time All-Star, 2-time AL MVP, 6-time World Series champion, died June 2, 1941), Weekly Photo Matchup, Join, FAQ, Friends of the Fan Club, events calendar, Lou Gehrig Day, and the page's own '2027 public relaunch' wording. No launch date is stated.",
+      "status": "approved"
+    },
+    {
+      "id": "2026-11-14-daily",
+      "publish_at": "2026-11-14T10:00:00-05:00",
+      "topic": "Website relaunch: Gehrig played all 17 of his seasons with the Yan",
+      "text": "Gehrig played all 17 of his seasons with the Yankees, 1923 to 1939. Our website is being rebuilt for 2027 so more of his career can be explored in one place.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 858,
+      "alt_text": "Souvenir program with a decorative border. It reads \"Busting Babes vs. Larruping Lous\" above a halftone photo of Babe Ruth and Lou Gehrig in Yankees uniforms, each resting a hand on a bat, with \"Oakland Baseball Park, Sunday, October 23, 1927\" below.",
+      "platforms": [
+        "x",
+        "facebook",
+        "pinterest"
+      ],
+      "sources": "Club website (lougehrigfanclub.com) home page: biography section (born June 19, 1903, 17-year Yankees career 1923 to 1939, Columbia University, 493 home runs, 1,995 RBI, 7-time All-Star, 2-time AL MVP, 6-time World Series champion, died June 2, 1941), Weekly Photo Matchup, Join, FAQ, Friends of the Fan Club, events calendar, Lou Gehrig Day, and the page's own '2027 public relaunch' wording. No launch date is stated.",
+      "status": "approved"
+    },
+    {
+      "id": "2026-11-15-daily",
+      "publish_at": "2026-11-15T10:00:00-05:00",
+      "topic": "Website relaunch: 493 home runs and 1,995 runs batted in: the numb",
+      "text": "493 home runs and 1,995 runs batted in: the numbers are on the record, and our new website will help you explore the story behind them. Relaunching in 2027.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 859,
+      "alt_text": "Black-and-white photo of four baseball players standing side by side in a ballpark. The two in the middle wear Yankees jerseys and the two on the ends wear jerseys with a large \"A\". The third player from the left holds a glove.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Club website (lougehrigfanclub.com) home page: biography section (born June 19, 1903, 17-year Yankees career 1923 to 1939, Columbia University, 493 home runs, 1,995 RBI, 7-time All-Star, 2-time AL MVP, 6-time World Series champion, died June 2, 1941), Weekly Photo Matchup, Join, FAQ, Friends of the Fan Club, events calendar, Lou Gehrig Day, and the page's own '2027 public relaunch' wording. No launch date is stated.",
+      "status": "approved"
+    },
+    {
+      "id": "2026-11-16-daily",
+      "publish_at": "2026-11-16T10:00:00-05:00",
+      "topic": "Website relaunch: Lou Gehrig was a 7-time All-Star and a 2-time Am",
+      "text": "Lou Gehrig was a 7-time All-Star and a 2-time American League MVP. Join the Fan Club for free now, ahead of our 2027 website relaunch.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 860,
+      "alt_text": "Black-and-white newspaper photo of baseball players at home plate, one raising a leg in a small kick toward another. The printed caption reads: \"Lou Gehrig congratulates Ruth with a little kick after the Babe had made his second homer.\"",
+      "platforms": [
+        "x",
+        "facebook",
+        "pinterest"
+      ],
+      "sources": "Club website (lougehrigfanclub.com) home page: biography section (born June 19, 1903, 17-year Yankees career 1923 to 1939, Columbia University, 493 home runs, 1,995 RBI, 7-time All-Star, 2-time AL MVP, 6-time World Series champion, died June 2, 1941), Weekly Photo Matchup, Join, FAQ, Friends of the Fan Club, events calendar, Lou Gehrig Day, and the page's own '2027 public relaunch' wording. No launch date is stated.",
+      "status": "approved"
+    },
+    {
+      "id": "2026-11-17-daily",
+      "publish_at": "2026-11-17T10:00:00-05:00",
+      "topic": "Website relaunch: Six World Series championships with the Yankees.",
+      "text": "Six World Series championships with the Yankees. The Lou Gehrig Fan Club is preparing a new website for 2027. Join free today and be there when it opens.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 864,
+      "alt_text": "Black-and-white printed portrait of Lou Gehrig in a cap and baseball jersey, smiling slightly. The page prints \"Henry Louis 'Lou' Gehrig. Idol of all American League fans and one of the greatest first basemen of all time. International News Photo.\"",
+      "platforms": [
+        "x",
+        "facebook",
+        "pinterest"
+      ],
+      "sources": "Club website (lougehrigfanclub.com) home page: biography section (born June 19, 1903, 17-year Yankees career 1923 to 1939, Columbia University, 493 home runs, 1,995 RBI, 7-time All-Star, 2-time AL MVP, 6-time World Series champion, died June 2, 1941), Weekly Photo Matchup, Join, FAQ, Friends of the Fan Club, events calendar, Lou Gehrig Day, and the page's own '2027 public relaunch' wording. No launch date is stated.",
+      "status": "approved"
+    },
+    {
+      "id": "2026-11-18-daily",
+      "publish_at": "2026-11-18T10:00:00-05:00",
+      "topic": "Website relaunch: Gehrig attended Columbia University before joini",
+      "text": "Gehrig attended Columbia University before joining the Yankees. Our website relaunch in 2027 will bring his history to fans in a fresh new way.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 862,
+      "alt_text": "Sepia photo of four men standing in front of a crowd behind chicken-wire fencing. One wears a \"Larrupin' Lous\" jersey and one wears a \"Bustin' Babes\" jersey and a bowler hat. Between them a man in an overcoat and a cap marked \"LL\" holds a baseball, and at the left a man wears a white cardigan and a bow tie.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Club website (lougehrigfanclub.com) home page: biography section (born June 19, 1903, 17-year Yankees career 1923 to 1939, Columbia University, 493 home runs, 1,995 RBI, 7-time All-Star, 2-time AL MVP, 6-time World Series champion, died June 2, 1941), Weekly Photo Matchup, Join, FAQ, Friends of the Fan Club, events calendar, Lou Gehrig Day, and the page's own '2027 public relaunch' wording. No launch date is stated.",
+      "status": "approved"
+    },
+    {
+      "id": "2026-11-19-daily",
+      "publish_at": "2026-11-19T10:00:00-05:00",
+      "topic": "Website relaunch: Every week, fans vote in the Weekly Photo Matchu",
+      "text": "Every week, fans vote in the Weekly Photo Matchup on our website. Pick your favorite Gehrig photo now, and watch for the bigger relaunch coming in 2027.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 858,
+      "alt_text": "Souvenir program with a decorative border. It reads \"Busting Babes vs. Larruping Lous\" above a halftone photo of Babe Ruth and Lou Gehrig in Yankees uniforms, each resting a hand on a bat, with \"Oakland Baseball Park, Sunday, October 23, 1927\" below.",
+      "platforms": [
+        "x",
+        "facebook",
+        "pinterest"
+      ],
+      "sources": "Club website (lougehrigfanclub.com) home page: biography section (born June 19, 1903, 17-year Yankees career 1923 to 1939, Columbia University, 493 home runs, 1,995 RBI, 7-time All-Star, 2-time AL MVP, 6-time World Series champion, died June 2, 1941), Weekly Photo Matchup, Join, FAQ, Friends of the Fan Club, events calendar, Lou Gehrig Day, and the page's own '2027 public relaunch' wording. No launch date is stated.",
+      "status": "approved"
+    },
+    {
+      "id": "2026-11-20-daily",
+      "publish_at": "2026-11-20T10:00:00-05:00",
+      "topic": "Website relaunch: Visitors can already browse Lou Gehrig history o",
+      "text": "Visitors can already browse Lou Gehrig history on our website. The 2027 relaunch will build on it. Take a look and tell us what you want to see.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 859,
+      "alt_text": "Black-and-white photo of four baseball players standing side by side in a ballpark. The two in the middle wear Yankees jerseys and the two on the ends wear jerseys with a large \"A\". The third player from the left holds a glove.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Club website (lougehrigfanclub.com) home page: biography section (born June 19, 1903, 17-year Yankees career 1923 to 1939, Columbia University, 493 home runs, 1,995 RBI, 7-time All-Star, 2-time AL MVP, 6-time World Series champion, died June 2, 1941), Weekly Photo Matchup, Join, FAQ, Friends of the Fan Club, events calendar, Lou Gehrig Day, and the page's own '2027 public relaunch' wording. No launch date is stated.",
+      "status": "approved"
+    },
+    {
+      "id": "2026-11-21-daily",
+      "publish_at": "2026-11-21T10:00:00-05:00",
+      "topic": "Website relaunch: Have a question about Lou Gehrig or the club? Th",
+      "text": "Have a question about Lou Gehrig or the club? The FAQ on our website has approved answers, and the 2027 relaunch will keep building on it.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 860,
+      "alt_text": "Black-and-white newspaper photo of baseball players at home plate, one raising a leg in a small kick toward another. The printed caption reads: \"Lou Gehrig congratulates Ruth with a little kick after the Babe had made his second homer.\"",
+      "platforms": [
+        "x",
+        "facebook",
+        "pinterest"
+      ],
+      "sources": "Club website (lougehrigfanclub.com) home page: biography section (born June 19, 1903, 17-year Yankees career 1923 to 1939, Columbia University, 493 home runs, 1,995 RBI, 7-time All-Star, 2-time AL MVP, 6-time World Series champion, died June 2, 1941), Weekly Photo Matchup, Join, FAQ, Friends of the Fan Club, events calendar, Lou Gehrig Day, and the page's own '2027 public relaunch' wording. No launch date is stated.",
+      "status": "approved"
+    },
+    {
+      "id": "2026-11-22-daily",
+      "publish_at": "2026-11-22T10:00:00-05:00",
+      "topic": "Website relaunch: Lou Gehrig's name became synonymous with ALS. Ou",
+      "text": "Lou Gehrig's name became synonymous with ALS. Our website will keep his legacy and the fight against the disease at its heart when it relaunches in 2027.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 864,
+      "alt_text": "Black-and-white printed portrait of Lou Gehrig in a cap and baseball jersey, smiling slightly. The page prints \"Henry Louis 'Lou' Gehrig. Idol of all American League fans and one of the greatest first basemen of all time. International News Photo.\"",
+      "platforms": [
+        "x",
+        "facebook",
+        "pinterest"
+      ],
+      "sources": "Club website (lougehrigfanclub.com) home page: biography section (born June 19, 1903, 17-year Yankees career 1923 to 1939, Columbia University, 493 home runs, 1,995 RBI, 7-time All-Star, 2-time AL MVP, 6-time World Series champion, died June 2, 1941), Weekly Photo Matchup, Join, FAQ, Friends of the Fan Club, events calendar, Lou Gehrig Day, and the page's own '2027 public relaunch' wording. No launch date is stated.",
+      "status": "approved"
+    },
+    {
+      "id": "2026-11-23-daily",
+      "publish_at": "2026-11-23T10:00:00-05:00",
+      "topic": "Website relaunch: Meet the Friends of the Fan Club: ALS Cure Proje",
+      "text": "Meet the Friends of the Fan Club: ALS Cure Project, I AM ALS, Live Like Lou Foundation and more, all listed on our website, which is being rebuilt for 2027.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 862,
+      "alt_text": "Sepia photo of four men standing in front of a crowd behind chicken-wire fencing. One wears a \"Larrupin' Lous\" jersey and one wears a \"Bustin' Babes\" jersey and a bowler hat. Between them a man in an overcoat and a cap marked \"LL\" holds a baseball, and at the left a man wears a white cardigan and a bow tie.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Club website (lougehrigfanclub.com) home page: biography section (born June 19, 1903, 17-year Yankees career 1923 to 1939, Columbia University, 493 home runs, 1,995 RBI, 7-time All-Star, 2-time AL MVP, 6-time World Series champion, died June 2, 1941), Weekly Photo Matchup, Join, FAQ, Friends of the Fan Club, events calendar, Lou Gehrig Day, and the page's own '2027 public relaunch' wording. No launch date is stated.",
+      "status": "approved"
+    },
+    {
+      "id": "2026-11-24-daily",
+      "publish_at": "2026-11-24T10:00:00-05:00",
+      "topic": "Website relaunch: Major League Baseball observes Lou Gehrig Day ev",
+      "text": "Major League Baseball observes Lou Gehrig Day every June 2. The Fan Club website is being rebuilt for 2027 so you can follow along.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 858,
+      "alt_text": "Souvenir program with a decorative border. It reads \"Busting Babes vs. Larruping Lous\" above a halftone photo of Babe Ruth and Lou Gehrig in Yankees uniforms, each resting a hand on a bat, with \"Oakland Baseball Park, Sunday, October 23, 1927\" below.",
+      "platforms": [
+        "x",
+        "facebook",
+        "pinterest"
+      ],
+      "sources": "Club website (lougehrigfanclub.com) home page: biography section (born June 19, 1903, 17-year Yankees career 1923 to 1939, Columbia University, 493 home runs, 1,995 RBI, 7-time All-Star, 2-time AL MVP, 6-time World Series champion, died June 2, 1941), Weekly Photo Matchup, Join, FAQ, Friends of the Fan Club, events calendar, Lou Gehrig Day, and the page's own '2027 public relaunch' wording. No launch date is stated.",
+      "status": "approved"
+    },
+    {
+      "id": "2026-11-25-daily",
+      "publish_at": "2026-11-25T10:00:00-05:00",
+      "topic": "Website relaunch: Looking for something on the Lou Gehrig Fan Club",
+      "text": "Looking for something on the Lou Gehrig Fan Club website? Search it for Gehrig history and club pages. The relaunch is coming in 2027.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 859,
+      "alt_text": "Black-and-white photo of four baseball players standing side by side in a ballpark. The two in the middle wear Yankees jerseys and the two on the ends wear jerseys with a large \"A\". The third player from the left holds a glove.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Club website (lougehrigfanclub.com) home page: biography section (born June 19, 1903, 17-year Yankees career 1923 to 1939, Columbia University, 493 home runs, 1,995 RBI, 7-time All-Star, 2-time AL MVP, 6-time World Series champion, died June 2, 1941), Weekly Photo Matchup, Join, FAQ, Friends of the Fan Club, events calendar, Lou Gehrig Day, and the page's own '2027 public relaunch' wording. No launch date is stated.",
+      "status": "approved"
+    },
+    {
+      "id": "2026-11-26-daily",
+      "publish_at": "2026-11-26T10:00:00-05:00",
+      "topic": "Website relaunch: Check the events calendar on our website for Fan",
+      "text": "Check the events calendar on our website for Fan Club events. The 2027 relaunch is on the way.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 860,
+      "alt_text": "Black-and-white newspaper photo of baseball players at home plate, one raising a leg in a small kick toward another. The printed caption reads: \"Lou Gehrig congratulates Ruth with a little kick after the Babe had made his second homer.\"",
+      "platforms": [
+        "x",
+        "facebook",
+        "pinterest"
+      ],
+      "sources": "Club website (lougehrigfanclub.com) home page: biography section (born June 19, 1903, 17-year Yankees career 1923 to 1939, Columbia University, 493 home runs, 1,995 RBI, 7-time All-Star, 2-time AL MVP, 6-time World Series champion, died June 2, 1941), Weekly Photo Matchup, Join, FAQ, Friends of the Fan Club, events calendar, Lou Gehrig Day, and the page's own '2027 public relaunch' wording. No launch date is stated.",
+      "status": "approved"
+    },
+    {
+      "id": "2026-11-27-daily",
+      "publish_at": "2026-11-27T10:00:00-05:00",
+      "topic": "Website relaunch: Lou Gehrig died on June 2, 1941, at age 37. Our",
+      "text": "Lou Gehrig died on June 2, 1941, at age 37. Our website relaunch in 2027 is one way the club keeps his story alive.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 864,
+      "alt_text": "Black-and-white printed portrait of Lou Gehrig in a cap and baseball jersey, smiling slightly. The page prints \"Henry Louis 'Lou' Gehrig. Idol of all American League fans and one of the greatest first basemen of all time. International News Photo.\"",
+      "platforms": [
+        "x",
+        "facebook",
+        "pinterest"
+      ],
+      "sources": "Club website (lougehrigfanclub.com) home page: biography section (born June 19, 1903, 17-year Yankees career 1923 to 1939, Columbia University, 493 home runs, 1,995 RBI, 7-time All-Star, 2-time AL MVP, 6-time World Series champion, died June 2, 1941), Weekly Photo Matchup, Join, FAQ, Friends of the Fan Club, events calendar, Lou Gehrig Day, and the page's own '2027 public relaunch' wording. No launch date is stated.",
+      "status": "approved"
+    },
+    {
+      "id": "2026-11-28-daily",
+      "publish_at": "2026-11-28T10:00:00-05:00",
+      "topic": "Website relaunch: Joining the Lou Gehrig Fan Club is free and gets",
+      "text": "Joining the Lou Gehrig Fan Club is free and gets you member archives, discussions and club-only content on our website. The relaunch is coming in 2027.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 862,
+      "alt_text": "Sepia photo of four men standing in front of a crowd behind chicken-wire fencing. One wears a \"Larrupin' Lous\" jersey and one wears a \"Bustin' Babes\" jersey and a bowler hat. Between them a man in an overcoat and a cap marked \"LL\" holds a baseball, and at the left a man wears a white cardigan and a bow tie.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Club website (lougehrigfanclub.com) home page: biography section (born June 19, 1903, 17-year Yankees career 1923 to 1939, Columbia University, 493 home runs, 1,995 RBI, 7-time All-Star, 2-time AL MVP, 6-time World Series champion, died June 2, 1941), Weekly Photo Matchup, Join, FAQ, Friends of the Fan Club, events calendar, Lou Gehrig Day, and the page's own '2027 public relaunch' wording. No launch date is stated.",
+      "status": "approved"
+    },
+    {
+      "id": "2026-11-29-daily",
+      "publish_at": "2026-11-29T10:00:00-05:00",
+      "topic": "Website relaunch: Thank you for following along. The new Lou Gehri",
+      "text": "Thank you for following along. The new Lou Gehrig Fan Club website is coming in 2027. Join free and stay close.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 858,
+      "alt_text": "Souvenir program with a decorative border. It reads \"Busting Babes vs. Larruping Lous\" above a halftone photo of Babe Ruth and Lou Gehrig in Yankees uniforms, each resting a hand on a bat, with \"Oakland Baseball Park, Sunday, October 23, 1927\" below.",
+      "platforms": [
+        "x",
+        "facebook",
+        "pinterest"
+      ],
+      "sources": "Club website (lougehrigfanclub.com) home page: biography section (born June 19, 1903, 17-year Yankees career 1923 to 1939, Columbia University, 493 home runs, 1,995 RBI, 7-time All-Star, 2-time AL MVP, 6-time World Series champion, died June 2, 1941), Weekly Photo Matchup, Join, FAQ, Friends of the Fan Club, events calendar, Lou Gehrig Day, and the page's own '2027 public relaunch' wording. No launch date is stated.",
+      "status": "approved"
+    },
+    {
+      "id": "2026-11-30-daily",
+      "publish_at": "2026-11-30T10:00:00-05:00",
+      "topic": "Website relaunch: November is ending, and the 2027 website relaunc",
+      "text": "November is ending, and the 2027 website relaunch is closer. Explore Lou Gehrig history on the current site today.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 859,
+      "alt_text": "Black-and-white photo of four baseball players standing side by side in a ballpark. The two in the middle wear Yankees jerseys and the two on the ends wear jerseys with a large \"A\". The third player from the left holds a glove.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Club website (lougehrigfanclub.com) home page: biography section (born June 19, 1903, 17-year Yankees career 1923 to 1939, Columbia University, 493 home runs, 1,995 RBI, 7-time All-Star, 2-time AL MVP, 6-time World Series champion, died June 2, 1941), Weekly Photo Matchup, Join, FAQ, Friends of the Fan Club, events calendar, Lou Gehrig Day, and the page's own '2027 public relaunch' wording. No launch date is stated.",
+      "status": "approved"
     }
+  ],
+  "photo_reuse_min_gap_days": 4,
+  "instagram_ok_photo_ids": [
+    859,
+    862
   ]
 }
