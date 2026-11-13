@@ -32,6 +32,13 @@ name: Gehrig Content Discovery (#3551 / #3552 / #2270 perpetual collection)
 #   before anything discovered here can become usable media; this workflow
 #   never does that and never writes to B2.
 #
+# - schedule (hourly, #5225): at minute 17 each hour the run takes one step of the rotating query plan
+#   (scripts/content-pipeline/gehrig-discovery-query-plan.json, selected by the UTC hour, so a step that
+#   failed or was rate limited comes round again one cycle later). The hourly run COLLECTS and uploads
+#   its results as an artifact. It writes to production D1 only when the repository variable
+#   GEHRIG_DISCOVERY_HOURLY_IMPORT is set to "true", which Product Authority does after the dry-run
+#   result is posted on #5225. The weekly run above is unchanged.
+#
 # To pause scheduled discovery without editing this file: disable the
 # workflow from the repo's Actions tab. To change cadence/sources/limit,
 # edit the `schedule:` cron and the scheduled-event env values below via PR.
@@ -72,6 +79,8 @@ on:
     # all three are free public APIs with no meaningful cost or rate risk
     # at this cadence and the existing per-run limit.
     - cron: "0 13 * * 1"
+    # Hourly, one query-plan step per run (#5225). Minute 17 avoids the top of the hour.
+    - cron: "17 * * * *"
 
 concurrency:
   group: gehrig-content-discovery
@@ -88,6 +97,7 @@ permissions:
 jobs:
   discover:
     runs-on: ubuntu-latest
+    timeout-minutes: 25
     steps:
       - name: Checkout repo
         uses: actions/checkout@v4
@@ -124,6 +134,36 @@ jobs:
         if: steps.guard.outputs.mode != 'halted'
         run: npm ci
 
+      - name: Decide the run mode
+        id: mode
+        if: steps.guard.outputs.mode != 'halted'
+        env:
+          EVENT: ${{ github.event_name }}
+          CRON: ${{ github.event.schedule }}
+          IMPORT_INPUT: ${{ github.event.inputs.import_to_d1 }}
+          HOURLY_IMPORT: ${{ vars.GEHRIG_DISCOVERY_HOURLY_IMPORT }}
+        run: |
+          hourly=false
+          import=false
+          if [ "$EVENT" = "schedule" ]; then
+            if [ "$CRON" = "17 * * * *" ]; then
+              hourly=true
+              if [ "$HOURLY_IMPORT" = "true" ]; then import=true; fi
+            else
+              import=true
+            fi
+          elif [ "$EVENT" = "workflow_dispatch" ] && [ "$IMPORT_INPUT" = "true" ]; then
+            import=true
+          fi
+          echo "hourly=$hourly" >> "$GITHUB_OUTPUT"
+          echo "import=$import" >> "$GITHUB_OUTPUT"
+          echo "Run mode: hourly=$hourly, production D1 import=$import" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Select the hourly query-plan step (#5225)
+        id: plan_step
+        if: steps.guard.outputs.mode != 'halted' && steps.mode.outputs.hourly == 'true'
+        run: node scripts/content-pipeline/discovery-hourly-step.mjs
+
       - name: Run discovery against approved sources
         if: steps.guard.outputs.mode != 'halted'
         id: discovery
@@ -142,11 +182,25 @@ jobs:
           # script's own fail-fast behavior, when the secret isn't set --
           # this line has no effect on any source other than dpla.
           DPLA_API_KEY: ${{ secrets.DPLA_API_KEY }}
+          HOURLY: ${{ steps.mode.outputs.hourly }}
+          STEP_QUERY: ${{ steps.plan_step.outputs.query }}
+          STEP_SOURCE: ${{ steps.plan_step.outputs.source }}
+          STEP_PAGE: ${{ steps.plan_step.outputs.page }}
+          STEP_DATE_END: ${{ steps.plan_step.outputs.date_end }}
         run: |
+          EXTRA=""
+          if [ "$HOURLY" = "true" ]; then
+            DISCOVERY_QUERY="$STEP_QUERY"
+            DISCOVERY_SOURCES="$STEP_SOURCE"
+            DISCOVERY_LIMIT="10"
+            EXTRA="--page $STEP_PAGE"
+            if [ -n "$STEP_DATE_END" ]; then EXTRA="$EXTRA --date-end $STEP_DATE_END"; fi
+          fi
           node --experimental-strip-types scripts/content-pipeline/collect-gehrig-external-sources.mjs \
             --query "$DISCOVERY_QUERY" \
             --sources "$DISCOVERY_SOURCES" \
             --limit "$DISCOVERY_LIMIT" \
+            $EXTRA \
             --out data/research/lou-gehrig-content-candidates-external-discovery.json
 
       - name: Write discovery step summary
@@ -175,7 +229,7 @@ jobs:
 
       - name: Count candidates before import
         id: import_gate
-        if: steps.guard.outputs.mode != 'halted' && (github.event_name == 'schedule' || github.event.inputs.import_to_d1 == 'true')
+        if: steps.guard.outputs.mode != 'halted' && steps.mode.outputs.import == 'true'
         run: |
           node --input-type=module -e "
             import fs from 'node:fs';
@@ -186,7 +240,7 @@ jobs:
           "
 
       - name: Verify Cloudflare D1 credentials
-        if: steps.guard.outputs.mode != 'halted' && steps.import_gate.outputs.count != '0' && (github.event_name == 'schedule' || github.event.inputs.import_to_d1 == 'true')
+        if: steps.guard.outputs.mode != 'halted' && steps.import_gate.outputs.count != '0' && steps.mode.outputs.import == 'true'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
@@ -194,7 +248,7 @@ jobs:
         run: node scripts/ci/verify_cloudflare_d1_auth.mjs
 
       - name: Import discovered candidates into production D1 (metadata only)
-        if: steps.guard.outputs.mode != 'halted' && steps.import_gate.outputs.count != '0' && (github.event_name == 'schedule' || github.event.inputs.import_to_d1 == 'true')
+        if: steps.guard.outputs.mode != 'halted' && steps.import_gate.outputs.count != '0' && steps.mode.outputs.import == 'true'
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
