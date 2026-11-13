@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Durable LGFC agent roles, recognized agent products, current member mapping, role work-selection order, approval authority, protected stops, and role-transition state
 Does Not Own: PMO lifecycle/stage semantics, detailed queue-label implementation, delivery-profile mechanics, CI implementation, or Production recovery procedure
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3240, #3629, #3693, #3825, #4074, #4134, #4165, #4173, #4174, #4399, #4447, #4449, #4982
-Last Reviewed: 2026-10-27
+Related Issues: #3240, #3629, #3693, #3825, #4074, #4134, #4165, #4173, #4174, #4399, #4447, #4449, #4982, #5221
+Last Reviewed: 2026-11-13
 ---
 
 # Agent Team
@@ -167,6 +167,22 @@ The LGFC Agentic Team is **Claude Code** and **Cursor (on Chromebook)**, both pa
 Bill acts as Product Authority and CMO. Bill approves Production-tier Pull Requests; non-production Pull Requests are self-approved (`docs/governance/REPOSITORY-AUTHORITY.md`, Merge authority). Departures from this assignment are one-offs recorded on the Issue.
 
 This assignment replaces every earlier role holder, interim assignment and transition note (including the #4174 interim PMO Admin assignment). Where older text contradicts it, the older text is legacy.
+
+### Temporary override: Cursor offline (Product Authority, 2026-11-13, #5221)
+
+Cursor is offline. While this override is active, **Claude Code holds every role in the table above as primary**: PMO, Engineering, PMO Admin, Operations and Governance. Cursor's rows are suspended, not retired. The override is one-sided and reversible: it ends when Product Authority records on #5221 that Cursor is back, and the table above then applies again unchanged.
+
+What the override changes:
+
+- Work labelled `agent:cursor` is reassigned to Claude Code when it is picked up. Claude Code replaces the label with `agent:claude` and leaves a note saying why. Product Authority reservations are not touched.
+- Operations and Governance queues are worked by Claude Code in the order each role defines, with no secondary role left idle.
+
+What the override does not change:
+
+- Protected boundaries, Production Go, cost, credential, privacy, legal and destructive-action stops.
+- Merge authority (`docs/governance/REPOSITORY-AUTHORITY.md`, Merge authority). Production-tier Pull Requests are approved and merged by the human approver only. Claude Code merges only the non-production Pull Requests it implemented, under the limits there.
+- Separation of duties. No agent approves protected work it implemented. With one agent, a Production-tier PR waits for the human approver, and the agent continues with its next eligible item.
+- The Cursor runtime boundary, the `lgfc-cursor` runner and wake path stay as they are. They are not used while Cursor is offline.
 
 ## Naming rule
 
