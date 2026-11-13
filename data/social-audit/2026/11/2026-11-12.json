@@ -1,0 +1,169 @@
+{
+  "schema": "social_audit_day/1",
+  "date": "2026-11-12",
+  "records": [
+    {
+      "schema": "social_post_evidence/1",
+      "post_id": "2026-11-12-daily",
+      "platform": "x",
+      "version": 1,
+      "scheduled_for": "2026-11-12T10:00:00-05:00",
+      "text": "On July 4, 1939, the Yankees retired Lou Gehrig's number 4, the first uniform number retired in major league baseball.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "text_sha256": "a544635fe4d36e0eb466835287c6a9fb9fc54f26de76bb3384551d2343d241d0",
+      "photo": {
+        "photo_id": 864,
+        "variant": "original",
+        "image_url": "https://www.lougehrigfanclub.com/api/social/image/2026-11-12-daily",
+        "image_sha256": "fe22aad5087af18efb0e499f835b4fef44268dbeb9d524e037c2524c9ea431d1",
+        "image_bytes": 3287027,
+        "width": 2424,
+        "height": 3397,
+        "alt_text": "Black-and-white printed portrait of Lou Gehrig in a cap and baseball jersey, smiling slightly. The page prints \"Henry Louis 'Lou' Gehrig. Idol of all American League fans and one of the greatest first basemen of all time. International News Photo.\""
+      },
+      "status": "confirmed",
+      "attempts": [
+        {
+          "at_utc": "2026-11-12T15:04:08Z",
+          "by": "GitHub job \"Social Post to X\"",
+          "outcome": "ok",
+          "detail": "Buffer post created and sent via shareNow; ledger row written 15:04:08.367Z"
+        }
+      ],
+      "platform_record": {
+        "post_id": "6af5d563df65abceb03c9a13",
+        "url": null,
+        "created_at_utc": "2026-11-12T15:04:07Z",
+        "created_at_new_york": "2026-11-12T10:04:07-05:00"
+      },
+      "note": "X created time is Buffer sentAt 15:04:07.340Z; the tweet id and link are not returned by Buffer.",
+      "verified": {
+        "by": "Claude Code (by hand, #5197)",
+        "method": "Buffer list_posts (dueAt window)",
+        "on": "2026-11-12"
+      }
+    },
+    {
+      "schema": "social_post_evidence/1",
+      "post_id": "2026-11-12-daily",
+      "platform": "facebook",
+      "version": 1,
+      "scheduled_for": "2026-11-12T10:00:00-05:00",
+      "text": "On July 4, 1939, the Yankees retired Lou Gehrig's number 4, the first uniform number retired in major league baseball.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "text_sha256": "a544635fe4d36e0eb466835287c6a9fb9fc54f26de76bb3384551d2343d241d0",
+      "photo": {
+        "photo_id": 864,
+        "variant": "original",
+        "image_url": "https://www.lougehrigfanclub.com/api/social/image/2026-11-12-daily",
+        "image_sha256": "fe22aad5087af18efb0e499f835b4fef44268dbeb9d524e037c2524c9ea431d1",
+        "image_bytes": 3287027,
+        "width": 2424,
+        "height": 3397,
+        "alt_text": "Black-and-white printed portrait of Lou Gehrig in a cap and baseball jersey, smiling slightly. The page prints \"Henry Louis 'Lou' Gehrig. Idol of all American League fans and one of the greatest first basemen of all time. International News Photo.\""
+      },
+      "status": "confirmed",
+      "attempts": [
+        {
+          "at_utc": "2026-11-12T15:11:54Z",
+          "by": "GitHub job \"Hand-off to Zapier\"",
+          "outcome": "handed_off",
+          "detail": "Issue #5188 opened; ledger recorded posted (hand-off)"
+        }
+      ],
+      "platform_record": {
+        "post_id": "103961431551844_1781498000522421",
+        "url": "https://www.facebook.com/103961431551844/posts/1781498000522421",
+        "created_at_utc": "2026-11-12T15:13:55Z",
+        "created_at_new_york": "2026-11-12T10:13:55-05:00"
+      },
+      "handoff": {
+        "issue_number": 5188,
+        "opened_at_utc": "2026-11-12T15:11:54Z"
+      },
+      "anomalies": [
+        {
+          "kind": "unplanned_text_only_post",
+          "platform_post_id": "103961431551844_1781489450523276",
+          "created_at_utc": "2026-11-12T15:07:27Z",
+          "text": "Number 4 retired, July 4, 1939 + link (not from the queue)"
+        }
+      ],
+      "verified": {
+        "by": "Claude Code (by hand, #5197)",
+        "method": "Zapier Facebook Pages \"New Post by You\" (page 103961431551844)",
+        "on": "2026-11-12"
+      }
+    },
+    {
+      "schema": "social_post_evidence/1",
+      "post_id": "2026-11-12-daily",
+      "platform": "pinterest",
+      "version": 1,
+      "scheduled_for": "2026-11-12T10:00:00-05:00",
+      "text": "On July 4, 1939, the Yankees retired Lou Gehrig's number 4, the first uniform number retired in major league baseball.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "text_sha256": "a544635fe4d36e0eb466835287c6a9fb9fc54f26de76bb3384551d2343d241d0",
+      "photo": {
+        "photo_id": 864,
+        "variant": "original",
+        "image_url": "https://www.lougehrigfanclub.com/api/social/image/2026-11-12-daily",
+        "image_sha256": "fe22aad5087af18efb0e499f835b4fef44268dbeb9d524e037c2524c9ea431d1",
+        "image_bytes": 3287027,
+        "width": 2424,
+        "height": 3397,
+        "alt_text": "Black-and-white printed portrait of Lou Gehrig in a cap and baseball jersey, smiling slightly. The page prints \"Henry Louis 'Lou' Gehrig. Idol of all American League fans and one of the greatest first basemen of all time. International News Photo.\""
+      },
+      "status": "confirmed",
+      "attempts": [
+        {
+          "at_utc": "2026-11-12T15:11:55Z",
+          "by": "GitHub job \"Hand-off to Zapier\"",
+          "outcome": "handed_off",
+          "detail": "Issue #5189 opened; ledger recorded posted (hand-off)"
+        }
+      ],
+      "platform_record": {
+        "post_id": "1041176007736518085",
+        "url": "https://www.pinterest.com/pin/1041176007736518085/",
+        "created_at_utc": "2026-11-12T15:14:02Z",
+        "created_at_new_york": "2026-11-12T10:14:02-05:00"
+      },
+      "handoff": {
+        "issue_number": 5189,
+        "opened_at_utc": "2026-11-12T15:11:55Z"
+      },
+      "note": "Board 1041176076293290189; pin title is the topic.",
+      "verified": {
+        "by": "Claude Code (by hand, #5197)",
+        "method": "Pinterest GET /v5/pins/<id> and \"New Pin\" via Zapier",
+        "on": "2026-11-12"
+      }
+    },
+    {
+      "schema": "social_post_evidence/1",
+      "post_id": "2026-11-12-daily",
+      "platform": "instagram",
+      "version": 1,
+      "scheduled_for": "2026-11-12T10:00:00-05:00",
+      "text": "On July 4, 1939, the Yankees retired Lou Gehrig's number 4, the first uniform number retired in major league baseball.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "text_sha256": "a544635fe4d36e0eb466835287c6a9fb9fc54f26de76bb3384551d2343d241d0",
+      "photo": {
+        "photo_id": 864,
+        "variant": "original",
+        "image_url": "https://www.lougehrigfanclub.com/api/social/image/2026-11-12-daily",
+        "image_sha256": "fe22aad5087af18efb0e499f835b4fef44268dbeb9d524e037c2524c9ea431d1",
+        "image_bytes": 3287027,
+        "width": 2424,
+        "height": 3397,
+        "alt_text": "Black-and-white printed portrait of Lou Gehrig in a cap and baseball jersey, smiling slightly. The page prints \"Henry Louis 'Lou' Gehrig. Idol of all American League fans and one of the greatest first basemen of all time. International News Photo.\""
+      },
+      "status": "not_eligible",
+      "attempts": [],
+      "platform_record": null,
+      "note": "Photo 864 is 2424x3397 (ratio 0.71), outside Instagram's 4:5 to 1.91:1 limit, so the queue leaves Instagram off (#5173). No hand-off Issue was opened. Instagram media list for the 2026-11-12 window was empty.",
+      "verified": {
+        "by": "Claude Code (by hand, #5197)",
+        "method": "Instagram Graph /media with since/until via Zapier raw GET",
+        "on": "2026-11-12"
+      }
+    }
+  ]
+}

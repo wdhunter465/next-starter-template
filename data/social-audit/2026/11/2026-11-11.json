@@ -1,0 +1,132 @@
+{
+  "schema": "social_audit_day/1",
+  "date": "2026-11-11",
+  "records": [
+    {
+      "schema": "social_post_evidence/1",
+      "post_id": "2026-11-11-daily",
+      "platform": "x",
+      "version": 1,
+      "scheduled_for": "2026-11-11T10:00:00-05:00",
+      "text": "Lou Gehrig hit 23 career grand slams, a major league record until Alex Rodriguez passed him.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "text_sha256": "e49c70ae3c522256be14a11f874f99e07dcc43ef5fdf1cf85a2ac2f7dca75ef5",
+      "photo": {
+        "photo_id": 860,
+        "variant": "original",
+        "image_url": "https://www.lougehrigfanclub.com/api/social/image/2026-11-11-daily",
+        "image_sha256": "df833c0f54be646fc5e019cb97f81861c1010f60d13ac7cf18e1e6923c1822c8",
+        "image_bytes": 1305210,
+        "width": 1774,
+        "height": 2272,
+        "alt_text": "Black-and-white newspaper photo of baseball players at home plate, one raising a leg in a small kick toward another. The printed caption reads: \"Lou Gehrig congratulates Ruth with a little kick after the Babe had made his second homer.\""
+      },
+      "status": "confirmed",
+      "attempts": [
+        {
+          "at_utc": "2026-11-11T15:04:00Z",
+          "by": "GitHub job \"Social Post to X\"",
+          "outcome": "ok",
+          "detail": "Buffer post created and sent via shareNow; ledger row written 15:04:00.150Z"
+        }
+      ],
+      "platform_record": {
+        "post_id": "6af483db3b4d19e0b80f60cc",
+        "url": null,
+        "created_at_utc": "2026-11-11T15:03:59Z",
+        "created_at_new_york": "2026-11-11T10:03:59-05:00"
+      },
+      "note": "X created time is Buffer sentAt 15:03:59.162Z; the tweet id and link are not returned by Buffer.",
+      "verified": {
+        "by": "Claude Code (by hand, #5197)",
+        "method": "Buffer list_posts (dueAt window)",
+        "on": "2026-11-12"
+      }
+    },
+    {
+      "schema": "social_post_evidence/1",
+      "post_id": "2026-11-11-daily",
+      "platform": "facebook",
+      "version": 1,
+      "scheduled_for": "2026-11-11T10:00:00-05:00",
+      "text": "Lou Gehrig hit 23 career grand slams, a major league record until Alex Rodriguez passed him.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "text_sha256": "e49c70ae3c522256be14a11f874f99e07dcc43ef5fdf1cf85a2ac2f7dca75ef5",
+      "photo": {
+        "photo_id": 860,
+        "variant": "original",
+        "image_url": "https://www.lougehrigfanclub.com/api/social/image/2026-11-11-daily",
+        "image_sha256": "df833c0f54be646fc5e019cb97f81861c1010f60d13ac7cf18e1e6923c1822c8",
+        "image_bytes": 1305210,
+        "width": 1774,
+        "height": 2272,
+        "alt_text": "Black-and-white newspaper photo of baseball players at home plate, one raising a leg in a small kick toward another. The printed caption reads: \"Lou Gehrig congratulates Ruth with a little kick after the Babe had made his second homer.\""
+      },
+      "status": "missing",
+      "attempts": [
+        {
+          "at_utc": "2026-11-11T15:11:02Z",
+          "by": "GitHub job \"Hand-off to Zapier\"",
+          "outcome": "handed_off",
+          "detail": "Issue #5185 opened; ledger recorded posted (hand-off)"
+        }
+      ],
+      "platform_record": null,
+      "handoff": {
+        "issue_number": 5185,
+        "opened_at_utc": "2026-11-11T15:11:02Z"
+      },
+      "anomalies": [
+        {
+          "kind": "unplanned_text_only_post",
+          "platform_post_id": "103961431551844_1780239783981576",
+          "created_at_utc": "2026-11-11T15:09:16Z",
+          "text": "23 career grand slams + link (not from the queue; no photo)"
+        }
+      ],
+      "note": "No photo post with this text was found among the 9 most recent Page posts read on 2026-11-12. Cause not determined; Zapier task history for 2026-11-11 would show it.",
+      "verified": {
+        "by": "Claude Code (by hand, #5197)",
+        "method": "Zapier Facebook Pages \"New Post by You\" (page 103961431551844)",
+        "on": "2026-11-12"
+      }
+    },
+    {
+      "schema": "social_post_evidence/1",
+      "post_id": "2026-11-11-daily",
+      "platform": "pinterest",
+      "version": 1,
+      "scheduled_for": "2026-11-11T10:00:00-05:00",
+      "text": "Lou Gehrig hit 23 career grand slams, a major league record until Alex Rodriguez passed him.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "text_sha256": "e49c70ae3c522256be14a11f874f99e07dcc43ef5fdf1cf85a2ac2f7dca75ef5",
+      "photo": {
+        "photo_id": 860,
+        "variant": "original",
+        "image_url": "https://www.lougehrigfanclub.com/api/social/image/2026-11-11-daily",
+        "image_sha256": "df833c0f54be646fc5e019cb97f81861c1010f60d13ac7cf18e1e6923c1822c8",
+        "image_bytes": 1305210,
+        "width": 1774,
+        "height": 2272,
+        "alt_text": "Black-and-white newspaper photo of baseball players at home plate, one raising a leg in a small kick toward another. The printed caption reads: \"Lou Gehrig congratulates Ruth with a little kick after the Babe had made his second homer.\""
+      },
+      "status": "missing",
+      "attempts": [
+        {
+          "at_utc": "2026-11-11T15:11:03Z",
+          "by": "GitHub job \"Hand-off to Zapier\"",
+          "outcome": "handed_off",
+          "detail": "Issue #5186 opened; ledger recorded posted (hand-off)"
+        }
+      ],
+      "platform_record": null,
+      "handoff": {
+        "issue_number": 5186,
+        "opened_at_utc": "2026-11-11T15:11:03Z"
+      },
+      "note": "No pin on board 1041176076293290189 was created between 2026-11-11 and 2026-11-12 among the 24 pins read. A pin on board 1041176076293604868 at 2026-11-11T11:26:49Z links to an Instagram post and is not from the queue. Cause not determined; Zapier task history would show it.",
+      "verified": {
+        "by": "Claude Code (by hand, #5197)",
+        "method": "Pinterest GET /v5/pins/<id> and \"New Pin\" via Zapier",
+        "on": "2026-11-12"
+      }
+    }
+  ]
+}
