@@ -2,6 +2,11 @@ name: OPS — Weekly operations scorecard
 
 # Read-only weekly scorecard (#4599). Writes a job summary and one comment on
 # the standing "Weekly scorecard" Issue. GITHUB_TOKEN only; no Production access.
+#
+# Weekly history (#5219): each run also appends one row per social platform to
+# social-weekly.jsonl on the data branch `scorecard-history`. The branch is append-only: it is
+# never deleted or force-pushed, `main` is untouched, a week already recorded is skipped, and the
+# rows are kept at least 10 years. The report site draws the trend graph from that file.
 
 on:
   schedule:
@@ -9,7 +14,7 @@ on:
   workflow_dispatch: {}
 
 permissions:
-  contents: read
+  contents: write # only to append to the scorecard-history data branch
   actions: read
   issues: write
   pull-requests: read
@@ -32,9 +37,50 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Prepare the history data branch
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          HISTORY_DIR="${RUNNER_TEMP}/scorecard-history"
+          if git ls-remote --exit-code --heads origin scorecard-history >/dev/null 2>&1; then
+            git fetch origin scorecard-history
+            git worktree add -B scorecard-history "$HISTORY_DIR" origin/scorecard-history
+          else
+            git worktree add --orphan -b scorecard-history "$HISTORY_DIR"
+            cat > "$HISTORY_DIR/README.md" <<'README'
+          # Scorecard history
+
+          Append-only weekly history for the operations scorecard (#5219). `social-weekly.jsonl` holds one
+          row per week per social platform. Never delete this branch, never force-push it, and never edit a
+          row. Retention: at least 10 years.
+          README
+            git -C "$HISTORY_DIR" add README.md
+            git -C "$HISTORY_DIR" commit -m "scorecard-history: start the history branch"
+          fi
+
       - name: Publish the weekly scorecard
         env:
           GITHUB_TOKEN: ${{ github.token }}
           GITHUB_REPOSITORY: ${{ github.repository }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
-        run: node scripts/ops/weekly-operations-scorecard.mjs --publish
+        run: node scripts/ops/weekly-operations-scorecard.mjs --publish --history-dir "${RUNNER_TEMP}/scorecard-history"
+
+      - name: Save the weekly history to the history data branch
+        if: ${{ always() }}
+        run: |
+          set -euo pipefail
+          cd "${RUNNER_TEMP}/scorecard-history"
+          git add -A
+          if git diff --cached --quiet && [ "$(git rev-list --count HEAD@{u}..HEAD 2>/dev/null || echo 1)" = "0" ]; then
+            echo "No new history rows."
+            exit 0
+          fi
+          git diff --cached --quiet || git commit -m "scorecard-history: week ending $(date -u +%Y-%m-%d)"
+          for attempt in 1 2 3; do
+            if git push origin HEAD:scorecard-history; then exit 0; fi
+            git fetch origin scorecard-history
+            git rebase origin/scorecard-history
+          done
+          echo "Could not push the history rows to scorecard-history." >&2
+          exit 1
