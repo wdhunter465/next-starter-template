@@ -3,6 +3,8 @@
 // last 7 days, from GitHub Actions runs, pull requests, and Issues. No
 // Production writes and no new credentials.
 
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { appendOpsStepSummary } from '../ci/ops_runtime_escalation.mjs';
 import { JOBS, fetchJobStatus, runCheck } from './scheduled-job-health.mjs';
@@ -197,6 +199,65 @@ export function socialRows(social, window, now = new Date()) {
     value: socialValue(week[platform]),
     rag: ragSocial(week[platform]),
   }));
+}
+
+// Weekly history (#5219). One row per week per platform, appended to an append-only file on the
+// `scorecard-history` data branch and kept at least 10 years. A week already recorded is never
+// rewritten, so a rerun adds nothing.
+export const SOCIAL_HISTORY_FILE = 'social-weekly.jsonl';
+export const SOCIAL_HISTORY_BRANCH = 'scorecard-history';
+
+export function historyRows(week, window, recordedAt = new Date().toISOString()) {
+  return SOCIAL_PLATFORMS.map((platform) => {
+    const c = week[platform];
+    return {
+      week_start: window.start.slice(0, 10),
+      week_end: window.end.slice(0, 10),
+      platform,
+      planned: c.planned,
+      confirmed: c.confirmed,
+      failed: c.failed,
+      missing: c.missing,
+      handed_off: c.handed_off,
+      not_logged: c.not_logged,
+      pending: c.pending,
+      not_eligible: c.not_eligible,
+      success_rate: c.successRate == null ? null : Math.round(c.successRate * 10) / 10,
+      recorded_at: recordedAt,
+    };
+  });
+}
+
+/** Parses a history file; a line that is not valid JSON is skipped. */
+export function parseHistory(text) {
+  return String(text ?? '')
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+    .flatMap((line) => {
+      try {
+        return [JSON.parse(line)];
+      } catch {
+        return [];
+      }
+    });
+}
+
+/** The lines to append: only rows whose week and platform are not already in the file. */
+export function newHistoryLines(existingText, rows) {
+  const seen = new Set(parseHistory(existingText).map((r) => `${r.week_start}|${r.platform}`));
+  return rows.filter((r) => !seen.has(`${r.week_start}|${r.platform}`)).map((r) => `${JSON.stringify(r)}\n`);
+}
+
+/** Appends this week's rows to <dir>/social-weekly.jsonl; returns how many rows were added. */
+export function recordHistory(dir, week, window, recordedAt) {
+  const file = path.join(dir, SOCIAL_HISTORY_FILE);
+  const existing = existsSync(file) ? readFileSync(file, 'utf8') : '';
+  const lines = newHistoryLines(existing, historyRows(week, window, recordedAt));
+  if (lines.length === 0) return 0;
+  mkdirSync(dir, { recursive: true });
+  writeFileSync(file, existing + (existing && !existing.endsWith('\n') ? '\n' : '') + lines.join(''));
+  return lines.length;
 }
 
 export function buildScorecard(facts, now = new Date()) {
@@ -494,6 +555,15 @@ async function main() {
   const report = renderScorecard(card);
   console.log(report);
   appendOpsStepSummary(report);
+  const historyFlag = process.argv.indexOf('--history-dir');
+  if (historyFlag !== -1 && process.argv[historyFlag + 1]) {
+    if (facts.social && !facts.social.error) {
+      const added = recordHistory(process.argv[historyFlag + 1], socialWeek(facts.social, card.window, now), card.window, now.toISOString());
+      console.log(`Social history: ${added} row(s) added`);
+    } else {
+      console.log(`Social history: nothing recorded (${facts.social?.error ?? 'no social facts'})`);
+    }
+  }
   if (process.argv.includes('--publish')) {
     const number = await publishScorecard(context, report, card.window);
     console.log(`Scorecard recorded on #${number}`);

@@ -1,16 +1,24 @@
+import { mkdtempSync, readFileSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { appendToDay, buildEvidenceRecord } from '../scripts/ops/social-evidence.mjs';
 import {
   BACKUP_WORKFLOW,
+  SOCIAL_HISTORY_FILE,
   UPTIME_WORKFLOW,
   buildScorecard,
   collectFacts,
   collectSocialFacts,
+  historyRows,
+  newHistoryLines,
+  parseHistory,
   ragBackupAge,
   ragFailedJobs,
   ragFirstPass,
   ragQueue,
   ragUptime,
+  recordHistory,
   renderScorecard,
   socialRows,
   socialWeek,
@@ -259,5 +267,41 @@ describe('social posting counts by platform (#5198)', () => {
 
     const down = async () => ({ status: 404, ok: false, text: async () => '', json: async () => ({}), headers: { get: () => '' } });
     await expect(collectSocialFacts({ repository: 'o/r', headers: {}, branch: 'main', fetchImpl: down }, SWINDOW)).rejects.toThrow(/queue was not found/);
+  });
+});
+
+describe('weekly social history (#5219)', () => {
+  const W = { start: '2026-11-09T13:00:00Z', end: '2026-11-16T13:00:00Z' };
+  const week = {
+    x: { planned: 3, confirmed: 3, failed: 0, missing: 0, handed_off: 0, not_logged: 0, pending: 0, not_eligible: 0, successRate: 100 },
+    facebook: { planned: 3, confirmed: 1, failed: 0, missing: 1, handed_off: 0, not_logged: 1, pending: 0, not_eligible: 0, successRate: 33.333 },
+    instagram: { planned: 1, confirmed: 1, failed: 0, missing: 0, handed_off: 0, not_logged: 0, pending: 0, not_eligible: 2, successRate: 100 },
+    pinterest: { planned: 0, confirmed: 0, failed: 0, missing: 0, handed_off: 0, not_logged: 0, pending: 0, not_eligible: 0, successRate: null },
+  };
+
+  it('builds one row per platform for the week, with the success rate rounded', () => {
+    const rows = historyRows(week, W, '2026-11-16T13:00:05Z');
+    expect(rows.map((r) => r.platform)).toEqual(['x', 'facebook', 'instagram', 'pinterest']);
+    expect(rows[1]).toMatchObject({ week_start: '2026-11-09', week_end: '2026-11-16', planned: 3, confirmed: 1, missing: 1, not_logged: 1, success_rate: 33.3 });
+    expect(rows[3].success_rate).toBeNull();
+  });
+
+  it('adds only the weeks not yet recorded, so a rerun adds nothing', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'hist-'));
+    expect(recordHistory(dir, week, W, '2026-11-16T13:00:05Z')).toBe(4);
+    const first = readFileSync(join(dir, SOCIAL_HISTORY_FILE), 'utf8');
+    expect(recordHistory(dir, week, W, '2026-11-16T14:00:00Z')).toBe(0);
+    expect(readFileSync(join(dir, SOCIAL_HISTORY_FILE), 'utf8')).toBe(first);
+    const next = { start: '2026-11-16T13:00:00Z', end: '2026-11-23T13:00:00Z' };
+    expect(recordHistory(dir, week, next, '2026-11-23T13:00:05Z')).toBe(4);
+    expect(parseHistory(readFileSync(join(dir, SOCIAL_HISTORY_FILE), 'utf8'))).toHaveLength(8);
+    rmSync(dir, { recursive: true });
+  });
+
+  it('keeps an earlier row unchanged and skips a damaged line when reading', () => {
+    const lines = newHistoryLines('{"week_start":"2026-11-09","platform":"x","planned":9}\nnot json\n', historyRows(week, W));
+    expect(lines).toHaveLength(3);
+    expect(lines.join('')).not.toContain('"platform":"x"');
+    expect(parseHistory('{"a":1}\nbad\n{"b":2}')).toEqual([{ a: 1 }, { b: 2 }]);
   });
 });
