@@ -6,7 +6,7 @@ Owns: Operator steps for the Production health and Day-2 monitoring checks (stag
 Does Not Own: Monitoring strategy and stages (#4468), rollback authority (#3633 decision record), the per-workflow failure watcher procedure (docs/how-to/ci/workflow-failure-exception-issues.md)
 Canonical Reference: /docs/ops/reports/ci-gap-assessment-3633.md
 Related Issues: #4468, #3633, #4444, #4540, #4539, #4599, #4707, #4976
-Last Reviewed: 2026-10-27
+Last Reviewed: 2026-11-13
 ---
 
 # Run the Day-2 Monitoring Checks
@@ -46,7 +46,7 @@ Scheduled job health covers the silent case the watcher cannot see: a job that s
 2. Classify it:
    - **Production broken by the last deployment.** Under the standing rollback Go for the launch window (#3633, 2026-10-12), roll back to the last good Cloudflare Pages deployment with `docs/how-to/website/website-production-rollback.md`, then report on the Issue. The code fix still goes through a reviewed PR.
    - **Real fault, not deploy-related.** Open or name a source Issue and fix it by PR.
-   - **External or temporary cause** (a third-party API outage, the Cursor host asleep). Confirm with a re-run, then record the cause.
+   - **External or temporary cause** (a third-party API outage, a runner host offline). Confirm with a re-run, then record the cause.
    - **Missing secret or configuration.** Record who provisions it.
 3. Close the Issue with a comment naming the fix or decision. The uptime probe and scheduled job health post a recovery comment on a clean run; they do not close the Issue.
 
