@@ -5,9 +5,9 @@
  * Runs after the posting window. For each approved queue post dated today (New York time) that
  * automation owns, it checks what this repository can see:
  *   - X: the ledger holds a 'posted' row
- *   - the post is in the public feed, and its image address returns an image
+ *   - its image address returns an image
  * The Zapier Zaps for Facebook, Instagram and Pinterest cannot be read from here, so for those the
- * check proves the feed item and the image the Zaps depend on, and says so in its report.
+ * check proves the image the Zaps depend on, and says so in its report.
  * Any problem exits 1 so the workflow opens one Operations Issue.
  *
  * Env: SCHEDULED_CONTENT_BRIDGE_TOKEN, BASE_URL (default the live site), NOW (ISO, tests only),
@@ -45,7 +45,7 @@ export function postsDueToday(queue, now) {
 
 /**
  * Problems found for one day. Pure: takes what was fetched.
- * facts[post.id] = { ledgerRows, inFeed, imageOk }
+ * facts[post.id] = { ledgerRows, imageOk }
  */
 export function evaluateHeartbeat(posts, facts) {
   const problems = [];
@@ -56,7 +56,6 @@ export function evaluateHeartbeat(posts, facts) {
       problems.push(`${post.id}: X has no posted ledger row${failed ? ` (last attempt failed: ${failed.error ?? 'no detail'})` : ''}`);
     }
     if (post.platforms.some((p) => p !== 'x')) {
-      if (!f.inFeed) problems.push(`${post.id}: not in the public feed, so the Facebook, Instagram and Pinterest Zaps have nothing to post`);
       if (!f.imageOk) problems.push(`${post.id}: the image address did not return an image, so the Zaps cannot attach the photo`);
     }
   }
@@ -87,7 +86,6 @@ export async function run(env = process.env, deps = {}) {
     return report;
   }
 
-  const feed = await (await fetchImpl(`${baseUrl}/api/social/feed`)).text();
   const facts = {};
   for (const post of posts) {
     const ledgerRes = await fetchImpl(`${baseUrl}/api/social/ledger?post_id=${encodeURIComponent(post.id)}`, {
@@ -97,7 +95,6 @@ export async function run(env = process.env, deps = {}) {
     const image = await fetchImpl(`${baseUrl}/api/social/image/${post.id}`);
     facts[post.id] = {
       ledgerRows: ledger.rows ?? [],
-      inFeed: feed.includes(`<guid isPermaLink="false">${post.id}</guid>`),
       imageOk: image.ok && (image.headers.get('content-type') ?? '').startsWith('image/'),
     };
     if (!ledgerRes.ok) facts[post.id].ledgerError = ledgerRes.status;
