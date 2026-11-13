@@ -6,7 +6,7 @@ Owns: Proposed launch-window roles, daily status format, monitoring and alerting
 Does Not Own: The Go packet, any workflow or alert change, the freeze declaration, credentials, or any Production action
 Canonical Reference: /docs/reference/operations/2027-launch-calendar-operating-contract.md
 Related Issues: #4439, #4414, #3268, #2780, #3866, #4444, #4453, #4407, #4417, #4468
-Last Reviewed: 2026-10-19
+Last Reviewed: 2026-11-13
 ---
 
 # Day-2 operations readiness for the launch window (go-live P-26), proposal
@@ -85,7 +85,7 @@ Status as of 2026-10-19. The answers were given on #4439 (2026-10-16) and #4657 
 
 | # | Question | Recommended answer | Decision |
 | --- | --- | --- | --- |
-| 1 | Who holds each role above? | Product Authority names them; one named person for Operations and one backup | **Decided 2026-10-16.** Cursor holds Operations. Claude Code holds Engineering and is secondary Operations. |
+| 1 | Who holds each role above? | Product Authority names them; one named person for Operations and one backup | **Decided 2026-10-16.** Cursor holds Operations. Claude Code holds Engineering and is secondary Operations. **Superseded 2026-11-13 (#4439, #5221):** Cursor is offline, so Claude Code holds Operations, Engineering and monitoring for the window; Bill approves. There is no backup holder. |
 | 2 | Standing rollback Go for the launch window? | Yes, rollback only, report afterward | **Approved 2026-10-19** (decision 5 on #4657): rollback only, with a report afterward. |
 | 3 | Where do alerts go? | The `team:operations` exception Issues, plus a notification to the Operations holder | **Approved 2026-10-19** (decision 3 on #4657), narrowed: outage and failed-deploy alerts also reach Bill and the Operations holder by email or phone alert. The channel and any cost are still to be chosen (#4687). |
 | 4 | When does daily reporting start? | On the day the freeze is declared | **Open.** No answer recorded. |
@@ -94,6 +94,41 @@ Status as of 2026-10-19. The answers were given on #4439 (2026-10-16) and #4657 
 ### Work that follows the decisions
 
 The monitoring review (#4657) opened one Issue per gap on 2026-10-19: #4681 (wake an agent on a new Operations Issue), #4682 (synthetic sign-in check), #4683 (photo addresses), #4684 (scheduled publish check after 10:00), #4685 (uptime probe routes), #4686 (failure watcher coverage), #4687 (alerts to Bill and Operations), #4688 (certificate and DNS), #4689 (failed deploy alert), #4690 (email delivery), #4691 (secret expiry reminders). Three need an input from Product Authority before building: where the sign-in test credentials are stored (#4682), the alert channel and cost (#4687), and the answer to decision 4 above.
+
+## Evidence refresh, 2026-11-13 (#4439)
+
+Product Authority decided on 2026-11-13: Claude Code owns Day-2 operations and monitoring, Bill approves, and an alert opens an Issue that goes to Claude Code to remediate and restore service. Read from live GitHub Actions run history today. It shows that each check runs. It is not a Go.
+
+| Check | Schedule | Latest runs seen | Result |
+| --- | --- | --- | --- |
+| D1 daily backup export (#3268) | Daily 09:00 UTC | 2026-11-10 to 2026-11-13, four of four | success; a failed run opens an exception Issue |
+| D1 quarterly restore drill (#3268) | 1 Jan, Apr, Jul, Oct, 10:00 UTC | 2026-10-01 (schedule), 2026-10-16 (manual) | success; next scheduled run **2027-01-01 10:00 UTC** |
+| Certificate and DNS watch | Daily 12:17 UTC | 2026-11-10 to 2026-11-13, four of four | success |
+| Photo address check | About every 6 hours | Four latest, 2026-11-12 and 2026-11-13 | success |
+| Main change monitor | On push to `main` | Four latest, 2026-11-13 | success |
+| Pages deploy failure alert (#4689, closed) | On check-suite events | Four latest, 2026-11-13 | skipped, meaning no failed deploy to alert on |
+| Scheduled qualification (#4467) | Daily about 07:35 UTC | Success 2026-11-08 to 2026-11-12; **failed 2026-11-13** | One mobile-navigation spec failed (exception #5216). A manual re-run was started the same day; the result is recorded on #5216. |
+| Daily publish: X job, hand-off job, heartbeat (#5157, #5173, #5159) | 10:00 New York; heartbeat 16:00 and 17:00 UTC | Checked each day by the social verification (handover #5229) | Replaces the failing publish job in the 2026-10-08 table above |
+| Matchup pair monitor | Scheduled | The latest runs listed are from **2026-08-16 and all failed** | Not currently running or retired; not verified; no owner |
+
+Not verified today: a Production uptime probe, D1 health beyond the backup, B2 health beyond the photo address check, and Cloudflare dashboard alerts.
+
+### Remaining D1 backup items, status
+
+| Item | State on 2026-11-13 | Owner | Date |
+| --- | --- | --- | --- |
+| Retention of 30 days | The daily workflow documents 30 days as the target and calls pruning "a tracked follow-up". No pruning step exists, so the retention rule is **not applied**. Bucket lifecycle rule not viewed. | Claude Code opens the Issue | Before the 12/31 Go |
+| Missing-backup alert (no export in 26 hours) | A failed run alerts. A run that never starts does not. Check not built. | Claude Code proposes; Engineering builds under #3633-010 | Before the 12/31 Go |
+| Manual restore drill before the freeze | Not run since 2026-10-16 | Claude Code | 2026-12-17 |
+| Quarterly drill owner | Claude Code | Claude Code | 2027-01-01 |
+
+### Open items
+
+1. Backup pruning is not implemented.
+2. A backup that does not run at all raises no alert.
+3. Nothing wakes Claude Code when an Operations Issue opens (#4681, open). Until it does, the response times in the launch-window plan hold only while a session runs with a scheduled check-in.
+4. The matchup pair monitor has no owner and no recent runs.
+5. Decision 4 above (when daily reporting starts) is still open.
 
 ## Validation
 
