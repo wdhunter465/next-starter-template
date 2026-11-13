@@ -13,7 +13,7 @@ Last Reviewed: 2026-11-10
 
 ## Decision
 
-Product Authority, 2026-11-10: consistency of daily posting comes first. The RSS feed path (#5158) was awkward in practice: field-mapping mistakes put two wrong posts on the Facebook Page on 2026-11-09, polling can run 15 minutes late, and each Zap had to interpret a feed. It is retired from the daily path and can be revisited later. The feed route stays in the site, unused.
+Product Authority, 2026-11-10: consistency of daily posting comes first. The RSS feed path (#5158) was awkward in practice: field-mapping mistakes put two wrong posts on the Facebook Page on 2026-11-09, polling can run 15 minutes late, and each Zap had to interpret a feed. It was retired from the daily path, and Product Authority removed the Zapier RSS Zaps and the feed route from the repository on 2026-11-12 (#5158).
 
 ## Flow
 
@@ -66,5 +66,5 @@ $0. Zapier Free allows 100 tasks a month; three Zaps at one post a day use about
 ## Open items
 
 - **Content supply (decided 2026-11-12).** Only five photos are rights-cleared. Product Authority chose to reuse them with new launch text: a photo may repeat but not within 4 days of its last use, and Instagram is listed only for the photos that fit its aspect ratio. Posts for 2026-11-13 to 2026-11-30 are queued; the posts from 2026-12-01 need the new footer wording (#2093). More cleared photos still make the rotation less repetitive.
-- **Zaps.** Product Authority creates the three GitHub-triggered Zaps (`docs/how-to/ops/social-feed-zaps-setup.md`) and turns the three RSS Zaps off first, or each post goes out twice.
+- **Zaps.** Product Authority creates the three GitHub-triggered Zaps (`docs/how-to/ops/social-feed-zaps-setup.md`) The old RSS Zaps are removed.
 - **Verification.** Confirm the Zapier GitHub "New Labeled Issue" trigger is on the Free plan.
