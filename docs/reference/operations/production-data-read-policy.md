@@ -6,7 +6,7 @@ Owns: What agents and operators may read from Production data, which tables are 
 Does Not Own: Production writes, migrations and releases (see PLATFORM-AND-ENVIRONMENT and DELIVERY-AND-RELEASE), credentials, or the content of any member record
 Canonical Reference: /docs/governance/PLATFORM-AND-ENVIRONMENT.md
 Related Issues: #4443, #4414, #4422, #4433, #4409, #4657, #4682
-Last Reviewed: 2026-10-19
+Last Reviewed: 2026-11-13
 ---
 
 # Production data read policy
@@ -68,6 +68,10 @@ Agent sessions need outbound access to these hosts while the website is under re
 These are recorded here. The environment network setting is changed by the person who owns the environment, and keeping these hosts allowed through the review period is an Operations check in P-26.
 
 ## Test accounts for P-09 (member and admin flow checks)
+
+**Decided 2026-11-13 (Product Authority, recorded on #4422 and #4443): no test accounts are needed for P-09.** Product Authority stated that the member and admin flows (join, login, logout, session, vote, Fan Club pages, admin tools) have been in place and in use for some time, and withdrew the requests for a test mailbox and an admin test account. No test account is created in Production, no admin role is granted for testing, and the scheduled sign-in check (#4682) is not blocked on one. Reopen #4422 if a flow fails.
+
+The approach below stays on file as the method to follow if a test account is ever needed again. It is not in force while this decision stands.
 
 Recommended approach, for Product Authority to accept or change:
 
