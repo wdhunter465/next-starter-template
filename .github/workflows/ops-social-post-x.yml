@@ -5,6 +5,11 @@ name: OPS — Social Post to X (#5157)
 # real; a pull request or a manual run is a dry run unless apply=true. Posts earlier than the
 # queue's automation_starts_at are left to the manual process.
 #
+# Same-day evidence (#5202, design #5197): every real run appends one evidence record per X post
+# (and per retry) to the audit data branch `social-audit`, with Buffer's own post id, status and
+# send time. The branch is append-only: it is never deleted or force-pushed, `main` is untouched,
+# and the records are kept at least 10 years. Dry runs and pull requests write nothing.
+#
 # Cron: every 30 minutes across the posting window (10:00 New York is 14:00 UTC in EDT and 15:00
 # UTC in EST); the ledger makes extra ticks harmless.
 on:
@@ -24,6 +29,7 @@ on:
   pull_request:
     paths:
       - 'scripts/ops/social-post-x.mjs'
+      - 'scripts/ops/social-evidence.mjs'
       - '.github/workflows/ops-social-post-x.yml'
 
 concurrency:
@@ -31,7 +37,7 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  contents: read
+  contents: write # only to append to the social-audit data branch on real runs
   issues: write
 
 jobs:
@@ -50,8 +56,53 @@ jobs:
         with:
           node-version: '22'
 
+      - name: Prepare the audit data branch
+        if: ${{ env.APPLY == 'true' }}
+        run: |
+          set -euo pipefail
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          AUDIT_DIR="${RUNNER_TEMP}/social-audit"
+          if git ls-remote --exit-code --heads origin social-audit >/dev/null 2>&1; then
+            git fetch origin social-audit
+            git worktree add -B social-audit "$AUDIT_DIR" origin/social-audit
+          else
+            git worktree add --orphan -b social-audit "$AUDIT_DIR"
+            cat > "$AUDIT_DIR/README.md" <<'README'
+          # Social post audit log
+
+          Append-only evidence records for the daily social posts (#5197, #5202). One file per day under
+          `data/social-audit/<year>/<month>/<date>.json`. Never delete this branch, never force-push it, and
+          never edit a record: a correction or a retry is a new version. Retention: at least 10 years.
+          README
+            git -C "$AUDIT_DIR" add README.md
+            git -C "$AUDIT_DIR" commit -m "social-audit: start the audit branch"
+          fi
+
       - name: Post due X posts
+        env:
+          AUDIT_DIR: ${{ env.APPLY == 'true' && format('{0}/social-audit', runner.temp) || '' }}
         run: node scripts/ops/social-post-x.mjs
+
+      - name: Save the evidence records to the audit data branch
+        if: ${{ always() && env.APPLY == 'true' }}
+        run: |
+          set -euo pipefail
+          AUDIT_DIR="${RUNNER_TEMP}/social-audit"
+          cd "$AUDIT_DIR"
+          git add -A
+          if git diff --cached --quiet && [ "$(git rev-list --count HEAD@{u}..HEAD 2>/dev/null || echo 1)" = "0" ]; then
+            echo "No new evidence records."
+            exit 0
+          fi
+          git diff --cached --quiet || git commit -m "social-audit: X records $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          for attempt in 1 2 3; do
+            if git push origin HEAD:social-audit; then exit 0; fi
+            git fetch origin social-audit
+            git rebase origin/social-audit
+          done
+          echo "Could not push the evidence records to social-audit." >&2
+          exit 1
 
       - name: Open or update an Operations Issue on failure
         if: ${{ failure() && github.event_name == 'schedule' }}
@@ -60,6 +111,6 @@ jobs:
           GITHUB_REPOSITORY: ${{ github.repository }}
           OPS_ESCALATION_WORKFLOW: OPS — Social Post to X
           OPS_ESCALATION_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
-          OPS_ESCALATION_DETAILS: The scheduled X post failed (Buffer error or the ledger could not be read or written). Open the run log. A post already recorded in the ledger is not sent again; if Buffer posted but the ledger write failed, check X before rerunning.
+          OPS_ESCALATION_DETAILS: The scheduled X post failed (Buffer error, the ledger could not be read or written, or the evidence record could not be saved to the social-audit branch). Open the run log. A post already recorded in the ledger is not sent again; if Buffer posted but the ledger write failed, check X before rerunning.
           OPS_ESCALATION_LABELS: ops-runtime-failure
         run: node scripts/ci/ops_runtime_escalation.mjs
