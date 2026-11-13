@@ -1,8 +1,12 @@
 import React from "react";
 import { fetchPageContent } from "@/lib/pageContent";
-import { buildCanonicalMetadata } from '@/lib/publicSiteMetadata';
+import { buildPublicPageMetadata } from '@/lib/publicSiteMetadata';
 
-export const metadata = buildCanonicalMetadata('/terms/');
+export const metadata = buildPublicPageMetadata({
+  title: 'Terms',
+  description: 'Terms of use for the Lou Gehrig Fan Club website.',
+  path: '/terms/',
+});
 
 export default async function Page() {
   const data = await fetchPageContent("/terms");
