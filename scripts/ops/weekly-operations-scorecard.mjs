@@ -6,6 +6,7 @@
 import { pathToFileURL } from 'node:url';
 import { appendOpsStepSummary } from '../ci/ops_runtime_escalation.mjs';
 import { JOBS, fetchJobStatus, runCheck } from './scheduled-job-health.mjs';
+import { dayFilePath, latestRecords, newYorkDate } from './social-evidence.mjs';
 
 export const SCORECARD_TITLE = 'Weekly scorecard';
 export const UPTIME_WORKFLOW = 'ops-site-uptime-probe.yml';
@@ -100,6 +101,104 @@ export function queueSnapshot(openIssues, now) {
   return { open: list.length, oldestHours };
 }
 
+// Social posting counts by platform (#5198). Read-only, from what GITHUB_TOKEN can see: the reviewed
+// queue (what was planned), the append-only audit branch (what happened, #5197) and the hand-off
+// Issues the posting job opens for the Zapier platforms.
+export const SOCIAL_PLATFORMS = ['x', 'facebook', 'instagram', 'pinterest'];
+export const SOCIAL_PLATFORM_NAMES = { x: 'X', facebook: 'Facebook Page', instagram: 'Instagram', pinterest: 'Pinterest' };
+export const SOCIAL_QUEUE_PATH = 'data/social-post-queue.json';
+export const SOCIAL_AUDIT_BRANCH = 'social-audit';
+export const SOCIAL_HANDOFF_LABEL = 'social-post';
+
+/** The New York dates a window touches, oldest first. Steps of 12 hours so a short or long day is never skipped. */
+export function windowDates(window) {
+  const last = newYorkDate(window.end);
+  const dates = [];
+  for (let ms = Date.parse(window.start); dates.length < 60; ms += 12 * HOUR_MS) {
+    const date = newYorkDate(new Date(ms).toISOString());
+    if (date > last) break;
+    if (!dates.includes(date)) dates.push(date);
+  }
+  if (!dates.includes(last)) dates.push(last);
+  return dates;
+}
+
+/**
+ * Counts each platform's posts for the window. Every planned post is in exactly one state: the
+ * latest evidence record decides (confirmed, failed, missing, handed_off); with no record, a hand-off
+ * Issue means handed_off; otherwise it is pending while inside the lateness window and not_logged after.
+ * A hand-off is never counted as a success. A post left off Instagram by the queue is not_eligible.
+ */
+export function socialWeek({ queue, days = [], handoffs = [] }, window, now = new Date()) {
+  const lateMs = (Number(queue?.lateness_hours) > 0 ? Number(queue.lateness_hours) : 4) * HOUR_MS;
+  const posts = (queue?.posts || []).filter((p) => p.status === 'approved' && p.publish_at >= window.start && Date.parse(p.publish_at) <= Date.parse(window.end));
+  const latest = new Map();
+  for (const day of days) {
+    for (const record of latestRecords(day)) {
+      const key = `${record.post_id}|${record.platform}`;
+      const seen = latest.get(key);
+      if (!seen || record.version > seen.version) latest.set(key, record);
+    }
+  }
+  const handed = new Set(handoffs.map((h) => `${h.post_id}|${h.platform}`));
+  const result = {};
+  for (const platform of SOCIAL_PLATFORMS) {
+    const c = { planned: 0, confirmed: 0, failed: 0, missing: 0, handed_off: 0, not_logged: 0, pending: 0, not_eligible: 0 };
+    for (const post of posts) {
+      const key = `${post.id}|${platform}`;
+      const record = latest.get(key);
+      if (!post.platforms.includes(platform)) {
+        if (platform === 'instagram') c.not_eligible += 1;
+        continue;
+      }
+      if (record?.status === 'not_eligible') {
+        c.not_eligible += 1;
+        continue;
+      }
+      c.planned += 1;
+      if (record?.status === 'confirmed') c.confirmed += 1;
+      else if (record?.status === 'failed') c.failed += 1;
+      else if (record?.status === 'missing') c.missing += 1;
+      else if (record?.status === 'handed_off' || handed.has(key)) c.handed_off += 1;
+      else if (now.getTime() - Date.parse(post.publish_at) < lateMs) c.pending += 1;
+      else c.not_logged += 1;
+    }
+    const due = c.planned - c.pending;
+    result[platform] = { ...c, successRate: due > 0 ? (c.confirmed / due) * 100 : null };
+  }
+  return result;
+}
+
+export function ragSocial(c) {
+  if (c.planned === 0) return '—';
+  if (c.failed + c.missing + c.not_logged > 0) return 'red';
+  if (c.handed_off > 0) return 'amber';
+  return 'green';
+}
+
+export function socialValue(c) {
+  if (c.planned === 0) return c.not_eligible > 0 ? `no posts planned (${c.not_eligible} left off: photo shape)` : 'no posts planned';
+  const parts = [`${c.confirmed} of ${c.planned} confirmed`];
+  if (c.failed) parts.push(`${c.failed} failed`);
+  if (c.missing) parts.push(`${c.missing} missing`);
+  if (c.handed_off) parts.push(`${c.handed_off} handed off, not verified`);
+  if (c.not_logged) parts.push(`${c.not_logged} not logged`);
+  if (c.pending) parts.push(`${c.pending} not yet due`);
+  if (c.not_eligible) parts.push(`${c.not_eligible} left off (photo shape)`);
+  return parts.join(', ');
+}
+
+export function socialRows(social, window, now = new Date()) {
+  if (!social) return [];
+  if (social.error) return [{ name: 'Social posts', value: `unavailable (${social.error})`, rag: '—' }];
+  const week = socialWeek(social, window, now);
+  return SOCIAL_PLATFORMS.map((platform) => ({
+    name: `Social posts: ${SOCIAL_PLATFORM_NAMES[platform]}`,
+    value: socialValue(week[platform]),
+    rag: ragSocial(week[platform]),
+  }));
+}
+
 export function buildScorecard(facts, now = new Date()) {
   const window = facts.window || weekWindow(now);
   const uptime = uptimeFromRuns(facts.uptimeRuns);
@@ -153,6 +252,7 @@ export function buildScorecard(facts, now = new Date()) {
         value: blockers.length === 0 ? 'none' : blockers.map((item) => `#${item.number} ${item.title}`).join('; '),
         rag: '—',
       },
+      ...socialRows(facts.social, window, now),
     ],
   };
 }
@@ -167,7 +267,7 @@ export function renderScorecard(card) {
     '## Weekly operations scorecard',
     '',
     `- Week: ${card.window.start} to ${card.window.end}`,
-    '- Sources: uptime probe runs (one run checks www and apex together), scheduled-job health, merged pull requests and their check runs, ops issue open and close times, the open Operations queue, the daily D1 backup workflow, open `pmo:priority:1` projects.',
+    '- Sources: uptime probe runs (one run checks www and apex together), scheduled-job health, merged pull requests and their check runs, ops issue open and close times, the open Operations queue, the daily D1 backup workflow, open `pmo:priority:1` projects, the reviewed social post queue, the `social-audit` posting log and the social hand-off Issues.',
     '',
     '| Row | Value | RAG |',
     '| --- | --- | --- |',
@@ -248,6 +348,33 @@ async function mergedPulls(context, window) {
   return withChecks;
 }
 
+async function readText(context, filePath, ref) {
+  const url = `https://api.github.com/repos/${context.repository}/contents/${filePath}?ref=${encodeURIComponent(ref)}`;
+  const response = await context.fetchImpl(url, { headers: { ...context.headers, Accept: 'application/vnd.github.raw+json' } });
+  if (response.status === 404) return null;
+  if (!response.ok) throw new Error(`GET ${filePath} failed: ${response.status}`);
+  return typeof response.text === 'function' ? response.text() : JSON.stringify(await response.json());
+}
+
+export async function collectSocialFacts(context, window) {
+  const queueText = await readText(context, SOCIAL_QUEUE_PATH, context.branch || 'main');
+  if (!queueText) throw new Error('the social post queue was not found');
+  const queue = JSON.parse(queueText);
+  const days = [];
+  for (const date of windowDates(window)) {
+    const text = await readText(context, dayFilePath(date), SOCIAL_AUDIT_BRANCH);
+    if (text) days.push(JSON.parse(text));
+  }
+  const issues = await searchIssues(context, `repo:${context.repository} is:issue label:${SOCIAL_HANDOFF_LABEL} created:${window.start}..${window.end}`);
+  const handoffs = issues
+    .map((issue) => ({
+      platform: labelNames(issue).find((name) => name.startsWith('social:'))?.slice('social:'.length),
+      post_id: String(issue.title || '').match(/\/api\/social\/image\/([^/?#\s]+)/)?.[1],
+    }))
+    .filter((h) => h.platform && h.post_id);
+  return { queue: { lateness_hours: queue.lateness_hours, posts: queue.posts || [] }, days, handoffs };
+}
+
 export async function collectFacts(context, now = new Date(), { jobCheck } = {}) {
   const window = weekWindow(now);
   const repo = context.repository;
@@ -279,8 +406,15 @@ export async function collectFacts(context, now = new Date(), { jobCheck } = {})
     openSeen.add(issue.number);
     openOutages.push({ createdAt: issue.created_at });
   }
+  let social;
+  try {
+    social = await collectSocialFacts(context, window);
+  } catch (error) {
+    social = { error: String(error?.message ?? error).slice(0, 160) };
+  }
   return {
     window,
+    social,
     uptimeRuns,
     failedJobCount: (health.results || []).filter((result) => !result.ok).length,
     mergedPulls: pulls,
