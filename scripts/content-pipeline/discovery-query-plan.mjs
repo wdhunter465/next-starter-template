@@ -44,6 +44,16 @@ export function cursorAfter(plan, cursor, outcome) {
   return { version: 1, index: next };
 }
 
+// #5225: the hourly run is stateless. The step for a given hour is the hour number (UTC, since the epoch)
+// modulo the plan length, so a failed or rate-limited step simply comes round again one cycle later and no
+// cursor needs to be stored between runs.
+export function stepForHour(plan, when = new Date()) {
+  const ms = when instanceof Date ? when.getTime() : Date.parse(when);
+  if (!Number.isFinite(ms)) throw new Error('stepForHour needs a valid date');
+  const hour = Math.floor(ms / 3_600_000);
+  return stepAt(plan, { version: 1, index: ((hour % plan.steps.length) + plan.steps.length) % plan.steps.length });
+}
+
 export function buildDiscoveryUrl(source, { query, limit, page = 1, dateEnd = null } = {}) {
   const q = encodeURIComponent(query);
   if (source === 'openverse') {
