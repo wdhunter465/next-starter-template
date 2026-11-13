@@ -1,16 +1,21 @@
 import { describe, expect, it } from 'vitest';
+import { appendToDay, buildEvidenceRecord } from '../scripts/ops/social-evidence.mjs';
 import {
   BACKUP_WORKFLOW,
   UPTIME_WORKFLOW,
   buildScorecard,
   collectFacts,
+  collectSocialFacts,
   ragBackupAge,
   ragFailedJobs,
   ragFirstPass,
   ragQueue,
   ragUptime,
   renderScorecard,
+  socialRows,
+  socialWeek,
   weekWindow,
+  windowDates,
 } from '../scripts/ops/weekly-operations-scorecard.mjs';
 
 const NOW = new Date('2026-10-14T13:00:00Z');
@@ -155,5 +160,104 @@ describe('collectFacts', () => {
     expect(facts.backupAgeHours).toBeCloseTo(13, 5);
     expect(facts.priorityOneProjects).toEqual([{ number: 9, title: 'Blocker' }]);
     expect(buildScorecard(facts, NOW).rows.find((row) => row.name.startsWith('PRs'))).toMatchObject({ rag: 'red' });
+  });
+});
+
+describe('social posting counts by platform (#5198)', () => {
+  const SNOW = new Date('2026-11-16T13:00:00Z');
+  const SWINDOW = weekWindow(SNOW);
+  const photo = { image_url: 'https://example.test/i', image_sha256: 'a'.repeat(64), image_bytes: 10, width: 100, height: 120 };
+  const verified = { on: '2026-11-16', by: 'test', method: 'test' };
+  const post = (id, platforms, publish_at) => ({ id, publish_at, text: `Text ${id}`, photo_id: 1, alt_text: 'A photo', platforms, status: 'approved' });
+  const queue = {
+    lateness_hours: 4,
+    posts: [
+      post('2026-11-10-daily', ['x', 'facebook', 'instagram', 'pinterest'], '2026-11-10T10:00:00-05:00'),
+      post('2026-11-11-daily', ['x', 'facebook', 'pinterest'], '2026-11-11T10:00:00-05:00'),
+      post('2026-11-12-daily', ['x', 'facebook', 'pinterest'], '2026-11-12T10:00:00-05:00'),
+      post('2026-11-16-daily', ['x', 'facebook', 'pinterest'], '2026-11-16T10:00:00-05:00'),
+    ],
+  };
+  const okAttempt = { at_utc: '2026-11-10T15:04:00Z', by: 'job', outcome: 'ok', detail: 'sent' };
+  const handedOff = { at_utc: '2026-11-10T15:11:00Z', by: 'job', outcome: 'handed_off', detail: 'Issue' };
+  const errAttempt = { at_utc: '2026-11-11T15:04:00Z', by: 'job', outcome: 'error', detail: 'Buffer 500' };
+  const rec = (p, platform, status, extra = {}) =>
+    buildEvidenceRecord({
+      post: queue.posts.find((q) => q.id === p),
+      platform,
+      status,
+      attempts: [status === 'confirmed' ? okAttempt : status === 'failed' ? errAttempt : handedOff],
+      platformRecord: status === 'confirmed' ? { post_id: 'id1', url: null, created_at_utc: '2026-11-10T15:04:00Z' } : null,
+      photo,
+      verified,
+      ...extra,
+    });
+  const day = (...records) => records.reduce((doc, r) => appendToDay(doc, r), null);
+  const days = [
+    day(rec('2026-11-10-daily', 'x', 'confirmed'), rec('2026-11-10-daily', 'facebook', 'confirmed'), rec('2026-11-10-daily', 'instagram', 'confirmed'), rec('2026-11-10-daily', 'pinterest', 'confirmed')),
+    day(
+      rec('2026-11-11-daily', 'x', 'failed'),
+      rec('2026-11-11-daily', 'x', 'confirmed', { version: 2, attempts: [errAttempt, okAttempt] }),
+      rec('2026-11-11-daily', 'facebook', 'missing'),
+    ),
+    day(rec('2026-11-12-daily', 'x', 'confirmed'), rec('2026-11-12-daily', 'pinterest', 'confirmed')),
+  ];
+  const handoffs = [{ platform: 'pinterest', post_id: '2026-11-11-daily' }];
+
+  it('counts every planned post once, uses the latest version, and never counts a hand-off as a success', () => {
+    const week = socialWeek({ queue, days, handoffs }, SWINDOW, SNOW);
+    expect(week.x).toMatchObject({ planned: 3, confirmed: 3, failed: 0, successRate: 100 });
+    expect(week.facebook).toMatchObject({ planned: 3, confirmed: 1, missing: 1, not_logged: 1 });
+    expect(week.pinterest).toMatchObject({ planned: 3, confirmed: 2, handed_off: 1 });
+    expect(week.pinterest.successRate).toBeCloseTo(66.7, 1);
+    expect(week.instagram).toMatchObject({ planned: 1, confirmed: 1, not_eligible: 2 });
+  });
+
+  it('does not count a post that is not due yet, or one outside the window', () => {
+    const later = new Date('2026-11-16T13:00:00Z');
+    const week = socialWeek({ queue: { ...queue, posts: [...queue.posts, post('p-new', ['x'], '2026-11-16T07:30:00-05:00')] }, days: [], handoffs: [] }, SWINDOW, later);
+    expect(week.x.pending).toBe(1);
+    expect(week.x.planned).toBe(4);
+    expect(week.x.not_logged).toBe(3);
+  });
+
+  it('writes one row per platform with the counts and a red, amber or green status', () => {
+    const rows = socialRows({ queue, days, handoffs }, SWINDOW, SNOW);
+    expect(rows.map((r) => r.name)).toEqual(['Social posts: X', 'Social posts: Facebook Page', 'Social posts: Instagram', 'Social posts: Pinterest']);
+    expect(rows[0]).toMatchObject({ value: '3 of 3 confirmed', rag: 'green' });
+    expect(rows[1]).toMatchObject({ value: '1 of 3 confirmed, 1 missing, 1 not logged', rag: 'red' });
+    expect(rows[2]).toMatchObject({ value: '1 of 1 confirmed, 2 left off (photo shape)', rag: 'green' });
+    expect(rows[3]).toMatchObject({ value: '2 of 3 confirmed, 1 handed off, not verified', rag: 'amber' });
+  });
+
+  it('shows an unavailable row when the facts could not be read, and nothing when there are none', () => {
+    expect(socialRows({ error: 'GET failed: 500' }, SWINDOW, SNOW)).toEqual([{ name: 'Social posts', value: 'unavailable (GET failed: 500)', rag: '—' }]);
+    expect(socialRows(undefined, SWINDOW, SNOW)).toEqual([]);
+  });
+
+  it('lists the New York dates a window touches', () => {
+    expect(windowDates({ start: '2026-11-09T13:00:00Z', end: '2026-11-12T13:00:00Z' })).toEqual(['2026-11-09', '2026-11-10', '2026-11-11', '2026-11-12']);
+  });
+
+  it('collects the queue, the audit day files and the hand-off Issues, and survives a missing audit branch', async () => {
+    const dayDoc = days[0];
+    const fetchImpl = async (url) => {
+      const u = decodeURIComponent(url);
+      const text = (status, body) => ({ status, ok: status >= 200 && status < 300, text: async () => body, json: async () => JSON.parse(body), headers: { get: () => '' } });
+      if (u.includes('/contents/data/social-post-queue.json')) return text(200, JSON.stringify(queue));
+      if (u.includes('/contents/data/social-audit/2026/11/2026-11-10.json') && u.includes('ref=social-audit')) return text(200, JSON.stringify(dayDoc));
+      if (u.includes('/contents/')) return text(404, '');
+      if (u.includes('/search/issues')) {
+        return jsonResponse(200, { items: [{ number: 5183, title: 'https://www.lougehrigfanclub.com/api/social/image/2026-11-10-daily', labels: [{ name: 'social-post' }, { name: 'social:pinterest' }] }] });
+      }
+      return jsonResponse(404, {});
+    };
+    const facts = await collectSocialFacts({ repository: 'o/r', headers: {}, branch: 'main', fetchImpl }, SWINDOW);
+    expect(facts.queue.posts).toHaveLength(4);
+    expect(facts.days).toHaveLength(1);
+    expect(facts.handoffs).toEqual([{ platform: 'pinterest', post_id: '2026-11-10-daily' }]);
+
+    const down = async () => ({ status: 404, ok: false, text: async () => '', json: async () => ({}), headers: { get: () => '' } });
+    await expect(collectSocialFacts({ repository: 'o/r', headers: {}, branch: 'main', fetchImpl: down }, SWINDOW)).rejects.toThrow(/queue was not found/);
   });
 });
