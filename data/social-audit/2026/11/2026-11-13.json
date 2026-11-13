@@ -1,0 +1,46 @@
+{
+  "schema": "social_audit_day/1",
+  "date": "2026-11-13",
+  "records": [
+    {
+      "schema": "social_post_evidence/1",
+      "post_id": "2026-11-13-daily",
+      "platform": "x",
+      "origin": "queue",
+      "version": 1,
+      "scheduled_for": "2026-11-13T10:00:00-05:00",
+      "text": "Lou Gehrig was born June 19, 1903, in New York City. His story is getting a new home: the Lou Gehrig Fan Club website relaunches in 2027.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "text_sha256": "1c82e0cda5d7afa59d3d44336771cc1450865c22b74e5394bcb5c6ee51f339fd",
+      "photo": {
+        "photo_id": 862,
+        "variant": "original",
+        "image_url": "https://www.lougehrigfanclub.com/api/social/image/2026-11-13-daily",
+        "image_sha256": "f70b89de63313c9b132ce9f5832574d70b4d9e5515bf16d3aca771833f7d5f2f",
+        "image_bytes": 319189,
+        "width": 1859,
+        "height": 2015,
+        "alt_text": "Sepia photo of four men standing in front of a crowd behind chicken-wire fencing. One wears a \"Larrupin' Lous\" jersey and one wears a \"Bustin' Babes\" jersey and a bowler hat. Between them a man in an overcoat and a cap marked \"LL\" holds a baseball, and at the left a man wears a white cardigan and a bow tie."
+      },
+      "status": "confirmed",
+      "attempts": [
+        {
+          "at_utc": "2026-11-13T15:03:49.726Z",
+          "by": "GitHub job \"Social Post to X\"",
+          "outcome": "ok",
+          "detail": "Buffer reports the post sent at 2026-11-13T15:03:54.964Z"
+        }
+      ],
+      "platform_record": {
+        "post_id": "6af726d75d42e353d9999371",
+        "url": null,
+        "created_at_utc": "2026-11-13T15:03:54.964Z",
+        "created_at_new_york": "2026-11-13T10:03:54-05:00"
+      },
+      "verified": {
+        "on": "2026-11-13",
+        "by": "GitHub job \"Social Post to X\"",
+        "method": "Buffer get_post after create_post"
+      }
+    }
+  ]
+}
