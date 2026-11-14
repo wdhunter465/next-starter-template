@@ -13,7 +13,7 @@ Last Reviewed: 2026-11-14
 
 Product Authority decided on 2026-11-14 (#4427) that a story with no picture gets one chosen from its content: a story about Gehrig in 1934 gets a cleared picture from 1934. With no match, a default cleared picture is used and the story is flagged for a better match.
 
-## Run it
+## Steps
 
 1. Export the stories and the cleared pictures to a JSON file shaped `{ "stories": [...], "pictures": [...] }`. Stories carry `id`, `tag`, `title`, `text`, `event_date`. Pictures carry `id`, `title`, `year`, `era`, `people`, `teams`, `tags`, `publication_eligible`, `rights_hold`. Read only what the Production data read policy allows, and log the read on the working Issue.
 2. Run `node scripts/content-pipeline/match-story-pictures.mjs input.json proposal.json`.
