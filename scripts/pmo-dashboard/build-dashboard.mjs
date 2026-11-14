@@ -421,7 +421,8 @@ function taskAccountingFor(parentNumber, tasksByParent) {
 
 function linkedTaskDataQuality(parentNumber, tasksByParent) {
   return (tasksByParent.get(parentNumber) || [])
-    .filter((task) => task.hasDataQualityDefects)
+    // #5241: a closed task is finished work; its label defects are repaired where they occur (#4496), not listed.
+    .filter((task) => task.hasDataQualityDefects && task.issue.state !== 'closed')
     .map((task) => ({
       issueNumber: task.issue.number,
       issueUrl: task.issue.html_url,
@@ -616,9 +617,16 @@ async function main() {
     currentBook,
     teamQueues,
     views,
-    dataQualityExceptions,
     taskAccounting
   };
+  // #5241: the metadata-defects list is no longer published. It is written only when a repair report path is
+  // given, as the input for the issue-event repair check (#5242) and for the dashboard tests.
+  if (process.env.PMO_DASHBOARD_REPAIR_REPORT) {
+    await writeFile(
+      process.env.PMO_DASHBOARD_REPAIR_REPORT,
+      `${JSON.stringify({ generatedAt: data.generatedAt, dataQualityExceptions }, null, 2)}\n`
+    );
+  }
   await mkdir(path.join(OUT_DIR, 'assets'), { recursive: true });
   await writeFile(path.join(OUT_DIR, 'dashboard-data.json'), `${JSON.stringify(data, null, 2)}\n`);
   await writeFile(path.join(OUT_DIR, 'index.html'), applyReportNav(await readFile(path.join(__dirname, 'static/index.html'), 'utf8'), 'book'));

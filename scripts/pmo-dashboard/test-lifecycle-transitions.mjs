@@ -5,6 +5,7 @@ import { promisify } from 'node:util';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { loadDashboardData, repairReportPath } from './repair-report-helper.mjs';
 
 const execFileAsync = promisify(execFile);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -57,19 +58,19 @@ async function buildAndValidate(issues, { inventoryPath, skipInventory = false }
       env: {
         ...process.env,
         PMO_DASHBOARD_ISSUES_FIXTURE: fixturePath,
-        PMO_DASHBOARD_OUT_DIR: outDir
+        PMO_DASHBOARD_OUT_DIR: outDir, PMO_DASHBOARD_REPAIR_REPORT: repairReportPath(outDir)
       }
     });
     await execFileAsync('node', [path.join(__dirname, 'validate-dashboard.mjs'), outDir], {
       env: {
         ...process.env,
-        ...(skipInventory ? { PMO_DASHBOARD_SKIP_INVENTORY_VALIDATION: '1' } : {}),
+        ...(skipInventory ? { PMO_DASHBOARD_SKIP_INVENTORY_VALIDATION: '1', PMO_DASHBOARD_REPAIR_REPORT: repairReportPath(outDir) } : {}),
         ...(inventoryPath ? { PMO_DASHBOARD_INVENTORY_PATH: inventoryPath } : {})
       }
     });
     return {
       outDir,
-      data: JSON.parse(await readFile(path.join(outDir, 'dashboard-data.json'), 'utf8'))
+      data: await loadDashboardData(outDir)
     };
   } catch (error) {
     await rm(outDir, { recursive: true, force: true });
@@ -300,7 +301,7 @@ async function main() {
     }, null, 2));
     try {
       await execFileAsync('node', [path.join(__dirname, 'build-dashboard.mjs')], {
-        env: { ...process.env, PMO_DASHBOARD_ISSUES_FIXTURE: fixturePath, PMO_DASHBOARD_OUT_DIR: outDir }
+        env: { ...process.env, PMO_DASHBOARD_ISSUES_FIXTURE: fixturePath, PMO_DASHBOARD_OUT_DIR: outDir, PMO_DASHBOARD_REPAIR_REPORT: repairReportPath(outDir) }
       });
       let failed = false;
       try {
