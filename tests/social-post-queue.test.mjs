@@ -89,11 +89,18 @@ describe('social post queue', () => {
     expect(validateQueue(q)).toEqual([]);
   });
 
-  it('the real queue rotates the five cleared photos and keeps Instagram to the photos that fit', () => {
+  it('with instagram_padding a tall photo may list Instagram (padded variant, #5196)', () => {
+    const q = { ...queue(), instagram_ok_photo_ids: [2], instagram_padding: true };
+    q.posts = [post({ id: 'tall', photo_id: 1, platforms: ['x', 'instagram'] })];
+    expect(validateQueue(q)).toEqual([]);
+  });
+
+  it('the real queue rotates the five cleared photos and pads every Instagram photo (#5196)', () => {
     expect(validateQueue(real)).toEqual([]);
     expect(real.photo_reuse_min_gap_days).toBeGreaterThanOrEqual(4);
-    const instagram = real.posts.filter((p) => p.platforms.includes('instagram'));
-    expect(instagram.every((p) => real.instagram_ok_photo_ids.includes(p.photo_id))).toBe(true);
+    expect(real.instagram_padding).toBe(true);
+    const upcoming = real.posts.filter((p) => p.publish_at >= '2026-11-15');
+    expect(upcoming.every((p) => p.platforms.includes('instagram'))).toBe(true);
   });
 
   it('classifies due, late and upcoming posts and skips posted ones', () => {

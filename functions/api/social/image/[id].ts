@@ -30,8 +30,18 @@ export const onRequestGet = async (context: any): Promise<Response> => {
     if (!row?.url) return notFound();
 
     const stored = normalizePhotoUrl({ rawUrl: row.url, request, publicB2BaseUrl: env.PUBLIC_B2_BASE_URL });
-    const signed = await signB2Url(env, stored);
-    if (signed === stored && !/^https:\/\/[^/]*backblazeb2\.com\//.test(stored)) return notFound();
+    // ?for=instagram serves the padded variant the posting job stored beside the photo (#5196). It never
+    // falls back to the original: Instagram would reject or crop a photo outside 4:5 to 1.91:1.
+    const forPlatform = new URL(request.url).searchParams.get("for");
+    let target = stored;
+    if (forPlatform !== null) {
+      if (forPlatform !== "instagram") return notFound();
+      const bucketBase = stored.match(/^(https:\/\/[^/]+\/[^/]+\/)/)?.[1];
+      if (!bucketBase) return notFound();
+      target = `${bucketBase}social-variants/instagram/${Number(post.photo_id)}.jpg`;
+    }
+    const signed = await signB2Url(env, target);
+    if (signed === target && !/^https:\/\/[^/]*backblazeb2\.com\//.test(stored)) return notFound();
 
     const upstream = await fetch(signed);
     const type = upstream.headers.get("Content-Type") ?? "";

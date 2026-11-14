@@ -85,7 +85,8 @@ export function validateQueue(queue) {
       problems.push(`${post.id}: photo ${post.photo_id} is used again within ${gapDays} days`);
     }
     lastUse.set(post.photo_id, at);
-    if (queue.instagram_ok_photo_ids && post.platforms?.includes('instagram') && !instagramOk.has(post.photo_id)) {
+    // With instagram_padding, every cleared photo gets a padded Instagram variant (#5196), so no photo is left off.
+    if (!queue.instagram_padding && queue.instagram_ok_photo_ids && post.platforms?.includes('instagram') && !instagramOk.has(post.photo_id)) {
       problems.push(`${post.id}: photo ${post.photo_id} is outside Instagram's aspect-ratio limits; leave instagram off this post`);
     }
   }

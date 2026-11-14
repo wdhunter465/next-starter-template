@@ -95,9 +95,9 @@ describe('social image route', () => {
     vi.unstubAllGlobals();
   });
 
-  const call = (db: unknown, id: string) =>
+  const call = (db: unknown, id: string, query = '') =>
     imageGet({
-      request: new Request(`https://example.test/api/social/image/${id}`),
+      request: new Request(`https://example.test/api/social/image/${id}${query}`),
       env: { DB: db },
       params: { id },
     });
@@ -131,5 +131,29 @@ describe('social image route', () => {
 
     sqlite.prepare('UPDATE photos SET rights_hold = 1 WHERE id = 858').run();
     expect((await call(db, POST)).status).toBe(404);
+  });
+
+  it('serves the padded Instagram variant from the photo bucket, never the original, and 404s other platforms (#5196)', async () => {
+    const { sqlite, db } = makeDb();
+    sqlite
+      .prepare("INSERT INTO photos (id, url, rights_hold, publication_eligible) VALUES (858, 'https://s3.us-east-005.backblazeb2.com/LouGehrigFanClub/a.jpg', 0, 1)")
+      .run();
+    const fetchMock = vi.fn(async (..._args: unknown[]) => new Response('PADDED', { status: 200, headers: { 'Content-Type': 'image/jpeg' } }));
+    vi.stubGlobal('fetch', fetchMock);
+    vi.setSystemTime(new Date('2026-11-09T15:01:00Z'));
+
+    const ig = await call(db, POST, '?for=instagram');
+    expect(ig.status).toBe(200);
+    expect(await ig.text()).toBe('PADDED');
+    expect(String(fetchMock.mock.calls[0][0])).toContain('/LouGehrigFanClub/social-variants/instagram/858.jpg');
+    expect(String(fetchMock.mock.calls[0][0])).not.toContain('/a.jpg');
+
+    expect((await call(db, POST, '?for=tiktok')).status).toBe(404);
+
+    fetchMock.mockImplementationOnce(async () => new Response('missing', { status: 404 }));
+    expect((await call(db, POST, '?for=instagram')).status).toBe(502);
+
+    sqlite.prepare('UPDATE photos SET rights_hold = 1 WHERE id = 858').run();
+    expect((await call(db, POST, '?for=instagram')).status).toBe(404);
   });
 });

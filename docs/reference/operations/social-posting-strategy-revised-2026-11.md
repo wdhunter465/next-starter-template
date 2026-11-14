@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: The revised social posting strategy: how a post moves from the repository to the tools to the platforms, the daily schedule, and the messaging calendar through June 2027
 Does Not Own: The post texts and photos (see data/social-post-queue.json); platform accounts, plans and credentials; the original design and its history (see /docs/reference/operations/social-daily-post-automation-design.md)
 Canonical Reference: /docs/reference/operations/social-daily-post-automation-design.md
-Related Issues: #5173, #5143, #5158, #5170, #4416
-Last Reviewed: 2026-11-10
+Related Issues: #5173, #5143, #5158, #5170, #4416, #5196
+Last Reviewed: 2026-11-14
 ---
 
 # Revised social posting strategy (2026-11-10)
@@ -35,7 +35,19 @@ The Zap maps only two fields: Issue Body to the message, caption or description,
 
 ## Platform differences
 
-The queue's `platforms` list decides where a post goes. A photo that does not suit a platform (for example too tall for Instagram) is left off that platform in the queue, and no Issue is opened for it. The checks are in the queue checker, not in the Zaps.
+The queue's `platforms` list decides where a post goes. The checks are in the queue checker, not in the Zaps.
+
+**Media rule: fit, pad, never crop (Product Authority, 2026-11-12, #5196).** A photo is adapted to each platform by fitting the whole photo inside the allowed frame and filling the rest with one neutral background. It is never cropped and never distorted. The original is never changed.
+
+| Item | Standard |
+| --- | --- |
+| Background colour, every platform | `#f5f1e8` (the paper tone of the cleared photos) |
+| Instagram | Limits: ratio 4:5 to 1.91:1, JPEG, up to 8 MB, width 320 to 1440 px (Instagram Graph API, `ig-user/media`). A photo inside the ratio is only scaled to 1080 px wide. A taller photo is padded at the sides to 1080x1350. A wider one is padded above and below to 1080x566. The Instagram Issue title is `/api/social/image/<id>?for=instagram`. |
+| Pinterest | 2:3 recommended; the original is sent. A photo taller than 2:3 may be cut off in feeds (Pinterest creative best practices); none of the five cleared photos is. |
+| X | JPG, PNG, GIF or WEBP up to 5 MB; photos between 2:1 and 3:4 show in full, others are cropped in the feed preview only (X media best practices). The original is sent and the full photo stays one tap away. A padded X variant is not built (decision open for Product Authority). |
+| Facebook Page | Not researched. The original is sent until the platform documentation is checked and recorded here. |
+
+How the Instagram variant is made: before each hand-off, the posting job fetches the original from the site (public only from the publish time), pads it with `scripts/ops/social-pad-variant.mjs`, and stores it in the photo bucket at `social-variants/instagram/<photo id>.jpg`. The upload is additive and never overwrites or deletes. The image route serves that object for `?for=instagram`, only after the post's publish time and only while the photo is rights-cleared. If the variant is missing the route returns an error: it never falls back to the original for Instagram. The geometry and the Instagram limits are covered by `tests/social-pad-variant-5196.test.mjs`. No Cloudflare setting or binding is changed.
 
 ## Schedule
 
@@ -65,6 +77,6 @@ $0. Zapier Free allows 100 tasks a month; three Zaps at one post a day use about
 
 ## Open items
 
-- **Content supply (decided 2026-11-12).** Only five photos are rights-cleared. Product Authority chose to reuse them with new launch text: a photo may repeat but not within 4 days of its last use, and Instagram is listed only for the photos that fit its aspect ratio. Posts for 2026-11-13 to 2026-11-30 are queued; the posts from 2026-12-01 need the new footer wording (#2093). More cleared photos still make the rotation less repetitive.
+- **Content supply (decided 2026-11-12).** Only five photos are rights-cleared. Product Authority chose to reuse them with new launch text: a photo may repeat but not within 4 days of its last use, and Instagram posts use a padded variant of the photo (#5196), so no cleared photo is left off Instagram. Posts for 2026-11-13 to 2026-11-30 are queued; the posts from 2026-12-01 need the new footer wording (#2093). More cleared photos still make the rotation less repetitive.
 - **Zaps.** Product Authority creates the three GitHub-triggered Zaps (`docs/how-to/ops/social-feed-zaps-setup.md`) The old RSS Zaps are removed.
 - **Verification.** Confirm the Zapier GitHub "New Labeled Issue" trigger is on the Free plan.
