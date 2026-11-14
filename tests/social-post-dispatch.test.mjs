@@ -35,7 +35,7 @@ describe('hand-off to Zapier', () => {
     const issue = buildIssue(queue.posts[1], 'pinterest', 'https://x.test');
     expect(issue.title).toBe('https://x.test/api/social/image/2026-11-10-daily');
     expect(issue.body).toBe(queue.posts[1].text);
-    expect(issue.labels).toEqual(['social-post', 'social:pinterest']);
+    expect(issue.labels).toEqual(['social-post', 'social:pinterest', 'team:operations', 'area:social']);
   });
 
   it('points Instagram at the padded variant and every other platform at the original (#5196)', () => {
