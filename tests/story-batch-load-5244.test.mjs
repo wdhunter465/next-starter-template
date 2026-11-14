@@ -171,3 +171,35 @@ describe('story batch gates (#5244)', () => {
     expect(workflow).toContain('scripts/ci/story_batch_load.mjs');
   });
 });
+
+describe('Eig-verified stories (#5257)', () => {
+  const eig = { work: 'Luckiest Man', author: 'Jonathan Eig', page: 123 };
+  const credit = 'Jonathan Eig, Luckiest Man, page 123';
+
+  it('accepts an Eig excerpt marked eig_verified with no other source', () => {
+    const { errors, stories } = validateBatch({
+      batch_id: 'b',
+      stories: [story({ excerpt_of: eig, credit_line: credit, verification: { status: 'eig_verified' } })],
+    });
+    expect(errors).toEqual([]);
+    expect(stories[0].verification_status).toBe('eig_verified');
+    expect(buildReviewNotes(stories[0])).toMatch(/Verified from Eig's Luckiest Man/);
+  });
+
+  it('rejects eig_verified without an Eig excerpt, and still enforces the credit line', () => {
+    const none = validateBatch({ batch_id: 'b', stories: [story({ verification: { status: 'eig_verified' } })] });
+    expect(none.errors.join(' ')).toMatch(/eig_verified needs excerpt_of/);
+    const other = validateBatch({
+      batch_id: 'b',
+      stories: [story({ excerpt_of: { work: 'Iron Horse', author: 'Ray Robinson' }, credit_line: 'Ray Robinson, Iron Horse', verification: { status: 'eig_verified' } })],
+    });
+    expect(other.errors.join(' ')).toMatch(/eig_verified needs excerpt_of/);
+    const noCredit = validateBatch({ batch_id: 'b', stories: [story({ excerpt_of: eig, credit_line: 'Lou Gehrig Fan Club', verification: { status: 'eig_verified' } })] });
+    expect(noCredit.errors.join(' ')).toMatch(/credit_line must credit/);
+  });
+
+  it('keeps the three-URL rule for three_source_verified', () => {
+    const two = validateBatch({ batch_id: 'b', stories: [story({ verification: { status: 'three_source_verified', sources: THREE.slice(0, 2) } })] });
+    expect(two.errors.join(' ')).toMatch(/three distinct source URLs/);
+  });
+});

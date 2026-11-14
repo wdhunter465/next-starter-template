@@ -118,8 +118,8 @@ export function validateBatch(batch) {
         problems.push('verification must be an object');
       } else {
         verificationStatus = verification.status ?? 'unverified';
-        if (!['three_source_verified', 'unverified'].includes(verificationStatus)) {
-          problems.push('verification.status must be three_source_verified or unverified');
+        if (!['three_source_verified', 'eig_verified', 'unverified'].includes(verificationStatus)) {
+          problems.push('verification.status must be three_source_verified, eig_verified or unverified');
         }
         sources = Array.isArray(verification.sources) ? verification.sources : [];
         if (verificationStatus === 'three_source_verified') {
@@ -127,6 +127,15 @@ export function validateBatch(batch) {
           if (new Set(urls).size < 3) problems.push('three_source_verified needs at least three distinct source URLs');
         }
       }
+    }
+
+    // All of Eig's Luckiest Man is trusted on its own (Product Authority, 2026-11-14, #5257): an Eig excerpt may be
+    // marked eig_verified with no other source. Any other story still needs three distinct source URLs.
+    if (verificationStatus === 'eig_verified') {
+      const ex = raw.excerpt_of;
+      const isEig = ex && typeof ex === 'object' && nonEmpty(ex.author) && nonEmpty(ex.work)
+        && ex.author.toLowerCase().includes('eig') && ex.work.toLowerCase().includes('luckiest man');
+      if (!isEig) problems.push("eig_verified needs excerpt_of naming Jonathan Eig's Luckiest Man");
     }
 
     // Eig credit rule (#5226): an excerpt from Luckiest Man carries the credit, and the page when it is known.
@@ -165,6 +174,9 @@ export function validateBatch(batch) {
 
 export function buildReviewNotes(story) {
   const head = `Pending load (#${SOURCE_ISSUE}; ${STANDING_GO}).`;
+  if (story.verification_status === 'eig_verified') {
+    return `${head} Verified from Eig's Luckiest Man (trusted on its own, Product Authority 2026-11-14).`;
+  }
   if (story.verification_status === 'three_source_verified') {
     return `${head} Three-source verified: ${story.verification_sources.join(' ; ')}`;
   }
