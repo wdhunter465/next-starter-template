@@ -28,6 +28,10 @@ export const LEGACY_REMEDIATION_TITLE_PREFIX = 'Post-merge remediation required 
 export const TERMINAL_SOURCE_ISSUE_LABEL = 'status:complete';
 export const FAILURE_SOURCE_ISSUE_LABEL = 'status:failed';
 export const ACTIVE_SOURCE_ISSUE_LABEL = 'status:active';
+// #5242: a closed PMO issue ends with pmo:closed and without its open-lifecycle labels, in the same step that closes it.
+export const PMO_ISSUE_LABEL = 'pmo';
+export const PMO_CLOSED_LABEL = 'pmo:closed';
+export const PMO_OPEN_LIFECYCLE_LABELS = ['pmo:active', 'pmo:pipeline'];
 
 export function issueLabelNameList(issueMeta = {}) {
 	return (issueMeta?.labels || [])
@@ -161,6 +165,9 @@ export async function applyTerminalLabelReconciliation({
 	if (plan.addLabel && !nextLabels.includes(plan.addLabel)) {
 		nextLabels.push(plan.addLabel);
 	}
+	for (const label of plan.extraAddLabels || []) {
+		if (!nextLabels.includes(label)) nextLabels.push(label);
+	}
 
 	await request({
 		token,
@@ -175,6 +182,7 @@ export async function applyTerminalLabelReconciliation({
 		issue_number: issueNumber,
 		removeLabels: plan.removeLabels || [],
 		addLabel: plan.addLabel || '',
+		...(plan.extraAddLabels?.length ? { extraAddLabels: plan.extraAddLabels } : {}),
 		summary: plan.summary || '',
 	};
 }
@@ -394,22 +402,34 @@ export function planTerminalLabelReconciliation({ issueLabels = [], repoLabels =
 		};
 	}
 
-	const removeLabels = [...labels].filter(
-		(label) =>
-			(label.startsWith('status:') && label !== TERMINAL_SOURCE_ISSUE_LABEL) ||
-			label === REMEDIATION_ISSUE_LABEL,
-	);
+	// #5242: for a PMO issue (and only when the repository has pmo:closed), closing also clears the open
+	// lifecycle labels and adds pmo:closed. Other issues are reconciled exactly as before.
+	const isPmoIssue = labels.has(PMO_ISSUE_LABEL) && availableLabels.has(PMO_CLOSED_LABEL);
+	const pmoRemove = isPmoIssue ? PMO_OPEN_LIFECYCLE_LABELS.filter((label) => labels.has(label)) : [];
+	const extraAddLabels = isPmoIssue && !labels.has(PMO_CLOSED_LABEL) ? [PMO_CLOSED_LABEL] : [];
+	const removeLabels = [
+		...[...labels].filter(
+			(label) =>
+				(label.startsWith('status:') && label !== TERMINAL_SOURCE_ISSUE_LABEL) ||
+				label === REMEDIATION_ISSUE_LABEL,
+		),
+		...pmoRemove,
+	];
 	const addLabel = labels.has(TERMINAL_SOURCE_ISSUE_LABEL) ? '' : TERMINAL_SOURCE_ISSUE_LABEL;
-	const terminalLabels = [...labels].filter((label) => !label.startsWith('status:') && label !== REMEDIATION_ISSUE_LABEL);
+	const terminalLabels = [...labels].filter(
+		(label) => !label.startsWith('status:') && label !== REMEDIATION_ISSUE_LABEL && !pmoRemove.includes(label),
+	);
 	if (!terminalLabels.includes(TERMINAL_SOURCE_ISSUE_LABEL)) terminalLabels.push(TERMINAL_SOURCE_ISSUE_LABEL);
+	for (const label of extraAddLabels) if (!terminalLabels.includes(label)) terminalLabels.push(label);
 
 	return {
 		ok: true,
 		reason: 'terminal_label_reconciliation_ready',
 		removeLabels,
 		addLabel,
+		...(extraAddLabels.length ? { extraAddLabels } : {}),
 		terminalLabels,
-		summary: `remove ${removeLabels.length ? removeLabels.join(', ') : 'none'}; add ${addLabel || 'none'}; terminal ${TERMINAL_SOURCE_ISSUE_LABEL}`,
+		summary: `remove ${removeLabels.length ? removeLabels.join(', ') : 'none'}; add ${[addLabel, ...extraAddLabels].filter(Boolean).join(', ') || 'none'}; terminal ${TERMINAL_SOURCE_ISSUE_LABEL}`,
 	};
 }
 
