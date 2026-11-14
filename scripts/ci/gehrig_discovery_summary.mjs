@@ -100,10 +100,20 @@ export function decideGuard({ haltAt, reenableAt, reenableRequested }) {
 // pass: no source stayed down.
 // fail: the job fails after import so the outage is visible. Import already ran.
 // halt: this is the third consecutive failure. Open one Issue and do not fail.
-export function decideOutage({ sourceErrorCount, consecutivePriorFailures }) {
+// skip (#5239): an hourly run has one source, so one rate limit would otherwise fail the whole run and
+// three in a row would halt the workflow. When every outage is a rate limit, the step comes round again
+// one plan cycle later, so the run stays green. A real source_error still fails and counts toward the halt.
+export function decideOutage({ sourceErrorCount, consecutivePriorFailures, hourly = false, rateLimitedOnly = false }) {
   if (!sourceErrorCount) return 'pass';
+  if (hourly && rateLimitedOnly) return 'skip';
   if (consecutivePriorFailures >= 2) return 'halt';
   return 'fail';
+}
+
+// True when at least one source stayed down and every one of them was only rate limited.
+export function onlyRateLimited(searchRuns) {
+  const outages = (searchRuns ?? []).filter((run) => SOURCE_OUTAGE_STATUSES.has(run.status));
+  return outages.length > 0 && outages.every((run) => run.status === 'rate_limited');
 }
 
 export function countSourceOutages(searchRuns) {
@@ -211,12 +221,23 @@ async function outageMain() {
   const discoveryFailed = process.env.DISCOVERY_OUTCOME === 'failure';
   const effectiveErrors = sourceErrorCount > 0 ? sourceErrorCount : discoveryFailed ? 1 : 0;
   const consecutivePriorFailures = Number(process.env.CONSECUTIVE_PRIOR_FAILURES ?? 0);
+  const hourly = process.env.DISCOVERY_HOURLY === 'true';
+  // A discovery step that failed outright (not just a source outage in its search-runs) is never a skip.
+  const rateLimitedOnly = !discoveryFailed && onlyRateLimited(searchRunsData?.search_runs);
   const action = decideOutage({
     sourceErrorCount: effectiveErrors,
     consecutivePriorFailures: Number.isFinite(consecutivePriorFailures) ? consecutivePriorFailures : 0,
+    hourly,
+    rateLimitedOnly,
   });
   setOutput('action', action);
   if (action === 'pass') return;
+  if (action === 'skip') {
+    const message = `Hourly discovery step was rate limited (${effectiveErrors} source(s)). Skipped; it comes round again next cycle. Run stays green.`;
+    console.log(message);
+    if (process.env.GITHUB_STEP_SUMMARY) fs.appendFileSync(process.env.GITHUB_STEP_SUMMARY, `**Rate limited, skipped:** ${message}\n`);
+    return;
+  }
   if (action === 'fail') {
     console.error(
       `${effectiveErrors} discovery source(s) stayed down after retries. Other sources were imported. This failed step is the outage signal.`,
