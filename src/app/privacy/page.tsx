@@ -1,8 +1,12 @@
 import React from "react";
 import { fetchPageContent } from "@/lib/pageContent";
-import { buildCanonicalMetadata } from '@/lib/publicSiteMetadata';
+import { buildPublicPageMetadata } from '@/lib/publicSiteMetadata';
 
-export const metadata = buildCanonicalMetadata('/privacy/');
+export const metadata = buildPublicPageMetadata({
+  title: 'Privacy',
+  description: 'How the Lou Gehrig Fan Club handles information for Join and Login, Ask a Question, member verification and content submissions.',
+  path: '/privacy/',
+});
 
 export default async function Page() {
   const data = await fetchPageContent("/privacy");
