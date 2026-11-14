@@ -1,0 +1,23 @@
+{
+  "version": 1,
+  "recorded": "2026-11-14",
+  "status": "proposed: Product Authority named Jonathan Eig's Luckiest Man (2026-11-13). The others are a starting list for Product Authority to confirm or edit. A source not on this list does not count toward the three.",
+  "rule": "A claim is verified when at least three distinct trusted sources agree and none disagrees, or when Eig's Luckiest Man is among at least three agreeing trusted sources and the disagreement is recorded (Eig is the preferred tie-breaker).",
+  "sources": [
+    {
+      "id": "eig-luckiest-man",
+      "name": "Luckiest Man",
+      "type": "book",
+      "author": "Jonathan Eig",
+      "preferred_tiebreaker": true
+    },
+    { "id": "hall-of-fame", "name": "National Baseball Hall of Fame", "type": "institution", "domains": ["baseballhall.org"] },
+    { "id": "mlb", "name": "MLB.com", "type": "publisher", "domains": ["mlb.com"] },
+    { "id": "baseball-reference", "name": "Baseball-Reference", "type": "reference", "domains": ["baseball-reference.com"] },
+    { "id": "library-of-congress", "name": "Library of Congress", "type": "library", "domains": ["loc.gov"] },
+    { "id": "sabr", "name": "Society for American Baseball Research", "type": "institution", "domains": ["sabr.org"] },
+    { "id": "new-york-times", "name": "The New York Times", "type": "newspaper", "domains": ["nytimes.com"] },
+    { "id": "yankees", "name": "New York Yankees (official)", "type": "club", "domains": ["yankees.com"] },
+    { "id": "als-association", "name": "ALS Association", "type": "institution", "domains": ["als.org"] }
+  ]
+}
