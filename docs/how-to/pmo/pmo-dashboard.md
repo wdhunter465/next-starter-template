@@ -44,7 +44,7 @@ It does not authorize:
 - Graduation Candidate is still Pipeline. It reports prepared maturity and does not authorize implementation.
 - Project child tasks use `pmo:task`, a valid parent reference, and lifecycle state. Child tasks do not carry any team label or team-priority label.
 - Standalone Operations Issues and Engineering qualification Issues are not PMO portfolio rows and do not count toward project completion.
-- Generated output that does not meet this contract belongs in Incomplete rather than receiving an invented default.
+- Generated output that does not meet this contract never receives an invented default. The defect is repaired where it occurs (#4496); the dashboard publishes no defect list, no Incomplete section and no Data quality column (#5241).
 - The target runtime transition is tracked in #2702. Until it merges, legacy generated output may lag the canonical documentation; operators must use live GitHub Issues and the canonical policies when they conflict.
 
 ### Current agent ownership (`ownerAgent`)
@@ -140,7 +140,7 @@ Static `scripts/pmo-dashboard/pmo-tracked-inventory.json` may contain explicit n
 Validation runs before placement.
 
 ```text
-invalid required metadata -> Incomplete
+invalid required metadata -> repaired on the issue (no dashboard row)
 pmo:active + team:pmo + pmo:priority:<n> -> Active
 pmo:pipeline + team:pmo + pmo:pipeline-priority:<n> + one canonical pmo:stage:* -> Pipeline
 pmo:closed + terminal GitHub state -> Completed
@@ -155,7 +155,6 @@ Graduation Candidate is still Pipeline. It reports prepared maturity and does no
 - Active parents sort numerically by Active `pmo:priority:<n>`, then update time.
 - Pipeline parents sort numerically by independent `pmo:pipeline-priority:<n>`, then Pipeline stage, then update time.
 - Completed parents sort by close time, then update time.
-- Incomplete rows sort by error severity, then update time.
 
 ### Task accounting
 
@@ -163,11 +162,11 @@ Graduation Candidate is still Pipeline. It reports prepared maturity and does no
 - `tasksCompleted` counts linked tasks with `pmo:closed`.
 - `% Complete = round(tasksCompleted / taskCount * 100)` when `taskCount > 0`.
 - A peer Operations or Engineering preparation Issue never contributes to task count or percentage.
-- A child carrying team priority is a contract defect and belongs in Incomplete until corrected through authorized reconciliation.
+- A child carrying team priority is a contract defect, corrected through authorized reconciliation.
 
-## Incomplete remediation
+## Metadata defect remediation
 
-Incomplete is the operator worklist for PMO metadata defects. Each row should show Issue identity, current labels, data-quality errors, required remediation, and update time.
+The dashboard does not list metadata defects (#5241). A defect is fixed on the Issue where it occurs: the post-merge closeout sets the final lifecycle label, and the issue-event repair check (#5242) repairs deterministic cases and otherwise comments once on the Issue. The builder still classifies defects. Set `PMO_DASHBOARD_REPAIR_REPORT=<path>` when running `build-dashboard.mjs` to write that classification to a separate file for the repair check and for tests; it is not part of the published data.
 
 Typical defects include:
 
@@ -200,7 +199,7 @@ Do not invent missing team, priority, stage, parent, or graduation decisions mer
    - Active: `team:pmo` plus one `pmo:priority:<n>`;
    - Pipeline: `team:pmo` plus one `pmo:pipeline-priority:<n>`, plus one canonical stage.
 3. Confirm child tasks have `pmo:task`, a valid parent, and no team-level priority.
-4. When Incomplete is flooded with `pmo:task` rows and parent `taskCount` values are zero, dry-run then apply `node scripts/pmo-dashboard/reconcile-task-child-labels.mjs` (add `--apply` only after reviewing the plan). The script strips prohibited child queue/stage labels and reconciles lifecycle labels; it does not invent parent references.
+4. When `pmo:task` rows carry prohibited labels and parent `taskCount` values are zero, dry-run then apply `node scripts/pmo-dashboard/reconcile-task-child-labels.mjs` (add `--apply` only after reviewing the plan). The script strips prohibited child queue/stage labels and reconciles lifecycle labels; it does not invent parent references.
 5. Confirm Operations and Engineering qualification Issues are not included in parent task accounting.
 6. On a feature branch, confirm **Validate PMO dashboard branch changes** runs the deterministic fixture successfully.
 7. On `main`, scheduled (every 30 minutes), issue-state events, or manual **Build PMO dashboard** runs, confirm generation/validation of `site/pmo-dashboard/dashboard-data.json` and artifact upload.
