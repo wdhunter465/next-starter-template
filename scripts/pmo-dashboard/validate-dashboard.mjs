@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+import { readFileSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { REPORT_PAGES } from './report-nav.mjs';
 import path from 'node:path';
@@ -227,6 +228,16 @@ function validateExceptionRow(row, label, rowByNumber) {
 }
 
 const data = await readJson(path.join(outDir, 'dashboard-data.json'), 'dashboard data');
+
+// #5241: the defect rows come from the data file when present (older files), else from the repair report the
+// builder writes when PMO_DASHBOARD_REPAIR_REPORT is set.
+function exceptionRows(dashboardData) {
+  if (Array.isArray(dashboardData.dataQualityExceptions)) return dashboardData.dataQualityExceptions;
+  const reportPath = process.env.PMO_DASHBOARD_REPAIR_REPORT;
+  if (!reportPath) return [];
+  const report = JSON.parse(readFileSync(reportPath, 'utf8'));
+  return Array.isArray(report.dataQualityExceptions) ? report.dataQualityExceptions : [];
+}
 const inventoryPath = process.env.PMO_DASHBOARD_INVENTORY_PATH || path.join(__dirname, 'pmo-tracked-inventory.json');
 const inventory = process.env.PMO_DASHBOARD_SKIP_INVENTORY_VALIDATION
   ? null
@@ -245,8 +256,10 @@ if (data) {
   if ((data.views?.incomplete || []).length) {
     errors.push('views.incomplete must be empty; Incomplete is not a PMO lifecycle');
   }
-  if (!Array.isArray(data.dataQualityExceptions)) {
-    errors.push('dataQualityExceptions must be present and must be an array');
+  // #5241: dataQualityExceptions is no longer part of the published data. When a file still carries it, it must
+  // be an array; the rows are checked below.
+  if (data.dataQualityExceptions !== undefined && !Array.isArray(data.dataQualityExceptions)) {
+    errors.push('dataQualityExceptions must be an array when present');
   }
   if (!data.teamQueues || typeof data.teamQueues !== 'object') {
     errors.push('teamQueues summary must be present');
@@ -349,7 +362,7 @@ if (data) {
   for (const view of currentBookViews) {
     for (const [index, row] of (data.views?.[view] || []).entries()) validateRow(row, `${view}[${index}]`, rowByNumber, rowDataByNumber);
   }
-  for (const [index, row] of (data.dataQualityExceptions || []).entries()) {
+  for (const [index, row] of exceptionRows(data).entries()) {
     validateExceptionRow(row, `dataQualityExceptions[${index}]`, rowByNumber);
   }
 
