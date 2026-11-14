@@ -8,6 +8,8 @@ Rules enforced by the loader (`scripts/ci/story_batch_load.mjs`):
 
 - A story marked `three_source_verified` lists at least three distinct source URLs. Anything else is `unverified`
   and is loaded with a note that it needs the three-source check before approval.
+- An excerpt from Jonathan Eig's *Luckiest Man* may be marked `eig_verified` with no other source: all of the book is
+  trusted on its own (Product Authority, 2026-11-14). It needs `excerpt_of` naming Eig and the book, and the credit line.
 - A story that excerpts a book carries `excerpt_of` (work, author, page when known), and its `credit_line` names the
   author and work (and the page when given). For Jonathan Eig's *Luckiest Man* the credit is required.
 - Rows are never published by the loader. Approval is a separate step.
