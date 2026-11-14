@@ -1,0 +1,63 @@
+name: OPS — Story inventory progress (#5231)
+
+# Read-only weekly report of the story inventory against the confirmed target (Product Authority, 2026-11-13):
+# at least 396 approved stories, each with a rights-cleared picture, for December 2026 plus 2027, with the
+# weekday-only fallback check. Runs one SELECT against Production D1. It writes nothing to D1 or B2.
+
+on:
+  workflow_dispatch: {}
+  schedule:
+    # Mondays 13:30 UTC, after the weekly scorecard.
+    - cron: "30 13 * * 1"
+
+concurrency:
+  group: ops-inventory-progress
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  report:
+    if: github.repository == 'wdhunter465/next-starter-template'
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Verify Cloudflare D1 credentials
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DATABASE_NAME: lgfc_lite
+        run: node scripts/ci/verify_cloudflare_d1_auth.mjs
+
+      - name: Build the report (read-only)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: node scripts/ops/inventory-progress.mjs --remote --out inventory-progress.md
+
+      - name: Add the report to the run page
+        run: cat inventory-progress.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Upload the report
+        uses: actions/upload-artifact@v4
+        with:
+          name: inventory-progress
+          path: inventory-progress.md
+
+      - name: Post the report on #5231
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue comment 5231 --body-file inventory-progress.md
