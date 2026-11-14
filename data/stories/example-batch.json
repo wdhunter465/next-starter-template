@@ -1,0 +1,33 @@
+{
+  "example": true,
+  "batch_id": "example-never-loaded",
+  "stories": [
+    {
+      "tag": "example-story-tag",
+      "title": "Example story title",
+      "text": "Example text. A real story is plain text, written for the Lou Gehrig Fan Club, with every factual claim checked.",
+      "story_type": "brief",
+      "credit_line": "Lou Gehrig Fan Club",
+      "source_name": "Example source",
+      "source_url": "https://example.com/source",
+      "event_date": "1939-07-04",
+      "verification": {
+        "status": "three_source_verified",
+        "sources": [
+          { "name": "Source one", "url": "https://example.com/one" },
+          { "name": "Source two", "url": "https://example.com/two" },
+          { "name": "Source three", "url": "https://example.com/three" }
+        ]
+      }
+    },
+    {
+      "tag": "example-eig-excerpt",
+      "title": "Example excerpt with credit",
+      "text": "Short excerpt text.",
+      "story_type": "brief",
+      "credit_line": "From Jonathan Eig, Luckiest Man, p. 123",
+      "excerpt_of": { "work": "Luckiest Man", "author": "Jonathan Eig", "page": 123 },
+      "verification": { "status": "unverified" }
+    }
+  ]
+}
