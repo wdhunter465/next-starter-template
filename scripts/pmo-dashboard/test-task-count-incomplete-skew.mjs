@@ -4,7 +4,7 @@
  * accounting even when they have remediable metadata defects. Incomplete is not
  * a lifecycle, so defective children must not be quarantined out of the count.
  */
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import os from 'node:os';
