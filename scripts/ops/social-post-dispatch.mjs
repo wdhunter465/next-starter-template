@@ -30,8 +30,10 @@ export function selectDispatchPosts(queue, now) {
 }
 
 export function buildIssue(post, platform, baseUrl) {
+  // Instagram gets the padded variant (#5196); the other platforms get the original photo.
+  const suffix = platform === 'instagram' ? '?for=instagram' : '';
   return {
-    title: `${baseUrl}/api/social/image/${post.id}`,
+    title: `${baseUrl}/api/social/image/${post.id}${suffix}`,
     body: post.text,
     labels: [POST_LABEL, platformLabel(platform)],
   };
