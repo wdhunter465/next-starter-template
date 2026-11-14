@@ -267,6 +267,7 @@ jobs:
           GITHUB_RUN_ID: ${{ github.run_id }}
           DISCOVERY_OUTCOME: ${{ steps.discovery.outcome }}
           CONSECUTIVE_PRIOR_FAILURES: ${{ steps.guard.outputs.consecutive_failures }}
+          DISCOVERY_HOURLY: ${{ steps.mode.outputs.hourly }}
         run: node scripts/ci/gehrig_discovery_summary.mjs --outage
 
       - name: Upload halt marker
