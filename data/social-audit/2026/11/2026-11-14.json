@@ -1,0 +1,46 @@
+{
+  "schema": "social_audit_day/1",
+  "date": "2026-11-14",
+  "records": [
+    {
+      "schema": "social_post_evidence/1",
+      "post_id": "2026-11-14-daily",
+      "platform": "x",
+      "origin": "queue",
+      "version": 1,
+      "scheduled_for": "2026-11-14T10:00:00-05:00",
+      "text": "Gehrig played all 17 of his seasons with the Yankees, 1923 to 1939. Our website is being rebuilt for 2027 so more of his career can be explored in one place.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "text_sha256": "8df7f54ca39de62d400be88d240913718b112a9286f310e0be3b9f79f09d3c56",
+      "photo": {
+        "photo_id": 858,
+        "variant": "original",
+        "image_url": "https://www.lougehrigfanclub.com/api/social/image/2026-11-14-daily",
+        "image_sha256": "952d6db96f72f0f698decb7dd8a289f40df6c95a411900c63e43f3f2cd681fc1",
+        "image_bytes": 1762737,
+        "width": 1858,
+        "height": 2914,
+        "alt_text": "Souvenir program with a decorative border. It reads \"Busting Babes vs. Larruping Lous\" above a halftone photo of Babe Ruth and Lou Gehrig in Yankees uniforms, each resting a hand on a bat, with \"Oakland Baseball Park, Sunday, October 23, 1927\" below."
+      },
+      "status": "confirmed",
+      "attempts": [
+        {
+          "at_utc": "2026-11-14T15:03:05.297Z",
+          "by": "GitHub job \"Social Post to X\"",
+          "outcome": "ok",
+          "detail": "Buffer reports the post sent at 2026-11-14T15:03:10.307Z"
+        }
+      ],
+      "platform_record": {
+        "post_id": "6af8782ab9a106584c5081bb",
+        "url": null,
+        "created_at_utc": "2026-11-14T15:03:10.307Z",
+        "created_at_new_york": "2026-11-14T10:03:10-05:00"
+      },
+      "verified": {
+        "on": "2026-11-14",
+        "by": "GitHub job \"Social Post to X\"",
+        "method": "Buffer get_post after create_post"
+      }
+    }
+  ]
+}
