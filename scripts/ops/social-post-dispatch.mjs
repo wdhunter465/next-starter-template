@@ -35,7 +35,8 @@ export function buildIssue(post, platform, baseUrl) {
   return {
     title: `${baseUrl}/api/social/image/${post.id}${suffix}`,
     body: post.text,
-    labels: [POST_LABEL, platformLabel(platform)],
+    // team:operations and area:social keep every hand-off Issue in a queue and in the social view (#5263).
+    labels: [POST_LABEL, platformLabel(platform), 'team:operations', 'area:social'],
   };
 }
 
