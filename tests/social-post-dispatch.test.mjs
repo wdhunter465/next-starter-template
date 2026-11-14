@@ -38,6 +38,11 @@ describe('hand-off to Zapier', () => {
     expect(issue.labels).toEqual(['social-post', 'social:pinterest']);
   });
 
+  it('points Instagram at the padded variant and every other platform at the original (#5196)', () => {
+    expect(buildIssue(queue.posts[1], 'instagram', 'https://x.test').title).toBe('https://x.test/api/social/image/2026-11-10-daily?for=instagram');
+    expect(buildIssue(queue.posts[1], 'facebook', 'https://x.test').title).toBe('https://x.test/api/social/image/2026-11-10-daily');
+  });
+
   it('selects nothing before the publish time and the post after it', () => {
     expect(selectDispatchPosts(queue, Date.parse('2026-11-10T14:59:00Z'))).toEqual([]);
     expect(selectDispatchPosts(queue, Date.parse('2026-11-10T15:00:00Z')).map((p) => p.id)).toEqual(['2026-11-10-daily']);

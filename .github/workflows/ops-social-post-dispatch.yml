@@ -25,6 +25,8 @@ on:
   pull_request:
     paths:
       - 'scripts/ops/social-post-dispatch.mjs'
+      - 'scripts/ops/social-pad-prepare.mjs'
+      - 'scripts/ops/social-pad-variant.mjs'
       - '.github/workflows/ops-social-post-dispatch.yml'
 
 concurrency:
@@ -50,6 +52,20 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: '22'
+
+      # Instagram posts use a padded variant of the photo, never a crop (#5196). Build it before the
+      # hand-off Issue opens. Additive upload only; a dry run uploads nothing.
+      - name: Install image library
+        run: npm install --no-save --no-package-lock sharp@0.33.5
+
+      - name: Prepare padded Instagram variants
+        env:
+          B2_ENDPOINT: ${{ secrets.B2_ENDPOINT }}
+          B2_BUCKET: ${{ secrets.B2_BUCKET }}
+          AWS_ACCESS_KEY_ID: ${{ secrets.B2_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.B2_APP_KEY }}
+          AWS_EC2_METADATA_DISABLED: true
+        run: node scripts/ops/social-pad-prepare.mjs
 
       - name: Hand off due posts
         run: node scripts/ops/social-post-dispatch.mjs

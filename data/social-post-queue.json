@@ -1,5 +1,5 @@
 {
-  "_comment": "Reviewed by pull request only (#5155, design #5143). Times are America/New_York. A post later than lateness_hours after publish_at is skipped, never sent late. Footer changes on 2026-12-01 and 2027-01-01 (#2093). Photos may repeat, but not within photo_reuse_min_gap_days (Product Authority, 2026-11-12). instagram_ok_photo_ids lists the photos inside Instagram's 4:5 to 1.91:1 limits; a post may list instagram only for those (#5173).",
+  "_comment": "Reviewed by pull request only (#5155, design #5143). Times are America/New_York. A post later than lateness_hours after publish_at is skipped, never sent late. Footer changes on 2026-12-01 and 2027-01-01 (#2093). Photos may repeat, but not within photo_reuse_min_gap_days (Product Authority, 2026-11-12). Instagram posts use a padded variant of the photo (fit inside 4:5, never cropped or distorted, #5196), so any cleared photo may list instagram. instagram_ok_photo_ids is kept as a record of the photos that need no padding.",
   "lateness_hours": 4,
   "automation_starts_at": "2026-11-10T00:00:00-05:00",
   "rights_cleared_photo_ids": [
@@ -132,6 +132,7 @@
       "platforms": [
         "x",
         "facebook",
+        "instagram",
         "pinterest"
       ],
       "sources": "Club website (lougehrigfanclub.com) home page: biography section (born June 19, 1903, 17-year Yankees career 1923 to 1939, Columbia University, 493 home runs, 1,995 RBI, 7-time All-Star, 2-time AL MVP, 6-time World Series champion, died June 2, 1941), Weekly Photo Matchup, Join, FAQ, Friends of the Fan Club, events calendar, Lou Gehrig Day, and the page's own '2027 public relaunch' wording. No launch date is stated.",
@@ -147,6 +148,7 @@
       "platforms": [
         "x",
         "facebook",
+        "instagram",
         "pinterest"
       ],
       "sources": "Club website (lougehrigfanclub.com) home page: biography section (born June 19, 1903, 17-year Yankees career 1923 to 1939, Columbia University, 493 home runs, 1,995 RBI, 7-time All-Star, 2-time AL MVP, 6-time World Series champion, died June 2, 1941), Weekly Photo Matchup, Join, FAQ, Friends of the Fan Club, events calendar, Lou Gehrig Day, and the page's own '2027 public relaunch' wording. No launch date is stated.",
@@ -178,6 +180,7 @@
       "platforms": [
         "x",
         "facebook",
+        "instagram",
         "pinterest"
       ],
       "sources": "Club website (lougehrigfanclub.com) home page: biography section (born June 19, 1903, 17-year Yankees career 1923 to 1939, Columbia University, 493 home runs, 1,995 RBI, 7-time All-Star, 2-time AL MVP, 6-time World Series champion, died June 2, 1941), Weekly Photo Matchup, Join, FAQ, Friends of the Fan Club, events calendar, Lou Gehrig Day, and the page's own '2027 public relaunch' wording. No launch date is stated.",
@@ -209,6 +212,7 @@
       "platforms": [
         "x",
         "facebook",
+        "instagram",
         "pinterest"
       ],
       "sources": "Club website (lougehrigfanclub.com) home page: biography section (born June 19, 1903, 17-year Yankees career 1923 to 1939, Columbia University, 493 home runs, 1,995 RBI, 7-time All-Star, 2-time AL MVP, 6-time World Series champion, died June 2, 1941), Weekly Photo Matchup, Join, FAQ, Friends of the Fan Club, events calendar, Lou Gehrig Day, and the page's own '2027 public relaunch' wording. No launch date is stated.",
@@ -224,6 +228,7 @@
       "platforms": [
         "x",
         "facebook",
+        "instagram",
         "pinterest"
       ],
       "sources": "Club website (lougehrigfanclub.com) home page: biography section (born June 19, 1903, 17-year Yankees career 1923 to 1939, Columbia University, 493 home runs, 1,995 RBI, 7-time All-Star, 2-time AL MVP, 6-time World Series champion, died June 2, 1941), Weekly Photo Matchup, Join, FAQ, Friends of the Fan Club, events calendar, Lou Gehrig Day, and the page's own '2027 public relaunch' wording. No launch date is stated.",
@@ -255,6 +260,7 @@
       "platforms": [
         "x",
         "facebook",
+        "instagram",
         "pinterest"
       ],
       "sources": "Club website (lougehrigfanclub.com) home page: biography section (born June 19, 1903, 17-year Yankees career 1923 to 1939, Columbia University, 493 home runs, 1,995 RBI, 7-time All-Star, 2-time AL MVP, 6-time World Series champion, died June 2, 1941), Weekly Photo Matchup, Join, FAQ, Friends of the Fan Club, events calendar, Lou Gehrig Day, and the page's own '2027 public relaunch' wording. No launch date is stated.",
@@ -286,6 +292,7 @@
       "platforms": [
         "x",
         "facebook",
+        "instagram",
         "pinterest"
       ],
       "sources": "Club website (lougehrigfanclub.com) home page: biography section (born June 19, 1903, 17-year Yankees career 1923 to 1939, Columbia University, 493 home runs, 1,995 RBI, 7-time All-Star, 2-time AL MVP, 6-time World Series champion, died June 2, 1941), Weekly Photo Matchup, Join, FAQ, Friends of the Fan Club, events calendar, Lou Gehrig Day, and the page's own '2027 public relaunch' wording. No launch date is stated.",
@@ -301,6 +308,7 @@
       "platforms": [
         "x",
         "facebook",
+        "instagram",
         "pinterest"
       ],
       "sources": "Club website (lougehrigfanclub.com) home page: biography section (born June 19, 1903, 17-year Yankees career 1923 to 1939, Columbia University, 493 home runs, 1,995 RBI, 7-time All-Star, 2-time AL MVP, 6-time World Series champion, died June 2, 1941), Weekly Photo Matchup, Join, FAQ, Friends of the Fan Club, events calendar, Lou Gehrig Day, and the page's own '2027 public relaunch' wording. No launch date is stated.",
@@ -332,6 +340,7 @@
       "platforms": [
         "x",
         "facebook",
+        "instagram",
         "pinterest"
       ],
       "sources": "Club website (lougehrigfanclub.com) home page: biography section (born June 19, 1903, 17-year Yankees career 1923 to 1939, Columbia University, 493 home runs, 1,995 RBI, 7-time All-Star, 2-time AL MVP, 6-time World Series champion, died June 2, 1941), Weekly Photo Matchup, Join, FAQ, Friends of the Fan Club, events calendar, Lou Gehrig Day, and the page's own '2027 public relaunch' wording. No launch date is stated.",
@@ -358,5 +367,6 @@
   "instagram_ok_photo_ids": [
     859,
     862
-  ]
+  ],
+  "instagram_padding": true
 }
