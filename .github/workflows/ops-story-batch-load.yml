@@ -1,0 +1,106 @@
+name: OPS — Story batch load (#5244)
+
+# Operator-triggered load of one story batch (data/stories/<file>.json) into the D1 story inventory
+# (content_inventory) as PENDING (draft) rows only. Standing Go: Product Authority, 2026-11-14, on #5225.
+# It inserts new rows by tag and skips tags that already exist. It never updates or deletes a row, never
+# publishes, and never writes to B2.
+#
+# Two independent gates must both agree before any write:
+#   1. confirm_write must be exactly "confirm".
+#   2. mode must be exactly "apply"; dry-run (the default) never writes.
+# Identity guards refuse a dev run against Production D1 and the reverse. Load dev first, then prod.
+
+on:
+  workflow_dispatch:
+    inputs:
+      target:
+        description: 'dev (lgfc-litedev) or prod (lgfc_lite). Load dev and check it before Production.'
+        required: true
+        type: choice
+        options:
+          - dev
+          - prod
+      batch_file:
+        description: 'Batch file directly under data/stories/, for example data/stories/2026-11-14-batch-1.json'
+        required: true
+        type: string
+      confirm_write:
+        description: 'Type "confirm" to run this workflow at all (dry-run or apply)'
+        required: true
+        type: string
+      mode:
+        description: 'dry-run (default, no write) or apply (writes draft rows to the selected D1 only)'
+        required: true
+        type: choice
+        default: dry-run
+        options:
+          - dry-run
+          - apply
+
+concurrency:
+  group: ops-story-batch-load-${{ inputs.target }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  load:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Require explicit confirmation
+        run: |
+          if [ "${{ inputs.confirm_write }}" != "confirm" ]; then
+            echo "confirm_write must be exactly 'confirm' — refusing to run."
+            exit 1
+          fi
+          echo "Target: ${{ inputs.target }}"
+          echo "Mode: ${{ inputs.mode }}"
+          echo "Batch: ${{ inputs.batch_file }}"
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Load the story batch (pending only)
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          D1_DEV_DATABASE_NAME: ${{ secrets.D1_DEV_DATABASE_NAME }}
+          D1_DEV_DATABASE_ID: ${{ secrets.D1_DEV_DATABASE_ID }}
+          D1_DATABASE_NAME: ${{ secrets.D1_DATABASE_NAME }}
+          D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
+          TARGET: ${{ inputs.target }}
+          MODE: ${{ inputs.mode }}
+          CONFIRM_WRITE: ${{ inputs.confirm_write }}
+          BATCH_FILE: ${{ inputs.batch_file }}
+        run: node scripts/ci/story_batch_load.mjs
+
+      - name: Upload result evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: story-batch-load-${{ inputs.target }}-${{ inputs.mode }}-result
+          path: |
+            story-batch-load-result.json
+            story-batch-load-result.md
+          if-no-files-found: warn
+
+      - name: Write step summary
+        if: always() && hashFiles('story-batch-load-result.md') != ''
+        run: cat story-batch-load-result.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Record result on #5225
+        if: always() && hashFiles('story-batch-load-result.md') != ''
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh issue comment 5225 --body-file story-batch-load-result.md
