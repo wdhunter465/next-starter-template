@@ -23,7 +23,7 @@
         {
           "claim": "An example claim where a trusted source disagrees",
           "sources": [
-            { "name": "Luckiest Man", "author": "Jonathan Eig", "supports": "agree" },
+            { "name": "Hall of Fame biography", "url": "https://baseballhall.org/example", "supports": "agree" },
             { "name": "Baseball-Reference", "url": "https://www.baseball-reference.com/example", "supports": "agree" },
             { "name": "SABR biography", "url": "https://sabr.org/example", "supports": "disagree", "says": "a different value" }
           ]

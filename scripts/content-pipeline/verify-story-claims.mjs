@@ -3,9 +3,10 @@
  * #5224: check each story's factual claims against trusted sources. Read-only: it never writes to D1 or B2 and
  * does not change the batch file.
  *
- * Rule (Product Authority, 2026-11-13): a claim needs at least three distinct trusted sources that agree. Jonathan
- * Eig's Luckiest Man is a trusted source and the preferred tie-breaker when sources disagree. Automation does the
- * objective check and flags the rest; it does not decide a disputed fact.
+ * Rule (Product Authority, 2026-11-13, updated 2026-11-14): a claim needs at least three distinct trusted sources
+ * that agree. Jonathan Eig's Luckiest Man is trusted on its own: a claim that Eig supports is verified at once, and
+ * Eig wins when other sources disagree (the dissent is recorded). If Eig himself disagrees, the claim is a conflict.
+ * Automation does the objective check and flags the rest; it does not decide a disputed fact.
  *
  * Usage: node scripts/content-pipeline/verify-story-claims.mjs data/stories/<batch>.json [--trusted data/stories/trusted-sources.json]
  * Exit code 1 when any story needs work.
@@ -92,14 +93,17 @@ export function checkClaim(claim, trustedList) {
   }
   const eigAgrees = [...agreeing.values()].some((e) => e.preferred_tiebreaker);
   const eigDisagrees = disagreeing.has('eig-luckiest-man');
+  // Eig is trusted on its own (Product Authority, 2026-11-14): one agreeing Eig source verifies the claim.
+  if (eigAgrees && !eigDisagrees) {
+    result.status = CLAIM_STATUS.VERIFIED;
+    result.reasons.push(disagreeing.size > 0
+      ? `verified on Eig's Luckiest Man; dissent recorded from ${[...disagreeing.keys()].join(', ')}`
+      : "verified on Eig's Luckiest Man");
+    return result;
+  }
   if (disagreeing.size > 0) {
-    if (agreeing.size >= MIN_AGREEING_SOURCES && eigAgrees && !eigDisagrees) {
-      result.status = CLAIM_STATUS.VERIFIED;
-      result.reasons.push(`verified on Eig's tie-break; dissent recorded from ${[...disagreeing.keys()].join(', ')}`);
-    } else {
-      result.status = CLAIM_STATUS.CONFLICT;
-      result.reasons.push(`trusted sources disagree: ${[...agreeing.keys()].join(', ') || 'none'} agree; ${[...disagreeing.keys()].join(', ')} disagree`);
-    }
+    result.status = CLAIM_STATUS.CONFLICT;
+    result.reasons.push(`trusted sources disagree: ${[...agreeing.keys()].join(', ') || 'none'} agree; ${[...disagreeing.keys()].join(', ')} disagree`);
     return result;
   }
   if (agreeing.size >= MIN_AGREEING_SOURCES) {

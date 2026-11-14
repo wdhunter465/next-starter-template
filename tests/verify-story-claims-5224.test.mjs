@@ -31,8 +31,8 @@ describe('claim check (#5224)', () => {
     expect(checkClaim({ claim: 'c', sources: [eig(), hof(), mlb()] }, trusted).status).toBe('verified');
   });
 
-  it('cannot mark a claim ready with fewer than three sources', () => {
-    const two = checkClaim({ claim: 'c', sources: [eig(), hof()] }, trusted);
+  it('cannot mark a non-Eig claim ready with fewer than three sources', () => {
+    const two = checkClaim({ claim: 'c', sources: [hof(), mlb()] }, trusted);
     expect(two.status).toBe('insufficient');
     expect(two.reasons.join(' ')).toMatch(/2 of 3/);
     expect(checkClaim({ claim: 'c', sources: [] }, trusted).status).toBe('insufficient');
@@ -45,7 +45,7 @@ describe('claim check (#5224)', () => {
   });
 
   it('does not count sources that are not on the trusted list, and says so', () => {
-    const r = checkClaim({ claim: 'c', sources: [eig(), hof(), { name: 'Random blog', url: 'https://example.com/b', supports: 'agree' }] }, trusted);
+    const r = checkClaim({ claim: 'c', sources: [hof(), mlb(), { name: 'Random blog', url: 'https://example.com/b', supports: 'agree' }] }, trusted);
     expect(r.status).toBe('insufficient');
     expect(r.untrusted).toEqual(['Random blog']);
     expect(r.reasons.join(' ')).toContain('not on the trusted list');
@@ -58,13 +58,20 @@ describe('claim check (#5224)', () => {
     expect(r.reasons.join(' ')).toContain('baseball-reference');
   });
 
-  it("verifies on Eig's tie-break when Eig is among three agreeing sources, and records the dissent", () => {
-    const r = checkClaim({ claim: 'c', sources: [eig(), hof(), mlb(), bref('disagree', { says: 'x' })] }, trusted);
+  it('verifies a claim on Eig alone, immediately (Product Authority, 2026-11-14)', () => {
+    const r = checkClaim({ claim: 'c', sources: [eig()] }, trusted);
     expect(r.status).toBe('verified');
-    expect(r.reasons.join(' ')).toMatch(/Eig's tie-break/);
+    expect(r.reasons.join(' ')).toMatch(/Eig's Luckiest Man/);
   });
 
-  it('does not use the tie-break when Eig disagrees or is not among the agreeing sources', () => {
+  it('keeps Eig as the winner when another trusted source disagrees, and records the dissent', () => {
+    const r = checkClaim({ claim: 'c', sources: [eig(), bref('disagree', { says: 'x' })] }, trusted);
+    expect(r.status).toBe('verified');
+    expect(r.reasons.join(' ')).toMatch(/dissent recorded from baseball-reference/);
+    expect(r.disagreeing).toEqual([{ id: 'baseball-reference', says: 'x' }]);
+  });
+
+  it('does not use the Eig rule when Eig disagrees or is not among the agreeing sources', () => {
     expect(checkClaim({ claim: 'c', sources: [eig('disagree'), hof(), mlb(), bref()] }, trusted).status).toBe('conflict');
     expect(checkClaim({ claim: 'c', sources: [hof(), mlb(), bref(), { name: 'SABR', url: 'https://sabr.org/a', supports: 'disagree' }] }, trusted).status).toBe('conflict');
   });
@@ -79,7 +86,7 @@ describe('batch check (#5224)', () => {
   const batch = {
     stories: [
       { tag: 'good-story', claims: [{ claim: 'a', sources: [eig(), hof(), mlb()] }, { claim: 'b', sources: [eig(), hof(), bref()] }] },
-      { tag: 'one-weak-claim', claims: [{ claim: 'a', sources: [eig(), hof(), mlb()] }, { claim: 'b', sources: [eig()] }] },
+      { tag: 'one-weak-claim', claims: [{ claim: 'a', sources: [eig(), hof(), mlb()] }, { claim: 'b', sources: [hof()] }] },
       { tag: 'no-claims' },
     ],
   };
