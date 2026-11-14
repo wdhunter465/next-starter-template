@@ -5,6 +5,7 @@ import { promisify } from 'node:util';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { loadDashboardData, repairReportPath } from './repair-report-helper.mjs';
 
 const execFileAsync = promisify(execFile);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -22,13 +23,13 @@ async function main() {
   const outDir = await mkdtemp(path.join(os.tmpdir(), 'pmo-dashboard-fixture-'));
   try {
     await execFileAsync('node', [path.join(__dirname, 'build-dashboard.mjs')], {
-      env: { ...process.env, PMO_DASHBOARD_ISSUES_FIXTURE: fixture, PMO_DASHBOARD_OUT_DIR: outDir }
+      env: { ...process.env, PMO_DASHBOARD_ISSUES_FIXTURE: fixture, PMO_DASHBOARD_OUT_DIR: outDir, PMO_DASHBOARD_REPAIR_REPORT: repairReportPath(outDir) }
     });
     await execFileAsync('node', [path.join(__dirname, 'validate-dashboard.mjs'), outDir], {
-      env: { ...process.env, PMO_DASHBOARD_SKIP_INVENTORY_VALIDATION: '1' }
+      env: { ...process.env, PMO_DASHBOARD_SKIP_INVENTORY_VALIDATION: '1', PMO_DASHBOARD_REPAIR_REPORT: repairReportPath(outDir) }
     });
 
-    const data = JSON.parse(await readFile(path.join(outDir, 'dashboard-data.json'), 'utf8'));
+    const data = await loadDashboardData(outDir);
     assert(data.trackingModel === 'pmo-label', 'trackingModel must be pmo-label');
     assert(data.contractVersion === 'queue-label-registry-v1', 'queue contract version');
 
@@ -115,6 +116,8 @@ async function main() {
     if (currentBook.stdout) process.stdout.write(currentBook.stdout);
     const teamQueueCounts = await execFileAsync('node', [path.join(__dirname, 'test-team-queue-counts.mjs')]);
     if (teamQueueCounts.stdout) process.stdout.write(teamQueueCounts.stdout);
+    const noDefectReport = await execFileAsync('node', [path.join(__dirname, 'test-no-defect-report-5241.mjs')]);
+    if (noDefectReport.stdout) process.stdout.write(noDefectReport.stdout);
     console.log('PMO label-driven fixture test passed');
   } finally {
     await rm(outDir, { recursive: true, force: true });

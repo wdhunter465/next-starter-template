@@ -11,6 +11,7 @@ import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { planTaskChildLabelReconciliation } from './reconcile-task-child-labels.mjs';
+import { loadDashboardData, repairReportPath } from './repair-report-helper.mjs';
 
 const execFileAsync = promisify(execFile);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -48,18 +49,18 @@ async function build(issues) {
     env: {
       ...process.env,
       PMO_DASHBOARD_ISSUES_FIXTURE: fixturePath,
-      PMO_DASHBOARD_OUT_DIR: outDir
+      PMO_DASHBOARD_OUT_DIR: outDir, PMO_DASHBOARD_REPAIR_REPORT: repairReportPath(outDir)
     }
   });
   await execFileAsync('node', [path.join(__dirname, 'validate-dashboard.mjs'), outDir], {
     env: {
       ...process.env,
-      PMO_DASHBOARD_SKIP_INVENTORY_VALIDATION: '1'
+      PMO_DASHBOARD_SKIP_INVENTORY_VALIDATION: '1', PMO_DASHBOARD_REPAIR_REPORT: repairReportPath(outDir)
     }
   });
   return {
     outDir,
-    data: JSON.parse(await readFile(path.join(outDir, 'dashboard-data.json'), 'utf8'))
+    data: await loadDashboardData(outDir)
   };
 }
 
@@ -141,8 +142,8 @@ async function main() {
       assert(skewed.tasksCompleted === 1, 'GitHub-closed linked child counts completed even with remediable label defects');
       assert(skewed.percentComplete === 33, 'completion percentage includes closed unreconciled children');
       assert(
-        (skewed.linkedTaskDataQuality || []).map((entry) => entry.issueNumber).sort((a, b) => a - b).join(',') === '9210,9211,9212',
-        'parent surfaces linked-task metadata defects without dropping them from accounting'
+        (skewed.linkedTaskDataQuality || []).map((entry) => entry.issueNumber).sort((a, b) => a - b).join(',') === '9210,9211',
+        'parent surfaces open linked-task metadata defects only; closed task #9212 is finished work (#5241) and still counts in accounting'
       );
 
       const empty = findActive(data, 9201);

@@ -10,6 +10,7 @@ import { promisify } from 'node:util';
 import os from 'node:os';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { loadDashboardData, repairReportPath } from './repair-report-helper.mjs';
 
 const execFileAsync = promisify(execFile);
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -101,16 +102,16 @@ async function main() {
       env: {
         ...process.env,
         PMO_DASHBOARD_ISSUES_FIXTURE: fixturePath,
-        PMO_DASHBOARD_OUT_DIR: outDir
+        PMO_DASHBOARD_OUT_DIR: outDir, PMO_DASHBOARD_REPAIR_REPORT: repairReportPath(outDir)
       }
     });
     await execFileAsync('node', [path.join(__dirname, 'validate-dashboard.mjs'), outDir], {
       env: {
         ...process.env,
-        PMO_DASHBOARD_SKIP_INVENTORY_VALIDATION: '1'
+        PMO_DASHBOARD_SKIP_INVENTORY_VALIDATION: '1', PMO_DASHBOARD_REPAIR_REPORT: repairReportPath(outDir)
       }
     });
-    const data = JSON.parse(await readFile(path.join(outDir, 'dashboard-data.json'), 'utf8'));
+    const data = await loadDashboardData(outDir);
     const parent = (data.views.activePrograms || []).find((row) => row.issueNumber === 2682);
     assert(parent, '#2682 stays Active');
     assert(parent.lifecycle === 'active', '#2682 lifecycle remains active');
@@ -118,8 +119,8 @@ async function main() {
     assert(parent.tasksCompleted === 1, '#2682 counts only GitHub-closed children as completed');
     assert(parent.percentComplete === 20, '#2682 percentComplete is 1 of 5');
     assert(
-      (parent.linkedTaskDataQuality || []).map((entry) => entry.issueNumber).sort((a, b) => a - b).join(',') === '3879,3880,3881,3882',
-      '#2682 surfaces remediable child defects without dropping them'
+      (parent.linkedTaskDataQuality || []).map((entry) => entry.issueNumber).sort((a, b) => a - b).join(',') === '3879,3880,3882',
+      '#2682 surfaces open remediable child defects only; closed child #3881 still counts in accounting (#5241)'
     );
     const accounting = (data.taskAccounting || []).find((entry) => entry.parentIssueNumber === 2682);
     assert(accounting.completedTaskIssueNumbers.join(',') === '3881', 'open pmo:closed child is not completed');
@@ -139,7 +140,7 @@ async function main() {
     let failed = false;
     try {
       await execFileAsync('node', [path.join(__dirname, 'validate-dashboard.mjs'), outDir], {
-        env: { ...process.env, PMO_DASHBOARD_SKIP_INVENTORY_VALIDATION: '1' }
+        env: { ...process.env, PMO_DASHBOARD_SKIP_INVENTORY_VALIDATION: '1', PMO_DASHBOARD_REPAIR_REPORT: repairReportPath(outDir) }
       });
     } catch (error) {
       failed = true;
