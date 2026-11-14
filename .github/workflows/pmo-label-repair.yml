@@ -1,0 +1,40 @@
+name: PMO label repair (#5242)
+
+# Repairs a PMO issue's lifecycle labels where the defect occurs, so defects are fixed at the source and not
+# collected on a dashboard (#4496). Deterministic cases are repaired in place; others get one comment per kind.
+# It never closes or reopens an issue and never touches labels other than the PMO lifecycle ones.
+
+on:
+  issues:
+    types: [closed, reopened, labeled, unlabeled]
+
+concurrency:
+  group: pmo-label-repair-${{ github.event.issue.number }}
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  repair:
+    if: >-
+      github.repository == 'wdhunter465/next-starter-template' &&
+      contains(github.event.issue.labels.*.name, 'pmo')
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Repair or comment
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
+        run: node scripts/ci/pmo_label_repair.mjs
