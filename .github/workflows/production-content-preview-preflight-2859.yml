@@ -22,7 +22,7 @@ name: OPS — Production Content Preview Evidence Preflight (#2859)
 #
 # This file (and scripts/ci/production_content_preview_preflight_2859.mjs) matches this
 # repo's protected-path patterns in scripts/ci/delivery_profile.mjs; Model A PRs targeting
-# main require Approval profile: work-bill-production regardless of protected-path status.
+# main require Approval profile: cmo-production regardless of protected-path status.
 
 on:
   workflow_dispatch:

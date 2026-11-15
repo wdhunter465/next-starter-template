@@ -97,7 +97,7 @@ describe('component integration negative fixtures', () => {
       profile: {
         deliveryModel: 'A',
         gateProfile: 'production-candidate',
-        approvalProfile: 'work-bill-production',
+        approvalProfile: 'cmo-production',
         componentBranch: '',
         componentMaster: '',
         baseRef: 'main',
@@ -185,7 +185,7 @@ describe('component integration negative fixtures', () => {
       profile: {
         deliveryModel: 'B-promotion',
         gateProfile: 'component-promotion',
-        approvalProfile: 'work-bill-production',
+        approvalProfile: 'cmo-production',
         baseRef: 'main',
       },
     }, { changedFiles: ['migrations/0050_chatterbox_claims.sql'] });

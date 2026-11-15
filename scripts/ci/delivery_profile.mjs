@@ -10,7 +10,7 @@ export const CHANGE_MODES = ['project', 'routine-ops', 'planned-migration', 'eme
 export const TARGET_ENVIRONMENTS = ['component', 'preview', 'production', 'recovery', 'docs'];
 export const APPROVAL_PROFILES = [
   'component-auto-integration',
-  'work-bill-production',
+  'cmo-production',
   'protected-change-review',
   'emergency-approval',
   'documentation-review',
@@ -283,7 +283,7 @@ export function classifyDeliveryProfile({
 
   if (metadata.deliveryModel === 'A') {
     pushExpectedError(errors, 'targetEnvironment', metadata.targetEnvironment, 'production');
-    pushExpectedError(errors, 'approvalProfile', metadata.approvalProfile, 'work-bill-production');
+    pushExpectedError(errors, 'approvalProfile', metadata.approvalProfile, 'cmo-production');
     if (metadata.gateProfile === 'development') {
       // Model A PRs occupy Development from open until Development-exit criteria
       // (full behavior testable, Promotion Candidate validation complete) are met.
@@ -349,7 +349,7 @@ export function classifyDeliveryProfile({
 
   if (metadata.deliveryModel === 'B-promotion') {
     pushExpectedError(errors, 'targetEnvironment', metadata.targetEnvironment, 'production');
-    pushExpectedError(errors, 'approvalProfile', metadata.approvalProfile, 'work-bill-production');
+    pushExpectedError(errors, 'approvalProfile', metadata.approvalProfile, 'cmo-production');
     pushExpectedError(errors, 'gateProfile', metadata.gateProfile, 'component-promotion');
     pushExpectedError(errors, 'rollbackProfile', metadata.rollbackProfile, 'multi-step');
     if (!implementationAgent) {

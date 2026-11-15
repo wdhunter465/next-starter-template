@@ -13,7 +13,7 @@ function bodyFor(prClass, deliveryOverrides = {}) {
     deliveryModel: 'A',
     changeMode: 'project',
     targetEnvironment: 'production',
-    approvalProfile: 'work-bill-production',
+    approvalProfile: 'cmo-production',
     gateProfile: 'production-candidate',
     rollbackProfile: 'one-step',
     componentBranch: 'not-applicable',
@@ -186,7 +186,7 @@ describe('delivery-profile quality routing', () => {
     const body = bodyFor('release', {
       deliveryModel: 'B-promotion',
       targetEnvironment: 'production',
-      approvalProfile: 'work-bill-production',
+      approvalProfile: 'cmo-production',
       gateProfile: 'component-promotion',
       rollbackProfile: 'multi-step',
       componentBranch: 'component/delivery-system-v1',

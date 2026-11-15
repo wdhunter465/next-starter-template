@@ -23,7 +23,7 @@ function metadataBody(overrides = {}) {
     deliveryModel: 'A',
     changeMode: 'project',
     targetEnvironment: 'production',
-    approvalProfile: 'work-bill-production',
+    approvalProfile: 'cmo-production',
     gateProfile: 'production-candidate',
     rollbackProfile: 'one-step',
     componentBranch: 'not-applicable',
@@ -76,7 +76,7 @@ describe('delivery profile contract constants', () => {
     expect(TARGET_ENVIRONMENTS).toEqual(['component', 'preview', 'production', 'recovery', 'docs']);
     expect(APPROVAL_PROFILES).toEqual([
       'component-auto-integration',
-      'work-bill-production',
+      'cmo-production',
       'protected-change-review',
       'emergency-approval',
       'documentation-review',
@@ -140,13 +140,13 @@ describe('parseDeliveryMetadata', () => {
 describe('classifyDeliveryProfile', () => {
   it('classifies Model A production candidates with Work review and Bill protection', () => {
     const profile = classify({
-      approvalProfile: 'work-bill-production',
+      approvalProfile: 'cmo-production',
     });
 
     expect(profile).toMatchObject({
       deliveryModel: 'A',
       targetEnvironment: 'production',
-      approvalProfile: 'work-bill-production',
+      approvalProfile: 'cmo-production',
       gateProfile: 'production-candidate',
       errors: [],
     });
@@ -160,7 +160,7 @@ describe('classifyDeliveryProfile', () => {
       size: 'medium',
       changeMode: 'project',
       targetEnvironment: 'production',
-      approvalProfile: 'work-bill-production',
+      approvalProfile: 'cmo-production',
       gateProfile: 'production-candidate',
       rollbackProfile: 'one-step',
       componentBranch: '',
@@ -345,7 +345,7 @@ describe('classifyDeliveryProfile', () => {
       {
         deliveryModel: 'B-promotion',
         targetEnvironment: 'production',
-        approvalProfile: 'work-bill-production',
+        approvalProfile: 'cmo-production',
         gateProfile: 'component-promotion',
         rollbackProfile: 'multi-step',
         componentBranch: 'component/delivery-system-v1',
@@ -361,7 +361,7 @@ describe('classifyDeliveryProfile', () => {
     expect(profile).toMatchObject({
       deliveryModel: 'B-promotion',
       targetEnvironment: 'production',
-      approvalProfile: 'work-bill-production',
+      approvalProfile: 'cmo-production',
       gateProfile: 'component-promotion',
       rollbackProfile: 'multi-step',
       componentBranch: 'component/delivery-system-v1',
@@ -437,7 +437,7 @@ describe('classifyDeliveryProfile', () => {
       {
         deliveryModel: 'B-promotion',
         targetEnvironment: 'production',
-        approvalProfile: 'work-bill-production',
+        approvalProfile: 'cmo-production',
         gateProfile: 'component-promotion',
         rollbackProfile: 'multi-step',
         componentBranch: 'component/delivery-system-v1',
@@ -521,7 +521,7 @@ describe('classifyDeliveryProfile', () => {
       {
         deliveryModel: 'B-promotion',
         targetEnvironment: 'production',
-        approvalProfile: 'work-bill-production',
+        approvalProfile: 'cmo-production',
         gateProfile: 'component-promotion',
         rollbackProfile: 'multi-step',
         componentBranch: 'component/delivery-system-v1',

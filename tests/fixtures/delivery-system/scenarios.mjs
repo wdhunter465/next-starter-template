@@ -179,7 +179,7 @@ export const SCENARIOS = [
       const incompleteBody = prBody({
         deliveryModel: 'B-promotion',
         targetEnvironment: 'production',
-        approvalProfile: 'work-bill-production',
+        approvalProfile: 'cmo-production',
         gateProfile: 'component-promotion',
         rollbackProfile: 'multi-step',
         componentBranch: 'component/delivery-system-v1',
