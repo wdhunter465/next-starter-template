@@ -14,7 +14,7 @@ name: OPS — Chatterbox Command Bridge (#3415)
 # from the version of this file present on the repository's DEFAULT branch.
 # This file must live on main to run at all; per this repo's delivery
 # rules that makes it a main-targeting change requiring Bill's own
-# approval/merge (work-bill-production), even though the workflow's own
+# approval/merge (cmo-production), even though the workflow's own
 # runtime behavior only ever touches the Development Preview deployment
 # and never Production.
 #

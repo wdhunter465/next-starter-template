@@ -75,7 +75,7 @@ common placeholder tokens such as `TBD` are treated as missing metadata.
 ### Approval profiles
 
 - `component-auto-integration`
-- `work-bill-production`
+- `cmo-production`
 - `protected-change-review`
 - `emergency-approval`
 - `documentation-review` (target for Model C; runtime #3753)
@@ -124,7 +124,7 @@ not silently downgrade one delivery model to another.
 
 - Base branch: `main`
 - Target environment: `production`
-- Approval profile: `work-bill-production`
+- Approval profile: `cmo-production`
 - Gate profile: `development` while Development-exit criteria are outstanding (classifier reports
   `model_a_still_in_development`, a blocking state distinct from a metadata error), then
   `production-candidate` once met — see `docs/governance/DELIVERY-AND-RELEASE.md` Model A
@@ -157,7 +157,7 @@ protected paths are reviewed on the Model B promotion PR (#3465).
 - Base branch: `main`
 - Head branch: `component/**`
 - Target environment: `production`
-- Approval profile: `work-bill-production`
+- Approval profile: `cmo-production`
 - Gate profile: `component-promotion`
 - Rollback profile: `multi-step`
 - Component branch: must match the PR head branch
