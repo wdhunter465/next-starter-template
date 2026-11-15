@@ -96,7 +96,18 @@ Treat `GATE — Post-Merge Readiness` and other legacy overlap gates as **non-au
 
 After every fix push or material PR body update, re-check the latest head workflow runs and review threads.
 
-### 8. Mark ready only when clean
+Re-run checks only after correcting the underlying cause.
+
+If Cloudflare preview is stuck/spinning:
+- Cancel and re-run once.
+- If persists, treat as platform incident and capture evidence.
+
+### 8. Prefer content fixes over weakening gates
+
+Prefer adjusting the PR content/label over weakening drift gates.
+Drift gates are guardrails; bypassing them must be treated as a governance incident.
+
+### 9. Mark ready only when clean
 
 A PR is ready for human review when:
 
