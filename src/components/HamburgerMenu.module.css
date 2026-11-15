@@ -34,7 +34,7 @@
   display: block;
   min-height: 44px;
   padding: 12px 12px;
-  border-radius: 10px;
+  border-radius: var(--lgfc-radius-md, 12px);
   text-decoration: none;
   color: var(--lgfc-blue, #0033cc);
   font-weight: 700;
