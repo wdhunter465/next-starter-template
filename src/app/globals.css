@@ -168,7 +168,7 @@ a:hover {
 	justify-content: center;
 	width: 40px;
 	height: 40px;
-	border-radius: 10px;
+	border-radius: var(--lgfc-radius-md);
 	background: white;
 	border: 1px solid rgba(0, 0, 0, 0.08);
 	box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
@@ -299,14 +299,14 @@ a:hover {
 	flex: 1;
 	padding: 10px 12px;
 	border: 1px solid #d7dbe7;
-	border-radius: 10px;
+	border-radius: var(--lgfc-radius-md);
 }
 
 .faq button {
 	padding: 10px 14px;
 	border: 1px solid #d7dbe7;
 	background: #fff;
-	border-radius: 10px;
+	border-radius: var(--lgfc-radius-md);
 	font-weight: 700;
 	cursor: pointer;
 }
@@ -336,7 +336,7 @@ a:hover {
 	min-height: 80px;
 	padding: 10px 12px;
 	border: 1px solid #d7dbe7;
-	border-radius: 10px;
+	border-radius: var(--lgfc-radius-md);
 	font-family: inherit;
 }
 
