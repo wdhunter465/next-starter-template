@@ -5,7 +5,7 @@ Authority Level: Procedure
 Owns: How a failed scheduled or post-merge workflow becomes an Operations exception Issue, how to add a workflow to the watch list, and how a scheduled workflow is halted and re-enabled after 3 consecutive failures
 Does Not Own: Incident command, rollback decisions, or the content of individual workflows
 Canonical Reference: /docs/governance/OPERATIONS-AND-RECOVERY.md
-Related Issues: #4444, #3268, #4589, #4637, #4670, #4674
+Related Issues: #4444, #3268, #4589, #4637, #4670, #4674, #4681
 Last Reviewed: 2026-10-18
 ---
 
@@ -51,6 +51,17 @@ Only failures on the default branch open an Issue. Failures on pull request bran
 2. **Later failures of the same workflow** add a comment to the open Issue (with the run link) instead of opening a duplicate.
 3. **Operations reviews the Issue.** Open the linked run and read the failing step, then decide: a real fault (fix it under a source Issue), a missing secret or configuration (record who provisions it), or an accepted state (record the decision).
 4. **Close the Issue** with a comment naming the fix or decision. A passing run does not close it automatically.
+
+## One automatic re-run before an Issue opens
+
+A read-only monitor that fails on a scheduled run is re-run once before any Issue opens (monitoring gap 1, decision 2, #4681). A transient failure then clears itself and opens nothing. If the re-run fails, the Issue opens as described above, and its body says the run was re-run once and failed again.
+
+- **Which workflows:** only these read-only monitors: Repository Runner Health, LGFC Cursor Runner Health, OPS — Production Edge Health, OPS — Scheduled Job Health, OPS — Matchup Pair Monitor, OPS — Design Compliance Audit. The list is `RERUN_ONCE_WORKFLOWS` in `scripts/ci/open_workflow_failure_issue.mjs`.
+- **Never re-run:** anything that writes. Backups, restore drills, content publishing, snapshots, the B2 and D1 sync, migrations, self-healing, content discovery and the quality gates are not on the list, because a second run could repeat a side effect.
+- **Only the first attempt of a scheduled run** is re-run. A manual, push or workflow-triggered failure opens its Issue immediately.
+- **A failure is never hidden.** If GitHub refuses the re-run request, the Issue opens on the first failure and says why.
+- **Permission:** the workflow has `actions: write`, which re-running a failed job needs. It still has no access to secrets or contents beyond read.
+- To add a monitor to the list, confirm it only reads, add its exact `name:` to `RERUN_ONCE_WORKFLOWS`, and keep it on the watched list above.
 
 ## Repeated failure halt
 
