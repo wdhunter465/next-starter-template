@@ -6,7 +6,7 @@ Owns: The Cursor ready-queue file, the queries it holds, what a Cursor tick does
 Does Not Own: Runtime selection (docs/governance/standards/CURSOR-RUNTIME-ROUTING.md), the shared execution law, queue-state label definitions, or the local poller implementation
 Canonical Reference: /docs/governance/AGENT-EXECUTION.md
 Related Issues: #4982, #4362, #4966, #4994, #5016, #5007
-Last Reviewed: 2026-10-28
+Last Reviewed: 2026-11-15
 ---
 
 # Cursor ready-queue contract
@@ -17,7 +17,7 @@ Keep the Cursor local agent working without a task list from Product Authority. 
 
 ## Scope
 
-This file specifies the Cursor host files and what the Cursor poller does with them. The queue order, the meaning of a tick, the skip, cycle and repeat rules and when an agent may go quiet are shared by every agent and live only in `docs/governance/AGENT-EXECUTION.md` (Assigned-queue continuation). The labels are in `docs/governance/WORK-QUEUES-AND-COLLABORATION.md` (Queue-state labels). Runtime selection is in `docs/governance/standards/CURSOR-RUNTIME-ROUTING.md`.
+This file specifies the Cursor host files and what the Cursor poller does with them. The queue order, the meaning of a tick, the skip, cycle and repeat rules and when an agent may go quiet are shared by every agent and live only in `docs/governance/AGENT-EXECUTION.md` (Assigned-queue continuation), including the broadened skip rule (#4994 / Product Authority 2026-11-15: any block → skip and take the next item). The labels are in `docs/governance/WORK-QUEUES-AND-COLLABORATION.md` (Queue-state labels). Runtime selection is in `docs/governance/standards/CURSOR-RUNTIME-ROUTING.md`.
 
 ## Current known truth
 

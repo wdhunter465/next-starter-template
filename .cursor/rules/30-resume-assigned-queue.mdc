@@ -5,4 +5,4 @@ alwaysApply: true
 
 # Wake tick
 
-The always-on tick is a keepalive, not an assignment and not a stop. On every tick run the queries in `~/.cursor/lgfc-ready-queue.txt` (`docs/reference/ci/cursor-ready-queue-contract.md`), then check your open pull requests. The queue order and the skip, cycle, act-when-a-wait-ends, repeat-guard and go-quiet rules are in `docs/governance/AGENT-EXECUTION.md` (Assigned-queue continuation). Where a tick message disagrees with that document, that document wins.
+The always-on tick is a keepalive, not an assignment and not a stop. On every tick run the queries in `~/.cursor/lgfc-ready-queue.txt` (`docs/reference/ci/cursor-ready-queue-contract.md`), then check your open pull requests. The queue order and the skip, cycle, act-when-a-wait-ends, repeat-guard and go-quiet rules are in `docs/governance/AGENT-EXECUTION.md` (Assigned-queue continuation), including skip-any-block (#4994). Where a tick message disagrees with that document, that document wins.
