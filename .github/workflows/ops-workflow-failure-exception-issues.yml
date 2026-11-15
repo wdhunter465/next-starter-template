@@ -28,6 +28,7 @@ on:
       - "OPS — Matchup Pair Monitor"
       - "OPS — Production Edge Health"
       - "OPS — Scheduled Qualification (#4467)"
+      - "OPS — Operations Issue wake (#4681)"
     types: [completed]
 
 permissions:

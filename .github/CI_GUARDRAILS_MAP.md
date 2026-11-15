@@ -64,6 +64,7 @@ Supporting post-merge and operational workflows must not independently claim the
 | `ops-post-merge-self-healing.yml` | Scheduled/manual exception backlog hygiene |
 | `ops-pr-process-metrics.yml` | PR-process metrics |
 | `ops-stale-communication.yml` | #3188 source-Issue stale communication detector (exception comments only; no ack/reassign) |
+| `ops-issue-wake.yml` | #4681 wakes the Operations holder when a `team:operations` Issue opens and escalates to the secondary holder if unacknowledged (comments only; never assigns or relabels) |
 | `ops-ai-review-enable.yml` | #2215 operator-authorized AI review Pages secret enablement |
 | `post-merge-intent-verification.yml` | Inert manual compatibility marker; no automatic trigger or mutation permissions |
 

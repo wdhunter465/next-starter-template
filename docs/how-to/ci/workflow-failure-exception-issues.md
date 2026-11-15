@@ -41,6 +41,7 @@ Watched workflows (by their exact `name:`):
 - OPS — Matchup Pair Monitor
 - OPS — Production Edge Health
 - OPS — Scheduled Qualification (#4467)
+- OPS — Operations Issue wake (#4681)
 
 Only failures on the default branch open an Issue. Failures on pull request branches are normal and are ignored.
 
