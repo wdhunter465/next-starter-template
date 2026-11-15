@@ -15,6 +15,12 @@ const REPO = process.env.GITHUB_POLL_REPO || 'wdhunter465/next-starter-template'
 const LOGIN = process.env.GITHUB_POLL_LOGIN || 'wdhunter465';
 const STATE_PATH = join(POLLER_DIR, 'state.json');
 const ALERTS_LOG = join(POLLER_DIR, 'alerts.log');
+const REPO_ROOT_CACHE = process.env.LGFC_WAKE_REPO_ROOT_CACHE || '/tmp/lgfc-wake-repo-root';
+const RULE_PATHS = [
+  'docs/governance/AGENT-EXECUTION.md',
+  'docs/ops/ai/CURSOR-RULES.md',
+  'docs/governance/AGENT-TEAM.md',
+];
 
 function gh(args) {
   const out = execFileSync('gh', args, { encoding: 'utf8', maxBuffer: 8 * 1024 * 1024 });
@@ -25,6 +31,104 @@ function gh(args) {
 
 function ghRaw(args) {
   return execFileSync('gh', args, { encoding: 'utf8', maxBuffer: 8 * 1024 * 1024 }).trim();
+}
+
+function isRepoRoot(candidate) {
+  if (!candidate) return false;
+  return (
+    existsSync(join(candidate, 'Agent.md')) &&
+    existsSync(join(candidate, 'docs/governance/AGENT-EXECUTION.md')) &&
+    existsSync(join(candidate, 'docs/governance/AGENT-TEAM.md')) &&
+    existsSync(join(candidate, 'docs/ops/ai/CURSOR-RULES.md'))
+  );
+}
+
+function isNestedCheckout(candidate) {
+  if (!candidate) return false;
+  const parent = dirname(candidate);
+  return parent !== candidate && isRepoRoot(parent);
+}
+
+function acceptRepoRoot(candidate) {
+  return isRepoRoot(candidate) && !isNestedCheckout(candidate);
+}
+
+function resolveRepoRoot() {
+  const envRoot = process.env.LGFC_REPO_ROOT || '';
+  if (acceptRepoRoot(envRoot)) return envRoot;
+  if (acceptRepoRoot(process.cwd())) return process.cwd();
+  try {
+    const gitTop = execFileSync('git', ['rev-parse', '--show-toplevel'], {
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    }).trim();
+    if (acceptRepoRoot(gitTop)) return gitTop;
+  } catch {
+    // Fall through to cache and home defaults.
+  }
+  if (existsSync(REPO_ROOT_CACHE)) {
+    const cached = readFileSync(REPO_ROOT_CACHE, 'utf8').trim();
+    if (acceptRepoRoot(cached)) return cached;
+  }
+  const homeDefault = join(homedir(), 'next-starter-template');
+  if (acceptRepoRoot(homeDefault)) return homeDefault;
+  return homeDefault;
+}
+
+/**
+ * Fresh rules on every tick (#5007): fetch origin/main without touching the
+ * working tree, then report the tip SHA and AGENT-EXECUTION blob SHA.
+ */
+export function fetchRulesVersion({
+  repoRoot = resolveRepoRoot(),
+  execFile = execFileSync,
+  previousBlobSha = null,
+} = {}) {
+  const result = {
+    fetchOk: false,
+    originMainSha: null,
+    agentExecutionBlobSha: null,
+    rulesChanged: false,
+    error: null,
+    repoRoot,
+  };
+  try {
+    execFile('git', ['fetch', 'origin', 'main'], {
+      cwd: repoRoot,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
+    result.originMainSha = execFile('git', ['rev-parse', 'origin/main'], {
+      cwd: repoRoot,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'pipe'],
+    }).trim();
+    result.agentExecutionBlobSha = execFile(
+      'git',
+      ['rev-parse', 'origin/main:docs/governance/AGENT-EXECUTION.md'],
+      {
+        cwd: repoRoot,
+        encoding: 'utf8',
+        stdio: ['ignore', 'pipe', 'pipe'],
+      },
+    ).trim();
+    // Touch the tip of each required rule path so a missing blob fails closed.
+    for (const path of RULE_PATHS) {
+      execFile('git', ['show', `origin/main:${path}`], {
+        cwd: repoRoot,
+        encoding: 'utf8',
+        maxBuffer: 4 * 1024 * 1024,
+        stdio: ['ignore', 'pipe', 'pipe'],
+      });
+    }
+    result.fetchOk = true;
+    result.rulesChanged = Boolean(
+      previousBlobSha && previousBlobSha !== result.agentExecutionBlobSha,
+    );
+  } catch (err) {
+    result.error = err?.message || String(err);
+  }
+  return result;
 }
 
 /**
@@ -695,6 +799,22 @@ async function main() {
   const state = loadState();
   const since = state.since;
   const now = new Date().toISOString();
+  const rulesVersion = fetchRulesVersion({
+    previousBlobSha: state.agentExecutionBlobSha || null,
+  });
+  if (rulesVersion.fetchOk) {
+    state.agentExecutionBlobSha = rulesVersion.agentExecutionBlobSha;
+    state.originMainSha = rulesVersion.originMainSha;
+    try {
+      writeFileSync(REPO_ROOT_CACHE, `${rulesVersion.repoRoot}\n`);
+    } catch {
+      // Cache write is best-effort.
+    }
+  } else {
+    console.error(
+      `[${now}] rules fetch failed once; using last good copy if any: ${rulesVersion.error || 'unknown'}`,
+    );
+  }
 
   let events;
   let resumeQueue = [];
@@ -709,6 +829,17 @@ async function main() {
     process.exit(1);
   }
   persistResumeQueue(resumeQueue, now);
+  // Carry the two SHAs with the ready-queue payload (#5007).
+  readyQueue.unshift({
+    index: 0,
+    kind: 'rules-version',
+    fetchOk: rulesVersion.fetchOk,
+    originMainSha: rulesVersion.originMainSha || state.originMainSha || null,
+    agentExecutionBlobSha:
+      rulesVersion.agentExecutionBlobSha || state.agentExecutionBlobSha || null,
+    rulesChanged: rulesVersion.rulesChanged,
+    error: rulesVersion.error,
+  });
 
   const unseen = events.filter((event) => !state.seen[eventKey(event)]);
   for (const event of unseen) {
@@ -743,14 +874,24 @@ async function main() {
   const executable = resumeQueue.filter((item) => !item.waiting);
   const nextExecutable = executable[0] || null;
   const idle = fresh.length === 0 && resumeQueue.length === 0;
+  const originMainSha =
+    rulesVersion.originMainSha || state.originMainSha || 'unknown';
+  const agentExecutionBlobSha =
+    rulesVersion.agentExecutionBlobSha || state.agentExecutionBlobSha || 'unknown';
   const prompt = [
     `Run the queries in ~/.cursor/lgfc-ready-queue.txt for ${REPO}.`,
     'Skip any Issue labeled wait:* after recording the blocker.',
     'Act on the first Issue that can move. Never send a third identical report.',
+    `origin/main=${originMainSha} AGENT-EXECUTION=${agentExecutionBlobSha}.`,
+    rulesVersion.fetchOk
+      ? null
+      : 'Rules fetch failed once; working from the last good copy.',
     fresh.length
       ? `Poll saw ${fresh.length} new event(s): ${refs.join(', ')}.`
       : 'Poll saw no new events.',
-  ].join(' ');
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   const payload = {
     ok: true,
@@ -765,6 +906,10 @@ async function main() {
     waiting,
     resumeQueue,
     readyQueue,
+    originMainSha,
+    agentExecutionBlobSha,
+    rulesFetchOk: rulesVersion.fetchOk,
+    rulesChanged: rulesVersion.rulesChanged,
     events: fresh,
     prompt,
   };
@@ -801,4 +946,6 @@ async function main() {
   appendAlerts(banner);
 }
 
-main();
+if (import.meta.url === pathToFileURL(process.argv[1] || '').href) {
+  main();
+}

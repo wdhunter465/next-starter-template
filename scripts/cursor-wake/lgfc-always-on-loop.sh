@@ -78,14 +78,20 @@ PY
     exit 1
   fi
   prompt_base="$(tr '\n' ' ' < "$prompt_file" | sed 's/[[:space:]]*$//')"
-  prompt="${prompt_base} Poll fresh=${fresh} events=${events}."
+  origin_main="$(printf '%s' "$poll_json" | python3 -c 'import sys,json; j=json.loads(sys.stdin.read() or "{}"); print(j.get("originMainSha") or "unknown")' 2>/dev/null || echo unknown)"
+  agent_exec="$(printf '%s' "$poll_json" | python3 -c 'import sys,json; j=json.loads(sys.stdin.read() or "{}"); print(j.get("agentExecutionBlobSha") or "unknown")' 2>/dev/null || echo unknown)"
+  prompt="${prompt_base} Poll fresh=${fresh} events=${events}. origin/main=${origin_main} AGENT-EXECUTION=${agent_exec}."
   TS="$ts" PROMPT="$prompt" FRESH="$fresh" IDLE="$idle" POLL_JSON="$poll_json" python3 -c '
 import json, os
 raw = os.environ.get("POLL_JSON") or ""
 ready = []
+origin_main = "unknown"
+agent_exec = "unknown"
 try:
     parsed = json.loads(raw) if raw.strip() else {}
     ready = parsed.get("readyQueue") or []
+    origin_main = parsed.get("originMainSha") or "unknown"
+    agent_exec = parsed.get("agentExecutionBlobSha") or "unknown"
 except Exception:
     ready = []
 payload = {
@@ -94,6 +100,8 @@ payload = {
     "fresh": os.environ.get("FRESH", ""),
     "idle": os.environ.get("IDLE", ""),
     "readyQueue": ready,
+    "originMainSha": origin_main,
+    "agentExecutionBlobSha": agent_exec,
 }
 inbox = os.path.expanduser("~/.cursor/lgfc-wake-poll-inbox.json")
 tmp = inbox + ".tmp"
@@ -101,7 +109,7 @@ with open(tmp, "w", encoding="utf-8") as fh:
     json.dump(payload, fh)
     fh.write("\n")
 os.replace(tmp, inbox)
-print("AGENT_LOOP_TICK_lgfc_always_on " + json.dumps({"ts": payload["ts"], "prompt": payload["prompt"], "fresh": payload["fresh"], "idle": payload["idle"], "readyQueue": [{"index": item.get("index"), "count": item.get("count"), "actionable": [row.get("number") for row in item.get("actionable") or []], "skipped": [row.get("number") for row in item.get("skipped") or []]} for item in ready]}))
+print("AGENT_LOOP_TICK_lgfc_always_on " + json.dumps({"ts": payload["ts"], "prompt": payload["prompt"], "fresh": payload["fresh"], "idle": payload["idle"], "originMainSha": origin_main, "agentExecutionBlobSha": agent_exec, "readyQueue": [{"index": item.get("index"), "count": item.get("count"), "kind": item.get("kind"), "originMainSha": item.get("originMainSha"), "agentExecutionBlobSha": item.get("agentExecutionBlobSha"), "actionable": [row.get("number") for row in item.get("actionable") or []], "skipped": [row.get("number") for row in item.get("skipped") or []]} for item in ready]}))
 '
 }
 
