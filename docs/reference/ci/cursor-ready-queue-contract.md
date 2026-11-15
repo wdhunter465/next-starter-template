@@ -75,8 +75,8 @@ The queue is read from GitHub, and so are the rules Cursor acts on. A merged cha
 - **Fetch, do not pull.** Run `git fetch origin main` in the workspace. Do not check out, merge or reset anything, and leave the branch Cursor is on and its working tree alone.
 - **Read from `origin/main`.** Read the rule files with `git show origin/main:<path>` (or the GitHub contents API), not from the working copy: `docs/governance/AGENT-EXECUTION.md`, `docs/ops/ai/CURSOR-RULES.md` and `docs/governance/AGENT-TEAM.md`.
 - **Report the version.** Write the `origin/main` commit SHA and the blob SHA of `AGENT-EXECUTION.md` (`git rev-parse origin/main:docs/governance/AGENT-EXECUTION.md`) into `readyQueue` in `~/.cursor/lgfc-wake-poll-inbox.json` and print both in the tick line.
-- **Reload on change.** When the blob SHA differs from the previous tick's, the next action starts by re-reading Assigned-queue continuation. A changed rule is never left for a person to notice.
-- **A failed fetch is visible.** If the fetch fails, the tick says so once and works from the last good copy of the rules. It does not silently use the checkout.
+- **Reload on change.** When the blob SHA differs from the previous tick's, the tick prompt includes this exact sentence (so the agent consumes `rulesChanged`): `AGENT-EXECUTION blob changed on origin/main; re-read docs/governance/AGENT-EXECUTION.md from origin/main (Assigned-queue continuation) before acting.` A changed rule is never left for a person to notice.
+- **A failed fetch is visible once.** If the fetch fails, the tick prompt includes `Rules fetch failed once; working from the last good copy.` on the **first** failed tick only. Later failed ticks keep the last good SHAs and omit that sentence until a fetch succeeds again (then a later failure may announce once more). It does not silently use the checkout.
 
 ## Host files
 

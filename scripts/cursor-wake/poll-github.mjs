@@ -1,7 +1,7 @@
-#!/usr/bin/env node
 /**
  * Local GitHub work poller (no cloud agents, no usage credits).
  * Uses gh CLI only. Tracks state between runs to avoid repeat alerts.
+ * Run with: node scripts/cursor-wake/poll-github.mjs
  */
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
@@ -79,6 +79,27 @@ function resolveRepoRoot() {
  * Fresh rules on every tick (#5007): fetch origin/main without touching the
  * working tree, then report the tip SHA and AGENT-EXECUTION blob SHA.
  */
+export const RULES_CHANGED_PROMPT =
+  'AGENT-EXECUTION blob changed on origin/main; re-read docs/governance/AGENT-EXECUTION.md from origin/main (Assigned-queue continuation) before acting.';
+export const RULES_FETCH_FAILED_ONCE_PROMPT =
+  'Rules fetch failed once; working from the last good copy.';
+
+/**
+ * Build the optional rules sentences for the tick prompt (#5007 reopen).
+ * `announceFetchFailure` is true only on the first failed tick after a success
+ * (or on the first failure ever); later failures stay quiet until a fetch succeeds.
+ */
+export function buildRulesPromptParts({
+  rulesChanged = false,
+  fetchOk = true,
+  announceFetchFailure = false,
+} = {}) {
+  const parts = [];
+  if (rulesChanged) parts.push(RULES_CHANGED_PROMPT);
+  if (!fetchOk && announceFetchFailure) parts.push(RULES_FETCH_FAILED_ONCE_PROMPT);
+  return parts;
+}
+
 export function fetchRulesVersion({
   repoRoot = resolveRepoRoot(),
   execFile = execFileSync,
@@ -802,19 +823,29 @@ async function main() {
   const rulesVersion = fetchRulesVersion({
     previousBlobSha: state.agentExecutionBlobSha || null,
   });
+  // Announce a fetch failure only once until a later fetch succeeds (#5007).
+  let announceFetchFailure = false;
   if (rulesVersion.fetchOk) {
     state.agentExecutionBlobSha = rulesVersion.agentExecutionBlobSha;
     state.originMainSha = rulesVersion.originMainSha;
+    state.rulesFetchFailureAnnounced = false;
     try {
       writeFileSync(REPO_ROOT_CACHE, `${rulesVersion.repoRoot}\n`);
     } catch {
       // Cache write is best-effort.
     }
   } else {
+    announceFetchFailure = !state.rulesFetchFailureAnnounced;
+    if (announceFetchFailure) state.rulesFetchFailureAnnounced = true;
     console.error(
-      `[${now}] rules fetch failed once; using last good copy if any: ${rulesVersion.error || 'unknown'}`,
+      `[${now}] rules fetch failed${announceFetchFailure ? ' once' : ''}; using last good copy if any: ${rulesVersion.error || 'unknown'}`,
     );
   }
+  const rulesPromptParts = buildRulesPromptParts({
+    rulesChanged: rulesVersion.rulesChanged,
+    fetchOk: rulesVersion.fetchOk,
+    announceFetchFailure,
+  });
 
   let events;
   let resumeQueue = [];
@@ -883,9 +914,7 @@ async function main() {
     'Skip any Issue labeled wait:* after recording the blocker.',
     'Act on the first Issue that can move. Never send a third identical report.',
     `origin/main=${originMainSha} AGENT-EXECUTION=${agentExecutionBlobSha}.`,
-    rulesVersion.fetchOk
-      ? null
-      : 'Rules fetch failed once; working from the last good copy.',
+    ...rulesPromptParts,
     fresh.length
       ? `Poll saw ${fresh.length} new event(s): ${refs.join(', ')}.`
       : 'Poll saw no new events.',
@@ -910,6 +939,9 @@ async function main() {
     agentExecutionBlobSha,
     rulesFetchOk: rulesVersion.fetchOk,
     rulesChanged: rulesVersion.rulesChanged,
+    rulesFetchFailureAnnounced: Boolean(state.rulesFetchFailureAnnounced),
+    announceFetchFailure,
+    rulesPromptParts,
     events: fresh,
     prompt,
   };
