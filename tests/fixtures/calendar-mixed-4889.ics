@@ -1,0 +1,61 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//LGFC fixture//EN
+BEGIN:VEVENT
+UID:public-launch@example
+DTSTART;VALUE=DATE:20270101
+DTEND;VALUE=DATE:20270102
+SUMMARY:LGFC website production launch
+LOCATION:Online
+DESCRIPTION:The website goes live.\nJoin us\, free.
+URL:https://www.lougehrigfanclub.com/
+END:VEVENT
+BEGIN:VEVENT
+UID:public-multi@example
+DTSTART;VALUE=DATE:20270601
+DTEND;VALUE=DATE:20270604
+SUMMARY:Lou Gehrig Day weekend
+END:VEVENT
+BEGIN:VEVENT
+UID:admin-pmo@example
+DTSTART;TZID=America/New_York:20261117T090000
+DTEND;TZID=America/New_York:20261117T100000
+SUMMARY:LGFCADMIN - PMO Meeting
+ATTENDEE;CN=Bill:mailto:billhunter71@gmail.com
+END:VEVENT
+BEGIN:VEVENT
+UID:admin-no-attendee@example
+DTSTART;VALUE=DATE:20261201
+SUMMARY:lgfcadmin - Prep day
+END:VEVENT
+BEGIN:VEVENT
+UID:meeting-with-invitee@example
+DTSTART;VALUE=DATE:20261202
+SUMMARY:Coffee with a member
+ATTENDEE:mailto:someone@example.com
+END:VEVENT
+BEGIN:VEVENT
+UID:private-item@example
+DTSTART;VALUE=DATE:20261203
+SUMMARY:Private contact entry
+CLASS:PRIVATE
+END:VEVENT
+BEGIN:VEVENT
+UID:yearly@example
+DTSTART;VALUE=DATE:20261228
+SUMMARY:LGFC anniversary
+RRULE:FREQ=YEARLY
+END:VEVENT
+BEGIN:VEVENT
+UID:cancelled@example
+DTSTART;VALUE=DATE:20270301
+SUMMARY:Cancelled public event
+STATUS:CANCELLED
+END:VEVENT
+BEGIN:VEVENT
+UID:long-line@example
+DTSTART;VALUE=DATE:20270410
+SUMMARY:A very long title that is folded across
+  two lines
+END:VEVENT
+END:VCALENDAR
