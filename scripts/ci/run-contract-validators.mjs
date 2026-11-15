@@ -23,6 +23,20 @@ export function issueNumberFromText(text = '') {
   return labeled ? Number(labeled[1]) : null;
 }
 
+const IMPLEMENTATION_AGENT_LABELS = { 'claude code': 'agent:claude', claude: 'agent:claude', cursor: 'agent:cursor' };
+
+/**
+ * The agent label named by the pull request body's `Implementation agent:` line, or null. Only the two team
+ * members are recognized, by name or by a literal `agent:claude` or `agent:cursor`; anything else is unknown.
+ */
+export function implementationAgentLabel(body = '') {
+  const match = String(body).match(/^\s*(?:[-*]\s*)?Implementation agent:\s*(.+?)\s*$/im);
+  if (!match) return null;
+  const value = match[1].replace(/<!--.*?-->/g, '').trim().toLowerCase();
+  if (value === 'agent:claude' || value === 'agent:cursor') return value;
+  return IMPLEMENTATION_AGENT_LABELS[value] ?? null;
+}
+
 function fieldValue(body, label) {
   const match = String(body || '').match(new RegExp(`^${label}:\\s*(.+)$`, 'im'));
   return match ? match[1].trim() : '';
@@ -39,9 +53,19 @@ export function claimsToBeExecutable(labels = []) {
 // The scheduled sweep audits claims, it does not make one. A package-complete child held by
 // exactly one agent is the healthy state, so it is evaluated as that holder rather than as the
 // advisory actor, which would report BLOCKED-CLAIM-STATE for every claimed child (#5027).
-// Conflicting agent labels still fail. Pull-request mode keeps the caller's requester.
+// Conflicting agent labels still fail.
+//
+// Pull-request mode (#5180): the caller is the shared repository identity, which is not an agent, so a
+// holder's own pull request would be evaluated as a stranger. The pull request body says who implements it
+// (`Implementation agent:`). When the source Issue carries exactly one `agent:*` label and it is that same
+// agent, the pull request is evaluated as the holder. A different agent, an unreadable or unknown name, or
+// conflicting labels keep the caller's requester, so BLOCKED-CLAIM-STATE is still reported for them.
 export function claimRequester(labels = [], options = {}) {
   const requester = options.requestingAgent || 'unassigned';
+  if (options.implementationAgent) {
+    const held = labels.filter((label) => label.startsWith('agent:'));
+    return held.length === 1 && held[0] === options.implementationAgent ? held[0] : requester;
+  }
   if (!options.executableOnly) return requester;
   const agents = labels.filter((label) => label.startsWith('agent:'));
   return agents.length === 1 ? agents[0] : requester;
@@ -162,7 +186,9 @@ function main() {
     evaluateRecord(issue, {
       requestingAgent: process.env.VALIDATOR_ACTOR || 'advisory',
       activeClaims: activeClaims.filter((claim) => claim.id !== issue.number),
-      executableOnly: mode === 'schedule'
+      executableOnly: mode === 'schedule',
+      // Pull-request mode only: the step already has PR_BODY in its environment (#5180).
+      implementationAgent: mode === 'schedule' ? undefined : implementationAgentLabel(process.env.PR_BODY || '') || undefined
     })
   );
   const report = renderReport(results);
