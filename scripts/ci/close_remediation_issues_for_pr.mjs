@@ -3,11 +3,20 @@
 import { pathToFileURL } from 'node:url';
 import { githubRepoRequest } from './github_issue_api.mjs';
 import {
+	applyTerminalLabelReconciliation,
+	FAILURE_SOURCE_ISSUE_LABEL,
 	isRemediationIssue,
+	issueLabelNameList,
 	LEGACY_REMEDIATION_TITLE_PREFIX,
+	planActiveSourceIssueRelabel,
 	REMEDIATION_ISSUE_LABEL,
 	REMEDIATION_TITLE_PREFIX,
 } from './post_merge_source_issue_closeout.mjs';
+import {
+	isExceptionIssue,
+	openExceptionsForOriginalSource,
+	parseExceptionLineage,
+} from './post_merge_delivery_lineage.mjs';
 import { parseRemediationIssue } from './close_duplicate_remediation_issues.mjs';
 
 function request(args) {
@@ -207,13 +216,109 @@ export async function closeRemediationIssuesForPr({
 		}
 	}
 
+	// #5246: the original source issues of the exceptions just closed, and the exceptions still open, so the
+	// caller can clear a stale status:failed once the whole chain is resolved.
+	const closedIssueObjects = openIssues.filter((issue) => closedNumbers.has(issue.number));
+	const originalSources = [
+		...new Set(
+			closedIssueObjects
+				.map((issue) => parseExceptionLineage(issue).original_source_issue)
+				.filter((n) => Number.isInteger(n) && n > 0)
+				.filter((n) => !openIssues.some((issue) => issue.number === n && isExceptionIssue(issue))),
+		),
+	];
+
 	return {
 		prNumber: String(prNumber),
 		scanned: openIssues.length,
 		matched: matches.length,
 		closed,
 		failed,
+		originalSources,
+		remainingOpenIssues: openIssues.filter((issue) => !closedNumbers.has(issue.number)),
 	};
+}
+
+export function failedSourceClearedComment({ prNumber, mergeSha, removedLabels }) {
+	return [
+		'Post-merge remediation is complete: the remediation pull request merged and re-verification on `main` passed.',
+		'',
+		`- Remediation PR: #${prNumber}`,
+		`- Merge SHA: ${mergeSha || 'unknown'}`,
+		`- Validator status: pass`,
+		`- Labels removed: ${removedLabels.length ? removedLabels.join(', ') : 'none'}`,
+		'- This issue stays open. Closing it is a separate step for its owner.',
+	].join('\n');
+}
+
+/**
+ * #5246: when a remediation PR merges and its re-verification passes, the original source issue leaves
+ * `status:failed`. It is only touched when every exception in its chain is closed, it is still open, and
+ * it still carries `status:failed`. A failing re-verification never reaches this function (the caller runs
+ * it only on `post_merge_success`), so a failing result changes nothing. The issue is left open.
+ */
+export async function clearFailedLabelAfterRemediation({
+	token,
+	repository,
+	prNumber,
+	mergeSha = '',
+	originalSources = [],
+	remainingOpenIssues = [],
+	dryRun = false,
+	requestFn = request,
+}) {
+	const cleared = [];
+	const skipped = [];
+	const failed = [];
+
+	for (const original of originalSources) {
+		if (openExceptionsForOriginalSource(remainingOpenIssues, original).length > 0) {
+			skipped.push({ number: original, reason: 'exception_chain_open' });
+			continue;
+		}
+		try {
+			const issue = await requestFn({ token, repository, path: `/issues/${original}` });
+			if (!issue || String(issue.state || '').toLowerCase() !== 'open') {
+				skipped.push({ number: original, reason: 'source_not_open' });
+				continue;
+			}
+			if (!issueLabelNameList(issue).includes(FAILURE_SOURCE_ISSUE_LABEL)) {
+				skipped.push({ number: original, reason: 'no_failed_label' });
+				continue;
+			}
+			const plan = planActiveSourceIssueRelabel({ issueLabels: issue.labels || [] });
+			if (dryRun) {
+				cleared.push({ number: original, dry_run: true, removeLabels: plan.removeLabels });
+				continue;
+			}
+			await applyTerminalLabelReconciliation({
+				token,
+				repository,
+				issueNumber: original,
+				plan,
+				requestFn,
+			});
+			await requestFn({
+				token,
+				repository,
+				path: `/issues/${original}/comments`,
+				method: 'POST',
+				body: {
+					body: failedSourceClearedComment({
+						prNumber,
+						mergeSha,
+						removedLabels: plan.removeLabels,
+					}),
+				},
+			});
+			cleared.push({ number: original, removeLabels: plan.removeLabels });
+		} catch (error) {
+			console.error(`Failed to clear ${FAILURE_SOURCE_ISSUE_LABEL} on #${original} after PR #${prNumber}:`, error);
+			failed.push({ number: original, message: error instanceof Error ? error.message : String(error) });
+		}
+	}
+
+	return { cleared, skipped, failed };
 }
 
 export async function main() {
@@ -236,7 +341,18 @@ export async function main() {
 		sourceIssue,
 		dryRun,
 	});
-	console.log(JSON.stringify(outcome, null, 2));
+	const failedLabel = await clearFailedLabelAfterRemediation({
+		token,
+		repository,
+		prNumber,
+		mergeSha,
+		originalSources: outcome.originalSources,
+		remainingOpenIssues: outcome.remainingOpenIssues,
+		dryRun,
+	});
+	const printable = { ...outcome, failedLabel };
+	delete printable.remainingOpenIssues;
+	console.log(JSON.stringify(printable, null, 2));
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
