@@ -17,6 +17,7 @@ export const JOBS = [
   { file: 'ops-site-uptime-probe.yml', maxAgeHours: 3 },
   { file: 'ops-photo-address-check.yml', maxAgeHours: 8 },
   { file: 'ops-stale-communication.yml', maxAgeHours: 3 },
+  { file: 'ops-issue-wake.yml', maxAgeHours: 3 },
   { file: 'program-2477-chat-attention-pulse.yml', maxAgeHours: 3 },
   { file: 'ops-chatterbox-reconciliation-sweep.yml', maxAgeHours: 4 },
   { file: 'pmo-dashboard-ci-build.yml', maxAgeHours: 4 },
