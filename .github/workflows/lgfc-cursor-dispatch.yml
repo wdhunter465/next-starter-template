@@ -28,7 +28,9 @@ permissions:
   issues: write
 
 concurrency:
-  group: lgfc-cursor-dispatch
+  # One group per Issue (#5275): a shared group kept only the newest pending run, so labeling several Issues
+  # close together cancelled all but one wake. Manual dispatch has no Issue and uses its own run id.
+  group: lgfc-cursor-dispatch-${{ github.event.issue.number || github.run_id }}
   cancel-in-progress: false
 
 jobs:
