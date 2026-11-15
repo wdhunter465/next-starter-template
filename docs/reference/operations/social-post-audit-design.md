@@ -107,7 +107,7 @@ What each platform can tell us is collected at the time of the attempt, and agai
 2. **Read the platforms directly from a GitHub job** with their own API tokens (a Meta app for Facebook and Instagram, a Pinterest app). Free, but needs developer apps and renewal of tokens, and the Pinterest and Meta tokens expire.
 3. **A reduced read**, only for days where the hand-off Issue shows an attempt: still about 6 tasks a day, so no saving.
 
-Until one is chosen, Facebook, Instagram and Pinterest records stay `handed_off` and the scorecard shows them as such; X is confirmed the same day. The heartbeat (#5159) flags any day with an unconfirmed Zapier platform.
+**Decision (#5197 closing comment, Product Authority 2026-11-13):** the Zapier subscription stays on the free plan and will not be changed. No daily or weekly Zapier read-back of Facebook, Instagram or Pinterest. Those platforms stay `handed_off` in the posting log (the hand-off Issue and its time are the evidence); the weekly scorecard shows them as "handed off, not verified" and never counts them as confirmed. X is unaffected (Buffer reads are free). Direct platform tokens from a GitHub job were not chosen; open a new Issue if that is ever wanted. The heartbeat (#5159) still flags operational problems on the posting path.
 
 ## Records for 2026-11-10 to 2026-11-12 (by hand)
 
@@ -618,8 +618,8 @@ Findings from filling the records in:
 
 1. The evidence record library: build, validate and append a record, with tests (no workflow change).
 2. X same-day capture: the posting job reads the Buffer post back and appends the record to the data branch.
-3. Ledger meaning: `posted` becomes `handed_off` for the Zapier platforms, and the evidence table is added in D1 (a Production migration; needs an explicit Go).
-4. Zapier-platform read-back, once Product Authority chooses the option above.
-5. Ad hoc post logging: any post made outside the queue is recorded the same day.
+3. Ledger meaning: `posted` becomes `handed_off` for the Zapier platforms, and the evidence table is added in D1 (a Production migration; needs an explicit Go). Tracked on #5289 (child of #5229).
+4. Zapier-platform read-back: **closed by decision** — free plan stays; no Zapier read-back (#5197). Not built; not waiting on a choice.
+5. Ad hoc post logging: any post made outside the queue is recorded the same day. Tracked on #5289 with item 3.
 6. Back-fill of 2026-11-04 to 2026-11-12 (a Production write; needs an explicit Go).
 7. The weekly scorecard counts and the trend graph (#5198), which read this log and the edition log.
