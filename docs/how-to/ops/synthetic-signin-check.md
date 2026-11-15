@@ -32,7 +32,7 @@ In order, stopping nothing early except what depends on a failed sign-in:
 
 If a sign-in fails, the checks that need it are `skipped` and the run fails.
 
-## Run it
+## Procedure
 
 Use a Development or preview site. You need two test accounts that already exist on that site, a member and an admin, with different addresses.
 
