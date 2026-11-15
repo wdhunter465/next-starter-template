@@ -6,7 +6,7 @@ Owns: The Cursor ready-queue file, the queries it holds, what a Cursor tick does
 Does Not Own: Runtime selection (docs/governance/standards/CURSOR-RUNTIME-ROUTING.md), the shared execution law, queue-state label definitions, or the local poller implementation
 Canonical Reference: /docs/governance/AGENT-EXECUTION.md
 Related Issues: #4982, #4362, #4966, #4994, #5016, #5007
-Last Reviewed: 2026-10-28
+Last Reviewed: 2026-11-15
 ---
 
 # Cursor ready-queue contract
@@ -17,7 +17,7 @@ Keep the Cursor local agent working without a task list from Product Authority. 
 
 ## Scope
 
-This file specifies the Cursor host files and what the Cursor poller does with them. The queue order, the meaning of a tick, the skip, cycle and repeat rules and when an agent may go quiet are shared by every agent and live only in `docs/governance/AGENT-EXECUTION.md` (Assigned-queue continuation). The labels are in `docs/governance/WORK-QUEUES-AND-COLLABORATION.md` (Queue-state labels). Runtime selection is in `docs/governance/standards/CURSOR-RUNTIME-ROUTING.md`.
+This file specifies the Cursor host files and what the Cursor poller does with them. The queue order, the meaning of a tick, the skip, cycle and repeat rules and when an agent may go quiet are shared by every agent and live only in `docs/governance/AGENT-EXECUTION.md` (Assigned-queue continuation), including the broadened skip rule (#4994 / Product Authority 2026-11-15: any block → skip and take the next item). The labels are in `docs/governance/WORK-QUEUES-AND-COLLABORATION.md` (Queue-state labels). Runtime selection is in `docs/governance/standards/CURSOR-RUNTIME-ROUTING.md`.
 
 ## Current known truth
 
@@ -75,8 +75,8 @@ The queue is read from GitHub, and so are the rules Cursor acts on. A merged cha
 - **Fetch, do not pull.** Run `git fetch origin main` in the workspace. Do not check out, merge or reset anything, and leave the branch Cursor is on and its working tree alone.
 - **Read from `origin/main`.** Read the rule files with `git show origin/main:<path>` (or the GitHub contents API), not from the working copy: `docs/governance/AGENT-EXECUTION.md`, `docs/ops/ai/CURSOR-RULES.md` and `docs/governance/AGENT-TEAM.md`.
 - **Report the version.** Write the `origin/main` commit SHA and the blob SHA of `AGENT-EXECUTION.md` (`git rev-parse origin/main:docs/governance/AGENT-EXECUTION.md`) into `readyQueue` in `~/.cursor/lgfc-wake-poll-inbox.json` and print both in the tick line.
-- **Reload on change.** When the blob SHA differs from the previous tick's, the next action starts by re-reading Assigned-queue continuation. A changed rule is never left for a person to notice.
-- **A failed fetch is visible.** If the fetch fails, the tick says so once and works from the last good copy of the rules. It does not silently use the checkout.
+- **Reload on change.** When the blob SHA differs from the previous tick's, the tick prompt includes this exact sentence (so the agent consumes `rulesChanged`): `AGENT-EXECUTION blob changed on origin/main; re-read docs/governance/AGENT-EXECUTION.md from origin/main (Assigned-queue continuation) before acting.` A changed rule is never left for a person to notice.
+- **A failed fetch is visible once.** If the fetch fails, the tick prompt includes `Rules fetch failed once; working from the last good copy.` on the **first** failed tick only. Later failed ticks keep the last good SHAs and omit that sentence until a fetch succeeds again (then a later failure may announce once more). It does not silently use the checkout.
 
 ## Host files
 

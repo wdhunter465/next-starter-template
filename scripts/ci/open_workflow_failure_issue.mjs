@@ -7,10 +7,43 @@
 //   - the first failure opens the Issue; later failures add a comment with the run link
 //   - labels: team:operations (queue ownership) + ops-exception; no agent:* claim
 //   - an Issue is never closed automatically; Operations closes it when resolved
+//   - #4681 (decision 2): a failed run of a read-only monitor is re-run once before any Issue opens. If the re-run
+//     fails, or could not be requested, the Issue opens as before. Workflows that write (backups, publishing,
+//     syncs, migrations) are never re-run automatically.
 
 import { pathToFileURL } from 'node:url';
 
 export const EXCEPTION_LABELS = ['team:operations', 'ops-exception'];
+
+// Read-only monitors only. Re-running a job that writes (D1 backup, content publish, B2 sync, migrations, snapshot)
+// could repeat a side effect, so none of those are here. Names are the workflow `name:` values.
+export const RERUN_ONCE_WORKFLOWS = [
+  'Repository Runner Health',
+  'LGFC Cursor Runner Health',
+  'OPS — Production Edge Health',
+  'OPS — Scheduled Job Health',
+  'OPS — Matchup Pair Monitor',
+  'OPS — Design Compliance Audit',
+];
+
+/** True for the first attempt of a scheduled run of a read-only monitor. Undefined or later attempts never qualify. */
+export function shouldRerunOnce(run) {
+  return (
+    run?.event === 'schedule' &&
+    Number(run?.attempt) === 1 &&
+    RERUN_ONCE_WORKFLOWS.includes(run?.name)
+  );
+}
+
+function describeRerun(run) {
+  if (run.rerun_error) {
+    return `Automatic re-run: could not be requested (${run.rerun_error}); this Issue opened on the first failure.`;
+  }
+  if (Number(run.attempt) >= 2 && RERUN_ONCE_WORKFLOWS.includes(run.name)) {
+    return 'Automatic re-run: this run was re-run once and failed again.';
+  }
+  return null;
+}
 const MARKER_PREFIX = 'ops-exception-workflow:';
 
 export function exceptionTitle(workflowName) {
@@ -39,6 +72,7 @@ export function renderIssueBody(run, failedSteps) {
     `- Trigger: ${run.event}`,
     `- Commit: ${run.sha}`,
     `- ${describeFailures(failedSteps)}`,
+    ...(describeRerun(run) ? [`- ${describeRerun(run)}`] : []),
     '',
     '## What this Issue is',
     '',
@@ -59,6 +93,7 @@ export function renderComment(run, failedSteps) {
     `- Trigger: ${run.event}`,
     `- Commit: ${run.sha}`,
     `- ${describeFailures(failedSteps)}`,
+    ...(describeRerun(run) ? [`- ${describeRerun(run)}`] : []),
   ].join('\n');
 }
 
@@ -81,6 +116,16 @@ export async function getFailedSteps(api, repo, runId) {
 export async function handleWorkflowFailure({ run, api, repo }) {
   if (run.conclusion !== 'failure') {
     return { action: 'skipped', reason: 'not_failure' };
+  }
+
+  if (shouldRerunOnce(run)) {
+    try {
+      await api('POST', `/repos/${repo}/actions/runs/${run.id}/rerun-failed-jobs`);
+      return { action: 'rerun_requested', attempt: 1 };
+    } catch (error) {
+      // A failure is never hidden: if the re-run cannot be requested, the Issue opens now.
+      run = { ...run, rerun_error: error instanceof Error ? error.message : String(error) };
+    }
   }
 
   const failedSteps = await getFailedSteps(api, repo, run.id);
@@ -128,7 +173,7 @@ function makeApi(token) {
 }
 
 async function main() {
-  const { GH_TOKEN, REPO, RUN_ID, RUN_NAME, RUN_URL, RUN_CONCLUSION, RUN_EVENT, RUN_SHA } = process.env;
+  const { GH_TOKEN, REPO, RUN_ID, RUN_NAME, RUN_URL, RUN_CONCLUSION, RUN_EVENT, RUN_SHA, RUN_ATTEMPT } = process.env;
   if (!GH_TOKEN || !REPO || !RUN_ID || !RUN_NAME) {
     console.error('Missing required environment: GH_TOKEN, REPO, RUN_ID, RUN_NAME');
     process.exit(2);
@@ -141,6 +186,7 @@ async function main() {
       conclusion: RUN_CONCLUSION,
       event: RUN_EVENT,
       sha: RUN_SHA,
+      attempt: RUN_ATTEMPT ? Number(RUN_ATTEMPT) : undefined,
     },
     api: makeApi(GH_TOKEN),
     repo: REPO,

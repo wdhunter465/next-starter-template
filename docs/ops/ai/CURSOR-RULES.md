@@ -19,7 +19,7 @@ A Cursor workaround is denied unless Product Authority has approved that workaro
 
 ## Wake tick
 
-The local wake tick and the GitHub Actions runner are the two keepalives for this same session. What a tick means, the queue order, the skip, cycle and repeat rules and when to go quiet are in `docs/governance/AGENT-EXECUTION.md` (Assigned-queue continuation). Cursor's mechanics: on every tick run the queries in `~/.cursor/lgfc-ready-queue.txt`, then check open pull requests (`docs/reference/ci/cursor-ready-queue-contract.md`). The poll inbox is a keepalive record. The queue is GitHub.
+The local wake tick and the GitHub Actions runner are the two keepalives for this same session. What a tick means, the queue order, the skip, cycle and repeat rules and when to go quiet are in `docs/governance/AGENT-EXECUTION.md` (Assigned-queue continuation) — including skip-any-block (#4994). Cursor's mechanics: on every tick run the queries in `~/.cursor/lgfc-ready-queue.txt`, then check open pull requests (`docs/reference/ci/cursor-ready-queue-contract.md`). The poll inbox is a keepalive record. The queue is GitHub. Do not restate the skip rule here; follow the shared law.
 
 ## Startup contract
 

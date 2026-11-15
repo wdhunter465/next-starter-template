@@ -80,18 +80,26 @@ PY
   prompt_base="$(tr '\n' ' ' < "$prompt_file" | sed 's/[[:space:]]*$//')"
   origin_main="$(printf '%s' "$poll_json" | python3 -c 'import sys,json; j=json.loads(sys.stdin.read() or "{}"); print(j.get("originMainSha") or "unknown")' 2>/dev/null || echo unknown)"
   agent_exec="$(printf '%s' "$poll_json" | python3 -c 'import sys,json; j=json.loads(sys.stdin.read() or "{}"); print(j.get("agentExecutionBlobSha") or "unknown")' 2>/dev/null || echo unknown)"
-  prompt="${prompt_base} Poll fresh=${fresh} events=${events}. origin/main=${origin_main} AGENT-EXECUTION=${agent_exec}."
+  # #5007: consume rulesChanged / one-shot fetch-failure sentences from the poller payload.
+  rules_extra="$(printf '%s' "$poll_json" | python3 -c 'import sys,json; j=json.loads(sys.stdin.read() or "{}"); parts=j.get("rulesPromptParts") or []; print(" ".join(parts))' 2>/dev/null || true)"
+  if [[ -n "${rules_extra}" ]]; then
+    prompt="${prompt_base} Poll fresh=${fresh} events=${events}. origin/main=${origin_main} AGENT-EXECUTION=${agent_exec}. ${rules_extra}"
+  else
+    prompt="${prompt_base} Poll fresh=${fresh} events=${events}. origin/main=${origin_main} AGENT-EXECUTION=${agent_exec}."
+  fi
   TS="$ts" PROMPT="$prompt" FRESH="$fresh" IDLE="$idle" POLL_JSON="$poll_json" python3 -c '
 import json, os
 raw = os.environ.get("POLL_JSON") or ""
 ready = []
 origin_main = "unknown"
 agent_exec = "unknown"
+rules_changed = False
 try:
     parsed = json.loads(raw) if raw.strip() else {}
     ready = parsed.get("readyQueue") or []
     origin_main = parsed.get("originMainSha") or "unknown"
     agent_exec = parsed.get("agentExecutionBlobSha") or "unknown"
+    rules_changed = bool(parsed.get("rulesChanged"))
 except Exception:
     ready = []
 payload = {
@@ -102,6 +110,7 @@ payload = {
     "readyQueue": ready,
     "originMainSha": origin_main,
     "agentExecutionBlobSha": agent_exec,
+    "rulesChanged": rules_changed,
 }
 inbox = os.path.expanduser("~/.cursor/lgfc-wake-poll-inbox.json")
 tmp = inbox + ".tmp"
@@ -109,7 +118,7 @@ with open(tmp, "w", encoding="utf-8") as fh:
     json.dump(payload, fh)
     fh.write("\n")
 os.replace(tmp, inbox)
-print("AGENT_LOOP_TICK_lgfc_always_on " + json.dumps({"ts": payload["ts"], "prompt": payload["prompt"], "fresh": payload["fresh"], "idle": payload["idle"], "originMainSha": origin_main, "agentExecutionBlobSha": agent_exec, "readyQueue": [{"index": item.get("index"), "count": item.get("count"), "kind": item.get("kind"), "originMainSha": item.get("originMainSha"), "agentExecutionBlobSha": item.get("agentExecutionBlobSha"), "actionable": [row.get("number") for row in item.get("actionable") or []], "skipped": [row.get("number") for row in item.get("skipped") or []]} for item in ready]}))
+print("AGENT_LOOP_TICK_lgfc_always_on " + json.dumps({"ts": payload["ts"], "prompt": payload["prompt"], "fresh": payload["fresh"], "idle": payload["idle"], "originMainSha": origin_main, "agentExecutionBlobSha": agent_exec, "rulesChanged": rules_changed, "readyQueue": [{"index": item.get("index"), "count": item.get("count"), "kind": item.get("kind"), "originMainSha": item.get("originMainSha"), "agentExecutionBlobSha": item.get("agentExecutionBlobSha"), "actionable": [row.get("number") for row in item.get("actionable") or []], "skipped": [row.get("number") for row in item.get("skipped") or []]} for item in ready]}))
 '
 }
 

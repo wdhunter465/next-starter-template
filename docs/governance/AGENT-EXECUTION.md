@@ -98,9 +98,9 @@ Waiting on independent review, merge approval, or another long-running process f
 
 **Wake and poll ticks are keepalives (#4982).** The local poller, the GitHub runner dispatch and any tick message only keep the session connected to the repository. They are not assignments, not queue rankings and not stop signals. A tick or poll with no new events means: continue the next unfinished item in the queue order. A product file or a local script may repeat this rule but may not be its only home.
 
-**A blocked head does not hold the queue (#4994).** An item that cannot be acted on this tick never stops the items behind it.
+**A blocked head does not hold the queue (#4994).** An item that cannot be acted on this tick never stops the items behind it. Product Authority, 2026-11-15: if an agent attempts to work on an Issue that is blocked in any manner, it skips it and proceeds to the next Issue.
 
-- **Skip.** An item waiting on a named external event, or in a cycle, gets one `wait:*` label and one comment on its Issue naming the blocker and the event that releases it. The tick then takes the next item.
+- **Skip.** An Issue blocked in any manner is skipped: waiting on a decision, a review, a dependency, a person, a failing check, a cycle, missing access, a protected stop, a named external event, or any other blocker. The agent records the blocker once (one `wait:*` label and one comment naming the blocker and the event that releases it) and takes the next item. A blocked item is never the reason a later item is not worked. The skip rule does not depend on classifying the block first.
 - **Cycle.** If an item's release condition is waiting on that same item (a `post-merge-failure` exception whose source Issue cannot close while the exception is open is one), break it with the smallest reversible action: re-run the closeout, or close the exception with a note on the source Issue. If that needs a decision, label it `wait:product` and name the decision.
 - **Act when a wait ends.** Once the awaited event has happened, the next tick acts on the result. Recording the result is not the action. A fix named in a comment means a pull request on the next tick.
 - **Repeat guard.** A tick report that matches the previous one needs a changed fact or a stated action. After two identical reports, act or label the item and move on. Never send a third.
