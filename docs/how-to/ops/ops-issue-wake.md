@@ -33,7 +33,7 @@ It skips pull requests, closed Issues, Issues labeled `ops:monitoring` or `ops:h
 
 GitHub does not run workflows for events created with the built-in token. The failure watcher opens its exception Issues that way, so an `issues: opened` trigger would only see Issues a person opens. The scheduled sweep sees all of them; the `issues` trigger is a fast path.
 
-## Run it by hand
+## Procedure
 
 Actions, "OPS — Operations Issue wake (#4681)", Run workflow. The default is `scan`, which prints what it would post and writes nothing. Choose `apply` to post. Locally, with the GitHub CLI signed in:
 
