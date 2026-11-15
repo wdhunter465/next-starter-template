@@ -1,0 +1,59 @@
+name: OPS — Operations Issue wake (#4681)
+
+# Wakes the Operations holder when a team:operations Issue opens, and escalates to the secondary holder if nothing
+# acknowledges it within the window. Comments only: it never assigns, relabels, closes or decides anything.
+# The sweep (every 15 minutes) is the reliable path: Issues opened with the built-in token, such as the failure
+# watcher's exception Issues, do not trigger `issues` workflows. The `issues` trigger is a fast path for Issues a
+# person opens. See docs/how-to/ops/ops-issue-wake.md.
+
+on:
+  schedule:
+    - cron: '*/15 * * * *'
+  issues:
+    types: [opened, labeled]
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: scan (read only) or apply (post wake and escalation comments)
+        required: false
+        default: 'scan'
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: ops-issue-wake
+  cancel-in-progress: false
+
+jobs:
+  wake:
+    if: >-
+      github.repository == 'wdhunter465/next-starter-template' &&
+      (github.event_name != 'issues' || contains(github.event.issue.labels.*.name, 'team:operations'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Sweep
+        env:
+          GH_TOKEN: ${{ github.token }}
+          SWEEP_MODE: ${{ github.event_name == 'workflow_dispatch' && github.event.inputs.mode || 'apply' }}
+        run: |
+          set -euo pipefail
+          MODE="${SWEEP_MODE}"
+          if [ "${MODE}" != "scan" ] && [ "${MODE}" != "apply" ]; then
+            MODE=scan
+          fi
+          node scripts/ops/ops-issue-wake.mjs \
+            --mode="${MODE}" \
+            --repo=wdhunter465/next-starter-template \
+            --window-minutes=30 \
+            --max-posts=5
