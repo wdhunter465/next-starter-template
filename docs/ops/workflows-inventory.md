@@ -285,6 +285,7 @@ Every current `.github/workflows/*` file as of 2026-09-14 (`HEAD` at inventory r
 | `ops-pr-issue-accounting.yml` | GATE — PR Issue Accounting |
 | `ops-pr-process-metrics.yml` | OPS — PR Process Metrics |
 | `ops-stale-communication.yml` | OPS — Stale communication detector |
+| `ops-issue-wake.yml` | OPS — Operations Issue wake (#4681) |
 | `ops-stale-issue-label-cleanup.yml` | OPS — Stale Issue Label Cleanup |
 | `orchestrator-agent-trigger.yml` | Orchestrator — Agent Trigger |
 | `orchestrator-draft-pr.yml` | Orchestrator — Draft PR Creator |
