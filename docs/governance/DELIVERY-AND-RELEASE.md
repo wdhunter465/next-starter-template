@@ -391,7 +391,7 @@ Where that review happens depends on the delivery model (#3465, Product Authorit
 - **Model B child — protected stops.** A child that touches a protected stop needs independent review before it integrates into its component branch. Protected stops are `.github/CODEOWNERS`, `wrangler*.toml` (production bindings), `functions/api/auth/**` (authentication boundary), and workflows that reference any secret other than `GITHUB_TOKEN` (including `secrets: inherit`), deploy (wrangler or Pages actions), target a `production` environment, request write-scoped or OIDC permissions (`contents`, `packages`, `actions`, `id-token`, `write-all`), run on a self-hosted runner, or run with privileged triggers (`pull_request_target`, `workflow_run`). Material design concerns are routed the same way.
 - **Model B child — other protected paths.** Other protected paths (for example `migrations/**`, `scripts/ci/**`, `docs/governance/**`, `functions/api/admin/**`, and workflows that are not stops) integrate automatically into the component branch after the required deterministic gates. CI records the protected change; it does not reach Production at this point.
 - **Model B promotion.** A promotion PR whose diff contains protected paths needs an independent APPROVED review on the current head from an actor other than the implementation agent before merge to `main`. This is enforced by the required `reviewer-response-completion` check.
-- **Model A.** Unchanged: the PR to `main` uses the `work-bill-production` approval profile.
+- **Model A.** Unchanged: the PR to `main` uses the `cmo-production` approval profile.
 
 This supersedes, for Model B child integration, the 2026-07-24 #2825 clause to retain `protected-change-review` for all non-Production protected scope.
 

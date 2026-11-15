@@ -21,7 +21,7 @@ Profile examples (stable fields only — replace placeholders before opening):
 
 Model A child:
   Size: small | Delivery model: A | Change mode: routine-ops
-  Target environment: production | Approval profile: work-bill-production
+  Target environment: production | Approval profile: cmo-production
   Gate profile: production-candidate | Rollback profile: one-step
   Component branch: not-applicable | Component master: not-applicable
   Promotion PR: not-applicable
@@ -35,7 +35,7 @@ Model B child:
 
 Model B promotion:
   Size: large | Delivery model: B-promotion | Change mode: planned-migration
-  Target environment: production | Approval profile: work-bill-production
+  Target environment: production | Approval profile: cmo-production
   Gate profile: component-promotion | Rollback profile: multi-step
   Component branch: component/<release-unit> | Component master: #<program-issue>
   Promotion PR: #<this-pr-number>
@@ -57,7 +57,7 @@ Emergency recovery:
 - Delivery model: <!-- A / B-child / B-promotion / emergency-recovery -->
 - Change mode: <!-- project / routine-ops / planned-migration / emergency -->
 - Target environment: <!-- component / preview / production / recovery -->
-- Approval profile: <!-- component-auto-integration / work-bill-production / protected-change-review (B-child touching a protected stop, or Model C domain policy) / emergency-approval -->
+- Approval profile: <!-- component-auto-integration / cmo-production / protected-change-review (B-child touching a protected stop, or Model C domain policy) / emergency-approval -->
 - Gate profile: <!-- component-child / production-candidate / component-promotion / emergency-recovery -->
 - Rollback profile: <!-- one-step / multi-step / emergency-stabilization -->
 - Implementation agent: <!-- required for Model B-child and B-promotion — the current role holder per docs/governance/AGENT-TEAM.md -->

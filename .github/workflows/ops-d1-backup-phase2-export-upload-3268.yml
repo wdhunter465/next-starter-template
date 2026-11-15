@@ -15,7 +15,7 @@ name: OPS — D1 Backup Phase 2 Package 2 Export/Upload (#3268)
 # repo's protected-path patterns in scripts/ci/delivery_profile.mjs. Per that script's
 # own rules, protected-path status only changes the required Approval profile for
 # Model B child PRs (protected-change-review); Model A PRs -- what every #3268 PR in
-# this series uses -- require Approval profile: work-bill-production regardless.
+# this series uses -- require Approval profile: cmo-production regardless.
 
 on:
   workflow_dispatch:

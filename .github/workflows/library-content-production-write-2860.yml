@@ -22,7 +22,7 @@ name: OPS — Library Content Production Write (#2860)
 #
 # This file (and scripts/ci/library_content_production_write_2860.mjs) matches this repo's
 # protected-path patterns in scripts/ci/delivery_profile.mjs; Model A PRs targeting main
-# require Approval profile: work-bill-production regardless of protected-path status.
+# require Approval profile: cmo-production regardless of protected-path status.
 
 on:
   workflow_dispatch:

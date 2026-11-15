@@ -13,7 +13,7 @@ function metadataBody(overrides = {}, prClass = 'ci', allowedPaths = null) {
     deliveryModel: 'A',
     changeMode: 'project',
     targetEnvironment: 'production',
-    approvalProfile: 'work-bill-production',
+    approvalProfile: 'cmo-production',
     gateProfile: 'production-candidate',
     rollbackProfile: 'one-step',
     componentBranch: 'not-applicable',
@@ -189,7 +189,7 @@ describe('pr preflight profile routing', () => {
         metadata: {
           deliveryModel: 'B-promotion',
           targetEnvironment: 'production',
-          approvalProfile: 'work-bill-production',
+          approvalProfile: 'cmo-production',
           gateProfile: 'component-promotion',
           rollbackProfile: 'multi-step',
           componentBranch: 'component/delivery-system-v1',
