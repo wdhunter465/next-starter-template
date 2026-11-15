@@ -154,6 +154,7 @@ Last Reviewed: 2026-10-07
 | `ops-chatterbox-reconciliation-sweep.yml` | schedule (*/30 * * * *), push, manual | Chatterbox reconciliation sweep and dev integration check | Scheduled / push |
 | `ops-design-compliance-audit.yml` | push, schedule (0 2 * * *), manual | Design compliance audit | Scheduled |
 | `ops-stale-communication.yml` | schedule (*/15 * * * *), manual, PR | Stale communication detector | Scheduled |
+| `ops-issue-wake.yml` | schedule (*/15 * * * *), issues, manual | Operations Issue wake and escalation | Scheduled |
 | `pmo-dashboard-ci-build.yml` | manual, schedule (*/30 * * * *), issues, push | PMO dashboard build and deploy | Scheduled / push |
 | `pmo-dashboard-ci-deploy.yml` | manual, workflow run, push | PMO dashboard build and deploy | Scheduled / push |
 | `production-audit.yml` | push, schedule (15 12,0 * * *), manual | Production audit (Playwright against Production) | Scheduled |
