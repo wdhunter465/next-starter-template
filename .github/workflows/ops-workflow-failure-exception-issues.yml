@@ -33,7 +33,7 @@ on:
 
 permissions:
   contents: read
-  actions: read
+  actions: write # #4681: re-run a failed read-only monitor once (rerun-failed-jobs needs write)
   issues: write
 
 concurrency:
@@ -66,4 +66,5 @@ jobs:
           RUN_CONCLUSION: ${{ github.event.workflow_run.conclusion }}
           RUN_EVENT: ${{ github.event.workflow_run.event }}
           RUN_SHA: ${{ github.event.workflow_run.head_sha }}
+          RUN_ATTEMPT: ${{ github.event.workflow_run.run_attempt }}
         run: node scripts/ci/open_workflow_failure_issue.mjs
