@@ -6,7 +6,10 @@ import { pathToFileURL } from 'node:url';
 import { applyMergedPrBody } from './apply_merged_pr_body.mjs';
 import { readPostMergeResult, syncPrState } from '../orchestrator/sync-pr-state.mjs';
 import { closeDuplicateRemediationIssues } from './close_duplicate_remediation_issues.mjs';
-import { closeRemediationIssuesForPr } from './close_remediation_issues_for_pr.mjs';
+import {
+	clearFailedLabelAfterRemediation,
+	closeRemediationIssuesForPr,
+} from './close_remediation_issues_for_pr.mjs';
 import {
 	shouldUpsertRemediationIssue,
 	shouldSuppressRemediationForCircuitBreaker,
@@ -445,12 +448,21 @@ export async function runPostMergeCloseout({
 	}
 
 	if (result.sync_action === 'post_merge_success') {
-		await closeRemediationIssuesForPr({
+		const remediationOutcome = await closeRemediationIssuesForPr({
 			token,
 			repository,
 			prNumber,
 			mergeSha: result.merge_sha || mergeSha,
 			sourceIssue: result.source_issue || '',
+		});
+		// #5246: re-verification passed, so the original source issue leaves status:failed.
+		await clearFailedLabelAfterRemediation({
+			token,
+			repository,
+			prNumber,
+			mergeSha: result.merge_sha || mergeSha,
+			originalSources: remediationOutcome?.originalSources || [],
+			remainingOpenIssues: remediationOutcome?.remainingOpenIssues || [],
 		});
 		await closeDuplicateRemediationIssues({ token, repository, dryRun: false });
 	}
