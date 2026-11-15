@@ -426,6 +426,35 @@ function labelNames(item) {
   );
 }
 
+/** Issue kinds in the resume queue (not PR gate rows). */
+const RESUME_ISSUE_KINDS = new Set([
+  'ops_interrupt',
+  'assigned_issue',
+  'agent_cursor_next',
+  'agent_cursor_active',
+  'post_merge_failure',
+  'handoff_ready',
+]);
+
+/**
+ * Mark resume-queue Issue rows waiting when the Issue carries any wait:* label
+ * (#5292). Aligns nextExecutable with ready-queue skip-any-block (#4994).
+ */
+export function applyIssueWaitLabelsToResumeQueue(items, issues) {
+  const byNumber = new Map();
+  for (const issue of issues || []) byNumber.set(issue.number, issue);
+  for (const item of items || []) {
+    if (!RESUME_ISSUE_KINDS.has(item.kind)) continue;
+    const issue = byNumber.get(item.number);
+    if (!issue) continue;
+    const waits = labelNames(issue).filter((name) => name && name.startsWith('wait:'));
+    if (waits.length === 0) continue;
+    item.waiting = true;
+    item.waitingReason = item.waitingReason || `wait_labels:${waits.join(',')}`;
+  }
+  return items;
+}
+
 function isNumberedOps(item) {
   return labelNames(item).some((name) => /^ops:priority:[1-4]$/.test(name));
 }
@@ -707,6 +736,8 @@ async function collectResumeQueue() {
     item.waiting = true;
     item.waitingReason = item.waitingReason || 'handoff_ready_not_go';
   }
+
+  applyIssueWaitLabelsToResumeQueue(items, [...assigned, ...cursorClaims]);
 
   return items.sort((a, b) => a.rank - b.rank || a.number - b.number);
 }
