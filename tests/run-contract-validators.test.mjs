@@ -1,8 +1,10 @@
 import { describe, expect, it } from 'vitest';
 import {
+  claimRequester,
   claimsToBeExecutable,
   evaluateRecord,
   exitCodeFor,
+  implementationAgentLabel,
   issueNumberFromText,
   renderReport,
   selectScope
@@ -121,5 +123,66 @@ describe('run-contract-validators (#4778)', () => {
       labels: []
     });
     expect(result.findings[0].validator).toBe('deterministic-approval');
+  });
+});
+
+describe('pull-request mode takes the requester from the Implementation agent field (#5180)', () => {
+  const claimed = (labels) => ({ number: 4467, body: COMPLETE_BODY, labels: ['pmo:task', 'status:active', ...labels] });
+  const prMode = (child, implementationAgent) => evaluateRecord(child, { requestingAgent: 'wdhunter465', implementationAgent });
+  const validators = (result) => result.findings.map((finding) => finding.validator);
+
+  it('gives a holder\'s pull request against its claimed executable child no claim-collision finding', () => {
+    expect(validators(prMode(claimed(['agent:claude']), 'agent:claude'))).not.toContain('claim-collision');
+    expect(validators(prMode(claimed(['agent:cursor']), 'agent:cursor'))).not.toContain('claim-collision');
+  });
+
+  it('still reports it for a pull request from a different agent', () => {
+    expect(validators(prMode(claimed(['agent:claude']), 'agent:cursor'))).toContain('claim-collision');
+    expect(validators(prMode(claimed(['agent:cursor']), 'agent:claude'))).toContain('claim-collision');
+  });
+
+  it('still reports it when the child carries conflicting agent labels, even for one of the holders', () => {
+    const conflicted = claimed(['agent:claude', 'agent:cursor']);
+    expect(validators(prMode(conflicted, 'agent:claude'))).toContain('claim-collision');
+    expect(validators(prMode(conflicted, 'agent:cursor'))).toContain('claim-collision');
+  });
+
+  it('still reports it when the pull request body names no agent or an unknown one', () => {
+    expect(validators(prMode(claimed(['agent:claude']), undefined))).toContain('claim-collision');
+    expect(validators(prMode(claimed(['agent:claude']), implementationAgentLabel('- Implementation agent: Grok') || undefined))).toContain('claim-collision');
+  });
+
+  it('is unchanged for a child nobody holds', () => {
+    const before = evaluateRecord(claimed([]), { requestingAgent: 'wdhunter465' });
+    expect(prMode(claimed([]), 'agent:claude')).toEqual(before);
+  });
+
+  it('leaves the scheduled sweep exactly as it was', () => {
+    expect(validators(evaluateRecord(claimed(['agent:claude']), { executableOnly: true, requestingAgent: 'advisory' }))).not.toContain('claim-collision');
+    expect(validators(evaluateRecord(claimed(['agent:claude', 'agent:cursor']), { executableOnly: true, requestingAgent: 'advisory' }))).toContain('claim-collision');
+  });
+
+  it('claimRequester returns the holder only for the matching single label', () => {
+    expect(claimRequester(['agent:claude'], { requestingAgent: 'x', implementationAgent: 'agent:claude' })).toBe('agent:claude');
+    expect(claimRequester(['agent:claude'], { requestingAgent: 'x', implementationAgent: 'agent:cursor' })).toBe('x');
+    expect(claimRequester(['agent:claude', 'agent:cursor'], { requestingAgent: 'x', implementationAgent: 'agent:claude' })).toBe('x');
+    expect(claimRequester([], { requestingAgent: 'x', implementationAgent: 'agent:claude' })).toBe('x');
+  });
+
+  it('reads the agent from the template line in its common forms', () => {
+    expect(implementationAgentLabel('# PR Summary\n\n- Implementation agent: Claude Code\n- Component branch: none')).toBe('agent:claude');
+    expect(implementationAgentLabel('Implementation agent: Cursor')).toBe('agent:cursor');
+    expect(implementationAgentLabel('* Implementation agent:   claude code  ')).toBe('agent:claude');
+    expect(implementationAgentLabel('- Implementation agent: agent:cursor')).toBe('agent:cursor');
+    expect(implementationAgentLabel('- Implementation agent: Claude Code <!-- note -->')).toBe('agent:claude');
+  });
+
+  it('returns null when the line is missing, empty, a placeholder, or names someone else', () => {
+    expect(implementationAgentLabel('')).toBeNull();
+    expect(implementationAgentLabel('no such line')).toBeNull();
+    expect(implementationAgentLabel('- Implementation agent:')).toBeNull();
+    expect(implementationAgentLabel('- Implementation agent: <!-- required -->')).toBeNull();
+    expect(implementationAgentLabel('- Implementation agent: Grok')).toBeNull();
+    expect(implementationAgentLabel(undefined)).toBeNull();
   });
 });
