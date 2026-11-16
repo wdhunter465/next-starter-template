@@ -6,7 +6,7 @@ Owns: The social post evidence record: its fields, status meanings, where it is 
 Does Not Own: The daily post design (see /docs/reference/operations/social-daily-post-automation-design.md); the posts themselves (see /docs/reference/operations/social-daily-post-queue-2026-11.md); the archive of post text and photo in D1 (#5097); the weekly scorecard figures (#5198); platform accounts and credentials
 Canonical Reference: /docs/reference/operations/social-daily-post-automation-design.md
 Related Issues: #5197, #5198, #5143, #5097, #5156, #5159, #5173, #5196
-Last Reviewed: 2026-11-12
+Last Reviewed: 2026-11-16
 ---
 
 # Social post evidence record
@@ -41,7 +41,7 @@ One record per post per platform. A record is never edited: a correction is a ne
 | `version`, `supersedes` | Version number of this record and the version it replaces |
 | `scheduled_for` | Planned send time from the queue (New York time) |
 | `text`, `text_sha256` | The text that was queued, and its SHA-256 |
-| `photo` | `photo_id`, `variant` (`original`, or a platform variant once #5196 lands), `image_url`, `image_sha256`, `image_bytes`, `width`, `height`, `alt_text`. The hash is of the bytes sent. If the photo file changes later, the hash still proves what went out |
+| `photo` | `photo_id`, `variant` (`original`, or a platform variant once #5196 lands), `image_url`, `image_sha256`, `image_bytes`, `width`, `height`, `alt_text`. The hash is of the bytes sent. If the photo file changes later, the hash still proves what went out. `rights_check` (added 2026-11-16, #5085, optional so earlier records stay valid) holds the rights verdict used at send time: `verdict` (`cleared` only when the reviewed queue lists the photo in `rights_cleared_photo_ids` and not in `held_photo_ids`, otherwise `not_cleared`), `source` and `checked_at_utc`. It records what the queue said; it never decides |
 | `status` | See the next table |
 | `attempts[]` | Every try, including every retry: `at_utc`, `by` (job, Zap, session or person), `outcome` (`ok`, `error` or `handed_off`), `detail`/error text. A retry is a new entry, never an overwrite |
 | `handoff` | For Zapier platforms: the hand-off Issue number and the time it was opened |

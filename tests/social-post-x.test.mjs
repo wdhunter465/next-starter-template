@@ -127,6 +127,9 @@ describe('X same-day evidence capture (#5202)', () => {
     expect(r.platform_record).toMatchObject({ post_id: BUF, created_at_utc: '2026-11-10T15:04:04.649Z', created_at_new_york: '2026-11-10T10:04:04-05:00' });
     expect(r.photo.image_sha256).toBe(sha);
     expect(r.photo).toMatchObject({ width: 1024, height: 768, image_bytes: bytes.length });
+    // #5085: the rights verdict used at send time is recorded with the picture
+    expect(r.photo.rights_check).toMatchObject({ source: expect.stringContaining('social-post-queue.json'), checked_at_utc: '2026-11-10T15:30:00.000+00:00' });
+    expect(['cleared', 'not_cleared']).toContain(r.photo.rights_check.verdict);
     rmSync(dir, { recursive: true });
   });
 

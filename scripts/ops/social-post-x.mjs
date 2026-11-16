@@ -17,7 +17,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { BufferMcp, findFirst } from './buffer-mcp.mjs';
 import { DEFAULT_QUEUE, classifyPosts, validateQueue } from './social-post-queue.mjs';
-import { appendToDay, buildEvidenceRecord, dayFilePath, latestRecords, newYorkDate, nextVersion } from './social-evidence.mjs';
+import { appendToDay, buildEvidenceRecord, dayFilePath, latestRecords, newYorkDate, nextVersion, rightsCheckFor } from './social-evidence.mjs';
 
 export const X_CHANNEL_ID = '6ae896c3e29c69a1713866ba';
 export const LIVE_BASE_URL = 'https://www.lougehrigfanclub.com';
@@ -102,7 +102,7 @@ async function fetchImageFacts(fetchImpl, baseUrl, postId, node) {
  * attempt to the next version; an earlier version is never changed. Throws when the record cannot
  * be written, so the caller can fail loudly without posting again.
  */
-export async function recordXEvidence({ auditDir, post, status, attempt, bufferPostId, node, fetchImpl, baseUrl, nowMs, note }) {
+export async function recordXEvidence({ auditDir, post, status, attempt, bufferPostId, node, fetchImpl, baseUrl, nowMs, note, queue }) {
   const date = newYorkDate(post.publish_at);
   const day = readAuditDay(auditDir, date);
   const previous = latestRecords(day).find((r) => r.post_id === post.id && r.platform === 'x');
@@ -116,6 +116,7 @@ export async function recordXEvidence({ auditDir, post, status, attempt, bufferP
     platformRecord: bufferPostId ? { post_id: bufferPostId, url: null, ...(status === 'confirmed' && sentAt ? { created_at_utc: sentAt } : {}) } : null,
     photo: { image_url: facts.image_url, image_sha256: facts.image_sha256, image_bytes: facts.bytes.length, width: facts.width, height: facts.height },
     verified: { on: newYorkDate(new Date(nowMs).toISOString()), by: EVIDENCE_JOB, method: 'Buffer get_post after create_post' },
+    ...(queue ? { rightsCheck: rightsCheckFor(queue, post.photo_id, new Date(nowMs).toISOString().replace('Z', '+00:00')) } : {}),
     version: nextVersion(day, post.id, 'x'),
     note,
   });
@@ -198,7 +199,7 @@ export async function run(env = process.env, deps = {}) {
       outcome: status === 'confirmed' ? 'ok' : status === 'failed' ? 'error' : 'handed_off',
       detail: attemptDetail ?? (status === 'confirmed' ? `Buffer reports the post sent at ${node.sentAt}` : status === 'failed' ? `Buffer error: ${node.error ?? 'unknown'}` : `Buffer accepted the post; status ${node?.status ?? 'unknown'} after read-back`),
     };
-    const result = await recordXEvidence({ auditDir, post, status, attempt, bufferPostId, node, fetchImpl, baseUrl, nowMs: now, note });
+    const result = await recordXEvidence({ auditDir, post, status, attempt, bufferPostId, node, fetchImpl, baseUrl, nowMs: now, note, queue });
     report.evidence.push({ id: post.id, ...result });
     if (status === 'failed' && reportFailure) report.failed.push({ id: post.id, step: 'buffer-send', error: String(node?.error ?? 'unknown').slice(0, 300) });
     return result;
