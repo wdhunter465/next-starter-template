@@ -1,0 +1,57 @@
+name: OPS — Purge expired sessions and old sign-in attempts (#5303)
+
+# Daily housekeeping for the sign-in tables (item 3 of #4767). Calls the token-protected purge endpoint on the
+# site, which deletes member sessions 7 days past expiry and sign-in attempt rows older than 7 days. Nothing
+# else. Scheduled runs are a DRY RUN (they count and delete nothing) until the repository variable
+# AUTH_PURGE_APPLY is set to 'true', which is Product Authority's recorded Go on #5303 for the first
+# Production run. A manual run deletes only with apply=true. A failure never affects sign-in.
+on:
+  schedule:
+    - cron: '23 7 * * *'
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: Delete for real (default false = dry run)
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+  pull_request:
+    paths:
+      - 'scripts/ops/auth-purge.mjs'
+      - '.github/workflows/ops-auth-purge.yml'
+
+concurrency:
+  group: ops-auth-purge
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  purge:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SCHEDULED_CONTENT_BRIDGE_TOKEN: ${{ secrets.SCHEDULED_CONTENT_BRIDGE_TOKEN }}
+      APPLY: ${{ (github.event_name == 'schedule' && vars.AUTH_PURGE_APPLY == 'true' && 'true') || (github.event_name == 'workflow_dispatch' && inputs.apply) || 'false' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Purge (dry run unless apply)
+        if: ${{ github.event_name != 'pull_request' }}
+        run: |
+          set -euo pipefail
+          if [ "$APPLY" = "true" ]; then
+            node scripts/ops/auth-purge.mjs --apply
+          else
+            node scripts/ops/auth-purge.mjs
+          fi
