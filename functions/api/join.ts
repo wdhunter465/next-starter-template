@@ -12,6 +12,7 @@ import {
 } from "../_lib/email";
 import { requireD1, requireTables, jsonResponse, type Env } from "../_lib/d1";
 import { issueVerificationToken, siteUrlFor, verificationLink } from "../_lib/email-verification";
+import { clientIp, JOIN_PER_IP_PER_HOUR, overIpThrottle } from "../_lib/request-throttle";
 
 type EmailLogResult = {
   result: "sent" | "failed" | "skipped";
@@ -134,6 +135,11 @@ export async function onRequestPost(context: { env: Env; request: Request }): Pr
   const tablesCheck = await requireTables(db, ['join_requests', 'join_email_log', 'members', 'email_verification_tokens']);
   if (!tablesCheck.ok) {
     return jsonResponse(tablesCheck.body, tablesCheck.status);
+  }
+
+  // #5302: simple per-IP throttle (10 per hour); fails open if the database cannot answer.
+  if (await overIpThrottle(db, clientIp(request), 'join', JOIN_PER_IP_PER_HOUR)) {
+    return jsonResponse({ ok: false, error: 'Too many requests. Please wait an hour and try again.', requestId }, 429);
   }
 
   try {

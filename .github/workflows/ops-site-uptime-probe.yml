@@ -3,6 +3,8 @@ name: OPS — Site Uptime Probe
 # Probes public production URLs (site pages, /api/health with D1, pages.dev, apex).
 # A failure opens or updates one Operations Issue; a later clean run comments
 # recovery on it. Public URLs only; GITHUB_TOKEN only (#4540).
+# A second failing run in a row (an outage) also emails the alert recipients once (#4687); inert until
+# ALERT_EMAIL_TO, ALERT_EMAIL_FROM and the ALERT_MAILCHANNELS_API_KEY secret are set.
 
 on:
   schedule:
@@ -34,4 +36,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ github.token }}
           OPS_ESCALATION_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          ALERT_EMAIL_TO: ${{ vars.ALERT_EMAIL_TO }}
+          ALERT_EMAIL_FROM: ${{ vars.ALERT_EMAIL_FROM }}
+          ALERT_MAILCHANNELS_API_KEY: ${{ secrets.ALERT_MAILCHANNELS_API_KEY }}
         run: node scripts/ops/site-uptime-probe.mjs --escalate
