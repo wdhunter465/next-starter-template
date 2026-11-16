@@ -4,6 +4,9 @@ name: OPS — Pages Deploy Failure Alert
 # Operations Issue naming the commit and the run. A successful check opens
 # nothing. D1 Migrations stays on ops-workflow-failure-exception-issues.yml.
 #
+# A newly opened failure Issue also emails the alert recipients once (#4687); inert until the
+# ALERT_EMAIL_* variables and the ALERT_MAILCHANNELS_API_KEY secret are set.
+#
 # The workflow file must be on the default branch before GitHub will deliver
 # check_suite events to it.
 
@@ -45,4 +48,7 @@ jobs:
           HEAD_SHA: ${{ github.event.check_suite.head_sha }}
           HEAD_BRANCH: ${{ github.event.check_suite.head_branch }}
           DEFAULT_BRANCH: ${{ github.event.repository.default_branch }}
+          ALERT_EMAIL_TO: ${{ vars.ALERT_EMAIL_TO }}
+          ALERT_EMAIL_FROM: ${{ vars.ALERT_EMAIL_FROM }}
+          ALERT_MAILCHANNELS_API_KEY: ${{ secrets.ALERT_MAILCHANNELS_API_KEY }}
         run: node scripts/ops/pages-deploy-failure-alert.mjs
