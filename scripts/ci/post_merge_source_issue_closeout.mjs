@@ -277,6 +277,30 @@ export function requestsSourceIssueTerminalClose(body = '', issueNumber = '') {
 	return false;
 }
 
+/**
+ * #4703: the unchecked items under an "Acceptance criteria" heading of a source Issue body. A heading is a
+ * Markdown heading or a bold line whose text starts with "Acceptance"; the section runs to the next heading.
+ * Only task-list items count: `- [ ] text` is unchecked, `- [x] text` is checked. Text that is not a task item
+ * (a prose "Acceptance: widget renders") is not a checklist and returns nothing.
+ */
+export function uncheckedAcceptanceCriteria(body = '') {
+	const lines = String(body ?? '').split(/\r?\n/);
+	const isHeading = (line) => /^\s{0,3}#{1,6}\s+\S/.test(line) || /^\s*\*\*[^*]+\*\*\s*:?\s*$/.test(line);
+	const isAcceptance = (line) => /^\s{0,3}(?:#{1,6}\s+|\*\*)\s*acceptance(?:\s+criteria)?\b/i.test(line);
+	const unchecked = [];
+	let inSection = false;
+	for (const line of lines) {
+		if (isHeading(line)) {
+			inSection = isAcceptance(line);
+			continue;
+		}
+		if (!inSection) continue;
+		const item = line.match(/^\s*[-*]\s+\[( |x|X)\]\s+(.+?)\s*$/);
+		if (item && item[1] === ' ') unchecked.push(item[2]);
+	}
+	return unchecked;
+}
+
 export function shouldKeepUmbrellaSourceIssueOpen({ issueMeta = null, prBody = '', issueNumber = '' } = {}) {
 	if (!isUmbrellaSourceIssue(issueMeta)) return false;
 	return !requestsSourceIssueTerminalClose(prBody, issueNumber);
@@ -523,6 +547,14 @@ export function shouldCloseSourceIssue({
 	}
 	if (shouldKeepUmbrellaSourceIssueOpen({ issueMeta, prBody, issueNumber })) {
 		return { close: false, reason: 'umbrella_source_issue_remains_open' };
+	}
+	// #4703: an open source Issue with unchecked acceptance criteria stays open unless the pull request says,
+	// in its POST-MERGE ISSUE DISPOSITION, to close it. Closing is explicit; a merge alone does not complete it.
+	if (!issueMeta?.state || String(issueMeta.state).toUpperCase() === 'OPEN') {
+		const unchecked = uncheckedAcceptanceCriteria(issueMeta?.body);
+		if (unchecked.length > 0 && !requestsSourceIssueTerminalClose(prBody, issueNumber)) {
+			return { close: false, reason: 'unchecked_acceptance_criteria', unchecked };
+		}
 	}
 	const closedFollowupAllowed =
 		String(issueMeta?.state || '').toUpperCase() === 'CLOSED' &&
