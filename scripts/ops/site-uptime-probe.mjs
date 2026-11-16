@@ -3,6 +3,7 @@
 
 import { pathToFileURL } from 'node:url';
 import { appendOpsStepSummary, escalateOpsRuntimeFailure } from '../ci/ops_runtime_escalation.mjs';
+import { sendAlertEmail } from './alert-email.mjs';
 
 export const ESCALATION_TITLE = 'OPS — Site uptime probe — failure detected';
 
@@ -163,6 +164,31 @@ async function commentRecoveryIfOpen(report) {
   return open.number;
 }
 
+const EMAILED_MARKER = '<!-- site-uptime-probe:emailed -->';
+
+export async function emailOutageOnce({ repository, headers }, open, report, { send = sendAlertEmail, fetchImpl = fetch } = {}) {
+  try {
+    const comments = await fetchImpl(`https://api.github.com/repos/${repository}/issues/${open.number}/comments?per_page=100`, { headers });
+    const existing = comments.ok ? await comments.json() : [];
+    if (existing.some((comment) => comment.body?.includes(EMAILED_MARKER))) return { emailed: false, reason: 'already_emailed' };
+    const result = await send({
+      kind: 'outage',
+      subject: 'LGFC site outage: the uptime probe has failed twice',
+      text: `The Lou Gehrig Fan Club site uptime probe has failed on two runs in a row.\n\nIssue: https://github.com/${repository}/issues/${open.number}\n\n${report}`,
+    });
+    if (result.sent) {
+      await fetchImpl(`https://api.github.com/repos/${repository}/issues/${open.number}/comments`, {
+        method: 'POST',
+        headers: { ...headers, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ body: `${EMAILED_MARKER}\nOutage email sent to the alert recipients.` }),
+      });
+    }
+    return { emailed: Boolean(result.sent), reason: result.reason ?? 'sent' };
+  } catch {
+    return { emailed: false, reason: 'error' };
+  }
+}
+
 async function main() {
   const probe = await runProbe();
   const report = renderReport(probe);
@@ -176,6 +202,9 @@ async function main() {
     const open = context ? await findOpenEscalation(context) : null;
     if (open?.body?.includes(marker)) {
       console.log(`Same failing targets already reported on #${open.number}; not re-posting.`);
+      // A second failing run in a row is an outage (#4687): email once, then note it on the Issue so a third,
+      // fourth... run does not send again.
+      await emailOutageOnce(context, open, report);
       return 1;
     }
     const outcome = await escalateOpsRuntimeFailure({

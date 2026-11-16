@@ -34,6 +34,7 @@ export const JOBS = [
   { file: 'ops-social-post-dry-run.yml', maxAgeHours: 30 },
   { file: 'ops-social-post-x.yml', maxAgeHours: 30 },
   { file: 'ops-club-home-edition-regenerate.yml', maxAgeHours: 8 * 24 },
+  { file: 'ops-auth-purge.yml', maxAgeHours: 30 },
   { file: 'ops-social-post-dispatch.yml', maxAgeHours: 30 },
   { file: 'ops-social-post-heartbeat.yml', maxAgeHours: 30 },
   { file: 'ops-social-monthly-check.yml', maxAgeHours: 32 * 24 },
