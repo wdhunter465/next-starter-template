@@ -61,6 +61,8 @@ export function issueMeta(issueNumber, { run = runGh } = {}) {
     labels: (issue.labels || []).map((label) => label.name),
     state: issue.state || '',
     state_reason: issue.state_reason || '',
+    // #4703: the closeout reads the Issue's own acceptance checklist.
+    body: issue.body || '',
   };
 }
 
@@ -168,7 +170,8 @@ export function syncPrState({
             body: pr.body || '',
             issueMeta: meta,
             issueNumber,
-          }))
+          })) ||
+        closeDecision.reason === 'unchecked_acceptance_criteria'
       ) {
         const shouldReopen =
           (closeDecision.reason === 'active_source_issue_remains_open' &&
@@ -189,7 +192,9 @@ export function syncPrState({
         const queueAdvancementStatus =
           closeDecision.reason === 'umbrella_source_issue_remains_open'
             ? 'no queue action; umbrella/child project source issue remains open pending explicit terminal closeout'
-            : 'no queue action; Phase 3 planning complete; source issue remains active pending Phase 4 approval';
+            : closeDecision.reason === 'unchecked_acceptance_criteria'
+              ? `no queue action; source issue stays open: ${closeDecision.unchecked.length} acceptance criteri${closeDecision.unchecked.length === 1 ? 'on is' : 'a are'} unchecked (${closeDecision.unchecked.slice(0, 3).map((item) => `"${item.slice(0, 60)}"`).join(', ')}${closeDecision.unchecked.length > 3 ? ', ...' : ''}). To close it on merge, the pull request body says "POST-MERGE ISSUE DISPOSITION: close #${issueNumber} on merge"`
+              : 'no queue action; Phase 3 planning complete; source issue remains active pending Phase 4 approval';
         const closeoutComment = buildSourceIssueCloseoutComment({
           prNumber,
           mergeSha,
