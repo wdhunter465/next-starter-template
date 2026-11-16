@@ -1,6 +1,8 @@
 {
 	"tracking": "#4466",
 	"handlers": {
+		"functions/api/admin/adam-wilson/delete.ts": "none",
+		"functions/api/admin/adam-wilson/save.ts": "row-actor",
 		"functions/api/admin/archive-items/custody.ts": "row-actor",
 		"functions/api/admin/archive-items/index.ts": "none",
 		"functions/api/admin/ask/approve.ts": "none",
@@ -41,9 +43,9 @@
 		"functions/api/admin/media-assets/sync-from-b2.ts": "none",
 		"functions/api/admin/member-operations/delete.ts": "row-actor",
 		"functions/api/admin/membership-card.ts": "none",
+		"functions/api/admin/permission-exchanges/index.ts": "none",
 		"functions/api/admin/photos/purge.ts": "none",
 		"functions/api/admin/photos/update.ts": "none",
-		"functions/api/admin/permission-exchanges/index.ts": "none",
 		"functions/api/admin/reports/close.ts": "none",
 		"functions/api/admin/welcome-email.ts": "none",
 		"functions/api/admin/worklist.ts": "none"
