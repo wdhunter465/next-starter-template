@@ -1,0 +1,4 @@
+{"week_start":"2026-11-09","week_end":"2026-11-16","platform":"x","planned":6,"confirmed":6,"failed":0,"missing":0,"handed_off":0,"not_logged":0,"pending":0,"not_eligible":0,"success_rate":100,"recorded_at":"2026-11-16T13:19:43.596Z"}
+{"week_start":"2026-11-09","week_end":"2026-11-16","platform":"facebook","planned":6,"confirmed":2,"failed":0,"missing":1,"handed_off":3,"not_logged":0,"pending":0,"not_eligible":0,"success_rate":33.3,"recorded_at":"2026-11-16T13:19:43.596Z"}
+{"week_start":"2026-11-09","week_end":"2026-11-16","platform":"instagram","planned":3,"confirmed":1,"failed":0,"missing":0,"handed_off":2,"not_logged":0,"pending":0,"not_eligible":3,"success_rate":33.3,"recorded_at":"2026-11-16T13:19:43.596Z"}
+{"week_start":"2026-11-09","week_end":"2026-11-16","platform":"pinterest","planned":6,"confirmed":2,"failed":0,"missing":1,"handed_off":3,"not_logged":0,"pending":0,"not_eligible":0,"success_rate":33.3,"recorded_at":"2026-11-16T13:19:43.596Z"}
