@@ -42,6 +42,7 @@
 		"functions/api/admin/matchup/update.ts": "audit-trail",
 		"functions/api/admin/media-assets/sync-from-b2.ts": "none",
 		"functions/api/admin/member-operations/delete.ts": "row-actor",
+		"functions/api/admin/member-operations/revoke-sessions.ts": "none",
 		"functions/api/admin/membership-card.ts": "none",
 		"functions/api/admin/permission-exchanges/index.ts": "none",
 		"functions/api/admin/photos/purge.ts": "none",
