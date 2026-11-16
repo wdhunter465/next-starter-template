@@ -124,6 +124,26 @@ export async function recordXEvidence({ auditDir, post, status, attempt, bufferP
   return { status: record.status, version: record.version };
 }
 
+/**
+ * Buffer reports a failed post's error as an object, which printed as "[object Object]" in the run report and the
+ * evidence record (2026-11-16, #5311). This renders any shape as readable text without the API key.
+ */
+export function describeBufferError(error) {
+  if (error === undefined || error === null || error === '') return 'unknown';
+  if (typeof error === 'string') return error.slice(0, 300);
+  if (error instanceof Error) return error.message.slice(0, 300);
+  if (typeof error === 'object') {
+    const named = [error.message, error.code, error.type].filter((v) => typeof v === 'string' && v).join(' / ');
+    if (named) return named.slice(0, 300);
+    try {
+      return JSON.stringify(error).slice(0, 300);
+    } catch {
+      return 'unreadable error object';
+    }
+  }
+  return String(error).slice(0, 300);
+}
+
 function evidenceStatusFor(node) {
   if (node?.status === 'sent' && node?.sentAt) return 'confirmed';
   if (node?.status === 'error') return 'failed';
@@ -197,11 +217,11 @@ export async function run(env = process.env, deps = {}) {
       at_utc: nowIso(),
       by: EVIDENCE_JOB,
       outcome: status === 'confirmed' ? 'ok' : status === 'failed' ? 'error' : 'handed_off',
-      detail: attemptDetail ?? (status === 'confirmed' ? `Buffer reports the post sent at ${node.sentAt}` : status === 'failed' ? `Buffer error: ${node.error ?? 'unknown'}` : `Buffer accepted the post; status ${node?.status ?? 'unknown'} after read-back`),
+      detail: attemptDetail ?? (status === 'confirmed' ? `Buffer reports the post sent at ${node.sentAt}` : status === 'failed' ? `Buffer error: ${describeBufferError(node.error)}` : `Buffer accepted the post; status ${node?.status ?? 'unknown'} after read-back`),
     };
     const result = await recordXEvidence({ auditDir, post, status, attempt, bufferPostId, node, fetchImpl, baseUrl, nowMs: now, note, queue });
     report.evidence.push({ id: post.id, ...result });
-    if (status === 'failed' && reportFailure) report.failed.push({ id: post.id, step: 'buffer-send', error: String(node?.error ?? 'unknown').slice(0, 300) });
+    if (status === 'failed' && reportFailure) report.failed.push({ id: post.id, step: 'buffer-send', error: describeBufferError(node?.error) });
     return result;
   };
 
