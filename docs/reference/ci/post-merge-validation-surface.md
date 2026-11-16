@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: Current post-merge validation, source-issue closeout, evidence, and remediation surface as a supporting specification
 Does Not Own: CI and Verification Domain Policy; pre-merge required checks; branch protection settings; production runtime monitoring
 Canonical Reference: /docs/governance/CI-AND-VERIFICATION.md
-Related Issues: #2689, #1197, #1500, #2175, #2208, #2380, #2469, #2591, #4445, #4776, #4777
-Last Reviewed: 2026-10-26
+Related Issues: #2689, #1197, #1500, #2175, #2208, #2380, #2469, #2591, #4445, #4703, #4776, #4777
+Last Reviewed: 2026-11-16
 ---
 
 # LGFC Post-Merge Validation Surface
@@ -99,7 +99,8 @@ Program, umbrella, parent, roadmap, queue, and tracking boundaries remain govern
 
 - **Keep-open wording.** The closeout reads the `POST-MERGE ISSUE DISPOSITION` section of the PR body, either as a `## POST-MERGE ISSUE DISPOSITION` heading or as a plain `POST-MERGE ISSUE DISPOSITION:` line. Wording such as "keep #N open", "stays open" or "remains open" keeps the source issue open; "close #N on merge" does not. The closeout checklist is read separately, as before.
 - **Wait for the deploys the merge triggers.** After GitHub state settles, stabilization waits (up to 20 minutes, polling every 30 seconds) for the `D1 Migrations` run when the merge touches migrations, `wrangler.toml` or the migration workflow, and for the `Cloudflare Pages` check when it touches site paths (`src/`, `functions/`, `public/`, package, Next and TypeScript config). A deploy that fails blocks the closeout (`merge_deploy_failed`); one that does not finish in time keeps the source issue open (`merge_deploy_timeout`); a migration run that never appears within 3 minutes blocks it too. A `Cloudflare Pages` check that never appears is treated as not triggered. Documentation-only merges wait for nothing.
-- **Not covered here.** Treating every workflow finding as an exception, and holding closeout while the source issue has unchecked acceptance criteria, remain open items on #4445.
+- **Unchecked acceptance criteria hold the Issue open (#4703).** When the source Issue is open and its own `Acceptance criteria` section has any unchecked task item (`- [ ]`), the closeout leaves it open, relabels it as the keep-open path does, and says in its comment which criteria are unchecked. The pull request closes it only by saying so in its `POST-MERGE ISSUE DISPOSITION`, for example `POST-MERGE ISSUE DISPOSITION: close #1234 on merge`. A merge alone does not complete an Issue. An Issue with all items checked, or with no checklist, closes as before. Only task items under an Acceptance heading count; other checklists in the body do not.
+- **A workflow finding is not a pass (#4703).** A failed, timed-out or action-required workflow run on the merge commit now fails the closeout and opens an exception, unless the workflow is on the explicit optional list (`OPTIONAL_WORKFLOWS` in `scripts/ci/post_merge_validator.mjs`, empty by default; adding a workflow there is a Product Authority decision). A cancelled run was superseded, not failed, so it counts only when it is a merge-protection run. The closeout's own workflows are never counted.
 
 ## Failure and remediation
 

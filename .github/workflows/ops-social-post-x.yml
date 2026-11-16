@@ -84,6 +84,11 @@ jobs:
           AUDIT_DIR: ${{ env.APPLY == 'true' && format('{0}/social-audit', runner.temp) || '' }}
         run: node scripts/ops/social-post-x.mjs
 
+      - name: Save the posts to the archive (never blocks or repeats a post)
+        if: ${{ always() && env.APPLY == 'true' }}
+        continue-on-error: true
+        run: node scripts/ops/social-archive-sync.mjs
+
       - name: Save the evidence records to the audit data branch
         if: ${{ always() && env.APPLY == 'true' }}
         run: |

@@ -339,6 +339,7 @@ describe('sync-pr-state issueMeta REST lookup', () => {
 			labels: ['feature', 'status:review'],
 			state: 'closed',
 			state_reason: 'not_planned',
+			body: '',
 		});
 	});
 

@@ -933,9 +933,12 @@ export function isRequiredMergeProtectionRun(run = {}) {
 export function classifyWorkflowRun(run, prBody = '') {
 	const name = run.workflowName || run.name || '';
 	const conclusion = String(run.conclusion || '').toLowerCase();
+	// #4703: any workflow finding fails the closeout unless the workflow is on the explicit optional list
+	// (OPTIONAL_WORKFLOWS, empty by default). A cancelled run was superseded, not failed, so it still counts
+	// only when it is a merge-protection run.
 	const required = OPTIONAL_WORKFLOWS.has(name)
 		? docsSyncRequiredByAcceptance(prBody)
-		: isRequiredMergeProtectionRun(run);
+		: isRequiredMergeProtectionRun(run) || conclusion !== 'cancelled';
 	const classification =
 		/COPILOT_GITHUB_TOKEN|secret/i.test(run.failureText || '') || OPTIONAL_WORKFLOWS.has(name)
 			? 'secret-access/configuration'
