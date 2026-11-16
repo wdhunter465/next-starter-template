@@ -2,9 +2,10 @@
 // - Validates that the email exists in join_requests
 // - Refuses a member whose email address is not verified yet (#5112)
 // - Creates a cookie-backed session in member_sessions (30 days)
-// - Rate limits: max 3 failed attempts per IP per hour
+// - Rate limits: max 3 failed attempts per IP per hour, and 5 failed attempts per address per hour (#5302)
 
 import { requireD1, requireTables, jsonResponse, type Env } from '../_lib/d1';
+import { countFailedLoginsForAddress, LOGIN_FAILED_PER_ADDRESS_PER_HOUR } from '../_lib/request-throttle';
 import { isEmailUnverified } from '../_lib/email-verification';
 import { isMemberSoftDeleted, newSessionIdHex, setSessionCookie } from '../_lib/session';
 
@@ -95,6 +96,15 @@ const emailRaw = (body?.email ?? '').toString();
 
     const failed = await countRecentFailedAttempts(db, ip);
     if (failed >= 3) {
+      return jsonResponse(
+        { ok: false, error: 'Too many failed attempts. Please wait one hour and try again.', requestId },
+        429
+      );
+    }
+
+    // Per-address limit (#5302): counts failed attempts for this address from any IP. Only an address that has
+    // already failed (not found) can reach it, so the response reveals nothing about real members.
+    if ((await countFailedLoginsForAddress(db, email)) >= LOGIN_FAILED_PER_ADDRESS_PER_HOUR) {
       return jsonResponse(
         { ok: false, error: 'Too many failed attempts. Please wait one hour and try again.', requestId },
         429

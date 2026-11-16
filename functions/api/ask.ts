@@ -2,6 +2,7 @@
 
 import { sendAdminJoinNotification, sendWelcomeEmail } from '../_lib/email';
 import { jsonResponse, requireD1, requireTables, type Env } from '../_lib/d1';
+import { ASK_PER_IP_PER_HOUR, clientIp, overIpThrottle } from '../_lib/request-throttle';
 
 function isValidEmail(email: string): boolean {
   const trimmed = email.trim();
@@ -144,6 +145,11 @@ export async function onRequestPost(context: { env: Env; request: Request }): Pr
   const db = d1Check.db;
   const tablesCheck = await requireTables(db, ['ask_inbox', 'join_requests', 'join_email_log', 'members']);
   if (!tablesCheck.ok) return jsonResponse(tablesCheck.body, tablesCheck.status);
+
+  // #5302: simple per-IP throttle (10 per hour); fails open if the database cannot answer.
+  if (await overIpThrottle(db, clientIp(request), 'ask', ASK_PER_IP_PER_HOUR)) {
+    return jsonResponse({ ok: false, error: 'Too many requests. Please wait an hour and try again.', requestId }, 429);
+  }
 
   try {
     const body = await request.json().catch(() => ({}));
