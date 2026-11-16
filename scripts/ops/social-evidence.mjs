@@ -19,6 +19,7 @@ export const PLATFORMS = ['x', 'facebook', 'instagram', 'pinterest'];
 export const STATUSES = ['handed_off', 'confirmed', 'failed', 'missing', 'not_eligible'];
 export const ORIGINS = ['queue', 'ad_hoc'];
 export const OUTCOMES = ['ok', 'error', 'handed_off'];
+export const RIGHTS_VERDICTS = ['cleared', 'not_cleared'];
 
 const UTC_ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?Z$/;
 const OFFSET_ISO = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d+)?[+-]\d{2}:\d{2}$/;
@@ -122,6 +123,16 @@ export function validateEvidenceRecord(record) {
     if (!SHA256.test(String(photo.image_sha256 ?? ''))) problems.push('photo.image_sha256 must be a SHA-256 hex digest');
     if (!isPositiveInt(photo.width) || !isPositiveInt(photo.height)) problems.push('photo.width and photo.height must be positive integers');
     if (typeof photo.alt_text !== 'string') problems.push('photo.alt_text is required');
+    // #5085: the rights verdict used when the post was sent. Optional so earlier records stay valid.
+    if (photo.rights_check !== undefined) {
+      const rc = photo.rights_check;
+      if (!isObject(rc)) problems.push('photo.rights_check must be an object');
+      else {
+        if (!RIGHTS_VERDICTS.includes(rc.verdict)) problems.push(`photo.rights_check.verdict must be one of ${RIGHTS_VERDICTS.join(', ')}`);
+        if (!isNonEmptyString(rc.source)) problems.push('photo.rights_check.source is required');
+        if (!OFFSET_ISO.test(String(rc.checked_at_utc ?? ''))) problems.push('photo.rights_check.checked_at_utc must be an ISO time with an offset');
+      }
+    }
   }
 
   const attempts = record.attempts;
@@ -198,6 +209,7 @@ export function buildEvidenceRecord({
   note,
   photo,
   verified,
+  rightsCheck,
   origin = 'queue',
   version = 1,
 }) {
@@ -220,6 +232,7 @@ export function buildEvidenceRecord({
       width: photo?.width,
       height: photo?.height,
       alt_text: post.alt_text,
+      ...(rightsCheck ? { rights_check: rightsCheck } : {}),
     },
     status,
     attempts,
@@ -239,6 +252,22 @@ export function buildEvidenceRecord({
   const problems = validateEvidenceRecord(record);
   if (problems.length) throw new Error(`invalid evidence record: ${problems.join('; ')}`);
   return record;
+}
+
+/**
+ * The rights verdict for a photo at the moment of sending (#5085): 'cleared' only when the reviewed queue lists
+ * the photo in rights_cleared_photo_ids and not in held_photo_ids; anything else is 'not_cleared'. It records
+ * what the queue said; it never decides anything and never changes the queue.
+ */
+export function rightsCheckFor(queue, photoId, checkedAtUtc) {
+  const cleared = new Set(queue?.rights_cleared_photo_ids ?? []);
+  const held = new Set(queue?.held_photo_ids ?? []);
+  const ok = cleared.has(photoId) && !held.has(photoId);
+  return {
+    verdict: ok ? 'cleared' : 'not_cleared',
+    source: 'data/social-post-queue.json rights_cleared_photo_ids and held_photo_ids',
+    checked_at_utc: checkedAtUtc,
+  };
 }
 
 /** A new, empty day document for a YYYY-MM-DD date. */
