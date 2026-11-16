@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { buildIssue, run, selectDispatchPosts } from '../scripts/ops/social-post-dispatch.mjs';
+import { buildIssue, handoffTarget, run, selectDispatchPosts } from '../scripts/ops/social-post-dispatch.mjs';
 import { findCoverageGaps, phaseForDate, validateMessaging } from '../scripts/ops/social-post-queue.mjs';
 
 const queue = JSON.parse(readFileSync('data/social-post-queue.json', 'utf8'));
@@ -94,5 +94,25 @@ describe('messaging calendar', () => {
   });
   it('the real queue passes', () => {
     expect(validateMessaging(queue, calendar)).toEqual([]);
+  });
+});
+
+describe('dedicated hand-off repositories (#5321)', () => {
+  it('uses the dedicated repository and token for a platform that has one, and the main repository otherwise', () => {
+    const e = { GITHUB_TOKEN: 'g', GITHUB_REPOSITORY: 'o/main', SOCIAL_HANDOFF_TOKEN: 'h', SOCIAL_HANDOFF_REPO_FACEBOOK: 'o/lgfc-social-facebook' };
+    expect(handoffTarget(e, 'facebook')).toEqual({ repo: 'o/lgfc-social-facebook', token: 'h', dedicated: true });
+    expect(handoffTarget(e, 'instagram')).toEqual({ repo: 'o/main', token: 'g', dedicated: false });
+  });
+
+  it('requires SOCIAL_HANDOFF_TOKEN when a dedicated repository is set and applying', async () => {
+    const e = { ...env, SOCIAL_HANDOFF_REPO_FACEBOOK: 'o/lgfc-social-facebook' };
+    await expect(run(e, { queue, calendar, fetch: async () => ({ status: 200, json: async () => ({ rows: [] }) }) })).rejects.toThrow(/SOCIAL_HANDOFF_TOKEN/);
+  });
+
+  it('dry run names the repository each hand-off would open in', async () => {
+    const e = { SCHEDULED_CONTENT_BRIDGE_TOKEN: 't', GITHUB_REPOSITORY: 'o/main', SOCIAL_HANDOFF_REPO_FACEBOOK: 'o/lgfc-social-facebook', APPLY: 'false', NOW: '2026-11-10T15:10:00Z' };
+    const report = await run(e, { queue, calendar, fetch: async () => ({ status: 200, json: async () => ({ rows: [] }) }) });
+    const fb = report.skipped.find((r) => r.platform === 'facebook');
+    expect(fb?.in_repo).toBe('o/lgfc-social-facebook');
   });
 });
