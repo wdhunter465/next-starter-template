@@ -43,6 +43,17 @@ export async function revokeMemberSessions(db: any, email: string): Promise<void
     .run();
 }
 
+export async function countMemberSessions(db: any, email: string): Promise<number> {
+  const normalized = String(email || '').trim().toLowerCase();
+  if (!normalized) return 0;
+  const row = await db
+    .prepare(`SELECT COUNT(1) AS n FROM member_sessions WHERE lower(email) = lower(?1)`)
+    .bind(normalized)
+    .first();
+  const n = Number((row as any)?.n ?? 0);
+  return Number.isFinite(n) ? n : 0;
+}
+
 export async function isMemberSoftDeleted(db: any, email: string): Promise<boolean> {
   const normalized = String(email || '').trim().toLowerCase();
   if (!normalized) return false;
