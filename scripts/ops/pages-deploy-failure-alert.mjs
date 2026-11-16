@@ -6,6 +6,7 @@
 // scripts/ci/open_workflow_failure_issue.mjs via
 // .github/workflows/ops-workflow-failure-exception-issues.yml (#4444).
 
+import { sendAlertEmail } from './alert-email.mjs';
 import { pathToFileURL } from 'node:url';
 
 export const PAGES_CHECK_NAME = 'Cloudflare Pages';
@@ -115,6 +116,15 @@ async function main() {
     repo: REPO,
   });
   console.log(JSON.stringify(result));
+  if (result.action === 'created') {
+    // One email per failed deploy (#4687): only when the exception Issue is first opened, not on its comments.
+    const emailed = await sendAlertEmail({
+      kind: 'failed_deploy',
+      subject: 'LGFC Production deploy failed',
+      text: `The Cloudflare Pages deployment on ${DEFAULT_BRANCH} failed.\n\nCommit: ${HEAD_SHA}\nIssue: https://github.com/${REPO}/issues/${result.number}`,
+    });
+    console.log(JSON.stringify({ alertEmail: emailed }));
+  }
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
