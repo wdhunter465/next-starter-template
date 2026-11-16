@@ -1,0 +1,76 @@
+name: OPS — Regenerate the Club Home edition (#4906)
+
+# Scheduled Club Home edition regeneration (proposal on #4906: weekly, Monday 06:00 America/New_York). Calls the
+# token-protected route /api/scheduled-content/club-home-regenerate, which builds and activates a new edition with the
+# same code as the admin button. Scheduled runs are a DRY RUN until the repository variable CLUB_HOME_REGEN_APPLY is
+# set to 'true', which is Product Authority's recorded Go (cadence, start date) on #4906. The route itself refuses to
+# apply inside the launch freeze (2026-12-31 to 2027-06-02) or with fewer than 7 eligible stories. A manual run
+# applies only with apply=true. A failure opens or updates one Operations Issue; the previous edition stays live.
+# Restore: POST /api/admin/editorial/club-home-edition-rollback (docs/how-to/ops/verify-club-home-rotation.md).
+#
+# Cron: Monday 11:00 UTC, which is 06:00 New York in winter (EST) and 07:00 in summer (EDT).
+on:
+  schedule:
+    - cron: '0 11 * * 1'
+  workflow_dispatch:
+    inputs:
+      apply:
+        description: Regenerate for real (default false = dry run)
+        required: false
+        default: 'false'
+        type: choice
+        options:
+          - 'false'
+          - 'true'
+
+concurrency:
+  group: ops-club-home-edition-regenerate
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  regenerate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      SCHEDULED_CONTENT_BRIDGE_TOKEN: ${{ secrets.SCHEDULED_CONTENT_BRIDGE_TOKEN }}
+      APPLY: ${{ (github.event_name == 'schedule' && vars.CLUB_HOME_REGEN_APPLY == 'true' && 'true') || (github.event_name == 'workflow_dispatch' && inputs.apply) || 'false' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Regenerate (dry run unless apply)
+        id: regen
+        run: |
+          set -uo pipefail
+          if [ "$APPLY" = "true" ]; then ARGS="--apply"; else ARGS=""; fi
+          node scripts/ops/club-home-regenerate.mjs $ARGS | tee "$RUNNER_TEMP/regen.txt"
+          echo "exit=${PIPESTATUS[0]}" >> "$GITHUB_OUTPUT"
+          exit "${PIPESTATUS[0]}"
+
+      - name: Open or update the Operations Issue on failure
+        if: ${{ failure() && github.event_name != 'workflow_dispatch' }}
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          OPS_ESCALATION_RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          node --input-type=module -e "
+          import { escalateOpsRuntimeFailure } from './scripts/ci/ops_runtime_escalation.mjs';
+          const outcome = await escalateOpsRuntimeFailure({
+            workflowName: 'OPS — Regenerate the Club Home edition',
+            title: 'OPS: scheduled Club Home edition regeneration failed',
+            runUrl: process.env.OPS_ESCALATION_RUN_URL,
+            details: 'The scheduled regeneration failed. The previous edition is still live.',
+            nextSteps: ['Open the run, read the error, and fix or roll back.', 'Rollback: POST /api/admin/editorial/club-home-edition-rollback.'],
+            labels: ['ops-runtime-failure', 'team:operations'],
+          });
+          console.log(JSON.stringify(outcome));
+          "
