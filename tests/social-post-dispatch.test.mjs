@@ -62,12 +62,16 @@ describe('hand-off to Zapier', () => {
     expect(r.failed).toEqual([]);
     expect(w.created.map((i) => i.labels[1])).toEqual(['social:facebook', 'social:instagram', 'social:pinterest']);
     expect(w.ledger.map((l) => l.platform)).toEqual(['facebook', 'instagram', 'pinterest']);
+    expect(w.ledger.map((l) => l.status)).toEqual(['handed_off', 'handed_off', 'handed_off']);
   });
 
-  it('does not hand off a platform the ledger already has', async () => {
+  it('does not hand off a platform the ledger already has, whether recorded posted or handed_off', async () => {
     const w = fakeWorld([{ platform: 'facebook', status: 'posted' }]);
     await run(env, { fetch: w.fetchImpl });
     expect(w.created.map((i) => i.labels[1])).toEqual(['social:instagram', 'social:pinterest']);
+    const w2 = fakeWorld([{ platform: 'facebook', status: 'handed_off' }, { platform: 'pinterest', status: 'handed_off' }]);
+    await run(env, { fetch: w2.fetchImpl });
+    expect(w2.created.map((i) => i.labels[1])).toEqual(['social:instagram']);
   });
 });
 
