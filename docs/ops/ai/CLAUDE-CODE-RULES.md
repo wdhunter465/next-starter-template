@@ -5,8 +5,8 @@ Authority Level: Agent-Specific
 Owns: Claude Code product identity, startup steps, continuous-run mechanics, claim handling, Operations monitoring, permission-email monitoring, connector access (Cloudflare, Buffer, Zapier), and Claude-specific operating notes
 Does Not Own: Agent-team policy, role mapping, PMO lifecycle, Governance authority, shared execution law, merge approval, or the permission-request policy
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Related Issues: #3825, #4053, #4718, #4749, #4994, #5108, #5192, #5194, #5221
-Last Reviewed: 2026-11-15
+Related Issues: #3825, #4053, #4718, #4749, #4994, #5108, #5192, #5194, #5221, #5324
+Last Reviewed: 2026-11-17
 ---
 
 # CLAUDE-CODE-RULES.md
@@ -54,11 +54,10 @@ After startup the run follows the shared law (`docs/governance/AGENT-EXECUTION.m
 - **Waiting PRs.** A Production-tier PR waits for the human approver while the run continues. Come back to a waiting PR only when a check fails, a reviewer comments, or a post-merge failure opens.
 - **Post-merge exceptions.** Remediate in the same delivery lineage at once, following `docs/ops/as-built/post-merge-originating-agent-remediation-3069.md`.
 
-## Single-agent run while Cursor is offline (#5221)
+## Safe-boundary pass
 
-Active from 2026-11-13 until Product Authority records on #5221 that Cursor is back. Role holders are in `docs/governance/AGENT-TEAM.md` (Temporary override); nothing here widens authority.
+The Cursor-offline override (#5221) ended on 2026-11-17 (#5324). Claude Code holds the roles in `docs/governance/AGENT-TEAM.md` (Team assignment) and the five searches above apply as written, including the `-label:agent:cursor` exclusion. The pass below is not Cursor-specific; nothing here widens authority.
 
-- **Queue reads.** In the five searches above, drop the `-label:agent:cursor` exclusion and treat an `agent:cursor` Issue as available. Re-claim it with `agent:claude` and a note ("Cursor offline, #5221"); never touch a Product Authority reservation.
 - **One pass, in this order, at every safe task boundary** (do not stop after the first item that moves):
   1. **My open PRs.** Read checks, threads and merge state. A non-production PR with every required check green and every thread resolved: merge it and leave the merge record (`Merged by: ...; head <sha>; checks green; threads resolved`). A Production-tier PR: confirm it is ready for the human approver, say so once on its source Issue, and move on.
   2. **Closeout.** For each merged PR whose source Issue is still open, confirm post-merge verification and acceptance criteria; close the Issue with the evidence, or record exactly what remains. Project and Program closeout stays a PMO/Governance/Product decision.
