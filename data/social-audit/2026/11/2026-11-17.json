@@ -1,0 +1,51 @@
+{
+  "schema": "social_audit_day/1",
+  "date": "2026-11-17",
+  "records": [
+    {
+      "schema": "social_post_evidence/1",
+      "post_id": "2026-11-17-daily",
+      "platform": "x",
+      "origin": "queue",
+      "version": 1,
+      "scheduled_for": "2026-11-17T10:00:00-05:00",
+      "text": "Six World Series championships with the Yankees. The Lou Gehrig Fan Club is preparing a new website for 2027. Join free today and be there when it opens.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "text_sha256": "01059dc1aa0b2b754497615d0c9a30b1d92ea67924716970ad30eeaccf31eef5",
+      "photo": {
+        "photo_id": 864,
+        "variant": "original",
+        "image_url": "https://www.lougehrigfanclub.com/api/social/image/2026-11-17-daily",
+        "image_sha256": "fe22aad5087af18efb0e499f835b4fef44268dbeb9d524e037c2524c9ea431d1",
+        "image_bytes": 3287027,
+        "width": 2424,
+        "height": 3397,
+        "alt_text": "Black-and-white printed portrait of Lou Gehrig in a cap and baseball jersey, smiling slightly. The page prints \"Henry Louis 'Lou' Gehrig. Idol of all American League fans and one of the greatest first basemen of all time. International News Photo.\"",
+        "rights_check": {
+          "verdict": "cleared",
+          "source": "data/social-post-queue.json rights_cleared_photo_ids and held_photo_ids",
+          "checked_at_utc": "2026-11-17T15:04:17.215+00:00"
+        }
+      },
+      "status": "confirmed",
+      "attempts": [
+        {
+          "at_utc": "2026-11-17T15:04:17.215Z",
+          "by": "GitHub job \"Social Post to X\"",
+          "outcome": "ok",
+          "detail": "Buffer reports the post sent at 2026-11-17T15:04:23.179Z"
+        }
+      ],
+      "platform_record": {
+        "post_id": "6afc6cf3600662b6bdc002fe",
+        "url": null,
+        "created_at_utc": "2026-11-17T15:04:23.179Z",
+        "created_at_new_york": "2026-11-17T10:04:23-05:00"
+      },
+      "verified": {
+        "on": "2026-11-17",
+        "by": "GitHub job \"Social Post to X\"",
+        "method": "Buffer get_post after create_post"
+      }
+    }
+  ]
+}
