@@ -5,11 +5,13 @@ Authority Level: Controlled
 Owns: The design for publishing the daily social posts from a scheduled GitHub Actions job without a Claude session: requirements, options, the recommended architecture, the queue and ledger data model, failure handling, rollout phases and the decisions Product Authority must make
 Does Not Own: The daily post recipe (recorded on #4416); the posts themselves (see /docs/reference/operations/social-daily-post-queue-2026-11.md); the Zapier payload contract for fundraiser posts (see /docs/reference/operations/social-crosspost-zapier-payload-contract.md); platform accounts, plans, costs and credentials; the 2026-12-01 and 2027-01-01 footer wording (see #2093)
 Canonical Reference: /docs/reference/operations/social-crosspost-zapier-payload-contract.md
-Related Issues: #5143, #5144, #4785, #4416, #4938, #4253, #4917, #5075, #2093, #5131
-Last Reviewed: 2026-11-09
+Related Issues: #5143, #5144, #5158, #5173, #4785, #4416, #4938, #4253, #4917, #5075, #2093, #5131
+Last Reviewed: 2026-11-16
 ---
 
 # Daily social posts from a schedule, not from a session
+
+> **Status, 2026-11-16: option B (a public feed plus Zapier "RSS" triggers) is superseded.** It was built (#5163, #5170) and removed on 2026-11-12 (#5213) because the field mapping failed in practice. The Facebook Page, Instagram and Pinterest Zaps are now triggered by GitHub hand-off Issues that the job opens (#5173; setup in `/docs/how-to/ops/social-feed-zaps-setup.md`). Read every mention of the feed, RSS, option B, phase 4 and decision D1 below as history. The queue, the ledger, the schedule, the rules and X through Buffer are still current.
 
 ## Purpose
 
@@ -47,11 +49,11 @@ Records a design so the daily post goes out on time whether or not anyone has a 
 | Option | How it works | For | Against |
 | --- | --- | --- | --- |
 | A. Platform APIs called directly from the job | The job posts to Meta (Page and Instagram), Pinterest and X with its own tokens. | No middleman, no Zapier task limit, full control of failures. | Needs developer apps and possibly app review; Meta tokens expire and must be renewed; X has no free tier for new developers (pay per use about $0.015 a post, about $0.20 with a link, #4938). |
-| B. Feed plus Zapier "RSS" triggers | The job publishes each due post to a public feed on the site. One Zap per platform watches the feed (RSS by Zapier, a free built-in app) and posts. | Free plan fits (a Zap is trigger plus one action); no webhook; no developer app; Zapier already holds the platform connections. | Zapier polls about every 15 minutes on the Free plan, so a post can be up to a quarter hour late; 3 tasks a day (about 90 of 100 a month) leaves little room; relies on Zapier staying free and connected. |
+| B. Feed plus Zapier "RSS" triggers (superseded, see status) | The job publishes each due post to a public feed on the site. One Zap per platform watches the feed (RSS by Zapier, a free built-in app) and posts. | Free plan fits (a Zap is trigger plus one action); no webhook; no developer app; Zapier already holds the platform connections. | Zapier polls about every 15 minutes on the Free plan, so a post can be up to a quarter hour late; 3 tasks a day (about 90 of 100 a month) leaves little room; relies on Zapier staying free and connected. |
 | C. Buffer as the scheduler | Queue posts in Buffer ahead of time. | Buffer sends on time even if the job is late. | 10 queued posts, and images must be public for the whole wait; only X is connected. |
 | D. Manual posting in each platform's own scheduler | A person schedules in the native tools. | Free, no automation to break. | Not automation; already named as the fallback (Product Authority, 2026-11-04). |
 
-**Recommendation: B for Facebook, Instagram and Pinterest, and A or C for X, with D as the standing fallback.** B is the only route that is free, needs no new developer apps and keeps working with Zapier's existing connections. For X, the job posts through Buffer if Buffer gives an unattended token (to be checked); otherwise X is paid per use or stays manual, which is Product Authority's call. Option A for the Meta platforms stays open as a later move if Zapier's limits bite.
+**Recommendation at the time (superseded by #5173): B for Facebook, Instagram and Pinterest, and A or C for X, with D as the standing fallback.** B is the only route that is free, needs no new developer apps and keeps working with Zapier's existing connections. For X, the job posts through Buffer if Buffer gives an unattended token (to be checked); otherwise X is paid per use or stays manual, which is Product Authority's call. Option A for the Meta platforms stays open as a later move if Zapier's limits bite.
 
 ## Recommended architecture
 
@@ -63,11 +65,12 @@ GitHub Actions job "publish due social posts"
    1. select posts whose time has arrived and that have no ledger row
    2. check the rules (rights-cleared photo, 280 characters, alt text, footer)
    3. copy the photo to a public social-image location (below)
-   4. X: send through Buffer; write the post to the public feed
+   4. X: send through Buffer; write the post to the public feed (as built instead: open one hand-off Issue per platform, #5173)
    5. write a ledger row per platform; open one Operations Issue on any failure
         |
         v
 public feed on the site  --->  one Zap per platform (Facebook Page, Instagram, Pinterest)
+(as built instead: one GitHub hand-off Issue per platform, which the Zap for that platform watches)
 ```
 
 ### Public social-image location
@@ -100,7 +103,7 @@ $0 with option B plus Buffer on the Free plan. The one item that could cost is X
 
 ## Risks
 
-- Zapier's Free plan or its RSS trigger could change; the Zaps and the feed are small and easy to move to option A.
+- (Superseded: the RSS trigger is no longer used.) Zapier's Free plan or its RSS trigger could change; the Zaps and the feed are small and easy to move to option A.
 - A feed item is public the moment it is written. Only already-public content goes in it.
 - Tokens expire (Meta). The alert above is the control.
 - Instagram needs a photo within its aspect-ratio limits; the queue lists a crop or a skip per post.
@@ -114,13 +117,13 @@ $0 with option B plus Buffer on the Free plan. The one item that could cost is X
 | 1 | Queue file, a checker for the rules, and a dry-run job that reports what would be posted. No posting. | D5 |
 | 2 | Public social-image location and the ledger endpoint. | D3, D4 |
 | 3 | X posting from the job. | D2 |
-| 4 | Feed and the three Zaps (Facebook Page, Instagram, Pinterest). | D1 |
+| 4 | Feed and the three Zaps (Facebook Page, Instagram, Pinterest). Built as a feed, withdrawn 2026-11-12, replaced by GitHub hand-off Issues and GitHub-triggered Zaps (#5173). | D1 |
 | 5 | Alerts, heartbeat and token watch. | none |
 | 6 | D1 queue table from #5075; footer changes. | #5075 go |
 
 ## Decisions for Product Authority
 
-- **D1.** Approve option B (feed plus Zapier RSS triggers) for Facebook, Instagram and Pinterest?
+- **D1.** Approve option B (feed plus Zapier RSS triggers) for Facebook, Instagram and Pinterest? *Answered and withdrawn: built, then replaced by GitHub-triggered Zaps (#5173).*
 - **D2.** X: send through Buffer if it gives an unattended token, pay per use (about $2 to $18 a quarter), or keep X manual?
 - **D3.** Approve a second public B2 bucket holding only the images of posts already published, deleted after a set time?
 - **D4.** Ledger in D1 behind a bounded endpoint, or an issue comment per post?
@@ -130,6 +133,6 @@ $0 with option B plus Buffer on the Free plan. The one item that could cost is X
 ## Verification still to do
 
 - Whether Buffer offers a token for an unattended caller on the Free plan.
-- Whether RSS by Zapier is on the Free plan with the per-platform actions, and its real polling interval.
+- ~~Whether RSS by Zapier is on the Free plan with the per-platform actions, and its real polling interval.~~ Moot: the RSS trigger is no longer used.
 - Whether the Instagram action accepts a photo at the address of the public social-image location.
 - Meta token lifetime for the Page and Instagram connection.
