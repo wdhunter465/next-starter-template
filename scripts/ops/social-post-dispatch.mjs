@@ -11,7 +11,14 @@
  * Idempotent: the ledger (and a search of existing Issues) stops a second hand-off.
  * Dry run unless APPLY=true.
  *
- * Env: GITHUB_TOKEN, GITHUB_REPOSITORY, SCHEDULED_CONTENT_BRIDGE_TOKEN, BASE_URL, APPLY, NOW (tests)
+ * Dedicated hand-off repositories (#5321): Zapier's Free plan has no Filter step and its GitHub "New Issue"
+ * trigger cannot filter by label, so a Zap would post every Issue it sees. When SOCIAL_HANDOFF_REPO_<PLATFORM>
+ * (for example SOCIAL_HANDOFF_REPO_FACEBOOK=owner/lgfc-social-facebook) is set, that platform's hand-off Issues
+ * open in that repository, which holds nothing else, so its Zap needs no filter. SOCIAL_HANDOFF_TOKEN (a token
+ * with Issues write on those repositories) is used for them; unset platforms keep using GITHUB_REPOSITORY.
+ *
+ * Env: GITHUB_TOKEN, GITHUB_REPOSITORY, SOCIAL_HANDOFF_TOKEN, SOCIAL_HANDOFF_REPO_<PLATFORM>,
+ *      SCHEDULED_CONTENT_BRIDGE_TOKEN, BASE_URL, APPLY, NOW (tests)
  */
 
 import { readFileSync } from 'node:fs';
@@ -38,6 +45,13 @@ export function buildIssue(post, platform, baseUrl) {
     // team:operations and area:social keep every hand-off Issue in a queue and in the social view (#5263).
     labels: [POST_LABEL, platformLabel(platform), 'team:operations', 'area:social'],
   };
+}
+
+/** The repository and token a platform's hand-off Issues use. */
+export function handoffTarget(env, platform) {
+  const dedicated = String(env[`SOCIAL_HANDOFF_REPO_${platform.toUpperCase()}`] ?? '').trim();
+  if (dedicated) return { repo: dedicated, token: String(env.SOCIAL_HANDOFF_TOKEN ?? '').trim(), dedicated: true };
+  return { repo: String(env.GITHUB_REPOSITORY ?? '').trim(), token: String(env.GITHUB_TOKEN ?? '').trim(), dedicated: false };
 }
 
 async function gh(fetchImpl, token, repo, path, init = {}) {
@@ -73,10 +87,15 @@ export async function run(env = process.env, deps = {}) {
   const now = env.NOW ? Date.parse(env.NOW) : Date.now();
   const baseUrl = String(env.BASE_URL ?? LIVE_BASE_URL).replace(/\/$/, '');
   const ledgerToken = String(env.SCHEDULED_CONTENT_BRIDGE_TOKEN ?? '').trim();
-  const ghToken = String(env.GITHUB_TOKEN ?? '').trim();
-  const repo = String(env.GITHUB_REPOSITORY ?? '').trim();
   if (!ledgerToken) throw new Error('SCHEDULED_CONTENT_BRIDGE_TOKEN is required (ledger)');
-  if (apply && (!ghToken || !repo)) throw new Error('GITHUB_TOKEN and GITHUB_REPOSITORY are required to apply');
+  if (apply) {
+    for (const platform of ZAP_PLATFORMS) {
+      const target = handoffTarget(env, platform);
+      if (!target.token || !target.repo) {
+        throw new Error(target.dedicated ? 'SOCIAL_HANDOFF_TOKEN is required for dedicated hand-off repositories' : 'GITHUB_TOKEN and GITHUB_REPOSITORY are required to apply');
+      }
+    }
+  }
 
   const report = { mode: apply ? 'apply' : 'dry-run', considered: [], dispatched: [], skipped: [], failed: [] };
   const candidates = selectDispatchPosts(queue, now);
@@ -95,8 +114,9 @@ export async function run(env = process.env, deps = {}) {
         continue;
       }
       const issue = buildIssue(post, platform, baseUrl);
+      const { repo, token: ghToken } = handoffTarget(env, platform);
       if (!apply) {
-        report.skipped.push({ id: post.id, platform, reason: 'dry run', would_open: issue });
+        report.skipped.push({ id: post.id, platform, reason: 'dry run', would_open: issue, in_repo: repo || null });
         continue;
       }
       try {
@@ -132,12 +152,18 @@ export async function run(env = process.env, deps = {}) {
     }
   }
 
-  // Tidy: close hand-off Issues older than 3 days so the repository stays readable.
+  // Tidy: close hand-off Issues older than 3 days so each repository stays readable.
   if (apply) {
-    const open = await gh(fetchImpl, ghToken, repo, `/issues?state=open&per_page=100&labels=${POST_LABEL}`);
-    for (const i of open.status === 200 ? open.body : []) {
-      if (now - Date.parse(i.created_at) > 3 * 86_400_000) {
-        await gh(fetchImpl, ghToken, repo, `/issues/${i.number}`, { method: 'PATCH', body: JSON.stringify({ state: 'closed', state_reason: 'completed' }) });
+    const seen = new Set();
+    for (const platform of ZAP_PLATFORMS) {
+      const { repo, token: ghToken } = handoffTarget(env, platform);
+      if (seen.has(repo)) continue;
+      seen.add(repo);
+      const open = await gh(fetchImpl, ghToken, repo, `/issues?state=open&per_page=100&labels=${POST_LABEL}`);
+      for (const i of open.status === 200 ? open.body : []) {
+        if (now - Date.parse(i.created_at) > 3 * 86_400_000) {
+          await gh(fetchImpl, ghToken, repo, `/issues/${i.number}`, { method: 'PATCH', body: JSON.stringify({ state: 'closed', state_reason: 'completed' }) });
+        }
       }
     }
   }
