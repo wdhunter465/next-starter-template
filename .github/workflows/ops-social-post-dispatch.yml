@@ -42,6 +42,10 @@ jobs:
     runs-on: ubuntu-latest
     env:
       GITHUB_TOKEN: ${{ github.token }}
+      SOCIAL_HANDOFF_TOKEN: ${{ secrets.SOCIAL_HANDOFF_TOKEN }}
+      SOCIAL_HANDOFF_REPO_FACEBOOK: ${{ vars.SOCIAL_HANDOFF_REPO_FACEBOOK }}
+      SOCIAL_HANDOFF_REPO_INSTAGRAM: ${{ vars.SOCIAL_HANDOFF_REPO_INSTAGRAM }}
+      SOCIAL_HANDOFF_REPO_PINTEREST: ${{ vars.SOCIAL_HANDOFF_REPO_PINTEREST }}
       SCHEDULED_CONTENT_BRIDGE_TOKEN: ${{ secrets.SCHEDULED_CONTENT_BRIDGE_TOKEN }}
       APPLY: ${{ github.event_name == 'schedule' && 'true' || (github.event_name == 'workflow_dispatch' && inputs.apply) || 'false' }}
     steps:
