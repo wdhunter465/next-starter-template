@@ -42,21 +42,6 @@ type CmsMutationResponse = {
   version: number;
 };
 
-const sampleLeaderboardSnapshot = buildFundraiserLeaderboardSnapshot();
-
-function withSampleLeaderboardConfig(config: CampaignSpotlightConfig): CampaignSpotlightConfig {
-  return {
-    ...config,
-    leaderboard: sampleLeaderboardSnapshot.boards.champion.slice(0, 3).map((entry) => ({
-      name: entry.displayName,
-      type: 'individual',
-      funds: entry.raised,
-      supporters: entry.donors,
-      points: entry.championPoints,
-    })),
-  };
-}
-
 function fieldStyle(): React.CSSProperties {
   return {
     padding: '10px 12px',
@@ -70,11 +55,27 @@ function buttonStyle(primary = false, disabled = false): React.CSSProperties {
   return {
     padding: '10px 14px',
     borderRadius: 10,
-    border: primary ? '1px solid var(--lgfc-blue, #0033cc)' : '1px solid rgba(0,0,0,0.18)',
-    background: disabled ? 'rgba(0,0,0,0.05)' : primary ? 'var(--lgfc-blue, #0033cc)' : 'white',
-    color: primary && !disabled ? 'var(--lgfc-bg-card)' : '#111',
+    border: primary ? '1px solid var(--lgfc-blue)' : '1px solid rgba(0,0,0,0.18)',
+    background: disabled ? 'rgba(0,0,0,0.05)' : primary ? 'var(--lgfc-blue)' : 'white',
+
+    color: primary && !disabled ? 'var(--lgfc-bg-card)' : '#111111',
     cursor: disabled ? 'not-allowed' : 'pointer',
     fontWeight: 700,
+  };
+}
+
+const sampleLeaderboardSnapshot = buildFundraiserLeaderboardSnapshot();
+
+function withSampleLeaderboardConfig(config: CampaignSpotlightConfig): CampaignSpotlightConfig {
+  return {
+    ...config,
+    leaderboard: sampleLeaderboardSnapshot.boards.champion.slice(0, 3).map((entry) => ({
+      name: entry.displayName,
+      type: 'individual',
+      funds: entry.raised,
+      supporters: entry.donors,
+      points: entry.championPoints,
+    })),
   };
 }
 

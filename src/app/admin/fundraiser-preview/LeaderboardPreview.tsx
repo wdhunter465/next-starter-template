@@ -34,7 +34,7 @@ function ProgressBar({ snapshot }: { snapshot: FundraiserLeaderboardSnapshot }) 
           style={{
             width: `${snapshot.overall.progressPercent}%`,
             height: '100%',
-            background: 'var(--lgfc-blue, #0033cc)',
+            background: 'var(--lgfc-blue)',
           }}
         />
       </div>
@@ -79,7 +79,7 @@ export default function LeaderboardPreview() {
       </h2>
 
       <p style={{ marginTop: 0 }}>
-        <strong>Sample data only</strong> · Admin only, not shown on any public or member page. Aggregate participant
+        <strong>Sample data</strong> only · Admin only, not shown on any public or member page. Aggregate participant
         totals only; no donor personal information is stored, logged, or displayed.
       </p>
       <p role="status" style={{ marginTop: 0 }}>
