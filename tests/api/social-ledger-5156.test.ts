@@ -75,6 +75,27 @@ describe('social post ledger', () => {
     expect(await retry.json()).toMatchObject({ status: 'posted', attempts: 2 });
   });
 
+  it('records a hand-off once and never overwrites it (#5289)', async () => {
+    const { db } = makeDb();
+    const env = { DB: db, SCHEDULED_CONTENT_BRIDGE_TOKEN: TOKEN };
+    const body = { post_id: POST, platform: 'facebook', status: 'handed_off', platform_post_id: 'issue#5181' };
+    expect((await ledgerPost({ request: req('POST', body), env })).status).toBe(201);
+    const again = await ledgerPost({ request: req('POST', body), env });
+    expect(again.status).toBe(409);
+    expect(await again.json()).toMatchObject({ error: 'already handed off' });
+    const list = await (await ledgerGet({ request: req('GET', undefined, `?post_id=${POST}`), env })).json();
+    expect(list.rows[0]).toMatchObject({ platform: 'facebook', status: 'handed_off', attempts: 1 });
+  });
+
+  it('lets a failed hand-off be retried as handed_off (#5289)', async () => {
+    const { db } = makeDb();
+    const env = { DB: db, SCHEDULED_CONTENT_BRIDGE_TOKEN: TOKEN };
+    await ledgerPost({ request: req('POST', { post_id: POST, platform: 'instagram', status: 'failed', error: 'boom' }), env });
+    const retry = await ledgerPost({ request: req('POST', { post_id: POST, platform: 'instagram', status: 'handed_off' }), env });
+    expect(retry.status).toBe(200);
+    expect(await retry.json()).toMatchObject({ status: 'handed_off', attempts: 2 });
+  });
+
   it('rejects an unknown post, platform or status', async () => {
     const { db } = makeDb();
     const env = { DB: db, SCHEDULED_CONTENT_BRIDGE_TOKEN: TOKEN };

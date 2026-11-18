@@ -54,7 +54,7 @@ export const onRequestPost = async (context: Context): Promise<Response> => {
     .bind(postId)
     .all();
   const rows = (ledger.results ?? []) as Array<{ platform: string; status: string; platform_post_id: string | null; recorded_at: string }>;
-  const posted = rows.filter((r) => r.status === "posted");
+  const posted = rows.filter((r) => r.status === "posted" || r.status === "handed_off");
   if (posted.length === 0) return json({ ok: false, error: "post has not been recorded as posted", post_id: postId }, 409);
 
   const metadata = JSON.stringify({

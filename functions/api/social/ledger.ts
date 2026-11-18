@@ -2,8 +2,10 @@
 // POST /api/social/ledger                 record one post on one platform
 // Authenticated by the scheduled-content bridge token, like publish-due (#4253). It can only
 // read and write social_post_ledger rows for posts in the reviewed queue (#5156, design #5143).
-// A platform that is already 'posted' is never overwritten: the answer is 409, so a rerun cannot
-// post twice. A 'failed' row can be retried and its attempts count goes up.
+// A platform that is already 'posted' or 'handed_off' is never overwritten: the answer is 409, so a rerun
+// cannot post twice. 'handed_off' (#5289) is for Facebook, Instagram and Pinterest, where the job only opens
+// a hand-off Issue and the platform is not read back. A 'failed' row can be retried and its attempts count
+// goes up.
 
 import { requireScheduledContentBridge } from "../../_lib/scheduled-content-auth";
 import { SOCIAL_PLATFORMS, findPost } from "../../_lib/social-queue";
@@ -45,7 +47,9 @@ export const onRequestPost = async (context: any): Promise<Response> => {
   const status = String(body?.status ?? "");
   if (!findPost(postId)) return json({ ok: false, error: "unknown post_id" }, 400);
   if (!(SOCIAL_PLATFORMS as string[]).includes(platform)) return json({ ok: false, error: "unknown platform" }, 400);
-  if (status !== "posted" && status !== "failed") return json({ ok: false, error: "status must be posted or failed" }, 400);
+  if (status !== "posted" && status !== "failed" && status !== "handed_off") {
+    return json({ ok: false, error: "status must be posted, handed_off or failed" }, 400);
+  }
   const platformPostId = body?.platform_post_id ? String(body.platform_post_id).slice(0, 200) : null;
   const error = body?.error ? String(body.error).slice(0, 500) : null;
 
@@ -55,8 +59,11 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     .bind(postId, platform)
     .first();
 
-  if (existing?.status === "posted") {
-    return json({ ok: false, error: "already posted", post_id: postId, platform }, 409);
+  if (existing?.status === "posted" || existing?.status === "handed_off") {
+    return json(
+      { ok: false, error: existing.status === "posted" ? "already posted" : "already handed off", post_id: postId, platform },
+      409,
+    );
   }
   if (existing) {
     await env.DB.prepare(

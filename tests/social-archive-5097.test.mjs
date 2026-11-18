@@ -134,7 +134,7 @@ describe('POST /api/social/archive (#5097)', () => {
     ledger(db.d, PUBLISHED.id, 'x', 'posted', 'p1');
     const first = await (await call(db, { post_id: PUBLISHED.id })).json();
     db.d.prepare("UPDATE content_items SET review_status = 'approved_public_candidate', admin_notes = 'checked by a person' WHERE id = ?").run(first.content_item_id);
-    ledger(db.d, PUBLISHED.id, 'instagram', 'posted', 'p2');
+    ledger(db.d, PUBLISHED.id, 'instagram', 'handed_off', 'issue#5182');
     const second = await (await call(db, { post_id: PUBLISHED.id })).json();
     expect(second.content_item_id).toBe(first.content_item_id);
     expect(db.d.prepare('SELECT COUNT(*) n FROM content_items').get().n).toBe(1);

@@ -107,7 +107,7 @@ export async function run(env = process.env, deps = {}) {
       report.failed.push({ id: post.id, step: 'ledger-read', status: ledger.status });
       continue;
     }
-    const done = new Set((ledger.body.rows ?? []).filter((r) => r.status === 'posted').map((r) => r.platform));
+    const done = new Set((ledger.body.rows ?? []).filter((r) => r.status === 'posted' || r.status === 'handed_off').map((r) => r.platform));
     for (const platform of ZAP_PLATFORMS.filter((pl) => post.platforms.includes(pl))) {
       if (done.has(platform)) {
         report.skipped.push({ id: post.id, platform, reason: 'already handed off' });
@@ -136,7 +136,7 @@ export async function run(env = process.env, deps = {}) {
         const recorded = await recordLedger(fetchImpl, baseUrl, ledgerToken, {
           post_id: post.id,
           platform,
-          status: 'posted',
+          status: 'handed_off',
           platform_post_id: `issue#${existing.number}`,
         });
         if (![200, 201, 409].includes(recorded.status)) {
