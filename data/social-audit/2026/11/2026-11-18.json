@@ -1,0 +1,51 @@
+{
+  "schema": "social_audit_day/1",
+  "date": "2026-11-18",
+  "records": [
+    {
+      "schema": "social_post_evidence/1",
+      "post_id": "2026-11-18-daily",
+      "platform": "x",
+      "origin": "queue",
+      "version": 1,
+      "scheduled_for": "2026-11-18T10:00:00-05:00",
+      "text": "Gehrig attended Columbia University before joining the Yankees. Our website relaunch in 2027 will bring his history to fans in a fresh new way.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "text_sha256": "04cc7ee70eadd73063c144cc61e432dfde64befccc3b05484fb5529ef7e0a536",
+      "photo": {
+        "photo_id": 862,
+        "variant": "original",
+        "image_url": "https://www.lougehrigfanclub.com/api/social/image/2026-11-18-daily",
+        "image_sha256": "f70b89de63313c9b132ce9f5832574d70b4d9e5515bf16d3aca771833f7d5f2f",
+        "image_bytes": 319189,
+        "width": 1859,
+        "height": 2015,
+        "alt_text": "Sepia photo of four men standing in front of a crowd behind chicken-wire fencing. One wears a \"Larrupin' Lous\" jersey and one wears a \"Bustin' Babes\" jersey and a bowler hat. Between them a man in an overcoat and a cap marked \"LL\" holds a baseball, and at the left a man wears a white cardigan and a bow tie.",
+        "rights_check": {
+          "verdict": "cleared",
+          "source": "data/social-post-queue.json rights_cleared_photo_ids and held_photo_ids",
+          "checked_at_utc": "2026-11-18T15:03:58.734+00:00"
+        }
+      },
+      "status": "confirmed",
+      "attempts": [
+        {
+          "at_utc": "2026-11-18T15:03:58.734Z",
+          "by": "GitHub job \"Social Post to X\"",
+          "outcome": "ok",
+          "detail": "Buffer reports the post sent at 2026-11-18T15:04:04.077Z"
+        }
+      ],
+      "platform_record": {
+        "post_id": "6afdbe60ff73344f88f2b047",
+        "url": null,
+        "created_at_utc": "2026-11-18T15:04:04.077Z",
+        "created_at_new_york": "2026-11-18T10:04:04-05:00"
+      },
+      "verified": {
+        "on": "2026-11-18",
+        "by": "GitHub job \"Social Post to X\"",
+        "method": "Buffer get_post after create_post"
+      }
+    }
+  ]
+}
