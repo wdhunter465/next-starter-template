@@ -6,7 +6,7 @@ Owns: How a failed scheduled or post-merge workflow becomes an Operations except
 Does Not Own: Incident command, rollback decisions, or the content of individual workflows
 Canonical Reference: /docs/governance/OPERATIONS-AND-RECOVERY.md
 Related Issues: #4444, #3268, #4589, #4637, #4670, #4674, #4681
-Last Reviewed: 2026-10-18
+Last Reviewed: 2026-11-19
 ---
 
 # Workflow Failure Exception Issues
@@ -49,6 +49,8 @@ Only failures on the default branch open an Issue. Failures on pull request bran
 
 1. **When a watched workflow fails**, the watcher opens an Issue titled `OPS EXCEPTION: <workflow name> failed` with the labels `team:operations` and `ops-exception`. It does not set an `agent:*` claim; an Operations agent claims it in the normal way.
 2. **Later failures of the same workflow** add a comment to the open Issue (with the run link) instead of opening a duplicate.
+
+One open Issue per workflow across openers (#5328): the halt/alert sweeper and the failure-exception opener share the workflow marker. If either already has an open `ops-exception` Issue for that workflow, the other comments on it (and may add `ops-halted` / priority labels) instead of creating a second Issue.
 3. **Operations reviews the Issue.** Open the linked run and read the failing step, then decide: a real fault (fix it under a source Issue), a missing secret or configuration (record who provisions it), or an accepted state (record the decision).
 4. **Close the Issue** with a comment naming the fix or decision. A passing run does not close it automatically.
 

@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
+import { exceptionMarker } from '../scripts/ci/ops-exception-markers.mjs';
 import {
   ALERT_ONLY,
   FAILURE_LIMIT,
@@ -128,9 +129,32 @@ describe('sweep', () => {
     expect(writes).toEqual(['POST issues', 'PUT disable']);
     expect(state.issues[0].labels).toEqual(['team:operations', 'ops-exception', 'ops-halted', 'ops:priority:2']);
     expect(state.issues[0].body).toContain(markerFor('a.yml'));
+    expect(state.issues[0].body).toContain(exceptionMarker('A'));
     expect(state.issues[0].body).toContain(lastRunMarker(3));
     expect(state.issues[0].body).toContain('actions/runs/3');
     expect(state.issues[0].body).toContain('Enable workflow');
+  });
+
+  it('reuses an open OPS EXCEPTION for the same workflow instead of opening a second Issue (#5328)', async () => {
+    const existing = {
+      number: 55,
+      state: 'open',
+      body: `${exceptionMarker('A')}\n## Exception: a watched workflow failed\n`,
+      labels: ['team:operations', 'ops-exception'],
+    };
+    const { api, calls, state } = fakeApi({
+      workflows: { 'a.yml': active('A') },
+      runs: { 'a.yml': [run(3, 'failure'), run(2, 'failure'), run(1, 'failure')] },
+      issues: [existing],
+    });
+    const out = await sweep({ ...base, files: ['a.yml'], api });
+    expect(out).toEqual([{ file: 'a.yml', action: 'halted', number: 55 }]);
+    expect(state.issues).toHaveLength(1);
+    expect(calls.some((c) => c.method === 'POST' && c.route.endsWith('/issues'))).toBe(false);
+    expect(calls.some((c) => c.method === 'POST' && c.route.endsWith('/55/comments'))).toBe(true);
+    expect(state.issues[0].body).toContain(markerFor('a.yml'));
+    expect(state.issues[0].body).toContain(lastRunMarker(3));
+    expect(state.issues[0].labels).toEqual(['team:operations', 'ops-exception', 'ops-halted', 'ops:priority:2']);
   });
 
   it('does not halt again on the next sweep while the same failures are the newest', async () => {
@@ -232,9 +256,12 @@ describe('sweep', () => {
 });
 
 describe('findRecord', () => {
-  it('reads the covered run id from the newest matching Issue', () => {
-    const issues = [{ number: 5, state: 'closed', body: `${markerFor('a.yml')}\n${lastRunMarker(77)}` }, { number: 2, state: 'open', body: markerFor('a.yml') }];
-    expect(findRecord(issues, 'a.yml')).toMatchObject({ number: 5, state: 'closed', lastRunId: 77 });
+  it('prefers an open Issue for updates and keeps the highest lastRunId across matches', () => {
+    const issues = [
+      { number: 5, state: 'closed', body: `${markerFor('a.yml')}\n${lastRunMarker(77)}` },
+      { number: 2, state: 'open', body: markerFor('a.yml') },
+    ];
+    expect(findRecord(issues, 'a.yml')).toMatchObject({ number: 2, state: 'open', lastRunId: 77 });
     expect(findRecord(issues, 'b.yml')).toBeNull();
   });
 });

@@ -12,8 +12,10 @@
 //     syncs, migrations) are never re-run automatically.
 
 import { pathToFileURL } from 'node:url';
+import { exceptionMarker, findOpenOpsException } from './ops-exception-markers.mjs';
 
 export const EXCEPTION_LABELS = ['team:operations', 'ops-exception'];
+export { exceptionMarker } from './ops-exception-markers.mjs';
 
 // Read-only monitors only. Re-running a job that writes (D1 backup, content publish, B2 sync, migrations, snapshot)
 // could repeat a side effect, so none of those are here. Names are the workflow `name:` values.
@@ -44,14 +46,8 @@ function describeRerun(run) {
   }
   return null;
 }
-const MARKER_PREFIX = 'ops-exception-workflow:';
-
 export function exceptionTitle(workflowName) {
   return `OPS EXCEPTION: ${workflowName} failed`;
-}
-
-export function exceptionMarker(workflowName) {
-  return `<!-- ${MARKER_PREFIX}${workflowName} -->`;
 }
 
 function describeFailures(failedSteps) {
@@ -133,10 +129,8 @@ export async function handleWorkflowFailure({ run, api, repo }) {
     'GET',
     `/repos/${repo}/issues?state=open&labels=${encodeURIComponent('ops-exception')}&per_page=100`,
   );
-  const marker = exceptionMarker(run.name);
-  const existing = (open || []).find(
-    (issue) => !issue.pull_request && typeof issue.body === 'string' && issue.body.includes(marker),
-  );
+  // #5328: also match an open halt/alert Issue for the same workflow (shared marker family).
+  const existing = findOpenOpsException(open, { name: run.name });
 
   if (existing) {
     await api('POST', `/repos/${repo}/issues/${existing.number}/comments`, {
