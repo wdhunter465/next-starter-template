@@ -6,7 +6,7 @@ Owns: Shared execution rules, enforcement model, PR discipline, stop conditions,
 Does Not Own: Design authority, platform configuration, tracker content, role mapping
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
 Related Issues: #3055, #3113, #3117, #3134, #3138, #3142, #3145, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4074, #4099, #4131, #4165, #4198, #4314, #4596, #4715, #4716, #4719, #4819, #4982, #4994, #5002, #5004, #5006
-Last Reviewed: 2026-10-28
+Last Reviewed: 2026-11-18
 ---
 
 This document is the canonical shared execution law. It moved here from `docs/ops/ai/CORE-RULES.md` under #4198. The old path is a compatibility pointer and is not a second policy.
@@ -83,7 +83,7 @@ A wake with no *new* GitHub events is not idle when discovered work remains. Thi
 Every agent reads its queue from GitHub, not from a local list or a poll inbox, and works the first item that can move. `<product>` is the agent's own `agent:` label.
 
 1. **Operations interrupts:** open `team:operations` Issues with `ops:priority:1` to `ops:priority:4`. They stop in-flight work at the nearest safe checkpoint (`docs/governance/WORK-QUEUES-AND-COLLABORATION.md`, Operations interrupt).
-2. **Own exceptions:** the agent's `post-merge-failure` Issues with `agent:<product>`.
+2. **Own exceptions:** the agent's `post-merge-failure` Issues with `agent:<product>`. These repository-health exceptions use the agent-stop rule in `docs/governance/OPERATIONS-AND-RECOVERY.md` (Repository-health exception agent stop).
 3. **Assigned work:** Issues with `agent:<product>` that are `status:ready` or `status:active`, and anything Product Authority named as this session's work.
 4. **Ready and unclaimed:** `status:ready` Issues with no valid `agent:*` claim, in a queue the agent's roles cover.
 5. **Unassigned and not yet reviewed:** open Issues in the agent's primary queues, then its secondary queues (`docs/governance/AGENT-TEAM.md`), with no `agent:*` claim and no `wait:*` or `status:hold` label. Review each and take ownership: claim it and resolve it, complete its package if the missing parts are within the agent's roles, or label it `wait:product` and name the one decision missing. Release any claim the agent cannot work.
