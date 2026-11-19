@@ -170,7 +170,57 @@ async function fetchOk(url, accept, timeoutMs = 90_000) {
   throw new TransientError(`${lastProblem} (after ${MAX_FETCH_ATTEMPTS} attempts)`);
 }
 
+function isChroniclingAmericaPageUrl(url = '') {
+  return /chroniclingamerica\.loc\.gov\/lccn\//i.test(String(url));
+}
+
+/**
+ * Resolve a Classic Chronicling America page to a downloadable image (#5110).
+ * Page JSON + thumbnail/jp2; treated as a newspaper picture (800 px floor) by pictureKind().
+ */
+async function resolveChroniclingAmerica(row, minimumLongSide) {
+  const pageUrl = String(row.source_url || '').replace(/\/?$/, '/');
+  if (!isChroniclingAmericaPageUrl(pageUrl)) {
+    throw new SkipError('source_url is not a Chronicling America page URL');
+  }
+  const jsonUrl = pageUrl.endsWith('/') ? `${pageUrl.slice(0, -1)}.json` : `${pageUrl}.json`;
+  let pageJson = {};
+  try {
+    const response = await fetchOk(jsonUrl, 'application/json', 30_000);
+    pageJson = await response.json();
+  } catch (error) {
+    if (!(error instanceof SkipError)) throw error;
+  }
+  const fromJson =
+    pageJson.jp2 ||
+    pageJson.pdf ||
+    pageJson.full_image ||
+    pageJson.image_url ||
+    (typeof pageJson.thumbnail === 'string' ? pageJson.thumbnail : '');
+  const imageUrl =
+    (typeof fromJson === 'string' && /^https?:\/\//i.test(fromJson) && fromJson) ||
+    (row.original_file_url && String(row.original_file_url)) ||
+    `${pageUrl}thumbnail.jpg`;
+  const ocrText = [pageJson.ocr_eng, pageJson.full_text, pageJson.text].filter(Boolean).map(String).join(' ');
+  return {
+    url: imageUrl,
+    width: Number(pageJson.width) || undefined,
+    height: Number(pageJson.height) || undefined,
+    inventory: `chroniclingamerica page image (${imageUrl})`,
+    text: [
+      row.title,
+      'newspaper',
+      ocrText,
+      row.provenance_notes,
+      `minimum_long_side_hint=${minimumLongSide}`,
+    ],
+  };
+}
+
 async function resolveLoc(row, minimumLongSide) {
+  if (isChroniclingAmericaPageUrl(row.source_url)) {
+    return resolveChroniclingAmerica(row, minimumLongSide);
+  }
   const match = /\/item\/([^/?#]+)/.exec(row.source_url ?? '');
   if (!match) throw new SkipError('source_url is not a loc.gov item page');
   const response = await fetchOk(`https://www.loc.gov/item/${match[1]}/?fo=json`, 'application/json', 30_000);
