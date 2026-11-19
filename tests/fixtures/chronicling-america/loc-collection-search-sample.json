@@ -1,13 +1,170 @@
 {
   "results": [
     {
-      "id": "https://chroniclingamerica.loc.gov/lccn/sn83030214/1927-10-01/ed-1/seq-12/",
-      "url": "https://chroniclingamerica.loc.gov/lccn/sn83030214/1927-10-01/ed-1/seq-12/",
-      "title": "The New York herald.",
-      "date": "1927",
-      "description": ["Lou Gehrig stepped to the plate before a packed Yankee Stadium crowd."],
-      "image_url": "https://chroniclingamerica.loc.gov/lccn/sn83030214/1927-10-01/ed-1/seq-12/thumbnail.jpg",
-      "original_format": ["newspaper"]
+      "access_restricted": false,
+      "aka": [
+        "http://www.loc.gov/resource/sn83045293/1928-10-08/ed-1/?sp=7"
+      ],
+      "batch": [
+        "whi_italico_ver01"
+      ],
+      "campaigns": [],
+      "composite_location": [
+        "0/united states/",
+        "1/united states/wisconsin/",
+        "2/united states/wisconsin/milwaukee/",
+        "3/united states/wisconsin/milwaukee/milwaukee/"
+      ],
+      "contributor": [
+        "wisconsin historical society"
+      ],
+      "date": "1928-10-08",
+      "dates": [
+        "1928-10-08"
+      ],
+      "description": [
+        "SEVEN Rain Prevents World Series Game in St Louis t 4 l e l l X X X Tech Shows Real Class of Citv High School Conference Teams BILL SHERDEL ON MOUND TOMORROW BY FRANK GETTY United Press Sports Editor ST LOUIS A diminutive san dyhaired southpaw pitcher Willie Bherdell of the St Louis Cardinals leads one of those forlorn hope drives tomorrow as the National league champions fight to escape a whitewashing at the hands of the unfeeling New York Yankees Upon Sherdel the last chance of the Cardinals to escape the disaster of defeat in four straight games de pends Todays scheduled game was post poned because of rain Hoyt for Yanks The Yanks riding the crest of a victorious wave will have their pitching ace Waite Hoyt primed and ready for the days game They have moreover the comfortable knowledge that they have beaten every pitcher Bill McKechnie has sent to the hill and they claim that they are only just beginning to hit With Hoyt opposing Sherdel once more and the Cardinals disheart by successive defeats betting 7 to 5 favored the Amer u league champions to repeat tne triumph of four straight games which they"
+      ],
+      "digitized": true,
+      "extract_timestamp": "2024-09-29T00:04:20.935Z",
+      "group": [
+        "ndnp/whi",
+        "wisconsin-historical-society-awardee"
+      ],
+      "hassegments": false,
+      "id": "http://www.loc.gov/resource/sn83045293/1928-10-08/ed-1/?sp=7",
+      "image_url": [
+        "https://tile.loc.gov/image-services/iiif/service:ndnp:whi:batch_whi_italico_ver01:data:sn83045293:00542869070:1928100801:0363/full/pct:3.125/0/default.jpg#h=303&w=222",
+        "https://tile.loc.gov/image-services/iiif/service:ndnp:whi:batch_whi_italico_ver01:data:sn83045293:00542869070:1928100801:0363/full/pct:6.25/0/default.jpg#h=607&w=445",
+        "https://tile.loc.gov/text-services/word-coordinates-service?segment=/service/ndnp/whi/batch_whi_italico_ver01/data/sn83045293/00542869070/1928100801/0363.xml&format=alto_xml"
+      ],
+      "index": 1,
+      "language": [
+        "english"
+      ],
+      "location": [
+        "united states",
+        "wisconsin",
+        "milwaukee"
+      ],
+      "location_city": [
+        "milwaukee"
+      ],
+      "location_country": [
+        "united states"
+      ],
+      "location_county": [
+        "milwaukee"
+      ],
+      "location_state": [
+        "wisconsin"
+      ],
+      "mime_type": [
+        "image/jp2",
+        "application/pdf",
+        "text/xml",
+        "image/jpeg",
+        "image/jpeg",
+        "application/json",
+        "text/plain"
+      ],
+      "number": [
+        "0000000007",
+        "6",
+        "4",
+        "5",
+        "0",
+        "9",
+        "2",
+        "7",
+        "1",
+        "8",
+        "sn83045293"
+      ],
+      "number_edition": [
+        "1"
+      ],
+      "number_lccn": [
+        "sn83045293"
+      ],
+      "number_page": [
+        "0000000007"
+      ],
+      "number_reel": [
+        "0",
+        "0",
+        "5",
+        "4",
+        "2",
+        "8",
+        "6",
+        "9",
+        "0",
+        "7",
+        "0"
+      ],
+      "online_format": [
+        "image",
+        "pdf",
+        "online text"
+      ],
+      "original_format": [
+        "newspaper"
+      ],
+      "page_id": "sn83045293-1928-10-08-ed-1-0363",
+      "partof": [
+        "serial and government publications division",
+        "chronicling america",
+        "the milwaukee leader (milwaukee, wis.) 1911-1938"
+      ],
+      "partof_collection": [
+        "chronicling america"
+      ],
+      "partof_division": [
+        "serial and government publications division"
+      ],
+      "partof_title": [
+        "the milwaukee leader (milwaukee, wis.) 1911-1938"
+      ],
+      "publication_frequency": [
+        "daily"
+      ],
+      "resources": [
+        {
+          "files": 1,
+          "url": "https://www.loc.gov/resource/sn83045293/1928-10-08/ed-1/?sp=7"
+        }
+      ],
+      "segmentof": [
+        "http://www.loc.gov/resource/sn83045293/1928-10-08/ed-1/"
+      ],
+      "shelf_id": "07",
+      "site": [
+        "chroniclingamerica"
+      ],
+      "subject": [
+        "wisconsin",
+        "milwaukee",
+        "united states",
+        "newspapers",
+        "socialism",
+        "https://id.oclc.org/worldcat/entity/e39pbjj8j7dbwccgbfpvchw3cp",
+        "milwaukee (wis.)"
+      ],
+      "timestamp": "2024-09-29T00:23:27.730Z",
+      "title": "Image 7 of The Milwaukee leader (Milwaukee, Wis.), October 8, 1928, (Mail Edition)",
+      "type": [
+        "segment"
+      ],
+      "url": "https://www.loc.gov/resource/sn83045293/1928-10-08/ed-1/?sp=7&q=lou+gehrig",
+      "word_coordinates_url": "https://tile.loc.gov/text-services/word-coordinates-service?format=alto_xml&segment=%2Fservice%2Fndnp%2Fwhi%2Fbatch_whi_italico_ver01%2Fdata%2Fsn83045293%2F00542869070%2F1928100801%2F0363.xml&q=lou+gehrig&relevant_snippet=1"
     }
-  ]
+  ],
+  "_lgfc_capture": {
+    "captured_at": "2026-11-19T21:27:00Z",
+    "source_url": "https://www.loc.gov/collections/chronicling-america/?q=Lou+Gehrig&fo=json&c=1&sp=1&dates=1920/1930",
+    "http_status": 200,
+    "note": "Exact results[0] from a live host capture. Facet/portal fields from the ~1.8MB full response omitted; results hit is unmodified.",
+    "host": "Cursor Local Chromebook host (not Actions sandbox)"
+  }
 }

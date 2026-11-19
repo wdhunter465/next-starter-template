@@ -99,6 +99,10 @@ const {
   pickCommonsFile,
   pictureKind,
 } = await import('./archive-ingest-lib.mjs');
+const {
+  buildChroniclingResourceFoJsonUrl,
+  pageImageFromChroniclingPageJson,
+} = await import('../../functions/_lib/content-pipeline-chronicling-america-adapter.ts');
 
 const scriptDir = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(scriptDir, '../..');
@@ -171,41 +175,54 @@ async function fetchOk(url, accept, timeoutMs = 90_000) {
 }
 
 function isChroniclingAmericaPageUrl(url = '') {
-  return /chroniclingamerica\.loc\.gov\/lccn\//i.test(String(url));
+  const text = String(url);
+  return (
+    /chroniclingamerica\.loc\.gov\/lccn\//i.test(text) ||
+    /(?:www\.)?loc\.gov\/resource\//i.test(text) ||
+    /loc\.gov\/chroniclingamerica\/lccn\//i.test(text)
+  );
 }
 
 /**
- * Resolve a Classic Chronicling America page to a downloadable image (#5110).
- * Page JSON + thumbnail/jp2; treated as a newspaper picture (800 px floor) by pictureKind().
+ * Resolve a Chronicling America / loc.gov newspaper page to a downloadable image (#5110).
+ * Uses www.loc.gov resource `?fo=json` (classic `.json` redirects into a Cloudflare HTML page).
+ * Prefers jp2 / large IIIF from that body. Never invents `/thumbnail.jpg` (redirects to HTML).
  */
 async function resolveChroniclingAmerica(row, minimumLongSide) {
-  const pageUrl = String(row.source_url || '').replace(/\/?$/, '/');
+  const pageUrl = String(row.source_url || '').trim();
   if (!isChroniclingAmericaPageUrl(pageUrl)) {
-    throw new SkipError('source_url is not a Chronicling America page URL');
+    throw new SkipError('source_url is not a Chronicling America / loc.gov resource page URL');
   }
-  const jsonUrl = pageUrl.endsWith('/') ? `${pageUrl.slice(0, -1)}.json` : `${pageUrl}.json`;
+  const jsonUrl = buildChroniclingResourceFoJsonUrl(pageUrl);
   let pageJson = {};
-  try {
-    const response = await fetchOk(jsonUrl, 'application/json', 30_000);
-    pageJson = await response.json();
-  } catch (error) {
-    if (!(error instanceof SkipError)) throw error;
+  if (jsonUrl) {
+    try {
+      const response = await fetchOk(jsonUrl, 'application/json', 30_000);
+      pageJson = await response.json();
+    } catch (error) {
+      if (!(error instanceof SkipError)) throw error;
+    }
   }
-  const fromJson =
-    pageJson.jp2 ||
-    pageJson.pdf ||
-    pageJson.full_image ||
-    pageJson.image_url ||
-    (typeof pageJson.thumbnail === 'string' ? pageJson.thumbnail : '');
-  const imageUrl =
-    (typeof fromJson === 'string' && /^https?:\/\//i.test(fromJson) && fromJson) ||
-    (row.original_file_url && String(row.original_file_url)) ||
-    `${pageUrl}thumbnail.jpg`;
+  const fromJson = pageImageFromChroniclingPageJson(pageJson, pageUrl);
+  const fromRow =
+    row.original_file_url && /^https?:\/\//i.test(String(row.original_file_url))
+      ? String(row.original_file_url).split('#')[0]
+      : '';
+  const imageUrl = fromJson || fromRow;
+  if (!imageUrl) {
+    throw new SkipError(
+      'Chronicling America page JSON and discovery row name no downloadable image (refusing /thumbnail.jpg guess)',
+    );
+  }
+  const pageEntries = Array.isArray(pageJson.page) ? pageJson.page : [];
+  const jp2Meta = pageEntries.find(
+    (entry) => entry && typeof entry === 'object' && String(entry.mimetype || '') === 'image/jp2',
+  );
   const ocrText = [pageJson.ocr_eng, pageJson.full_text, pageJson.text].filter(Boolean).map(String).join(' ');
   return {
     url: imageUrl,
-    width: Number(pageJson.width) || undefined,
-    height: Number(pageJson.height) || undefined,
+    width: Number(jp2Meta?.width) || Number(pageJson.width) || undefined,
+    height: Number(jp2Meta?.height) || Number(pageJson.height) || undefined,
     inventory: `chroniclingamerica page image (${imageUrl})`,
     text: [
       row.title,

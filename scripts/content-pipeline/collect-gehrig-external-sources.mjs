@@ -876,7 +876,7 @@ async function collectChroniclingAmerica(query, limit, nextId) {
       baseCandidate({
         id: nextId(),
         ...fields,
-        // Search hits often name a page thumbnail; archive ingest may refine via page JSON (#5110).
+        // Search hits name IIIF/tile images; archive ingest prefers jp2 from resource fo=json (#5110).
         originalFileUrl: fields.imageUrl || fields.originalFileUrl,
       }),
     );
