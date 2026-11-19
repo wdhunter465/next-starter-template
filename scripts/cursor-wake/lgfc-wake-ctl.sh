@@ -475,17 +475,20 @@ Cursor Local \`run startup\`:
    work-selection order for Operations, Engineering, Governance, and PMO Admin.
 4. Declare product Cursor, orientation only. Startup authorizes no Issue,
    PR, or file edit.
-5. Stop. Do not pick a queue item.
+5. End startup. Continue Session lifecycle phase 2 in the same turn (#5012).
 
-Wake ownership (#4783):
+Wake ownership (#4783 / #5012):
 - One owner. Identify this chat uuid. Never run unnamed \`bind\`.
 - Do not \`rebind\` during startup. Do not stop another session's loop.
+- Do not start a second loop.
 - If live_session is another chat: that chat stays the owner. Name the
   next command and do not run it: \`resume\` when halted, then
-  \`rebind --session <this chat uuid>\`. Report the PID when the loop is
-  ok. If the loop is stopped or stalled, report it and leave it stopped.
-- A chat may start exactly one loop only when the live-session file is
-  empty, the halt file is absent, and Product Authority asked for the poll.
+  \`rebind --session <this chat uuid>\`. Continue the open-Issue pass;
+  do not idle because the loop is stopped.
+- If this chat is the recorded owner and the loop is stopped or stalled:
+  report it, continue the open-Issue pass, and when nothing can move
+  start exactly one loop and report its PID. A halt still requires
+  \`resume\` then \`rebind\` before a new loop.
 - Latest poll for every open chat: ~/.cursor/lgfc-wake-poll-inbox.json
 - Do not kill the Actions runner or lgfc-wake-watchdog.
 - Retired poll-wake-loop.sh stays stopped.
@@ -509,10 +512,10 @@ Read this documentation stack now, from $root, then report each file as read:
 Pointer only, after the framework: $root/docs/ops/ai/CORE-RULES.md
 
 Host startup does not authorize Issues, PRs, or file edits.
-After the first-response checklist, the session is ready.
-Work only Issues Product Authority names in this chat.
-Do not occupy the session with standing-queue tick reports.
-handoff:ready is not website Go. Do not self-merge.
+After the first-response checklist, continue the session lifecycle (#5012).
+Work the GitHub queue in Assigned-queue order; Product Authority may also
+name Issues in this chat. The wake tick is a keepalive checker, not the
+assignment. handoff:ready is not website Go. Do not self-merge.
 EOF
 }
 

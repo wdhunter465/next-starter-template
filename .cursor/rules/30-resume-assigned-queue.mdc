@@ -1,8 +1,16 @@
 ---
-description: The wake tick is a keepalive. No new events means continue. It is not an assignment and not a stop.
+description: Continuous pass for Cursor Local. Wake tick is a keepalive. After answers, resume the queue.
 alwaysApply: true
 ---
 
-# Wake tick
+# Continuous pass (Cursor Local)
 
-The always-on tick is a keepalive, not an assignment and not a stop. On every tick run the queries in `~/.cursor/lgfc-ready-queue.txt` (`docs/reference/ci/cursor-ready-queue-contract.md`), then check your open pull requests. The queue order and the skip, cycle, act-when-a-wait-ends, repeat-guard and go-quiet rules are in `docs/governance/AGENT-EXECUTION.md` (Assigned-queue continuation), including skip-any-block (#4994). Where a tick message disagrees with that document, that document wins.
+On every turn end, and after answering a person, resume the assigned-queue pass. Do not idle because a question was answered or because the wake loop is stopped.
+
+1. Re-read the GitHub queue via `~/.cursor/lgfc-ready-queue.txt` (`docs/reference/ci/cursor-ready-queue-contract.md`).
+2. Follow `docs/governance/AGENT-EXECUTION.md` (Assigned-queue continuation): queue order, skip-any-block (#4994), continuous pass, and owner restarts one wake loop (#5012).
+3. The wake tick is a keepalive checker only. It is not the assignment and not a stop. A missing tick does not end the pass.
+4. When nothing can move and this chat is the recorded wake owner, start exactly one loop and report its PID. A non-owner chat stays on standby for the loop.
+5. End each pass with one short line naming what was covered (Issues/PRs touched or skipped) so idling is visible.
+
+Where this card disagrees with `docs/governance/AGENT-EXECUTION.md`, that document wins.

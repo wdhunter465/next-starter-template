@@ -164,7 +164,7 @@ Administration & Communications spans all steps.
 
 ## Startup orientation
 
-When Product Authority says `run startup`, the literal command resolves according to the active product. Each recognized product identifies itself and performs its own product-specific orientation-only startup, then stops:
+When Product Authority says `run startup`, the literal command resolves according to the active product. Each recognized product identifies itself and performs its own product-specific orientation-only startup, then ends startup and begins Session lifecycle phase 2 in the same turn (#5012):
 
 - ChatGPT: `docs/ops/ai/CHATGPT-RULES.md` (retired #4173; historical only)
 - Work: `docs/ops/ai/WORK-RULES.md` (retired #4074; historical only)
@@ -173,17 +173,17 @@ When Product Authority says `run startup`, the literal command resolves accordin
 - Cursor: `docs/ops/ai/CURSOR-RULES.md` (Startup section), reached through `AGENTS.md` for Cloud and `.cursor/rules/*.mdc` for Local
 - Claude (conversational): no product-specific startup contract; outside the operational delivery chain unless bounded collaboration is authorized
 
-Shared skeleton, session-boundary rules, and the full list of what startup must never authorize: `docs/governance/AGENT-EXECUTION.md`, "PRODUCT STARTUP FRAMEWORK." After startup the session continues through task definition and the continuous run: `docs/governance/AGENT-EXECUTION.md`, "Session lifecycle." Current product/role inventory: `docs/governance/AGENT-TEAM.md`.
+Shared skeleton, session-boundary rules, and the full list of what startup must never authorize: `docs/governance/AGENT-EXECUTION.md`, "PRODUCT STARTUP FRAMEWORK." Ending startup is not going idle: the session continues through the work list and the continuous run in the same turn (`docs/governance/AGENT-EXECUTION.md`, "Session lifecycle," #5012). Current product/role inventory: `docs/governance/AGENT-TEAM.md`.
 
-Startup does not authorize, for any product:
+Startup itself does not authorize, for any product:
 
-- queue audit;
-- inferred next work;
+- queue audit (inside the startup steps only);
+- inferred next work as if startup alone were a Go;
 - implementation resume;
 - administrative reconciliation;
 - GitHub mutation.
 
-Startup and assignment loading are separate phases — startup completion is never itself interpreted as task authorization. A source Issue, its acceptance criteria, an exact file-touch allowlist, the applicable promotion profile, role authority, and an explicit implementation Go are loaded and confirmed separately, after startup.
+Startup and assignment loading are separate phases — startup completion is never itself interpreted as task authorization. After startup ends, the agent reads its working list from GitHub and continues. A source Issue, its acceptance criteria, an exact file-touch allowlist, the applicable promotion profile, role authority, and an explicit implementation Go are still required before edits.
 
 ## Repository skills
 
