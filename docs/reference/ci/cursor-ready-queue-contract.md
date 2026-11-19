@@ -55,7 +55,7 @@ The seven lines are the shared queue order: line 1 is step 1, line 2 is step 2, 
 The host loop reads this sentence from `~/.cursor/lgfc-tick-prompt.txt` (the repository file is `scripts/cursor-wake/tick-prompt.txt`) and appends one poll suffix: `Poll fresh=<n> events=<list>.` It does not rewrite the sentence.
 
 ```text
-Read docs/reference/ci/cursor-ready-queue-contract.md and docs/governance/AGENT-EXECUTION.md from origin/main and follow them. Run the queries in ~/.cursor/lgfc-ready-queue.txt. Skip any Issue labeled wait:* after recording the blocker. Act on the first Issue that can move. Never send a third identical report.
+Read docs/reference/ci/cursor-ready-queue-contract.md and docs/governance/AGENT-EXECUTION.md from origin/main and follow them. Run the queries in ~/.cursor/lgfc-ready-queue.txt. Skip any Issue labeled wait:* after recording the blocker. Act on the first Issue that can move. Never send a third identical report. This tick is a check for new or changed work. It is not the assignment, and a missing tick does not end the pass (#5012).
 ```
 
 On every tick, read those two files from `origin/main` and follow them.

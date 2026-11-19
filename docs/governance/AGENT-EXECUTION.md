@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Shared execution rules, enforcement model, PR discipline, stop conditions, shared product-startup framework
 Does Not Own: Design authority, platform configuration, tracker content, role mapping
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3055, #3113, #3117, #3134, #3138, #3142, #3145, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4074, #4099, #4131, #4165, #4198, #4314, #4596, #4715, #4716, #4719, #4819, #4982, #4994, #5002, #5004, #5006
-Last Reviewed: 2026-11-18
+Related Issues: #3055, #3113, #3117, #3134, #3138, #3142, #3145, #3188, #3605, #3611, #3693, #3755, #3756, #3774, #4074, #4099, #4131, #4165, #4198, #4314, #4596, #4715, #4716, #4719, #4819, #4982, #4994, #5002, #5004, #5006, #5012
+Last Reviewed: 2026-11-19
 ---
 
 This document is the canonical shared execution law. It moved here from `docs/ops/ai/CORE-RULES.md` under #4198. The old path is a compatibility pointer and is not a second policy.
@@ -97,6 +97,10 @@ After packaging one assignment (PR opened, HOLD, or PACKAGE-INCOMPLETE recorded 
 Waiting on independent review, merge approval, or another long-running process for a packaged assignment is still not idle (#3611). An item is *waiting* when its linked open authored PR has latest checks SUCCESS, or when it is `handoff:ready` (labels/status only), or when it carries a `wait:*` label. Keep waiting items for gate, reviewer, and post-merge follow-through, and immediately continue the next item that is not merely waiting. Do not occupy the session with standing-queue status while other work remains.
 
 **Wake and poll ticks are keepalives (#4982).** The local poller, the GitHub runner dispatch and any tick message only keep the session connected to the repository. They are not assignments, not queue rankings and not stop signals. A tick or poll with no new events means: continue the next unfinished item in the queue order. A product file or a local script may repeat this rule but may not be its only home.
+
+**Continuous pass (#5012).** Every live role holder works the open Issues in the queue order above in the same session. For each Issue it completes the work, records one `wait:*` blocker and the event that releases it, or leaves a pull request prepared to ready-to-merge. Answering a person does not end that pass. A stopped wake loop is not a reason to idle. The wake loop only checks, after nothing left can move, whether new Issues, new assignments, or updates on existing Issues mean another pass should start. Protected stops still block the one action they name. The pass covers Issues in that order, including unclaimed ready work and unassigned Issues in the holder's primary and secondary queues; it does not authorize ignoring role order or protected stops.
+
+**Owner restarts one wake loop (#5012).** When nothing in the queue order can move and this session is the recorded wake owner, the agent starts exactly one wake loop and reports its PID. A session that is not the recorded owner stays on standby for the loop and does not start a second loop. A halt alone is incomplete: it stops the loop until `resume` and `rebind`, and it does not start a loop. A new-session instruction (close prior sessions / only this session is primary) means halt the others, then resume, then rebind, then start this chat's loop. Product-specific wake mechanics live in the product rules file; this sentence is the shared ownership rule.
 
 **A blocked head does not hold the queue (#4994).** An item that cannot be acted on this tick never stops the items behind it. Product Authority, 2026-11-15: if an agent attempts to work on an Issue that is blocked in any manner, it skips it and proceeds to the next Issue.
 
@@ -489,9 +493,9 @@ Every product-specific startup contract must, at minimum:
 7. Read the complete mandatory authority chain from `Agent.md`.
 8. Read the product-specific rules file.
 9. Read the orientation digest, `context.md`: the stack, the vendors, and where the design and platform authorities live. It orients at a high level; follow its pointers when a task needs the detail.
-10. Report only explicitly supplied active context — no queue audit, no inferred work.
+10. Report only explicitly supplied active context — no queue audit, no inferred work. This "no queue audit" rule applies only inside the startup steps themselves; reading the queue in Session lifecycle phase 2 is not a breach of it.
 11. Determine and report whether any work is authorized (it is not, by startup alone).
-12. Stop.
+12. End startup. Startup has made no claim, edit, or GitHub change. Begin Session lifecycle phase 2 in the same turn.
 
 ## Startup provenance invariant
 
@@ -520,7 +524,7 @@ A source Issue, its acceptance criteria, an exact file-touch allowlist, the appl
 
 A working session has three phases, in this order. This section is the only statement of the sequence; product rules files add their own mechanics and do not redefine the phases.
 
-1. **Run startup: orientation only.** The agent identifies its product and roles, confirms access, reads the authority chain, its product file and the orientation digest, reports, and stops (Shared startup steps above).
+1. **Run startup: orientation only.** The agent identifies its product and roles, confirms access, reads the authority chain, its product file and the orientation digest, reports that startup authorizes no work, and ends startup (Shared startup steps above). Ending startup is not going idle: phase 2 begins in the same turn (#5012).
 2. **Work list (#4982).** The agent reads its working list from GitHub, in the queue order of Assigned-queue continuation; it is not defined again each session. Product Authority may define or reorder a priority list at any time. Such a list sets priority and is never a precondition to work. A read-only look at the Operations queue may inform the list; that look authorizes no claim, edit or PR. A task is **ready** when it has a source Issue, acceptance criteria, an exact file allowlist, role authority and an explicit implementation Go recorded. The `status:ready` label records that. A task inside a graduated Project's prepared child graph is ready without the label (standing authority, below).
 3. **Continuous run.** The agent works the list without being re-prompted:
    - it prepares each assigned task to a ready-to-merge PR, then starts the next eligible task while that PR waits (Assigned-queue continuation, above);

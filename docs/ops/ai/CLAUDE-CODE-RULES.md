@@ -35,9 +35,9 @@ When Product Authority says `run startup`, and at the start of every new session
 4. verify repository access (the local checkout and GitHub);
 5. confirm the connected sources this file needs: the Gmail connector for the permission inbox check;
 6. run the permission inbox check below, read-only, and report what it found;
-7. report that startup authorizes no work, and stop.
+7. report that startup authorizes no work, end startup, and continue to the ready queue (Session lifecycle phase 2 in the same turn; #5012).
 
-Startup makes no claim, branch, edit or GitHub change. If the permission check finds a response that needs an Issue, the Issue is opened in the continuous run, not during startup.
+Startup makes no claim, branch, edit or GitHub change. Ending startup is not going idle. If the permission check finds a response that needs an Issue, the Issue is opened in the continuous run, not during startup.
 
 ## Continuous run
 
