@@ -90,16 +90,19 @@ const queue = {
 };
 const NOW = '2026-11-15T15:30:00Z';
 
-describe('variant preparation before hand-off (#5196)', () => {
-  it('needs a variant only for due Instagram posts, once per photo', () => {
-    expect(photosNeedingVariant(queue, Date.parse(NOW))).toEqual([{ photoId: 864, postId: 'a' }]);
+describe('variant preparation before hand-off (#5196/#5291)', () => {
+  it('needs a variant only for due Instagram or Facebook posts, once per photo', () => {
+    expect(photosNeedingVariant(queue, Date.parse(NOW))).toEqual([{ photoId: 864, postId: 'a' }, { photoId: 858, postId: 'c' }]);
   });
 
   it('dry run uploads nothing', async () => {
     const exec = () => { throw new Error('must not run'); };
     const r = await prepare({ NOW }, { queue, exec, fetch: () => { throw new Error('no fetch'); } });
     expect(r.mode).toBe('dry-run');
-    expect(r.would_build).toEqual([{ photo_id: 864, post_id: 'a', key: 'social-variants/instagram/864.jpg' }]);
+    expect(r.would_build).toEqual([
+      { photo_id: 864, post_id: 'a', key: 'social-variants/instagram/864.jpg' },
+      { photo_id: 858, post_id: 'c', key: 'social-variants/instagram/858.jpg' },
+    ]);
   });
 
   it('apply builds from the original and uploads the variant; an existing variant is left alone', async () => {
@@ -111,12 +114,16 @@ describe('variant preparation before hand-off (#5196)', () => {
       fetch: async (url) => { calls.push(url); return new Response(new Uint8Array([1, 2, 3])); },
       render: async () => ({ buffer: Buffer.from('x'), geometry: { frame: { width: 1080, height: 1350 }, padded: true } }),
     });
-    expect(r.built).toEqual([{ photo_id: 864, key: 'social-variants/instagram/864.jpg', frame: { width: 1080, height: 1350 }, padded: true }]);
+    expect(r.built).toEqual([
+      { photo_id: 864, key: 'social-variants/instagram/864.jpg', frame: { width: 1080, height: 1350 }, padded: true },
+      { photo_id: 858, key: 'social-variants/instagram/858.jpg', frame: { width: 1080, height: 1350 }, padded: true },
+    ]);
     expect(calls).toContain('https://site.test/api/social/image/a');
+    expect(calls).toContain('https://site.test/api/social/image/c');
     expect(calls).toContain('s3 cp');
 
     const existing = await prepare(env, { queue, exec: () => Buffer.from(''), fetch: () => { throw new Error('no fetch'); } });
-    expect(existing.existing).toHaveLength(1);
+    expect(existing.existing).toHaveLength(2);
     expect(existing.built).toHaveLength(0);
   });
 
@@ -126,6 +133,7 @@ describe('variant preparation before hand-off (#5196)', () => {
       fetch: async () => new Response('x', { status: 404 }),
     });
     expect(r.failed[0].error).toMatch(/original fetch 404/);
+    expect(r.failed).toHaveLength(2);
     expect(r.built).toHaveLength(0);
   });
 });
