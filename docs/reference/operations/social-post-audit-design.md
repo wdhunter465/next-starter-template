@@ -61,6 +61,8 @@ One record per post per platform. A record is never edited: a correction is a ne
 | `missing` | Handed off, but the read-back found no matching post after the 4-hour lateness window | Failure |
 | `not_eligible` | Left off by a queue rule (for example Instagram and a photo outside its limits), with the reason in `note` | Not counted |
 
+The D1 ingest endpoint stores these statuses append-only: each correction is the next version for the same `post_id` and `platform`; an existing version is never changed.
+
 ## Where it is kept
 
 - **Repository (the log of record):** one file per day, `data/social-audit/<year>/<month>/<date>.json`, written the same day by the posting job and the read-back. Files are appended to and never rewritten; a correction is a new record version. They are committed to a dedicated data branch, `social-audit`, so the log does not need a pull request every day and `main` is untouched. The branch is never deleted or force-pushed. Recorded on #5197 before it is created.
