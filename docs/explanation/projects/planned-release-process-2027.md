@@ -65,7 +65,7 @@ The 2027 dates the process supports:
 These are the Model B steps in plain order. The how-to has the detail.
 
 1. **One Issue.** The Issue records scope, the file list, acceptance and rollback before work starts.
-2. **One pull request per Issue.** Child PRs target the component branch. CI checks and independent review run as they do today. Protected paths (migrations, admin functions, `wrangler.toml`, governance documents) need `protected-change-review` and are not auto-integrated.
+2. **One pull request per Issue.** Child PRs target the component branch. CI checks and independent review run as they do today. A child that touches a protected stop (`.github/CODEOWNERS`, `wrangler*.toml`, `functions/api/auth/**`, or a workflow that reaches secrets or Production) needs independent review before it integrates. Other protected paths (for example `migrations/**`, `scripts/ci/**`, `functions/api/admin/**`, `docs/governance/**`) integrate into the component branch automatically and are reviewed on the promotion PR, which needs an independent approved review when its diff still contains them.
 3. **Collect on the component branch.** Merged work builds on a Preview. It does not reach Production.
 4. **Qualify the batch.** The whole set is tested together on Preview as a Promotion Candidate. A material failure returns the candidate to Development through new Issues and pull requests.
 5. **One promotion pull request.** It promotes the exact approved candidate from the component branch to `main`, with no new feature work. Product Authority approves it.
@@ -78,6 +78,7 @@ These are the Model B steps in plain order. The how-to has the detail.
 - [ ] The exact candidate identity and the `main` commit it was last synchronized with
 - [ ] Preview test results for the whole batch, with the date
 - [ ] Each database change, its order, and a note that old and new code both work
+- [ ] Evidence that each migration was applied and tested on `lgfc-litedev` before the promotion (see Database changes)
 - [ ] The finalized multi-step rollback package and who runs it
 - [ ] The change window
 - [ ] The change assessment for each change in the unit
@@ -86,7 +87,19 @@ These are the Model B steps in plain order. The how-to has the detail.
 
 ## Database changes
 
-Batching raises one risk: a database change can reach Production data before the code that uses it. The proposal keeps each change compatible with both old and new code (add first, remove in a later release) and relies on `lgfc-litedev` to test migrations before the promotion. The isolation document says isolation is not claimed until the dashboard Preview `DB` binding matches that database. That binding must be confirmed before this process is used.
+Batching raises one risk: a database change can reach Production data before the code that uses it. Two facts about the current setup shape the answer (checked against `.github/workflows/d1-migrations.yml` on 2026-11-19, Cursor feedback on #5367):
+
+- `d1-migrations.yml` runs only on a push to `main`. On that push it applies migrations to Production (`lgfc_lite`) and to the development database (`lgfc-litedev`) in the same run.
+- A child pull request that adds a migration and merges into a component branch therefore does not run that workflow. Until the promotion merges, `lgfc-litedev` does not have the new migration, so a Preview of the component branch runs new code against the old schema, and the migration is never tested before it reaches Production.
+
+This is a gap in the proposal as first written, which assumed migrations could be tested on Preview first. The options, for a decision below:
+
+1. **Manual step:** an operator applies the component branch's migrations to `lgfc-litedev` (`wrangler d1 migrations apply lgfc-litedev --remote --env preview`) before qualification, and records it in the promotion evidence.
+2. **A component-scoped job:** a workflow that applies a component branch's migrations to `lgfc-litedev` when a child merges. It reaches a database with a secret, so it is a protected stop and needs its own Issue and review.
+
+Either way, `lgfc-litedev` is one database shared by every component branch and Preview. Two release units in flight at once would write their migrations to the same schema. The proposal therefore allows only one release unit with database changes in qualification at a time.
+
+Each change is also written so old and new code both work (add first, remove in a later release). The isolation document says isolation is not claimed until the dashboard Preview `DB` binding matches `lgfc-litedev`; that is a hard gate before the first release unit is named, not a reminder.
 
 ## Emergencies
 
@@ -96,11 +109,12 @@ An emergency is Production unavailable, unsafe or materially degraded. It follow
 
 Each item needs its own Issue and pull request. Items 1 and 4 need an explicit Go.
 
-1. Confirm that the dashboard Preview `DB` binding matches `lgfc-litedev` (Production-side check, Product Authority or a read-only verification).
+1. Confirm that the dashboard Preview `DB` binding matches `lgfc-litedev` (Production-side check, Product Authority or a read-only verification). This is a hard gate before the first release unit is named.
 2. Decide the open items below.
 3. Name the first release unit and open its project/master Issue.
 4. Adopt the calendar, window, blackout and assessment rules in `docs/governance/DELIVERY-AND-RELEASE.md` through a Production-tier governance pull request.
-5. If the window is to be enforced by a check, add that check to promotion PRs (see the Cursor feedback on #5367).
+5. If the window is to be enforced by a check, add a check on promotion PRs (head `component/**`, base `main`) that fails outside the window or on a blackout day. Run it as report-only for one release, then make it required. It needs its own Issue and a Production-tier change.
+6. Choose how migrations reach `lgfc-litedev` during the child phase (see Database changes).
 
 ## Open decisions for review
 
@@ -112,4 +126,5 @@ Each item needs its own Issue and pull request. Items 1 and 4 need an explicit G
 | 4 | Who may declare an emergency | Product Authority only. |
 | 5 | Start date | After the 2027-01-01 launch, so deployment practice does not change during Go/No-Go. |
 | 6 | What stays on Model A | Only work that cannot wait for a window. Documentation-only work stays on Model C. |
-| 7 | Window enforcement | Open: a check that blocks promotion merges outside the window, or a rule followed by the approver. |
+| 7 | Window enforcement | A check on promotion PRs, report-only for the first release, then required. Without it the window is a rule followed by the approver, which does not block a mistaken merge. |
+| 8 | Migrations during the child phase | Open: a manual step with recorded evidence, or a component-scoped job (a protected stop). Only one release unit with database changes in qualification at a time. |
