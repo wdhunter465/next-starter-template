@@ -15,11 +15,10 @@ import {
   buildPersistedCampaignConfig,
   parseCampaignSpotlightConfig,
   serializeCampaignSpotlightConfig,
-  snapshotLeaderboardFromFundraiser,
   type CampaignSpotlightConfig,
   validateCampaignSpotlightConfig,
 } from '@/lib/campaignSpotlight';
-import { safeGetFundraiserTeams, type FundraiserTeam } from '@/lib/fundraiser';
+import { buildFundraiserLeaderboardSnapshot, formatFundraiserDollars } from '@/lib/fundraiser-leaderboard';
 import LeaderboardPreview from './LeaderboardPreview';
 
 type Block = {
@@ -56,11 +55,27 @@ function buttonStyle(primary = false, disabled = false): React.CSSProperties {
   return {
     padding: '10px 14px',
     borderRadius: 10,
-    border: primary ? '1px solid var(--lgfc-blue, #0033cc)' : '1px solid rgba(0,0,0,0.18)',
-    background: disabled ? 'rgba(0,0,0,0.05)' : primary ? 'var(--lgfc-blue, #0033cc)' : 'white',
-    color: primary && !disabled ? 'var(--lgfc-bg-card)' : '#111',
+    border: primary ? '1px solid var(--lgfc-blue)' : '1px solid rgba(0,0,0,0.18)',
+    background: disabled ? 'rgba(0,0,0,0.05)' : primary ? 'var(--lgfc-blue)' : 'white',
+
+    color: primary && !disabled ? 'var(--lgfc-bg-card)' : '#111111',
     cursor: disabled ? 'not-allowed' : 'pointer',
     fontWeight: 700,
+  };
+}
+
+const sampleLeaderboardSnapshot = buildFundraiserLeaderboardSnapshot();
+
+function withSampleLeaderboardConfig(config: CampaignSpotlightConfig): CampaignSpotlightConfig {
+  return {
+    ...config,
+    leaderboard: sampleLeaderboardSnapshot.boards.champion.slice(0, 3).map((entry) => ({
+      name: entry.displayName,
+      type: 'individual',
+      funds: entry.raised,
+      supporters: entry.donors,
+      points: entry.championPoints,
+    })),
   };
 }
 
@@ -71,21 +86,7 @@ export default function FundraiserPreviewPage() {
   const [publishing, setPublishing] = useState(false);
   const [block, setBlock] = useState<Block | null>(null);
   const [form, setForm] = useState<CampaignSpotlightConfig>(defaultCampaignSpotlightConfig);
-  const [fundraiserTeams, setFundraiserTeams] = useState<FundraiserTeam[]>([]);
-  const [fundraiserError, setFundraiserError] = useState('');
   const loadRequestRef = useRef(0);
-
-  const refreshFundraiserData = useCallback(() => {
-    const result = safeGetFundraiserTeams();
-    if (!result.ok) {
-      setFundraiserTeams([]);
-      setFundraiserError(result.error);
-      return;
-    }
-
-    setFundraiserTeams(result.teams);
-    setFundraiserError('');
-  }, []);
 
   const load = useCallback(async () => {
     const requestId = ++loadRequestRef.current;
@@ -128,11 +129,11 @@ export default function FundraiserPreviewPage() {
   }, []);
 
   useEffect(() => {
-    refreshFundraiserData();
     void load();
-  }, [load, refreshFundraiserData]);
+  }, [load]);
 
   const validationErrors = useMemo(() => validateCampaignSpotlightConfig(form), [form]);
+  const previewForm = useMemo(() => withSampleLeaderboardConfig(form), [form]);
   const publishedConfig = useMemo(
     () => parseCampaignSpotlightConfig(block?.published_body_md || null),
     [block?.published_body_md],
@@ -150,27 +151,10 @@ export default function FundraiserPreviewPage() {
     [],
   );
 
-  const syncLeaderboardFromFundraiser = useCallback(() => {
-    const result = safeGetFundraiserTeams();
-    if (!result.ok) {
-      setFundraiserError(result.error);
-      setStatus(`Fundraiser data error: ${result.error}`);
-      return;
-    }
-
-    setFundraiserTeams(result.teams);
-    setFundraiserError('');
-    setForm((current) => ({
-      ...current,
-      leaderboard: snapshotLeaderboardFromFundraiser(result.teams),
-    }));
-    setStatus(`Leaderboard snapshot refreshed from ${result.teams.length} fundraiser team record(s).`);
-  }, []);
-
   const saveDraft = useCallback(async () => {
     let persistedConfig: CampaignSpotlightConfig;
     try {
-      persistedConfig = buildPersistedCampaignConfig(form);
+      persistedConfig = buildPersistedCampaignConfig(previewForm);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       setStatus(`Draft not saved. Fundraiser data error: ${message}`);
@@ -180,11 +164,6 @@ export default function FundraiserPreviewPage() {
     const persistedErrors = validateCampaignSpotlightConfig(persistedConfig);
     if (persistedErrors.length > 0) {
       setStatus('Draft not saved. Fix campaign validation errors first.');
-      return;
-    }
-
-    if (fundraiserError) {
-      setStatus('Draft not saved. Fix fundraiser source data before publishing campaign content.');
       return;
     }
 
@@ -212,12 +191,12 @@ export default function FundraiserPreviewPage() {
     setSaving(false);
     await load();
     setStatus(`Draft saved. Version ${result.data?.version ?? 'unknown'}.`);
-  }, [form, fundraiserError, load]);
+  }, [load, previewForm]);
 
   const publish = useCallback(async () => {
     let persistedConfig: CampaignSpotlightConfig;
     try {
-      persistedConfig = buildPersistedCampaignConfig(form);
+      persistedConfig = buildPersistedCampaignConfig(previewForm);
     } catch (error: unknown) {
       const message = error instanceof Error ? error.message : String(error);
       setStatus(`Publish blocked. Fundraiser data error: ${message}`);
@@ -227,11 +206,6 @@ export default function FundraiserPreviewPage() {
     const persistedErrors = validateCampaignSpotlightConfig(persistedConfig);
     if (persistedErrors.length > 0) {
       setStatus('Publish blocked. Fix campaign validation errors first.');
-      return;
-    }
-
-    if (fundraiserError) {
-      setStatus('Publish blocked. Fundraiser source data must be valid before public exposure.');
       return;
     }
 
@@ -257,7 +231,7 @@ export default function FundraiserPreviewPage() {
     setPublishing(false);
     await load();
     setStatus(`Published successfully. Version ${result.data?.version ?? 'unknown'}.`);
-  }, [block?.body_md, form, fundraiserError, load]);
+  }, [block?.body_md, load, previewForm]);
 
   return (
     <PageShell
@@ -317,44 +291,18 @@ export default function FundraiserPreviewPage() {
         </section>
 
         <section style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: 16, padding: 18, background: 'var(--lgfc-bg-card)' }}>
-          <h2 style={{ marginTop: 0 }}>Fundraiser Source Data</h2>
+          <h2 style={{ marginTop: 0 }}>2027 Leaderboard Sample Source</h2>
           <p style={{ opacity: 0.85 }}>
-            Leaderboard snapshots for enabled campaigns are derived from <code>data/fundraiser.json</code>. Invalid source data blocks save/publish.
+            This admin-only draft uses synthetic aggregate participant rows for the approved 2027 window. It makes no
+            Givebutter request and does not read or display donor personal data.
           </p>
 
-          {fundraiserError ? (
-            <div style={{ marginTop: 12, padding: 14, borderRadius: 12, border: '1px solid var(--lgfc-error-border)', background: 'var(--lgfc-error-bg)' }}>
-              <strong>Fundraiser validation failed:</strong> {fundraiserError}
-            </div>
-          ) : (
-            <div style={{ marginTop: 12, padding: 14, borderRadius: 12, border: '1px solid var(--lgfc-success-border)', background: 'var(--lgfc-success-bg)' }}>
-              <strong>Fundraiser source is valid.</strong> {fundraiserTeams.length} team record(s) loaded.
-            </div>
-          )}
-
-          <div style={{ display: 'flex', gap: 10, marginTop: 12, flexWrap: 'wrap' }}>
-            <button type="button" onClick={refreshFundraiserData} style={buttonStyle()}>
-              Revalidate fundraiser data
-            </button>
-            <button
-              type="button"
-              onClick={syncLeaderboardFromFundraiser}
-              disabled={Boolean(fundraiserError) || actionBusy}
-              style={buttonStyle(false, Boolean(fundraiserError) || actionBusy)}
-            >
-              Sync leaderboard snapshot
-            </button>
+          <div style={{ marginTop: 12, padding: 14, borderRadius: 12, border: '1px solid var(--lgfc-success-border)', background: 'var(--lgfc-success-bg)' }}>
+            <strong>Fundraiser source is valid.</strong> {sampleLeaderboardSnapshot.participants.length} participant
+            aggregate record(s) loaded. Overall dry run:{' '}
+            {formatFundraiserDollars(sampleLeaderboardSnapshot.overall.raised)} from{' '}
+            {sampleLeaderboardSnapshot.overall.donors} donor count(s).
           </div>
-
-          {fundraiserTeams.length > 0 ? (
-            <ul style={{ marginTop: 14, paddingLeft: 18 }}>
-              {fundraiserTeams.map((team) => (
-                <li key={team.teamId}>
-                  {team.teamName} — ${team.totalAmount} from {team.donorCount} donor(s) — {team.points} points
-                </li>
-              ))}
-            </ul>
-          ) : null}
         </section>
 
         <section style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: 16, padding: 18, background: 'var(--lgfc-bg-card)' }}>
@@ -481,7 +429,7 @@ export default function FundraiserPreviewPage() {
         <section style={{ display: 'grid', gap: 16 }}>
           <div>
             <h2 style={{ marginTop: 0, marginBottom: 10 }}>Admin Preview</h2>
-            <CampaignSpotlightCard config={form} previewLabel="Local Draft Preview" />
+            <CampaignSpotlightCard config={previewForm} previewLabel="Local Draft Preview" />
           </div>
 
           {publishedConfig && publishedErrors.length === 0 ? (

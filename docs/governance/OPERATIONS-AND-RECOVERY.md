@@ -6,7 +6,7 @@ Owns: Production health, degraded-service routing, incident classification, cont
 Does Not Own: Cross-team queue semantics, Administration & Communications policy, delivery-model selection, PMO sizing, PR approval roles, CI implementation, project objectives, or daily operator checklists
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
 Related Issues: #2495, #2640, #2641, #2695, #2699, #4213, #4589, #4637
-Last Reviewed: 2026-10-16
+Last Reviewed: 2026-11-18
 ---
 
 # Operations and Recovery
@@ -82,6 +82,14 @@ Hold must record:
 Hold is non-blocking for PMO and Engineering work unless a separate protected or incident hold explicitly covers that work.
 
 A numbered Operations Issue that has been worked as far as possible must move to Monitoring or Hold rather than remain falsely actionable.
+
+## Repository-health exception agent stop
+
+When an agent meets a repository-health exception assigned to that same agent, that agent stops its other work at the nearest safe checkpoint and remediates the exception before resuming its ordinary queue.
+
+The stop is scoped to the responsible agent and the exception Issue. It does not halt the repository, does not create a branch-protection rule, and does not add a merge-blocking check for other people's pull requests.
+
+The responsible agent may resume its other work only after the exception Issue is closed or Product Authority or Day-2 Operations records an explicit waiver on the exception Issue. If the agent cannot remediate the exception with its current authority, access, evidence, or repository state, it records the blocker with one `wait:*` label and one comment naming the release event; the exception remains active until that event occurs or a waiver is recorded.
 
 ## Operations interrupt precedence
 
