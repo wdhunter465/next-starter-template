@@ -38,6 +38,8 @@ async function mockMemberSession(page: Page) {
 }
 
 async function openHamburger(page: Page) {
+  await page.waitForLoadState('networkidle');
+
   const button = page.getByRole('button', { name: 'Open menu' }).first();
   await expect(button).toBeVisible();
 
@@ -45,8 +47,10 @@ async function openHamburger(page: Page) {
   expect(box?.width ?? 0).toBeGreaterThanOrEqual(44);
   expect(box?.height ?? 0).toBeGreaterThanOrEqual(44);
 
+  const menu = page.getByRole('dialog', { name: 'Menu' });
   await button.click();
-  return page.getByRole('dialog', { name: 'Menu' });
+  await expect(menu).toBeVisible();
+  return menu;
 }
 
 test.describe('public mobile navigation responsiveness', () => {
