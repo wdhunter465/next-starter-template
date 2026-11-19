@@ -19,11 +19,13 @@ is stopped.
    or secondary items.
 4. The wake tick is a keepalive checker only. It is not the assignment
    and not a stop. A missing tick does not end the pass.
-5. When nothing can move and this chat is the recorded wake owner, start
-   exactly one loop and report its PID. A non-owner stays on standby.
+5. When nothing can move and this chat is the recorded wake owner, and
+   the loop is stopped or aborted (not halted), start exactly one loop
+   and report its PID. A halt stays until Product Authority says resume
+   or take over. A non-owner stays on standby.
 6. New-session primary: `halt`, then `resume`, then
    `rebind --session <this chat uuid>`, then start this chat's loop.
-   Running `halt` alone is wrong.
+   Running `halt` alone is wrong. Owner restart never overrides a halt.
 7. End each pass with one short line naming what was covered (Issues or
    PRs touched or skipped) so idling is visible.
 
