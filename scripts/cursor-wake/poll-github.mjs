@@ -8,6 +8,10 @@ import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import {
+  collectCursorInboundCommunication,
+  formatInboundPromptLine,
+} from './cursor-inbound-communication.mjs';
 
 const POLLER_DIR = dirname(fileURLToPath(import.meta.url));
 const READY_QUEUE_PATH = join(homedir(), '.cursor', 'lgfc-ready-queue.txt');
@@ -881,10 +885,32 @@ async function main() {
   let events;
   let resumeQueue = [];
   let readyQueue = [];
+  let inboundBlock = {
+    kind: 'cursor-inbound-communication',
+    query: 'poller:cursor-inbound-communication (#3188 / #5379)',
+    count: 0,
+    actionableCount: 0,
+    skippedCount: 0,
+    first: [],
+    actionable: [],
+    skipped: [],
+    error: null,
+  };
   try {
     events = collectEvents(since);
     resumeQueue = await collectResumeQueue();
     readyQueue = collectReadyQueue();
+    try {
+      inboundBlock = collectCursorInboundCommunication({ now: new Date(now) });
+    } catch (inboundErr) {
+      inboundBlock = {
+        ...inboundBlock,
+        error: inboundErr?.message || String(inboundErr),
+      };
+      console.error(
+        `[${now}] cursor inbound communication scan failed: ${inboundBlock.error}`,
+      );
+    }
   } catch (err) {
     const message = `[${now}] poll failed: ${err.message}`;
     console.error(message);
@@ -902,6 +928,10 @@ async function main() {
     rulesChanged: rulesVersion.rulesChanged,
     error: rulesVersion.error,
   });
+  // Inbound communication checkpoint (#3188 / #5379): after rules-version,
+  // before label queries, so Cursor-targeted COLLABORATION REQUESTs on
+  // Issues claimed by another agent still surface.
+  readyQueue.splice(1, 0, { index: 'inbound', ...inboundBlock });
 
   const unseen = events.filter((event) => !state.seen[eventKey(event)]);
   for (const event of unseen) {
@@ -940,12 +970,14 @@ async function main() {
     rulesVersion.originMainSha || state.originMainSha || 'unknown';
   const agentExecutionBlobSha =
     rulesVersion.agentExecutionBlobSha || state.agentExecutionBlobSha || 'unknown';
+  const inboundPrompt = formatInboundPromptLine(inboundBlock);
   const prompt = [
     `Run the queries in ~/.cursor/lgfc-ready-queue.txt for ${REPO}.`,
     'Skip any Issue labeled wait:* after recording the blocker.',
     'Act on the first Issue that can move. Never send a third identical report.',
     `origin/main=${originMainSha} AGENT-EXECUTION=${agentExecutionBlobSha}.`,
     ...rulesPromptParts,
+    inboundPrompt,
     fresh.length
       ? `Poll saw ${fresh.length} new event(s): ${refs.join(', ')}.`
       : 'Poll saw no new events.',

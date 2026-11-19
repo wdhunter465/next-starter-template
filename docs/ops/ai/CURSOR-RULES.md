@@ -5,7 +5,7 @@ Authority Level: Agent-Specific
 Owns: Cursor product identity, the Cursor startup contract, and the keepalive statement
 Does Not Own: Agent-team policy, role assignment, PMO lifecycle, shared execution law, merge authority, or approval authority
 Canonical Reference: /docs/governance/AGENT-EXECUTION.md
-Related Issues: #3825, #4449, #4596, #4676, #4716, #4783, #4928, #4982, #4994, #5012, #5016, #5034
+Related Issues: #3825, #4449, #4596, #4676, #4716, #4783, #4928, #4982, #4994, #5012, #5016, #5034, #5379, #3188
 Last Reviewed: 2026-11-19
 ---
 
@@ -19,7 +19,7 @@ A Cursor workaround is denied unless Product Authority has approved that workaro
 
 ## Wake tick
 
-The local wake tick and the GitHub Actions runner are the two keepalives for this same session. What a tick means, the queue order, the skip, cycle and repeat rules and when to go quiet are in `docs/governance/AGENT-EXECUTION.md` (Assigned-queue continuation) — including skip-any-block (#4994) and continuous pass / owner restarts one wake loop (#5012). Cursor's mechanics: on every tick run the queries in `~/.cursor/lgfc-ready-queue.txt`, then check open pull requests (`docs/reference/ci/cursor-ready-queue-contract.md`). The poll inbox is a keepalive record. The queue is GitHub. Do not restate the skip rule here; follow the shared law.
+The local wake tick and the GitHub Actions runner are the two keepalives for this same session. What a tick means, the queue order, the skip, cycle and repeat rules and when to go quiet are in `docs/governance/AGENT-EXECUTION.md` (Assigned-queue continuation) — including skip-any-block (#4994) and continuous pass / owner restarts one wake loop (#5012). Cursor's mechanics: on every tick run the inbound communication checkpoint (#3188 / #5379) before unrelated queue work, then run the queries in `~/.cursor/lgfc-ready-queue.txt`, then check open pull requests (`docs/reference/ci/cursor-ready-queue-contract.md`). The poller writes a `cursor-inbound-communication` block into `readyQueue` for Cursor-targeted unanswered events even when another agent holds the claim label. The poll inbox is a keepalive record. The queue is GitHub. Do not restate the skip rule here; follow the shared law.
 
 ## Startup contract
 

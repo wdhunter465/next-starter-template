@@ -5,8 +5,8 @@ Authority Level: Reference
 Owns: The Cursor ready-queue file, the queries it holds, what a Cursor tick does with them, and the rule for when Cursor may go quiet
 Does Not Own: Runtime selection (docs/governance/standards/CURSOR-RUNTIME-ROUTING.md), the shared execution law, queue-state label definitions, or the local poller implementation
 Canonical Reference: /docs/governance/AGENT-EXECUTION.md
-Related Issues: #4982, #4362, #4966, #4994, #5016, #5007
-Last Reviewed: 2026-11-15
+Related Issues: #4982, #4362, #4966, #4994, #5016, #5007, #5379, #3188
+Last Reviewed: 2026-11-19
 ---
 
 # Cursor ready-queue contract
@@ -30,6 +30,12 @@ This file specifies the Cursor host files and what the Cursor poller does with t
 Path: `~/.cursor/lgfc-ready-queue.txt`. One GitHub issue-search query per line, in priority order. A line starting with `#` is a comment. The poller adds `repo:wdhunter465/next-starter-template` to each query.
 
 ```text
+# 0 Inbound communication (#3188 / #5379) is not a label query.
+#    The poller scans open Issues for unanswered COLLABORATION REQUEST /
+#    PR REVIEW REQUEST / PROBLEM FOUND / IMPLEMENTATION HANDOFF events that
+#    name Cursor, even when agent:claude (or another claim) is present, and
+#    writes readyQueue kind=cursor-inbound-communication. Act on those before
+#    the label queries below. Host install: scripts/cursor-wake/install.sh.
 # 1 Operations interrupt. Handle before anything else.
 is:issue is:open label:team:operations label:ops:priority:1,ops:priority:2,ops:priority:3,ops:priority:4
 # 2 Cursor's own post-merge exceptions.
@@ -48,7 +54,7 @@ is:issue is:open label:team:engineering,team:pmo -label:agent:cursor -label:agen
 
 Cursor's own open pull requests are checked on every tick as well: a failing gate is work.
 
-The seven lines are the shared queue order: line 1 is step 1, line 2 is step 2, lines 3 and 3b are step 3, line 4 is step 4, lines 5 and 6 are step 5 (primary, then secondary).
+The seven searchable lines are the shared queue order: line 1 is step 1, line 2 is step 2, lines 3 and 3b are step 3, line 4 is step 4, lines 5 and 6 are step 5 (primary, then secondary). The inbound communication scan is step 0 for Cursor Local only: it is poller-side, not a GitHub label query, because comments are not claim labels.
 
 ## Canonical tick text
 
@@ -62,11 +68,11 @@ On every tick, read those two files from `origin/main` and follow them.
 
 ## What a Cursor tick does
 
-1. Refresh the rules (next section), then run the queries in order. Write each result count and the first Issue numbers to `~/.cursor/lgfc-wake-poll-inbox.json` under `readyQueue`. The inbox stays a keepalive record. The queue itself is GitHub.
-2. Hand Cursor every non-empty query, not one "next item". An Issue labeled `wait:*` is reported as skipped, with the label, so the head of the list is never a waiting Issue.
-3. Cursor works the first Issue that can move and applies the shared rules (Assigned-queue continuation) to the rest. Query 5 and 6 results are reviewed and owned as the shared law says.
+1. Refresh the rules (next section), then run the inbound communication scan (#5379) and the label queries in order. Write each result count and the first Issue numbers to `~/.cursor/lgfc-wake-poll-inbox.json` under `readyQueue`, including `kind=cursor-inbound-communication` when the scan runs. The inbox stays a keepalive record. The queue itself is GitHub.
+2. Hand Cursor every non-empty query, not one "next item". An Issue labeled `wait:*` is reported as skipped, with the label, so the head of the list is never a waiting Issue. Cursor-targeted unanswered collaboration or review events are actionable even when the Issue carries another agent's claim label.
+3. Cursor runs the inbound communication checkpoint before unrelated queue work (`docs/governance/AGENT-EXECUTION.md`, Inbound communication checkpoint), then works the first Issue that can move and applies the shared rules (Assigned-queue continuation) to the rest. Query 5 and 6 results are reviewed and owned as the shared law says.
 4. Check Cursor's open pull requests and fix any failing gate.
-5. Report the tick in one line. Do not report "nothing to do" while any step found work.
+5. Report the tick in one line, naming any collaboration or review request seen (acted or waiting). Do not report "nothing to do" while any step found work.
 
 ## Fresh rules on every tick (#5007)
 
