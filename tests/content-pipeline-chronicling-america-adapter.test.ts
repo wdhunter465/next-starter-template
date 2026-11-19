@@ -17,7 +17,12 @@ const query = "Lou Gehrig";
 const pageUrl = "https://chroniclingamerica.loc.gov/lccn/sn83030214/1927-10-01/ed-1/seq-12/";
 
 function jsonResponse(status: number, body: unknown) {
-  return { ok: status >= 200 && status < 300, status, json: async () => body };
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    json: async () => body,
+    text: async () => JSON.stringify(body),
+  };
 }
 
 describe("Chronicling America discovery (#4788 / #5110)", () => {
