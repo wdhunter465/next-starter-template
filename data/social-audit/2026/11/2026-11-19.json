@@ -1,0 +1,51 @@
+{
+  "schema": "social_audit_day/1",
+  "date": "2026-11-19",
+  "records": [
+    {
+      "schema": "social_post_evidence/1",
+      "post_id": "2026-11-19-daily",
+      "platform": "x",
+      "origin": "queue",
+      "version": 1,
+      "scheduled_for": "2026-11-19T10:00:00-05:00",
+      "text": "Every week, fans vote in the Weekly Photo Matchup on our website. Pick your favorite Gehrig photo now, and watch for the bigger relaunch coming in 2027.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "text_sha256": "b512d286a1bdb626533fdcff3b93d93b74f2745b093ef27d174f75ab2bed0dd4",
+      "photo": {
+        "photo_id": 858,
+        "variant": "original",
+        "image_url": "https://www.lougehrigfanclub.com/api/social/image/2026-11-19-daily",
+        "image_sha256": "952d6db96f72f0f698decb7dd8a289f40df6c95a411900c63e43f3f2cd681fc1",
+        "image_bytes": 1762737,
+        "width": 1858,
+        "height": 2914,
+        "alt_text": "Souvenir program with a decorative border. It reads \"Busting Babes vs. Larruping Lous\" above a halftone photo of Babe Ruth and Lou Gehrig in Yankees uniforms, each resting a hand on a bat, with \"Oakland Baseball Park, Sunday, October 23, 1927\" below.",
+        "rights_check": {
+          "verdict": "cleared",
+          "source": "data/social-post-queue.json rights_cleared_photo_ids and held_photo_ids",
+          "checked_at_utc": "2026-11-19T15:03:53.629+00:00"
+        }
+      },
+      "status": "confirmed",
+      "attempts": [
+        {
+          "at_utc": "2026-11-19T15:03:53.629Z",
+          "by": "GitHub job \"Social Post to X\"",
+          "outcome": "ok",
+          "detail": "Buffer reports the post sent at 2026-11-19T15:03:59.740Z"
+        }
+      ],
+      "platform_record": {
+        "post_id": "6aff0fdbcfb6abb69449ff09",
+        "url": null,
+        "created_at_utc": "2026-11-19T15:03:59.740Z",
+        "created_at_new_york": "2026-11-19T10:03:59-05:00"
+      },
+      "verified": {
+        "on": "2026-11-19",
+        "by": "GitHub job \"Social Post to X\"",
+        "method": "Buffer get_post after create_post"
+      }
+    }
+  ]
+}
