@@ -872,7 +872,14 @@ async function collectChroniclingAmerica(query, limit, nextId) {
   return items
     .map((item) => mapChroniclingAmericaItemToCandidateFields(item, query))
     .filter((fields) => fields != null)
-    .map((fields) => baseCandidate({ id: nextId(), ...fields }));
+    .map((fields) =>
+      baseCandidate({
+        id: nextId(),
+        ...fields,
+        // Search hits often name a page thumbnail; archive ingest may refine via page JSON (#5110).
+        originalFileUrl: fields.imageUrl || fields.originalFileUrl,
+      }),
+    );
 }
 
 async function collectNara(query, limit, nextId) {

@@ -1,23 +1,30 @@
-// Chronicling America page discovery for #4788.
+// Chronicling America page discovery (#4788 / #5110).
 //
 // Opt-in only. The scheduled Gehrig discovery workflow does not list this
-// source. The API host is https://chroniclingamerica.loc.gov. Candidates use
-// source_domain loc.gov because that row is already on the approved source
-// list. This module does not add a source row and does not change the workflow.
+// source. Search goes through the Library of Congress collection JSON API
+// (https://www.loc.gov/collections/chronicling-america/), not the retired
+// chroniclingamerica.loc.gov/search/pages/results/ endpoint (#5110).
+//
+// Candidates use source_domain loc.gov because that row is already on the
+// approved source list. content_type is photo so archive selection picks them
+// up; pages are treated as newspaper pictures (800 px floor) at ingest.
 //
 // One search request per call. Send a descriptive User-Agent. HTTP 429 and
-// 5xx retry up to 3 times with backoff, the same contract as the Internet
-// Archive adapter. Any other HTTP status fails immediately. Do not run two
-// Chronicling America calls at once.
+// 5xx retry up to 3 times with backoff. Any other HTTP status fails
+// immediately. Do not run two Chronicling America calls at once.
 //
-// Metadata only. No page image and no full OCR file is stored. A newspaper
-// issue date before 1931-01-01 is a sourced first-publication date, so the
-// candidate records the public-domain conclusion. A later date, or no date,
-// stays on the ordinary rights path.
+// A newspaper issue date before 1931-01-01 is a sourced first-publication
+// date, so the candidate records the public-domain conclusion. A later date,
+// or no date, stays on the ordinary rights path.
 
-export const CHRONICLING_AMERICA_SEARCH_URL = "https://chroniclingamerica.loc.gov/search/pages/results/";
+export const CHRONICLING_AMERICA_SEARCH_URL =
+  "https://www.loc.gov/collections/chronicling-america/";
+/** @deprecated Retired host path; kept for tests that assert the old failure mode. */
+export const CHRONICLING_AMERICA_LEGACY_SEARCH_URL =
+  "https://chroniclingamerica.loc.gov/search/pages/results/";
 export const CHRONICLING_AMERICA_SOURCE_DOMAIN = "loc.gov";
 export const PRE_1931_EXCLUSIVE_END = "1931-01-01";
+export const NEWSPAPER_MIN_LONG_SIDE_PX = 800;
 
 export type ChroniclingAmericaCandidateFields = {
   title: string;
@@ -28,7 +35,7 @@ export type ChroniclingAmericaCandidateFields = {
   sourceUrl: string;
   summary: string;
   dateOrPeriod?: string;
-  contentType: "article";
+  contentType: "photo";
   provenanceNotes: string;
   sourceRecordId: string;
   sourceCitation: string;
@@ -39,9 +46,12 @@ export type ChroniclingAmericaCandidateFields = {
     evidence_url?: string;
     conclusion?: "public_domain_confirmed";
   };
+  /** Hint for archive ingest: newspaper picture floor (#5110 / #4861). */
+  qualityTier?: "newspaper";
+  imageUrl?: string;
 };
 
-type FetchLike = (input: string, init?: RequestInit) => Promise<Pick<Response, "ok" | "status" | "json">>;
+type FetchLike = (input: string, init?: RequestInit) => Promise<Pick<Response, "ok" | "status" | "json" | "text">>;
 
 export class ChroniclingAmericaHttpError extends Error {
   status: number;
@@ -79,6 +89,12 @@ export function issueDate(value: unknown): string | null {
   return iso;
 }
 
+/** Pull YYYY-MM-DD from a Chronicling America page URL when the JSON date is only a year. */
+export function issueDateFromPageUrl(url: string): string | null {
+  const match = /\/(\d{4}-\d{2}-\d{2})\//.exec(url);
+  return match ? issueDate(match[1]) : null;
+}
+
 export function ocrExcerpt(value: unknown, needle = "gehrig"): string {
   const text = firstScalar(value).replace(/\s+/g, " ").trim();
   if (!text) return "";
@@ -88,31 +104,89 @@ export function ocrExcerpt(value: unknown, needle = "gehrig"): string {
   return slice.length < text.length ? `${slice}…` : slice;
 }
 
-export function buildChroniclingAmericaSearchUrl(query: string, limit: number, page = 1, dateStart = "1920", dateEnd = "1930"): string {
+export function buildChroniclingAmericaSearchUrl(
+  query: string,
+  limit: number,
+  page = 1,
+  dateStart = "1920",
+  dateEnd = "1930",
+): string {
   const rows = Math.min(Math.max(1, Math.floor(limit)), 20);
   const params = new URLSearchParams({
-    andtext: query,
-    dateFilterType: "yearRange",
-    date1: dateStart,
-    date2: dateEnd,
-    format: "json",
-    rows: String(rows),
-    page: String(Math.max(1, Math.floor(page))),
+    q: query,
+    fo: "json",
+    c: String(rows),
+    sp: String(Math.max(1, Math.floor(page))),
+    dates: `${dateStart}/${dateEnd}`,
   });
   return `${CHRONICLING_AMERICA_SEARCH_URL}?${params.toString()}`;
+}
+
+/** Prefer a chroniclingamerica.loc.gov page URL; fall back to loc.gov item/resource. */
+export function pickChroniclingPageUrl(item: Record<string, unknown>): string {
+  const candidates = [
+    firstScalar(item.id),
+    firstScalar(item.url),
+    firstScalar(item.aka),
+    firstScalar((item.item as Record<string, unknown> | undefined)?.id),
+    firstScalar((item.item as Record<string, unknown> | undefined)?.url),
+  ];
+  const chronicling = candidates.find((u) => /chroniclingamerica\.loc\.gov\/lccn\//i.test(u));
+  if (chronicling) return chronicling;
+  return candidates.find((u) => /^https?:\/\//i.test(u)) || "";
+}
+
+export function pickChroniclingImageUrl(item: Record<string, unknown>): string {
+  const direct = firstScalar(item.image_url) || firstScalar(item.image);
+  if (/^https?:\/\//i.test(direct)) return direct;
+  const resources = item.resources;
+  if (Array.isArray(resources)) {
+    for (const resource of resources) {
+      if (!resource || typeof resource !== "object") continue;
+      const row = resource as Record<string, unknown>;
+      for (const key of ["image", "url", "jp2", "pdf"]) {
+        const value = firstScalar(row[key]);
+        if (/^https?:\/\//i.test(value) && /\.(jpe?g|png|jp2|gif)(\?|$)/i.test(value)) return value;
+      }
+    }
+  }
+  const pageUrl = pickChroniclingPageUrl(item);
+  // Stable thumbnail for a Classic CA page URL when search JSON names no image.
+  if (/chroniclingamerica\.loc\.gov\/lccn\/.+\/seq-\d+/i.test(pageUrl)) {
+    return pageUrl.replace(/\/?$/, "/") + "thumbnail.jpg";
+  }
+  return "";
 }
 
 export function mapChroniclingAmericaItemToCandidateFields(
   item: Record<string, unknown>,
   query: string,
 ): ChroniclingAmericaCandidateFields | null {
-  const pageUrl = firstScalar(item.id) || firstScalar(item.url);
+  const pageUrl = pickChroniclingPageUrl(item);
   if (!/^https?:\/\//i.test(pageUrl)) return null;
-  const date = issueDate(item.date);
-  const newspaper = firstScalar(item.title) || "Untitled newspaper";
-  const page = firstScalar(item.sequence);
-  const edition = firstScalar(item.edition);
-  const excerpt = ocrExcerpt(item.ocr_eng);
+
+  const nested = (item.item && typeof item.item === "object" ? item.item : {}) as Record<string, unknown>;
+  const date =
+    issueDate(item.date) ||
+    issueDate(nested.date) ||
+    issueDateFromPageUrl(pageUrl) ||
+    issueDate(firstScalar(item.date).replace(/[^\d]/g, "").slice(0, 8));
+  const newspaper =
+    firstScalar(item.title) ||
+    firstScalar(nested.title) ||
+    firstScalar(item.partof_title) ||
+    "Untitled newspaper";
+  const page = firstScalar(item.sequence) || firstScalar(nested.sequence) || (() => {
+    const m = /\/seq-(\d+)/i.exec(pageUrl);
+    return m ? m[1] : "";
+  })();
+  const edition = firstScalar(item.edition) || firstScalar(nested.edition);
+  const excerpt =
+    ocrExcerpt(item.ocr_eng) ||
+    ocrExcerpt(item.description) ||
+    ocrExcerpt(nested.description) ||
+    ocrExcerpt(item.full_text);
+  const imageUrl = pickChroniclingImageUrl(item);
   const before1931 = Boolean(date && date < PRE_1931_EXCLUSIVE_END);
   const title = page ? `${newspaper}, ${date || "undated"}, page ${page}` : `${newspaper}, ${date || "undated"}`;
   const evidenceText = [
@@ -134,13 +208,16 @@ export function mapChroniclingAmericaItemToCandidateFields(
     sourceUrl: pageUrl,
     summary: excerpt || `${newspaper} page mentioning the query "${query}".`,
     ...(date ? { dateOrPeriod: date } : {}),
-    contentType: "article",
+    contentType: "photo",
+    qualityTier: "newspaper",
+    ...(imageUrl ? { imageUrl } : {}),
     provenanceNotes: [
-      `Chronicling America discovery for query "${query}".`,
+      `Chronicling America discovery for query "${query}" via loc.gov collection search (#5110).`,
       `Newspaper: ${newspaper}.`,
       `Issue date: ${date || "none"}. The date source is this newspaper issue record.`,
       `Page: ${page || "none"}. Edition: ${edition || "none"}.`,
       `Page URL: ${pageUrl}.`,
+      imageUrl ? `Page image URL: ${imageUrl}.` : "No page image URL in the search hit; archive resolver must fetch the page JSON.",
       before1931
         ? "First published before 1931-01-01 with a sourced issue date, so the pre-1931 public-domain rule applies."
         : "No sourced issue date before 1931-01-01, so this stays on the ordinary rights path.",
@@ -178,6 +255,18 @@ async function withRetry<T>(fn: () => Promise<T>, delay: (ms: number) => Promise
   throw lastError;
 }
 
+export function extractChroniclingSearchResults(data: unknown): Record<string, unknown>[] {
+  if (!data || typeof data !== "object") return [];
+  const root = data as Record<string, unknown>;
+  if (Array.isArray(root.results)) return root.results as Record<string, unknown>[];
+  if (Array.isArray(root.items)) return root.items as Record<string, unknown>[];
+  const content = root.content;
+  if (content && typeof content === "object" && Array.isArray((content as Record<string, unknown>).results)) {
+    return (content as Record<string, unknown>).results as Record<string, unknown>[];
+  }
+  return [];
+}
+
 export async function fetchChroniclingAmericaItems(
   query: string,
   limit: number,
@@ -194,7 +283,28 @@ export async function fetchChroniclingAmericaItems(
       },
     });
     if (!response.ok) throw new ChroniclingAmericaHttpError(url, response.status);
-    return (await response.json()) as { items?: Record<string, unknown>[] };
+    return (await response.json()) as unknown;
   }, delay);
-  return Array.isArray(data.items) ? data.items : [];
+  return extractChroniclingSearchResults(data);
+}
+
+/** Page image URL from a Classic CA page JSON body (#5110). */
+export function pageImageFromChroniclingPageJson(data: Record<string, unknown>, pageUrl: string): string | null {
+  for (const key of ["jp2", "pdf", "full_image", "image_url", "thumbnail"]) {
+    const value = firstScalar(data[key]);
+    if (/^https?:\/\//i.test(value)) return value;
+  }
+  if (/chroniclingamerica\.loc\.gov\/lccn\/.+\/seq-\d+/i.test(pageUrl)) {
+    return pageUrl.replace(/\/?$/, "/") + "thumbnail.jpg";
+  }
+  return null;
+}
+
+export function ocrFromChroniclingPageJson(data: Record<string, unknown>): string {
+  return (
+    ocrExcerpt(data.ocr_eng) ||
+    ocrExcerpt(data.full_text) ||
+    ocrExcerpt(data.text) ||
+    ocrExcerpt((data as { ocr?: unknown }).ocr)
+  );
 }
