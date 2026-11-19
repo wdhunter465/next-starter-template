@@ -115,6 +115,16 @@ export function remediationAlreadyCoversDefect(remediationOutcome = null) {
 	return remediationOutcome?.action === 'created' || remediationOutcome?.action === 'updated';
 }
 
+/** Circuit-breaker skip reasons must not open a per-PR ops-exception (#5369). */
+export const CIRCUIT_BREAKER_REMEDIATION_REASONS = new Set([
+	'circuit-breaker-open',
+	'circuit-breaker-threshold',
+]);
+
+export function circuitBreakerSuppressesOpsException(remediationOutcome = null) {
+	return CIRCUIT_BREAKER_REMEDIATION_REASONS.has(remediationOutcome?.reason);
+}
+
 /**
  * Open (or comment on) a team:operations exception when closeout has a defect
  * and no post-merge-failure Issue exists for it.
@@ -131,6 +141,11 @@ export async function ensureCloseoutDefectOpsException({
 	}
 	if (remediationAlreadyCoversDefect(remediationOutcome)) {
 		return { action: 'skipped', reason: 'post-merge-failure-upserted' };
+	}
+	// #5369: breaker already suppressed remediation Issues to stop a flood;
+	// do not open one team:operations exception per PR instead.
+	if (circuitBreakerSuppressesOpsException(remediationOutcome)) {
+		return { action: 'skipped', reason: 'circuit-breaker-suppress' };
 	}
 
 	const openRemediation = await listOpenLabeledIssues({
