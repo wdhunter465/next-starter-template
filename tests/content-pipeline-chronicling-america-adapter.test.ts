@@ -3,63 +3,87 @@ import { describe, expect, it } from "vitest";
 import {
   ChroniclingAmericaHttpError,
   buildChroniclingAmericaSearchUrl,
+  extractChroniclingSearchResults,
   fetchChroniclingAmericaItems,
   issueDate,
+  issueDateFromPageUrl,
   mapChroniclingAmericaItemToCandidateFields,
   ocrExcerpt,
+  pageImageFromChroniclingPageJson,
+  pickChroniclingPageUrl,
 } from "../functions/_lib/content-pipeline-chronicling-america-adapter";
 
 const query = "Lou Gehrig";
 const pageUrl = "https://chroniclingamerica.loc.gov/lccn/sn83030214/1927-10-01/ed-1/seq-12/";
 
 function jsonResponse(status: number, body: unknown) {
-  return { ok: status >= 200 && status < 300, status, json: async () => body };
+  return {
+    ok: status >= 200 && status < 300,
+    status,
+    json: async () => body,
+    text: async () => JSON.stringify(body),
+  };
 }
 
-describe("Chronicling America discovery (#4788)", () => {
+describe("Chronicling America discovery (#4788 / #5110)", () => {
   it("keeps a real issue date and drops a bare year", () => {
     expect(issueDate("19271001")).toBe("1927-10-01");
     expect(issueDate("1930-12-31")).toBe("1930-12-31");
     expect(issueDate("1927")).toBeNull();
     expect(issueDate("1927-02-31")).toBeNull();
+    expect(issueDateFromPageUrl(pageUrl)).toBe("1927-10-01");
   });
 
-  it("searches the 1920-1930 window one page at a time", () => {
+  it("searches the loc.gov Chronicling America collection JSON API", () => {
     const url = new URL(buildChroniclingAmericaSearchUrl("Lou Gehrig", 50, 2));
-    expect(url.origin + url.pathname).toBe("https://chroniclingamerica.loc.gov/search/pages/results/");
-    expect(url.searchParams.get("andtext")).toBe("Lou Gehrig");
-    expect(url.searchParams.get("date1")).toBe("1920");
-    expect(url.searchParams.get("date2")).toBe("1930");
-    expect(url.searchParams.get("rows")).toBe("20");
-    expect(url.searchParams.get("page")).toBe("2");
+    expect(url.origin + url.pathname).toBe("https://www.loc.gov/collections/chronicling-america/");
+    expect(url.searchParams.get("q")).toBe("Lou Gehrig");
+    expect(url.searchParams.get("fo")).toBe("json");
+    expect(url.searchParams.get("c")).toBe("20");
+    expect(url.searchParams.get("sp")).toBe("2");
+    expect(url.searchParams.get("dates")).toBe("1920/1930");
   });
 
-  it("records a sourced pre-1931 issue as public domain, with the page and an OCR excerpt", () => {
+  it("maps a loc.gov collection hit to a photo candidate with newspaper tier", () => {
     const fields = mapChroniclingAmericaItemToCandidateFields(
       {
         id: pageUrl,
         title: "The New York herald.",
-        date: "19271001",
-        edition: "1",
-        sequence: 12,
-        ocr_eng: "the crowd rose when Lou Gehrig stepped in for the second time",
+        date: "1927",
+        description: ["the crowd rose when Lou Gehrig stepped in for the second time"],
+        image_url: "https://chroniclingamerica.loc.gov/lccn/sn83030214/1927-10-01/ed-1/seq-12/thumbnail.jpg",
       },
       query,
     );
     expect(fields?.sourceDomain).toBe("loc.gov");
+    expect(fields?.contentType).toBe("photo");
+    expect(fields?.qualityTier).toBe("newspaper");
     expect(fields?.dateOrPeriod).toBe("1927-10-01");
     expect(fields?.title).toContain("page 12");
     expect(fields?.rightsStatus).toBe("public_domain_candidate");
     expect(fields?.rightsEvidence.conclusion).toBe("public_domain_confirmed");
-    expect(fields?.rightsEvidence.evidence_text).toContain("Issue date: 1927-10-01");
-    expect(fields?.rightsEvidence.evidence_text).toContain("Lou Gehrig");
-    expect(fields?.provenanceNotes).toContain("newspaper issue record");
+    expect(fields?.imageUrl).toContain("thumbnail.jpg");
+    expect(fields?.provenanceNotes).toContain("loc.gov collection search");
     expect(ocrExcerpt("xxxx Lou Gehrig yyyy")).toContain("Lou Gehrig");
+  });
+
+  it("prefers a chroniclingamerica.loc.gov page URL over a loc.gov wrapper", () => {
+    expect(
+      pickChroniclingPageUrl({
+        id: "https://www.loc.gov/item/sn83030214/",
+        url: pageUrl,
+      }),
+    ).toBe(pageUrl);
   });
 
   it("keeps a 1931 page and an undated page on the ordinary rights path", () => {
     const later = mapChroniclingAmericaItemToCandidateFields(
-      { id: pageUrl, title: "Evening star.", date: "19310603", sequence: 1 },
+      {
+        id: "https://chroniclingamerica.loc.gov/lccn/sn83045462/1931-06-03/ed-1/seq-1/",
+        title: "Evening star.",
+        date: "19310603",
+        sequence: 1,
+      },
       query,
     );
     expect(later?.dateOrPeriod).toBe("1931-06-03");
@@ -67,29 +91,57 @@ describe("Chronicling America discovery (#4788)", () => {
     expect(later?.rightsEvidence.conclusion).toBeUndefined();
 
     const undated = mapChroniclingAmericaItemToCandidateFields({ id: pageUrl, title: "Evening star." }, query);
-    expect(undated?.dateOrPeriod).toBeUndefined();
-    expect(undated?.rightsStatus).toBe("unknown");
+    // Date recovered from the page URL path.
+    expect(undated?.dateOrPeriod).toBe("1927-10-01");
     expect(mapChroniclingAmericaItemToCandidateFields({ title: "No url" }, query)).toBeNull();
   });
 
-  it("retries a 429 and does not retry a 404", async () => {
+  it("extracts results from loc.gov collection JSON and retries a 429", async () => {
+    expect(
+      extractChroniclingSearchResults({
+        results: [{ id: pageUrl, title: "Sun." }],
+      }),
+    ).toHaveLength(1);
+
     const noDelay = async () => {};
     let calls = 0;
-    const retried = await fetchChroniclingAmericaItems(query, 5, 1, async () => {
-      calls += 1;
-      if (calls === 1) return jsonResponse(429, {});
-      return jsonResponse(200, { items: [{ id: pageUrl, date: "19270101", title: "Sun." }] });
-    }, noDelay);
+    const retried = await fetchChroniclingAmericaItems(
+      query,
+      5,
+      1,
+      async () => {
+        calls += 1;
+        if (calls === 1) return jsonResponse(429, {});
+        return jsonResponse(200, { results: [{ id: pageUrl, date: "19270101", title: "Sun." }] });
+      },
+      noDelay,
+    );
     expect(calls).toBe(2);
     expect(retried).toHaveLength(1);
 
     let missing = 0;
     await expect(
-      fetchChroniclingAmericaItems(query, 5, 1, async () => {
-        missing += 1;
-        return jsonResponse(404, {});
-      }, noDelay),
+      fetchChroniclingAmericaItems(
+        query,
+        5,
+        1,
+        async () => {
+          missing += 1;
+          return jsonResponse(404, {});
+        },
+        noDelay,
+      ),
     ).rejects.toBeInstanceOf(ChroniclingAmericaHttpError);
     expect(missing).toBe(1);
+  });
+
+  it("derives a page image from Classic CA page JSON", () => {
+    expect(
+      pageImageFromChroniclingPageJson(
+        { jp2: "https://chroniclingamerica.loc.gov/lccn/sn83030214/1927-10-01/ed-1/seq-12.jp2" },
+        pageUrl,
+      ),
+    ).toContain(".jp2");
+    expect(pageImageFromChroniclingPageJson({}, pageUrl)).toContain("thumbnail.jpg");
   });
 });
