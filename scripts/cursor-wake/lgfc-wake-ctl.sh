@@ -490,7 +490,10 @@ Wake ownership (#4783 / #5012):
   because the loop is stopped.
 - If this chat is the recorded owner and the loop is stopped or stalled:
   report it, continue the open-Issue pass, and when nothing can move
-  start exactly one loop and report its PID. A new-session instruction
+  start exactly one loop and report its PID — but only when the halt
+  file is absent. Owner restart applies to a stopped or aborted loop,
+  not a halted one; a halt stays until Product Authority says resume
+  (or take over), then resume, rebind, start. A new-session instruction
   means halt the others, then resume, then rebind, then start this
   chat's loop; \`halt\` alone is wrong.
 - Latest poll for every open chat: ~/.cursor/lgfc-wake-poll-inbox.json
