@@ -11,6 +11,11 @@ import {
   rankTeams,
   type LeaderboardSnapshot,
 } from '@/lib/givebutterSnapshot';
+import {
+  buildFundraiserLeaderboardSnapshot,
+  formatFundraiserDollars,
+  type FundraiserBoardEntry,
+} from '@/lib/fundraiser-leaderboard';
 
 type SnapshotResponse =
   | { ok: true; configured: false }
@@ -41,10 +46,71 @@ function ProgressBar({ raised, goal }: { raised: number; goal: number | null }) 
         aria-valuenow={percent ?? 0}
         style={{ height: 14, borderRadius: 999, background: 'rgba(0,0,0,0.1)', overflow: 'hidden', marginTop: 8 }}
       >
-        <div style={{ width: `${percent ?? 0}%`, height: '100%', background: 'var(--lgfc-blue, #0033cc)' }} />
+        <div style={{ width: `${percent ?? 0}%`, height: '100%', background: 'var(--lgfc-blue)' }} />
       </div>
       {percent !== null ? <div style={{ marginTop: 6 }}>{percent}% of goal</div> : null}
     </div>
+  );
+}
+
+function SampleBoard({
+  title,
+  description,
+  entries,
+  metric,
+}: {
+  title: string;
+  description: string;
+  entries: FundraiserBoardEntry[];
+  metric: (entry: FundraiserBoardEntry) => string;
+}) {
+  return (
+    <section style={{ border: '1px solid rgba(0,0,0,0.1)', borderRadius: 12, padding: 14 }}>
+      <h3 style={{ marginTop: 0 }}>{title}</h3>
+      <p style={{ marginTop: 0, opacity: 0.85 }}>{description}</p>
+      <div aria-label={title} style={{ display: 'grid', gap: 6 }}>
+        {entries.map((entry) => (
+          <div key={entry.participantId}>
+            #{entry.rank}{' '}
+            <strong>{entry.displayName}</strong> — {metric(entry)}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function SampleBoards() {
+  const snapshot = buildFundraiserLeaderboardSnapshot();
+
+  return (
+    <section style={{ marginTop: 18 }} aria-labelledby="sample-boards-heading">
+      <h3 id="sample-boards-heading">2027 sample boards</h3>
+      <p style={{ marginTop: 0, opacity: 0.85 }}>
+        Dry-run standings for {snapshot.window.startDate} through {snapshot.window.endDate} (
+        {snapshot.window.timeZone}). Aggregate sample fields only; final tie-breaks are pending.
+      </p>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
+        <SampleBoard
+          title="Funding the Fight"
+          description="Most funds raised."
+          entries={snapshot.boards.fundingTheFight}
+          metric={(entry) => `${formatFundraiserDollars(entry.raised)} raised`}
+        />
+        <SampleBoard
+          title="Raising Awareness"
+          description="Most donors."
+          entries={snapshot.boards.raisingAwareness}
+          metric={(entry) => `${entry.donors} donors`}
+        />
+        <SampleBoard
+          title="Champion"
+          description="Points = dollars raised + donors."
+          entries={snapshot.boards.champion}
+          metric={(entry) => `${entry.championPoints} points`}
+        />
+      </div>
+    </section>
   );
 }
 
@@ -122,7 +188,7 @@ export default function LeaderboardPreview() {
         {message}
       </p>
       {error ? (
-        <p role="alert" style={{ color: 'var(--lgfc-error, #b00020)', fontWeight: 700 }}>
+        <p role="alert" style={{ color: 'var(--lgfc-error)', fontWeight: 700 }}>
           {error}
         </p>
       ) : null}
@@ -159,6 +225,8 @@ export default function LeaderboardPreview() {
           </ol>
         </>
       ) : null}
+
+      {source === 'sample' ? <SampleBoards /> : null}
     </section>
   );
 }

@@ -45,7 +45,7 @@ The queue's `platforms` list decides where a post goes. The checks are in the qu
 | Instagram | Limits: ratio 4:5 to 1.91:1, JPEG, up to 8 MB, width 320 to 1440 px (Instagram Graph API, `ig-user/media`). A photo inside the ratio is only scaled to 1080 px wide. A taller photo is padded at the sides to 1080x1350. A wider one is padded above and below to 1080x566. The Instagram Issue title is `/api/social/image/<id>?for=instagram`. |
 | Pinterest | 2:3 recommended; the original is sent. A photo taller than 2:3 (width/height under 2/3) may be cut off in feeds (Pinterest creative best practices). See the per-photo table below. |
 | X | JPG, PNG, GIF or WEBP up to 5 MB; photos between 2:1 and 3:4 (width/height from 0.75 to 2.0) show in full, others are cropped in the feed preview only (X media best practices). The original is sent and the full photo stays one tap away. A padded X variant is not built (decision open for Product Authority). |
-| Facebook Page | Organic Page photo upload accepts native aspect (Graph API `/{page-id}/photos`); max 10 MB. Feed *guidance* prefers 4:5. Research on #5196; Product chooses A (original) vs B (reuse 4:5 pad) on #5291. Until then the original is sent. |
+| Facebook Page | Organic Page photo upload accepts native aspect (Graph API `/{page-id}/photos`); max 10 MB. Feed guidance prefers 4:5. Product chose B on #5291, so Facebook reuses the same 4:5 padded variant as Instagram. The Facebook Issue title is `/api/social/image/<id>?for=facebook`, and the route serves the stored `social-variants/instagram/<photo id>.jpg` object. |
 
 ### Cleared photos vs platform rules (recorded 2026-11-15, #5196)
 
@@ -61,7 +61,7 @@ Sizes from `social-audit` evidence (`photo.width` / `photo.height`). Ratio is wi
 
 Live check 2026-11-15: post `2026-11-15-daily` (photo 859) — dispatch run `43728316005` success; Instagram hand-off #5295 title uses `?for=instagram`; that URL returned HTTP 200 (JPEG served). Facebook #5294 and Pinterest #5296 opened the same run.
 
-How the Instagram variant is made: before each hand-off, the posting job fetches the original from the site (public only from the publish time), pads it with `scripts/ops/social-pad-variant.mjs`, and stores it in the photo bucket at `social-variants/instagram/<photo id>.jpg`. The upload is additive and never overwrites or deletes. The image route serves that object for `?for=instagram`, only after the post's publish time and only while the photo is rights-cleared. If the variant is missing the route returns an error: it never falls back to the original for Instagram. The geometry and the Instagram limits are covered by `tests/social-pad-variant-5196.test.mjs`. No Cloudflare setting or binding is changed.
+How the shared 4:5 variant is made: before each Instagram or Facebook hand-off, the posting job fetches the original from the site (public only from the publish time), pads it with `scripts/ops/social-pad-variant.mjs`, and stores it in the photo bucket at `social-variants/instagram/<photo id>.jpg`. The upload is additive and never overwrites or deletes. The image route serves that object for `?for=instagram` and `?for=facebook`, only after the post's publish time and only while the photo is rights-cleared. If the variant is missing the route returns an error: it never falls back to the original for Instagram or Facebook. The geometry and the Instagram limits are covered by `tests/social-pad-variant-5196.test.mjs`. No Cloudflare setting or binding is changed.
 
 ## Schedule
 

@@ -154,7 +154,7 @@ describe('social image route', () => {
     expect((await call(db, POST)).status).toBe(404);
   });
 
-  it('serves the padded Instagram variant from the photo bucket, never the original, and 404s other platforms (#5196)', async () => {
+  it('serves the padded variant from the photo bucket for Instagram and Facebook, never the original, and 404s other platforms (#5196/#5291)', async () => {
     const { sqlite, db } = makeDb();
     sqlite
       .prepare("INSERT INTO photos (id, url, rights_hold, publication_eligible) VALUES (858, 'https://s3.us-east-005.backblazeb2.com/LouGehrigFanClub/a.jpg', 0, 1)")
@@ -169,12 +169,18 @@ describe('social image route', () => {
     expect(String(fetchMock.mock.calls[0][0])).toContain('/LouGehrigFanClub/social-variants/instagram/858.jpg');
     expect(String(fetchMock.mock.calls[0][0])).not.toContain('/a.jpg');
 
+    const fb = await call(db, POST, '?for=facebook');
+    expect(fb.status).toBe(200);
+    expect(await fb.text()).toBe('PADDED');
+    expect(String(fetchMock.mock.calls[1][0])).toContain('/LouGehrigFanClub/social-variants/instagram/858.jpg');
+    expect(String(fetchMock.mock.calls[1][0])).not.toContain('/a.jpg');
+
     expect((await call(db, POST, '?for=tiktok')).status).toBe(404);
 
     fetchMock.mockImplementationOnce(async () => new Response('missing', { status: 404 }));
-    expect((await call(db, POST, '?for=instagram')).status).toBe(502);
+    expect((await call(db, POST, '?for=facebook')).status).toBe(502);
 
     sqlite.prepare('UPDATE photos SET rights_hold = 1 WHERE id = 858').run();
-    expect((await call(db, POST, '?for=instagram')).status).toBe(404);
+    expect((await call(db, POST, '?for=facebook')).status).toBe(404);
   });
 });

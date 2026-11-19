@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * Before the hand-off job opens an Instagram Issue, make sure the padded variant of the post's photo
+ * Before the hand-off job opens an Instagram or Facebook Issue, make sure the padded variant of the post's photo
  * exists in the bucket (#5196). Fetches the original from the site (only possible once the post is
  * public), pads it (never crops), and uploads it to social-variants/instagram/<photo id>.jpg.
  * Additive only: it never overwrites an existing variant and never deletes anything.
@@ -15,11 +15,11 @@ import { renderInstagramVariant, variantKey } from './social-pad-variant.mjs';
 const DEFAULT_QUEUE = new URL('../../data/social-post-queue.json', import.meta.url);
 const LIVE_BASE_URL = 'https://www.lougehrigfanclub.com';
 
-/** Photos that need a variant: the cleared photo of each due post that lists Instagram, once each. */
+/** Photos that need a variant: the cleared photo of each due post that lists Instagram or Facebook, once each. */
 export function photosNeedingVariant(queue, now) {
   const seen = new Map();
   for (const post of selectDispatchPosts(queue, now)) {
-    if (post.platforms?.includes('instagram') && !seen.has(post.photo_id)) seen.set(post.photo_id, post.id);
+    if ((post.platforms?.includes('instagram') || post.platforms?.includes('facebook')) && !seen.has(post.photo_id)) seen.set(post.photo_id, post.id);
   }
   return [...seen].map(([photoId, postId]) => ({ photoId, postId }));
 }
