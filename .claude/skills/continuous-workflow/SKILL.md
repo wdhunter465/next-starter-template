@@ -1,11 +1,11 @@
 ---
 name: continuous-workflow
-description: The LGFC continuous workflow for Claude Code in this repository. Use at the start of a session, after packaging any assignment, whenever a PR is waiting on review or merge, and at every safe task boundary, to pick the next eligible item without stopping.
+description: The LGFC continuous-workflow checklist for every live role holder. Use at the start of a session, after packaging any assignment, whenever a PR is waiting on review or merge, and at every safe task boundary, to pick the next eligible item without stopping.
 ---
 
 # Continuous workflow (LGFC)
 
-This skill is a working checklist, not policy. The definitions are:
+This skill is a working checklist for every live role holder, not policy and not a product-only duty (#5012). Claude Code's search list below is Claude's mechanics; Cursor uses the ready-queue file and its product rules. The definitions are:
 
 - `docs/governance/AGENT-EXECUTION.md`: Session lifecycle, Assigned-queue continuation (#3605 / #3611), Accepted-assignment continuity (#3693), Continuous parent-level execution (#3055 / #3145), Mandatory stop conditions
 - `docs/governance/AGENT-TEAM.md`: role work-selection order, protected stops, separation of duties

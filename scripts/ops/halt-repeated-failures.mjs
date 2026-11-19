@@ -14,6 +14,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { exceptionMarker, haltMarker } from '../ci/ops-exception-markers.mjs';
 
 export const FAILURE_LIMIT = 3;
 export const SELF = 'ops-halt-repeated-failures.yml';
@@ -38,7 +39,7 @@ const COUNTED = new Set(['success', 'failure', 'timed_out']);
 const FAILED = new Set(['failure', 'timed_out']);
 
 export function markerFor(file) {
-  return `<!-- ops-halt:${file} -->`;
+  return haltMarker(file);
 }
 
 // Newest failed run a halt record covers. After a person re-enables the workflow the old
@@ -47,14 +48,23 @@ export function lastRunMarker(runId) {
   return `<!-- ops-halt-last-run:${runId} -->`;
 }
 
-export function findRecord(issues, file) {
-  const marker = markerFor(file);
-  const match = (issues || []).find(
-    (issue) => !issue.pull_request && typeof issue.body === 'string' && issue.body.includes(marker),
-  );
-  if (!match) return null;
-  const seen = match.body.match(/<!-- ops-halt-last-run:(\d+) -->/);
-  return { number: match.number, state: match.state, body: match.body, lastRunId: seen ? Number(seen[1]) : 0 };
+export function findRecord(issues, file, name) {
+  // #5328: match halt-file or shared workflow-name markers. Prefer an open Issue for
+  // updates; take the highest lastRunId across matches so a closed halt still covers old runs.
+  const matches = (issues || []).filter((issue) => {
+    if (issue.pull_request || typeof issue.body !== 'string') return false;
+    if (issue.body.includes(markerFor(file))) return true;
+    if (name && issue.body.includes(exceptionMarker(name))) return true;
+    return false;
+  });
+  if (matches.length === 0) return null;
+  let lastRunId = 0;
+  for (const match of matches) {
+    const seen = match.body.match(/<!-- ops-halt-last-run:(\d+) -->/);
+    if (seen) lastRunId = Math.max(lastRunId, Number(seen[1]));
+  }
+  const primary = matches.find((issue) => issue.state === 'open') || matches[0];
+  return { number: primary.number, state: primary.state || 'open', body: primary.body, lastRunId };
 }
 
 export function isScheduled(text) {
@@ -84,6 +94,8 @@ export function consecutiveFailures(runs, limit = FAILURE_LIMIT) {
 export function renderHaltBody({ file, name, failures, alertOnly }) {
   const runs = failures.map((run) => `- ${run.html_url} (${run.event}, ${run.created_at})`);
   return [
+    // Carry both markers so either opener can find this Issue (#5328).
+    exceptionMarker(name),
     markerFor(file),
     lastRunMarker(failures[0].id),
     '',
@@ -156,7 +168,7 @@ async function sweepOne({ file, api, repo, branch, alertOnly, log, records }) {
     outcomes.push({ file, action: 'skipped', reason: `runs lookup failed: ${error.message}` });
     return outcomes;
   }
-  const record = findRecord(records, file);
+  const record = findRecord(records, file, workflow.name);
   const failures = consecutiveFailures(runs.filter((run) => run.id > (record?.lastRunId || 0)));
   if (failures.length < FAILURE_LIMIT) {
     outcomes.push({ file, action: 'ok' });
@@ -168,6 +180,9 @@ async function sweepOne({ file, api, repo, branch, alertOnly, log, records }) {
 
   if (isAlertOnly) {
     if (existing) {
+      await api('POST', `/repos/${repo}/issues/${existing.number}/comments`, {
+        body: `Alert (already open): ${workflow.name} failed ${FAILURE_LIMIT} times in a row (not halted).\n${failures.map((run) => `- ${run.html_url}`).join('\n')}`,
+      });
       outcomes.push({ file, action: 'alert-already-open', number: existing.number });
       return outcomes;
     }
@@ -183,11 +198,20 @@ async function sweepOne({ file, api, repo, branch, alertOnly, log, records }) {
   // Report first so a halt is never silent, then stop the attempts.
   let number;
   if (existing) {
+    let body = existing.body || '';
+    if (!body.includes(markerFor(file))) {
+      body = `${exceptionMarker(workflow.name)}\n${markerFor(file)}\n${lastRunMarker(failures[0].id)}\n${body}`;
+    } else if (/<!-- ops-halt-last-run:\d+ -->/.test(body)) {
+      body = body.replace(/<!-- ops-halt-last-run:\d+ -->/, lastRunMarker(failures[0].id));
+    } else {
+      body = `${lastRunMarker(failures[0].id)}\n${body}`;
+    }
     await api('PATCH', `/repos/${repo}/issues/${existing.number}`, {
-      body: existing.body.replace(/<!-- ops-halt-last-run:\d+ -->/, lastRunMarker(failures[0].id)),
+      body,
+      labels: HALT_LABELS,
     });
     await api('POST', `/repos/${repo}/issues/${existing.number}/comments`, {
-      body: `Halted again after ${FAILURE_LIMIT} more consecutive failures:\n${failures.map((run) => `- ${run.html_url}`).join('\n')}`,
+      body: `Halted after ${FAILURE_LIMIT} consecutive failures (reusing open exception for this workflow):\n${failures.map((run) => `- ${run.html_url}`).join('\n')}`,
     });
     number = existing.number;
   } else {

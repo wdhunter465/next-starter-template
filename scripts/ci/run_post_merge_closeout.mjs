@@ -16,6 +16,7 @@ import {
 	upsertRemediationIssue,
 	attachOriginatingAgentEvidence,
 } from './post_merge_remediation_issue.mjs';
+import { ensureCloseoutDefectOpsException } from './open_closeout_defect_exception.mjs';
 import { runValidator, WORKFLOW_RUN_SCOPE_MERGE_AND_HEAD } from './post_merge_validator.mjs';
 import { githubRepoRequest } from './github_issue_api.mjs';
 import {
@@ -331,6 +332,7 @@ export async function ensureCloseoutRemediationEvidence({
 	batchCircuitBreaker = null,
 	error = null,
 }) {
+	let remediationOutcome;
 	if (
 		shouldSuppressRemediationForCircuitBreaker({
 			suppressRemediationIssues,
@@ -339,16 +341,26 @@ export async function ensureCloseoutRemediationEvidence({
 			error,
 		})
 	) {
-		return {
+		remediationOutcome = {
 			action: 'skipped',
 			issue: null,
 			reason: batchCircuitBreaker?.tripped ? 'circuit-breaker-open' : 'circuit-breaker-threshold',
 		};
+	} else if (!shouldUpsertRemediationIssue(result)) {
+		remediationOutcome = { action: 'skipped', issue: null, reason: 'no-remediation-required' };
+	} else {
+		remediationOutcome = await upsertRemediationIssue({ token, repository, result });
 	}
-	if (!shouldUpsertRemediationIssue(result)) {
-		return { action: 'skipped', issue: null, reason: 'no-remediation-required' };
-	}
-	return upsertRemediationIssue({ token, repository, result });
+
+	// #5327: if closeout still has a defect and no post-merge-failure Issue exists,
+	// open one team:operations exception (deduped by PR marker).
+	const opsExceptionOutcome = await ensureCloseoutDefectOpsException({
+		token,
+		repository,
+		result,
+		remediationOutcome,
+	});
+	return { ...remediationOutcome, ops_exception: opsExceptionOutcome };
 }
 
 export async function runPostMergeCloseout({

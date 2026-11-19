@@ -67,6 +67,21 @@ describe('workflow failure exception issues (#4444)', () => {
     expect(comment.body.body).toContain('Another failure');
   });
 
+  it('comments on an open halt Issue that already carries the shared workflow marker (#5328)', async () => {
+    const { api, calls } = makeApi({
+      openIssues: [
+        {
+          number: 70,
+          state: 'open',
+          body: `${exceptionMarker('OPS — Scheduled Content Publish (#4253)')}\n<!-- ops-halt:ops-scheduled-content-publish.yml -->\nhalted`,
+        },
+      ],
+    });
+    const result = await handleWorkflowFailure({ run: makeRun({ id: '125' }), api, repo: REPO });
+    expect(result).toEqual({ action: 'commented', number: 70 });
+    expect(calls.some((c) => c.method === 'POST' && c.path.endsWith('/issues'))).toBe(false);
+  });
+
   it('keeps separate Issues for different workflows', async () => {
     const otherMarker = exceptionMarker('D1 Migrations');
     const { api } = makeApi({ openIssues: [{ number: 7, body: otherMarker }] });
