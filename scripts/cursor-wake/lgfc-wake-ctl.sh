@@ -21,9 +21,11 @@
 # `rebind` stops other wake processes and binds this chat. It is the takeover
 # command, and it is not a startup step (#5034).
 #
-# Product Authority "close prior sessions" means `halt`.
-# Product Authority "take over" means `resume` when halted, then
-# `rebind --session <this chat uuid>`. Startup never runs that sequence.
+# Product Authority "close prior sessions / only this session is primary"
+# means four steps: `halt`, then `resume`, then `rebind --session <id>`,
+# then start this chat's loop. `halt` alone is wrong (loop stays down).
+# Product Authority "take over" is the same sequence when another chat
+# still holds the recorded owner. Startup never runs that sequence.
 #
 # `startup` reports status. It does not take ownership from another chat.
 # A second chat may bind only when the live-session file is empty (#4783).
@@ -449,7 +451,7 @@ LGFC_SESSION_HALTED
 Wake loop, watchdog restart, bind, and rebind are refused while $HALT_FILE exists.
 Do not start a loop. Do not rebind. Do not start the watchdog.
 Clear only with: ~/.cursor/lgfc-wake-ctl.sh resume
-Product Authority "take over" is that resume, then: ~/.cursor/lgfc-wake-ctl.sh rebind --session <this chat uuid>
+Product Authority "take over" / "only this session is primary" is resume, then rebind --session <this chat uuid>, then start this chat's loop. halt alone is wrong.
 Startup does not run that sequence.
 EOF
     return 0
@@ -482,13 +484,15 @@ Wake ownership (#4783 / #5012):
 - Do not \`rebind\` during startup. Do not stop another session's loop.
 - Do not start a second loop.
 - If live_session is another chat: that chat stays the owner. Name the
-  next command and do not run it: \`resume\` when halted, then
-  \`rebind --session <this chat uuid>\`. Continue the open-Issue pass;
-  do not idle because the loop is stopped.
+  next command and do not run it until Product Authority says take over:
+  \`resume\` when halted, then \`rebind --session <this chat uuid>\`,
+  then start this chat's loop. Continue the open-Issue pass; do not idle
+  because the loop is stopped.
 - If this chat is the recorded owner and the loop is stopped or stalled:
   report it, continue the open-Issue pass, and when nothing can move
-  start exactly one loop and report its PID. A halt still requires
-  \`resume\` then \`rebind\` before a new loop.
+  start exactly one loop and report its PID. A new-session instruction
+  means halt the others, then resume, then rebind, then start this
+  chat's loop; \`halt\` alone is wrong.
 - Latest poll for every open chat: ~/.cursor/lgfc-wake-poll-inbox.json
 - Do not kill the Actions runner or lgfc-wake-watchdog.
 - Retired poll-wake-loop.sh stays stopped.
@@ -534,8 +538,10 @@ startup() {
     log "startup left session=$sid live=$current loop=$state pid=$(loop_pid)"
     echo "Wake owner is session=$current loop=$state pid=$(loop_pid)."
     echo "Startup does not take over. Do not start a second loop. An aborted loop stays stopped."
-    echo "After Product Authority says \"take over\", run: ~/.cursor/lgfc-wake-ctl.sh resume"
-    echo "then: ~/.cursor/lgfc-wake-ctl.sh rebind --session $sid"
+    echo "After Product Authority says \"take over\" / \"only this session is primary\":"
+    echo "  ~/.cursor/lgfc-wake-ctl.sh resume"
+    echo "  ~/.cursor/lgfc-wake-ctl.sh rebind --session $sid"
+    echo "  then start exactly one loop in this chat and report its PID (halt alone is wrong)"
     echo "Poll inbox: ${HOME}/.cursor/lgfc-wake-poll-inbox.json"
   elif [[ -n "$current" && "$current" != "unknown" ]]; then
     log "startup left session=$sid live=$current loop=$state pid=$(loop_pid)"
@@ -571,7 +577,7 @@ bind() {
     log "bind refused session=$sid live=$current loop=$(loop_state)"
     echo "bind refused session=$sid live=$current"
     echo "Do not rebind during startup. Owner stays $current."
-    echo "After Product Authority says \"take over\": ~/.cursor/lgfc-wake-ctl.sh resume && ~/.cursor/lgfc-wake-ctl.sh rebind --session $sid"
+    echo "After Product Authority says \"take over\": resume, then rebind --session $sid, then start this chat's loop (halt alone is wrong)"
     return 0
   fi
   if [[ "$sid" == "unknown" && -n "$current" && "$current" != "unknown" ]]; then

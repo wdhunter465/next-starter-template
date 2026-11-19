@@ -39,8 +39,8 @@ Host bind is not startup and is not an assignment.
 
 Product Authority phrases, and the command each one runs:
 
-- "Close prior sessions" runs `~/.cursor/lgfc-wake-ctl.sh halt`.
-- "Take over" runs `~/.cursor/lgfc-wake-ctl.sh resume` when `~/.cursor/lgfc-wake-halt` exists, then `~/.cursor/lgfc-wake-ctl.sh rebind --session <this chat uuid>`. Startup never runs this sequence.
+- "Close prior sessions, only this session is primary" (and the same idea under other wording) means four steps in order: `~/.cursor/lgfc-wake-ctl.sh halt`, then `resume`, then `rebind --session <this chat uuid>`, then start exactly one wake loop in this chat and report its PID. Running `halt` alone is wrong: it stops the loop until `resume` and `rebind`, and it does not start this chat's loop.
+- "Take over" is the same sequence when another chat still holds the recorded owner: `resume` when `~/.cursor/lgfc-wake-halt` exists, then `rebind --session <this chat uuid>`, then start this chat's loop. Startup never runs this sequence.
 
 Each control command in one sentence:
 

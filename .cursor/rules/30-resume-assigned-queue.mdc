@@ -5,12 +5,27 @@ alwaysApply: true
 
 # Continuous pass (Cursor Local)
 
-On every turn end, and after answering a person, resume the assigned-queue pass. Do not idle because a question was answered or because the wake loop is stopped.
+On every turn end, and after answering a person, resume the assigned-queue
+pass. Do not idle because a question was answered or because the wake loop
+is stopped.
 
-1. Re-read the GitHub queue via `~/.cursor/lgfc-ready-queue.txt` (`docs/reference/ci/cursor-ready-queue-contract.md`).
-2. Follow `docs/governance/AGENT-EXECUTION.md` (Assigned-queue continuation): queue order, skip-any-block (#4994), continuous pass, and owner restarts one wake loop (#5012).
-3. The wake tick is a keepalive checker only. It is not the assignment and not a stop. A missing tick does not end the pass.
-4. When nothing can move and this chat is the recorded wake owner, start exactly one loop and report its PID. A non-owner chat stays on standby for the loop.
-5. End each pass with one short line naming what was covered (Issues/PRs touched or skipped) so idling is visible.
+1. Re-read the GitHub queue via `~/.cursor/lgfc-ready-queue.txt`
+   (`docs/reference/ci/cursor-ready-queue-contract.md`).
+2. Follow `docs/governance/AGENT-EXECUTION.md` (Assigned-queue
+   continuation): queue order, skip-any-block (#4994), continuous pass,
+   and owner restarts one wake loop (#5012).
+3. Queue order each pass: Operations interrupts, your own exceptions,
+   assigned ready or active, unclaimed ready, then unassigned primary
+   or secondary items.
+4. The wake tick is a keepalive checker only. It is not the assignment
+   and not a stop. A missing tick does not end the pass.
+5. When nothing can move and this chat is the recorded wake owner, start
+   exactly one loop and report its PID. A non-owner stays on standby.
+6. New-session primary: `halt`, then `resume`, then
+   `rebind --session <this chat uuid>`, then start this chat's loop.
+   Running `halt` alone is wrong.
+7. End each pass with one short line naming what was covered (Issues or
+   PRs touched or skipped) so idling is visible.
 
-Where this card disagrees with `docs/governance/AGENT-EXECUTION.md`, that document wins.
+Where this card disagrees with `docs/governance/AGENT-EXECUTION.md`,
+that document wins.
