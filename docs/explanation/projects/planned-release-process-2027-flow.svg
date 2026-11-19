@@ -1,0 +1,52 @@
+<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 760 468' width='760' height='468' role='img' aria-labelledby='t' font-family='-apple-system, Segoe UI, Helvetica, Arial, sans-serif' font-size='13'>
+<title id='t'>Many small reviewed PRs in, one approved promotion out</title>
+<rect width='760' height='468' fill='#ffffff'/>
+<defs><marker id='rel-arrow' viewBox='0 0 10 10' refX='9' refY='5' markerWidth='6' markerHeight='6' orient='auto-start-reverse'><path d='M0 0L10 5L0 10z' fill='#8c959f'/></marker></defs>
+<text x='24' y='28' font-size='15' font-weight='600' fill='#1f2328'>Many small reviewed PRs in, one approved promotion out</text>
+<rect x='24' y='56' width='196' height='72' rx='8' fill='none' fill-opacity='0.12' stroke='#8c959f' stroke-width='1.25'/>
+<text x='40' y='80' font-weight='600' fill='#1f2328'>1 · One Issue</text>
+<text x='40' y='98' font-size='11.5' fill='#57606a'>Scope, file list and</text>
+<text x='40' y='114' font-size='11.5' fill='#57606a'>rollback recorded first</text>
+<rect x='282' y='56' width='196' height='72' rx='8' fill='none' fill-opacity='0.12' stroke='#8c959f' stroke-width='1.25'/>
+<text x='298' y='80' font-weight='600' fill='#1f2328'>2 · One PR per Issue</text>
+<text x='298' y='98' font-size='11.5' fill='#57606a'>Into the component branch.</text>
+<text x='298' y='114' font-size='11.5' fill='#57606a'>CI checks and review</text>
+<rect x='540' y='56' width='196' height='72' rx='8' fill='none' fill-opacity='0.12' stroke='#8c959f' stroke-width='1.25'/>
+<text x='556' y='80' font-weight='600' fill='#1f2328'>3 · Component branch</text>
+<text x='556' y='98' font-size='11.5' fill='#57606a'>Work collects here and</text>
+<text x='556' y='114' font-size='11.5' fill='#57606a'>builds on Preview</text>
+<rect x='540' y='168' width='196' height='72' rx='8' fill='none' fill-opacity='0.12' stroke='#8c959f' stroke-width='1.25'/>
+<text x='556' y='192' font-weight='600' fill='#1f2328'>4 · Qualify the batch</text>
+<text x='556' y='210' font-size='11.5' fill='#57606a'>Full tests on Preview.</text>
+<text x='556' y='226' font-size='11.5' fill='#57606a'>Fail: back to component</text>
+<rect x='282' y='168' width='196' height='72' rx='8' fill='#0969da' fill-opacity='0.12' stroke='#0969da' stroke-width='2'/>
+<text x='298' y='192' font-weight='600' fill='#1f2328'>5 · One promotion PR</text>
+<text x='298' y='210' font-size='11.5' fill='#57606a'>Component branch to main.</text>
+<text x='298' y='226' font-size='11.5' fill='#57606a'>Product Authority approves</text>
+<rect x='24' y='168' width='196' height='72' rx='8' fill='none' fill-opacity='0.12' stroke='#8c959f' stroke-width='1.25'/>
+<text x='40' y='192' font-weight='600' fill='#1f2328'>6 · Safe change window</text>
+<text x='40' y='210' font-size='11.5' fill='#57606a'>Merge to main: deploy and</text>
+<text x='40' y='226' font-size='11.5' fill='#57606a'>migrations apply</text>
+<rect x='24' y='280' width='196' height='72' rx='8' fill='none' fill-opacity='0.12' stroke='#8c959f' stroke-width='1.25'/>
+<text x='40' y='304' font-weight='600' fill='#1f2328'>7 · Verify Production</text>
+<text x='40' y='322' font-size='11.5' fill='#57606a'>Production audit must pass</text>
+<text x='40' y='338' font-size='11.5' fill='#57606a'>Fail: roll back</text>
+<rect x='282' y='280' width='196' height='72' rx='8' fill='none' fill-opacity='0.12' stroke='#8c959f' stroke-width='1.25'/>
+<text x='298' y='304' font-weight='600' fill='#1f2328'>Roll back if needed</text>
+<text x='298' y='322' font-size='11.5' fill='#57606a'>Multi-step package,</text>
+<text x='298' y='338' font-size='11.5' fill='#57606a'>finalized before step 5</text>
+<line x1='220' y1='92' x2='280' y2='92' stroke='#8c959f' stroke-width='1.25' marker-end='url(#rel-arrow)'/>
+<line x1='478' y1='92' x2='538' y2='92' stroke='#8c959f' stroke-width='1.25' marker-end='url(#rel-arrow)'/>
+<line x1='638' y1='128' x2='638' y2='166' stroke='#8c959f' stroke-width='1.25' marker-end='url(#rel-arrow)'/>
+<line x1='540' y1='204' x2='480' y2='204' stroke='#8c959f' stroke-width='1.25' marker-end='url(#rel-arrow)'/>
+<line x1='282' y1='204' x2='222' y2='204' stroke='#8c959f' stroke-width='1.25' marker-end='url(#rel-arrow)'/>
+<line x1='122' y1='240' x2='122' y2='278' stroke='#8c959f' stroke-width='1.25' marker-end='url(#rel-arrow)'/>
+<line x1='220' y1='316' x2='280' y2='316' stroke='#8c959f' stroke-width='1.25' marker-end='url(#rel-arrow)'/>
+<rect x='24' y='392' width='712' height='56' rx='8' fill='none' stroke='#bf8700' stroke-width='1.25' stroke-dasharray='4 4'/>
+<text x='40' y='416' font-weight='600' fill='#1f2328'>Emergency path</text>
+<text x='40' y='434' font-size='11.5' fill='#57606a'>Existing emergency recovery: stabilize Production first, then qualify and merge back (see the how-to)</text>
+<line x1='122' y1='392' x2='122' y2='354' stroke='#8c959f' stroke-width='1.25' stroke-dasharray='4 4' marker-end='url(#rel-arrow)'/>
+<text x='540' y='304' font-size='11.5' fill='#57606a'>Solid: the normal path.</text>
+<text x='540' y='322' font-size='11.5' fill='#57606a'>Dashed: emergencies only.</text>
+<text x='540' y='340' font-size='11.5' fill='#57606a'>Blue box: the one approval.</text>
+</svg>
