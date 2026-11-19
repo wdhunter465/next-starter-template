@@ -331,6 +331,7 @@ export async function ensureCloseoutRemediationEvidence({
 	suppressRemediationIssues = false,
 	batchCircuitBreaker = null,
 	error = null,
+	ensureOpsException = ensureCloseoutDefectOpsException,
 }) {
 	let remediationOutcome;
 	if (
@@ -354,13 +355,27 @@ export async function ensureCloseoutRemediationEvidence({
 
 	// #5327: if closeout still has a defect and no post-merge-failure Issue exists,
 	// open one team:operations exception (deduped by PR marker).
-	const opsExceptionOutcome = await ensureCloseoutDefectOpsException({
-		token,
-		repository,
-		result,
-		remediationOutcome,
-	});
-	return { ...remediationOutcome, ops_exception: opsExceptionOutcome };
+	// #5369: catch helper errors so a GitHub API failure does not hide remediationOutcome.
+	try {
+		const opsExceptionOutcome = await ensureOpsException({
+			token,
+			repository,
+			result,
+			remediationOutcome,
+		});
+		return { ...remediationOutcome, ops_exception: opsExceptionOutcome };
+	} catch (opsExceptionError) {
+		return {
+			...remediationOutcome,
+			ops_exception: {
+				action: 'error',
+				message:
+					opsExceptionError instanceof Error
+						? opsExceptionError.message
+						: String(opsExceptionError),
+			},
+		};
+	}
 }
 
 export async function runPostMergeCloseout({
