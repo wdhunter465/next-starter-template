@@ -2,10 +2,12 @@ import { describe, expect, it } from 'vitest';
 
 import {
 	CLOSEOUT_DEFECT_EXCEPTION_LABELS,
+	circuitBreakerSuppressesOpsException,
 	closeoutDefectMarker,
 	ensureCloseoutDefectOpsException,
 	hasCloseoutDefect,
 } from '../scripts/ci/open_closeout_defect_exception.mjs';
+import { ensureCloseoutRemediationEvidence } from '../scripts/ci/run_post_merge_closeout.mjs';
 
 function defectResult(overrides = {}) {
 	return {
@@ -45,7 +47,7 @@ function makeRequestFn({ remediationIssues = [], exceptionIssues = [] } = {}) {
 	return { requestFn, calls };
 }
 
-describe('closeout defect ops exception (#5327)', () => {
+describe('closeout defect ops exception (#5327 / #5369)', () => {
 	it('detects a closeout defect', () => {
 		expect(hasCloseoutDefect(defectResult())).toBe(true);
 		expect(hasCloseoutDefect({ status: 'pass', remediation_required: false })).toBe(false);
@@ -64,7 +66,7 @@ describe('closeout defect ops exception (#5327)', () => {
 			token: 't',
 			repository: 'o/r',
 			result: defectResult(),
-			remediationOutcome: { action: 'skipped', reason: 'circuit-breaker-threshold' },
+			remediationOutcome: { action: 'skipped', reason: 'no-remediation-required' },
 			requestFn,
 		});
 
@@ -87,7 +89,7 @@ describe('closeout defect ops exception (#5327)', () => {
 			token: 't',
 			repository: 'o/r',
 			result: defectResult(),
-			remediationOutcome: { action: 'skipped', reason: 'circuit-breaker-open' },
+			remediationOutcome: { action: 'skipped', reason: 'no-remediation-required' },
 			requestFn,
 		});
 
@@ -137,5 +139,84 @@ describe('closeout defect ops exception (#5327)', () => {
 
 		expect(result).toEqual({ action: 'skipped', reason: 'post-merge-failure-upserted' });
 		expect(calls).toEqual([]);
+	});
+
+	it('does not open a per-PR exception when the circuit breaker suppressed remediation', async () => {
+		expect(
+			circuitBreakerSuppressesOpsException({
+				action: 'skipped',
+				reason: 'circuit-breaker-open',
+			}),
+		).toBe(true);
+		expect(
+			circuitBreakerSuppressesOpsException({
+				action: 'skipped',
+				reason: 'circuit-breaker-threshold',
+			}),
+		).toBe(true);
+
+		for (const reason of ['circuit-breaker-open', 'circuit-breaker-threshold']) {
+			const { requestFn, calls } = makeRequestFn();
+			const result = await ensureCloseoutDefectOpsException({
+				token: 't',
+				repository: 'o/r',
+				result: defectResult(),
+				remediationOutcome: { action: 'skipped', issue: null, reason },
+				requestFn,
+			});
+			expect(result).toEqual({ action: 'skipped', reason: 'circuit-breaker-suppress' });
+			expect(calls).toEqual([]);
+		}
+	});
+
+});
+
+describe('ensureCloseoutRemediationEvidence ops_exception error (#5369)', () => {
+	it('returns ops_exception.action error and preserves remediation skip fields', async () => {
+		const combined = await ensureCloseoutRemediationEvidence({
+			token: 't',
+			repository: 'o/r',
+			result: {
+				status: 'pass',
+				pr: 5001,
+				remediation_required: false,
+				metadata_failures: [],
+				workflow_failures: [],
+				implementation_failures: [],
+				diataxis_failures: [],
+				reviewer_findings: [],
+			},
+			ensureOpsException: async () => {
+				throw new Error('GitHub API 502');
+			},
+		});
+
+		expect(combined).toEqual({
+			action: 'skipped',
+			issue: null,
+			reason: 'no-remediation-required',
+			ops_exception: { action: 'error', message: 'GitHub API 502' },
+		});
+	});
+
+	it('returns ops_exception.action error and keeps circuit-breaker remediation fields', async () => {
+		const combined = await ensureCloseoutRemediationEvidence({
+			token: 't',
+			repository: 'o/r',
+			result: defectResult(),
+			suppressRemediationIssues: true,
+			batchCircuitBreaker: { tripped: true, threshold: 3 },
+			ensureOpsException: async () => {
+				throw new Error('ops helper boom');
+			},
+		});
+
+		expect(combined.action).toBe('skipped');
+		expect(combined.reason).toBe('circuit-breaker-open');
+		expect(combined.issue).toBeNull();
+		expect(combined.ops_exception).toEqual({
+			action: 'error',
+			message: 'ops helper boom',
+		});
 	});
 });
