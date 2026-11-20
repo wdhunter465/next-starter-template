@@ -68,8 +68,10 @@ log() {
   echo "$*"
 }
 
-# Entry marker: prefer AGENTS.md (#2794). Accept Agent.md for one release so an
-# older installed ~/.cursor copy and a mixed checkout can still resolve the root.
+# Entry marker: prefer AGENTS.md (#2794). Also accept Agent.md so a copy of this
+# script installed from the #2794 branch (before or after merge) still resolves a
+# checkout that has either file. An older ~/.cursor install that only looks for
+# Agent.md must be refreshed with install.sh from this branch before merge.
 has_entry_marker() {
   local c="${1:-}"
   [[ -n "$c" && ( -f "$c/AGENTS.md" || -f "$c/Agent.md" ) ]]
