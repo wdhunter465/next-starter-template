@@ -23,6 +23,7 @@ const issues = [
   issue(30, ['team:pmo', 'pmo:active', 'pmo:priority:2']),
   issue(31, ['team:pmo', 'pmo:active', 'pmo:priority:1']),
   issue(32, ['team:pmo', 'pmo:pipeline', 'pmo:pipeline-priority:5']),
+  issue(33, ['team:pmo', 'go-live-2027']),
   issue(40, ['pmo:task'], { body: 'Parent: #30' }),
   issue(41, ['team:engineering', 'pmo:task']),
   issue(50, []),
@@ -41,20 +42,22 @@ assert(JSON.stringify(w.interrupt.map((r) => r.number)) === '[1,3]', 'interrupt 
 // Engineering: go-live first, then priority (1,2,3), unprioritised last, held last.
 assert(JSON.stringify(rows('engineering')) === '[11,12,10,14,13]', `engineering order ${rows('engineering')}`);
 assert(JSON.stringify(rows('governance')) === '[21,20]', `governance order ${rows('governance')}`);
-assert(JSON.stringify(rows('pmo')) === '[31,30,32]', `pmo order ${rows('pmo')}`);
+// #33 is a standalone team:pmo Issue with no lifecycle label: it is listed, after the prioritised parents.
+assert(JSON.stringify(rows('pmo')) === '[33,31,30,32]', `pmo order ${rows('pmo')}`);
 
 const a = w.accounting;
-assert(a.totalOpenIssues === 18, `total ${a.totalOpenIssues}`);
+assert(a.totalOpenIssues === 19, `total ${a.totalOpenIssues}`);
 assert(a.projectChildren === 2 && JSON.stringify(a.projectChildrenWithTeamLabel) === '[41]', 'children accounting');
 assert(JSON.stringify(a.noTeamLabel) === '[3,40,50]'.replace('3,40,', '') || JSON.stringify(a.noTeamLabel) === '[50]', `no team ${a.noTeamLabel}`);
 assert(JSON.stringify(a.multipleTeamLabels) === '[51]', 'multi team');
-assert(a.unplaced === 2 && a.listed === 14, `unplaced ${a.unplaced} listed ${a.listed}`);
+assert(a.unplaced === 2 && a.listed === 15, `unplaced ${a.unplaced} listed ${a.listed}`);
 assert(a.balanced, 'accounting balances');
+assert(JSON.stringify(a.unplacedIssues) === JSON.stringify([50, 51]), `unplaced issues ${a.unplacedIssues}`);
 assert(w.issueUrlBase === 'https://github.com/o/r/issues/', 'issue url base');
 
 // #4441 go-live view: go-live rows, deferred (held/waiting, not go-live), and the rest are unbucketed.
 const v = w.goLiveView;
-assert(v.goLive === 2, `go-live count ${v.goLive}`);
+assert(v.goLive === 3, `go-live count ${v.goLive}`);
 assert(v.deferred === 2, `deferred count ${v.deferred}`);
 assert(JSON.stringify(v.unbucketed) === JSON.stringify([...v.unbucketed].sort((x, y) => x - y)), 'unbucketed sorted');
 assert(v.goLive + v.deferred + v.unbucketed.length === a.listed, 'go-live view accounts for every listed Issue');

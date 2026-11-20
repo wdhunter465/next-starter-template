@@ -75,6 +75,7 @@ export function buildQueueWorklist(issues, { owner, repo } = {}) {
   let projectChildren = 0;
   let listed = 0;
   let unplaced = 0;
+  const unplacedNumbers = [];
 
   for (const issue of issues || []) {
     if (!isOpenIssue(issue)) continue;
@@ -91,9 +92,13 @@ export function buildQueueWorklist(issues, { owner, repo } = {}) {
     if (teams.length === 0 && !isException) noTeam.push(issue.number);
     if (teams.length > 1) multiTeam.push(issue.number);
     const queue = classifyTeamQueue(issue);
-    const queueId = queue === 'pmoActive' || queue === 'pmoPipeline' ? 'pmo' : queue;
+    let queueId = queue === 'pmoActive' || queue === 'pmoPipeline' ? 'pmo' : queue;
+    // A standalone Issue owned by team:pmo belongs in the PMO section even without a pmo:active or pmo:pipeline label,
+    // so it is never hidden from the page (go-live and hygiene tasks are often owned this way).
+    if (!queueId && teams.length === 1 && teams[0] === 'team:pmo') queueId = 'pmo';
     if (!queueId) {
       unplaced += 1;
+      unplacedNumbers.push(issue.number);
       continue;
     }
     sections[queueId].push(rowFor(queueId, issue, labels));
@@ -127,6 +132,7 @@ export function buildQueueWorklist(issues, { owner, repo } = {}) {
       listed,
       projectChildren,
       unplaced,
+      unplacedIssues: unplacedNumbers.sort((a, b) => a - b),
       balanced: listed + projectChildren + unplaced === totalOpenIssues,
       noTeamLabel: noTeam,
       multipleTeamLabels: multiTeam,
