@@ -1,12 +1,28 @@
 ---
-description: On a new Cursor Local session, run startup before other work
+description: New Cursor Local session runs startup then continuous pass in the same turn. Wake is keepalive only.
 alwaysApply: true
 ---
 
 # Session open
 
-When this Cursor Local session opens, run the startup contract in `docs/ops/ai/CURSOR-RULES.md`, then follow the session lifecycle in `docs/governance/AGENT-EXECUTION.md`.
+When this Cursor Local session opens, run the startup contract in
+`docs/ops/ai/CURSOR-RULES.md`, then immediately continue Session lifecycle
+phase 2 (continuous assigned-queue pass) in the **same turn**.
 
-Run `~/.cursor/lgfc-wake-ctl.sh startup --session <this chat uuid>`. Do not rebind. Do not stop another session's loop. Do not start a second loop. The wake tick is a keepalive, not the task list.
+Run `~/.cursor/lgfc-wake-ctl.sh startup --session <this chat uuid>`. Do not
+rebind. Do not stop another session's loop. Do not start a second loop.
 
-Startup authorizes no Issue, pull request, or file edit. An unapproved Cursor workaround is denied.
+## Hard distinctions (do not re-litigate)
+
+- Wake loop + runner = connectivity keepalives for this chat.
+- Continuous workflow = the agent's job: read the GitHub queue and move
+  eligible Issues without waiting for a tick.
+- Startup = orientation only. It authorizes no Issue, pull request, or
+  file edit.
+- Ending startup is not a stop. Do not wait for the next tick. Do not go
+  idle because the loop is stopped — continue the open-Issue pass; if this
+  chat is the recorded owner and nothing can move, start exactly one loop
+  and report its PID (#5012).
+
+An unapproved Cursor workaround is denied. Where this card disagrees with
+`docs/governance/AGENT-EXECUTION.md`, that document wins.

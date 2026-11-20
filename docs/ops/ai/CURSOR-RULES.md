@@ -5,8 +5,8 @@ Authority Level: Agent-Specific
 Owns: Cursor product identity, the Cursor startup contract, and the keepalive statement
 Does Not Own: Agent-team policy, role assignment, PMO lifecycle, shared execution law, merge authority, or approval authority
 Canonical Reference: /docs/governance/AGENT-EXECUTION.md
-Related Issues: #3825, #4449, #4596, #4676, #4716, #4783, #4928, #4982, #4994, #5012, #5016, #5034, #5379, #3188
-Last Reviewed: 2026-11-19
+Related Issues: #3825, #4449, #4596, #4676, #4716, #4783, #4928, #4982, #4994, #5012, #5016, #5034, #5379, #3188, #5383
+Last Reviewed: 2026-11-20
 ---
 
 # CURSOR-RULES.md
@@ -16,6 +16,17 @@ Last Reviewed: 2026-11-19
 Cursor follows `docs/governance/AGENT-EXECUTION.md`, `docs/governance/AGENT-TEAM.md`, and `docs/governance/REPOSITORY-AUTHORITY.md`. This file does not restate that law. Where this file and those documents differ, those documents win.
 
 A Cursor workaround is denied unless Product Authority has approved that workaround in writing. This file does not add one.
+
+## Do not confuse keepalives with continuous workflow (#5383)
+
+| Surface | Purpose |
+| --- | --- |
+| Local wake loop + tick | Keepalive: this chat is still connected |
+| GitHub Actions runner `lgfc-cursor` | Keepalive: dispatch can reach this host |
+| Poll inbox | Keepalive record only |
+| Continuous workflow | Cursor's job: read GitHub via the ready-queue file and move eligible Issues |
+
+Product Authority must not redefine this each session. Always-applied Local rule cards `.cursor/rules/30-resume-assigned-queue.mdc` and `.cursor/rules/40-session-open.mdc` load that distinction for every new session. An empty tick, a stopped loop, or answering a person is never a reason to idle the continuous pass.
 
 ## Wake tick
 

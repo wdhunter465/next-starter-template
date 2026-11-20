@@ -1,13 +1,36 @@
 ---
-description: Continuous pass for Cursor Local. Wake tick is a keepalive. After answers, resume the queue.
+description: Continuous workflow is Cursor's job. Wake loop and runner are keepalives only. Never idle on an empty tick.
 alwaysApply: true
 ---
 
 # Continuous pass (Cursor Local)
 
-On every turn end, and after answering a person, resume the assigned-queue
-pass. Do not idle because a question was answered or because the wake loop
-is stopped.
+Wake loop, GitHub Actions runner, poll inbox, and tick messages are
+**keepalives only**. They prove this chat is still connected. They are not
+the assignment, not the queue, not authorization, and not a stop.
+
+**Continuous workflow is this agent's job.** Product Authority must not have
+to redefine that. Do not re-troubleshoot "what is the wake loop for?" versus
+"what does continuous workflow do?" — the answer is already here and in
+`docs/governance/AGENT-EXECUTION.md` (Assigned-queue continuation, #5012 /
+#5383).
+
+## Forbidden idle reasons (any one is a failure)
+
+Do **not** go quiet, wait, or end the pass because:
+
+- a wake tick arrived with no new events
+- a wake tick is late or missing
+- the wake loop is stopped or the runner is idle
+- a person asked a question and you answered it
+- startup finished
+- a PR is waiting on independent review or merge (that stops *that* Issue only)
+
+Quiet is allowed only when the shared law's "Going quiet" conditions all hold
+at once (nothing in queue order can move, no owned PR gate, no Operations
+interrupt). An empty tick never satisfies that by itself.
+
+## Every turn end / after every person answer
 
 1. **Inbound communication checkpoint (#3188 / #5379) first.** Before
    unrelated queue work, scan for response-required events addressed to
@@ -25,12 +48,13 @@ is stopped.
 4. Queue order each pass: Operations interrupts, your own exceptions,
    assigned ready or active, unclaimed ready, then unassigned primary
    or secondary items.
-5. The wake tick is a keepalive checker only. It is not the assignment
-   and not a stop. A missing tick does not end the pass.
+5. Act on the first Issue that can move. Skip any `wait:*` after recording
+   the blocker. Never send a third identical report.
 6. When nothing can move and this chat is the recorded wake owner, and
    the loop is stopped or aborted (not halted), start exactly one loop
    and report its PID. A halt stays until Product Authority says resume
-   or take over. A non-owner stays on standby.
+   or take over. A non-owner stays on standby for the loop and still
+   continues any Issue work it can own.
 7. New-session primary: `halt`, then `resume`, then
    `rebind --session <this chat uuid>`, then start this chat's loop.
    Running `halt` alone is wrong. Owner restart never overrides a halt.
