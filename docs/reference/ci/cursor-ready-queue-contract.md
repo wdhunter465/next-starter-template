@@ -33,9 +33,9 @@ Path: `~/.cursor/lgfc-ready-queue.txt`. One GitHub issue-search query per line, 
 # 0 Inbound communication (#3188 / #5379) is not a label query.
 #    The poller scans open Issues for unanswered COLLABORATION REQUEST /
 #    PR REVIEW REQUEST / PROBLEM FOUND / IMPLEMENTATION HANDOFF events that
-#    name Cursor, even when agent:claude (or another claim) is present, and
-#    writes readyQueue kind=cursor-inbound-communication. Act on those before
-#    the label queries below. Host install: scripts/cursor-wake/install.sh.
+#    name Cursor, even when another agent holds the claim, and writes
+#    readyQueue kind=cursor-inbound-communication. Act on those before the
+#    label queries below. Host refresh: scripts/cursor-wake/install.sh.
 # 1 Operations interrupt. Handle before anything else.
 is:issue is:open label:team:operations label:ops:priority:1,ops:priority:2,ops:priority:3,ops:priority:4
 # 2 Cursor's own post-merge exceptions.
