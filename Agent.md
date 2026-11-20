@@ -13,6 +13,6 @@ Last Reviewed: 2026-11-20
 
 **Superseded by root `AGENTS.md` (#2794).**
 
-All mandatory entry/control routing now lives in `AGENTS.md`. Read that file first. This file remains only until the #2794 allowlist expansion lands so remaining active references can be rewritten and this path deleted.
+All mandatory entry/control routing now lives in `AGENTS.md`. Read that file first. This file remains only until remaining active references are rewritten to `AGENTS.md` and this path is deleted.
 
 Do not treat this file as authority. Continue at `AGENTS.md`.

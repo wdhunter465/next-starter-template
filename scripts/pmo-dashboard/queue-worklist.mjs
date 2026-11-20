@@ -1,4 +1,5 @@
 // Queue worklist (#4451): ordered rows per team queue plus accounting checks.
+// Go-live view (#4441): every listed Issue is go-live, deferred (held or waiting), or reported as unbucketed.
 // Contract: docs/reference/pmo/queue-worklist-views-and-tiers.md. Read-only; GitHub labels are the only input.
 import { isProjectChild, classifyTeamQueue } from './team-queue-counts.mjs';
 
@@ -74,6 +75,7 @@ export function buildQueueWorklist(issues, { owner, repo } = {}) {
   let projectChildren = 0;
   let listed = 0;
   let unplaced = 0;
+  const unplacedNumbers = [];
 
   for (const issue of issues || []) {
     if (!isOpenIssue(issue)) continue;
@@ -90,9 +92,13 @@ export function buildQueueWorklist(issues, { owner, repo } = {}) {
     if (teams.length === 0 && !isException) noTeam.push(issue.number);
     if (teams.length > 1) multiTeam.push(issue.number);
     const queue = classifyTeamQueue(issue);
-    const queueId = queue === 'pmoActive' || queue === 'pmoPipeline' ? 'pmo' : queue;
+    let queueId = queue === 'pmoActive' || queue === 'pmoPipeline' ? 'pmo' : queue;
+    // A standalone Issue owned by team:pmo belongs in the PMO section even without a pmo:active or pmo:pipeline label,
+    // so it is never hidden from the page (go-live and hygiene tasks are often owned this way).
+    if (!queueId && teams.length === 1 && teams[0] === 'team:pmo') queueId = 'pmo';
     if (!queueId) {
       unplaced += 1;
+      unplacedNumbers.push(issue.number);
       continue;
     }
     sections[queueId].push(rowFor(queueId, issue, labels));
@@ -103,6 +109,17 @@ export function buildQueueWorklist(issues, { owner, repo } = {}) {
     sections[q.id].sort((a, b) => a.tier - b.tier || a._p - b._p || a.number - b.number);
     for (const row of sections[q.id]) delete row._p;
   }
+
+  // #4441: each listed Issue is on the go-live view, in the deferred bucket (held or waiting, not go-live), or unbucketed.
+  const goLiveView = { goLive: 0, deferred: 0, unbucketed: [] };
+  for (const q of WORKLIST_QUEUES) {
+    for (const row of sections[q.id]) {
+      if (row.goLive) goLiveView.goLive += 1;
+      else if (row.held) goLiveView.deferred += 1;
+      else goLiveView.unbucketed.push(row.number);
+    }
+  }
+  goLiveView.unbucketed.sort((a, b) => a - b);
 
   const base = owner && repo ? `https://github.com/${owner}/${repo}/issues/` : null;
   return {
@@ -115,10 +132,12 @@ export function buildQueueWorklist(issues, { owner, repo } = {}) {
       listed,
       projectChildren,
       unplaced,
+      unplacedIssues: unplacedNumbers.sort((a, b) => a - b),
       balanced: listed + projectChildren + unplaced === totalOpenIssues,
       noTeamLabel: noTeam,
       multipleTeamLabels: multiTeam,
       projectChildrenWithTeamLabel: childrenWithTeam
-    }
+    },
+    goLiveView
   };
 }

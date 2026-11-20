@@ -15,6 +15,7 @@ is:issue is:open label:agent:cursor label:status:active
 # 4 Ready and unclaimed.
 is:issue is:open label:status:ready -label:agent:cursor -label:agent:claude
 # 5 Unassigned and not yet reviewed, primary queues.
-is:issue is:open label:team:operations,team:governance -label:agent:cursor -label:agent:claude -label:status:ready -label:wait:product -label:wait:review -label:wait:dependency -label:status:hold
+#    Exclude social-post hand-offs (#5405): they are Zapier-owned, not Cursor work.
+is:issue is:open label:team:operations,team:governance -label:agent:cursor -label:agent:claude -label:status:ready -label:wait:product -label:wait:review -label:wait:dependency -label:status:hold -label:social-post
 # 6 Unassigned and not yet reviewed, secondary queues.
 is:issue is:open label:team:engineering,team:pmo -label:agent:cursor -label:agent:claude -label:status:ready -label:wait:product -label:wait:review -label:wait:dependency -label:status:hold -label:pmo:task

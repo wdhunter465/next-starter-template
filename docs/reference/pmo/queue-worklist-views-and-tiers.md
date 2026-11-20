@@ -5,7 +5,7 @@ Authority Level: Contract
 Owns: The views, ordering tiers and accounting checks of the Queue worklist (#4451)
 Does Not Own: Queue and priority semantics, the Operations interrupt, the go-live overlay, label definitions, PMO lifecycle, or any Issue's content
 Canonical Reference: /docs/governance/WORK-QUEUES-AND-COLLABORATION.md
-Related Issues: #4451, #4447, #4981
+Related Issues: #4451, #4441, #4447, #4981
 Last Reviewed: 2026-11-20
 ---
 
@@ -28,7 +28,7 @@ One section per queue, in this order: Operations, Engineering, Governance, PMO. 
 | Operations | `team:operations`, or an Operations exception label (`ops-pr-escalation`, `post-merge-failure`) |
 | Engineering | `team:engineering` |
 | Governance | `team:governance` |
-| PMO | Standalone `team:pmo` parents with exactly one of `pmo:active` or `pmo:pipeline` |
+| PMO | Standalone Issues owned by `team:pmo`: parents with a `pmo:active` or `pmo:pipeline` label, and any other standalone `team:pmo` Issue (go-live and hygiene tasks are often owned this way) |
 
 Project children (`pmo:task`, a parent reference or a `PROJECT:` title) are counted but not listed as queue rows, as `docs/how-to/pmo/pmo-dashboard.md` already does for the team tiles (#4981). They appear under their parent in the PMO book views.
 
@@ -58,9 +58,22 @@ The footer states, from the same data:
 
 1. Total open Issues listed plus project children equals the open Issue count.
 2. Open Issues with no `team:*` label, and open Issues with more than one `team:*` label. Both lists are empty when the repository is correct. An Issue carrying only an Operations exception label sits in Operations without a team label and is not listed as missing one.
-3. Project children that carry a `team:*` label. The queue-label contract expects none (`scripts/pmo-dashboard/queue-label-contract.mjs`, role `task`). The check lists them for the PMO Admin to correct and does not alter them.
+3. Issues not placed in any queue section, by number. An Issue is unplaced when it has no team label, more than one, or a team label that is not one of the four queues; it is listed here so that nothing is hidden.
+4. Project children that carry a `team:*` label. The queue-label contract expects none (`scripts/pmo-dashboard/queue-label-contract.mjs`, role `task`). The check lists them for the PMO Admin to correct and does not alter them.
 
 Every open Issue that is not a project child or an Operations exception carries exactly one `team:*` label. Project children take their queue from their parent and carry none.
+
+## Go-live view and deferred bucket (#4441)
+
+The page also shows every listed Issue in one of three groups, so the 2026 go-live review looks at a clean list:
+
+| Group | Rule |
+| --- | --- |
+| Go-live | Carries `go-live-2027`. Held or waiting go-live Issues stay in this group. |
+| Deferred | Held or waiting (`status:hold`, `ops:hold`, `gov:hold`, or any `wait:*`) and not `go-live-2027`. |
+| Neither | Not go-live and not held or waiting. Listed by number: each needs a go-live label, a hold or wait label, or closure. |
+
+The three counts add up to the Issues listed in the queue sections. Project children are not counted here; they follow their parent. The "Neither" list is the work for the PMO Admin and Product Authority, not an error state. No label is created and none is changed by the page.
 
 ## Refresh and publication
 

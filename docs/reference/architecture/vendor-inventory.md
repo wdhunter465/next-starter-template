@@ -43,16 +43,17 @@ If a vendor is added, removed, activated, retired, or reclassified, this documen
 
 ## Design, Development, and Repository Operations
 
-In use (the two agent team members, per `docs/governance/AGENT-TEAM.md`):
+In use (role holders and repository vendors, per `docs/governance/AGENT-TEAM.md`):
 
 - Anthropic (Claude Code)
 - Cursor
-- Grok (a model offered through the Cursor subscription; Documentation maintenance role only, documentation-only pull requests, #5370)
+- Grok Bot (Documentation maintenance role only through the Cursor subscription; documentation-only pull requests; claim `agent:grok-bot`; #5370 / #5391)
 - GitHub
 - GitHub Copilot (pull request review only)
 
-Occasional or assigned only (not durable role holders):
+Occasional or assigned only (not durable role holders until Product Authority records a remit):
 
+- Grok (AI Agent; separate LGFC team member; claim `agent:grok`; works Issues and pull requests when Product Authority assigns them; remit not yet packaged — #5391)
 - Jules (implementation only when explicitly assigned)
 
 Research, monitoring and evaluation:

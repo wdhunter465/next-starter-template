@@ -27,6 +27,12 @@ describe('cursor wake install', () => {
     expect(queue).toBe(fenceAfter(contract, '## The file'));
     expect(tick).toMatch(/origin\/main/);
     expect(tick).toMatch(/AGENT-EXECUTION\.md/);
+    // #5405: query 5 must not surface Zapier social hand-offs
+    expect(queue).toMatch(/-label:social-post/);
+    const loop = readFileSync(path.join(root, 'scripts/cursor-wake/lgfc-always-on-loop.sh'), 'utf8');
+    expect(loop).toMatch(/ops_interrupt=/);
+    expect(loop).toMatch(/ops:priority:1,ops:priority:2,ops:priority:3,ops:priority:4/);
+    expect(loop).not.toMatch(/ops_p1=/);
   });
 
   it('vendors the poller without a secret or home path', () => {

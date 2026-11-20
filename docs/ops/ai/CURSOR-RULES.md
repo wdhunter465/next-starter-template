@@ -5,7 +5,7 @@ Authority Level: Agent-Specific
 Owns: Cursor product identity, the Cursor startup contract, background-service definitions, continuous-workflow orientation, and the keepalive statement
 Does Not Own: Agent-team policy, role assignment, PMO lifecycle, shared execution law, merge authority, or approval authority
 Canonical Reference: /docs/governance/AGENT-EXECUTION.md
-Related Issues: #3825, #4449, #4596, #4676, #4716, #4783, #4928, #4982, #4994, #5012, #5016, #5034, #5379, #3188, #5383
+Related Issues: #3825, #4449, #4596, #4676, #4716, #4783, #4928, #4982, #4994, #5012, #5016, #5034, #5379, #3188, #5383, #5408
 Last Reviewed: 2026-11-20
 ---
 
@@ -59,6 +59,16 @@ On every turn end, and after answering a person:
 5. When nothing can move and this chat is the recorded wake owner, start exactly one loop and report its PID; do not treat a stopped loop as a reason to idle the Issue pass.
 
 Quiet is allowed only when the shared law’s “Going quiet” conditions all hold. An empty tick never satisfies that by itself. Product Authority must not redefine background services versus continuous workflow each session — this file and the always-applied Local cards already do.
+
+### Every-tick card, split gates, and Operations classification (#5408)
+
+The always-applied Local card `.cursor/rules/50-every-tick.mdc` states the positive duty first: run the queue, act on the first Issue that can move, and never report “nothing to do” while a step found work. The one-line tick report must name Operations Issues seen from ready-queue queries 1 and 5, not only Issues claimed by Cursor.
+
+**Split gated tasks.** When a Production Go or other approval is missing for only part of a task, do the part that needs none, record the held part, and label only that held Issue `wait:*`. Do not park the whole task on one wait label.
+
+**Classify on the first pass.** An unclassified open `team:operations` Issue gets an `ops:priority:N` from the Operations holder on the first pass of a tick.
+
+These three points add no Go, approval, or merge authority. The shared law remains `docs/governance/AGENT-EXECUTION.md` (Assigned-queue continuation).
 
 ## Wake tick
 
