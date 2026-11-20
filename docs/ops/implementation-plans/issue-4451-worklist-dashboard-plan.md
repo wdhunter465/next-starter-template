@@ -11,7 +11,7 @@ Last Reviewed: 2026-11-20
 
 # Plan draft: WORKLIST dashboard (#4451)
 
-Status: DRAFT for Product Authority review. Nothing here is a Go. No file other than this one has been written.
+Status: decisions recorded 2026-11-20; superseded in detail by the reference contract and the generator pull requests.
 Author: Claude Code (PMO). Date: 2026-11-20.
 
 ## What #4451 asks for
@@ -56,12 +56,14 @@ Reuse the existing static, GitHub-Pages-style generator; add one view. No D1, no
 
 Exact allowlists will be fixed in each PR body before any edit.
 
-## Decisions needed from Product Authority
+## Decisions (Product Authority, 2026-11-20, recorded on #4451)
 
-1. Queue for **#5321** (Facebook/Instagram/Pinterest hand-off Issues) and **#4428** (privacy, terms and cookie review). Suggest operations and governance respectively; please confirm.
-2. Does "manually configured" mean generated on demand (my proposal), or hand-edited ordering overrides stored in a file? Overrides add a config file and a validation rule.
-3. Is PMO a sibling queue in the same view, or kept on the existing PMO dashboard (the 2026-10-05 text separates them)? Suggest a PMO section limited to standalone Issues, as `team-queue-counts.mjs` already does.
-4. Where is it published: the existing PMO dashboard Pages site (suggested) or a separate page?
+1. #5321 goes to `team:operations`; #4428 goes to `team:engineering`. Labels applied.
+2. The view is generated on demand. There is no override file; order changes by changing labels.
+3. PMO is a section of the view, limited to standalone parents.
+4. Published on the existing PMO dashboard site.
+
+Delivery: the plan (this PR), the reference contract (docs PR #5385) and the generator (code PR #5386). Product Authority also set a standing rule that Claude Code recommends and proceeds with preparing pull requests; it does not lift protected stops or Production-tier merge approval.
 
 ## Out of scope and stops
 
