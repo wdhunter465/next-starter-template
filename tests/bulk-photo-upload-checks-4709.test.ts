@@ -56,12 +56,15 @@ describe('bulk photo upload checks (#4709)', () => {
     expect(isHeicFileName('a.jpg')).toBe(false);
   });
 
-  it('accepts safe batch ids and refuses comma, slash, colon, and empty', () => {
+  it('accepts safe batch ids and refuses comma, slash, colon, empty, and dotted-only', () => {
     expect(isValidBulkBatchId('batch-42')).toBe(true);
     expect(isValidBulkBatchId('a.b_c-1')).toBe(true);
     expect(isValidBulkBatchId('bad,id')).toBe(false);
     expect(isValidBulkBatchId('a/b')).toBe(false);
     expect(isValidBulkBatchId('a:b')).toBe(false);
     expect(isValidBulkBatchId('')).toBe(false);
+    expect(isValidBulkBatchId('..')).toBe(false);
+    expect(isValidBulkBatchId('.')).toBe(false);
+    expect(isValidBulkBatchId('a..b')).toBe(false);
   });
 });
