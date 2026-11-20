@@ -70,6 +70,7 @@ const AGENT_DISPLAY = {
   claude: 'Claude',
   cursor: 'Cursor',
   grok: 'Grok',
+  'grok-bot': 'Grok Bot',
   jules: 'Jules',
   chatgpt: 'ChatGPT',
   chat: 'ChatGPT',
