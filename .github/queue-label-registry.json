@@ -106,27 +106,32 @@
       {
         "name": "pmo:parent",
         "color": "0e8a16",
-        "description": "Head Issue for a PMO project or book of work; never a child task"
+        "description": "PMO Parent: Program/Project portfolio row; never pmo:child or pmo:assignment"
       },
       {
         "name": "pmo:pipeline",
         "color": "c5def5",
-        "description": "Project is in PMO Pipeline preparation; not Active until Project Graduation"
+        "description": "Lifecycle: Project is in PMO Pipeline preparation; not Active until Project Graduation"
       },
       {
         "name": "pmo:active",
         "color": "0052cc",
-        "description": "Project is being implemented"
+        "description": "Lifecycle: Project or child is in Active/open implementation state"
       },
       {
         "name": "pmo:closed",
         "color": "0e8a16",
-        "description": "PMO-tracked parent or child in reconciled terminal state"
+        "description": "Lifecycle: PMO-tracked parent or child in reconciled terminal state"
       },
       {
-        "name": "pmo:task",
+        "name": "pmo:child",
         "color": "bfdadc",
-        "description": "Project implementation child; never a standalone portfolio row and never team-prioritized"
+        "description": "PMO Child linked under one Parent; counted in Parent completion; never team-prioritized"
+      },
+      {
+        "name": "pmo:assignment",
+        "color": "c2e0c6",
+        "description": "Standalone PMO administration; not a Parent or Child; excluded from Parent rollup"
       }
     ],
     "pmoActivePriority": {
@@ -290,6 +295,8 @@
         "gov:"
       ],
       "forbids": [
+        "pmo:child",
+        "pmo:assignment",
         "pmo:stage:initial-idea",
         "pmo:stage:drafted-design",
         "pmo:stage:pending-launch-packet",
@@ -321,6 +328,10 @@
         "pmo:stage:pending-launch-packet",
         "pmo:stage:graduation-candidate"
       ],
+      "forbids": [
+        "pmo:child",
+        "pmo:assignment"
+      ],
       "forbidsPrefixes": [
         "pmo:priority:",
         "eng:priority:",
@@ -331,7 +342,10 @@
     {
       "id": "project-child",
       "when": [
-        "pmo:task"
+        "pmo:child"
+      ],
+      "requires": [
+        "pmo"
       ],
       "requiresExactlyOneOf": [
         "pmo:pipeline",
@@ -339,6 +353,10 @@
         "pmo:closed"
       ],
       "requiresBodyReference": "Parent Project: #<number> or equivalent approved parent field",
+      "forbids": [
+        "pmo:parent",
+        "pmo:assignment"
+      ],
       "forbidsPrefixes": [
         "team:",
         "ops:",
@@ -347,6 +365,20 @@
         "pmo:pipeline-priority:",
         "eng:priority:"
       ]
+    },
+    {
+      "id": "pmo-assignment",
+      "when": [
+        "pmo:assignment"
+      ],
+      "requires": [
+        "pmo"
+      ],
+      "forbids": [
+        "pmo:parent",
+        "pmo:child"
+      ],
+      "notes": "Standalone PMO administration; never counted in Parent completion accounting"
     },
     {
       "id": "project-graduation",
@@ -391,6 +423,12 @@
       "agent:codex"
     ],
     "replaceOnlyAfterIssueSpecificValidation": [
+      {
+        "from": "pmo:task",
+        "to": "pmo:child",
+        "appliesWhen": "PMO project child Issue after separately authorized live-label migration; docs target taxonomy under #4070 does not itself migrate live Issues",
+        "otherwise": "preserve until migration Issue authorizes apply"
+      },
       {
         "from": "pmo:priority:idea",
         "to": "eng:priority:idea",

@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: PMO intake, Pipeline lifecycle, stage deliverables, scoped priority, Sandbox authority, Project Graduation, Active closeout, portfolio inventory, and PMO continuity
 Does Not Own: Queue-label implementation mechanics, executable implementation, CI implementation, Day-2 recovery strategy, or Production approval
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3134, #3145, #3597, #3823, #4174, #4176, #4775
-Last Reviewed: 2026-10-26
+Related Issues: #3134, #3145, #3597, #3823, #4174, #4176, #4775, #4070
+Last Reviewed: 2026-11-20
 ---
 
 # PMO Portfolio
@@ -296,26 +296,39 @@ After Production Accepted and PMO closeout, the Project transitions to Completed
 
 Administrative cleanup does not normally send an Active Project back to Pipeline.
 
-## Parent/child accounting
+## PMO Issue types
 
-PMO portfolio parents are Programs/Projects. They carry `pmo:parent` and are not `pmo:task`. `team:pmo` means PMO Admin is tracking the Issue. `pmo:active` means the project is being implemented. `pmo:pipeline` is preparation. `pmo:stage:*` is Pipeline maturity only.
+PMO work uses three GitHub Issue types. Lifecycle labels (`pmo:pipeline`, `pmo:active`, `pmo:closed`) are orthogonal to Issue type.
+
+1. **PMO Parent** — the Program/Project Issue. Classifier: `pmo:parent`.
+2. **PMO Child** — an Issue linked beneath exactly one PMO Parent and counted toward that Parent's completion. Classifier: `pmo:child` (replaces `pmo:task` as the child-Issue classifier).
+3. **PMO Assignment** — standalone PMO administrative/management work that is neither a Parent nor a Child. Classifier: `pmo:assignment`.
+
+A **task** is a bounded piece of implementation work described inside a Child Issue. `task` is not a PMO Issue type and is not a GitHub Issue classifier.
+
+### Parent/child accounting
+
+PMO portfolio parents are Programs/Projects. They carry `pmo` and `pmo:parent`, and they do not carry `pmo:child` or `pmo:assignment`. Parent identity is explicit via `pmo:parent`; do not infer it solely from title, lifecycle, or absence of another label. `team:pmo` means PMO Admin is tracking the Issue. `pmo:active` means the project is being implemented. `pmo:pipeline` is preparation. `pmo:stage:*` is Pipeline maturity only.
 
 Valid counted child work requires:
 
 - `pmo`;
-- `pmo:task`;
-- valid parent reference;
-- exactly one lifecycle state: open/current or closed/completed according to the repository contract.
+- `pmo:child`;
+- valid parent reference to exactly one PMO Parent;
+- exactly one lifecycle state: open/current or closed/completed according to the repository contract;
+- no `pmo:parent` or `pmo:assignment`.
 
 Child priority is local to the Project/parent scope. It must not be interpreted as team-global or repository-global priority.
 
+A PMO Assignment may be claimed per team queue (`docs/governance/AGENT-TEAM.md`). It is not a Program/Project, is not a counted Child, does not affect any Parent completion rollup, and does not carry `pmo:parent` or `pmo:child`.
+
 Parent rollup:
 
-- Tasks = valid linked `pmo:task` children;
+- Children = valid linked `pmo:child` Issues;
 - Completed = valid linked completed children;
-- percent complete = Completed / Tasks when Tasks > 0.
+- percent complete = Completed / Children when Children > 0.
 
-Malformed records are data-quality exceptions, not a fourth lifecycle.
+Do not invent Parent/Child relationships to make counts balance. Malformed records are data-quality exceptions, not a fourth lifecycle. Live label rename/migration and dashboard-code updates that still consume historical `pmo:task` are separate follow-up work (#4070 non-goals).
 
 ## Delivery-model selection
 
