@@ -8,6 +8,8 @@
 // Candidates use source_domain loc.gov because that row is already on the
 // approved source list. content_type is photo so archive selection picks them
 // up; pages are treated as newspaper pictures (800 px floor) at ingest.
+// Archive ingest downloads the page image (prefer jp2 / large IIIF from the
+// www.loc.gov resource `?fo=json` body). It does not invent `/thumbnail.jpg`.
 //
 // One search request per call. Send a descriptive User-Agent. HTTP 429 and
 // 5xx retry up to 3 times with backoff. Any other HTTP status fails
@@ -122,7 +124,39 @@ export function buildChroniclingAmericaSearchUrl(
   return `${CHRONICLING_AMERICA_SEARCH_URL}?${params.toString()}`;
 }
 
-/** Prefer a chroniclingamerica.loc.gov page URL; fall back to loc.gov item/resource. */
+function stripUrlFragment(url: string): string {
+  const hash = url.indexOf("#");
+  return hash >= 0 ? url.slice(0, hash) : url;
+}
+
+/** Prefer jp2, then the largest IIIF pct: scale, then any other http(s) image. */
+export function scoreChroniclingImageUrl(url: string): number {
+  const clean = stripUrlFragment(url);
+  if (/\.jp2(\?|$)/i.test(clean)) return 10_000;
+  const pct = /\/pct:([0-9.]+)\//i.exec(clean);
+  if (pct) return Number(pct[1]);
+  if (/\.(jpe?g|png|gif)(\?|$)/i.test(clean)) return 1;
+  return 0;
+}
+
+function pickBestImageUrl(candidates: string[]): string {
+  const usable = candidates
+    .map((u) => stripUrlFragment(u.trim()))
+    .filter((u) => /^https?:\/\//i.test(u) && scoreChroniclingImageUrl(u) > 0);
+  if (!usable.length) return "";
+  return usable.sort((a, b) => scoreChroniclingImageUrl(b) - scoreChroniclingImageUrl(a))[0] || "";
+}
+
+function collectHttpStrings(value: unknown): string[] {
+  if (Array.isArray(value)) {
+    return value.flatMap((item) => collectHttpStrings(item));
+  }
+  if (value == null) return [];
+  const text = String(value).trim();
+  return /^https?:\/\//i.test(text) ? [text] : [];
+}
+
+/** Prefer a www.loc.gov/resource page; keep classic lccn URLs when present. */
 export function pickChroniclingPageUrl(item: Record<string, unknown>): string {
   const candidates = [
     firstScalar(item.id),
@@ -130,32 +164,56 @@ export function pickChroniclingPageUrl(item: Record<string, unknown>): string {
     firstScalar(item.aka),
     firstScalar((item.item as Record<string, unknown> | undefined)?.id),
     firstScalar((item.item as Record<string, unknown> | undefined)?.url),
-  ];
+  ].filter(Boolean);
+  const resource = candidates.find((u) => /(?:www\.)?loc\.gov\/resource\//i.test(u));
+  if (resource) return resource.replace(/^http:\/\//i, "https://");
   const chronicling = candidates.find((u) => /chroniclingamerica\.loc\.gov\/lccn\//i.test(u));
   if (chronicling) return chronicling;
   return candidates.find((u) => /^https?:\/\//i.test(u)) || "";
 }
 
 export function pickChroniclingImageUrl(item: Record<string, unknown>): string {
-  const direct = firstScalar(item.image_url) || firstScalar(item.image);
-  if (/^https?:\/\//i.test(direct)) return direct;
+  const fromFields = [
+    ...collectHttpStrings(item.image_url),
+    ...collectHttpStrings(item.image),
+  ];
   const resources = item.resources;
   if (Array.isArray(resources)) {
     for (const resource of resources) {
       if (!resource || typeof resource !== "object") continue;
       const row = resource as Record<string, unknown>;
       for (const key of ["image", "url", "jp2", "pdf"]) {
-        const value = firstScalar(row[key]);
-        if (/^https?:\/\//i.test(value) && /\.(jpe?g|png|jp2|gif)(\?|$)/i.test(value)) return value;
+        fromFields.push(...collectHttpStrings(row[key]));
       }
     }
   }
-  const pageUrl = pickChroniclingPageUrl(item);
-  // Stable thumbnail for a Classic CA page URL when search JSON names no image.
-  if (/chroniclingamerica\.loc\.gov\/lccn\/.+\/seq-\d+/i.test(pageUrl)) {
-    return pageUrl.replace(/\/?$/, "/") + "thumbnail.jpg";
+  // Do not invent /thumbnail.jpg — capture showed classic thumbnail paths redirect
+  // to the HTML resource page, not an image (#5110 residual).
+  return pickBestImageUrl(fromFields);
+}
+
+/**
+ * Build the www.loc.gov resource `?fo=json` URL for a page.
+ * Classic chroniclingamerica.loc.gov/.../seq-N/ redirects there; page JSON on the
+ * classic host is not usable (Cloudflare HTML challenge after redirect).
+ */
+export function buildChroniclingResourceFoJsonUrl(pageUrl: string): string | null {
+  const text = String(pageUrl || "").trim();
+  if (!text) return null;
+  const resource = /(?:www\.)?loc\.gov\/resource\/([^/?#]+(?:\/[^/?#]+)*)\/?(?:\?([^#]*))?/i.exec(text);
+  if (resource) {
+    const path = resource[1].replace(/\/$/, "");
+    const params = new URLSearchParams(resource[2] || "");
+    params.set("fo", "json");
+    return `https://www.loc.gov/resource/${path}/?${params.toString()}`;
   }
-  return "";
+  const classic = /chroniclingamerica\.loc\.gov\/lccn\/([^/]+)\/(\d{4}-\d{2}-\d{2})\/ed-(\d+)\/seq-(\d+)\/?/i.exec(
+    text,
+  );
+  if (classic) {
+    return `https://www.loc.gov/resource/${classic[1]}/${classic[2]}/ed-${classic[3]}/?sp=${Number(classic[4])}&fo=json`;
+  }
+  return null;
 }
 
 export function mapChroniclingAmericaItemToCandidateFields(
@@ -167,7 +225,9 @@ export function mapChroniclingAmericaItemToCandidateFields(
 
   const nested = (item.item && typeof item.item === "object" ? item.item : {}) as Record<string, unknown>;
   const date =
+    issueDate(item.dates) ||
     issueDate(item.date) ||
+    issueDate(nested.dates) ||
     issueDate(nested.date) ||
     issueDateFromPageUrl(pageUrl) ||
     issueDate(firstScalar(item.date).replace(/[^\d]/g, "").slice(0, 8));
@@ -176,10 +236,18 @@ export function mapChroniclingAmericaItemToCandidateFields(
     firstScalar(nested.title) ||
     firstScalar(item.partof_title) ||
     "Untitled newspaper";
-  const page = firstScalar(item.sequence) || firstScalar(nested.sequence) || (() => {
-    const m = /\/seq-(\d+)/i.exec(pageUrl);
-    return m ? m[1] : "";
-  })();
+  const page =
+    firstScalar(item.sequence) ||
+    firstScalar(nested.sequence) ||
+    (() => {
+      const raw = firstScalar(item.number_page) || firstScalar(item.number);
+      const digits = raw.replace(/^0+/, "");
+      return digits || "";
+    })() ||
+    (() => {
+      const m = /[?&]sp=(\d+)/i.exec(pageUrl) || /\/seq-(\d+)/i.exec(pageUrl);
+      return m ? m[1] : "";
+    })();
   const edition = firstScalar(item.edition) || firstScalar(nested.edition);
   const excerpt =
     ocrExcerpt(item.ocr_eng) ||
@@ -288,16 +356,32 @@ export async function fetchChroniclingAmericaItems(
   return extractChroniclingSearchResults(data);
 }
 
-/** Page image URL from a Classic CA page JSON body (#5110). */
-export function pageImageFromChroniclingPageJson(data: Record<string, unknown>, pageUrl: string): string | null {
-  for (const key of ["jp2", "pdf", "full_image", "image_url", "thumbnail"]) {
-    const value = firstScalar(data[key]);
-    if (/^https?:\/\//i.test(value)) return value;
+/** Page image URL from www.loc.gov resource `?fo=json` (or legacy Classic keys) (#5110). */
+export function pageImageFromChroniclingPageJson(data: Record<string, unknown>, _pageUrl: string): string | null {
+  const collected: string[] = [];
+  for (const key of ["jp2", "pdf", "full_image", "image_url", "image"]) {
+    collected.push(...collectHttpStrings(data[key]));
   }
-  if (/chroniclingamerica\.loc\.gov\/lccn\/.+\/seq-\d+/i.test(pageUrl)) {
-    return pageUrl.replace(/\/?$/, "/") + "thumbnail.jpg";
+  const pages = data.page;
+  if (Array.isArray(pages)) {
+    for (const entry of pages) {
+      if (!entry || typeof entry !== "object") continue;
+      const row = entry as Record<string, unknown>;
+      collected.push(...collectHttpStrings(row.url));
+      collected.push(...collectHttpStrings(row.image));
+    }
   }
-  return null;
+  const nested = data.item;
+  if (nested && typeof nested === "object") {
+    collected.push(...collectHttpStrings((nested as Record<string, unknown>).image_url));
+  }
+  const resource = data.resource;
+  if (resource && typeof resource === "object") {
+    collected.push(...collectHttpStrings((resource as Record<string, unknown>).image));
+  }
+  const best = pickBestImageUrl(collected);
+  // No /thumbnail.jpg fallback — verified redirect lands on HTML, not an image.
+  return best || null;
 }
 
 export function ocrFromChroniclingPageJson(data: Record<string, unknown>): string {
