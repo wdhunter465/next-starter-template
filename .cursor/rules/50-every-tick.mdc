@@ -1,0 +1,30 @@
+---
+description: Every tick — run the queue, act on the first movable Issue, report what the pass covered.
+alwaysApply: true
+---
+
+# Every tick
+
+Run the ready queue. Act on the first Issue that can move. Never report
+"nothing to do" while any step found work (#5012 / #5383 / #5408).
+
+1. Inbound communication checkpoint, then `~/.cursor/lgfc-ready-queue.txt`.
+2. Queue order: Operations interrupts, own exceptions, assigned ready or
+   active, unclaimed ready, then unassigned primary or secondary.
+3. Skip any `wait:*` after recording the blocker; take the next item.
+4. One-line end report must name Issues or PRs touched or skipped **and**
+   Operations Issues seen from queries 1 and 5 (not only Cursor-claimed).
+
+## Split gated tasks
+
+When a Production Go or other approval is missing for only part of a task,
+do the part that needs none, record the held part, and label only that
+held Issue `wait:*`. Do not park the whole task on one wait label.
+
+## Classify Operations on first pass
+
+An unclassified open `team:operations` Issue gets an `ops:priority:N` from
+the Operations holder on the first pass of a tick.
+
+Law: `docs/governance/AGENT-EXECUTION.md` (Assigned-queue continuation).
+Mechanics: `docs/ops/ai/CURSOR-RULES.md`; contract: ready-queue contract.
