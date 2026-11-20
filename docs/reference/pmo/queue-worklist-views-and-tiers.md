@@ -57,10 +57,10 @@ Number (linked), title, queue-state label (`status:*` or `wait:*`), claim (`agen
 The footer states, from the same data:
 
 1. Total open Issues listed plus project children equals the open Issue count.
-2. Open Issues with no `team:*` label, and open Issues with more than one `team:*` label. Both lists are empty when the repository is correct.
+2. Open Issues with no `team:*` label, and open Issues with more than one `team:*` label. Both lists are empty when the repository is correct. An Issue carrying only an Operations exception label sits in Operations without a team label and is not listed as missing one.
 3. Project children that carry a `team:*` label. The queue-label contract expects none (`scripts/pmo-dashboard/queue-label-contract.mjs`, role `task`). The check lists them for the PMO Admin to correct and does not alter them.
 
-Every open Issue that is not a project child carries exactly one `team:*` label. Project children take their queue from their parent and carry none.
+Every open Issue that is not a project child or an Operations exception carries exactly one `team:*` label. Project children take their queue from their parent and carry none.
 
 ## Refresh and publication
 
