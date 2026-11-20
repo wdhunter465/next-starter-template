@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Repository work-queue classification, queue ownership, team/agent claim semantics, queue-state transitions, Operations interrupt behavior, role-work-selection integration, Project Graduation routing, and universal collaboration
 Does Not Own: Product outcome, final Product priority decisions, PMO lifecycle/stage deliverables, implementation methods, recovery strategy, PR approval decisions, or Production authorization
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3134, #3145, #3240, #3629, #3825, #4447, #4818, #4982
-Last Reviewed: 2026-10-27
+Related Issues: #3134, #3145, #3240, #3629, #3825, #4447, #4818, #4982, #5329
+Last Reviewed: 2026-11-20
 ---
 
 # Work Queues and Collaboration
@@ -222,6 +222,17 @@ COLLABORATION COMPLETE
 ```
 
 Product Authority should not be used as the routine relay when direct repository communication is available.
+
+### Joint recommendation when Product Authority is unavailable (Product Authority, 2026-11-17)
+
+When a source-Issue owner needs a recommendation or approval that would otherwise go to Product Authority and Product Authority is unavailable, the owner asks the other agent through the lifecycle above. If both agents give the same recommendation, it is recorded on the source Issue and followed. A dissent, or no response, leaves the Issue in `wait:product`.
+
+Limits:
+
+- "Unavailable" means Product Authority has not answered on the Issue or in the session. If Product Authority is reachable, the owner asks instead.
+- Agreement of two agents is a recommendation. It is not an explicit Go and does not replace one for a Production write (D1, Worker, binding, DNS, route), a credential or secret, a cost commitment, a privacy or legal decision, a destructive action, a Production-tier merge or Project Graduation.
+- An implementer's own agreement never counts as the independent review of its own work.
+- Each agent forms its own recommendation from the Issue and the repository before reading the other's.
 
 ## Governance and PMO interaction
 
