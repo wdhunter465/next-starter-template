@@ -1,3 +1,14 @@
+---
+Doc Type: Implementation Plan
+Audience: Human + AI
+Authority Level: Informational
+Owns: Draft plan and open decisions for the Queue worklist dashboard (#4451)
+Does Not Own: Queue and priority policy, label taxonomy, dashboard contract, any Product Authority decision or implementation Go
+Canonical Reference: /docs/governance/WORK-QUEUES-AND-COLLABORATION.md
+Related Issues: #4451, #4447, #4070
+Last Reviewed: 2026-11-20
+---
+
 # Plan draft: WORKLIST dashboard (#4451)
 
 Status: DRAFT for Product Authority review. Nothing here is a Go. No file other than this one has been written.
