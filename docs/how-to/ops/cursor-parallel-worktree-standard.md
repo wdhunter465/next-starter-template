@@ -113,7 +113,7 @@ After `CONTRACT-FROZEN: content-asset-model v1`: Gallery, Library, and Memorabil
 
 ## Stop rule
 
-Stop and post `CHATGPT HANDOFF` when allowlists overlap, hot-zone collisions are unresolved, or steps conflict with `Agent.md` and PR lifecycle gates.
+Stop and post `CHATGPT HANDOFF` when allowlists overlap, hot-zone collisions are unresolved, or steps conflict with `AGENTS.md` and PR lifecycle gates.
 
 ## Related documents
 
