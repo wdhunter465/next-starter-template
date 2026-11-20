@@ -80,5 +80,21 @@
     ],
     "updated_at": "2026-08-05T18:00:00Z",
     "closed_at": null
+  },
+  {
+    "number": 9105,
+    "title": "PROJECT: Grok Bot display-name contract",
+    "state": "open",
+    "html_url": "https://github.com/wdhunter465/next-starter-template/issues/9105",
+    "body": "Project Description: agent:grok-bot must display as Grok Bot (#5391).\n",
+    "labels": [
+      {"name":"pmo"},
+      {"name":"pmo:active"},
+      {"name":"team:pmo"},
+      {"name":"pmo:priority:5"},
+      {"name":"agent:grok-bot"}
+    ],
+    "updated_at": "2026-08-05T17:00:00Z",
+    "closed_at": null
   }
 ]
