@@ -1,4 +1,5 @@
 // Queue worklist (#4451): ordered rows per team queue plus accounting checks.
+// Go-live view (#4441): every listed Issue is go-live, deferred (held or waiting), or reported as unbucketed.
 // Contract: docs/reference/pmo/queue-worklist-views-and-tiers.md. Read-only; GitHub labels are the only input.
 import { isProjectChild, classifyTeamQueue } from './team-queue-counts.mjs';
 
@@ -104,6 +105,17 @@ export function buildQueueWorklist(issues, { owner, repo } = {}) {
     for (const row of sections[q.id]) delete row._p;
   }
 
+  // #4441: each listed Issue is on the go-live view, in the deferred bucket (held or waiting, not go-live), or unbucketed.
+  const goLiveView = { goLive: 0, deferred: 0, unbucketed: [] };
+  for (const q of WORKLIST_QUEUES) {
+    for (const row of sections[q.id]) {
+      if (row.goLive) goLiveView.goLive += 1;
+      else if (row.held) goLiveView.deferred += 1;
+      else goLiveView.unbucketed.push(row.number);
+    }
+  }
+  goLiveView.unbucketed.sort((a, b) => a - b);
+
   const base = owner && repo ? `https://github.com/${owner}/${repo}/issues/` : null;
   return {
     order: WORKLIST_QUEUES.map((q) => q.id),
@@ -119,6 +131,7 @@ export function buildQueueWorklist(issues, { owner, repo } = {}) {
       noTeamLabel: noTeam,
       multipleTeamLabels: multiTeam,
       projectChildrenWithTeamLabel: childrenWithTeam
-    }
+    },
+    goLiveView
   };
 }
