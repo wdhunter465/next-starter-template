@@ -5,6 +5,7 @@ import {
   decideBulkPhotoRights,
   flagFlatCopyLookAlike,
   isHeicFileName,
+  isValidBulkBatchId,
 } from '../functions/_lib/bulk-photo-upload-checks';
 
 describe('bulk photo upload checks (#4709)', () => {
@@ -53,5 +54,14 @@ describe('bulk photo upload checks (#4709)', () => {
     expect(isHeicFileName('IMG_0001.HEIC')).toBe(true);
     expect(isHeicFileName('a.heif')).toBe(true);
     expect(isHeicFileName('a.jpg')).toBe(false);
+  });
+
+  it('accepts safe batch ids and refuses comma, slash, colon, and empty', () => {
+    expect(isValidBulkBatchId('batch-42')).toBe(true);
+    expect(isValidBulkBatchId('a.b_c-1')).toBe(true);
+    expect(isValidBulkBatchId('bad,id')).toBe(false);
+    expect(isValidBulkBatchId('a/b')).toBe(false);
+    expect(isValidBulkBatchId('a:b')).toBe(false);
+    expect(isValidBulkBatchId('')).toBe(false);
   });
 });

@@ -78,6 +78,13 @@ export function isHeicFileName(fileName: string): boolean {
   return /\.(heic|heif)$/i.test(fileName.trim());
 }
 
+/** Safe for B2 key segments and comma-separated `photos.tags` (no `,` `:` `/` `..`). */
+const BULK_BATCH_ID = /^[A-Za-z0-9._-]{1,64}$/;
+
+export function isValidBulkBatchId(batchId: string): boolean {
+  return BULK_BATCH_ID.test(batchId);
+}
+
 export function classifyBulkScreenshot(input: {
   fileName: string;
   format: PhotoUploadImageFormat;

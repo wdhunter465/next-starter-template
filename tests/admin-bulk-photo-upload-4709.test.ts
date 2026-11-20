@@ -200,6 +200,26 @@ describe('POST /api/admin/photos/bulk-upload (#4709)', () => {
     expect(fetchSpy).not.toHaveBeenCalled();
   });
 
+  it('refuses batch_id values with a comma or slash before B2', async () => {
+    const { sqlite, db } = freshDb();
+    seedAdminSession(sqlite);
+    const fetchSpy = mockB2Put();
+    for (const batch_id of ['bad,id', 'a/b']) {
+      const res = await onRequestPost({
+        request: formRequest(
+          { batch_id, rights_class: 'lgfc_collection' },
+          { bytes: ORDINARY_PNG, name: 'a.png', type: 'image/png' },
+          ADMIN_SESSION_COOKIE,
+        ),
+        env: { DB: withAdminSession(db), ...B2_ENV },
+      });
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.code).toBe('invalid_batch_id');
+    }
+    expect(fetchSpy).not.toHaveBeenCalled();
+  });
+
   it('refuses HEIC with a clear message', async () => {
     const { sqlite, db } = freshDb();
     seedAdminSession(sqlite);

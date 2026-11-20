@@ -14,6 +14,7 @@ import {
   decideBulkPhotoRights,
   flagFlatCopyLookAlike,
   isHeicFileName,
+  isValidBulkBatchId,
 } from '../../../_lib/bulk-photo-upload-checks';
 import { requireD1, requireTables, jsonResponse } from '../../../_lib/d1';
 import { computePerceptualHash } from '../../../_lib/perceptual-hash';
@@ -59,7 +60,7 @@ function buildRightsNotes(input: {
   screenshotReasons: string[];
   flatCopyFlagged: boolean;
   flatCopyReasons: string[];
-  nearDuplicateId: number | null;
+  identicalPhashPhotoId: number | null;
 }): string {
   return JSON.stringify({
     bulk_batch_id: input.batchId,
@@ -71,7 +72,8 @@ function buildRightsNotes(input: {
     screenshot_reasons: input.screenshotReasons,
     flat_copy_flagged: input.flatCopyFlagged,
     flat_copy_reasons: input.flatCopyReasons,
-    near_duplicate_id: input.nearDuplicateId,
+    // Identical phash only in slice 1; Hamming-threshold site-wide match is slice 3 (#4707).
+    identical_phash_photo_id: input.identicalPhashPhotoId,
     unpublished: true,
   });
 }
@@ -105,6 +107,13 @@ export const onRequestPost = async (context: any): Promise<Response> => {
 
   if (!batchId) {
     return jsonResponse({ ok: false, error: 'batch_id is required.' }, 400);
+  }
+  if (!isValidBulkBatchId(batchId)) {
+    return jsonResponse({
+      ok: false,
+      error: 'batch_id must be 1–64 characters of A–Z, a–z, 0–9, ".", "_", or "-".',
+      code: 'invalid_batch_id',
+    }, 400);
   }
   if (!(file instanceof File)) {
     return jsonResponse({ ok: false, error: 'file is required.' }, 400);
@@ -166,17 +175,18 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     perceptualHash = null;
   }
 
-  let nearDuplicateId: number | null = null;
+  // Slice 1: identical phash only (exact tag match). Site-wide Hamming threshold is #4707.
+  let identicalPhashPhotoId: number | null = null;
   if (perceptualHash) {
-    const near = await d1.db
+    const sameHash = await d1.db
       .prepare(
         `SELECT id FROM photos WHERE tags LIKE ? LIMIT 1`,
       )
       .bind(`%phash:${perceptualHash}%`)
       .first()
       .catch(() => null);
-    if (near?.id) {
-      nearDuplicateId = Number(near.id);
+    if (sameHash?.id) {
+      identicalPhashPhotoId = Number(sameHash.id);
     }
   }
 
@@ -214,7 +224,7 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     screenshotReasons: screenshot.reasons,
     flatCopyFlagged: flatCopy.flagged,
     flatCopyReasons: flatCopy.reasons,
-    nearDuplicateId,
+    identicalPhashPhotoId,
   });
 
   const insert = await d1.db
@@ -249,7 +259,7 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     screenshot_reasons: screenshot.reasons,
     flat_copy_flagged: flatCopy.flagged,
     flat_copy_reasons: flatCopy.reasons,
-    near_duplicate_id: nearDuplicateId,
+    identical_phash_photo_id: identicalPhashPhotoId,
     rights_class: rightsDecision.rightsClass,
     credit_line: rightsDecision.creditLine,
     rights_hold: true,
