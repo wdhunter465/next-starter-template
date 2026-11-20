@@ -52,6 +52,14 @@ assert(a.unplaced === 2 && a.listed === 14, `unplaced ${a.unplaced} listed ${a.l
 assert(a.balanced, 'accounting balances');
 assert(w.issueUrlBase === 'https://github.com/o/r/issues/', 'issue url base');
 
+// #4441 go-live view: go-live rows, deferred (held/waiting, not go-live), and the rest are unbucketed.
+const v = w.goLiveView;
+assert(v.goLive === 2, `go-live count ${v.goLive}`);
+assert(v.deferred === 2, `deferred count ${v.deferred}`);
+assert(JSON.stringify(v.unbucketed) === JSON.stringify([...v.unbucketed].sort((x, y) => x - y)), 'unbucketed sorted');
+assert(v.goLive + v.deferred + v.unbucketed.length === a.listed, 'go-live view accounts for every listed Issue');
+assert(!v.unbucketed.includes(11) && !v.unbucketed.includes(13), 'go-live Issues are not unbucketed, even when held');
+
 const empty = buildQueueWorklist([], {});
 assert(empty.accounting.balanced && empty.queues.every((q) => q.rows.length === 0), 'empty input');
 
