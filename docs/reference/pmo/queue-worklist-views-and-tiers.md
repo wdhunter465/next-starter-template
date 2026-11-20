@@ -28,7 +28,7 @@ One section per queue, in this order: Operations, Engineering, Governance, PMO. 
 | Operations | `team:operations`, or an Operations exception label (`ops-pr-escalation`, `post-merge-failure`) |
 | Engineering | `team:engineering` |
 | Governance | `team:governance` |
-| PMO | Standalone `team:pmo` parents with exactly one of `pmo:active` or `pmo:pipeline` |
+| PMO | Standalone Issues owned by `team:pmo`: parents with a `pmo:active` or `pmo:pipeline` label, and any other standalone `team:pmo` Issue (go-live and hygiene tasks are often owned this way) |
 
 Project children (`pmo:task`, a parent reference or a `PROJECT:` title) are counted but not listed as queue rows, as `docs/how-to/pmo/pmo-dashboard.md` already does for the team tiles (#4981). They appear under their parent in the PMO book views.
 
@@ -58,7 +58,8 @@ The footer states, from the same data:
 
 1. Total open Issues listed plus project children equals the open Issue count.
 2. Open Issues with no `team:*` label, and open Issues with more than one `team:*` label. Both lists are empty when the repository is correct. An Issue carrying only an Operations exception label sits in Operations without a team label and is not listed as missing one.
-3. Project children that carry a `team:*` label. The queue-label contract expects none (`scripts/pmo-dashboard/queue-label-contract.mjs`, role `task`). The check lists them for the PMO Admin to correct and does not alter them.
+3. Issues not placed in any queue section, by number. An Issue is unplaced when it has no team label, more than one, or a team label that is not one of the four queues; it is listed here so that nothing is hidden.
+4. Project children that carry a `team:*` label. The queue-label contract expects none (`scripts/pmo-dashboard/queue-label-contract.mjs`, role `task`). The check lists them for the PMO Admin to correct and does not alter them.
 
 Every open Issue that is not a project child or an Operations exception carries exactly one `team:*` label. Project children take their queue from their parent and carry none.
 
