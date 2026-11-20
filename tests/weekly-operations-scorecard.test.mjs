@@ -10,7 +10,9 @@ import {
   buildScorecard,
   collectFacts,
   collectSocialFacts,
+  firstPassFromCheckRuns,
   historyRows,
+  mainTipOpsFailureFromCheckRuns,
   newHistoryLines,
   parseHistory,
   ragBackupAge,
@@ -96,7 +98,10 @@ describe('buildScorecard', () => {
       window: WINDOW,
       uptimeRuns: [{ conclusion: 'success' }, { conclusion: 'success' }, { conclusion: 'failure' }, { conclusion: 'cancelled' }],
       failedJobCount: 1,
-      mergedPulls: [{ number: 1, firstPass: true }, { number: 2, firstPass: false }],
+      mergedPulls: [
+        { number: 1, firstPass: true, mainTipOpsFailure: false },
+        { number: 2, firstPass: false, mainTipOpsFailure: true },
+      ],
       closedOutages: [{ createdAt: '2026-10-13T00:00:00Z', closedAt: '2026-10-13T20:00:00Z' }],
       openOutages: [{ createdAt: '2026-10-14T01:00:00Z' }],
       openedOpsIssues: [{ monitored: true }, { monitored: false }, { monitored: false }],
@@ -134,11 +139,15 @@ describe('collectFacts', () => {
           number: 10,
           merged_at: '2026-10-13T12:00:00Z',
           updated_at: '2026-10-13T12:00:00Z',
-          merge_commit_sha: 'abc',
+          merge_commit_sha: 'mergeabc',
+          head: { sha: 'headabc' },
         }]);
       }
-      if (url.includes('/commits/abc/check-runs')) {
-        return jsonResponse(200, { check_runs: [{ conclusion: 'failure' }] });
+      if (url.includes('/commits/headabc/check-runs')) {
+        return jsonResponse(200, { check_runs: [{ name: 'quality', conclusion: 'failure' }] });
+      }
+      if (url.includes('/commits/mergeabc/check-runs')) {
+        return jsonResponse(200, { check_runs: [{ name: 'Dispatch Cursor wake', conclusion: 'failure' }] });
       }
       if (url.includes('/search/issues')) {
         const query = decodeURIComponent(url);
@@ -163,11 +172,40 @@ describe('collectFacts', () => {
     );
     expect(facts.uptimeRuns).toHaveLength(2);
     expect(facts.failedJobCount).toBe(1);
-    expect(facts.mergedPulls).toEqual([{ number: 10, firstPass: false }]);
+    expect(facts.mergedPulls).toEqual([{ number: 10, firstPass: false, mainTipOpsFailure: true }]);
     expect(facts.openedOpsIssues).toEqual([{ monitored: true }, { monitored: false }]);
     expect(facts.backupAgeHours).toBeCloseTo(13, 5);
     expect(facts.priorityOneProjects).toEqual([{ number: 9, title: 'Blocker' }]);
     expect(buildScorecard(facts, NOW).rows.find((row) => row.name.startsWith('PRs'))).toMatchObject({ rag: 'red' });
+    expect(buildScorecard(facts, NOW).rows.find((row) => row.name.startsWith('Main-tip'))).toMatchObject({
+      value: '1 of 1 merge tips had wake/schedule/Pages failures',
+      rag: 'red',
+    });
+  });
+});
+
+describe('PR first-pass vs main-tip ops noise (#5389)', () => {
+  it('ignores wake/schedule/Pages failures for first-pass', () => {
+    expect(firstPassFromCheckRuns([
+      { name: 'Dispatch Cursor wake', conclusion: 'failure' },
+      { name: 'quality', conclusion: 'success' },
+    ])).toBe(true);
+  });
+
+  it('fails first-pass on a real PR gate', () => {
+    expect(firstPassFromCheckRuns([
+      { name: 'quality', conclusion: 'failure' },
+      { name: 'Dispatch Cursor wake', conclusion: 'success' },
+    ])).toBe(false);
+  });
+
+  it('flags main-tip ops noise separately', () => {
+    expect(mainTipOpsFailureFromCheckRuns([
+      { name: 'Observe lgfc-cursor runner', conclusion: 'timed_out' },
+    ])).toBe(true);
+    expect(mainTipOpsFailureFromCheckRuns([
+      { name: 'quality', conclusion: 'failure' },
+    ])).toBe(false);
   });
 });
 
