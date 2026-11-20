@@ -170,7 +170,7 @@ The operating rules for this role are in `docs/ops/ai/GROK-BOT-RULES.md`.
 | Retired member (#4165) | **Retired.** No current team role, wake path, or implementation authority. Historical record only (see #4165). |
 | GitHub Copilot | Pull Request review only; not a durable role holder |
 | Grok Bot | **Documentation maintenance** (primary), pilot 2026-11-23 to 2026-11-27 (#5370); documentation-only pull requests; never code; no PR Approver authority; no merge authority. Claim label: `agent:grok-bot`. Renamed from the prior "Grok (through Cursor)" wording under #5391 so it is not confused with Grok (AI Agent). |
-| Grok (AI Agent) | LGFC team member that works Issues and pull requests when Product Authority assigns them (#5391). Claim label: `agent:grok`. Remit (queues, roles, claim rules, cost cap) is **not** recorded yet; follow-up Issue owns that package. Do not treat as Documentation maintenance. |
+| Grok (AI Agent) | LGFC team member that works Issues and pull requests when Product Authority assigns them (#5391). Claim label: `agent:grok`. Remit (queues, roles, claim rules, cost cap) is **not** recorded yet; follow-up #5392 owns that package. Do not treat as Documentation maintenance. |
 | Jules | Implementation resource only when explicitly assigned under a compatible role/source Issue |
 | Gemini | Research and repository monitoring/reporting; read-only unless separately authorized |
 | CloudflareAI | Evaluation/support only under recorded access |
