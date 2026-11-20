@@ -55,7 +55,7 @@ Before repository work—including exploration, design, Sandbox, implementation,
    - `docs/ops/ai/CODEX-RULES.md` (retired #4165; historical only)
    - `docs/ops/ai/CLAUDE-CODE-RULES.md`
    - `docs/ops/ai/COPILOT-RULES.md` (still in use, #4399)
-   - `docs/ops/ai/GROK-RULES.md` (Documentation maintenance role only, #5370)
+   - `docs/ops/ai/GROK-BOT-RULES.md` (Grok Bot — Documentation maintenance role only, #5370 / #5391)
    - `docs/ops/ai/DEVIN-RULES.md` (retired #4399; historical only)
 6. Applicable domain policy and reference contracts
 7. Source GitHub Issue

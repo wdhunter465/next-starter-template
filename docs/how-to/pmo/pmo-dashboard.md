@@ -55,7 +55,7 @@ Current execution ownership on the dashboard comes only from live `agent:*` labe
 
 | Live labels | Dashboard `ownerAgent` |
 | --- | --- |
-| Exactly one `agent:*` | Normalized display (e.g. `agent:claude` → Claude, `agent:cursor` → Cursor, `agent:grok` → Grok) |
+| Exactly one `agent:*` | Normalized display (e.g. `agent:claude` → Claude, `agent:cursor` → Cursor, `agent:grok` → Grok, `agent:grok-bot` → Grok Bot) |
 | Zero `agent:*` | `Unassigned` |
 | More than one `agent:*` | `Conflicting agent ownership: …` (data-quality surface; no silent pick) |
 
