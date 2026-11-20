@@ -74,9 +74,9 @@ The local wake tick and the GitHub Actions runner are the two keepalives for thi
 4. Report Cursor's roles from `docs/governance/AGENT-TEAM.md`.
 5. Declare product Cursor and operating mode orientation only.
 6. Report that startup authorizes no Issue, pull request, or file edit.
-7. End startup. Continue with the session lifecycle in `docs/governance/AGENT-EXECUTION.md` in the same turn (#5012).
+7. End startup. In the same turn (#5012 / #5383): review prior agent transcripts for open Issue/PR context, then begin Session lifecycle phase 2 — the continuous assigned-queue pass. Do not wait for Product Authority to name an Issue in this chat. A new session that only finishes orientation and goes quiet is a failure.
 
-Host bind is not startup and is not an assignment.
+Host bind is not startup and is not an assignment. Project and host hooks may inject the same reminder; they do not replace this contract.
 
 ## Wake commands (#5034)
 

@@ -34,7 +34,9 @@ Product pointer for definitions: `docs/ops/ai/CURSOR-RULES.md` (Background servi
 
 **Continuous workflow** is the agent's job: read the GitHub queue via `~/.cursor/lgfc-ready-queue.txt` and move eligible Issues without waiting for a tick. An empty tick, a stopped loop, or answering a person is never a reason to idle that pass.
 
-Do not re-troubleshoot that distinction from chat history — it is defined in the repo docs above and in always-applied Local cards `.cursor/rules/30-resume-assigned-queue.mdc` and `.cursor/rules/40-session-open.mdc`.
+**Every new session** must: (1) review prior agent transcripts for open Issue/PR context, (2) finish orientation, (3) start the continuous pass in the same turn. Waiting for an Issue to be named in the new chat is a failure (#5383).
+
+Do not re-troubleshoot that distinction from chat history — it is defined in the repo docs above, always-applied Local cards `.cursor/rules/30-resume-assigned-queue.mdc` / `.cursor/rules/40-session-open.mdc`, and hooks under `.cursor/hooks/` (host install via `scripts/cursor-wake/install.sh`).
 
 ## Startup assumptions
 

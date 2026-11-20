@@ -26,6 +26,7 @@ Do **not** go quiet, wait, or end the pass because:
 - the wake loop is stopped or the runner is idle
 - a person asked a question and you answered it
 - startup finished
+- no Issue was named in this chat (read GitHub; continuous pass finds work)
 - a PR is waiting on independent review or merge (that stops *that* Issue only)
 
 Quiet is allowed only when the shared law's "Going quiet" conditions all hold

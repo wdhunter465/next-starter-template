@@ -1,5 +1,5 @@
 ---
-description: New Cursor Local session runs startup then continuous pass in the same turn. Wake is keepalive only.
+description: New session reviews prior transcripts then continuous-passes open Issues same turn. Wake is keepalive only.
 alwaysApply: true
 ---
 
@@ -9,8 +9,23 @@ When this Cursor Local session opens, run the startup contract in
 `docs/ops/ai/CURSOR-RULES.md`, then immediately continue Session lifecycle
 phase 2 (continuous assigned-queue pass) in the **same turn**.
 
-Run `~/.cursor/lgfc-wake-ctl.sh startup --session <this chat uuid>`. Do not
-rebind. Do not stop another session's loop. Do not start a second loop.
+A new session that only reports status and waits for Product Authority to
+name an Issue is a **failure** (#5383).
+
+## Required same-turn sequence
+
+1. Run `~/.cursor/lgfc-wake-ctl.sh startup --session <this chat uuid>`.
+   Do not rebind. Do not stop another session's loop. Do not start a
+   second loop unless this chat is the recorded owner and the loop is
+   stopped/aborted (not halted) with nothing else movable (#5012).
+2. **Review prior sessions for context.** Read recent agent transcripts
+   (and compaction INDEX / segments when present) for open Issue/PR
+   state, blockers, and in-flight work. Do not ask Product Authority to
+   re-explain background services vs continuous workflow.
+3. End startup. Begin the continuous assigned-queue pass immediately:
+   inbound checkpoint, then `~/.cursor/lgfc-ready-queue.txt`, then act
+   on the first Issue that can move. Do **not** require an Issue to be
+   named in this chat.
 
 ## Hard distinctions (do not re-litigate)
 
@@ -23,9 +38,7 @@ rebind. Do not stop another session's loop. Do not start a second loop.
 - Startup = orientation only. It authorizes no Issue, pull request, or
   file edit.
 - Ending startup is not a stop. Do not wait for the next tick. Do not go
-  idle because the loop is stopped — continue the open-Issue pass; if this
-  chat is the recorded owner and nothing can move, start exactly one loop
-  and report its PID (#5012).
+  idle because the loop is stopped.
 
 An unapproved Cursor workaround is denied. Where this card disagrees with
 `docs/governance/AGENT-EXECUTION.md`, that document wins.
