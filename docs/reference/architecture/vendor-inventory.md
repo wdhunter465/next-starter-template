@@ -5,8 +5,8 @@ Authority Level: Supporting
 Owns: Current LGFC vendor inventory for architecture and workflow documentation
 Does Not Own: Vendor contracts, credentials, runtime configuration, implementation code, or diagram assets
 Canonical Reference: /docs/reference/architecture/vendor-inventory.md
-Related Issues: #4442, #4416, #4430, #4399, #4165, #4173, #4074, #4749, #5114, #5116
-Last Reviewed: 2026-11-06
+Related Issues: #4442, #4416, #4430, #4399, #4165, #4173, #4074, #4749, #5114, #5116, #5370
+Last Reviewed: 2026-11-19
 ---
 
 # LGFC Vendor Inventory
@@ -47,12 +47,12 @@ In use (the two agent team members, per `docs/governance/AGENT-TEAM.md`):
 
 - Anthropic (Claude Code)
 - Cursor
+- Grok (a model offered through the Cursor subscription; Documentation maintenance role only, documentation-only pull requests, #5370)
 - GitHub
 - GitHub Copilot (pull request review only)
 
 Occasional or assigned only (not durable role holders):
 
-- Grok (occasional implementation on Issues Product Authority assigns)
 - Jules (implementation only when explicitly assigned)
 
 Research, monitoring and evaluation:

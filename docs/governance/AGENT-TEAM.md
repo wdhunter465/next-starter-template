@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Durable LGFC agent roles, recognized agent products, current member mapping, role work-selection order, approval authority, protected stops, and role-transition state
 Does Not Own: PMO lifecycle/stage semantics, detailed queue-label implementation, delivery-profile mechanics, CI implementation, or Production recovery procedure
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3240, #3629, #3693, #3825, #4074, #4134, #4165, #4173, #4174, #4399, #4447, #4449, #4982, #5221, #5324
-Last Reviewed: 2026-11-17
+Related Issues: #3240, #3629, #3693, #3825, #4074, #4134, #4165, #4173, #4174, #4399, #4447, #4449, #4982, #5221, #5324, #5370
+Last Reviewed: 2026-11-19
 ---
 
 # Agent Team
@@ -32,6 +32,7 @@ A member may act only through its currently assigned role authority plus an open
 | Administration & Communications | Evidence, routing, acknowledgments, escalation, repository-state reconciliation, holds/resumes, reporting, and authorized closeout transactions |
 | Day-2 Operations | Production monitoring, incident classification, containment, recovery strategy, operational hold release |
 | Deterministic CI | Machine-provable checks, evidence, eligible bounded automation, and authorized non-main integration |
+| Documentation maintenance | Keeps in-scope documentation accurate and aligned to DIATAXIS through documentation-only pull requests, after another agent has verified and agreed each change. Never changes code. Excluded from the repository constitution and the rule documents (see the role section). The current holder is the member mapped below. |
 
 ## Role work-selection order
 
@@ -135,6 +136,29 @@ Governance responsibilities:
 
 Governance does not override Product Authority's business/product decisions or protected Product/Production boundaries.
 
+### Documentation maintenance role
+
+Product Authority created this role on 2026-11-19 (#5370). Its single responsibility is maintaining the repository's documentation.
+
+Documentation maintenance responsibilities:
+
+- keep in-scope documents accurate against the repository as built: design documents, diagrams, testing documentation, how-to guides and operational support documentation;
+- fix stale cross-references, broken links and references to retired roles or tools, and keep document headers and DIATAXIS folder placement valid;
+- move legacy-framework documents into the DIATAXIS structure, archiving rather than deleting, with links fixed, as part of reaching DIATAXIS before the end of 2026;
+- propose each change on its source Issue, obtain the verifying agent's recorded agreement, and only then open a pull request.
+
+Documentation maintenance never does the following:
+
+- **It never changes code.** Its pull requests contain documentation files only. It does not change application code, `functions/**`, `src/**`, tests, scripts, workflow YAML, migrations, configuration or dependency files. Work that needs any of those becomes a separate Issue for an implementer.
+- **It never writes to the excluded documents.** The excluded documents are the repository constitution and the documents an agent reads on entering the repository to receive its rules, controls and methods: `Agent.md`, `AGENTS.md`, `docs/governance/REPOSITORY-AUTHORITY.md`, `docs/governance/AGENT-TEAM.md`, `docs/governance/AGENT-EXECUTION.md`, the product rules files under `docs/ops/ai/`, every other domain policy document under `docs/governance/`, the reference contracts under `docs/reference/` that state rules agents must follow, `.claude/**` and `.cursor/**`. The role may read all of them.
+- **It never merges, approves or closes.** It does not merge pull requests, act as PR Approver, close Issues, or create a Production Go. Its agreement to anything is not a review.
+
+Review before any pull request (Product Authority, 2026-11-19): another agent (Claude Code or Cursor) verifies each proposed change against the repository and records `AGREE` on the Issue before the pull request is opened. Documentation maintenance does not open the pull request without that record. The verifying agent is not the implementer of the change.
+
+Trigger and cost: the role is called by GitHub events only, so it spends usage only when an action is needed. Usage limits are those of the Cursor subscription as shown on the Cursor dashboard. When a limit is reached, the role reports that status on the Issue and waits for the reset.
+
+The operating rules for this role are in `docs/ops/ai/GROK-RULES.md`.
+
 ## Current member mapping
 
 | Member/product | Current roles |
@@ -145,7 +169,7 @@ Governance does not override Product Authority's business/product decisions or p
 | Cursor (on Chromebook) | **Operations** (primary); **Governance** (primary); Engineering and PMO Admin (secondary); authorized implementation; PR Approver only for work Cursor did not implement |
 | Retired member (#4165) | **Retired.** No current team role, wake path, or implementation authority. Historical record only (see #4165). |
 | GitHub Copilot | Pull Request review only; not a durable role holder |
-| Grok | Occasional implementation on Issues Product Authority assigns while usage allows; not a durable role holder |
+| Grok (through Cursor) | **Documentation maintenance** (primary), pilot 2026-11-23 to 2026-11-27 (#5370); documentation-only pull requests; never code; no PR Approver authority; no merge authority |
 | Jules | Implementation resource only when explicitly assigned under a compatible role/source Issue |
 | Gemini | Research and repository monitoring/reporting; read-only unless separately authorized |
 | CloudflareAI | Evaluation/support only under recorded access |
@@ -154,7 +178,7 @@ Governance does not override Product Authority's business/product decisions or p
 
 ## Team assignment (Product Authority, 2026-10-05)
 
-The LGFC Agentic Team is **Claude Code** and **Cursor (on Chromebook)**, both paid subscriptions. All work is owned by one of the two. GitHub Copilot (PR review only) and Grok (occasional, Product Authority-assigned Issues) are unpaid supporting tools, not role holders.
+The LGFC Agentic Team is **Claude Code** and **Cursor (on Chromebook)**, both paid subscriptions. All work other than documentation maintenance is owned by one of the two. Grok, used through the Cursor subscription, holds the Documentation maintenance role only (#5370). GitHub Copilot (PR review only) is an unpaid supporting tool, not a role holder.
 
 | Role | Primary | Secondary |
 | --- | --- | --- |
@@ -163,6 +187,7 @@ The LGFC Agentic Team is **Claude Code** and **Cursor (on Chromebook)**, both pa
 | PMO Admin | Claude Code | Cursor |
 | Operations | Cursor | Claude Code |
 | Governance | Cursor | Claude Code |
+| Documentation maintenance | Grok (through Cursor) | none recorded |
 
 Bill acts as Product Authority and CMO. Bill approves Production-tier Pull Requests; non-production Pull Requests are self-approved (`docs/governance/REPOSITORY-AUTHORITY.md`, Merge authority). Departures from this assignment are one-offs recorded on the Issue.
 
