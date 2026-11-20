@@ -1,5 +1,5 @@
-// Shared top navigation for the three repository report pages (#4976):
-// PMO dashboard, Team queues and Scorecard. One list, used by every page, so
+// Shared top navigation for the repository report pages (#4976, #4451):
+// PMO dashboard, Team queues, Queue worklist and Scorecard. One list, used by every page, so
 // the links cannot drift apart.
 
 export const NAV_PLACEHOLDER = '<!--REPORT-NAV-->';
@@ -7,6 +7,7 @@ export const NAV_PLACEHOLDER = '<!--REPORT-NAV-->';
 export const REPORT_PAGES = [
   { id: 'book', href: './', label: 'PMO dashboard' },
   { id: 'queues', href: './queues.html', label: 'Team queues' },
+  { id: 'worklist', href: './worklist.html', label: 'Queue worklist' },
   { id: 'scorecard', href: './scorecard.html', label: 'Scorecard' },
 ];
 
