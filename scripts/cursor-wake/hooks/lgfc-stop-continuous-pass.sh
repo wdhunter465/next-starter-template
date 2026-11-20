@@ -2,7 +2,7 @@
 # Host stop hook: nudge continuous assigned-queue pass after the agent goes quiet (#5383).
 set -euo pipefail
 input="$(cat || true)"
-status="$(printf '%s' "$input" | python3 -c '
+parsed="$(printf '%s' "$input" | python3 -c '
 import json, sys
 raw = sys.stdin.read()
 try:
@@ -10,9 +10,14 @@ try:
 except Exception:
     j = {}
 print((j.get("status") or "").lower())
+print(int(j.get("loop_count") or 0))
 ')"
+status="$(printf '%s\n' "$parsed" | sed -n '1p')"
+loop="$(printf '%s\n' "$parsed" | sed -n '2p')"
 
-if [[ "$status" != "completed" ]]; then
+# First quiet only — catches new-session idle after orientation without
+# re-nudging every later completed turn (#5383).
+if [[ "$status" != "completed" || "$loop" != "0" ]]; then
   echo '{}'
   exit 0
 fi

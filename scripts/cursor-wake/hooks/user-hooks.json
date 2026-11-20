@@ -17,7 +17,7 @@
       {
         "command": "./hooks/lgfc-stop-continuous-pass.sh",
         "timeout": 15,
-        "loop_limit": 3
+        "loop_limit": 1
       }
     ]
   }
