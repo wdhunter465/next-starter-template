@@ -70,16 +70,16 @@ log() {
 
 is_repo_root() {
   local c="${1:-}"
-  [[ -n "$c" && -f "$c/Agent.md" && -f "$c/docs/governance/AGENT-EXECUTION.md" && -f "$c/docs/governance/AGENT-TEAM.md" && -f "$c/docs/ops/ai/CURSOR-RULES.md" ]]
+  [[ -n "$c" && -f "$c/AGENTS.md" && -f "$c/docs/governance/AGENT-EXECUTION.md" && -f "$c/docs/governance/AGENT-TEAM.md" && -f "$c/docs/ops/ai/CURSOR-RULES.md" ]]
 }
 
-# Nested lgfc-* worktrees also contain Agent.md. Prefer the parent checkout
+# Nested lgfc-* worktrees also contain AGENTS.md. Prefer the parent checkout
 # so startup does not read a stale copy of the governance chain.
 is_nested_checkout() {
   local c="${1:-}" parent
   [[ -n "$c" ]] || return 1
   parent="$(dirname "$c")"
-  [[ "$parent" != "$c" && -f "$parent/Agent.md" && -f "$parent/docs/governance/AGENT-EXECUTION.md" ]]
+  [[ "$parent" != "$c" && -f "$parent/AGENTS.md" && -f "$parent/docs/governance/AGENT-EXECUTION.md" ]]
 }
 
 accept_repo_root() {
@@ -123,7 +123,7 @@ resolve_repo_root() {
         printf '%s\n' "$dir"
         return 0
       fi
-    done < <(find "${HOME}/next-starter-template" -maxdepth 2 -name Agent.md -printf '%T@ %h\n' 2>/dev/null | sort -nr)
+    done < <(find "${HOME}/next-starter-template" -maxdepth 2 -name AGENTS.md -printf '%T@ %h\n' 2>/dev/null | sort -nr)
   fi
   printf '%s\n' "${HOME}/next-starter-template/next-starter-template"
 }
@@ -410,7 +410,7 @@ doctor() {
   echo "LGFC_WAKE doctor repo_root=$root"
   check_file "$LOOP_SRC" || fail=1
   check_file "$POLLER" || fail=1
-  check_file "$root/Agent.md" || fail=1
+  check_file "$root/AGENTS.md" || fail=1
   check_file "$root/docs/governance/REPOSITORY-AUTHORITY.md" || fail=1
   check_file "$root/docs/governance/AGENT-TEAM.md" || fail=1
   check_file "$root/docs/governance/AGENT-EXECUTION.md" || fail=1
@@ -466,7 +466,7 @@ Cursor Local \`run startup\`:
    loop only when the live-session file is empty and the halt file is
    absent. Report owner, runner, and loop PID.
 1. Read, from the doctor repo_root above (never a nested lgfc-* worktree):
-   - Agent.md
+   - AGENTS.md
    - docs/governance/REPOSITORY-AUTHORITY.md
    - docs/governance/AGENT-TEAM.md
    - docs/governance/AGENT-EXECUTION.md (PRODUCT STARTUP FRAMEWORK is the
@@ -511,7 +511,7 @@ GitHub does not wake Cursor through the Notifications inbox.
 Not in use: Cursor Local Bridge, a webhook pager, and notification email.
 
 Read this documentation stack now, from $root, then report each file as read:
-1. $root/Agent.md
+1. $root/AGENTS.md
 2. $root/docs/governance/REPOSITORY-AUTHORITY.md
 3. $root/docs/governance/AGENT-TEAM.md
 4. $root/docs/governance/AGENT-EXECUTION.md

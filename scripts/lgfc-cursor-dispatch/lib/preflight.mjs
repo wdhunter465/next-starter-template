@@ -18,7 +18,7 @@ export function resolveAndValidateWorkspace(explicitWorkspace) {
 
   for (const candidate of candidates) {
     const abs = path.resolve(candidate);
-    const agentMd = path.join(abs, 'Agent.md');
+    const agentMd = path.join(abs, 'AGENTS.md');
     const packageJson = path.join(abs, 'package.json');
     if (!fs.existsSync(agentMd) || !fs.existsSync(packageJson)) continue;
 

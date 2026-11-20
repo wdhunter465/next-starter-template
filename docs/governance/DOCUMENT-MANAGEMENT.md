@@ -137,4 +137,4 @@ Archive destination, banner, and manifest rules stay in `docs/ops/pmo/diataxis-l
 
 ## How to change this standard
 
-A change that adds a header requirement is a new standards row in `docs/governance/document-standards-versions.json` with an effective date at least 7 days out, announced on an Issue, in the same pull request that changes this file. Version on this file increments in that pull request. The constitution, `Agent.md`, and workflow files are not amended here.
+A change that adds a header requirement is a new standards row in `docs/governance/document-standards-versions.json` with an effective date at least 7 days out, announced on an Issue, in the same pull request that changes this file. Version on this file increments in that pull request. The constitution, `AGENTS.md`, and workflow files are not amended here.
