@@ -57,7 +57,7 @@ Per acceptance criteria, each exception below states scope, risk, expiry/review 
 
 ### DIATAXIS folder hygiene (advisory only)
 
-- **Scope:** flags governance/constitutional-tier docs (e.g., `docs/governance/**`, `Agent.md`) as outside the four DIATAXIS knowledge folders.
+- **Scope:** flags governance/constitutional-tier docs (e.g., `docs/governance/**`, `AGENTS.md`) as outside the four DIATAXIS knowledge folders.
 - **Risk:** low — this reflects an intentional architectural tier above DIATAXIS (Constitutional/Domain Policy), not a real misplacement, but the advisory doesn't yet encode that distinction.
 - **Expiry/review condition:** tied to "PR Hygiene Foundation rollout"; review when that rollout completes, and consider updating the advisory's own logic to recognize the Constitutional/Domain-Policy tier as an approved non-DIATAXIS class (it already recognizes `docs/ops/**` as one).
 - **Accountable authority:** Documentation and Knowledge domain owner.

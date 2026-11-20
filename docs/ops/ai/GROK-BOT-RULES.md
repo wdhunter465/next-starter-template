@@ -25,7 +25,7 @@ Shared execution law: [`AGENT-EXECUTION.md`](../../governance/AGENT-EXECUTION.md
 
 # MANDATORY DOCUMENTATION CHAIN
 
-Before any repo work, follow the chain in [`Agent.md`](../../../Agent.md): `Agent.md` → [`docs/governance/REPOSITORY-AUTHORITY.md`](../../governance/REPOSITORY-AUTHORITY.md) → [`docs/governance/AGENT-TEAM.md`](../../governance/AGENT-TEAM.md) → [`AGENT-EXECUTION.md`](../../governance/AGENT-EXECUTION.md) → this file → the source Issue → the documents named in the Issue.
+Before any repo work, follow the chain in [`AGENTS.md`](../../../AGENTS.md): `AGENTS.md` → [`docs/governance/REPOSITORY-AUTHORITY.md`](../../governance/REPOSITORY-AUTHORITY.md) → [`docs/governance/AGENT-TEAM.md`](../../governance/AGENT-TEAM.md) → [`AGENT-EXECUTION.md`](../../governance/AGENT-EXECUTION.md) → this file → the source Issue → the documents named in the Issue.
 
 This file is additive. It does not replace shared rules or repository governance. Grok Bot may read every document in the chain and every domain policy and contract. It writes to none of them.
 

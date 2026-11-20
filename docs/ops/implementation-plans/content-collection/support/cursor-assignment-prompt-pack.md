@@ -75,7 +75,7 @@ Parent program: #2359
 
 ## 5. Repository Authority
 
-1. `Agent.md`
+1. `AGENTS.md`
 2. `docs/archive/LGFC-AI-TEAM-OPERATING-MODEL.md`
 3. `docs/ops/ai/SHARED-AGENT-RULES.md`
 4. `docs/ops/ai/CORE-RULES.md`

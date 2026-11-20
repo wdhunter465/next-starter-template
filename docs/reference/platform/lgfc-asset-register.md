@@ -89,7 +89,7 @@ When this register and a detailed inventory disagree, the detailed inventory's c
 | saas:huggingface:api | saas | Hugging Face API | Hugging Face | n/a | Product Authority | team:operations | `secrets.HF_TOKEN` in workflows | — | none | HF_TOKEN | none | active | — |
 | saas:gitleaks:license | build | Gitleaks secret scan | Gitleaks | n/a | Product Authority | team:operations | `secrets.GITLEAKS_LICENSE` in workflows | gh:actions:workflows | none | GITLEAKS_LICENSE | `gitleaks` required check | active | 2026-10-10 |
 | agent:vendors | agent | Agent, reviewer, and analysis vendors | various | n/a | Product Authority | team:governance | `vendor-inventory.md`; `docs/governance/AGENT-TEAM.md` | gh:repo:next-starter-template | none | GH_AW_TOKEN | none | active | 2026-10-09 |
-| gov:entry:agent-chain | governance | Agent entry chain (`Agent.md`, `AGENTS.md`, `.cursor/rules/**`, `.agents/**`) | LGFC | n/a | Product Authority | team:governance | `Agent.md` | gh:repo:next-starter-template | none | — | `agent-governance.yml` | active | 2026-10-10 |
+| gov:entry:agent-chain | governance | Agent entry chain (`AGENTS.md`, `AGENTS.md`, `.cursor/rules/**`, `.agents/**`) | LGFC | n/a | Product Authority | team:governance | `AGENTS.md` | gh:repo:next-starter-template | none | — | `agent-governance.yml` | active | 2026-10-10 |
 | gov:policy:domain-docs | governance | Domain policy documents (`docs/governance/**`) | LGFC | n/a | Product Authority | team:governance | `docs/governance/REPOSITORY-AUTHORITY.md` | gh:repo:next-starter-template | none | — | `Last Reviewed` headers; `docs/explanation/operations/documentation-monitored-assets.md` | active | 2026-10-10 |
 <!-- asset-register:table:end -->
 
