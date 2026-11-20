@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Durable LGFC agent roles, recognized agent products, current member mapping, role work-selection order, approval authority, protected stops, and role-transition state
 Does Not Own: PMO lifecycle/stage semantics, detailed queue-label implementation, delivery-profile mechanics, CI implementation, or Production recovery procedure
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3240, #3629, #3693, #3825, #4074, #4134, #4165, #4173, #4174, #4399, #4447, #4449, #4982, #5221, #5324, #5370
-Last Reviewed: 2026-11-19
+Related Issues: #3240, #3629, #3693, #3825, #4074, #4134, #4165, #4173, #4174, #4399, #4447, #4449, #4982, #5221, #5324, #5370, #5391
+Last Reviewed: 2026-11-20
 ---
 
 # Agent Team
@@ -157,7 +157,7 @@ Review before any pull request (Product Authority, 2026-11-19): another agent (C
 
 Trigger and cost: the role is called by GitHub events only, so it spends usage only when an action is needed. Usage limits are those of the Cursor subscription as shown on the Cursor dashboard. When a limit is reached, the role reports that status on the Issue and waits for the reset.
 
-The operating rules for this role are in `docs/ops/ai/GROK-RULES.md`.
+The operating rules for this role are in `docs/ops/ai/GROK-BOT-RULES.md`.
 
 ## Current member mapping
 
@@ -169,7 +169,8 @@ The operating rules for this role are in `docs/ops/ai/GROK-RULES.md`.
 | Cursor (on Chromebook) | **Operations** (primary); **Governance** (primary); Engineering and PMO Admin (secondary); authorized implementation; PR Approver only for work Cursor did not implement |
 | Retired member (#4165) | **Retired.** No current team role, wake path, or implementation authority. Historical record only (see #4165). |
 | GitHub Copilot | Pull Request review only; not a durable role holder |
-| Grok (through Cursor) | **Documentation maintenance** (primary), pilot 2026-11-23 to 2026-11-27 (#5370); documentation-only pull requests; never code; no PR Approver authority; no merge authority |
+| Grok Bot | **Documentation maintenance** (primary), pilot 2026-11-23 to 2026-11-27 (#5370); documentation-only pull requests; never code; no PR Approver authority; no merge authority. Claim label: `agent:grok-bot`. Renamed from the prior "Grok (through Cursor)" wording under #5391 so it is not confused with Grok (AI Agent). |
+| Grok (AI Agent) | LGFC team member that works Issues and pull requests when Product Authority assigns them (#5391). Claim label: `agent:grok`. Remit (queues, roles, claim rules, cost cap) is **not** recorded yet; follow-up #5392 owns that package. Do not treat as Documentation maintenance. |
 | Jules | Implementation resource only when explicitly assigned under a compatible role/source Issue |
 | Gemini | Research and repository monitoring/reporting; read-only unless separately authorized |
 | CloudflareAI | Evaluation/support only under recorded access |
@@ -178,7 +179,7 @@ The operating rules for this role are in `docs/ops/ai/GROK-RULES.md`.
 
 ## Team assignment (Product Authority, 2026-10-05)
 
-The LGFC Agentic Team is **Claude Code** and **Cursor (on Chromebook)**, both paid subscriptions. All work other than documentation maintenance is owned by one of the two. Grok, used through the Cursor subscription, holds the Documentation maintenance role only (#5370). GitHub Copilot (PR review only) is an unpaid supporting tool, not a role holder.
+The LGFC Agentic Team is **Claude Code** and **Cursor (on Chromebook)**, both paid subscriptions. All work other than documentation maintenance is owned by one of the two. **Grok Bot** holds the Documentation maintenance role only (#5370 / #5391). **Grok (AI Agent)** is a separate team member (#5391); its remit is recorded only as Product Authority states it. GitHub Copilot (PR review only) is an unpaid supporting tool, not a role holder.
 
 | Role | Primary | Secondary |
 | --- | --- | --- |
@@ -187,7 +188,7 @@ The LGFC Agentic Team is **Claude Code** and **Cursor (on Chromebook)**, both pa
 | PMO Admin | Claude Code | Cursor |
 | Operations | Cursor | Claude Code |
 | Governance | Cursor | Claude Code |
-| Documentation maintenance | Grok (through Cursor) | none recorded |
+| Documentation maintenance | Grok Bot | none recorded |
 
 Bill acts as Product Authority and CMO. Bill approves Production-tier Pull Requests; non-production Pull Requests are self-approved (`docs/governance/REPOSITORY-AUTHORITY.md`, Merge authority). Departures from this assignment are one-offs recorded on the Issue.
 

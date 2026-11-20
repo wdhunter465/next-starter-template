@@ -75,6 +75,13 @@ async function main() {
     `unknown agent key agent:my-agent_id must normalize to 'My Agent Id', got ${unknownAgent.ownerAgent}`
   );
 
+  const grokBot = byNumber.get(9105);
+  assert(grokBot, 'expected active project #9105');
+  assert(
+    grokBot.ownerAgent === 'Grok Bot',
+    `agent:grok-bot must display as 'Grok Bot' (#5391), got ${grokBot.ownerAgent}`
+  );
+
   const repositoryOnlyData = await generateDashboard({ repository: 'example-owner/example-repository' });
   assert(
     repositoryOnlyData.repository === 'example-owner/example-repository',
