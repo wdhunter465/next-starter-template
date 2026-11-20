@@ -29,7 +29,7 @@ Shared execution law: [`CORE-RULES.md`](./CORE-RULES.md). Role mapping: [`docs/g
 
 # MANDATORY DOCUMENTATION CHAIN
 
-Before any repo work, follow the chain in [`AGENTS.md`](../../../AGENTS.md): `AGENTS.md` → [`docs/governance/REPOSITORY-AUTHORITY.md`](../../governance/REPOSITORY-AUTHORITY.md) → [`docs/governance/AGENT-TEAM.md`](../../governance/AGENT-TEAM.md) → [`CORE-RULES.md`](./CORE-RULES.md) → this file → applicable repo governance/procedure docs → applicable `.agents/skills/*/SKILL.md` files.
+Before any repo work, follow the chain in [`Agent.md`](../../../Agent.md): `Agent.md` → [`docs/governance/REPOSITORY-AUTHORITY.md`](../../governance/REPOSITORY-AUTHORITY.md) → [`docs/governance/AGENT-TEAM.md`](../../governance/AGENT-TEAM.md) → [`CORE-RULES.md`](./CORE-RULES.md) → this file → applicable repo governance/procedure docs → applicable `.agents/skills/*/SKILL.md` files.
 
 This file is additive. It does not replace shared/core rules or repo governance.
 

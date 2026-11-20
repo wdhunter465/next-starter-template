@@ -68,18 +68,25 @@ log() {
   echo "$*"
 }
 
-is_repo_root() {
+# Entry marker: prefer AGENTS.md (#2794). Accept Agent.md for one release so an
+# older installed ~/.cursor copy and a mixed checkout can still resolve the root.
+has_entry_marker() {
   local c="${1:-}"
-  [[ -n "$c" && -f "$c/AGENTS.md" && -f "$c/docs/governance/AGENT-EXECUTION.md" && -f "$c/docs/governance/AGENT-TEAM.md" && -f "$c/docs/ops/ai/CURSOR-RULES.md" ]]
+  [[ -n "$c" && ( -f "$c/AGENTS.md" || -f "$c/Agent.md" ) ]]
 }
 
-# Nested lgfc-* worktrees also contain AGENTS.md. Prefer the parent checkout
+is_repo_root() {
+  local c="${1:-}"
+  [[ -n "$c" ]] && has_entry_marker "$c" && [[ -f "$c/docs/governance/AGENT-EXECUTION.md" && -f "$c/docs/governance/AGENT-TEAM.md" && -f "$c/docs/ops/ai/CURSOR-RULES.md" ]]
+}
+
+# Nested lgfc-* worktrees also contain the entry marker. Prefer the parent checkout
 # so startup does not read a stale copy of the governance chain.
 is_nested_checkout() {
   local c="${1:-}" parent
   [[ -n "$c" ]] || return 1
   parent="$(dirname "$c")"
-  [[ "$parent" != "$c" && -f "$parent/AGENTS.md" && -f "$parent/docs/governance/AGENT-EXECUTION.md" ]]
+  [[ "$parent" != "$c" ]] && has_entry_marker "$parent" && [[ -f "$parent/docs/governance/AGENT-EXECUTION.md" ]]
 }
 
 accept_repo_root() {
@@ -123,7 +130,7 @@ resolve_repo_root() {
         printf '%s\n' "$dir"
         return 0
       fi
-    done < <(find "${HOME}/next-starter-template" -maxdepth 2 -name AGENTS.md -printf '%T@ %h\n' 2>/dev/null | sort -nr)
+    done < <({ find "${HOME}/next-starter-template" -maxdepth 2 \( -name AGENTS.md -o -name Agent.md \) -printf '%T@ %h\n' 2>/dev/null || true; } | sort -nr | awk '!seen[$2]++')
   fi
   printf '%s\n' "${HOME}/next-starter-template/next-starter-template"
 }
