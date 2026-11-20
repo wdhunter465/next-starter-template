@@ -5,8 +5,8 @@ Authority Level: Reference
 Owns: The Cursor ready-queue file, the queries it holds, what a Cursor tick does with them, and the rule for when Cursor may go quiet
 Does Not Own: Runtime selection (docs/governance/standards/CURSOR-RUNTIME-ROUTING.md), the shared execution law, queue-state label definitions, or the local poller implementation
 Canonical Reference: /docs/governance/AGENT-EXECUTION.md
-Related Issues: #4982, #4362, #4966, #4994, #5016, #5007, #5379, #3188
-Last Reviewed: 2026-11-19
+Related Issues: #4982, #4362, #4966, #4994, #5016, #5007, #5379, #3188, #5405
+Last Reviewed: 2026-11-20
 ---
 
 # Cursor ready-queue contract
@@ -47,7 +47,8 @@ is:issue is:open label:agent:cursor label:status:active
 # 4 Ready and unclaimed.
 is:issue is:open label:status:ready -label:agent:cursor -label:agent:claude
 # 5 Unassigned and not yet reviewed, primary queues.
-is:issue is:open label:team:operations,team:governance -label:agent:cursor -label:agent:claude -label:status:ready -label:wait:product -label:wait:review -label:wait:dependency -label:status:hold
+#    Exclude social-post hand-offs (#5405): they are Zapier-owned, not Cursor work.
+is:issue is:open label:team:operations,team:governance -label:agent:cursor -label:agent:claude -label:status:ready -label:wait:product -label:wait:review -label:wait:dependency -label:status:hold -label:social-post
 # 6 Unassigned and not yet reviewed, secondary queues.
 is:issue is:open label:team:engineering,team:pmo -label:agent:cursor -label:agent:claude -label:status:ready -label:wait:product -label:wait:review -label:wait:dependency -label:status:hold -label:pmo:task
 ```
@@ -55,6 +56,12 @@ is:issue is:open label:team:engineering,team:pmo -label:agent:cursor -label:agen
 Cursor's own open pull requests are checked on every tick as well: a failing gate is work.
 
 The seven searchable lines are the shared queue order: line 1 is step 1, line 2 is step 2, lines 3 and 3b are step 3, line 4 is step 4, lines 5 and 6 are step 5 (primary, then secondary). The inbound communication scan is step 0 for Cursor Local only: it is poller-side, not a GitHub label query, because comments are not claim labels.
+
+### Queue and summary hygiene (#5405)
+
+1. **Query 5 excludes `social-post`.** Daily social hand-off Issues carry `team:operations` and `social-post` but are Zapier-owned. Without `-label:social-post`, query 5 mixed hand-offs into unassigned Operations/governance work.
+2. **Loop summary uses `ops_interrupt=` for priorities 1–4.** The always-on loop snapshot once printed only `ops_p1=` from `ops:priority:1`, while query 1 already covers priorities 1–4. The field is now `ops_interrupt=` and the search matches query 1.
+3. **Poller wait-label resume.** `applyIssueWaitLabelsToResumeQueue` in `scripts/cursor-wake/poll-github.mjs` stays in the repository copy so `verify.sh` matches the host; a fresh `install.sh` must not drop it.
 
 ## Canonical tick text
 

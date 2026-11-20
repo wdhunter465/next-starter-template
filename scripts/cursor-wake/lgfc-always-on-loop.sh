@@ -47,7 +47,19 @@ merged = gh("pr","list","--repo",repo,"--state","merged","--limit","5","--json",
 closed = gh("issue","list","--repo",repo,"--state","closed","--limit","5","--json","number,closedAt,title")
 handoff = gh("issue","list","--repo",repo,"--label","agent:cursor,handoff:ready","--state","open","--limit","8","--json","number")
 assigned = gh("issue","list","--repo",repo,"--assignee","wdhunter465","--state","open","--limit","8","--json","number")
-ops = gh("issue","list","--repo",repo,"--label","ops:priority:1","--state","open","--limit","5","--json","number")
+# Match ready-queue query 1: every Operations interrupt priority (#5405).
+ops = gh(
+    "issue",
+    "list",
+    "--repo",
+    repo,
+    "--search",
+    "is:open label:ops:priority:1,ops:priority:2,ops:priority:3,ops:priority:4",
+    "--limit",
+    "10",
+    "--json",
+    "number",
+)
 pmf = gh("issue","list","--repo",repo,"--label","post-merge-failure","--state","open","--limit","5","--json","number")
 def nums(items, key="number"):
     if items and isinstance(items[0], dict) and items[0].get("error"):
@@ -62,7 +74,7 @@ print(
     "closed_issues=" + nums(closed, "closed"),
     "handoff=" + nums(handoff),
     "assigned=" + nums(assigned),
-    "ops_p1=" + nums(ops),
+    "ops_interrupt=" + nums(ops),
     "post_merge_failure=" + nums(pmf),
 )
 PY
