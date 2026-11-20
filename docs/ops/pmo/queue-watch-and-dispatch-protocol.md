@@ -5,8 +5,8 @@ Authority Level: Operational Authority
 Owns: Repository queue watch, Operations interrupt dispatch, peer PMO and Engineering dispatch, source-Issue collaboration routing, local Cursor wake routing, acknowledgment, stale-communication recovery, profile-aware continuation, and bounded administrative reconciliation
 Does Not Own: Product or priority decisions, queue ownership decisions, Engineering design decisions, PR approval, Production authorization, recovery strategy, workflow implementation, credentials, or project objectives
 Canonical Reference: /docs/governance/ADMINISTRATION-AND-COMMUNICATIONS.md
-Related Issues: #2396, #2492, #2640, #2641, #2639, #2695, #2699, #2709, #3055, #3113, #3069, #3188, #3605, #3611, #3629, #3642, #4820
-Last Reviewed: 2026-10-26
+Related Issues: #2396, #2492, #2640, #2641, #2639, #2695, #2699, #2709, #3055, #3113, #3069, #3188, #3605, #3611, #3629, #3642, #4820, #4070
+Last Reviewed: 2026-11-20
 ---
 
 # Queue Watch and Dispatch Protocol
@@ -114,7 +114,7 @@ Reject or route reconciliation when:
 - an Active parent lacks PMO team and PMO priority;
 - a Pipeline parent lacks Engineering team, Engineering priority, or stage;
 - a project child task carries team priority;
-- an Engineering preparation Issue uses `pmo:task` or `Parent Project:`;
+- an Engineering preparation Issue uses `pmo:child` (or historical `pmo:task`) or `Parent Project:`;
 - collaboration is being interpreted as ownership transfer;
 - Project Graduation retains Engineering priority or maps it automatically into PMO priority.
 
@@ -269,7 +269,7 @@ For PMO Pipeline preparation:
 2. select preparation work according to Pipeline ordered priority;
 3. for Pending Launch Packet / Graduation Candidate, confirm one peer launch-packet Issue exists or create/reactivate it through authorized PMO closeout;
 4. ensure the preparation Issue references `Related Pipeline Project:` or `Graduation Target:`;
-5. reject `Parent Project:` and `pmo:task` on preparation work;
+5. reject `Parent Project:` and `pmo:child` (or historical `pmo:task`) on preparation work;
 6. produce requirements, design, authority reconciliation, implementation plan, ordered child Issues, validation, rollback, risks, and Go/No-Go evidence;
 7. request bounded Cursor feasibility or repository evidence through universal collaboration when needed;
 8. do not authorize Active implementation through collaboration;

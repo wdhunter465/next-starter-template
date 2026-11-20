@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: Canonical PMO lifecycle states, hierarchical priority representation, stage deliverables, handoff continuity, and dashboard/routing invariants
 Does Not Own: Product priority decisions, weekly meeting procedure, live GitHub label creation, or bulk Issue mutation
 Canonical Reference: /docs/governance/PMO-PORTFOLIO.md
-Related Issues: #3597, #3823, #4176
-Last Reviewed: 2026-09-19
+Related Issues: #3597, #3823, #4176, #4070
+Last Reviewed: 2026-11-20
 ---
 
 # PMO Lifecycle and Priority Contract
@@ -147,11 +147,23 @@ Graduation moves a Project from Pipeline to Active. A graduated Project remains 
 
 After Production Accepted and PMO closeout, the Project becomes Completed. Administrative residue does not normally move an Active Project back to Pipeline.
 
+## PMO Issue types
+
+Lifecycle (`pmo:pipeline`, `pmo:active`, `pmo:closed`) is orthogonal to Issue type. Canonical Issue types:
+
+| Type | Classifier | Role |
+| --- | --- | --- |
+| PMO Parent | `pmo:parent` | Program/Project portfolio row |
+| PMO Child | `pmo:child` | Counted Issue beneath exactly one Parent (`pmo:child` replaces `pmo:task`) |
+| PMO Assignment | `pmo:assignment` | Standalone PMO administration; excluded from Parent completion accounting |
+
+A **task** is bounded work described inside a Child Issue. It is not a PMO Issue type.
+
 ## Parent and child accounting
 
 ### Portfolio parent
 
-A PMO portfolio parent is a Program or Project record. It carries `pmo:parent` and is not `pmo:task`. `team:pmo` means PMO Admin is tracking the Issue. `pmo:active` means the project is being implemented. `pmo:pipeline` means Pipeline preparation. `pmo:stage:*` is Pipeline maturity only; Active is not a stage.
+A PMO portfolio parent is a Program or Project record. It carries `pmo` and `pmo:parent`, and it does not carry `pmo:child` or `pmo:assignment`. Parent identity is explicit via `pmo:parent`. `team:pmo` means PMO Admin is tracking the Issue. `pmo:active` means the project is being implemented. `pmo:pipeline` means Pipeline preparation. `pmo:stage:*` is Pipeline maturity only; Active is not a stage.
 
 Pipeline parent minimum shape:
 
@@ -180,20 +192,26 @@ A counted child has:
 
 ```text
 pmo
-pmo:task
-valid parent reference
-exactly one lifecycle: pmo:active or pmo:closed
+pmo:child
+valid parent reference to exactly one PMO Parent
+exactly one lifecycle: pmo:pipeline, pmo:active, or pmo:closed
+no pmo:parent
+no pmo:assignment
 ```
 
 Child priority is local to its Project/parent and must not be interpreted as a repository-global or team-global rank.
 
+### PMO Assignment
+
+A PMO Assignment carries `pmo` and `pmo:assignment`, and it does not carry `pmo:parent` or `pmo:child`. It may be claimed per team queue. It never contributes to Parent child-count, completed-child, or percent-complete accounting.
+
 Parent rollup:
 
-- Tasks = valid `pmo:task` children.
+- Children = valid `pmo:child` Issues.
 - Completed = valid children with `pmo:closed`.
-- Percent complete = Completed / Tasks when Tasks > 0.
+- Percent complete = Completed / Children when Children > 0.
 
-Malformed child records are data-quality exceptions; they are not a fourth portfolio lifecycle.
+Dashboard JSON fields such as `taskCount` remain historical reporting names for child counts; they measure `pmo:child` Issues, not a `task` Issue type. Malformed child records are data-quality exceptions; they are not a fourth portfolio lifecycle.
 
 ## Project Graduation
 

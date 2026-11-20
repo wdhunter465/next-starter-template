@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Cross-lane and cross-queue communication transport, evidence routing, repository-state reconciliation, acknowledgment, escalation, hold/resume administration, collaboration routing, reporting, closeout policy, and closeout delegation boundaries
 Does Not Own: Product outcomes, priority decisions, queue ownership decisions, design decisions, implementation methods, PR approval decisions, incident recovery strategy, runner host maintenance, or Production authorization
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2640, #2641, #2639, #2648, #2695, #2699, #2700, #2709, #3055, #3113, #3134, #3145, #3188, #4775
-Last Reviewed: 2026-10-26
+Related Issues: #2640, #2641, #2639, #2648, #2695, #2699, #2700, #2709, #3055, #3113, #3134, #3145, #3188, #4775, #4070
+Last Reviewed: 2026-11-20
 ---
 
 # Administration and Communications
@@ -206,8 +206,8 @@ Administration & Communications must fail closed on:
 - `team:operations` without exactly one Operations priority or state when the target label model is active;
 - `team:engineering` with a PMO priority;
 - `team:pmo` with an Engineering priority;
-- PMO or Engineering team priority on a project child task;
-- an Engineering preparation Issue classified as `pmo:task` or linked through `Parent Project:`;
+- PMO or Engineering team priority on a project child Issue (`pmo:child`);
+- an Engineering preparation Issue classified as `pmo:child` (or historical `pmo:task`) or linked through `Parent Project:`;
 - Project Graduation that transfers Engineering priority directly into PMO priority;
 - a closeout transaction whose executor is not authorized by the role-based matrix.
 
