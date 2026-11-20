@@ -5,8 +5,8 @@ Authority Level: Procedure
 Owns: Single execution path for requesting, acknowledging, responding to, and completing cross-agent collaboration
 Does Not Own: Queue priority, source-Issue scope, implementation authority, PR approval, Production authorization, or recovery strategy
 Canonical Reference: /docs/governance/WORK-QUEUES-AND-COLLABORATION.md
-Related Issues: #2699, #2705, #2706
-Last Reviewed: 2026-07-21
+Related Issues: #2699, #2705, #2706, #5329
+Last Reviewed: 2026-11-20
 ---
 
 # Request Agent Collaboration
@@ -144,6 +144,33 @@ Returned to <Issue owner>
 
 Do not close the source Issue merely because collaboration is complete.
 
+## Delivery: how the target agent is alerted
+
+The request is the comment on the source Issue. The alert is only a pointer to it and grants nothing.
+
+| Target | Alert | Notes |
+| --- | --- | --- |
+| Claude Code | Start the request comment with the line `CLAUDE CODE RESUME`. The wake workflow (`docs/reference/ci/claude-code-wake-contract.md`) then posts a `CLAUDE CODE WAKE: delivered` comment that begins with `@claude`. | Delivery only, and only when `wdhunter465` posts it on an open Issue. The Claude Code session finds the request in the Issue, not in the alert. |
+| Cursor (local) | No comment-triggered wake. Cursor finds the request at its queue pass, on an Issue it owns or collaborates on. | Do not use `@cursor`: it invokes Cursor Cloud and is not a substitute for local routing (`Agent.md`, Cursor runtime boundary). |
+
+Both agents post through Product Authority's GitHub account, so the author name does not say who wrote a comment. Every collaboration comment names the requesting or responding agent and role in its body and ends with the agent's footer.
+
+A hand-typed `@claude` or `@cursor` is not a collaboration method here: it is not a recorded request, and it is not guaranteed to reach the repository's agents.
+
+## Decision by agreement
+
+When the requested contribution is a decision that would otherwise go to Product Authority, and Product Authority is unavailable, the joint-recommendation rule in `docs/governance/WORK-QUEUES-AND-COLLABORATION.md` applies. In the request, state the decision, the requester's recommendation and the evidence. In the response, give an explicit answer (`AGREE`, `DISSENT` with the reason, or the change wanted), formed from the Issue and the repository, not only from the requester's recommendation. Then:
+
+1. Both recommendations match: the owner records "matching recommendation" on the Issue and proceeds, within the limits in the policy.
+2. They differ, or the response is missing: the owner sets `wait:product` and records what Product Authority must decide.
+3. The item is a Production Go, credential, cost, privacy, legal, destructive action or Production-tier merge: agreement does not release it. Record the recommendation and ask Product Authority for the explicit Go.
+
+For a review-style request ("confirm the check list still stands"), the collaborator checks the claim against the code on `main` and states what was and was not verified. The formal review stays with the reviewer.
+
+## Short form
+
+For a non-blocking request answered in one comment, the collaborator may post `COLLABORATION RESPONSE` without a separate `COLLABORATION ACKNOWLEDGED`, and the Issue owner closes the cycle with `COLLABORATION COMPLETE` when the response is applied. Anything that blocks current work keeps all four events.
+
 ## Pull-request use
 
 When collaboration depends on a PR:
@@ -166,15 +193,15 @@ Formal PR review is separate:
 
 ## Operations example
 
-Cursor requests ChatGPT Tier 2 support on the same `OPS:` Issue. The Issue remains `team:operations` with its existing Operations priority or state. ChatGPT supplies specialist guidance; Cursor resumes remediation.
+Cursor requests Claude Code Tier 2 support on the same `OPS:` Issue. The Issue remains `team:operations` with its existing Operations priority or state. Claude Code supplies bounded guidance; Cursor resumes remediation.
 
 ## PMO example
 
-Cursor requests ChatGPT design clarification on the active child task that owns the implementation work. The parent PMO priority and child sequence remain unchanged. ChatGPT responds; Cursor resumes implementation.
+Cursor requests Claude Code design clarification on the active child task that owns the implementation work. The parent PMO priority and child sequence remain unchanged. Claude Code responds; Cursor resumes implementation.
 
 ## Engineering example
 
-ChatGPT requests Cursor feasibility evidence on the Engineering preparation Issue. The Issue remains `team:engineering`; Cursor supplies bounded technical evidence. The collaboration does not authorize Active implementation.
+Claude Code requests Cursor feasibility evidence on the Engineering preparation Issue. The Issue remains `team:engineering`; Cursor supplies bounded technical evidence. The collaboration does not authorize Active implementation.
 
 ## Stop conditions
 
