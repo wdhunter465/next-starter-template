@@ -1,12 +1,44 @@
 ---
-description: On a new Cursor Local session, run startup before other work
+description: New session reviews prior transcripts then continuous-passes open Issues same turn. Wake is keepalive only.
 alwaysApply: true
 ---
 
 # Session open
 
-When this Cursor Local session opens, run the startup contract in `docs/ops/ai/CURSOR-RULES.md`, then follow the session lifecycle in `docs/governance/AGENT-EXECUTION.md`.
+When this Cursor Local session opens, run the startup contract in
+`docs/ops/ai/CURSOR-RULES.md`, then immediately continue Session lifecycle
+phase 2 (continuous assigned-queue pass) in the **same turn**.
 
-Run `~/.cursor/lgfc-wake-ctl.sh startup --session <this chat uuid>`. Do not rebind. Do not stop another session's loop. Do not start a second loop. The wake tick is a keepalive, not the task list.
+A new session that only reports status and waits for Product Authority to
+name an Issue is a **failure** (#5383).
 
-Startup authorizes no Issue, pull request, or file edit. An unapproved Cursor workaround is denied.
+## Required same-turn sequence
+
+1. Run `~/.cursor/lgfc-wake-ctl.sh startup --session <this chat uuid>`.
+   Do not rebind. Do not stop another session's loop. Do not start a
+   second loop unless this chat is the recorded owner and the loop is
+   stopped/aborted (not halted) with nothing else movable (#5012).
+2. **Review prior sessions for context.** Read recent agent transcripts
+   (and compaction INDEX / segments when present) for open Issue/PR
+   state, blockers, and in-flight work. Do not ask Product Authority to
+   re-explain background services vs continuous workflow.
+3. End startup. Begin the continuous assigned-queue pass immediately:
+   inbound checkpoint, then `~/.cursor/lgfc-ready-queue.txt`, then act
+   on the first Issue that can move. Do **not** require an Issue to be
+   named in this chat.
+
+## Hard distinctions (do not re-litigate)
+
+- Repo checkout = local source of truth (`docs/ops/ai/CURSOR-RULES.md`,
+  these rule cards, `scripts/cursor-wake/*`). Host `~/.cursor` is an
+  install; chat memory is not authority (#5383).
+- Wake loop + runner = connectivity keepalives for this chat.
+- Continuous workflow = the agent's job: read the GitHub queue and move
+  eligible Issues without waiting for a tick.
+- Startup = orientation only. It authorizes no Issue, pull request, or
+  file edit.
+- Ending startup is not a stop. Do not wait for the next tick. Do not go
+  idle because the loop is stopped.
+
+An unapproved Cursor workaround is denied. Where this card disagrees with
+`docs/governance/AGENT-EXECUTION.md`, that document wins.

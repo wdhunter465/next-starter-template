@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": ".cursor/hooks/lgfc-session-open-context.sh",
+        "timeout": 20
+      }
+    ],
+    "stop": [
+      {
+        "command": ".cursor/hooks/lgfc-stop-continuous-pass.sh",
+        "timeout": 15,
+        "loop_limit": 1
+      }
+    ]
+  }
+}

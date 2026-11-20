@@ -61,10 +61,10 @@ The seven searchable lines are the shared queue order: line 1 is step 1, line 2 
 The host loop reads this sentence from `~/.cursor/lgfc-tick-prompt.txt` (the repository file is `scripts/cursor-wake/tick-prompt.txt`) and appends one poll suffix: `Poll fresh=<n> events=<list>.` It does not rewrite the sentence.
 
 ```text
-Read docs/reference/ci/cursor-ready-queue-contract.md and docs/governance/AGENT-EXECUTION.md from origin/main and follow them. Run the queries in ~/.cursor/lgfc-ready-queue.txt. Skip any Issue labeled wait:* after recording the blocker. Act on the first Issue that can move. Never send a third identical report. This tick is a check for new or changed work. It is not the assignment, and a missing tick does not end the pass (#5012).
+Read docs/ops/ai/CURSOR-RULES.md from the local repo checkout (source of truth) and docs/reference/ci/cursor-ready-queue-contract.md plus docs/governance/AGENT-EXECUTION.md from origin/main, and follow them. Run the queries in ~/.cursor/lgfc-ready-queue.txt. Skip any Issue labeled wait:* after recording the blocker. Act on the first Issue that can move. Never send a third identical report. This tick is a keepalive only — it is not the assignment, not the queue, and not a stop. An empty or missing tick does not end the continuous pass and does not authorize going idle (#5012 / #5383). Continuous workflow is the agent's job; background services (wake loop, runner, poller) only keep this session connected. Do not wait for an Issue to be named in this chat.
 ```
 
-On every tick, read those two files from `origin/main` and follow them.
+On every tick, read `CURSOR-RULES.md` from the local checkout and the shared-law / ready-queue contract from `origin/main`, and follow them.
 
 ## What a Cursor tick does
 
