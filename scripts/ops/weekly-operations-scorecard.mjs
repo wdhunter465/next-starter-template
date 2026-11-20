@@ -70,11 +70,49 @@ export function uptimeFromRuns(runs) {
   return { samples: finished.length, percent: (successes / finished.length) * 100 };
 }
 
+/**
+ * Check names that run against main tip / schedules / issue wakes and must not
+ * count against merged-PR CI first-pass (#5389).
+ */
+export const NON_PR_FIRST_PASS_CHECK_NAMES = new Set([
+  'Dispatch Cursor wake',
+  'Dispatch security unit tests',
+  'Observe lgfc-cursor runner',
+  'Deploy PMO dashboard to GitHub Pages',
+  'discover',
+  'post',
+  'dispatch',
+]);
+
 export function firstPassRate(pulls) {
   const merged = pulls || [];
   if (merged.length === 0) return { merged: 0, percent: null };
   const passed = merged.filter((pull) => pull.firstPass).length;
   return { merged: merged.length, percent: (passed / merged.length) * 100 };
+}
+
+export function mainTipOpsFailureRate(pulls) {
+  const merged = pulls || [];
+  if (merged.length === 0) return { merged: 0, percent: null, hit: 0 };
+  const hit = merged.filter((pull) => pull.mainTipOpsFailure).length;
+  return { merged: merged.length, hit, percent: (hit / merged.length) * 100 };
+}
+
+export function isPrGateCheckName(name) {
+  return Boolean(name) && !NON_PR_FIRST_PASS_CHECK_NAMES.has(name);
+}
+
+export function firstPassFromCheckRuns(runs) {
+  const relevant = (runs || []).filter((run) => isPrGateCheckName(run.name));
+  if (relevant.length === 0) return true;
+  return relevant.every((run) => run.conclusion !== 'failure' && run.conclusion !== 'timed_out');
+}
+
+export function mainTipOpsFailureFromCheckRuns(runs) {
+  return (runs || []).some(
+    (run) => NON_PR_FIRST_PASS_CHECK_NAMES.has(run.name)
+      && (run.conclusion === 'failure' || run.conclusion === 'timed_out'),
+  );
 }
 
 function hoursBetween(start, end) {
@@ -265,6 +303,7 @@ export function buildScorecard(facts, now = new Date()) {
   const uptime = uptimeFromRuns(facts.uptimeRuns);
   const failedJobs = facts.failedJobCount ?? 0;
   const firstPass = firstPassRate(facts.mergedPulls);
+  const mainTipOps = mainTipOpsFailureRate(facts.mergedPulls);
   const restore = restoreHours(facts.closedOutages, facts.openOutages, now);
   const opened = openedSplit(facts.openedOpsIssues);
   const queue = queueSnapshot(facts.openOpsIssues, now);
@@ -287,6 +326,13 @@ export function buildScorecard(facts, now = new Date()) {
         name: 'PRs merged, and CI first-pass rate',
         value: firstPass.merged === 0 ? 'no merges' : `${firstPass.merged} merged, ${firstPass.percent.toFixed(1)}% first-pass`,
         rag: ragFirstPass(firstPass.percent),
+      },
+      {
+        name: 'Main-tip operational check noise (non-PR)',
+        value: mainTipOps.merged === 0
+          ? 'no merges'
+          : `${mainTipOps.hit} of ${mainTipOps.merged} merge tips had wake/schedule/Pages failures`,
+        rag: mainTipOps.hit === 0 ? 'green' : mainTipOps.percent <= 25 ? 'amber' : 'red',
       },
       {
         name: 'Time to restore after an outage',
@@ -328,7 +374,7 @@ export function renderScorecard(card) {
     '## Weekly operations scorecard',
     '',
     `- Week: ${card.window.start} to ${card.window.end}`,
-    '- Sources: uptime probe runs (one run checks www and apex together), scheduled-job health, merged pull requests and their check runs, ops issue open and close times, the open Operations queue, the daily D1 backup workflow, open `pmo:priority:1` projects, the reviewed social post queue, the `social-audit` posting log and the social hand-off Issues.',
+    '- Sources: uptime probe runs (one run checks www and apex together), scheduled-job health, merged pull requests and their PR-gate check runs (first-pass excludes wake/schedule/Pages tip noise; that noise is a separate row), ops issue open and close times, the open Operations queue, the daily D1 backup workflow, open `pmo:priority:1` projects, the reviewed social post queue, the `social-audit` posting log and the social hand-off Issues.',
     '',
     '| Row | Value | RAG |',
     '| --- | --- | --- |',
@@ -380,6 +426,17 @@ function isMonitored(issue) {
   return labelNames(issue).some((name) => MONITOR_LABELS.has(name));
 }
 
+async function listAllCheckRuns(context, sha) {
+  const runs = [];
+  let url = `https://api.github.com/repos/${context.repository}/commits/${sha}/check-runs?per_page=100`;
+  for (let page = 0; url && page < 20; page += 1) {
+    const checks = await getJson(context.fetchImpl, url, context.headers);
+    runs.push(...(checks.body.check_runs || []));
+    url = checks.next;
+  }
+  return runs;
+}
+
 async function mergedPulls(context, window) {
   const pulls = [];
   let url = `https://api.github.com/repos/${context.repository}/pulls?state=closed&sort=updated&direction=desc&per_page=100`;
@@ -396,15 +453,18 @@ async function mergedPulls(context, window) {
   }
   const withChecks = [];
   for (const pull of pulls) {
-    const sha = pull.merge_commit_sha || pull.head?.sha;
-    const checks = await getJson(
-      context.fetchImpl,
-      `https://api.github.com/repos/${context.repository}/commits/${sha}/check-runs?per_page=100`,
-      context.headers,
-    );
-    const runs = checks.body.check_runs || [];
-    const firstPass = runs.length > 0 && runs.every((run) => run.conclusion !== 'failure' && run.conclusion !== 'timed_out');
-    withChecks.push({ number: pull.number, firstPass });
+    // Prefer the PR head SHA so first-pass reflects pre-merge PR gates (#5389).
+    // Still load merge-commit tip runs for the separate main-tip ops noise row.
+    const headSha = pull.head?.sha;
+    const mergeSha = pull.merge_commit_sha;
+    const prSha = headSha || mergeSha;
+    const prRuns = prSha ? await listAllCheckRuns(context, prSha) : [];
+    const tipRuns = mergeSha && mergeSha !== prSha ? await listAllCheckRuns(context, mergeSha) : prRuns;
+    withChecks.push({
+      number: pull.number,
+      firstPass: firstPassFromCheckRuns(prRuns),
+      mainTipOpsFailure: mainTipOpsFailureFromCheckRuns(tipRuns),
+    });
   }
   return withChecks;
 }
