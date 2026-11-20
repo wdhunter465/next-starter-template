@@ -9,25 +9,34 @@ On every turn end, and after answering a person, resume the assigned-queue
 pass. Do not idle because a question was answered or because the wake loop
 is stopped.
 
-1. Re-read the GitHub queue via `~/.cursor/lgfc-ready-queue.txt`
+1. **Inbound communication checkpoint (#3188 / #5379) first.** Before
+   unrelated queue work, scan for response-required events addressed to
+   Cursor / Governance / Engineering (`COLLABORATION REQUEST`,
+   `PR REVIEW REQUEST`, `PROBLEM FOUND`, `IMPLEMENTATION HANDOFF`),
+   including on Issues claimed by another agent. Read the poll inbox
+   `readyQueue` entry `cursor-inbound-communication` when present.
+   Acknowledge or respond on the same source Issue before claiming
+   unrelated work. Numbered Operations interrupts may proceed.
+2. Re-read the GitHub queue via `~/.cursor/lgfc-ready-queue.txt`
    (`docs/reference/ci/cursor-ready-queue-contract.md`).
-2. Follow `docs/governance/AGENT-EXECUTION.md` (Assigned-queue
+3. Follow `docs/governance/AGENT-EXECUTION.md` (Assigned-queue
    continuation): queue order, skip-any-block (#4994), continuous pass,
    and owner restarts one wake loop (#5012).
-3. Queue order each pass: Operations interrupts, your own exceptions,
+4. Queue order each pass: Operations interrupts, your own exceptions,
    assigned ready or active, unclaimed ready, then unassigned primary
    or secondary items.
-4. The wake tick is a keepalive checker only. It is not the assignment
+5. The wake tick is a keepalive checker only. It is not the assignment
    and not a stop. A missing tick does not end the pass.
-5. When nothing can move and this chat is the recorded wake owner, and
+6. When nothing can move and this chat is the recorded wake owner, and
    the loop is stopped or aborted (not halted), start exactly one loop
    and report its PID. A halt stays until Product Authority says resume
    or take over. A non-owner stays on standby.
-6. New-session primary: `halt`, then `resume`, then
+7. New-session primary: `halt`, then `resume`, then
    `rebind --session <this chat uuid>`, then start this chat's loop.
    Running `halt` alone is wrong. Owner restart never overrides a halt.
-7. End each pass with one short line naming what was covered (Issues or
-   PRs touched or skipped) so idling is visible.
+8. End each pass with one short line naming what was covered (Issues or
+   PRs touched or skipped) **and any collaboration/review request seen
+   (acted or waiting)** so a silent skip is visible.
 
 Where this card disagrees with `docs/governance/AGENT-EXECUTION.md`,
 that document wins.
