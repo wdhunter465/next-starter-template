@@ -54,15 +54,18 @@ The script reads both addresses from its environment. A scheduled GitHub Actions
 
 Recommendation: **C now, A as a follow-up Issue.** C needs no secret, no new binding and no admin address anywhere outside D1, and it still catches a broken sign-in and a broken admin gate. A adds the admin sign-in once Product Authority approves the binding.
 
-## Steps and who does them
+## Ownership of the remaining work
 
-1. This design: Claude Code (done with this page).
-2. The Go naming the exact addresses: Product Authority. The admin address goes through a non-public channel.
-3. Create the two rows through the admin member tooling, with `email_verified_at` set and the admin role on the second: the Operations role (Cursor-primary), only after the Go, with the evidence recorded on #4682 without the admin address.
-4. Run the check once by hand against Production with `--allow-production` and `SYNTHETIC_PRODUCTION_ACK=yes`: Operations, after step 3.
-5. The scheduled workflow for option C: a pull request under #4682 (protected-change review), then option A as its own Issue if wanted.
+| Work | Owner | Depends on |
+| --- | --- | --- |
+| This design | Claude Code | Done with this page |
+| The Go naming the exact addresses (admin address through a non-public channel) | Product Authority | Choice of option below |
+| Creating the two rows through the admin member tooling, with `email_verified_at` set and the admin role on the second; evidence recorded on #4682 without the admin address | Operations role (Cursor-primary) | The Go |
+| A first manual run against Production with both explicit acknowledgements the script requires | Operations role | The rows existing |
+| The scheduled workflow for option C | Pull request under #4682, with protected-change review | The manual run |
+| Option A as its own Issue, if wanted | Product Authority decides; Engineering builds | Approval of the new Cloudflare binding |
 
-## Rollback
+## Reversal
 
 Delete the two rows through the admin tooling and revert the pull requests. Nothing else depends on them.
 
