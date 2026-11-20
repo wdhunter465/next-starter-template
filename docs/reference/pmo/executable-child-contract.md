@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: Canonical machine-readable executable project/child contract fields, package-completeness validation, and lifecycle-state consistency validation
 Does Not Own: Project Graduation, priority, Product/Production decisions, PR approval, merge authority, or the human-facing child task template
 Canonical Reference: /docs/governance/WORK-QUEUES-AND-COLLABORATION.md
-Related Issues: #3665, #3055, #3113, #3134, #3145, #2724, #3240
-Last Reviewed: 2026-09-18
+Related Issues: #3665, #3055, #3113, #3134, #3145, #2724, #3240, #4070
+Last Reviewed: 2026-11-20
 ---
 
 # Executable Child Contract
@@ -129,8 +129,8 @@ classes:
 
 1. **Not-authorized narrative vs. claimable labels** — body text states
    implementation is not authorized (or similar) while labels indicate
-   `pmo:active`, `pmo:task`, `pmo:pipeline` + `pmo:stage:graduation-candidate`,
-   or an active `agent:*` claim.
+   `pmo:active`, `pmo:child` (historical live label `pmo:task` until migration),
+   `pmo:pipeline` + `pmo:stage:graduation-candidate`, or an active `agent:*` claim.
 2. **Terminal narrative vs. live state** — a `Disposition`/`Status`/`State`
    field uses terminal language (`closed`, `complete`, `done`, `terminal`,
    `reconciled`, `accepted`) without the `pmo:closed` label, or the
@@ -148,13 +148,15 @@ Before a child is treated as claimable, `evaluateExecutableChildContract`
 also enforces the core queue invariants already codified in
 `.github/queue-label-registry.json` and implemented by
 `scripts/pmo-dashboard/queue-label-contract.mjs` (`analyzeQueueLabels`,
-`role: 'task'`):
+`role: 'task'` — runtime role name for a PMO Child; Issue type classifier is
+`pmo:child`):
 
 - no `team:*` owner on a project child — `team:*` is a portfolio-parent
   concern, so a child carrying any `team:*` label fails closed;
 - no cross-namespace priority combination (`pmo:priority:*`,
   `pmo:pipeline-priority:*`, `eng:priority:*`, `ops:*`, `gov:*` are
-  prohibited on a `pmo:task` child);
+  prohibited on a `pmo:child` Issue; historical live label `pmo:task` until
+  separately authorized migration);
 - lifecycle-compatible labels, evaluated by the checks above;
 - required execution-contract fields present before claimability.
 
