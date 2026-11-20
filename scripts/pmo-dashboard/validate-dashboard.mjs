@@ -406,11 +406,18 @@ if (data) {
   }
 }
 
-for (const file of ['index.html', 'queues.html', 'scorecard.html', 'assets/pmo-dashboard.css', 'assets/pmo-dashboard.js', 'assets/pmo-queues.js']) {
+// #4451: the Queue worklist must account for every open Issue.
+if (!data.queueWorklist || !Array.isArray(data.queueWorklist.queues)) {
+  errors.push('queueWorklist must be present');
+} else if (!data.queueWorklist.accounting?.balanced) {
+  errors.push('queueWorklist accounting does not balance (listed + project children + unplaced must equal open Issues)');
+}
+
+for (const file of ['index.html', 'queues.html', 'worklist.html', 'scorecard.html', 'assets/pmo-dashboard.css', 'assets/pmo-dashboard.js', 'assets/pmo-queues.js', 'assets/pmo-worklist.js']) {
   try {
     const text = await readFile(path.join(outDir, file), 'utf8');
     // #4976: every report page shows links to the other two at the top.
-    if (['index.html', 'queues.html', 'scorecard.html'].includes(file)) {
+    if (['index.html', 'queues.html', 'worklist.html', 'scorecard.html'].includes(file)) {
       for (const page of REPORT_PAGES) {
         if (!text.includes(`<a href="${page.href}"`)) errors.push(`${file} is missing the report navigation link to ${page.label}`);
       }

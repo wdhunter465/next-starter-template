@@ -116,6 +116,8 @@ async function main() {
     if (currentBook.stdout) process.stdout.write(currentBook.stdout);
     const teamQueueCounts = await execFileAsync('node', [path.join(__dirname, 'test-team-queue-counts.mjs')]);
     if (teamQueueCounts.stdout) process.stdout.write(teamQueueCounts.stdout);
+    const queueWorklist = await execFileAsync('node', [path.join(__dirname, 'test-queue-worklist.mjs')]);
+    if (queueWorklist.stdout) process.stdout.write(queueWorklist.stdout);
     const noDefectReport = await execFileAsync('node', [path.join(__dirname, 'test-no-defect-report-5241.mjs')]);
     if (noDefectReport.stdout) process.stdout.write(noDefectReport.stdout);
     console.log('PMO label-driven fixture test passed');
