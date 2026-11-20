@@ -14,6 +14,9 @@ rebind. Do not stop another session's loop. Do not start a second loop.
 
 ## Hard distinctions (do not re-litigate)
 
+- Repo checkout = local source of truth (`docs/ops/ai/CURSOR-RULES.md`,
+  these rule cards, `scripts/cursor-wake/*`). Host `~/.cursor` is an
+  install; chat memory is not authority (#5383).
 - Wake loop + runner = connectivity keepalives for this chat.
 - Continuous workflow = the agent's job: read the GitHub queue and move
   eligible Issues without waiting for a tick.

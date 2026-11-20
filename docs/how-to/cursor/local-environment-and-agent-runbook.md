@@ -5,8 +5,8 @@ Authority Level: Procedure
 Owns: Repeatable Chromebook/Linux Cursor Local environment startup, agent operating boundaries, and restart-without-chat-memory checklist
 Does Not Own: PMO governance contracts (#1719), rule-load simplification (#2088), merge authority, secrets storage, or CI behavior changes
 Canonical Reference: /docs/how-to/cursor/local-environment-and-agent-runbook.md
-Related Issues: #2092, #1613, #1719, #2088, #3212
-Last Reviewed: 2026-08-10
+Related Issues: #2092, #1613, #1719, #2088, #3212, #5383
+Last Reviewed: 2026-11-20
 ---
 
 # Cursor Local environment and agent runbook
@@ -15,16 +15,37 @@ Last Reviewed: 2026-08-10
 
 Give an operator a single restartable procedure for Cursor Local on the Chromebook Linux VM so work can resume from repository + GitHub state without depending on chat memory.
 
+## Local source of truth (#5383)
+
+The **local repository checkout** is the source of truth for Cursor Local:
+
+| Source | Role |
+| --- | --- |
+| Repo checkout (`docs/ops/ai/CURSOR-RULES.md`, `.cursor/rules/*.mdc`, `scripts/cursor-wake/*`) | Authority. Open and read these; they win. |
+| Host files under `~/.cursor/` | Installed runtime copies (`scripts/cursor-wake/install.sh`). Reinstall from the repo when `scripts/cursor-wake/verify.sh` reports drift. Do not invent policy by editing host copies alone. |
+| Chat transcript / remembered prior sessions | Not authority. |
+| Product Authority chat | Interrupt / Go / takeover only — not a substitute for repo docs. |
+
+Product pointer for definitions: `docs/ops/ai/CURSOR-RULES.md` (Background services, Continuous workflow). Shared law: `docs/governance/AGENT-EXECUTION.md`.
+
+## Background services vs continuous workflow
+
+**Background services** (wake loop, tick, poller, poll inbox, watchdog, `lgfc-wake-ctl`, self-hosted runner `lgfc-cursor`) are **keepalives only**. They prove this chat and host are still connected. They are not the assignment and not a stop.
+
+**Continuous workflow** is the agent's job: read the GitHub queue via `~/.cursor/lgfc-ready-queue.txt` and move eligible Issues without waiting for a tick. An empty tick, a stopped loop, or answering a person is never a reason to idle that pass.
+
+Do not re-troubleshoot that distinction from chat history — it is defined in the repo docs above and in always-applied Local cards `.cursor/rules/30-resume-assigned-queue.mdc` and `.cursor/rules/40-session-open.mdc`.
+
 ## Startup assumptions
 
 | Assumption | Expected truth |
 | --- | --- |
 | Host | Chromebook Linux container (`penguin`) with outbound HTTPS to GitHub |
-| Repo path | `~/next-starter-template/next-starter-template` (clone of `wdhunter465/next-starter-template`) |
+| Repo path | `~/next-starter-template` (clone of `wdhunter465/next-starter-template`) — confirm with `git rev-parse --show-toplevel` |
 | Runtime | Cursor Local Agent/Composer (not `@cursor` Cloud unless Issue says `Runtime: cloud`) |
 | Auth | `gh auth status` shows an authenticated user with repo issue/PR access |
 | Wake transport | Primary: `lgfc-cursor` dispatch (`docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md`). Bridge/poll-wake are retired (#3212 Phase 4) |
-| Authority | GitHub Issues/PRs + repo docs — never chat-only instructions |
+| Authority | Local repo checkout + GitHub Issues/PRs — never chat-only instructions |
 
 If any assumption fails, stop and fix the host/auth/clone before claiming an Issue.
 
@@ -47,11 +68,15 @@ Expect:
 - `gh` authenticated;
 - governance check **PASS**.
 
-Also confirm Cursor project rules **Always Apply**:
+Also confirm Cursor project rules **Always Apply** (loaded from this checkout):
 
 - `00-mandatory-doc-chain`
 - `10-pr-governance-preflight`
 - `20-stop-conditions`
+- `30-resume-assigned-queue` (continuous workflow vs keepalive)
+- `40-session-open` (startup then continuous pass same turn)
+
+After host wake install, run `scripts/cursor-wake/verify.sh` from the repo root and expect match (not drift).
 
 Verification procedure: `docs/how-to/cursor/agent-session-bootstrap.md`.
 
@@ -155,6 +180,7 @@ A local agent assignment is ready for review when:
 
 | Topic | Canonical doc |
 | --- | --- |
+| Background services + continuous workflow (Cursor product) | `docs/ops/ai/CURSOR-RULES.md` |
 | Session bootstrap verification | `docs/how-to/cursor/agent-session-bootstrap.md` |
 | Runtime local vs cloud | `docs/governance/standards/CURSOR-RUNTIME-ROUTING.md` |
 | Dispatch runner (primary wake) | `docs/how-to/ci/configure-lgfc-cursor-dispatch-runner.md` |

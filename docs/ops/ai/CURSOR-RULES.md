@@ -2,7 +2,7 @@
 Doc Type: Operational Rules
 Audience: AI (Cursor)
 Authority Level: Agent-Specific
-Owns: Cursor product identity, the Cursor startup contract, and the keepalive statement
+Owns: Cursor product identity, the Cursor startup contract, background-service definitions, continuous-workflow orientation, and the keepalive statement
 Does Not Own: Agent-team policy, role assignment, PMO lifecycle, shared execution law, merge authority, or approval authority
 Canonical Reference: /docs/governance/AGENT-EXECUTION.md
 Related Issues: #3825, #4449, #4596, #4676, #4716, #4783, #4928, #4982, #4994, #5012, #5016, #5034, #5379, #3188, #5383
@@ -17,16 +17,48 @@ Cursor follows `docs/governance/AGENT-EXECUTION.md`, `docs/governance/AGENT-TEAM
 
 A Cursor workaround is denied unless Product Authority has approved that workaround in writing. This file does not add one.
 
-## Do not confuse keepalives with continuous workflow (#5383)
+## Local source of truth (#5383)
 
-| Surface | Purpose |
+The **local repository checkout** is the source of truth for Cursor Local orientation:
+
+| Source | Role |
 | --- | --- |
-| Local wake loop + tick | Keepalive: this chat is still connected |
-| GitHub Actions runner `lgfc-cursor` | Keepalive: dispatch can reach this host |
-| Poll inbox | Keepalive record only |
-| Continuous workflow | Cursor's job: read GitHub via the ready-queue file and move eligible Issues |
+| Repo checkout (`docs/ops/ai/CURSOR-RULES.md`, `.cursor/rules/*.mdc`, `scripts/cursor-wake/*`) | Authority. Read these first. |
+| Host install under `~/.cursor/` (via `scripts/cursor-wake/install.sh`) | Runtime copies of wake scripts, tick prompt, and ready-queue file. Must match the checkout (`scripts/cursor-wake/verify.sh`). Drift is corrected by reinstall from the repo, not by editing host files as policy. |
+| Chat transcript / prior-session memory | Not authority. Do not treat a past explanation as the contract. |
+| Product Authority chat instructions | Interrupt / Go / takeover only. They do not replace this file or shared law. |
 
-Product Authority must not redefine this each session. Always-applied Local rule cards `.cursor/rules/30-resume-assigned-queue.mdc` and `.cursor/rules/40-session-open.mdc` load that distinction for every new session. An empty tick, a stopped loop, or answering a person is never a reason to idle the continuous pass.
+Always-applied Local rule cards under `.cursor/rules/` load from the checkout for every new session. Host skills under `~/.cursor/skills/` are convenience copies; when they disagree with the checkout, the checkout wins.
+
+## Background services (keepalives only)
+
+These host services keep the Cursor Local chat connected. They are **not** the assignment, not the queue, and not authorization to work or to stop.
+
+| Service | What it is | What it is not |
+| --- | --- | --- |
+| Always-on wake loop (`lgfc-always-on-loop.sh`, ~60s) | Emits the wake tick so this chat stays connected; each tick runs the GitHub poller | Not the work list; an empty tick does not mean go idle |
+| Wake tick / tick prompt | Keepalive message into this chat | Not an assignment and not a stop |
+| GitHub poller (`poll-github.mjs`) | Updates the poll inbox / ready-queue snapshot from GitHub | Not continuous workflow itself |
+| Poll inbox (`~/.cursor/lgfc-wake-poll-inbox.json`) | Keepalive record of recent polls | Not the queue |
+| Wake watchdog (`lgfc-wake-watchdog`) | Restarts a stalled loop after bind grace | Not a task dispatcher |
+| `lgfc-wake-ctl.sh` | Bind / status / halt / resume / rebind control for this chat’s loop | Not Issue authorization |
+| Self-hosted runner `lgfc-cursor-chromebook` (label `lgfc-cursor`) | Lets `lgfc-cursor-dispatch` reach this host | Not continuous workflow; online/idle does not mean “wait for dispatch” |
+
+Retired and must not be treated as live keepalives: Cursor Local Bridge, standalone `poll-wake-loop` as an execution dependency (`docs/governance/standards/CURSOR-RUNTIME-ROUTING.md`).
+
+## Continuous workflow (the agent's job)
+
+Continuous workflow is Cursor’s job under `docs/governance/AGENT-EXECUTION.md` (Assigned-queue continuation, #5012). It is independent of whether a tick just arrived.
+
+On every turn end, and after answering a person:
+
+1. Run the inbound communication checkpoint (#3188 / #5379) before unrelated queue work.
+2. Read the GitHub queue through `~/.cursor/lgfc-ready-queue.txt` (`docs/reference/ci/cursor-ready-queue-contract.md`).
+3. Follow queue order, skip-any-block (#4994), and act on the first Issue that can move.
+4. When a PR for one Issue waits on independent review or merge, stop *that* Issue only and continue the pass.
+5. When nothing can move and this chat is the recorded wake owner, start exactly one loop and report its PID; do not treat a stopped loop as a reason to idle the Issue pass.
+
+Quiet is allowed only when the shared law’s “Going quiet” conditions all hold. An empty tick never satisfies that by itself. Product Authority must not redefine background services versus continuous workflow each session — this file and the always-applied Local cards already do.
 
 ## Wake tick
 

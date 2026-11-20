@@ -11,9 +11,11 @@ the assignment, not the queue, not authorization, and not a stop.
 
 **Continuous workflow is this agent's job.** Product Authority must not have
 to redefine that. Do not re-troubleshoot "what is the wake loop for?" versus
-"what does continuous workflow do?" — the answer is already here and in
-`docs/governance/AGENT-EXECUTION.md` (Assigned-queue continuation, #5012 /
-#5383).
+"what does continuous workflow do?" — the answer is already here, in
+`docs/ops/ai/CURSOR-RULES.md` (repo checkout is the local source of truth),
+and in `docs/governance/AGENT-EXECUTION.md` (Assigned-queue continuation,
+#5012 / #5383). Host `~/.cursor` copies are installs of the repo; chat
+memory is not authority.
 
 ## Forbidden idle reasons (any one is a failure)
 
