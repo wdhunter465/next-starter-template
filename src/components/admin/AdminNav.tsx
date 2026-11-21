@@ -21,6 +21,7 @@ const items: Array<{ href: string; label: string }> = [
   { href: '/admin/worklist', label: 'Worklist' },
   { href: '/admin/member-operations', label: 'Member Operations' },
   { href: '/admin/media-assets', label: 'Media Assets' },
+  { href: '/admin/bulk-photo-upload', label: 'Bulk Photo Upload' },
   { href: '/admin/rights-review', label: 'Rights Review' },
   { href: '/admin/archive-items', label: 'Archive Items' },
   { href: '/admin/d1-test', label: 'D1 Inspect' },
