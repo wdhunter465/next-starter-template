@@ -172,12 +172,12 @@ export default function BulkPhotoUploadPanel() {
   }, []);
 
   const btnStyle = (disabled: boolean): React.CSSProperties => ({
-    border: '1px solid #ddd',
+    border: '1px solid rgba(0,0,0,0.16)',
     borderRadius: 10,
     padding: '10px 12px',
     fontWeight: 700,
     cursor: disabled ? 'not-allowed' : 'pointer',
-    background: disabled ? 'rgba(0,0,0,0.05)' : 'white',
+    background: disabled ? 'rgba(0,0,0,0.05)' : 'var(--lgfc-bg-card)',
   });
 
   return (
@@ -187,7 +187,7 @@ export default function BulkPhotoUploadPanel() {
         published or deleted from this page.
       </p>
 
-      <fieldset style={{ border: '1px solid #eee', borderRadius: 12, padding: 12 }}>
+      <fieldset style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: 12, padding: 12 }}>
         <legend style={{ fontWeight: 800 }}>Batch settings</legend>
         <label style={{ display: 'grid', gap: 6, marginBottom: 10 }}>
           <span>Batch id</span>
@@ -195,7 +195,7 @@ export default function BulkPhotoUploadPanel() {
             value={batchId}
             onChange={(e) => setBatchId(e.target.value)}
             disabled={running}
-            style={{ padding: 8, borderRadius: 8, border: '1px solid #ddd' }}
+            style={{ padding: 8, borderRadius: 8, border: '1px solid rgba(0,0,0,0.16)' }}
           />
         </label>
         <div style={{ display: 'flex', gap: 16, flexWrap: 'wrap', marginBottom: 10 }}>
@@ -233,7 +233,7 @@ export default function BulkPhotoUploadPanel() {
               onChange={(e) => setSource(e.target.value)}
               disabled={running}
               placeholder="Where this batch came from"
-              style={{ padding: 8, borderRadius: 8, border: '1px solid #ddd' }}
+              style={{ padding: 8, borderRadius: 8, border: '1px solid rgba(0,0,0,0.16)' }}
             />
           </label>
         )}
@@ -243,7 +243,7 @@ export default function BulkPhotoUploadPanel() {
         onDragOver={(e) => e.preventDefault()}
         onDrop={onDrop}
         style={{
-          border: '2px dashed #ccc',
+          border: '2px dashed rgba(0,0,0,0.22)',
           borderRadius: 12,
           padding: 24,
           textAlign: 'center',
@@ -314,7 +314,7 @@ export default function BulkPhotoUploadPanel() {
         {items.map((item) => {
           const r = item.result;
           return (
-            <div key={item.id} style={{ border: '1px solid #eee', borderRadius: 12, padding: 10 }}>
+            <div key={item.id} style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: 12, padding: 10 }}>
               <div style={{ fontWeight: 800 }}>{item.file.name}</div>
               <div style={{ opacity: 0.85, marginTop: 4 }}>
                 {r?.status || 'queued'}
