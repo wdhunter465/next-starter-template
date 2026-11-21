@@ -76,6 +76,13 @@ export function evaluateJob(job, { state, lastSuccessAt, createdAt }, now = new 
   return { ...job, ok: true, lastSuccessAt, reason: '' };
 }
 
+/** Stable last-success time for a workflow run (#5425).
+ *  REST workflow_runs expose created_at / updated_at / run_started_at — no completed_at.
+ *  Prefer run_started_at (does not move on later metadata updates); never updated_at. */
+export function successTimestamp(run) {
+  return run?.run_started_at || run?.created_at || null;
+}
+
 export async function fetchJobStatus(job, { repository, headers, branch, fetchImpl = fetch }) {
   const base = `https://api.github.com/repos/${repository}/actions/workflows/${job.file}`;
   const workflow = await fetchImpl(base, { headers });
@@ -96,7 +103,7 @@ export async function fetchJobStatus(job, { repository, headers, branch, fetchIm
   return {
     state,
     createdAt,
-    lastSuccessAt: latestSuccess?.updated_at || latestSuccess?.created_at || null,
+    lastSuccessAt: successTimestamp(latestSuccess),
   };
 }
 
