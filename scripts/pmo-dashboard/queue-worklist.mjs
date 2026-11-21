@@ -1,5 +1,5 @@
 // Queue worklist (#4451): ordered rows per team queue plus accounting checks.
-// Go-live view (#4441): every listed Issue is go-live, deferred (held or waiting), or reported as unbucketed.
+// Go-live view (#4441): every listed Issue is go-live, deferred (held, waiting or pipeline), or reported as unbucketed.
 // Contract: docs/reference/pmo/queue-worklist-views-and-tiers.md. Read-only; GitHub labels are the only input.
 import { isProjectChild, classifyTeamQueue } from './team-queue-counts.mjs';
 
@@ -15,6 +15,7 @@ const OPERATIONS_INTERRUPT_RE = /^ops:priority:[1-4]$/;
 const OPERATIONS_EXCEPTION_LABELS = ['ops-pr-escalation', 'post-merge-failure'];
 const HOLD_LABELS = new Set(['status:hold', 'ops:hold', 'gov:hold']);
 const GO_LIVE_LABEL = 'go-live-2027';
+const PIPELINE_LABEL = 'pmo:pipeline';
 const PARENT_REF_PATTERN = /^\s*(?:[-*]\s*)?(?:Parent(?:\s+(?:program|project|issue))?)\s*:\s*#?(\d+)\b/im;
 
 function names(issue) {
@@ -57,6 +58,7 @@ function rowFor(queueId, issue, labels) {
     queue: queueId,
     tier: tierFor(queueId, labels),
     held: isHeld(labels),
+    pipeline: labels.includes(PIPELINE_LABEL),
     goLive: labels.includes(GO_LIVE_LABEL),
     state: labels.filter((l) => l.startsWith('status:') || l.startsWith('wait:')),
     claim: labels.filter((l) => l.startsWith('agent:')),
@@ -110,12 +112,13 @@ export function buildQueueWorklist(issues, { owner, repo } = {}) {
     for (const row of sections[q.id]) delete row._p;
   }
 
-  // #4441: each listed Issue is on the go-live view, in the deferred bucket (held or waiting, not go-live), or unbucketed.
+  // #4441: each listed Issue is on the go-live view, in the deferred bucket (held, waiting, or a pipeline
+  // project that is not go-live: pipeline work is deferred by nature), or unbucketed.
   const goLiveView = { goLive: 0, deferred: 0, unbucketed: [] };
   for (const q of WORKLIST_QUEUES) {
     for (const row of sections[q.id]) {
       if (row.goLive) goLiveView.goLive += 1;
-      else if (row.held) goLiveView.deferred += 1;
+      else if (row.held || row.pipeline) goLiveView.deferred += 1;
       else goLiveView.unbucketed.push(row.number);
     }
   }

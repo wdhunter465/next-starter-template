@@ -6,7 +6,7 @@ Owns: The views, ordering tiers and accounting checks of the Queue worklist (#44
 Does Not Own: Queue and priority semantics, the Operations interrupt, the go-live overlay, label definitions, PMO lifecycle, or any Issue's content
 Canonical Reference: /docs/governance/WORK-QUEUES-AND-COLLABORATION.md
 Related Issues: #4451, #4441, #4447, #4981
-Last Reviewed: 2026-11-20
+Last Reviewed: 2026-11-21
 ---
 
 # Queue worklist: views and tiers
@@ -70,8 +70,8 @@ The page also shows every listed Issue in one of three groups, so the 2026 go-li
 | Group | Rule |
 | --- | --- |
 | Go-live | Carries `go-live-2027`. Held or waiting go-live Issues stay in this group. |
-| Deferred | Held or waiting (`status:hold`, `ops:hold`, `gov:hold`, or any `wait:*`) and not `go-live-2027`. |
-| Neither | Not go-live and not held or waiting. Listed by number: each needs a go-live label, a hold or wait label, or closure. |
+| Deferred | Not `go-live-2027`, and either held or waiting (`status:hold`, `ops:hold`, `gov:hold`, or any `wait:*`) or a pipeline project (`pmo:pipeline`): pipeline work is not started, so it is deferred by nature (rule added 2026-11-21, #4441). |
+| Neither | Not go-live, not held or waiting, and not a pipeline project. Listed by number: each needs a go-live label, a hold or wait label, or closure. |
 
 The three counts add up to the Issues listed in the queue sections. Project children are not counted here; they follow their parent. The "Neither" list is the work for the PMO Admin and Product Authority, not an error state. No label is created and none is changed by the page.
 

@@ -44,9 +44,9 @@ function goLiveHtml(base, v) {
   if (!v) return '';
   const u = v.unbucketed || [];
   const note = u.length
-    ? 'Issues listed below are neither go-live nor held or waiting; each needs a go-live label, a hold or wait label, or closure.'
+    ? 'Issues listed below are neither go-live nor held, waiting or pipeline; each needs a go-live label, a hold or wait label, or closure.'
     : 'Every listed Issue is go-live or in the deferred bucket.';
-  return `<section class="queue-row"><h2>Go-live view</h2><p class="meta">${esc(note)}</p><ul class="breakout-list"><li><span class="breakout-label">Go-live (go-live-2027)</span> <span class="breakout-count">${esc(v.goLive)}</span></li><li><span class="breakout-label">Deferred (held or waiting)</span> <span class="breakout-count">${esc(v.deferred)}</span></li><li><span class="breakout-label">Neither</span> <span class="breakout-count">${esc(u.length)}</span></li></ul><p class="meta">Neither: ${numberList(base, u)}</p></section>`;
+  return `<section class="queue-row"><h2>Go-live view</h2><p class="meta">${esc(note)}</p><ul class="breakout-list"><li><span class="breakout-label">Go-live (go-live-2027)</span> <span class="breakout-count">${esc(v.goLive)}</span></li><li><span class="breakout-label">Deferred (held, waiting or pipeline)</span> <span class="breakout-count">${esc(v.deferred)}</span></li><li><span class="breakout-label">Neither</span> <span class="breakout-count">${esc(u.length)}</span></li></ul><p class="meta">Neither: ${numberList(base, u)}</p></section>`;
 }
 
 fetch('dashboard-data.json')
