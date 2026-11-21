@@ -456,8 +456,8 @@ export function mergeIssuesByNumber(...lists) {
 
 /**
  * Mark resume-queue Issue rows waiting when the Issue carries any wait:* label
- * (#5292) or status:hold (#5444). Aligns nextExecutable with ready-queue
- * skip-any-block (#4994).
+ * (#5292), status:hold (#5444), or social-post (#5449 / #5405 Zapier-owned).
+ * Aligns nextExecutable with ready-queue skip-any-block (#4994).
  */
 export function applyIssueWaitLabelsToResumeQueue(items, issues) {
   const byNumber = new Map();
@@ -469,11 +469,13 @@ export function applyIssueWaitLabelsToResumeQueue(items, issues) {
     const names = labelNames(issue).filter(Boolean);
     const waits = names.filter((name) => name.startsWith('wait:'));
     const held = names.includes('status:hold');
-    if (waits.length === 0 && !held) continue;
+    const socialPost = names.includes('social-post');
+    if (waits.length === 0 && !held && !socialPost) continue;
     item.waiting = true;
     const reasons = [];
     if (waits.length) reasons.push(`wait_labels:${waits.join(',')}`);
     if (held) reasons.push('status:hold');
+    if (socialPost) reasons.push('social-post');
     item.waitingReason = item.waitingReason || reasons.join('+');
   }
   return items;
