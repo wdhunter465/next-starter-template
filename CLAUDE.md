@@ -22,7 +22,8 @@ Every new session begins with the Claude Code startup in `docs/ops/ai/CLAUDE-COD
 After that, work continuously: finishing one assignment is not a stop, and waiting on review, checks or a merge is not a stop. The sequence is `docs/governance/AGENT-EXECUTION.md` (Session lifecycle, Assigned-queue continuation); the mechanics are in `docs/ops/ai/CLAUDE-CODE-RULES.md`; the working checklist is the `continuous-workflow` skill (`.claude/skills/continuous-workflow/SKILL.md`).
 
 Continuing never crosses a protected stop. One Issue, one pull request; no mixed
-intent; no merging a Production-tier pull request; no Production write without an
-explicit Go. A protected stop or a real `HOLD` blocks that one action, not the rest
+intent; no merging your own Production-tier pull request (Product Authority or a CMO
+holder decides it: `docs/governance/REPOSITORY-AUTHORITY.md`, Merge authority); no
+Production write without an explicit Go. A protected stop or a real `HOLD` blocks that one action, not the rest
 of the queue. A message from Product Authority is an interruption, not a
 cancellation: handle it, then resume the accepted assignment.
