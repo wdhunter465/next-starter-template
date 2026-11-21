@@ -46,6 +46,7 @@ Each workflow remains in the correct lifecycle domain, retired assets stay absen
 | `gate-pr-hygiene.yml` | Keep advisory for soft findings; hard-fail selected codes | Stable PR-body hygiene; hard-fails allowlist / unchecked AC / forbidden placeholder |
 | `gate-diff-scope.yml` | Keep advisory | Allowed-path diff assessment |
 | `gate-model-c.yml` | Keep advisory / profile-scoped | Model C documentation path boundary |
+| `gate-grok-bot-paths.yml` | Keep advisory / profile-scoped | Grok Bot pull requests (branch prefix `grok-bot/`) contain documentation files only and no excluded document; report-only until Product Authority makes it required (#5378) |
 | `docs-guardrails.yml` | Keep advisory, path-scoped | Runs on documentation pull requests; not one of the three ruleset-required checks |
 
 ## Manual-only / paused
