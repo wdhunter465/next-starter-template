@@ -55,10 +55,12 @@ assert(a.balanced, 'accounting balances');
 assert(JSON.stringify(a.unplacedIssues) === JSON.stringify([50, 51]), `unplaced issues ${a.unplacedIssues}`);
 assert(w.issueUrlBase === 'https://github.com/o/r/issues/', 'issue url base');
 
-// #4441 go-live view: go-live rows, deferred (held/waiting, not go-live), and the rest are unbucketed.
+// #4441 go-live view: go-live rows, deferred (held/waiting/pipeline, not go-live), and the rest are unbucketed.
 const v = w.goLiveView;
 assert(v.goLive === 3, `go-live count ${v.goLive}`);
-assert(v.deferred === 2, `deferred count ${v.deferred}`);
+// Deferred: #4 (hold), #20 (wait), and #32 (pipeline project, not go-live).
+assert(v.deferred === 3, `deferred count ${v.deferred}`);
+assert(!v.unbucketed.includes(32), 'a pipeline project is deferred, not unbucketed');
 assert(JSON.stringify(v.unbucketed) === JSON.stringify([...v.unbucketed].sort((x, y) => x - y)), 'unbucketed sorted');
 assert(v.goLive + v.deferred + v.unbucketed.length === a.listed, 'go-live view accounts for every listed Issue');
 assert(!v.unbucketed.includes(11) && !v.unbucketed.includes(13), 'go-live Issues are not unbucketed, even when held');
