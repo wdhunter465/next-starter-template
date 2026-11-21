@@ -19,7 +19,7 @@ This plan is the Operations proposal for [#4762](https://github.com/wdhunter465/
 
 Calendar of record used here:
 
-- Final Go/No-Go and repository freeze: **2026-12-31**. Bill decides. He is the only authority for dates, Go/No-Go, freeze, and emergency changes.
+- Final Go/No-Go: **2026-12-31**. Repository and website freeze begins: **2027-01-01** (Product Authority, 2026-11-19, #4764). Bill decides. He is the only authority for dates, Go/No-Go, freeze, and emergency changes.
 - Website live: **2027-01-01**.
 - This operating window: **2026-12-31 through 2027-01-02**.
 - Fundraiser announcement **2027-02-01**, launch **2027-03-25**, close **2027-06-07 at 12:00 PM**. Those dates are committed to the Live Like Lou Foundation. They are context for this window. They are not actions inside it.
