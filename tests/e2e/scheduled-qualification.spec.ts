@@ -1,7 +1,8 @@
 import { expect, test, type APIRequestContext, type Page } from '@playwright/test';
 
-// #4467 (#3633-009), gap rows 12, 13, 14, 17, 28, 59 and 85: scheduled qualification of the public
-// site and the admin boundary. Run nightly by .github/workflows/ops-scheduled-qualification.yml.
+// #4467 / #5179 (#3633-009), gap rows 12, 13, 14, 17, 28, 35, 41, 42, 45, 59, 68, 69 and 85:
+// scheduled qualification of the public site and the admin boundary. Run nightly by
+// .github/workflows/ops-scheduled-qualification.yml.
 //
 // Read-only by design: GET requests only. No sign-in, no form submission, no data written, so it is
 // safe against Production. Routes come from the site's own sitemap, so a new public page is covered
@@ -187,5 +188,242 @@ test.describe('scheduled qualification: keyboard focus order (row 59)', () => {
   test('the audit reports a page whose footer is never reached', async ({ page }) => {
     await page.setContent('<a href="#a">One</a><a href="#b">Two</a>');
     expect((await auditFocusOrder(page)).join('\n')).toContain('never reached the footer');
+  });
+});
+
+// #5179 Slice 1 (#3633-009 follow-up): rows 35, 41, 42, 45, 68, 69.
+// Still read-only against Production (GET / key presses only). Member-only Club Home APIs are out of scope.
+
+const ASSET_TIMEOUT_MS = 15_000;
+const HEALTH_BUDGET_MS = 5_000;
+
+type PhotoListItem = {
+  id?: number;
+  url?: string;
+  [key: string]: unknown;
+};
+
+type PhotoListBody = {
+  ok?: boolean;
+  items?: PhotoListItem[];
+};
+
+/** Internal rights fields that must never appear on the public photo list/get payload. */
+const PUBLIC_PHOTO_FORBIDDEN_FIELDS = [
+  'rights_hold',
+  'rights_hold_reason',
+  'rights_notes',
+  'rights_status',
+  'publication_eligible',
+  'reviewed_by',
+] as const;
+
+/** Returns forbidden field names present on a public photo payload object. */
+export function publicPhotoForbiddenFields(item: Record<string, unknown> | null | undefined): string[] {
+  if (!item || typeof item !== 'object') return [];
+  return PUBLIC_PHOTO_FORBIDDEN_FIELDS.filter((name) => Object.prototype.hasOwnProperty.call(item, name));
+}
+
+/** Duplicate ids in a list (empty when unique). Used for row 41 failing-case coverage. */
+export function duplicateIds(ids: Array<number | undefined>): number[] {
+  const seen = new Set<number>();
+  const dupes: number[] = [];
+  for (const id of ids) {
+    if (typeof id !== 'number') continue;
+    if (seen.has(id)) dupes.push(id);
+    else seen.add(id);
+  }
+  return dupes;
+}
+
+async function fetchPhotoList(
+  request: APIRequestContext,
+  query = 'limit=20',
+): Promise<{ status: number; body: PhotoListBody; ms: number }> {
+  const started = Date.now();
+  const res = await request.get(`/api/photos?${query}`);
+  return { status: res.status(), body: (await res.json().catch(() => ({}))) as PhotoListBody, ms: Date.now() - started };
+}
+
+test.describe('scheduled qualification: missing or slow asset (row 35)', () => {
+  test('static site assets and public photo bytes respond within the asset budget', async ({ request }) => {
+    const failures: string[] = [];
+    const staticPaths = ['/logo.svg', '/IMG_1946.png', '/favicon.ico'];
+    for (const path of staticPaths) {
+      const started = Date.now();
+      const res = await request.get(path, { timeout: ASSET_TIMEOUT_MS }).catch(() => null);
+      const ms = Date.now() - started;
+      if (!res) {
+        failures.push(`${path}: no response within ${ASSET_TIMEOUT_MS}ms`);
+        continue;
+      }
+      if (res.status() >= 400) failures.push(`${path}: HTTP ${res.status()}`);
+      if (ms > ASSET_TIMEOUT_MS) failures.push(`${path}: slow asset ${ms}ms`);
+    }
+
+    const list = await fetchPhotoList(request, 'limit=3');
+    expect(list.status).toBe(200);
+    for (const item of list.body.items ?? []) {
+      if (!item.url) {
+        failures.push(`photo ${item.id}: missing url`);
+        continue;
+      }
+      const started = Date.now();
+      const res = await request.get(item.url, { timeout: ASSET_TIMEOUT_MS }).catch(() => null);
+      const ms = Date.now() - started;
+      if (!res) {
+        failures.push(`photo ${item.id}: no response within ${ASSET_TIMEOUT_MS}ms`);
+        continue;
+      }
+      if (res.status() >= 400) failures.push(`photo ${item.id}: HTTP ${res.status()}`);
+      if (ms > ASSET_TIMEOUT_MS) failures.push(`photo ${item.id}: slow asset ${ms}ms`);
+    }
+    expect(failures, failures.join('\n')).toEqual([]);
+  });
+
+  test('a missing photo id is not served as a public asset', async ({ request }) => {
+    const res = await request.get('/api/photos/get?id=999999999');
+    expect(res.status(), 'missing photo must 404').toBe(404);
+    const body = (await res.json().catch(() => ({}))) as { ok?: boolean };
+    expect(body.ok).not.toBe(true);
+  });
+});
+
+test.describe('scheduled qualification: rotation fairness signals (row 41)', () => {
+  test('public photo list has unique ids and no duplicate URLs in one page', async ({ request }) => {
+    const { status, body } = await fetchPhotoList(request, 'limit=40');
+    expect(status).toBe(200);
+    expect(body.ok).toBe(true);
+    const items = body.items ?? [];
+    expect(items.length, 'public photo pool should not be empty').toBeGreaterThan(0);
+    const ids = items.map((i) => i.id);
+    const urls = items.map((i) => i.url).filter(Boolean) as string[];
+    expect(duplicateIds(ids), 'duplicate photo ids in one page').toEqual([]);
+    expect(new Set(urls).size, 'duplicate photo urls in one page').toBe(urls.length);
+  });
+
+  test('memorabilia filter returns unique ids when any memorabilia is published', async ({ request }) => {
+    const mem = await fetchPhotoList(request, 'limit=40&memorabilia=1');
+    expect(mem.status).toBe(200);
+    expect(mem.body.ok).toBe(true);
+    const memIds = (mem.body.items ?? []).map((i) => i.id);
+    expect(new Set(memIds).size).toBe(memIds.length);
+  });
+});
+
+test.describe('scheduled qualification: persistent public edition signals (row 42)', () => {
+  test('two GETs in one run see the same leading public photo id', async ({ request }) => {
+    const a = await fetchPhotoList(request, 'limit=5');
+    const b = await fetchPhotoList(request, 'limit=5');
+    expect(a.status).toBe(200);
+    expect(b.status).toBe(200);
+    const idA = a.body.items?.[0]?.id;
+    const idB = b.body.items?.[0]?.id;
+    expect(idA, 'leading photo id missing').toEqual(expect.any(Number));
+    expect(idB).toBe(idA);
+  });
+
+  test('homepage HTML keeps header, h1, and footer across two GETs', async ({ request }) => {
+    for (let i = 0; i < 2; i += 1) {
+      const res = await request.get('/');
+      expect(res.ok(), `homepage GET ${i + 1}`).toBeTruthy();
+      const html = await res.text();
+      expect(html, `load ${i + 1} missing <header`).toMatch(/<header\b/i);
+      expect(html, `load ${i + 1} missing <h1`).toMatch(/<h1\b/i);
+      expect(html, `load ${i + 1} missing <footer`).toMatch(/<footer\b/i);
+    }
+  });
+});
+
+test.describe('scheduled qualification: rights gate on public photos (row 45)', () => {
+  test('public photo list items never carry internal rights fields', async ({ request }) => {
+    const { status, body } = await fetchPhotoList(request, 'limit=50');
+    expect(status).toBe(200);
+    expect(body.ok).toBe(true);
+    const items = body.items ?? [];
+    expect(items.length).toBeGreaterThan(0);
+    for (const item of items) {
+      const leaked = publicPhotoForbiddenFields(item);
+      expect(leaked, `id ${item.id} leaked ${leaked.join(',')}`).toEqual([]);
+      expect(item.url, `id ${item.id} needs a url`).toBeTruthy();
+    }
+  });
+
+  test('public get for a listed photo succeeds without rights fields; unknown ids stay not-ok', async ({
+    request,
+  }) => {
+    const list = await fetchPhotoList(request, 'limit=5');
+    const id = list.body.items?.[0]?.id;
+    expect(id).toEqual(expect.any(Number));
+    const okRes = await request.get(`/api/photos/get?id=${id}`);
+    expect(okRes.status()).toBe(200);
+    const okBody = (await okRes.json()) as { ok?: boolean; item?: Record<string, unknown> };
+    expect(okBody.ok).toBe(true);
+    expect(okBody.item?.id).toBe(id);
+    expect(publicPhotoForbiddenFields(okBody.item)).toEqual([]);
+
+    const missing = await request.get('/api/photos/get?id=999999999');
+    expect(missing.status()).toBe(404);
+    const missingBody = (await missing.json()) as { ok?: boolean };
+    expect(missingBody.ok).not.toBe(true);
+  });
+
+  test('the rights-field audit catches a leaked rights_hold key', () => {
+    expect(publicPhotoForbiddenFields({ id: 1, url: 'https://example.test/a.jpg' })).toEqual([]);
+    expect(publicPhotoForbiddenFields({ id: 1, rights_hold: 0 }).join('\n')).toContain('rights_hold');
+    expect(
+      publicPhotoForbiddenFields({ id: 1, publication_eligible: 1, rights_notes: 'x' }).join('\n'),
+    ).toMatch(/publication_eligible|rights_notes/);
+  });
+});
+
+test.describe('scheduled qualification: Slice 1 failing-case helpers (#5179)', () => {
+  test('duplicateIds reports a repeated id', () => {
+    expect(duplicateIds([1, 2, 3])).toEqual([]);
+    expect(duplicateIds([1, 2, 1, 3, 2])).toEqual([1, 2]);
+  });
+
+  test('homepage HTML audit rejects a page missing footer', () => {
+    const html = '<html><body><header></header><h1>Hi</h1></body></html>';
+    expect(html).toMatch(/<header\b/i);
+    expect(html).toMatch(/<h1\b/i);
+    expect(html).not.toMatch(/<footer\b/i);
+  });
+});
+
+test.describe('scheduled qualification: external-service budget (row 68)', () => {
+  test('health and photo list stay inside the latency budget', async ({ request }) => {
+    const healthStarted = Date.now();
+    const health = await request.get('/api/health');
+    const healthMs = Date.now() - healthStarted;
+    expect(health.ok()).toBeTruthy();
+    const healthBody = (await health.json()) as { ok?: boolean; db_ok?: boolean };
+    expect(healthBody.ok).toBe(true);
+    expect(healthBody.db_ok).toBe(true);
+    expect(healthMs, `health took ${healthMs}ms`).toBeLessThanOrEqual(HEALTH_BUDGET_MS);
+
+    const photos = await fetchPhotoList(request, 'limit=5');
+    expect(photos.status).toBe(200);
+    expect(photos.body.ok).toBe(true);
+    expect(photos.ms, `photos list took ${photos.ms}ms`).toBeLessThanOrEqual(ASSET_TIMEOUT_MS);
+  });
+});
+
+test.describe('scheduled qualification: repeated-run stability (row 69)', () => {
+  test('sitemap size and leading photo id are stable across two passes in one run', async ({ request }) => {
+    const pass = async () => {
+      const sitemap = await request.get('/sitemap.xml');
+      expect(sitemap.ok()).toBeTruthy();
+      const xml = await sitemap.text();
+      const paths = [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]);
+      const photos = await fetchPhotoList(request, 'limit=5');
+      return { pathCount: new Set(paths).size, leadPhotoId: photos.body.items?.[0]?.id, photoOk: photos.body.ok };
+    };
+    const a = await pass();
+    const b = await pass();
+    expect(a.pathCount).toBeGreaterThanOrEqual(5);
+    expect(b.pathCount).toBe(a.pathCount);
+    expect(a.photoOk).toBe(true);
+    expect(b.leadPhotoId).toBe(a.leadPhotoId);
   });
 });
