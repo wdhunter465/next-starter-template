@@ -59,10 +59,19 @@ describe('bulk photo upload client (#4709 slice 2)', () => {
     const fetchMock = vi.fn(async (_url: string, init?: RequestInit) => {
       const headers = new Headers(init?.headers);
       expect(headers.has('Content-Type')).toBe(false);
-      return new Response(JSON.stringify({ ok: true, status: 'stored_unpublished', photo_id: 1 }), {
-        status: 201,
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return new Response(
+        JSON.stringify({
+          ok: true,
+          status: 'stored_unpublished',
+          id: 1,
+          photo_id: 'abc123sha',
+          b2_key: 'bulk/b/abc123sha.jpg',
+        }),
+        {
+          status: 201,
+          headers: { 'Content-Type': 'application/json' },
+        },
+      );
     });
     vi.stubGlobal('fetch', fetchMock);
     const form = new FormData();
@@ -73,64 +82,135 @@ describe('bulk photo upload client (#4709 slice 2)', () => {
     vi.unstubAllGlobals();
   });
 
-  it('classifies uploaded, duplicate, rejected, and check-these responses', () => {
+  it('classifies uploaded, duplicate, rejected, and check-these from Slice 1 response shapes', () => {
     const meta = { batchId: 'b1', rightsClass: 'lgfc_collection' as const };
-    expect(
-      classifyUploadResponse('a.jpg', {
-        ok: true,
-        status: 201,
-        data: { status: 'stored_unpublished', screenshot: 'ok', photo_id: 9 },
-        error: '',
-      }, meta).status,
-    ).toBe('uploaded');
-
-    expect(
-      classifyUploadResponse('a.jpg', {
-        ok: true,
-        status: 200,
-        data: { ok: true, status: 'exact_duplicate_skipped', photo_id: 2 },
-        error: '',
-      }, meta).status,
-    ).toBe('duplicate_skipped');
-
-    expect(
-      classifyUploadResponse('a.jpg', {
-        ok: false,
-        status: 400,
-        data: { error: 'screenshot_denied', code: 'screenshot_denied', reasons: ['strong'] },
-        error: 'screenshot_denied',
-      }, meta),
-    ).toMatchObject({ status: 'rejected', reasons: ['strong'] });
-
-    expect(
-      classifyUploadResponse('a.jpg', {
+    const stored = classifyUploadResponse(
+      'a.jpg',
+      {
         ok: true,
         status: 201,
         data: {
+          ok: true,
           status: 'stored_unpublished',
-          screenshot: 'check',
-          screenshot_reasons: ['weak'],
-          flat_copy_flagged: true,
-          flat_copy_reasons: ['file_name_suggests_flat_copy'],
+          id: 42,
+          batch_id: 'b1',
+          b2_key: 'bulk/b1/deadbeef.jpg',
+          photo_id: 'deadbeefcafefeed',
+          screenshot: 'ok',
+          screenshot_reasons: [],
+          flat_copy_flagged: false,
+          flat_copy_reasons: [],
+          identical_phash_photo_id: null,
         },
         error: '',
-      }, meta).status,
-    ).toBe('check_these');
+      },
+      meta,
+    );
+    expect(stored).toMatchObject({
+      status: 'uploaded',
+      photoId: 'deadbeefcafefeed',
+      rowId: 42,
+      b2Key: 'bulk/b1/deadbeef.jpg',
+    });
+    expect(typeof stored.photoId).toBe('string');
+    expect(stored.photoId!.length).toBeGreaterThan(0);
+
+    const dup = classifyUploadResponse(
+      'a.jpg',
+      {
+        ok: true,
+        status: 200,
+        data: { ok: true, status: 'exact_duplicate_skipped', existing_id: 7, batch_id: 'b1' },
+        error: '',
+      },
+      meta,
+    );
+    expect(dup).toMatchObject({
+      status: 'duplicate_skipped',
+      photoId: null,
+      rowId: 7,
+      b2Key: null,
+    });
+
+    expect(
+      classifyUploadResponse(
+        'a.jpg',
+        {
+          ok: false,
+          status: 400,
+          data: { error: 'screenshot_denied', code: 'screenshot_denied', reasons: ['strong'] },
+          error: 'screenshot_denied',
+        },
+        meta,
+      ),
+    ).toMatchObject({ status: 'rejected', reasons: ['strong'] });
+
+    expect(
+      classifyUploadResponse(
+        'a.jpg',
+        {
+          ok: true,
+          status: 201,
+          data: {
+            status: 'stored_unpublished',
+            id: 9,
+            photo_id: 'sha-check-me',
+            b2_key: 'bulk/b1/sha-check-me.jpg',
+            screenshot: 'check',
+            screenshot_reasons: ['weak'],
+            flat_copy_flagged: true,
+            flat_copy_reasons: ['file_name_suggests_flat_copy'],
+          },
+          error: '',
+        },
+        meta,
+      ),
+    ).toMatchObject({
+      status: 'check_these',
+      photoId: 'sha-check-me',
+      rowId: 9,
+    });
   });
 
-  it('report counts match results; CSV/JSON include file fields', () => {
+  it('report counts match results; CSV/JSON include photo_id SHA and row_id', () => {
     const results = [
-      { fileName: 'a.jpg', status: 'uploaded' as const, photoId: 1, batchId: 'b', rightsClass: 'lgfc_collection' as const },
-      { fileName: 'b.jpg', status: 'rejected' as const, error: 'nope', batchId: 'b', rightsClass: 'lgfc_collection' as const },
+      {
+        fileName: 'a.jpg',
+        status: 'uploaded' as const,
+        photoId: 'deadbeef',
+        rowId: 42,
+        batchId: 'b',
+        rightsClass: 'lgfc_collection' as const,
+      },
+      {
+        fileName: 'b.jpg',
+        status: 'duplicate_skipped' as const,
+        photoId: null,
+        rowId: 7,
+        batchId: 'b',
+        rightsClass: 'lgfc_collection' as const,
+      },
+      {
+        fileName: 'c.jpg',
+        status: 'rejected' as const,
+        error: 'nope',
+        batchId: 'b',
+        rightsClass: 'lgfc_collection' as const,
+      },
     ];
     const counts = summarizeResults(results);
     expect(counts.uploaded).toBe(1);
+    expect(counts.duplicate_skipped).toBe(1);
     expect(counts.rejected).toBe(1);
     const csv = resultsToCsv(results);
-    expect(csv).toContain('a.jpg');
-    expect(csv).toContain('uploaded');
+    expect(csv).toContain('row_id');
+    expect(csv).toContain('deadbeef');
+    expect(csv).toContain('42');
+    expect(csv).toContain('7');
     const json = JSON.parse(resultsToJson(results));
-    expect(json.results).toHaveLength(2);
+    expect(json.results[0].photoId).toBe('deadbeef');
+    expect(json.results[0].rowId).toBe(42);
+    expect(json.results[1].rowId).toBe(7);
   });
 
   it('runUploadQueue caps concurrency and stops on 401', async () => {

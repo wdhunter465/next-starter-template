@@ -22,13 +22,35 @@ export type UploadFileResult = {
   reasons?: string[];
   screenshotReasons?: string[];
   flatCopyReasons?: string[];
-  photoId?: number | null;
+  /** Content SHA from the Slice 1 endpoint (`photo_id` string), not the row id. */
+  photoId?: string | null;
+  /** Numeric photos.id (`id` on store, `existing_id` on exact duplicate). */
+  rowId?: number | null;
   b2Key?: string | null;
   batchId?: string;
   rightsClass?: BulkRightsClass;
   identicalPhashPhotoId?: number | null;
   httpStatus?: number;
 };
+
+/** Map Slice 1 bulk-upload JSON fields onto report columns. */
+export function photoFieldsFromBulkResponse(data: Record<string, unknown>): {
+  photoId: string | null;
+  rowId: number | null;
+  b2Key: string | null;
+  identicalPhashPhotoId: number | null;
+} {
+  const photoId = typeof data.photo_id === 'string' && data.photo_id.length > 0 ? data.photo_id : null;
+  const rowFromId = typeof data.id === 'number' ? data.id : null;
+  const rowFromExisting = typeof data.existing_id === 'number' ? data.existing_id : null;
+  return {
+    photoId,
+    rowId: rowFromId ?? rowFromExisting,
+    b2Key: typeof data.b2_key === 'string' ? data.b2_key : null,
+    identicalPhashPhotoId:
+      typeof data.identical_phash_photo_id === 'number' ? data.identical_phash_photo_id : null,
+  };
+}
 
 const BULK_BATCH_ID = /^[A-Za-z0-9._-]{1,64}$/;
 
@@ -153,13 +175,14 @@ export function classifyUploadResponse(
     apiStatus === 'exact_duplicate_skipped' ||
     (data.ok === true && apiStatus.includes('duplicate'))
   ) {
+    const fields = photoFieldsFromBulkResponse(data);
     return {
       ...base,
       status: 'duplicate_skipped',
-      photoId: typeof data.photo_id === 'number' ? data.photo_id : null,
-      b2Key: typeof data.b2_key === 'string' ? data.b2_key : null,
-      identicalPhashPhotoId:
-        typeof data.identical_phash_photo_id === 'number' ? data.identical_phash_photo_id : null,
+      photoId: fields.photoId,
+      rowId: fields.rowId,
+      b2Key: fields.b2Key,
+      identicalPhashPhotoId: fields.identicalPhashPhotoId,
     };
   }
 
@@ -171,27 +194,28 @@ export function classifyUploadResponse(
   const flatCopyReasons = Array.isArray(data.flat_copy_reasons)
     ? data.flat_copy_reasons.filter((r): r is string => typeof r === 'string')
     : [];
+  const fields = photoFieldsFromBulkResponse(data);
 
   if (screenshot === 'check' || flatFlagged) {
     return {
       ...base,
       status: 'check_these',
-      photoId: typeof data.photo_id === 'number' ? data.photo_id : null,
-      b2Key: typeof data.b2_key === 'string' ? data.b2_key : null,
+      photoId: fields.photoId,
+      rowId: fields.rowId,
+      b2Key: fields.b2Key,
       screenshotReasons,
       flatCopyReasons,
-      identicalPhashPhotoId:
-        typeof data.identical_phash_photo_id === 'number' ? data.identical_phash_photo_id : null,
+      identicalPhashPhotoId: fields.identicalPhashPhotoId,
     };
   }
 
   return {
     ...base,
     status: 'uploaded',
-    photoId: typeof data.photo_id === 'number' ? data.photo_id : null,
-    b2Key: typeof data.b2_key === 'string' ? data.b2_key : null,
-    identicalPhashPhotoId:
-      typeof data.identical_phash_photo_id === 'number' ? data.identical_phash_photo_id : null,
+    photoId: fields.photoId,
+    rowId: fields.rowId,
+    b2Key: fields.b2Key,
+    identicalPhashPhotoId: fields.identicalPhashPhotoId,
   };
 }
 
@@ -219,6 +243,7 @@ export function resultsToCsv(results: UploadFileResult[]): string {
     'screenshot_reasons',
     'flat_copy_reasons',
     'photo_id',
+    'row_id',
     'b2_key',
     'batch_id',
     'rights_class',
@@ -234,6 +259,7 @@ export function resultsToCsv(results: UploadFileResult[]): string {
       (r.screenshotReasons || []).join(';'),
       (r.flatCopyReasons || []).join(';'),
       r.photoId == null ? '' : String(r.photoId),
+      r.rowId == null ? '' : String(r.rowId),
       r.b2Key || '',
       r.batchId || '',
       r.rightsClass || '',
