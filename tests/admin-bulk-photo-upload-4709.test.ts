@@ -387,7 +387,7 @@ describe('POST /api/admin/photos/bulk-upload (#4709)', () => {
     const realPhash = phashMatch![1].toLowerCase();
     // Flip lowest bit of the hex hash for a distance-1 neighbor.
     const asBig = BigInt(`0x${realPhash}`);
-    const nearPhash = (asBig ^ 1n).toString(16).padStart(16, '0');
+    const nearPhash = (asBig ^ BigInt(1)).toString(16).padStart(16, '0');
 
     sqlite.exec('DELETE FROM photos');
     sqlite
