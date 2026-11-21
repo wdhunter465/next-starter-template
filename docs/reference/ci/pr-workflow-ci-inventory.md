@@ -48,6 +48,7 @@ The PR workflow surface remains deterministic, minimal, and documented. No manua
 | `gate-pr-hygiene.yml` | `pr-hygiene` | Advisory |
 | `gate-diff-scope.yml` | `diff-scope` | Advisory; PR context resolved by `scripts/ci/diff_scope_gate.mjs --resolve-context` with shared transient API retry (#2657) |
 | `gate-model-c.yml` | Model C path/docs jobs | Advisory / profile-scoped |
+| `gate-grok-bot-paths.yml` | Grok Bot documentation-paths gate (`grok-bot/` branches only) | Advisory / report-only (#5378) |
 
 ## Manual-only or paused
 
