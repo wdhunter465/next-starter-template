@@ -456,7 +456,8 @@ export function mergeIssuesByNumber(...lists) {
 
 /**
  * Mark resume-queue Issue rows waiting when the Issue carries any wait:* label
- * (#5292). Aligns nextExecutable with ready-queue skip-any-block (#4994).
+ * (#5292) or status:hold (#5444). Aligns nextExecutable with ready-queue
+ * skip-any-block (#4994).
  */
 export function applyIssueWaitLabelsToResumeQueue(items, issues) {
   const byNumber = new Map();
@@ -465,10 +466,15 @@ export function applyIssueWaitLabelsToResumeQueue(items, issues) {
     if (!RESUME_ISSUE_KINDS.has(item.kind)) continue;
     const issue = byNumber.get(item.number);
     if (!issue) continue;
-    const waits = labelNames(issue).filter((name) => name && name.startsWith('wait:'));
-    if (waits.length === 0) continue;
+    const names = labelNames(issue).filter(Boolean);
+    const waits = names.filter((name) => name.startsWith('wait:'));
+    const held = names.includes('status:hold');
+    if (waits.length === 0 && !held) continue;
     item.waiting = true;
-    item.waitingReason = item.waitingReason || `wait_labels:${waits.join(',')}`;
+    const reasons = [];
+    if (waits.length) reasons.push(`wait_labels:${waits.join(',')}`);
+    if (held) reasons.push('status:hold');
+    item.waitingReason = item.waitingReason || reasons.join('+');
   }
   return items;
 }
