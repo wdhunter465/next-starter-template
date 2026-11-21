@@ -73,7 +73,7 @@ This document does not own:
   `CHATGPT HANDOFF` markers remain comments only; they are not launch authority. A launched queue
   requires a manual dispatcher, an operator-run PMO Admin check-in, or repo-native automation
   path defined in `docs/ops/pmo/queue-watch-and-dispatch-protocol.md`. This is an operational check-in, not vendor account-level scheduled automation.
-- Product Authority owns launch gates and destructive issue actions. Merge authority is tiered (Production human only; non-production self-approved) and defined in `docs/governance/REPOSITORY-AUTHORITY.md`.
+- Product Authority owns launch gates and destructive issue actions. Merge authority is tiered (Production: Product Authority or a CMO holder; non-production self-approved) and defined in `docs/governance/REPOSITORY-AUTHORITY.md`.
 - PMO Admin owns PMO process: queue conformance, batch verification, rebaseline authority, and dispatcher/remediation routing when authorized.
 - Cursor may not merge to `main`, approve, close, relabel, advance queues, or mutate
   issue state unless the active source issue explicitly authorizes that action.
@@ -299,7 +299,7 @@ If the halt is caused by missing dispatcher/watch behavior, stale blocked succes
 | Role | Authority |
 | --- | --- |
 | Product Authority | Default merge, launch gates, destructive issue actions, strategy exceptions |
-| CMO | Human approval of Production-tier merges (`docs/governance/REPOSITORY-AUTHORITY.md`); holder in AGENT-TEAM |
+| CMO | Approval of Production-tier merges by Product Authority or a CMO holder (`docs/governance/REPOSITORY-AUTHORITY.md`); holders in AGENT-TEAM |
 | PMO Admin | PMO process, queue conformance, batch verification, rebaseline, dispatcher/remediation routing when authorized |
 | Cursor | Bounded implementation, validation, PR-body evidence, `READY FOR REVIEW` handoff |
 

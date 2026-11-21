@@ -46,7 +46,7 @@ Pointers only. The sections named here already define these rules. This summary 
 - Stop when authority conflicts, scope or repository state is unclear, the source Issue or the changed-file allowlist is missing, live pull-request state cannot be verified, or a routine Product Authority relay is requested while GitHub communication works. Detail: MANDATORY STOP CONDITIONS.
 - Product, cost, legal, privacy, credential, destructive-data, and Production decisions stay on the source Issue. Detail: No-human-relay guardrail.
 - An executor does not approve its own protected work, and no implementer is the sole independent reviewer of that work. Detail: AGENT ROUTING PRIORITY and Continuous parent-level execution. Merge tiers, including who may merge a Production-tier pull request, are defined only in `docs/governance/REPOSITORY-AUTHORITY.md` (Merge authority).
-- After one assignment is packaged, continue the next eligible assigned item. Waiting on review is not idle. Do not merge a Production-tier pull request. Detail: ASSIGNED-QUEUE CONTINUATION.
+- After one assignment is packaged, continue the next eligible assigned item. Waiting on review is not idle. Do not merge your own Production-tier pull request; Product Authority or a CMO holder decides it. Detail: ASSIGNED-QUEUE CONTINUATION.
 
 ## Current Known Truth
 
@@ -528,7 +528,7 @@ A working session has three phases, in this order. This section is the only stat
 2. **Work list (#4982).** The agent reads its working list from GitHub, in the queue order of Assigned-queue continuation; it is not defined again each session. Product Authority may define or reorder a priority list at any time. Such a list sets priority and is never a precondition to work. A read-only look at the Operations queue may inform the list; that look authorizes no claim, edit or PR. A task is **ready** when it has a source Issue, acceptance criteria, an exact file allowlist, role authority and an explicit implementation Go recorded. The `status:ready` label records that. A task inside a graduated Project's prepared child graph is ready without the label (standing authority, below).
 3. **Continuous run.** The agent works the list without being re-prompted:
    - it prepares each assigned task to a ready-to-merge PR, then starts the next eligible task while that PR waits (Assigned-queue continuation, above);
-   - merge authority follows the tiers in `docs/governance/REPOSITORY-AUTHORITY.md` (Merge authority); a PR that waits for the human approver does not stop the run;
+   - merge authority follows the tiers in `docs/governance/REPOSITORY-AUTHORITY.md` (Merge authority); a PR that waits for Product Authority or a CMO holder does not stop the run;
    - when assigned work is resolved, closed, or at a stop point (a PR waiting on review, a `wait:*` state, or a HOLD), it continues down the queue order, including the unassigned Issues it takes ownership of (Assigned-queue continuation). Queue-state labels are defined in `docs/governance/WORK-QUEUES-AND-COLLABORATION.md`;
    - **the Operations interrupt is always on** from the end of startup and takes precedence over all other work because Production services are expected to be affected;
    - the run ends only when no eligible assigned or unassigned work remains, Product Authority says stop, or a protected stop or evidence-specific `HOLD` covers what is left. A protected stop blocks that one action, not the rest of the queue.
