@@ -19,24 +19,33 @@ const SEARCH_LIMIT = 50;
 // already_surfaced = COMMUNICATION EXCEPTION posted; that is not an ack (#3188).
 const OPEN_STATUSES = new Set(['pending_not_stale', 'stale', 'already_surfaced']);
 
-const SOFT_REPLY_HEADINGS = Object.freeze(['AGREE', 'DISSENT']);
+// RESPONSE clears the Local inbound surface when Cursor posts a same-Issue reply
+// (shared detector still requires COLLABORATION RESPONSE for other roles).
+const SOFT_REPLY_HEADINGS = Object.freeze(['AGREE', 'DISSENT', 'RESPONSE']);
 const ACCEPTED_REPLY_EVENTS = Object.freeze(
   new Set(Object.values(REQUEST_EVENTS).flat()),
 );
 
 /**
  * True when a response-required comment addresses Cursor as the target role.
+ * Requesting-agent lines that name Cursor must not count (#5453).
  */
 export function targetsCursorRole(body) {
   const text = String(body || '');
+
+  // Explicit Target agent / role line wins when present.
+  const targetAgent = text.match(/\bTarget\s+agent\s*\/\s*role:\s*([^\n]+)/i);
+  if (targetAgent) {
+    const value = targetAgent[1];
+    // Disclaimer form used when clearing a false inbound: "Cursor — none required".
+    if (/\bnone\s+required\b/i.test(value)) return false;
+    return /\bCursor\b/i.test(value);
+  }
+
   return (
     /\bto\s+Cursor\b/i.test(text) ||
     /\bfor\s+Cursor\b/i.test(text) ||
     /\bTarget:\s*Cursor\b/i.test(text) ||
-    // Standard collaboration vocabulary (#3188 / #5442), e.g.
-    // "Target agent / role: Cursor, CMO alternate (secondary)"
-    /\bTarget\s+agent\s*\/\s*role:\s*Cursor\b/i.test(text) ||
-    /\bCursor\s*\(/i.test(text) ||
     /@cursor\b/i.test(text)
   );
 }
