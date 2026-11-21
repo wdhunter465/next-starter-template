@@ -19,6 +19,14 @@ describe('cursor inbound communication (#5379)', () => {
     expect(targetsCursorRole('## COLLABORATION REQUEST\nTarget: Cursor')).toBe(true);
     expect(
       targetsCursorRole(
+        'COLLABORATION REQUEST\nTarget agent / role: Cursor, CMO alternate (secondary)',
+      ),
+    ).toBe(true);
+    expect(
+      targetsCursorRole('COLLABORATION REQUEST\nTarget agent / role: Cursor\nPlease merge.'),
+    ).toBe(true);
+    expect(
+      targetsCursorRole(
         '## COLLABORATION REQUEST\nCursor Local Bridge eligibility remains label/status-only.',
       ),
     ).toBe(false);
