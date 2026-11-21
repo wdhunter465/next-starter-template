@@ -29,7 +29,7 @@ This map identifies where LGFC documentation ownership currently lives so produc
 | Operational state | `docs/ops/` | GitHub issues and PRs | Live process/status surface |
 | As-built records | `docs/reference/` | Closed PRs and deployment records | Receives agent-created operational documentation after implementation |
 | Historical/legacy material | `docs/archive/` and legacy paths | Migration issues #1019/#1039/#1076 | Reference only unless promoted |
-| AI/agent rules | `docs/ops/ai/`, `.agents/skills/`, `ops/ai/` | Agent.md | Must be normalized to avoid split authority |
+| AI/agent rules | `docs/ops/ai/`, `.agents/skills/`, `ops/ai/` | AGENTS.md | Must be normalized to avoid split authority |
 
 ## Package Ownership Targets
 

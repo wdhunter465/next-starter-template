@@ -105,7 +105,7 @@ Git/PR authority fields (section 2A) live in `docs/templates/agent-assignment-te
 
 Read in order (do not skip):
 
-1. `Agent.md`
+1. `AGENTS.md`
 2. `docs/governance/REPOSITORY-AUTHORITY.md`
 3. `docs/governance/AGENT-TEAM.md`
 4. `docs/ops/ai/CORE-RULES.md`

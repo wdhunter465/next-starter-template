@@ -286,7 +286,7 @@ Depends On: Tasks 1-3
   - `docs/ops/ai/SHARED-AGENT-RULES.md`
   - `docs/ops/ai/CHATGPT-RULES.md`
   - `docs/ops/ai/CURSOR-RULES.md`
-- Modify `Agent.md` only as a router to canonical authority.
+- Modify `AGENTS.md` only as a router to canonical authority.
 
 **Interfaces**
 

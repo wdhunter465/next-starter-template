@@ -17,17 +17,17 @@ This document is the canonical shared execution law. It moved here from `docs/op
 
 This document is the **detailed expansion** of shared AI-agent execution rules, including PR discipline, verification behavior, drift prevention, PR gate-readiness troubleshooting, and mandatory stop conditions.
 
-This file is the shared execution law. Do not treat retired pointer files as competing policy. Keep this document aligned with `Agent.md` and `docs/governance/REPOSITORY-AUTHORITY.md`; do not weaken restrictions.
+This file is the shared execution law. Do not treat retired pointer files as competing policy. Keep this document aligned with `AGENTS.md` and `docs/governance/REPOSITORY-AUTHORITY.md`; do not weaken restrictions.
 
 ## Mandatory documentation chain
 
-Before any repo work, every agent must follow the chain defined in [`Agent.md`](../../Agent.md):
+Before any repo work, every agent must follow the chain defined in [`AGENTS.md`](../../AGENTS.md):
 
-[`Agent.md`](../../Agent.md) → [`docs/governance/REPOSITORY-AUTHORITY.md`](./REPOSITORY-AUTHORITY.md) → [`docs/governance/AGENT-TEAM.md`](./AGENT-TEAM.md) → `docs/governance/AGENT-EXECUTION.md` (this document) → applicable agent-specific rule file → applicable repo governance/procedure docs → applicable `.agents/skills/*/SKILL.md` files.
+[`AGENTS.md`](../../AGENTS.md) → [`docs/governance/REPOSITORY-AUTHORITY.md`](./REPOSITORY-AUTHORITY.md) → [`docs/governance/AGENT-TEAM.md`](./AGENT-TEAM.md) → `docs/governance/AGENT-EXECUTION.md` (this document) → applicable agent-specific rule file → applicable repo governance/procedure docs → applicable `.agents/skills/*/SKILL.md` files.
 
 Rules:
 
-- Start at `Agent.md`; do not skip core rules.
+- Start at `AGENTS.md`; do not skip core rules.
 - Agent-specific rules are additive; they never replace shared law or repo governance.
 - For PR, issue, review, remediation, and implementation work, read `.agents/skills/lgfc-pr-governance/SKILL.md` and `.github/pull_request_template.md` before opening or updating a PR.
 - Task prompts and subagent instructions do not override this chain.
@@ -490,7 +490,7 @@ Every product-specific startup contract must, at minimum:
 4. Confirm repository identity.
 5. Confirm GitHub access.
 6. Confirm any other required connected-source access for that product (e.g., Google Drive, Notion workspace, local checkout).
-7. Read the complete mandatory authority chain from `Agent.md`.
+7. Read the complete mandatory authority chain from `AGENTS.md`.
 8. Read the product-specific rules file.
 9. Read the orientation digest, `context.md`: the stack, the vendors, and where the design and platform authorities live. It orients at a high level; follow its pointers when a task needs the detail.
 10. Report only explicitly supplied active context — no queue audit, no inferred work. This "no queue audit" rule applies only inside the startup steps themselves; reading the queue in Session lifecycle phase 2 is not a breach of it.

@@ -50,7 +50,7 @@ The repository defines these PR intent labels:
 |--------|---------|---------------|
 | **infra** | CI/CD, workflows, build config | `.github/**`, `scripts/**`, config files |
 | **feature** | Application features, UI, API | `src/**`, `functions/**`, `migrations/**`, `public/**` |
-| **docs-only** | Documentation changes only | `docs/**`, `Agent.md`, `active_tasklist.md` |
+| **docs-only** | Documentation changes only | `docs/**`, `AGENTS.md`, `active_tasklist.md` |
 | **platform** | Cloudflare runtime config only | `wrangler.toml`, `functions/**` |
 | **change-ops** | Operational changes, migrations, scripts | `migrations/**`, `scripts/d1-*`, `scripts/b2-*`, `data/**` |
 | **recovery** | Emergency fixes (break-glass) | All paths (unrestricted) |
@@ -346,7 +346,7 @@ Purge is **break-glass only**, used AFTER a ZIP is merged and discovered later.
 - `/.github/CI_GUARDRAILS_MAP.md` — CI workflow reference
 - `/.github/pull_request_template.md` — PR process and ZIP policy
 - `/docs/governance/PR_GOVERNANCE.md` — Governance and standards
-- `Agent.md` — Agent rules for file-touch discipline
+- `AGENTS.md` — Agent rules for file-touch discipline
 
 **CI Workflows:**
 - `.github/workflows/drift-gate.yml` — ZIP + intent enforcement

@@ -5,7 +5,7 @@ alwaysApply: true
 
 # Mandatory documentation chain
 
-Before repository work, read the chain in `Agent.md`. `docs/governance/AGENT-EXECUTION.md` is the shared execution law. `docs/ops/ai/CURSOR-RULES.md` is the Cursor startup contract. `docs/ops/ai/CORE-RULES.md` is a pointer.
+Before repository work, read the chain in `AGENTS.md`. `docs/governance/AGENT-EXECUTION.md` is the shared execution law. `docs/ops/ai/CURSOR-RULES.md` is the Cursor startup contract. `docs/ops/ai/CORE-RULES.md` is a pointer.
 
 Task prompts do not override that chain. Startup and the session lifecycle are defined in `docs/governance/AGENT-EXECUTION.md`. An unapproved Cursor workaround is denied.
 

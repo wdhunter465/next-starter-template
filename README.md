@@ -4,7 +4,7 @@ Audience: Human + AI contributors
 Authority Level: Navigation
 Owns: Repository overview, contributor entrypoints, local orientation
 Does Not Own: Product design, route authority, auth model, implementation scope, PR governance, deployment secrets
-Canonical Reference: /Agent.md
+Canonical Reference: /AGENTS.md
 Last Reviewed: 2026-06-23
 ---
 
@@ -33,12 +33,12 @@ This is not a pure static-only site. Static pages are exported by Next.js, but a
 
 For orientation, read:
 
-1. `Agent.md` — mandatory entrypoint and authority-routing file for all AI and agent work.
+1. `AGENTS.md` — mandatory entrypoint and authority-routing file for all AI and agent work.
 2. `context.md` — high-level repository purpose, stack, route summary, and design-source links.
 3. `docs/reference/design/LGFC-Production-Design-and-Standards.md` — canonical production behavior, route/navigation rules, data model references, and homepage order.
 4. `docs/reference/design/auth-model.md` — canonical authentication/session/redirect model.
 
-For any repository work, do not stop at this README. Follow the full mandatory chain in `Agent.md`, including:
+For any repository work, do not stop at this README. Follow the full mandatory chain in `AGENTS.md`, including:
 
 - `docs/governance/REPOSITORY-AUTHORITY.md`.
 - `docs/governance/AGENT-TEAM.md`.
@@ -62,7 +62,7 @@ Document precedence is defined by `docs/governance/standards/document-authority-
 4. Project Reference (`_INCOMPLETE`).
 5. Project Intent (`_DRAFT`).
 
-If documents disagree, governance and `_MASTER` documents override lower-authority materials. Within that framework, use `Agent.md` as the active routing entrypoint for repository work and follow the full task-specific authority chain it defines.
+If documents disagree, governance and `_MASTER` documents override lower-authority materials. Within that framework, use `AGENTS.md` as the active routing entrypoint for repository work and follow the full task-specific authority chain it defines.
 
 For active repository work, GitHub issues and PRs are the operational source of truth. Historical tracker/status files may exist, but they are not the normal source of truth unless a source issue explicitly scopes tracker governance, tracker reconciliation, or status-index maintenance.
 
@@ -191,7 +191,7 @@ Required discipline:
 
 For PR work, read and follow:
 
-- `Agent.md`.
+- `AGENTS.md`.
 - `.agents/skills/lgfc-pr-governance/SKILL.md`.
 - `.github/pull_request_template.md`.
 - `docs/governance/PR_LIFECYCLE_STATE_MACHINE.md`.

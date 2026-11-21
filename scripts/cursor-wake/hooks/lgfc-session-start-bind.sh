@@ -46,7 +46,7 @@ ctx = (
     f"--session {sid}. "
     "Repo checkout is the local source of truth (#5383): docs/ops/ai/CURSOR-RULES.md "
     "and .cursor/rules/*.mdc. Host ~/.cursor copies are installs only. "
-    "Product `run startup` is still orientation (Agent.md / CURSOR-RULES); "
+    "Product `run startup` is still orientation (AGENTS.md / CURSOR-RULES); "
     "do not skip it, and do not treat host bind as Issue authorization. "
     "Background services (wake loop, tick, poller, runner) are keepalives only. "
     "Continuous workflow is this agent'\''s job. "

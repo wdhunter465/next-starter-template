@@ -66,8 +66,8 @@ Last Reviewed: 2026-07-13
 
 | Current path | Current owner | Target owner | Action | Replacement / notes | Reference-update scope |
 | --- | --- | --- | --- | --- | --- |
-| \`docs/governance/legacy-header-only.md\` | Governance | Documentation and Knowledge | retain | Header-only failure fixture | \`Agent.md\` |
-| \`docs/governance/legacy-emergency-source.md\` | Governance | Documentation and Knowledge | migrate | Move to \`docs/reference/diataxis/emergency-target.md\` | \`Agent.md\` |
+| \`docs/governance/legacy-header-only.md\` | Governance | Documentation and Knowledge | retain | Header-only failure fixture | \`AGENTS.md\` |
+| \`docs/governance/legacy-emergency-source.md\` | Governance | Documentation and Knowledge | migrate | Move to \`docs/reference/diataxis/emergency-target.md\` | \`AGENTS.md\` |
 `;
 
 export const ONE_STEP_ROLLBACK_FIELDS = [

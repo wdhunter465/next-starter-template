@@ -151,7 +151,7 @@ The request is the comment on the source Issue. The alert is only a pointer to i
 | Target | Alert | Notes |
 | --- | --- | --- |
 | Claude Code | Start the request comment with the line `CLAUDE CODE RESUME`. The wake workflow (`docs/reference/ci/claude-code-wake-contract.md`) then posts a `CLAUDE CODE WAKE: delivered` comment that begins with `@claude`. | Delivery only, and only when `wdhunter465` posts it on an open Issue. The Claude Code session finds the request in the Issue, not in the alert. |
-| Cursor (local) | No comment-triggered wake. Cursor finds the request at its queue pass, on an Issue it owns or collaborates on. | Do not use `@cursor`: it invokes Cursor Cloud and is not a substitute for local routing (`Agent.md`, Cursor runtime boundary). |
+| Cursor (local) | No comment-triggered wake. Cursor finds the request at its queue pass, on an Issue it owns or collaborates on. | Do not use `@cursor`: it invokes Cursor Cloud and is not a substitute for local routing (`AGENTS.md`, Cursor runtime boundary). |
 
 Both agents post through Product Authority's GitHub account, so the author name does not say who wrote a comment. Every collaboration comment names the requesting or responding agent and role in its body and ends with the agent's footer.
 

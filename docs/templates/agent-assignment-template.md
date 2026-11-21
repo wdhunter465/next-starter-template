@@ -100,7 +100,7 @@ Use only the primary source Issue as task authority. Do not treat umbrella Issue
 
 Read before acting:
 
-1. `Agent.md`
+1. `AGENTS.md`
 2. `docs/governance/REPOSITORY-AUTHORITY.md`
 3. `docs/governance/AGENT-TEAM.md`
 4. `docs/ops/ai/CORE-RULES.md`
@@ -381,7 +381,7 @@ Do not:
 
 ## 7. Required references
 
-- Constitution and authority order: `Agent.md`, `docs/governance/REPOSITORY-AUTHORITY.md`
+- Constitution and authority order: `AGENTS.md`, `docs/governance/REPOSITORY-AUTHORITY.md`
 - Durable roles and current mappings: `docs/governance/AGENT-TEAM.md`
 - Shared execution rules: `docs/ops/ai/CORE-RULES.md`
 - Execution fidelity: `docs/governance/standards/AGENT-EXECUTION-FIDELITY.md`
