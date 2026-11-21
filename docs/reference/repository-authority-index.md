@@ -15,9 +15,9 @@ Last Reviewed: 2026-05-14
 
 This document indexes current repository authority locations.
 
-Humans and AI agents should use this index to find the correct authority document after entering through the primary repository entry points, including `README.md`, `Agent.md`, and governance standards.
+Humans and AI agents should use this index to find the correct authority document after entering through the primary repository entry points, including `README.md`, `AGENTS.md`, and governance standards.
 
-This document does not replace `Agent.md` as the single agent entry point.
+This document does not replace `AGENTS.md` as the single agent entry point.
 
 This document does not define authority-resolution rules. Authority resolution is owned by `/docs/governance/standards/DIATAXIS-AUTHORITY-RESOLUTION.md` and `/docs/governance/standards/document-authority-hierarchy_MASTER.md`.
 
@@ -31,7 +31,7 @@ This document does not define authority-resolution rules. Authority resolution i
 | Content inventory architecture | `/docs/reference/content-inventory-design-spec.md` |
 | Content inventory schema | `/docs/reference/content-inventory-d1-schema.md` |
 | PR governance | `.github/pull_request_template.md` |
-| Agent entry point | `Agent.md` |
+| Agent entry point | `AGENTS.md` |
 | Repository governance normalization tracking | Issue #1019 and child governance issues |
 | Operational work tracking | implementation worklists and active issues |
 

@@ -4,7 +4,7 @@ Audience: Human + AI
 Authority Level: Binding
 Owns: Cross-agent execution fidelity — approved-action contracts, literal execution of agreed elements, end-state reconciliation, blocker handling, and completion semantics for live LGFC agents and future members mapped in AGENT-TEAM.md
 Does Not Own: Role mapping, merge authority, Product direction, assignment priority, PR process redesign, or incidental implementation details intentionally left open inside an approved contract
-Canonical Reference: /Agent.md
+Canonical Reference: /AGENTS.md
 Related Issues: #3138, #4213, #4320
 Last Reviewed: 2026-09-22
 ---
@@ -25,7 +25,7 @@ Before this standard, no single canonical document defined what "approved action
 
 ## Intended final state
 
-This standard is the single, stable source of the execution-fidelity contract for every LGFC agent and runtime (`## Scope`). It is not phased and has no planned future revisions beyond ordinary maintenance: routing from `Agent.md`, `docs/ops/ai/CORE-RULES.md`, and `docs/templates/agent-assignment-template.md` all point here as the canonical doctrine (`## Routing (single owner)`), and agent-specific rule files remain additive only, never duplicating or weakening it. Steady state is reached once every assignment that carries an approved multi-element action records it as an Execution Contract (template section 9a) and every completion claim is backed by element-by-element `Agreed → Delivered → PASS/FAIL` verification (template section 15a).
+This standard is the single, stable source of the execution-fidelity contract for every LGFC agent and runtime (`## Scope`). It is not phased and has no planned future revisions beyond ordinary maintenance: routing from `AGENTS.md`, `docs/ops/ai/CORE-RULES.md`, and `docs/templates/agent-assignment-template.md` all point here as the canonical doctrine (`## Routing (single owner)`), and agent-specific rule files remain additive only, never duplicating or weakening it. Steady state is reached once every assignment that carries an approved multi-element action records it as an Execution Contract (template section 9a) and every completion claim is backed by element-by-element `Agreed → Delivered → PASS/FAIL` verification (template section 15a).
 
 ## Scope
 
@@ -179,7 +179,7 @@ Contract defines required result but leaves a minor internal detail open. Expect
 ## Routing (single owner)
 
 ```text
-Agent.md (discovery)
+AGENTS.md (discovery)
   -> docs/ops/ai/CORE-RULES.md (mandatory all-agent reference)
   -> this standard (canonical doctrine)
   -> docs/templates/agent-assignment-template.md (mechanical fields)
@@ -189,7 +189,7 @@ Agent-specific rule files are additive and must not duplicate or weaken this doc
 
 ## Related authority
 
-- Entry routing: `Agent.md`
+- Entry routing: `AGENTS.md`
 - Shared execution: `docs/ops/ai/CORE-RULES.md`
 - Assignment template: `docs/templates/agent-assignment-template.md`
 - Roles: `docs/governance/AGENT-TEAM.md`

@@ -1,6 +1,6 @@
 # Claude Code session preferences (this repo)
 
-The operating rules for Claude Code are in `docs/ops/ai/CLAUDE-CODE-RULES.md`, reached through `Agent.md`'s authority chain. If this file and those documents differ, the documents win.
+The operating rules for Claude Code are in `docs/ops/ai/CLAUDE-CODE-RULES.md`, reached through `AGENTS.md`'s authority chain. If this file and those documents differ, the documents win.
 
 ## Pull requests: create ready for review, not draft
 

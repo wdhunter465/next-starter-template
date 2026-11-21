@@ -155,11 +155,11 @@ Open Operations exception Issues on 2026-10-22: #4714, #4725, #4726, #4730 (`tea
 
 For any agent or human starting work:
 
-1. `Agent.md` (mandatory entrypoint)
+1. `AGENTS.md` (mandatory entrypoint)
 2. This file (`docs/ops/pmo/CURRENT-STATE.md`)
 3. Source GitHub Issue for the task
 4. Applicable design / governance / PMO docs linked from the Issue
-5. `docs/governance/AGENT-EXECUTION.md` and the product-specific rules named in `Agent.md`
+5. `docs/governance/AGENT-EXECUTION.md` and the product-specific rules named in `AGENTS.md`
 6. `.agents/skills/lgfc-pr-governance/SKILL.md` when PR work is involved
 
 ## Operator stop conditions
@@ -193,4 +193,4 @@ Do not bulk-edit this file for every trivial Issue state change. Prefer routing 
 - `docs/governance/REPOSITORY-AUTHORITY.md`
 - `docs/governance/WORK-QUEUES-AND-COLLABORATION.md`
 - `docs/governance/PROJECT-DOCUMENTATION-AND-AS-BUILT.md`
-- `Agent.md` / `README.md`
+- `AGENTS.md` / `README.md`

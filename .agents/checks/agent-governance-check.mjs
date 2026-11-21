@@ -16,7 +16,7 @@ export const BOOTSTRAP_FILES = [
 ];
 
 export const BOOTSTRAP_REQUIRED_PATH_REFERENCES = [
-  'Agent.md',
+  'AGENTS.md',
   'docs/governance/REPOSITORY-AUTHORITY.md',
   'docs/governance/AGENT-TEAM.md',
   'docs/ops/ai/CORE-RULES.md',
@@ -34,7 +34,7 @@ export const AGENTS_MD_CLOUD_BOOTSTRAP_REQUIRED_PHRASES = [
   'repo-work, readiness, implementation, or PR-governance claim',
   'required but not yet read',
   'docs/how-to/cursor/open-task-pr.md',
-  'compatibility/router',
+  'single repository entry',
   'applicable product-specific pointer',
   'Cursor Cloud route',
 ];
@@ -43,7 +43,6 @@ export const AGENTS_MD_EXCLUSIVE_CURSOR_STEP5 = /^\s*5\.\s*`?docs\/ops\/ai\/CURS
 
 export const AGENTS_MD_BOOTSTRAP_REPORT_REQUIRED = [
   'AGENTS.md: read',
-  'Agent.md: read',
   'REPOSITORY-AUTHORITY.md: read',
   'AGENT-TEAM.md: read',
   'CORE-RULES.md: read',
@@ -63,8 +62,10 @@ export const BOOTSTRAP_FORBIDDEN_MCP_PATHS = [
 
 export const MAX_BOOTSTRAP_RULE_LINES = 80;
 
+const ENTRY_FILE = 'AGENTS.md';
+
 const requiredFiles = [
-  'Agent.md',
+  ENTRY_FILE,
   '.agents/checks/agent-governance-check.mjs',
   '.agents/skills/lgfc-pr-governance/SKILL.md',
   '.agents/skills/lgfc-design-compliance/SKILL.md',
@@ -78,7 +79,7 @@ const requiredFiles = [
   'docs/ops/ai/CODEX-RULES.md',
 ];
 
-const requiredAgentText = [
+const requiredEntryText = [
   '.agents/skills/lgfc-pr-governance/SKILL.md',
   '.agents/skills/lgfc-design-compliance/SKILL.md',
   '.agents/skills/lgfc-docs-authority/SKILL.md',
@@ -90,9 +91,9 @@ const requiredAgentText = [
   '.github/workflows/agent-governance.yml',
 ];
 
-// #2823 retired these as authority surfaces. #3155 archived them. Agent.md names
+// #2823 retired these as authority surfaces. #3155 archived them. AGENTS.md names
 // the archive paths as historical/superseded, not as required reading. Enforce
-// the retirement marker at the archive paths.
+// the retirement marker at the archive paths. #2794: AGENTS.md is the single entry.
 const SUPERSEDED_MARKER = 'SUPERSEDED (#2823';
 
 const LEGACY_MARKDOWN_FILES = [
@@ -142,11 +143,11 @@ export function validateLegacyAgentGovernance(root) {
     }
   }
 
-  if (exists(root, 'Agent.md')) {
-    const agent = read(root, 'Agent.md');
-    for (const required of requiredAgentText) {
-      if (!agent.includes(required)) {
-        failures.push(`Agent.md does not reference required path: ${required}`);
+  if (exists(root, ENTRY_FILE)) {
+    const entry = read(root, ENTRY_FILE);
+    for (const required of requiredEntryText) {
+      if (!entry.includes(required)) {
+        failures.push(`${ENTRY_FILE} does not reference required path: ${required}`);
       }
     }
   }
@@ -165,15 +166,15 @@ export function validateLegacyAgentGovernance(root) {
     }
   }
 
-  if (exists(root, 'Agent.md')) {
-    const agent = read(root, 'Agent.md');
+  if (exists(root, ENTRY_FILE)) {
+    const entry = read(root, ENTRY_FILE);
     for (const legacyFile of LEGACY_MARKDOWN_FILES) {
-      if (!agent.includes(legacyFile)) {
-        failures.push(`Agent.md does not reference retired path: ${legacyFile}`);
+      if (!entry.includes(legacyFile)) {
+        failures.push(`${ENTRY_FILE} does not reference retired path: ${legacyFile}`);
       }
     }
-    if (!agent.includes('historical/superseded')) {
-      failures.push('Agent.md must mark the legacy governance/ops files as historical/superseded, not required navigation');
+    if (!entry.includes('historical/superseded')) {
+      failures.push(`${ENTRY_FILE} must mark the legacy governance/ops files as historical/superseded, not required navigation`);
     }
   }
 
@@ -195,13 +196,10 @@ export function validateBootstrap(root) {
     }
   }
 
-  if (exists(root, 'Agent.md')) {
-    const agent = read(root, 'Agent.md');
-    if (!agent.includes('.cursor/rules/')) {
-      failures.push('Agent.md must reference .cursor/rules/ bootstrap');
-    }
-    if (!agent.includes('AGENTS.md')) {
-      failures.push('Agent.md must reference AGENTS.md bootstrap');
+  if (exists(root, ENTRY_FILE)) {
+    const entry = read(root, ENTRY_FILE);
+    if (!entry.includes('.cursor/rules/')) {
+      failures.push(`${ENTRY_FILE} must reference .cursor/rules/ bootstrap`);
     }
   }
 

@@ -23,7 +23,7 @@ const GOVERNANCE_SCAN_ROOTS = [
   'ops/ai',
 ];
 
-const EXTRA_SCAN_FILES = ['Agent.md', 'AGENTS.md'];
+const EXTRA_SCAN_FILES = ['AGENTS.md', 'AGENTS.md'];
 
 function listMarkdownFiles(root, base) {
   const dir = path.join(base, root);

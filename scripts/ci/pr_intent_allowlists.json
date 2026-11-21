@@ -18,7 +18,7 @@
         "wrangler.toml",
         ".env.example",
         ".gitignore",
-        "Agent.md",
+        "AGENTS.md",
         "context.md",
         "active_tasklist.md"
       ],
@@ -46,7 +46,7 @@
     "docs-only": {
       "allow_prefixes": [
         "docs/",
-        "Agent.md",
+        "AGENTS.md",
         "active_tasklist.md"
       ],
       "deny_prefixes": []

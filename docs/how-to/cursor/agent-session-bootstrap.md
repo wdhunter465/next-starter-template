@@ -4,7 +4,7 @@ Audience: Human + AI
 Authority Level: Procedure
 Owns: Cursor local and Cloud Agent session bootstrap verification
 Does Not Own: Canonical governance doctrine or merge authority
-Canonical Reference: /Agent.md
+Canonical Reference: /AGENTS.md
 Related Issues: #1609, #1614, #2398, #3212, #3424, #3815, #4776
 Last Reviewed: 2026-10-26
 ---
@@ -20,7 +20,7 @@ Verify that Cursor local and Cloud Agent sessions receive thin bootstrap routing
 | Surface | Audience | Mechanism |
 | --- | --- | --- |
 | `.cursor/rules/*.mdc` | Local Composer/Agent | `alwaysApply: true` project rules |
-| `AGENTS.md` | Product-neutral router (Cursor Cloud plus other tools that auto-load this filename) | Root-level compatibility/router to `Agent.md` and the applicable product pointer. Cursor-only transport lives in the labeled **Cursor Cloud route** section (#3815). |
+| `AGENTS.md` | Single repository entry/control file (Cursor Cloud plus other tools that auto-load this filename) | Mandatory authority chain and product pointers. Cursor-only transport lives in the labeled **Cursor Cloud route** section (#3815 / #2794). |
 | `.agents/skills/*/SKILL.md` | All agents | Relevance-selected skills — **not** always-on bootstrap |
 
 MCP servers are **not** part of session bootstrap. MCP connects external tools; project rules and `AGENTS.md` supply routing context.
@@ -36,7 +36,7 @@ MCP servers are **not** part of session bootstrap. MCP connects external tools; 
    - `00-mandatory-doc-chain`
    - `10-pr-governance-preflight`
    - `20-stop-conditions`
-3. Ask the agent which documentation chain it must read before implementation; confirm it cites `Agent.md` and the shared/core/Cursor rule paths.
+3. Ask the agent which documentation chain it must read before implementation; confirm it cites `AGENTS.md` and the shared/core/Cursor rule paths.
 4. Run `node .agents/checks/agent-governance-check.mjs .` — expect **PASS**.
 
 ### Verify Cloud Agent bootstrap
@@ -45,7 +45,6 @@ MCP servers are **not** part of session bootstrap. MCP connects external tools; 
 2. Ask the agent to report which bootstrap rules or `AGENTS.md` instructions it loaded **before doing anything else**.
 3. Confirm the first bootstrap report marks each canonical file as **read** (not "required but not yet read"):
    - AGENTS.md: read
-   - Agent.md: read
    - REPOSITORY-AUTHORITY.md: read
    - AGENT-TEAM.md: read
    - CORE-RULES.md: read
