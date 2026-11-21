@@ -5,8 +5,8 @@ Authority Level: Agent-Specific
 Owns: Cursor product identity, the Cursor startup contract, background-service definitions, continuous-workflow orientation, and the keepalive statement
 Does Not Own: Agent-team policy, role assignment, PMO lifecycle, shared execution law, merge authority, or approval authority
 Canonical Reference: /docs/governance/AGENT-EXECUTION.md
-Related Issues: #3825, #4449, #4596, #4676, #4716, #4783, #4928, #4982, #4994, #5012, #5016, #5034, #5379, #3188, #5383, #5408
-Last Reviewed: 2026-11-20
+Related Issues: #3825, #4449, #4596, #4676, #4716, #4783, #4928, #4982, #4994, #5012, #5016, #5034, #5379, #3188, #5383, #5408, #5426, #5432
+Last Reviewed: 2026-11-21
 ---
 
 # CURSOR-RULES.md
@@ -29,6 +29,23 @@ The **local repository checkout** is the source of truth for Cursor Local orient
 | Product Authority chat instructions | Interrupt / Go / takeover only. They do not replace this file or shared law. |
 
 Always-applied Local rule cards under `.cursor/rules/` load from the checkout for every new session. Do not install skills or rules under `~/.cursor/`; those live only in the repository.
+
+## Standing approval: shell command allowlist (Product Authority, 2026-07-31; recorded in the repo 2026-11-21, #5432)
+
+Product Authority issued this approval in a local Cursor session on 2026-07-31 and decided on 2026-11-21 (#5426) that it belongs in the repository. His words: "I am issuing a standing approval to update the allowlist as commands are found to be needed and need to be added to the allowlist. all such occurrences are approved in advance."
+
+**What is approved.** When a shell command that Cursor Local legitimately needs is blocked because it is not on the command allowlist, Cursor may add the matching pattern to `permissions.allow` in `~/.cursor/cli-config.json` and retry, without asking for approval of each command.
+
+**Rules for using it.**
+
+- Add the narrowest pattern that unblocks the need. Prefer one tool (`Shell(tool*)`) over a broad wildcard.
+- Never add a pattern to work around repository governance, a secrets boundary, or a destructive-action confirmation that Product Authority would otherwise be asked about.
+- Leave `permissions.deny` untouched unless Product Authority instructs otherwise.
+- Name every allowlist addition in the session summary, so there is a visible record.
+
+**Limits.** This approval covers Cursor Local's own `cli-config.json` and nothing else. It does not apply to Cursor Cloud, to any other agent, or to files in the repository, and it does not authorize a Production write, a credential, a cost commitment or any protected decision. It is a previously approved exception and authorizes no other workaround.
+
+The allowlist itself is host permission configuration and stays on the host. This section is the authority for changing it; the host holds no copy of this text (see Local source of truth).
 
 ## Background services (keepalives only)
 
