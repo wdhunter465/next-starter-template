@@ -12,9 +12,11 @@ import {
   BULK_PHOTO_LGFC_CREDIT,
   classifyBulkScreenshot,
   decideBulkPhotoRights,
+  findNearDuplicatePhotoMatches,
   flagFlatCopyLookAlike,
   isHeicFileName,
   isValidBulkBatchId,
+  type BulkNearDuplicateMatch,
 } from '../../../_lib/bulk-photo-upload-checks';
 import { requireD1, requireTables, jsonResponse } from '../../../_lib/d1';
 import { computePerceptualHash } from '../../../_lib/perceptual-hash';
@@ -61,6 +63,7 @@ function buildRightsNotes(input: {
   flatCopyFlagged: boolean;
   flatCopyReasons: string[];
   identicalPhashPhotoId: number | null;
+  nearDuplicateMatches: BulkNearDuplicateMatch[];
 }): string {
   return JSON.stringify({
     bulk_batch_id: input.batchId,
@@ -72,8 +75,12 @@ function buildRightsNotes(input: {
     screenshot_reasons: input.screenshotReasons,
     flat_copy_flagged: input.flatCopyFlagged,
     flat_copy_reasons: input.flatCopyReasons,
-    // Identical phash only in slice 1; Hamming-threshold site-wide match is slice 3 (#4707).
     identical_phash_photo_id: input.identicalPhashPhotoId,
+    // Slice 3: Hamming ≤ 10 vs site photos (#4707). Flag only — never auto-remove.
+    near_duplicate_matches: input.nearDuplicateMatches.map((m) => ({
+      photo_id: m.photoId,
+      distance: m.distance,
+    })),
     unpublished: true,
   });
 }
@@ -175,8 +182,9 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     perceptualHash = null;
   }
 
-  // Slice 1: identical phash only (exact tag match). Site-wide Hamming threshold is #4707.
+  // Slice 1: identical phash (exact tag match). Slice 3: Hamming ≤ 10 vs other site phashes (#4707).
   let identicalPhashPhotoId: number | null = null;
+  let nearDuplicateMatches: BulkNearDuplicateMatch[] = [];
   if (perceptualHash) {
     const sameHash = await d1.db
       .prepare(
@@ -188,6 +196,15 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     if (sameHash?.id) {
       identicalPhashPhotoId = Number(sameHash.id);
     }
+
+    const phashRows = await d1.db
+      .prepare(
+        `SELECT id, tags FROM photos WHERE tags LIKE '%phash:%' LIMIT 5000`,
+      )
+      .all()
+      .catch(() => ({ results: [] as Array<{ id: number; tags: string | null }> }));
+    const candidates = (phashRows?.results ?? []) as Array<{ id: number; tags: string | null }>;
+    nearDuplicateMatches = findNearDuplicatePhotoMatches(perceptualHash, candidates);
   }
 
   const ext = validated.format === 'jpeg' ? 'jpg' : validated.format;
@@ -225,6 +242,7 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     flatCopyFlagged: flatCopy.flagged,
     flatCopyReasons: flatCopy.reasons,
     identicalPhashPhotoId,
+    nearDuplicateMatches,
   });
 
   const insert = await d1.db
@@ -260,6 +278,10 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     flat_copy_flagged: flatCopy.flagged,
     flat_copy_reasons: flatCopy.reasons,
     identical_phash_photo_id: identicalPhashPhotoId,
+    near_duplicate_matches: nearDuplicateMatches.map((m) => ({
+      photo_id: m.photoId,
+      distance: m.distance,
+    })),
     rights_class: rightsDecision.rightsClass,
     credit_line: rightsDecision.creditLine,
     rights_hold: true,

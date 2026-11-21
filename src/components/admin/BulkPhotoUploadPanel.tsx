@@ -338,6 +338,14 @@ export default function BulkPhotoUploadPanel() {
                   identical phash photo id: {r.identicalPhashPhotoId} (note only)
                 </div>
               ) : null}
+              {r?.nearDuplicateMatches?.length ? (
+                <div style={{ opacity: 0.8, marginTop: 4 }}>
+                  near-duplicate photo ids:{' '}
+                  {r.nearDuplicateMatches
+                    .map((m) => `${m.photoId} (distance ${m.distance})`)
+                    .join(', ')}
+                </div>
+              ) : null}
               {r?.status === 'check_these' ? (
                 <div style={{ marginTop: 6, fontSize: 13 }}>
                   Check list is read-only in this slice.{' '}

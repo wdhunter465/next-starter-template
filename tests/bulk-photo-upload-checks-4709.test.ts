@@ -3,10 +3,14 @@ import { describe, expect, it } from 'vitest';
 import {
   BULK_PHOTO_LGFC_CREDIT,
   decideBulkPhotoRights,
+  extractPhashFromTags,
+  findNearDuplicatePhotoMatches,
   flagFlatCopyLookAlike,
   isHeicFileName,
   isValidBulkBatchId,
+  NEAR_DUPLICATE_MAX_DISTANCE,
 } from '../functions/_lib/bulk-photo-upload-checks';
+import { hammingDistanceHex } from '../functions/_lib/perceptual-hash';
 
 describe('bulk photo upload checks (#4709)', () => {
   it('sets LGFC holder and credit for lgfc_collection and always holds rights', () => {
@@ -66,5 +70,29 @@ describe('bulk photo upload checks (#4709)', () => {
     expect(isValidBulkBatchId('..')).toBe(false);
     expect(isValidBulkBatchId('.')).toBe(false);
     expect(isValidBulkBatchId('a..b')).toBe(false);
+  });
+
+  it('extracts phash tags and finds near-duplicates at Hamming ≤ 10 (#4709 slice 3)', () => {
+    expect(NEAR_DUPLICATE_MAX_DISTANCE).toBe(10);
+    expect(extractPhashFromTags('bulk_batch:b,phash:abcdef0123456789,screenshot:ok')).toBe(
+      'abcdef0123456789',
+    );
+    expect(extractPhashFromTags('no-hash-here')).toBeNull();
+
+    const base = '0000000000000000';
+    // Flip one bit → distance 1 (within threshold).
+    const near = '0000000000000001';
+    expect(hammingDistanceHex(base, near)).toBe(1);
+    // Flip many bits → outside threshold.
+    const far = 'ffffffffffffffff';
+    expect(hammingDistanceHex(base, far)).toBe(64);
+
+    const matches = findNearDuplicatePhotoMatches(base, [
+      { id: 10, tags: `phash:${near}` },
+      { id: 11, tags: `phash:${base}` }, // identical — excluded
+      { id: 12, tags: `phash:${far}` },
+      { id: 13, tags: null },
+    ]);
+    expect(matches).toEqual([{ photoId: 10, distance: 1, phash: near }]);
   });
 });

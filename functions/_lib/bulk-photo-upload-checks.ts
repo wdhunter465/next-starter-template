@@ -1,11 +1,22 @@
-// Pure checks for admin bulk photo upload (#4709 slice 1).
+// Pure checks for admin bulk photo upload (#4709).
 // No B2/D1 writes, no network I/O, no route wiring.
 // Screenshot heuristics live in screenshot-detection.ts (merged #4710).
+// Near-duplicate Hamming threshold aligns with #4707 / duplicate-photo-sweep.
 
 import { classifyScreenshot, type ScreenshotClassification } from './screenshot-detection';
+import { hammingDistanceHex } from './perceptual-hash';
 import type { PhotoUploadDimensions, PhotoUploadImageFormat } from './photo-upload-validation';
 
 export const BULK_PHOTO_LGFC_CREDIT = 'Photo: Lou Gehrig Fan Club';
+
+/** Same threshold as `scripts/ops/duplicate-photo-sweep.mjs` (#4707). */
+export const NEAR_DUPLICATE_MAX_DISTANCE = 10;
+
+export type BulkNearDuplicateMatch = {
+  photoId: number;
+  distance: number;
+  phash: string;
+};
 
 export type BulkPhotoRightsClass = 'lgfc_collection' | 'someone_elses';
 
@@ -95,4 +106,42 @@ export function classifyBulkScreenshot(input: {
   bytes: Uint8Array;
 }): ScreenshotClassification {
   return classifyScreenshot(input);
+}
+
+/** First `phash:<hex>` token from comma-separated `photos.tags`, or null. */
+export function extractPhashFromTags(tags: string | null | undefined): string | null {
+  if (!tags) return null;
+  for (const part of tags.split(',')) {
+    const token = part.trim();
+    if (!token.toLowerCase().startsWith('phash:')) continue;
+    const value = token.slice('phash:'.length).trim().toLowerCase();
+    if (/^[0-9a-f]{16}$/.test(value)) return value;
+  }
+  return null;
+}
+
+/**
+ * Near-duplicates vs stored photo phash tags (Hamming ≤ maxDistance).
+ * Distance 0 (identical phash) is excluded — callers already flag that separately.
+ * Never auto-removes; returns matches for person review only.
+ */
+export function findNearDuplicatePhotoMatches(
+  perceptualHash: string,
+  candidates: Array<{ id: number; tags: string | null }>,
+  maxDistance: number = NEAR_DUPLICATE_MAX_DISTANCE,
+): BulkNearDuplicateMatch[] {
+  const needle = perceptualHash.trim().toLowerCase();
+  if (!/^[0-9a-f]{16}$/.test(needle)) return [];
+
+  const matches: BulkNearDuplicateMatch[] = [];
+  for (const row of candidates) {
+    const phash = extractPhashFromTags(row.tags);
+    if (!phash) continue;
+    const distance = hammingDistanceHex(needle, phash);
+    if (distance === 0) continue;
+    if (distance > maxDistance) continue;
+    matches.push({ photoId: Number(row.id), distance, phash });
+  }
+  matches.sort((a, b) => a.distance - b.distance || a.photoId - b.photoId);
+  return matches;
 }
