@@ -75,6 +75,12 @@ import { fetchEuropeanaItems, mapEuropeanaItemToCandidateFields } from '../../fu
 import { fetchSmithsonianRows, mapSmithsonianRowToCandidateFields } from '../../functions/_lib/content-pipeline-smithsonian-adapter.ts';
 import { normalizeSourceUrl } from '../../functions/_lib/content-pipeline-url-normalize.ts';
 import { buildDiscoveryUrl } from './discovery-query-plan.mjs';
+import {
+  LOUGEHRIG_ORIGIN,
+  LOUGEHRIG_REST,
+  LOUGEHRIG_SOURCE_NAME,
+  buildLougehrigCandidateFields,
+} from './lougehrig-collector-lib.mjs';
 import { withOriginTerms } from './discovery-evidence-terms.mjs';
 import { applyCopyQuality, loadCopyQualityLists } from './gehrig-copy-quality.mjs';
 
@@ -93,6 +99,7 @@ const SOURCE_DOMAINS = {
   nara: 'catalog.archives.gov',
   europeana: 'europeana.eu',
   smithsonian: 'si.edu',
+  lougehrig: 'lougehrig.com',
 };
 
 const DEFAULT_QUERY = 'Lou Gehrig';
@@ -112,7 +119,7 @@ const DEFAULT_LIMIT = 20;
 const DEFAULT_OUT = 'data/research/lou-gehrig-content-candidates-external-discovery.json';
 const SEED_FILE = 'data/research/lou-gehrig-content-candidates.json';
 const RESEARCH_DIR = 'data/research';
-const KNOWN_SOURCES = ['openverse', 'loc', 'wikimedia', 'commonscat', 'dpla', 'internetarchive', 'chroniclingamerica', 'nara', 'europeana', 'smithsonian'];
+const KNOWN_SOURCES = ['openverse', 'loc', 'wikimedia', 'commonscat', 'dpla', 'internetarchive', 'chroniclingamerica', 'nara', 'europeana', 'smithsonian', 'lougehrig'];
 
 function printUsage() {
   console.log(
@@ -906,6 +913,47 @@ async function collectSmithsonian(query, limit, nextId) {
     .map((fields) => baseCandidate({ id: nextId(), ...fields }));
 }
 
+// #4839: lougehrig.com, the CMG Worldwide site. Opt-in only (`--sources lougehrig`); never in DEFAULT_SOURCES.
+// A small fixed site, so every query returns the same set: the pages, news posts and media are fetched once per
+// run and the known-URL check drops the repeats. Metadata and provenance only; nothing is downloaded or hosted.
+let lougehrigSiteCache = null;
+
+async function loadLougehrigSite() {
+  if (!lougehrigSiteCache) {
+    const rest = (route, fields) => `${LOUGEHRIG_REST}/${route}?per_page=100&_fields=${fields}`;
+    lougehrigSiteCache = Promise.all([
+      fetchJson(rest('pages', 'id,slug,link,title,date,modified,content')),
+      fetchJson(rest('posts', 'id,link,title,date,excerpt,content')),
+      fetchJson(rest('media', 'id,date,source_url,mime_type')),
+    ]).then(([pages, posts, media]) => ({ pages, posts, media }));
+    lougehrigSiteCache.catch(() => {
+      lougehrigSiteCache = null; // a failed run must not poison the next query
+    });
+  }
+  return lougehrigSiteCache;
+}
+
+async function collectLougehrig(_query, _limit, nextId) {
+  const site = await loadLougehrigSite();
+  return buildLougehrigCandidateFields(site).map((fields) => {
+    const { kind, heldDoNotHost, ...rest } = fields;
+    const candidate = baseCandidate({
+      id: nextId(),
+      sourceType: 'operator',
+      sourceName: LOUGEHRIG_SOURCE_NAME,
+      sourceOwner: 'CMG Worldwide',
+      sourceDomain: 'lougehrig.com',
+      sourceCitation: `${LOUGEHRIG_ORIGIN} (${kind}), CMG Worldwide`,
+      ...rest,
+    });
+    if (heldDoNotHost) {
+      candidate.admin_notes = `${candidate.admin_notes} HOLD, DO NOT HOST: credited to AP or Getty (Product Authority, 2026-11-19).`;
+      candidate.review_priority = 'low';
+    }
+    return candidate;
+  });
+}
+
 const COLLECTORS = {
   openverse: collectOpenverse,
   loc: collectLibraryOfCongress,
@@ -917,6 +965,7 @@ const COLLECTORS = {
   nara: collectNara,
   europeana: collectEuropeana,
   smithsonian: collectSmithsonian,
+  lougehrig: collectLougehrig,
 };
 
 // A finished discovery run exits 0 even when a source stays down. Search-runs
@@ -932,6 +981,7 @@ export async function runDiscovery(options, fetchImpl) {
   try {
     return await runDiscoveryWithFetch(options);
   } finally {
+    lougehrigSiteCache = null;
     if (fetchImpl) globalThis.fetch = previousFetch;
   }
 }
