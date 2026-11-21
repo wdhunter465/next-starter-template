@@ -131,4 +131,29 @@ describe('poll-github resumeQueue wait:* (#5292)', () => {
     expect(items[0].waiting).toBe(true);
     expect(items[0].waitingReason).toBe('wait_labels:wait:product+status:hold');
   });
+
+  it('marks ops_interrupt with social-post as waiting (#5449 / #5405)', () => {
+    const items = [
+      {
+        kind: 'ops_interrupt',
+        number: 5438,
+        title: 'daily facebook hand-off',
+        detail: 'ops:priority:4',
+        rank: 4,
+      },
+    ];
+    applyIssueWaitLabelsToResumeQueue(items, [
+      {
+        number: 5438,
+        labels: [
+          { name: 'team:operations' },
+          { name: 'ops:priority:4' },
+          { name: 'social-post' },
+          { name: 'social:facebook' },
+        ],
+      },
+    ]);
+    expect(items[0].waiting).toBe(true);
+    expect(items[0].waitingReason).toBe('social-post');
+  });
 });
