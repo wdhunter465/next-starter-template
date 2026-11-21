@@ -33,6 +33,9 @@ export function targetsCursorRole(body) {
     /\bto\s+Cursor\b/i.test(text) ||
     /\bfor\s+Cursor\b/i.test(text) ||
     /\bTarget:\s*Cursor\b/i.test(text) ||
+    // Standard collaboration vocabulary (#3188 / #5442), e.g.
+    // "Target agent / role: Cursor, CMO alternate (secondary)"
+    /\bTarget\s+agent\s*\/\s*role:\s*Cursor\b/i.test(text) ||
     /\bCursor\s*\(/i.test(text) ||
     /@cursor\b/i.test(text)
   );
