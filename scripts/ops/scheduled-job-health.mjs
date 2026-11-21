@@ -82,10 +82,22 @@ export async function fetchJobStatus(job, { repository, headers, branch, fetchIm
   if (workflow.status === 404) return { state: null, lastSuccessAt: null };
   if (!workflow.ok) throw new Error(`GET ${job.file} failed: ${workflow.status}`);
   const { state, created_at: createdAt = null } = await workflow.json();
-  const runs = await fetchImpl(`${base}/runs?branch=${encodeURIComponent(branch)}&status=success&per_page=1`, { headers });
+  // Do not pass conclusion=… — the workflow-runs API has no conclusion filter; unknown
+  // params are dropped and the list becomes unfiltered (#5418 / Claude CMO review).
+  // status=success can also lag and miss the newest success (#5416). List recent runs
+  // and pick the first with conclusion === 'success' client-side.
+  const runs = await fetchImpl(
+    `${base}/runs?branch=${encodeURIComponent(branch)}&per_page=20`,
+    { headers },
+  );
   if (!runs.ok) throw new Error(`GET ${job.file} runs failed: ${runs.status}`);
-  const latest = (await runs.json()).workflow_runs?.[0];
-  return { state, createdAt, lastSuccessAt: latest?.updated_at || latest?.created_at || null };
+  const page = (await runs.json()).workflow_runs || [];
+  const latestSuccess = page.find((run) => run.conclusion === 'success');
+  return {
+    state,
+    createdAt,
+    lastSuccessAt: latestSuccess?.updated_at || latestSuccess?.created_at || null,
+  };
 }
 
 export async function runCheck(jobs, context, now = new Date()) {

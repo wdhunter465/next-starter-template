@@ -91,7 +91,7 @@ describe('monitor liveness', () => {
   it('fails when scheduled-job health has been silent past its window', async () => {
     const fetchImpl = async (url) => {
       if (url.includes('/runs')) {
-        return { status: 200, ok: true, json: async () => ({ workflow_runs: [{ updated_at: '2026-10-17T00:00:00Z' }] }) };
+        return { status: 200, ok: true, json: async () => ({ workflow_runs: [{ conclusion: 'success', updated_at: '2026-10-17T00:00:00Z' }] }) };
       }
       return { status: 200, ok: true, json: async () => ({ state: 'active', created_at: '2026-01-01T00:00:00Z' }) };
     };
@@ -103,7 +103,7 @@ describe('monitor liveness', () => {
   it('passes a recent scheduled-job health success', async () => {
     const fetchImpl = async (url) => {
       if (url.includes('/runs')) {
-        return { status: 200, ok: true, json: async () => ({ workflow_runs: [{ updated_at: '2026-10-18T10:00:00Z' }] }) };
+        return { status: 200, ok: true, json: async () => ({ workflow_runs: [{ conclusion: 'success', updated_at: '2026-10-18T10:00:00Z' }] }) };
       }
       return { status: 200, ok: true, json: async () => ({ state: 'active', created_at: '2026-01-01T00:00:00Z' }) };
     };
@@ -139,7 +139,7 @@ describe('bootstrap run (#5058)', () => {
   // Scheduled Job Health last succeeded two days ago: past its 6 h window.
   const staleJobHealth = async (url) => {
     if (url.includes('/runs')) {
-      return { status: 200, ok: true, json: async () => ({ workflow_runs: [{ updated_at: '2026-10-31T12:00:00Z' }] }) };
+      return { status: 200, ok: true, json: async () => ({ workflow_runs: [{ conclusion: 'success', updated_at: '2026-10-31T12:00:00Z' }] }) };
     }
     return { status: 200, ok: true, json: async () => ({ state: 'active', created_at: '2026-01-01T00:00:00Z' }) };
   };
