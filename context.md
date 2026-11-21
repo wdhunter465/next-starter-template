@@ -72,7 +72,7 @@ All agent work routes through `AGENTS.md` and its mandatory documentation chain.
 
 PMO lifecycle terms and pull-request lifecycle states are different systems. PMO portfolio rules are in `docs/governance/PMO-PORTFOLIO.md`. Pull-request states are in `docs/governance/PR_LIFECYCLE_STATE_MACHINE.md`.
 
-`READY FOR REVIEW` is not `READY FOR MERGE`. Merge authority is tiered: the implementing agent merges non-production Pull Requests, and only the human approver merges Production-tier ones (`docs/governance/REPOSITORY-AUTHORITY.md`, Merge authority).
+`READY FOR REVIEW` is not `READY FOR MERGE`. Merge authority is tiered: the implementing agent merges non-production Pull Requests, and Production-tier ones are merged by Product Authority or a CMO holder, never by the agent that implemented them (`docs/governance/REPOSITORY-AUTHORITY.md`, Merge authority).
 
 ## Run startup
 

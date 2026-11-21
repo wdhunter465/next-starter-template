@@ -141,4 +141,4 @@ Dependency boundary: none / <reason>
 
 ## Intended final state
 
-For a launched program with no dependency blockers, Cursor continuously stages the full ordered PR queue for human approval. Bill merges oldest to newest unless there is a reason not to. PMO Admin verifies PRs and post-merge state in batches.
+For a launched program with no dependency blockers, Cursor continuously stages the full ordered PR queue for approval by Product Authority or a CMO holder. Bill, or a CMO holder, merges oldest to newest unless there is a reason not to. PMO Admin verifies PRs and post-merge state in batches.

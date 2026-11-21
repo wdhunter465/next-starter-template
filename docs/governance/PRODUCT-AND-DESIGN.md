@@ -27,7 +27,7 @@ Agent roles and protected-stop contracts remain in `docs/governance/AGENT-TEAM.m
 | **PMO Admin** | Current holder in `docs/governance/AGENT-TEAM.md` | Final design package authorship; launch-control packaging; design documentation completeness |
 | **Implementation / Operations** | Current holder in `docs/governance/AGENT-TEAM.md` | Scoped implementation of approved product/design work; no self-approval of product or design authority |
 | **PR Approver / Engineering** | Current holder in `docs/governance/AGENT-TEAM.md` | Independent review of product/design PRs per delivery profile; not a substitute for Product Authority on material product decisions |
-| **CMO** | Current holder in `docs/governance/AGENT-TEAM.md` | Human approval of Production-tier merges (`docs/governance/REPOSITORY-AUTHORITY.md`, Merge authority); not required for non-production PRs; may not approve own implementation |
+| **CMO** | Current holder in `docs/governance/AGENT-TEAM.md` | Approval of Production-tier merges by Product Authority or a CMO holder (`docs/governance/REPOSITORY-AUTHORITY.md`, Merge authority); not required for non-production PRs; may not approve own implementation |
 | **Supporting design references** | `docs/reference/design/**` and `docs/governance/standards/design-authority_MASTER.md` | Locked behavior facts, page/route contracts, and enforcement pointers only |
 
 Rules:

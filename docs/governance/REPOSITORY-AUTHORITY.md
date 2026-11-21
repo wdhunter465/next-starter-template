@@ -5,8 +5,8 @@ Authority Level: Constitutional
 Owns: Repository precedence, the top-down document hierarchy, merge-authority tiers, pull-request readiness, GitHub Issue authority, domain ownership, lane topology, queue topology, role-based work-selection delegation, canonical-source rules, supersession, and unresolved-conflict escalation
 Does Not Own: Detailed PMO, delivery, agent, CI, Administration, Operations, collaboration, or platform procedures
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2678, #3629, #3825, #4174, #4715
-Last Reviewed: 2026-10-20
+Related Issues: #2678, #3629, #3825, #4174, #4715, #5419
+Last Reviewed: 2026-11-21
 ---
 
 # Repository Authority
@@ -71,7 +71,7 @@ Who may approve a merge depends on where the change lands, not on who wrote it. 
 
 | Tier | Change lands in | Approval | CMO |
 | --- | --- | --- | --- |
-| Production | `main` as a Production change, Production deploy, promotion to Production, or any protected decision named in Protected boundaries | Human only: Product Authority, or the CMO holder recorded in `docs/governance/AGENT-TEAM.md` | Required, human |
+| Production | `main` as a Production change, Production deploy, promotion to Production, or any protected decision named in Protected boundaries | Product Authority, or a CMO holder recorded in `docs/governance/AGENT-TEAM.md` (the Engineering role holders, for work they did not implement) | Required: Product Authority or a CMO holder |
 | Non-production | Sandbox, Development component branches, Promotion Candidate preparation, documentation, tooling and other work that does not change Production behavior | Self-approved: the implementing agent's own approval is sufficient once the deterministic gates pass; no CMO review | Not required |
 
 Product Authority set the non-production tier on purpose, to speed up development. It is not a gap.
@@ -79,15 +79,17 @@ Product Authority set the non-production tier on purpose, to speed up developmen
 Who merges (Product Authority, 2026-10-20):
 
 - **Non-production tier:** the implementing agent approves and merges its own Pull Request once the limits below are met. No other approval is needed. Review by another agent or by Product Authority remains available and is never blocked.
-- **Production tier:** no agent approves or merges. The human approver (Product Authority, or the CMO holder recorded in `docs/governance/AGENT-TEAM.md`) approves and merges, and the agent continues with its next eligible item while the Pull Request waits.
+- **Production tier:** Product Authority, or a CMO holder, approves and merges. A CMO holder is an Engineering role holder recorded in `docs/governance/AGENT-TEAM.md`, acting as Product Authority's alternate (Product Authority, 2026-11-21, #5419), and acts only on a Pull Request it did not implement. The alternate exists so agents keep working continuously while Product Authority is away. No other agent approves or merges a Production-tier Pull Request. The implementing agent continues with its next eligible item while the Pull Request waits.
 - **Merge record:** all agents act through the shared repository identity, so a merge appears under that identity. Until dedicated agent identities exist (#3234), the merging agent leaves one comment on the Pull Request in the form `Merged by: <product>; head <sha>; checks green; threads resolved`. The record is the only way to tell which actor merged.
+- **CMO decision record:** a CMO holder who approves or merges a Production-tier Pull Request leaves one comment on it in the form `CMO decision: <product>; approved|merged; head <sha>; checks green; threads resolved`, and records the decision on the source Issue with the approver and the reviewed head SHA. Product Authority's own decision needs no such record.
 
-Limits on self-approval, which do not move:
+Limits on self-approval and on CMO approval, which do not move:
 
-- It never covers a protected decision (see Protected boundaries), whatever the tier.
-- It needs every required deterministic check to pass on the current head, and every review thread to be resolved.
-- It still needs the source Issue, the allowlist and the stable PR facts.
-- Production approval is human only. No agent may supply it.
+- Neither covers a protected decision (see Protected boundaries), whatever the tier. Protected decisions stay with Product Authority.
+- Each needs every required deterministic check to pass on the current head, and every review thread to be resolved.
+- Each still needs the source Issue, the allowlist and the stable PR facts.
+- A CMO holder never approves or merges a Pull Request it implemented. The other holder, or Product Authority, decides it.
+- Only Product Authority and the CMO holders recorded in `docs/governance/AGENT-TEAM.md` supply Production approval. No other agent may.
 
 ## Pull-request readiness
 

@@ -217,7 +217,7 @@ Reviewer state comes from GitHub-native reviews and threads.
 - PR Approver / Engineering owns subjective design and repository alignment.
 - Deterministic CI owns explicit machine checks and eligibility only.
 - Product Authority participates when product, priority, cost, business, or protected decisions require it.
-- Production-tier merges are approved by a human only: Product Authority, or the CMO holder recorded in `docs/governance/AGENT-TEAM.md`, for a Pull Request it did not implement. Non-production merges are approved and performed by the implementing agent after the deterministic gates pass; no CMO decision is required, and the agent leaves the merge record defined in `docs/governance/REPOSITORY-AUTHORITY.md` (Merge authority). PR Approver / Engineering validation is evidence for a Production decision, not the merge approval itself (#4134).
+- Production-tier merges are approved by Product Authority or a CMO holder recorded in `docs/governance/AGENT-TEAM.md` (the Engineering role holders), for a Pull Request the holder did not implement. Non-production merges are approved and performed by the implementing agent after the deterministic gates pass; no CMO decision is required, and the agent leaves the merge record defined in `docs/governance/REPOSITORY-AUTHORITY.md` (Merge authority). PR Approver / Engineering validation is evidence for a Production decision, not the merge approval itself (#4134).
 - Administration & Communications may route and report reviewer state but cannot supply independent review.
 - Collaboration may help a reviewer understand evidence but cannot manufacture reviewer authority.
 

@@ -103,7 +103,7 @@ Workflow Automation follows this path: it was captured as backlog material, prom
 - Cursor edits files inside the active task allowlist and records validation.
 - Cursor may not merge PRs, close issues, relabel issues, mutate queue state, or create child issues unless the active source issue explicitly authorizes it.
 - PMO Admin reviews governance, source-issue accounting, queue conformance, and documentation authority.
-- Product Authority retains protected action authority, launch-gate approval, destructive issue-action authority, and strategy decision authority. Merge authority is tiered and defined in `docs/governance/REPOSITORY-AUTHORITY.md` (Merge authority): Production-tier merges are human only, non-production Pull Requests are self-approved.
+- Product Authority retains protected action authority, launch-gate approval, destructive issue-action authority, and strategy decision authority. Merge authority is tiered and defined in `docs/governance/REPOSITORY-AUTHORITY.md` (Merge authority): Production-tier merges are approved by Product Authority or a CMO holder, non-production Pull Requests are self-approved.
 - GitHub is the shared audit trail after planning content is promoted out of chat or Drive.
 
 ## Cursor Read Order
