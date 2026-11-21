@@ -132,7 +132,7 @@ describe('collectFacts', () => {
         return jsonResponse(200, { state: 'active' });
       }
       if (url.includes(`/actions/workflows/${BACKUP_WORKFLOW}/runs`)) {
-        return jsonResponse(200, { workflow_runs: [{ conclusion: 'success', updated_at: '2026-10-14T00:00:00Z' }] });
+        return jsonResponse(200, { workflow_runs: [{ conclusion: 'success', run_started_at: '2026-10-14T00:00:00Z', created_at: '2026-10-14T00:00:00Z' }] });
       }
       if (url.includes('/pulls?')) {
         return jsonResponse(200, [{

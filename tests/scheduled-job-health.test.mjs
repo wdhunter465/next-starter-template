@@ -1,7 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { JOBS, evaluateJob, failingMarker, fetchJobStatus, renderReport, runCheck } from '../scripts/ops/scheduled-job-health.mjs';
+import { JOBS, evaluateJob, failingMarker, fetchJobStatus, renderReport, runCheck, successTimestamp } from '../scripts/ops/scheduled-job-health.mjs';
 
 const NOW = new Date('2026-10-12T12:00:00Z');
 const hoursAgo = (hours) => new Date(NOW.getTime() - hours * 60 * 60 * 1000).toISOString();
@@ -21,7 +21,7 @@ function fakeGitHub(byFile) {
     if (entry.runs) return jsonResponse(200, { workflow_runs: entry.runs });
     return jsonResponse(200, {
       workflow_runs: entry.lastSuccessAt
-        ? [{ conclusion: 'success', updated_at: entry.lastSuccessAt }]
+        ? [{ conclusion: 'success', run_started_at: entry.lastSuccessAt, created_at: entry.lastSuccessAt }]
         : [],
     });
   };
@@ -130,8 +130,8 @@ describe('runCheck against a broken fixture', () => {
       'healthy.yml': {
         state: 'active',
         runs: [
-          { conclusion: 'failure', updated_at: failedAt },
-          { conclusion: 'success', updated_at: successAt },
+          { conclusion: 'failure', run_started_at: failedAt, created_at: failedAt },
+          { conclusion: 'success', run_started_at: successAt, created_at: successAt },
         ],
       },
     });
@@ -144,13 +144,52 @@ describe('runCheck against a broken fixture', () => {
       'healthy.yml': {
         state: 'active',
         runs: [
-          { conclusion: 'failure', updated_at: hoursAgo(1) },
-          { conclusion: 'cancelled', updated_at: hoursAgo(2) },
+          { conclusion: 'failure', run_started_at: hoursAgo(1), created_at: hoursAgo(1) },
+          { conclusion: 'cancelled', run_started_at: hoursAgo(2), created_at: hoursAgo(2) },
         ],
       },
     });
     const status = await fetchJobStatus(jobs[0], { ...context, fetchImpl });
     expect(status.lastSuccessAt).toBeNull();
+  });
+
+  it('uses run_started_at when updated_at is newer than completion (#5425)', async () => {
+    const startedAt = hoursAgo(48);
+    const refreshedAt = hoursAgo(1);
+    const fetchImpl = fakeGitHub({
+      'healthy.yml': {
+        state: 'active',
+        runs: [
+          {
+            conclusion: 'success',
+            run_started_at: startedAt,
+            created_at: startedAt,
+            updated_at: refreshedAt,
+          },
+        ],
+      },
+    });
+    const status = await fetchJobStatus(jobs[0], { ...context, fetchImpl });
+    expect(status.lastSuccessAt).toBe(startedAt);
+    expect(status.lastSuccessAt).not.toBe(refreshedAt);
+    expect(successTimestamp({
+      conclusion: 'success',
+      run_started_at: startedAt,
+      created_at: startedAt,
+      updated_at: refreshedAt,
+    })).toBe(startedAt);
+  });
+
+  it('falls back to created_at when run_started_at is absent (#5425)', async () => {
+    const createdAt = hoursAgo(6);
+    const fetchImpl = fakeGitHub({
+      'healthy.yml': {
+        state: 'active',
+        runs: [{ conclusion: 'success', created_at: createdAt, updated_at: hoursAgo(0.5) }],
+      },
+    });
+    const status = await fetchJobStatus(jobs[0], { ...context, fetchImpl });
+    expect(status.lastSuccessAt).toBe(createdAt);
   });
 
   it('throws on an API error instead of reporting a false pass', async () => {
