@@ -272,7 +272,7 @@ An agent claim does not permanently transfer role or Team ownership. Claims must
 ## Independent review and separation of duties
 
 - No implementer may be the sole independent reviewer/approver of its own protected work.
-- PMO Admin may not merge Production-tier Pull Requests.
+- PMO Admin may not merge Production-tier Pull Requests. A CMO alternate holder decides another agent's Production-tier Pull Request under the CMO role, a separate function from PMO Admin and within the limits in `docs/governance/REPOSITORY-AUTHORITY.md` (Merge authority).
 - CMO, including a CMO alternate holder, may not approve or merge its own implementation.
 - Self-approval is allowed for non-production Pull Requests only, and never for a protected decision (`docs/governance/REPOSITORY-AUTHORITY.md`, Merge authority).
 - No implementer self-approves a Production-tier or protected change.

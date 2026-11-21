@@ -92,7 +92,7 @@ Every tick also checks the agent's open authored PRs. A failing or pending gate 
 
 ## Continuing
 
-After packaging one assignment (PR opened, HOLD, or PACKAGE-INCOMPLETE recorded on the source Issue), immediately continue with the next item in the queue order above. One Issue → one PR; do not mix remaining queue items into the just-opened PR. `handoff:ready` is not website Go. Do not merge a Production-tier PR.
+After packaging one assignment (PR opened, HOLD, or PACKAGE-INCOMPLETE recorded on the source Issue), immediately continue with the next item in the queue order above. One Issue → one PR; do not mix remaining queue items into the just-opened PR. `handoff:ready` is not website Go. Do not merge your own Production-tier PR: Product Authority or a CMO holder decides it (`docs/governance/REPOSITORY-AUTHORITY.md`, Merge authority).
 
 Waiting on independent review, merge approval, or another long-running process for a packaged assignment is still not idle (#3611). An item is *waiting* when its linked open authored PR has latest checks SUCCESS, or when it is `handoff:ready` (labels/status only), or when it carries a `wait:*` label. Keep waiting items for gate, reviewer, and post-merge follow-through, and immediately continue the next item that is not merely waiting. Do not occupy the session with standing-queue status while other work remains.
 
