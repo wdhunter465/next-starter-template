@@ -1,0 +1,15 @@
+# Cursor host install manifest (#5427).
+# One source of truth for install.sh and verify.sh.
+# Columns (whitespace-separated): mode  repo_path_relative_to_scripts/cursor-wake  dest_path_relative_to_LGFC_CURSOR_HOME
+# Lines starting with # are comments. Blank lines ignored.
+0755  lgfc-wake-ctl.sh                         lgfc-wake-ctl.sh
+0755  lgfc-always-on-loop.sh                    lgfc-always-on-loop.sh
+0755  lgfc-wake-watchdog.sh                     lgfc-wake-watchdog.sh
+0644  poll-github.mjs                           github-poller/poll-github.mjs
+0644  cursor-inbound-communication.mjs          github-poller/cursor-inbound-communication.mjs
+0644  ../ops/detect-stale-communication.mjs     ops/detect-stale-communication.mjs
+0644  tick-prompt.txt                           lgfc-tick-prompt.txt
+0644  lgfc-ready-queue.txt                      lgfc-ready-queue.txt
+0755  hooks/lgfc-session-start-bind.sh          hooks/lgfc-session-start-bind.sh
+0755  hooks/lgfc-session-end-release.sh         hooks/lgfc-session-end-release.sh
+0644  hooks/user-hooks.json                     hooks.json

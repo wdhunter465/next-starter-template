@@ -24,11 +24,11 @@ The **local repository checkout** is the source of truth for Cursor Local orient
 | Source | Role |
 | --- | --- |
 | Repo checkout (`docs/ops/ai/CURSOR-RULES.md`, `.cursor/rules/*.mdc`, `scripts/cursor-wake/*`) | Authority. Read these first. |
-| Host install under `~/.cursor/` (via `scripts/cursor-wake/install.sh`) | Runtime copies of wake scripts, tick prompt, and ready-queue file. Must match the checkout (`scripts/cursor-wake/verify.sh`). Drift is corrected by reinstall from the repo, not by editing host files as policy. |
+| Host install under `~/.cursor/` (via `scripts/cursor-wake/install.sh`) | Installs, pointers to the repo, and runtime state only (wake scripts, tick prompt, ready-queue file, host hooks). Must match the checkout manifest (`scripts/cursor-wake/verify.sh`). Drift is corrected by reinstall from the repo. The host is not a second rulebook: no skills, no rules, no `AGENTS.md` copy. |
 | Chat transcript / prior-session memory | Not authority. Do not treat a past explanation as the contract. |
 | Product Authority chat instructions | Interrupt / Go / takeover only. They do not replace this file or shared law. |
 
-Always-applied Local rule cards under `.cursor/rules/` load from the checkout for every new session. Host skills under `~/.cursor/skills/` are convenience copies; when they disagree with the checkout, the checkout wins.
+Always-applied Local rule cards under `.cursor/rules/` load from the checkout for every new session. Do not install skills or rules under `~/.cursor/`; those live only in the repository.
 
 ## Background services (keepalives only)
 

@@ -68,13 +68,10 @@ log() {
   echo "$*"
 }
 
-# Entry marker: prefer AGENTS.md (#2794). Also accept Agent.md so a copy of this
-# script installed from the #2794 branch (before or after merge) still resolves a
-# checkout that has either file. An older ~/.cursor install that only looks for
-# Agent.md must be refreshed with install.sh from this branch before merge.
+# Entry marker: AGENTS.md only (#2794 / #5427). Pre-rename entry markers are retired.
 has_entry_marker() {
   local c="${1:-}"
-  [[ -n "$c" && ( -f "$c/AGENTS.md" || -f "$c/Agent.md" ) ]]
+  [[ -n "$c" && -f "$c/AGENTS.md" ]]
 }
 
 is_repo_root() {
@@ -132,7 +129,7 @@ resolve_repo_root() {
         printf '%s\n' "$dir"
         return 0
       fi
-    done < <({ find "${HOME}/next-starter-template" -maxdepth 2 \( -name AGENTS.md -o -name Agent.md \) -printf '%T@ %h\n' 2>/dev/null || true; } | sort -nr | awk '!seen[$2]++')
+    done < <({ find "${HOME}/next-starter-template" -maxdepth 2 -name AGENTS.md -printf '%T@ %h\n' 2>/dev/null || true; } | sort -nr | awk '!seen[$2]++')
   fi
   printf '%s\n' "${HOME}/next-starter-template/next-starter-template"
 }

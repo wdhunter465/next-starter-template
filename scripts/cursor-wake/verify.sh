@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
 # Compare installed Cursor wake files with the repository copies.
-# Prints match or drift per file. Exit 0 only when every file matches.
+# Prints match or drift per file. Exit 0 only when every file matches
+# and no unexpected LGFC-shaped host files are present (#5427).
 set -euo pipefail
 
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 SRC="${ROOT}/scripts/cursor-wake"
 DEST="${LGFC_CURSOR_HOME:-${HOME}/.cursor}"
+MANIFEST="${SRC}/host-manifest.txt"
 fail=0
+
+declare -A EXPECTED=()
 
 check() {
   local repo="$1"
@@ -28,11 +32,41 @@ check() {
   fi
 }
 
-check "${SRC}/lgfc-wake-ctl.sh" "${DEST}/lgfc-wake-ctl.sh" "lgfc-wake-ctl.sh"
-check "${SRC}/lgfc-always-on-loop.sh" "${DEST}/lgfc-always-on-loop.sh" "lgfc-always-on-loop.sh"
-check "${SRC}/lgfc-wake-watchdog.sh" "${DEST}/lgfc-wake-watchdog.sh" "lgfc-wake-watchdog.sh"
-check "${SRC}/poll-github.mjs" "${DEST}/github-poller/poll-github.mjs" "github-poller/poll-github.mjs"
-check "${SRC}/tick-prompt.txt" "${DEST}/lgfc-tick-prompt.txt" "lgfc-tick-prompt.txt"
-check "${SRC}/lgfc-ready-queue.txt" "${DEST}/lgfc-ready-queue.txt" "lgfc-ready-queue.txt"
+while read -r mode repo_rel dest_rel; do
+  [[ -z "${mode:-}" || "${mode}" == \#* ]] && continue
+  EXPECTED["${dest_rel}"]=1
+  check "${SRC}/${repo_rel}" "${DEST}/${dest_rel}" "${dest_rel}"
+done <"${MANIFEST}"
+
+# Unexpected LGFC-shaped host files (second rulebook / install bloat).
+if [[ -f "${DEST}/AGENTS.md" ]]; then
+  echo "unexpected AGENTS.md"
+  fail=1
+fi
+if [[ -d "${DEST}/rules" ]]; then
+  echo "unexpected rules/"
+  fail=1
+fi
+if [[ -d "${DEST}/skills" ]]; then
+  while IFS= read -r -d '' skilldir; do
+    echo "unexpected skills/$(basename "$skilldir")/"
+    fail=1
+  done < <(find "${DEST}/skills" -mindepth 1 -maxdepth 1 -type d -name 'lgfc-*' -print0 2>/dev/null || true)
+fi
+
+# Any lgfc-* file under DEST not listed in the manifest.
+# Skip known runtime state files that are not install targets.
+while IFS= read -r -d '' f; do
+  rel="${f#"${DEST}"/}"
+  case "$rel" in
+    lgfc-wake-poll-inbox.json|lgfc-wake-live-session|lgfc-wake-halt|lgfc-wake-ctl.log|lgfc-wake-watchdog.log|lgfc-always-on-loop.pid|lgfc-wake-status.json)
+      continue
+      ;;
+  esac
+  if [[ -z "${EXPECTED[$rel]+x}" ]]; then
+    echo "unexpected ${rel}"
+    fail=1
+  fi
+done < <(find "${DEST}" -type f -name 'lgfc-*' -print0 2>/dev/null || true)
 
 exit "$fail"
