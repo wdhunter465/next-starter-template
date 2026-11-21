@@ -94,4 +94,41 @@ describe('poll-github resumeQueue wait:* (#5292)', () => {
     expect(merged).toHaveLength(1);
     expect(merged[0].labels.map((l) => l.name)).toEqual(['wait:product', 'agent:cursor']);
   });
+
+  it('marks ops_interrupt with status:hold as waiting (#5444)', () => {
+    const items = [
+      {
+        kind: 'ops_interrupt',
+        number: 4440,
+        title: 'Production bindings evidence',
+        detail: 'ops:priority:3',
+        rank: 3,
+      },
+    ];
+    applyIssueWaitLabelsToResumeQueue(items, [
+      {
+        number: 4440,
+        labels: [
+          { name: 'team:operations' },
+          { name: 'ops:priority:3' },
+          { name: 'status:hold' },
+          { name: 'agent:cursor' },
+        ],
+      },
+    ]);
+    expect(items[0].waiting).toBe(true);
+    expect(items[0].waitingReason).toBe('status:hold');
+  });
+
+  it('combines wait:* and status:hold in waitingReason (#5444)', () => {
+    const items = [{ kind: 'ops_interrupt', number: 9, title: 'held+wait' }];
+    applyIssueWaitLabelsToResumeQueue(items, [
+      {
+        number: 9,
+        labels: [{ name: 'wait:product' }, { name: 'status:hold' }],
+      },
+    ]);
+    expect(items[0].waiting).toBe(true);
+    expect(items[0].waitingReason).toBe('wait_labels:wait:product+status:hold');
+  });
 });
