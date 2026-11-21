@@ -4,7 +4,8 @@ name: OPS — Regenerate the Club Home edition (#4906)
 # token-protected route /api/scheduled-content/club-home-regenerate, which builds and activates a new edition with the
 # same code as the admin button. Scheduled runs are a DRY RUN until the repository variable CLUB_HOME_REGEN_APPLY is
 # set to 'true', which is Product Authority's recorded Go (cadence, start date) on #4906. The route itself refuses to
-# apply inside the launch freeze (2026-12-31 to 2027-06-02) or with fewer than 7 eligible stories. A manual run
+# apply on or after 2027-01-01, when the website freeze begins (Product Authority, 2026-11-19, #4764; there is no coded end,
+# and a safe change window is still to be recorded there), or with fewer than 7 eligible stories. A manual run
 # applies only with apply=true. A failure opens or updates one Operations Issue; the previous edition stays live.
 # Restore: POST /api/admin/editorial/club-home-edition-rollback (docs/how-to/ops/verify-club-home-rotation.md).
 #
