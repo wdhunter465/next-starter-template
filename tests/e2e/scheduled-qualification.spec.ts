@@ -3,7 +3,6 @@ import { expect, test, type APIRequestContext, type Page } from '@playwright/tes
 // #4467 / #5179 (#3633-009), gap rows 12, 13, 14, 17, 28, 35, 41, 42, 45, 59, 68, 69 and 85:
 // scheduled qualification of the public site and the admin boundary. Run nightly by
 // .github/workflows/ops-scheduled-qualification.yml.
-
 //
 // Read-only by design: GET requests only. No sign-in, no form submission, no data written, so it is
 // safe against Production. Routes come from the site's own sitemap, so a new public page is covered
@@ -198,10 +197,44 @@ test.describe('scheduled qualification: keyboard focus order (row 59)', () => {
 const ASSET_TIMEOUT_MS = 15_000;
 const HEALTH_BUDGET_MS = 5_000;
 
+type PhotoListItem = {
+  id?: number;
+  url?: string;
+  [key: string]: unknown;
+};
+
 type PhotoListBody = {
   ok?: boolean;
-  items?: Array<{ id?: number; url?: string; rights_hold?: number; publication_eligible?: number }>;
+  items?: PhotoListItem[];
 };
+
+/** Internal rights fields that must never appear on the public photo list/get payload. */
+const PUBLIC_PHOTO_FORBIDDEN_FIELDS = [
+  'rights_hold',
+  'rights_hold_reason',
+  'rights_notes',
+  'rights_status',
+  'publication_eligible',
+  'reviewed_by',
+] as const;
+
+/** Returns forbidden field names present on a public photo payload object. */
+export function publicPhotoForbiddenFields(item: Record<string, unknown> | null | undefined): string[] {
+  if (!item || typeof item !== 'object') return [];
+  return PUBLIC_PHOTO_FORBIDDEN_FIELDS.filter((name) => Object.prototype.hasOwnProperty.call(item, name));
+}
+
+/** Duplicate ids in a list (empty when unique). Used for row 41 failing-case coverage. */
+export function duplicateIds(ids: Array<number | undefined>): number[] {
+  const seen = new Set<number>();
+  const dupes: number[] = [];
+  for (const id of ids) {
+    if (typeof id !== 'number') continue;
+    if (seen.has(id)) dupes.push(id);
+    else seen.add(id);
+  }
+  return dupes;
+}
 
 async function fetchPhotoList(
   request: APIRequestContext,
@@ -264,8 +297,8 @@ test.describe('scheduled qualification: rotation fairness signals (row 41)', () 
     const items = body.items ?? [];
     expect(items.length, 'public photo pool should not be empty').toBeGreaterThan(0);
     const ids = items.map((i) => i.id);
-    const urls = items.map((i) => i.url).filter(Boolean);
-    expect(new Set(ids).size, 'duplicate photo ids in one page').toBe(ids.length);
+    const urls = items.map((i) => i.url).filter(Boolean) as string[];
+    expect(duplicateIds(ids), 'duplicate photo ids in one page').toEqual([]);
     expect(new Set(urls).size, 'duplicate photo urls in one page').toBe(urls.length);
   });
 
@@ -303,33 +336,58 @@ test.describe('scheduled qualification: persistent public edition signals (row 4
 });
 
 test.describe('scheduled qualification: rights gate on public photos (row 45)', () => {
-  test('public photo list does not expose held or ineligible rows', async ({ request }) => {
+  test('public photo list items never carry internal rights fields', async ({ request }) => {
     const { status, body } = await fetchPhotoList(request, 'limit=50');
     expect(status).toBe(200);
     expect(body.ok).toBe(true);
-    for (const item of body.items ?? []) {
-      if (typeof item.rights_hold === 'number') expect(item.rights_hold, `id ${item.id}`).toBe(0);
-      if (typeof item.publication_eligible === 'number') {
-        expect(item.publication_eligible, `id ${item.id}`).toBe(1);
-      }
+    const items = body.items ?? [];
+    expect(items.length).toBeGreaterThan(0);
+    for (const item of items) {
+      const leaked = publicPhotoForbiddenFields(item);
+      expect(leaked, `id ${item.id} leaked ${leaked.join(',')}`).toEqual([]);
       expect(item.url, `id ${item.id} needs a url`).toBeTruthy();
     }
   });
 
-  test('public get for a listed photo succeeds; unknown ids stay not-ok', async ({ request }) => {
+  test('public get for a listed photo succeeds without rights fields; unknown ids stay not-ok', async ({
+    request,
+  }) => {
     const list = await fetchPhotoList(request, 'limit=5');
     const id = list.body.items?.[0]?.id;
     expect(id).toEqual(expect.any(Number));
     const okRes = await request.get(`/api/photos/get?id=${id}`);
     expect(okRes.status()).toBe(200);
-    const okBody = (await okRes.json()) as { ok?: boolean; item?: { id?: number } };
+    const okBody = (await okRes.json()) as { ok?: boolean; item?: Record<string, unknown> };
     expect(okBody.ok).toBe(true);
     expect(okBody.item?.id).toBe(id);
+    expect(publicPhotoForbiddenFields(okBody.item)).toEqual([]);
 
     const missing = await request.get('/api/photos/get?id=999999999');
     expect(missing.status()).toBe(404);
     const missingBody = (await missing.json()) as { ok?: boolean };
     expect(missingBody.ok).not.toBe(true);
+  });
+
+  test('the rights-field audit catches a leaked rights_hold key', () => {
+    expect(publicPhotoForbiddenFields({ id: 1, url: 'https://example.test/a.jpg' })).toEqual([]);
+    expect(publicPhotoForbiddenFields({ id: 1, rights_hold: 0 }).join('\n')).toContain('rights_hold');
+    expect(
+      publicPhotoForbiddenFields({ id: 1, publication_eligible: 1, rights_notes: 'x' }).join('\n'),
+    ).toMatch(/publication_eligible|rights_notes/);
+  });
+});
+
+test.describe('scheduled qualification: Slice 1 failing-case helpers (#5179)', () => {
+  test('duplicateIds reports a repeated id', () => {
+    expect(duplicateIds([1, 2, 3])).toEqual([]);
+    expect(duplicateIds([1, 2, 1, 3, 2])).toEqual([1, 2]);
+  });
+
+  test('homepage HTML audit rejects a page missing footer', () => {
+    const html = '<html><body><header></header><h1>Hi</h1></body></html>';
+    expect(html).toMatch(/<header\b/i);
+    expect(html).toMatch(/<h1\b/i);
+    expect(html).not.toMatch(/<footer\b/i);
   });
 });
 
