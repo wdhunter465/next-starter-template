@@ -1,0 +1,104 @@
+{
+ "pages": [
+  {
+   "id": 60,
+   "slug": "photo-gallery",
+   "link": "https://lougehrig.com/index.php/photo-gallery/",
+   "title": {
+    "rendered": "Photo Gallery"
+   },
+   "date": "2021-09-20T19:13:07",
+   "modified": "2021-09-24T20:35:52",
+   "content": {
+    "rendered": "<div id='gallery-1' class='gallery'><figure class='gallery-item'>\n\t\t\t<div class='gallery-icon landscape'>\n\t\t\t\t<a data-elementor-open-lightbox=\"yes\" data-elementor-lightbox-slideshow=\"7b67f80\" data-elementor-lightbox-title=\"Yankees Tigers Gehrig Ends Streak\" e-action-hash=\"#elementor-action%3Aaction%3Dlightbox%26settings%3DeyJpZCI6MTQ3LCJ1cmwiOiJodHRwczpcL1wvbG91Z2VocmlnLmNvbVwvd3AtY29udGVudFwvdXBsb2Fkc1wvMjAyMVwvMDlcL2dlaGwwMjguanBnIiwic2xpZGVzaG93IjoiN2I2N2Y4MCJ9\" href='https://lougehrig.com/wp-content/uploads/2021/09/gehl028.jpg' title=\"\" data-rl_title=\"\" class=\"rl-gallery-link\" data-rl_caption=\"\" data-rel=\"lightbox-gallery-1\"><img width=\"150\" height=\"150\" src=\"https://lougehrig.com/wp-content/uploads/2021/09/gehl028-150x150.jpg\" class=\"attachment-thumbnail size-thumbnail\" alt=\"\" loading=\"lazy\" aria-describedby=\"gallery-1-147\" /></a>\n\t\t\t</div>\n\t\t\t\t<figcaption class='wp-caption-text gallery-caption' id='gallery-1-147'>\n\t\t\t\tYankee first baseman Lou Gehrig watches from the dugout May 2, 1939 as his teammates warm up for their game with the Tigers in Detroit. The Iron Horse told manager Joe McCarthy he was benching himself for the good of the team, bringing his 2,130 game streak to an end. The Briggs Stadium fans gave Gehrig a standing ovation when they learned he would not be in the lineup. The Yankees stormed to a 22-2 win. (AP Photo)\n\t\t\t\t</figcaption></figure><figure class='gallery-item'>\n\t\t\t<div class='gallery-icon landscape'>\n\t\t\t\t<a data-elementor-open-lightbox=\"yes\" data-elementor-lightbox-slideshow=\"7b67f80\" data-elementor-lightbox-title=\"Lou Gehrig Following Through 1938\" e-action-hash=\"#elementor-action%3Aaction%3Dlightbox%26settings%3DeyJpZCI6MTYzLCJ1cmwiOiJodHRwczpcL1wvbG91Z2VocmlnLmNvbVwvd3AtY29udGVudFwvdXBsb2Fkc1wvMjAyMVwvMDlcL1AwMDktUEQtR2VocmlnLV8yMS5qcGciLCJzbGlkZXNob3ciOiI3YjY3ZjgwIn0%3D\" href='https://lougehrig.com/wp-content/uploads/2021/09/P009-PD-Gehrig-_21.jpg' title=\"\" data-rl_title=\"\" class=\"rl-gallery-link\" data-rl_caption=\"\" data-rel=\"lightbox-gallery-1\"><img width=\"150\" height=\"150\" src=\"https://lougehrig.com/wp-content/uploads/2021/09/P009-PD-Gehrig-_21-150x150.jpg\" class=\"attachment-thumbnail size-thumbnail\" alt=\"\" loading=\"lazy\" aria-describedby=\"gallery-1-163\" /></a>\n\t\t\t</div>\n\t\t\t\t<figcaption class='wp-caption-text gallery-caption' id='gallery-1-163'>\n\t\t\t\tCHICAGO &#8211; 1938.  Lou Gehrig whacks a double into left center in a game at Yankee Stadium in 1938.  Luke Sewell is the catcher for the opponent White Sox.  (Photo by Mark Rucker/Transcendental Graphics, Getty Images)\n\t\t\t\t</figcaption></figure><figure class='gallery-item'>\n\t\t\t<div class='gallery-icon portrait'>\n\t\t\t\t<a data-elementor-open-lightbox=\"yes\" data-elementor-lightbox-slideshow=\"7b67f80\" data-elementor-lightbox-title=\"gehl008\" e-action-hash=\"#elementor-action%3Aaction%3Dlightbox%26settings%3DeyJpZCI6MTQxLCJ1cmwiOiJodHRwczpcL1wvbG91Z2VocmlnLmNvbVwvd3AtY29udGVudFwvdXBsb2Fkc1wvMjAyMVwvMDlcL2dlaGwwMDguanBnIiwic2xpZGVzaG93IjoiN2I2N2Y4MCJ9\" href='https://lougehrig.com/wp-content/uploads/2021/09/gehl008.jpg' title=\"\" data-rl_title=\"\" class=\"rl-gallery-link\" data-rl_caption=\"\" data-rel=\"lightbox-gallery-1\"><img width=\"150\" height=\"150\" src=\"https://lougehrig.com/wp-content/uploads/2021/09/gehl008-150x150.jpg\" class=\"attachment-thumbnail size-thumbnail\" alt=\"\" loading=\"lazy\" /></a>\n\t\t\t</div></figure></div>"
+   }
+  },
+  {
+   "id": 48,
+   "slug": "als",
+   "link": "https://lougehrig.com/index.php/als/",
+   "title": {
+    "rendered": "ALS"
+   },
+   "date": "2021-09-20T19:12:17",
+   "modified": "2021-09-24T20:28:20",
+   "content": {
+    "rendered": "\t\t<div data-elementor-type=\"wp-page\" data-elementor-id=\"48\" class=\"elementor elementor-48\">\n\t\t\t\t\t\t\t\t\t<section class=\"elementor-section elementor-top-section elementor-element elementor-element-72507620 elementor-section-height-min-height elementor-section-boxed elementor-section-height-default elementor-section-items-middle\" data-id=\"72507620\" data-element_type=\"section\" data-settings=\"{&quot;background_background&quot;:&quot;classic&quot;}\">\n\t\t\t\t\t\t\t<div class=\"elementor-background-overlay\"></div>\n\t\t\t\t\t\t\t<div class=\"elementor-container elementor-column-gap-default\">\n\t\t\t\t\t<div class=\"elementor-column elementor-col-100 elementor-top-column elementor-element elementor-element-1f7f3e1d\" data-id="
+   }
+  },
+  {
+   "id": 46,
+   "slug": "achievements",
+   "link": "https://lougehrig.com/index.php/achievements/",
+   "title": {
+    "rendered": "Achievements"
+   },
+   "date": "2021-09-20T19:12:09",
+   "modified": "2023-03-30T14:16:11",
+   "content": {
+    "rendered": "\t\t<div data-elementor-type=\"wp-page\" data-elementor-id=\"46\" class=\"elementor elementor-46\">\n\t\t\t\t\t\t\t\t\t<section class=\"elementor-section elementor-top-section elementor-element elementor-element-d2e23cd elementor-section-height-min-height elementor-section-boxed elementor-section-height-default elementor-section-items-middle\" data-id=\"d2e23cd\" data-element_type=\"section\" data-settings=\"{&quot;background_background&quot;:&quot;classic&quot;}\">\n\t\t\t\t\t\t\t<div class=\"elementor-background-overlay\"></div>\n\t\t\t\t\t\t\t<div class=\"elementor-container elementor-column-gap-default\">\n\t\t\t\t\t<div class=\"elementor-column elementor-col-100 elementor-top-column elementor-element elementor-element-b304341\" data-id=\"b3"
+   }
+  }
+ ],
+ "posts": [
+  {
+   "id": 405,
+   "link": "https://lougehrig.com/index.php/oris-commemorates-lou-gehrig-day-with-a-limited-edition-timepiece-and-league-wide-support-of-als-causes/",
+   "title": {
+    "rendered": "Oris Commemorates Lou Gehrig Day With A Limited Edition Timepiece and League Wide Support of ALS Causes"
+   },
+   "date": "2026-06-09T15:57:07",
+   "excerpt": {
+    "rendered": "<p>On Tuesday, June 2nd the baseball world celebrated “Lou Gehrig Day” throughout the league. In honor of the day, Oris released the third in its series of baseball collaborations with the Lou Gehrig Limited Edition watch (Download Press Release HERE). This 2,130 piece limited edition Big Crown Pointer Date model honors the legendary ‘Iron Horse’ and his consecutive game [&hellip;]</p>\n",
+    "protected": false
+   },
+   "content": {
+    "rendered": "<p>On Tuesday, June 2<sup>nd</sup> the baseball world celebrated “Lou Gehrig Day” throughout the league. In honor of the day, Oris released the third in its series of baseball collaborations with the <b>Lou Gehrig Limited Edition</b> watch (<b>Download Press Release </b><a href=\"https://laxkmmqab.cc.rs6.net/tn.jsp?f=001_6d4cb-LwizxaKFL2LzvPuXwMEI842gIScHyCg_HPSG_a3OCC2-3y6wI4iJq_3dig_ywagt7Npyr5X7PeccM9UpDsTtIu44IfVNQsZm4SWXIYlq_KPa0nL23BC0ErztVOLVS_8bqoo8Ysr1s5i1mp4bRysYhhjDmIfkFs6H2JWSVED3MQwr"
+   }
+  },
+  {
+   "id": 358,
+   "link": "https://lougehrig.com/index.php/major-league-baseball-announces-details-of-the-third-annual-lou-gehrig-day-commemoration-to-support-the-als-community/",
+   "title": {
+    "rendered": "Major League Baseball announces details of the third annual “Lou Gehrig Day” commemoration to support the ALS community"
+   },
+   "date": "2023-06-01T18:32:25",
+   "excerpt": {
+    "rendered": "<p>Illuminated Stars known as “A Langs Star” to be displayed in each TV broadcast booth on June 2nd in honor of Sarah Langs; 30 special bats, autographed by Major Leaguers from each club, will be auctioned to raise funds for ALS research Major League Baseball, in coordination with MLB Clubs and various partners, today announced [&hellip;]</p>\n",
+    "protected": false
+   },
+   "content": {
+    "rendered": "<h2 class=\"headlinestyle__HeadlineWrapper-sc-1ccyctx-0 hCEEZO Styles__HeadlineContainer-sc-19rm04l-0 gQYfRB\">Illuminated Stars known as “A Langs Star” to be displayed in each TV broadcast booth on June 2nd in honor of Sarah Langs; 30 special bats, autographed by Major Leaguers from each club, will be auctioned to raise funds for ALS research</h2>\n<div class=\"Styles__StoryPartContainer-sc-1mfrmm0-0 fIFA-db story-part markdown\">\n<div class=\"Styles__MarkdownContainer-dxqlie-0 btBTea\">\n<p>Major Leag"
+   }
+  },
+  {
+   "id": 96,
+   "link": "https://lougehrig.com/index.php/spongebob-squarepants-creator-stephen-hillenburg-reveals-als-diagnosis/",
+   "title": {
+    "rendered": "‘SpongeBob SquarePants’ Creator Stephen Hillenburg Reveals ALS Diagnosis"
+   },
+   "date": "2021-09-20T20:25:33",
+   "excerpt": {
+    "rendered": "<p>Stephen Hillenburg, creator of the long-running hit Nickelodeon series “SpongeBob SquarePants,” has revealed that he has been diagnosed with the neurodegenerative disease ALS. The 55-year-old animator shared a statement with Variety announcing the diagnosis and his intent to continue working on the series, which has been on the air since 1999. “I wanted people to [&hellip;]</p>\n",
+    "protected": false
+   },
+   "content": {
+    "rendered": "<p>Stephen Hillenburg, creator of the long-running hit Nickelodeon series “SpongeBob SquarePants,” has revealed that he has been diagnosed with the neurodegenerative disease ALS.</p>\n<p>The 55-year-old animator shared a statement with Variety announcing the diagnosis and his intent to continue working on the series, which has been on the air since 1999.</p>\n<p>“I wanted people to hear directly from me that I have been diagnosed with ALS.,” the statement reads. “Anyone who knows me knows that I w"
+   }
+  }
+ ],
+ "media": [
+  {
+   "id": 163,
+   "date": "2021-09-20T22:13:23",
+   "source_url": "https://lougehrig.com/wp-content/uploads/2021/09/P009-PD-Gehrig-_21.jpg",
+   "mime_type": "image/jpeg"
+  },
+  {
+   "id": 147,
+   "date": "2021-09-20T22:13:01",
+   "source_url": "https://lougehrig.com/wp-content/uploads/2021/09/gehl028.jpg",
+   "mime_type": "image/jpeg"
+  }
+ ]
+}
