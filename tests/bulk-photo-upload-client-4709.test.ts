@@ -170,6 +170,31 @@ describe('bulk photo upload client (#4709 slice 2)', () => {
       photoId: 'sha-check-me',
       rowId: 9,
     });
+
+    expect(
+      classifyUploadResponse(
+        'near.jpg',
+        {
+          ok: true,
+          status: 201,
+          data: {
+            status: 'stored_unpublished',
+            id: 11,
+            photo_id: 'sha-near',
+            b2_key: 'bulk/b1/sha-near.jpg',
+            screenshot: 'ok',
+            flat_copy_flagged: false,
+            identical_phash_photo_id: null,
+            near_duplicate_matches: [{ photo_id: 3, distance: 4 }],
+          },
+          error: '',
+        },
+        meta,
+      ),
+    ).toMatchObject({
+      status: 'check_these',
+      nearDuplicateMatches: [{ photoId: 3, distance: 4 }],
+    });
   });
 
   it('report counts match results; CSV/JSON include photo_id SHA and row_id', () => {

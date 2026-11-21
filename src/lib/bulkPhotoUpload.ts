@@ -30,15 +30,34 @@ export type UploadFileResult = {
   batchId?: string;
   rightsClass?: BulkRightsClass;
   identicalPhashPhotoId?: number | null;
+  nearDuplicateMatches?: Array<{ photoId: number; distance: number }>;
   httpStatus?: number;
 };
 
-/** Map Slice 1 bulk-upload JSON fields onto report columns. */
+export type NearDuplicateMatchField = { photoId: number; distance: number };
+
+function parseNearDuplicateMatches(data: Record<string, unknown>): NearDuplicateMatchField[] {
+  const raw = data.near_duplicate_matches;
+  if (!Array.isArray(raw)) return [];
+  const out: NearDuplicateMatchField[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== 'object') continue;
+    const row = item as Record<string, unknown>;
+    const photoId = typeof row.photo_id === 'number' ? row.photo_id : null;
+    const distance = typeof row.distance === 'number' ? row.distance : null;
+    if (photoId == null || distance == null) continue;
+    out.push({ photoId, distance });
+  }
+  return out;
+}
+
+/** Map bulk-upload JSON fields onto report columns. */
 export function photoFieldsFromBulkResponse(data: Record<string, unknown>): {
   photoId: string | null;
   rowId: number | null;
   b2Key: string | null;
   identicalPhashPhotoId: number | null;
+  nearDuplicateMatches: NearDuplicateMatchField[];
 } {
   const photoId = typeof data.photo_id === 'string' && data.photo_id.length > 0 ? data.photo_id : null;
   const rowFromId = typeof data.id === 'number' ? data.id : null;
@@ -49,6 +68,7 @@ export function photoFieldsFromBulkResponse(data: Record<string, unknown>): {
     b2Key: typeof data.b2_key === 'string' ? data.b2_key : null,
     identicalPhashPhotoId:
       typeof data.identical_phash_photo_id === 'number' ? data.identical_phash_photo_id : null,
+    nearDuplicateMatches: parseNearDuplicateMatches(data),
   };
 }
 
@@ -195,8 +215,9 @@ export function classifyUploadResponse(
     ? data.flat_copy_reasons.filter((r): r is string => typeof r === 'string')
     : [];
   const fields = photoFieldsFromBulkResponse(data);
+  const nearDupFlagged = fields.nearDuplicateMatches.length > 0;
 
-  if (screenshot === 'check' || flatFlagged) {
+  if (screenshot === 'check' || flatFlagged || nearDupFlagged) {
     return {
       ...base,
       status: 'check_these',
@@ -206,6 +227,7 @@ export function classifyUploadResponse(
       screenshotReasons,
       flatCopyReasons,
       identicalPhashPhotoId: fields.identicalPhashPhotoId,
+      nearDuplicateMatches: fields.nearDuplicateMatches,
     };
   }
 
@@ -216,6 +238,7 @@ export function classifyUploadResponse(
     rowId: fields.rowId,
     b2Key: fields.b2Key,
     identicalPhashPhotoId: fields.identicalPhashPhotoId,
+    nearDuplicateMatches: fields.nearDuplicateMatches,
   };
 }
 
@@ -248,6 +271,7 @@ export function resultsToCsv(results: UploadFileResult[]): string {
     'batch_id',
     'rights_class',
     'identical_phash_photo_id',
+    'near_duplicate_matches',
   ];
   const escape = (v: string) => `"${v.replace(/"/g, '""')}"`;
   const rows = results.map((r) =>
@@ -264,6 +288,9 @@ export function resultsToCsv(results: UploadFileResult[]): string {
       r.batchId || '',
       r.rightsClass || '',
       r.identicalPhashPhotoId == null ? '' : String(r.identicalPhashPhotoId),
+      (r.nearDuplicateMatches || [])
+        .map((m) => `${m.photoId}:${m.distance}`)
+        .join(';'),
     ]
       .map((c) => escape(String(c)))
       .join(','),

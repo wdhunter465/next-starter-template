@@ -361,4 +361,72 @@ describe('POST /api/admin/photos/bulk-upload (#4709)', () => {
     const row = sqlite.prepare('SELECT tags FROM photos').get() as { tags: string };
     expect(row.tags).toContain('flat_copy_review');
   });
+
+  it('flags near-duplicate phash (Hamming ≤ 10) but still stores unpublished (#4709 slice 3)', async () => {
+    const { sqlite, db } = freshDb();
+    seedAdminSession(sqlite);
+    mockB2Put();
+
+    // Seed an existing photo whose phash is one bit away from what this PNG will hash to.
+    // First upload to learn the real phash, then reset and seed a near neighbor.
+    const probe = await onRequestPost({
+      request: formRequest(
+        { batch_id: 'probe', rights_class: 'lgfc_collection' },
+        { bytes: ORDINARY_PNG, name: 'probe.png', type: 'image/png' },
+        ADMIN_SESSION_COOKIE,
+      ),
+      env: { DB: withAdminSession(db), ...B2_ENV },
+    });
+    expect(probe.status).toBe(201);
+    const probeRow = sqlite.prepare('SELECT id, tags FROM photos').get() as {
+      id: number;
+      tags: string;
+    };
+    const phashMatch = /phash:([0-9a-f]{16})/i.exec(probeRow.tags);
+    expect(phashMatch).toBeTruthy();
+    const realPhash = phashMatch![1].toLowerCase();
+    // Flip lowest bit of the hex hash for a distance-1 neighbor.
+    const asBig = BigInt(`0x${realPhash}`);
+    const nearPhash = (asBig ^ 1n).toString(16).padStart(16, '0');
+
+    sqlite.exec('DELETE FROM photos');
+    sqlite
+      .prepare(
+        `INSERT INTO photos (
+          photo_id, url, source, description, tags, rights_notes,
+          rights_hold, rights_hold_reason, publication_eligible, rights_status,
+          is_memorabilia, is_matchup_eligible
+        ) VALUES (?, ?, ?, ?, ?, ?, 1, 'seed', 0, 'unreviewed', 0, 0)`,
+      )
+      .run(
+        'seed-sha-near-dup',
+        'https://example.com/seed.png',
+        'seed',
+        'seed',
+        `phash:${nearPhash}`,
+        '{}',
+      );
+
+    const res = await onRequestPost({
+      request: formRequest(
+        { batch_id: 'b6', rights_class: 'lgfc_collection' },
+        { bytes: ORDINARY_PNG, name: 'game_action_near.png', type: 'image/png' },
+        ADMIN_SESSION_COOKIE,
+      ),
+      env: { DB: withAdminSession(db), ...B2_ENV },
+    });
+    expect(res.status).toBe(201);
+    const body = await res.json();
+    expect(body.status).toBe('stored_unpublished');
+    expect(Array.isArray(body.near_duplicate_matches)).toBe(true);
+    expect(body.near_duplicate_matches.length).toBeGreaterThanOrEqual(1);
+    expect(body.near_duplicate_matches[0].distance).toBeLessThanOrEqual(10);
+    expect(body.near_duplicate_matches[0].distance).toBeGreaterThan(0);
+    const notes = JSON.parse(
+      (sqlite.prepare('SELECT rights_notes FROM photos WHERE photo_id != ?').get('seed-sha-near-dup') as {
+        rights_notes: string;
+      }).rights_notes,
+    );
+    expect(notes.near_duplicate_matches.length).toBeGreaterThanOrEqual(1);
+  });
 });
