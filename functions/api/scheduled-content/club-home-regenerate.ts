@@ -6,8 +6,10 @@
 // Dry run by default: without "apply": true it only reports the eligible story count, the active edition and its age.
 // Apply is refused when:
 //   - fewer than MIN_ELIGIBLE_STORIES are eligible (seven slots per edition; below that an edition would repeat), or
-//   - the date is inside the launch freeze (FREEZE_START to FREEZE_END, inclusive), which needs Product Authority's
-//     approval recorded on #2093 and a change to these constants by pull request.
+//   - the date is on or after FREEZE_START (website freeze begins 2027-01-01 per Product Authority on #4764 /
+//     docs correction #5437). There is no coded FREEZE_END: after the freeze starts, changes are packages in a
+//     safe change window Product Authority still records (#4764); until then apply stays refused. A Production
+//     Go / PR can reintroduce an end or a window when that decision exists.
 // A failed regeneration leaves the prior active edition unchanged (regenerateClubHomeEdition guarantees this).
 
 import { requireScheduledContentBridge } from "../../_lib/scheduled-content-auth";
@@ -16,8 +18,7 @@ import { countPublishedInventoryForSection } from "../../_lib/content-inventory-
 import { requireTables } from "../../_lib/d1";
 
 export const MIN_ELIGIBLE_STORIES = 7;
-export const FREEZE_START = "2026-12-31";
-export const FREEZE_END = "2027-06-02";
+export const FREEZE_START = "2027-01-01";
 const EDITION_TABLES = [
   "content_inventory",
   "content_inventory_club_home_editions",
@@ -32,7 +33,7 @@ function json(data: unknown, status = 200): Response {
 }
 
 export function inFreeze(today: string): boolean {
-  return today >= FREEZE_START && today <= FREEZE_END;
+  return today >= FREEZE_START;
 }
 
 export const onRequestPost = async (context: Context & { now?: Date }): Promise<Response> => {

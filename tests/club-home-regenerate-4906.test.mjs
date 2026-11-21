@@ -11,7 +11,7 @@ vi.mock('../functions/_lib/content-inventory-club-home.ts', () => ({
 vi.mock('../functions/_lib/content-inventory-public.ts', () => ({ countPublishedInventoryForSection: vi.fn(async () => 12) }));
 vi.mock('../functions/_lib/d1.ts', () => ({ requireTables: vi.fn(async () => ({ ok: true })) }));
 
-import { onRequestPost, inFreeze, MIN_ELIGIBLE_STORIES, FREEZE_START, FREEZE_END } from '../functions/api/scheduled-content/club-home-regenerate.ts';
+import { onRequestPost, inFreeze, MIN_ELIGIBLE_STORIES, FREEZE_START } from '../functions/api/scheduled-content/club-home-regenerate.ts';
 import * as lib from '../functions/_lib/content-inventory-club-home.ts';
 import * as pub from '../functions/_lib/content-inventory-public.ts';
 import { main, parseArgs, renderReport } from '../scripts/ops/club-home-regenerate.mjs';
@@ -66,13 +66,13 @@ describe('POST /api/scheduled-content/club-home-regenerate', () => {
     expect(lib.regenerateClubHomeEdition).not.toHaveBeenCalled();
   });
 
-  it('skips inside the launch freeze, including both edge days, and applies the day after', async () => {
-    for (const day of [FREEZE_START, '2027-03-25', FREEZE_END]) {
+  it('skips on and after FREEZE_START with no coded end (#4764 / #4906)', async () => {
+    for (const day of [FREEZE_START, '2027-03-25', '2027-06-03', '2028-01-01']) {
       const out = await (await call({ apply: true }, { now: new Date(`${day}T11:00:00Z`) })).json();
       expect(out).toMatchObject({ applied: false, skipped: 'launch_freeze', freeze: true });
     }
-    expect(inFreeze('2026-12-30')).toBe(false);
-    expect(inFreeze('2027-06-03')).toBe(false);
+    expect(inFreeze('2026-12-31')).toBe(false);
+    expect(inFreeze('2027-01-01')).toBe(true);
     expect(lib.regenerateClubHomeEdition).not.toHaveBeenCalled();
   });
 
@@ -85,7 +85,7 @@ describe('POST /api/scheduled-content/club-home-regenerate', () => {
 
   it('exports only the POST handler and its constants', async () => {
     const mod = await import('../functions/api/scheduled-content/club-home-regenerate.ts');
-    expect(Object.keys(mod).sort()).toEqual(['FREEZE_END', 'FREEZE_START', 'MIN_ELIGIBLE_STORIES', 'inFreeze', 'onRequestPost']);
+    expect(Object.keys(mod).sort()).toEqual(['FREEZE_START', 'MIN_ELIGIBLE_STORIES', 'inFreeze', 'onRequestPost']);
   });
 });
 
