@@ -5,8 +5,8 @@ Authority Level: Agent-Specific
 Owns: Claude Code product identity, startup steps, continuous-run mechanics, claim handling, Operations monitoring, permission-email monitoring, connector access (Cloudflare, Buffer, Zapier), and Claude-specific operating notes
 Does Not Own: Agent-team policy, role mapping, PMO lifecycle, Governance authority, shared execution law, merge approval, or the permission-request policy
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Related Issues: #3825, #4053, #4718, #4749, #4994, #5108, #5192, #5194, #5221, #5324
-Last Reviewed: 2026-11-17
+Related Issues: #3825, #4053, #4718, #4749, #4994, #5108, #5192, #5194, #5221, #5324, #5421
+Last Reviewed: 2026-11-21
 ---
 
 # CLAUDE-CODE-RULES.md
@@ -59,7 +59,7 @@ After startup the run follows the shared law (`docs/governance/AGENT-EXECUTION.m
 The Cursor-offline override (#5221) ended on 2026-11-17 (#5324). Claude Code holds the roles in `docs/governance/AGENT-TEAM.md` (Team assignment) and the five searches above apply as written, including the `-label:agent:cursor` exclusion. The pass below is not Cursor-specific; nothing here widens authority.
 
 - **One pass, in this order, at every safe task boundary** (do not stop after the first item that moves):
-  1. **My open PRs.** Read checks, threads and merge state. A non-production PR with every required check green and every thread resolved: merge it and leave the merge record (`Merged by: ...; head <sha>; checks green; threads resolved`). A Production-tier PR I implemented: confirm it is ready for Product Authority or the other CMO holder, say so once on its source Issue, and move on. A Production-tier PR another agent implemented: review it, and approve and merge it as CMO alternate when it is ready and holds no protected decision; otherwise comment once and move on.
+  1. **Review requests, then my open PRs.** First answer any `COLLABORATION REQUEST` for a PR review addressed to Claude Code and review the open PRs waiting on it (`docs/governance/WORK-QUEUES-AND-COLLABORATION.md`, Pull-request review call-out); do this before reporting an empty queue. For my own PRs, post the review request when I open one and one reminder if it is unanswered after two hours. Then read checks, threads and merge state. A non-production PR with every required check green and every thread resolved: merge it and leave the merge record (`Merged by: ...; head <sha>; checks green; threads resolved`). A Production-tier PR I implemented: confirm it is ready for Product Authority or the other CMO holder, say so once on its source Issue, and move on. A Production-tier PR another agent implemented: review it, and approve and merge it as CMO alternate when it is ready and holds no protected decision; otherwise comment once and move on.
   2. **Closeout.** For each merged PR whose source Issue is still open, confirm post-merge verification and acceptance criteria; close the Issue with the evidence, or record exactly what remains. Project and Program closeout stays a PMO/Governance/Product decision.
   3. **Lifecycle and labels (PMO Admin).** Fix deterministic defects where they occur: missing `pmo:closed`, stale `status:*`, orphaned claims.
   4. **Ready queue.** Take the next `status:ready` Issue in role order. Claim it only when starting; release it with a note when it waits.
