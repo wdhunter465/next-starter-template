@@ -2,18 +2,18 @@
 Doc Type: How-To
 Audience: Human + AI
 Authority Level: Procedure
-Owns: Operator steps for the 2027 freeze period (2026-12-31 to the 2027-06-07 fundraiser close): the milestone runbook, the daily post and snapshot checks, the freeze exception log, and the weekly status report
+Owns: Operator steps for the 2027 freeze period (from 2027-01-01 through the 2027-06-07 fundraiser close): the milestone runbook, the daily post and snapshot checks, the freeze exception log, and the weekly status report
 Does Not Own: The calendar dates, the Go/No-Go or freeze declaration, emergency-change approval (Product Authority on #2093), the freeze scope itself (recorded on #2093 from #4417), launch-window cover hours and response times (#4762), or any code, workflow or Production change
 Canonical Reference: /docs/reference/operations/2027-launch-calendar-operating-contract.md
 Related Issues: #4763, #2093, #4414, #4417, #4433, #4432, #4573, #4684, #4762, #4764, #3866
-Last Reviewed: 2026-10-22
+Last Reviewed: 2026-11-21
 ---
 
 # Run the 2027 freeze period
 
 ## Purpose
 
-This procedure says what Operations, PMO and Product Authority do between the 2026-12-31 freeze and the 2027-06-07 fundraiser close. It runs the calendar of record; it does not change it. Nothing here declares the freeze, a Go, or an announcement. Only Product Authority does, on #2093.
+This procedure says what Operations, PMO and Product Authority do between the 2027-01-01 freeze and the 2027-06-07 fundraiser close. It runs the calendar of record; it does not change it. Nothing here declares the freeze, a Go, or an announcement. Only Product Authority does, on #2093.
 
 Dates and times come from the calendar of record in `docs/reference/operations/2027-launch-calendar-operating-contract.md` (revised 2026-10-12): the fundraiser launches 2027-03-25 at 12:00 AM and closes 2027-06-07 at 12:00 PM. All times are Eastern (America/New_York), recorded on #2093 on 2026-10-13.
 
@@ -34,7 +34,7 @@ The scope Product Authority accepted on #2093 on 2026-10-14 (from `docs/ops/repo
 
 | Continues | Rule |
 | --- | --- |
-| Staged Fundraiser Daily Details posts and the 10:00 AM publish job | Only rows staged before 2026-12-31 publish. Adding or editing a staged row needs an exception |
+| Staged Fundraiser Daily Details posts and the 10:00 AM publish job | Only rows staged before 2027-01-01 publish. Adding or editing a staged row needs an exception |
 | Leaderboard and progress snapshots | Automated refresh only; Product Authority sets the 2027 cadence on #2093 (the #4573 design recommends hourly, and every 15 minutes in the last 24 hours before each checkpoint and the close) |
 | Checkpoint records and winner publishing | Recorded as an approved scheduled-content activity (#4573); Product Authority approves each record |
 | Member activity, moderation, backups, health checks, monitoring | Not changes |
@@ -42,7 +42,11 @@ The scope Product Authority accepted on #2093 on 2026-10-14 (from `docs/ops/repo
 
 Anything else needs a freeze exception.
 
-## Before the freeze (must be true by 2026-12-31)
+## Changes during 2027: packages in a safe change window (Product Authority, 2026-11-19, #4764)
+
+Targeted changes are still expected in phases through 2027, and each is assessed rigorously before it goes in. A change is built as a package on the non-production Preview and tested there. Packages are promoted to Production as single larger blocks, all at one time, inside a safe change window. Small separate Production changes are avoided. The window (when, how often, who approves) is set by Product Authority on #4764; until he records it, no package is promoted. An emergency or security fix still uses the freeze exception path below.
+
+## Before the freeze (must be true before it starts on 2027-01-01)
 
 | Check | Owner | Evidence |
 | --- | --- | --- |
@@ -60,8 +64,8 @@ Each row is a check, not a Go. Operations does the checks; Product Authority aut
 
 | Date and time | Milestone | Before | After | Fallback |
 | --- | --- | --- | --- | --- |
-| 2026-12-31 | Final Go/No-Go; freeze begins if Go | Packet rows current (`docs/ops/as-built/2027-launch-calendar.md`) | Declaration on #2093; exception log opened | No declaration means no freeze: record a HOLD and the next review |
-| 2027-01-01 | Website live; launch announcements | Production smoke on the candidate revision; rollback path confirmed; D1 restore drill (scheduled 2027-01-01) result noted | Smoke result, deployed revision and status word posted on #2093 | Roll back to the last good deployment (pre-authorized), report afterward |
+| 2026-12-31 | Final Go/No-Go; freeze declared if Go (it begins 2027-01-01) | Packet rows current (`docs/ops/as-built/2027-launch-calendar.md`) | Declaration on #2093; exception log opened | No declaration means no freeze: record a HOLD and the next review |
+| 2027-01-01 | Website live; freeze begins; launch announcements | Production smoke on the candidate revision; rollback path confirmed; D1 restore drill (scheduled 2027-01-01) result noted | Smoke result, deployed revision and status word posted on #2093 | Roll back to the last good deployment (pre-authorized), report afterward |
 | 2027-02-01 | Fundraiser "coming soon"; registration opens; first daily post | Registration working; channel list and copy authorized; post 1 staged | Post 1 visible on `/fundraiser-details` and the home teaser by 10:30 AM | Publish by hand through the admin if the job missed; log it |
 | 2027-02-01 to 2027-03-01 | Daily posts | See "Daily post check" | Same | Same |
 | 2027-02-15 | Join-as-participant call to action | Authorization on #2093 | Post live | Product Authority decides a late post |

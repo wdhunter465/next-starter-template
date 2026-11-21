@@ -26,7 +26,7 @@ Out of scope: D1 `events`; Production mutation; Product recording GO/NO-GO/HOLD/
 - Parent #2093 is OPEN, Active, `pmo:priority:1`.
 - #3861 PR #4348. #3862 PR #4352. #3863 PR #4354. #3864 PR #4357. #3865 PR #4363 (`03412d374b482fa5d70c42a867dc2a0af243cd3d`).
 - #3866 PR #4364 (`58d92f1a2e08dc933ecbdb9b03a3e322fb2cacd6`).
-- Freeze start **2026-12-31** is documented assuming calendar Go; Bill must declare freeze. Emergency-change owner is Bill.
+- Freeze start **2027-01-01** (Product Authority, 2026-11-19, #4764) is documented assuming calendar Go; Bill must declare freeze. Emergency-change owner is Bill.
 - Daily reporting states: blocked / at risk / ready / go / no-go / deployed / verified / monitoring. Those states are not website Go.
 - #3234 hold is not a reason to skip this handoff.
 - Product 2026-09-23: do not publish #2093 dates on the public calendar.

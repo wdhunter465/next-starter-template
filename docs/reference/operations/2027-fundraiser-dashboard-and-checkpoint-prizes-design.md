@@ -140,7 +140,7 @@ The June 7, 12:00 PM final standings use the same freeze mechanism, so #4436's c
 | #4139 (Givebutter E2E qualification) | The trigger ("a live Givebutter integration exists") is met when B3 lands | Add to its scope: stale-snapshot banner, hidden-when-no-snapshot, checkpoint freeze immutability, and the zero-donor-PII field allowlist |
 | #4442 (P-30 stale fundraiser docs) | `fundraiser-leaderboard-data-contract.md` (MLB teams, amount × donors) and `temporary-campaign-spotlight-data-contract.md` (2026) describe the old model | Mark them superseded by this design once D4 and D5 are decided, then update them to as-built in B9 |
 | #4468 (Day-2 monitoring) | Snapshot freshness is a new scheduled job to watch | Add the snapshot job to `OPS — Scheduled Job Health` in B6 |
-| #4417 (P-03 freeze scope) | Checkpoint publishing and winner records happen after the 2026-12-31 freeze | Record checkpoint publishing as an approved scheduled-content activity under the freeze exception |
+| #4417 (P-03 freeze scope) | Checkpoint publishing and winner records happen after the 2027-01-01 freeze | Record checkpoint publishing as an approved scheduled-content activity under the freeze exception |
 
 ## 4. Build plan
 
