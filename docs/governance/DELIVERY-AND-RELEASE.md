@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Delivery models, Sandbox/Development/Promotion Candidate/Production profiles, integration and promotion boundaries, approval profiles, rollback policy, and release-unit promotion rules
 Does Not Own: Current team-member assignments, PMO sizing, CI implementation, environment-isolation proof, or emergency stabilization procedures
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2495, #2640, #2641, #3752, #3753, #3465, #4552
-Last Reviewed: 2026-10-16
+Related Issues: #2495, #2640, #2641, #3752, #3753, #3465, #4552, #5423
+Last Reviewed: 2026-11-21
 ---
 
 # Delivery and Release
@@ -99,6 +99,15 @@ Development -X-> Production
 The profiles progressively narrow work into full repository alignment. They are not interchangeable labels.
 
 Model C documentation-only merges to `main` do **not** travel the Sandbox → Development → Promotion Candidate path. They use the documentation gate profile defined below and remain outside executable Promotion Candidate qualification unless a separate rule independently requires it.
+
+## Branch names and the implementing agent (Product Authority, 2026-11-21)
+
+Every pull request, in every delivery model, comes from a branch named `<agent>/<issue>-<task>`.
+
+- The `<agent>` prefix names the agent that implemented the pull request: `claude`, `cursor`, `grok`, `grok-bot`, or another name recorded in `docs/governance/AGENT-TEAM.md`.
+- All agents post as the same GitHub account, so the pull request author does not say who implemented it. The branch prefix is the identity record until agents have their own accounts (#3234).
+- Product Authority and the CMO read the implementing agent from the prefix. Who may approve a pull request on that basis is decided only in `docs/governance/REPOSITORY-AUTHORITY.md` (Merge authority).
+- This is a convention that the reviewer checks. A deterministic check is a separate Issue.
 
 ## Delivery models
 

@@ -108,7 +108,7 @@ CMO may:
 
 CMO may not:
 
-- approve or merge its own implementation (the other holder, or Product Authority, decides it);
+- approve or merge its own implementation (the other holder, or Product Authority, decides it). The implementer is the prefix of the PR branch name, and an approval is valid when that prefix is not the approving holder's own agent (`docs/governance/REPOSITORY-AUTHORITY.md`, Merge authority);
 - approve a protected decision (Production Go, cost, legal, privacy, credentials, destructive data, or any decision Product Authority has not recorded);
 - waive required checks;
 - authorize Production Go, cost, legal, privacy, credentials, destructive data, or other protected Product decisions beyond what Product Authority has recorded.
