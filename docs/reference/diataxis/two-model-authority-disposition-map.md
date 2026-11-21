@@ -29,7 +29,7 @@ Record the authority disposition for every canonical document touched by issue #
 
 | Current path | Current owner | Target owner | Action | Replacement / notes | Reference-update scope |
 | --- | --- | --- | --- | --- | --- |
-| `docs/governance/REPOSITORY-AUTHORITY.md` | — | Constitution (Layer 0) | retain (new) | This file is the new constitution | `Agent.md`, architecture docs, inventory map |
+| `docs/governance/REPOSITORY-AUTHORITY.md` | — | Constitution (Layer 0) | retain (new) | This file is the new constitution | `AGENTS.md`, architecture docs, inventory map |
 | `docs/governance/standards/document-authority-hierarchy_MASTER.md` | Governance | Documentation and Knowledge | supersede | Competing canonical precedence removed; file is a superseded pointer to `REPOSITORY-AUTHORITY.md` until archived | Self, `DOCUMENT-ARCHITECTURE.md` |
 | `docs/governance/DOCUMENT-ARCHITECTURE.md` | Governance | Documentation and Knowledge | retain | Reconcile `docs/ops/ai/` binding-policy claim with DIATAXIS ops prohibition | All paths citing ops/ai as binding policy owner |
 | `docs/governance/standards/DIATAXIS-FOLDER-AUTHORITY.md` | Documentation and Knowledge | Documentation and Knowledge | retain | Align ops prohibition with agent routing table in constitution | `DOCUMENT-ARCHITECTURE.md`, resolution doc |

@@ -6,7 +6,7 @@ Use this skill for PR creation, updates, source-Issue linkage, scope control, pr
 
 Before PR work, read:
 
-1. `Agent.md`
+1. `AGENTS.md`
 2. `docs/governance/REPOSITORY-AUTHORITY.md`
 3. `docs/governance/AGENT-TEAM.md`
 4. `docs/governance/AGENT-EXECUTION.md`

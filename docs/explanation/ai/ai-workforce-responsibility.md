@@ -25,7 +25,7 @@ This file owns the current responsibility matrix and the human-only decision lis
 
 | Holder | Responsibility | Does not do |
 | --- | --- | --- |
-| Bill | Product Authority and CMO: product outcome, priority, protected decisions, Production-tier merge approval, launch Go | Implement routine changes in order to approve them |
+| Bill | Product Authority and human CMO: product outcome, priority, protected decisions, Production-tier merge approval, launch Go | Implement routine changes in order to approve them |
 | Claude Code | PMO, Engineering and PMO Admin (primary); Operations and Governance (secondary); authorized implementation | Approve or merge a Production-tier or protected change it implemented |
 | Cursor | Operations and Governance (primary); Engineering and PMO Admin (secondary); authorized implementation | Approve or merge a Production-tier or protected change it implemented |
 | Deterministic CI | Machine-provable checks and evidence | Product Go or merge |
@@ -36,14 +36,14 @@ This file owns the current responsibility matrix and the human-only decision lis
 
 The Governance role is held as recorded in the Team assignment in `docs/governance/AGENT-TEAM.md`. The gap left by the ChatGPT retirement is closed; this file does not name the holders again.
 
-Overlap to avoid: the two team members must not become two copies of merge authority. Merge authority is tiered and defined in `docs/governance/REPOSITORY-AUTHORITY.md` (Merge authority): Production-tier merges stay with Bill (Product Authority and CMO); non-production Pull Requests are approved and merged by the implementing agent.
+Overlap to avoid: the two team members must not become two copies of merge authority. Merge authority is tiered and defined in `docs/governance/REPOSITORY-AUTHORITY.md` (Merge authority): Production-tier merges are decided by Bill (Product Authority and human CMO) or by a CMO alternate holder, never by the agent that implemented the change, so agents keep working while Bill is away; non-production Pull Requests are approved and merged by the implementing agent.
 
 ### Human-only decisions
 
 These stay human:
 
 - Product priority and protected product decisions
-- Production-tier merge
+- Production-tier merge of work no CMO holder can decide (a CMO holder's own implementation, or a protected decision)
 - Production and launch Go
 - Cost, legal, and secrets decisions
 - Naming or retiring an agent role

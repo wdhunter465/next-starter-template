@@ -23,7 +23,7 @@ Provide the operator procedure for moving approved work through Sandbox, Develop
 
 ## Current known truth
 
-- Work must enter through repository authority (`Agent.md` and the authority chain) before profile transitions.
+- Work must enter through repository authority (`AGENTS.md` and the authority chain) before profile transitions.
 - Sandbox is optional; Development → Promotion Candidate → Production is mandatory for public production use.
 - Administration & Communications records and routes; the active horizontal lane retains decision authority.
 
@@ -37,7 +37,7 @@ Operators can execute an authorized profile path without skipping profiles, inve
 
 Before work begins:
 
-1. Read `Agent.md` and the required authority chain.
+1. Read `AGENTS.md` and the required authority chain.
 2. Identify the current durable role.
 3. Identify the active horizontal lane.
 4. Identify the current promotion profile.

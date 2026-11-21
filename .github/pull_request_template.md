@@ -13,7 +13,7 @@ Dynamic state lives in GitHub reviews, review threads, labels, required checks,
 and post-merge closeout records. Merge authority remains GitHub branch
 protection and required checks. Merge authority is tiered and defined only in
 docs/governance/REPOSITORY-AUTHORITY.md (Merge authority): Production-tier
-merges need human approval; non-production PRs are self-approved after the
+merges need approval by Product Authority or a CMO holder; non-production PRs are self-approved after the
 required checks pass. Open the PR ready for review, not as a draft. The
 ready-for-merge label is a derived operator-visibility signal only.
 

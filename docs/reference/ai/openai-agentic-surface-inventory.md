@@ -4,7 +4,7 @@ Audience: Human + AI
 Authority Level: Controlled
 Owns: Inventory of OpenAI-consumed LGFC Agentic/bootstrap/startup/skill/config surfaces. ChatGPT is retired (#4173). Codex is retired (#4165). OpenAI/Work is retired (#4074).
 Does Not Own: Repository-wide governance policy, queue precedence, PR lifecycle, merge authority, or restoring OpenAI/Work as a live product
-Canonical Reference: /Agent.md
+Canonical Reference: /AGENTS.md
 Related Issues: #3815, #3755, #3825, #4074, #4052, #3808, #4091, #4165, #4776
 Last Reviewed: 2026-10-26
 ---
@@ -19,13 +19,13 @@ Record every OpenAI-consumed Agentic/bootstrap/startup/skill/config surface that
 
 | Surface | Product(s) | Purpose | Authority | Canonical owner | Read timing | `run startup` | Disposition |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| `AGENTS.md` | Any tool that auto-loads this filename, including Codex and Cursor Cloud | Product-neutral compatibility/router | Navigation only | This file → `Agent.md` | Session start | Yes, as router only | **Revised** #3815: no longer forces every product through `CURSOR-RULES.md` |
-| `Agent.md` | All | Mandatory navigation chain | Navigation | `REPOSITORY-AUTHORITY.md` | Before any repo work | Yes | Retained; WORK pointer marked retired |
+| `AGENTS.md` | Any tool that auto-loads this filename, including Codex and Cursor Cloud | Product-neutral compatibility/router | Navigation only | This file → `AGENTS.md` | Session start | Yes, as router only | **Revised** #3815: no longer forces every product through `CURSOR-RULES.md` |
+| `AGENTS.md` | All | Mandatory navigation chain | Navigation | `REPOSITORY-AUTHORITY.md` | Before any repo work | Yes | Retained; WORK pointer marked retired |
 | `docs/governance/REPOSITORY-AUTHORITY.md` | All | Constitution / ownership | Domain policy | itself | Startup chain step 2 | Yes | Retained; out of #3815 edit scope |
 | `docs/governance/AGENT-TEAM.md` | All | Durable roles and member mapping | Domain policy | itself | Startup chain step 3 | Yes | Retained; ChatGPT = Governance + PMO; Work removed |
 | `docs/ops/ai/CORE-RULES.md` | All | Shared execution law and PRODUCT STARTUP FRAMEWORK | Operational rules | itself | Startup chain step 4 | Yes | Retained; WORK-RULES called retired |
 | `docs/ops/ai/SHARED-AGENT-RULES.md` | Historical | Former shared-law index | — | Retired #4091 | Do not read as live | No | **Removed**; mapping in `docs/reference/DIATAXIS-MAPPING.md` |
-| `.agents/skills/lgfc-pr-governance/SKILL.md` | All implementers | PR/issue/review/closeout technique | Skill | `PR_PROCESS.md` / `Agent.md` | When doing PR work | No, unless PR work is loaded | Retained; must not add approval gates |
+| `.agents/skills/lgfc-pr-governance/SKILL.md` | All implementers | PR/issue/review/closeout technique | Skill | `PR_PROCESS.md` / `AGENTS.md` | When doing PR work | No, unless PR work is loaded | Retained; must not add approval gates |
 | `.agents/skills/lgfc-docs-authority/SKILL.md` | All | Docs header/DIATAXIS technique | Skill | DOCUMENT-ARCHITECTURE | Task-selected | No | Retained |
 | `.agents/skills/lgfc-design-compliance/SKILL.md` | All | Design-compliance technique | Skill | Production design standards | Task-selected | No | Retained |
 | `.agents/skills/lgfc-verification-closeout/SKILL.md` | All | Verification/closeout technique | Skill | closeout protocol | Task-selected | No | Retained |
@@ -68,7 +68,7 @@ Product Authority permanently removed OpenAI / Work from the LGFC Agentic Team o
 Known #3815 comment requirements and disposition:
 
 - ChatGPT/WORK concise default → encoded in `CHATGPT-RULES.md`. WORK has no live file to update.
-- ChatGPT/WORK continuity after session reset → ChatGPT reloads the `Agent.md` chain and live GitHub; WORK ledger retired.
+- ChatGPT/WORK continuity after session reset → ChatGPT reloads the `AGENTS.md` chain and live GitHub; WORK ledger retired.
 - Codex observation/polling/notification → former Cursor-parity `lgfc-codex-dispatch` (#4052) **removed** under #4165; `CODEX-RULES.md` is retired. The #3844 `pull_request` / `workflow_run` surface remains rejected.
 - `AGENTS.md` must not force Codex through Cursor → product-neutral router plus governance-check regression.
 - Invalid OpenAI-consumed LGFC `SKILL.md` files → the five repository `.agents/skills/*/SKILL.md` files remain shared technique skills; none redefine queue/PR/merge authority.

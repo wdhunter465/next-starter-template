@@ -27,7 +27,7 @@ Delivery model selection remains in `docs/governance/PMO-PORTFOLIO.md` and `docs
 | **PMO Admin** | Current holder in `docs/governance/AGENT-TEAM.md` | Platform documentation package authorship; environment classification completeness |
 | **Implementation / Operations** | Current holder in `docs/governance/AGENT-TEAM.md` | Scoped implementation of approved platform docs and allowlisted platform work; no self-approval of platform authority |
 | **PR Approver / Engineering** | Current holder in `docs/governance/AGENT-TEAM.md` | Independent review of platform/environment PRs per delivery profile; not a substitute for Product Authority on credentials, cost, or material isolation decisions |
-| **CMO** | Current holder in `docs/governance/AGENT-TEAM.md` | Human approval of Production-tier merges (`docs/governance/REPOSITORY-AUTHORITY.md`, Merge authority); not required for non-production PRs; may not approve own implementation |
+| **CMO** | Current holder in `docs/governance/AGENT-TEAM.md` | Approval of Production-tier merges by Product Authority or a CMO holder (`docs/governance/REPOSITORY-AUTHORITY.md`, Merge authority); not required for non-production PRs; may not approve own implementation |
 | **Supporting platform references** | `docs/reference/platform/**` | Resource inventories, isolation classifications, and operational platform facts only |
 
 Rules:

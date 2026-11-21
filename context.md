@@ -4,14 +4,14 @@ Audience: Human + AI
 Authority Level: Informational
 Owns: Short orientation digest read at startup: this repository's identity, the stack, the vendors and the design and platform authorities at a high level, authority routing, the startup stop boundary, and stable execution discipline
 Does Not Own: Product design invariants, authentication rules, vendor status, agent role mapping, PMO priority, PR lifecycle, or any live Issue, PR, branch, or queue state
-Canonical Reference: /Agent.md
+Canonical Reference: /AGENTS.md
 Related Issues: #2466, #4717
 Last Reviewed: 2026-10-20
 ---
 
 # context.md — Repository orientation (LGFC)
 
-This file orients contributors and agents. It does not define rules. When it disagrees with a canonical document, the canonical document wins. Start at `Agent.md` and follow that file's authority chain.
+This file orients contributors and agents. It does not define rules. When it disagrees with a canonical document, the canonical document wins. Start at `AGENTS.md` and follow that file's authority chain.
 
 It is the orientation digest read at startup (`docs/governance/AGENT-EXECUTION.md`, PRODUCT STARTUP FRAMEWORK). It gives the picture at a high level and points to the owner of each detail. Read the owner when a task needs the detail; do not rely on this file for it.
 
@@ -68,15 +68,15 @@ The current list, which vendors are active, inactive or only available, and the 
 
 ## Authority and roles
 
-All agent work routes through `Agent.md` and its mandatory documentation chain. `docs/governance/AGENT-TEAM.md` is the only record of role holders, role work order and the Team assignment; this file does not restate them. `docs/governance/REPOSITORY-AUTHORITY.md` is the constitution, including who may approve and merge.
+All agent work routes through `AGENTS.md` and its mandatory documentation chain. `docs/governance/AGENT-TEAM.md` is the only record of role holders, role work order and the Team assignment; this file does not restate them. `docs/governance/REPOSITORY-AUTHORITY.md` is the constitution, including who may approve and merge.
 
 PMO lifecycle terms and pull-request lifecycle states are different systems. PMO portfolio rules are in `docs/governance/PMO-PORTFOLIO.md`. Pull-request states are in `docs/governance/PR_LIFECYCLE_STATE_MACHINE.md`.
 
-`READY FOR REVIEW` is not `READY FOR MERGE`. Merge authority is tiered: the implementing agent merges non-production Pull Requests, and only the human approver merges Production-tier ones (`docs/governance/REPOSITORY-AUTHORITY.md`, Merge authority).
+`READY FOR REVIEW` is not `READY FOR MERGE`. Merge authority is tiered: the implementing agent merges non-production Pull Requests, and Production-tier ones are merged by Product Authority or a CMO holder, never by the agent that implemented them (`docs/governance/REPOSITORY-AUTHORITY.md`, Merge authority).
 
 ## Run startup
 
-`run startup` is an orientation command. Each recognized product identifies itself, reads its own startup contract, reports orientation, ends startup, and begins Session lifecycle phase 2 in the same turn (#5012). The shared steps are in `docs/governance/AGENT-EXECUTION.md` (PRODUCT STARTUP FRAMEWORK). Ending startup is not going idle. The product list is in `Agent.md` and `docs/governance/AGENT-TEAM.md`.
+`run startup` is an orientation command. Each recognized product identifies itself, reads its own startup contract, reports orientation, ends startup, and begins Session lifecycle phase 2 in the same turn (#5012). The shared steps are in `docs/governance/AGENT-EXECUTION.md` (PRODUCT STARTUP FRAMEWORK). Ending startup is not going idle. The product list is in `AGENTS.md` and `docs/governance/AGENT-TEAM.md`.
 
 Startup itself does not authorize a queue audit, inferred next work, GitHub mutation, PMO advance, work packaging, or implementation. Startup completion is not task authorization. After startup ends, the agent reads its working list from GitHub and continues. A source Issue, its acceptance criteria, an exact file allowlist, and an explicit implementation Go are still required before edits.
 

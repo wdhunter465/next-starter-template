@@ -41,7 +41,7 @@ LGFC wants a new member-facing feature that depends on an unfamiliar external in
 
 ## Step 1 — Agent entry
 
-The assigned agent reads `Agent.md`, loads the repository authority chain, identifies its durable role, and opens the source Issue and project manifest.
+The assigned agent reads `AGENTS.md`, loads the repository authority chain, identifies its durable role, and opens the source Issue and project manifest.
 
 The current context is:
 

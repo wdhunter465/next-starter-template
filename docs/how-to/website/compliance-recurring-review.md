@@ -86,7 +86,7 @@ Covers recurring review against the compliance candidate on `component/complianc
 | Consent gate present on component but Production still loads GA pre-consent | Expected until promotion; escalate only if a Production-ready claim is made without promotion evidence |
 | Control test regression | Block merge; Implementation remediates under a new bounded Issue/PR |
 | Suspected credential or private-data exposure | Stop; escalate to Bill/WORK; no further mutation |
-| Authority conflict between agents | Stop; WORK/PMO reconciles — prompts do not override `Agent.md` chain |
+| Authority conflict between agents | Stop; WORK/PMO reconciles — prompts do not override `AGENTS.md` chain |
 
 ## Safe-disable reminders
 

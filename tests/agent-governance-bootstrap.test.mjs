@@ -44,7 +44,7 @@ alwaysApply: true
 
 # Bootstrap
 
-Read Agent.md, docs/governance/REPOSITORY-AUTHORITY.md, docs/governance/AGENT-TEAM.md, docs/ops/ai/CORE-RULES.md,
+Read AGENTS.md, docs/governance/REPOSITORY-AUTHORITY.md, docs/governance/AGENT-TEAM.md, docs/ops/ai/CORE-RULES.md,
 docs/ops/ai/CURSOR-RULES.md, docs/ops/ai/CODEX-RULES.md, docs/ops/ai/CHATGPT-RULES.md,
 .agents/skills/lgfc-pr-governance/SKILL.md,
 .github/pull_request_template.md, docs/how-to/cursor/open-task-pr.md.
@@ -60,13 +60,15 @@ function minimalAgentsMd() {
 
   return `# AGENTS.md
 
-This file is a compatibility/router layer. Read the applicable product-specific pointer.
+This file is the single repository entry. Read the applicable product-specific pointer.
+
+Local sessions: .cursor/rules/
 
 When a Cloud Agent session loads this file, the bootstrap is not complete until the agent has read the canonical chain below.
 
 Do not merely report that these files are required. Read them before making any repo-work, readiness, implementation, or PR-governance claim:
 
-1. Agent.md
+1. AGENTS.md
 2. docs/governance/REPOSITORY-AUTHORITY.md
 3. docs/governance/AGENT-TEAM.md
 4. docs/ops/ai/CORE-RULES.md
@@ -92,7 +94,6 @@ Cursor Cloud only.
 
 function minimalCanonicalFiles() {
   return {
-    'Agent.md': '# Agent\n\n.cursor/rules/\n\nAGENTS.md\n',
     'docs/governance/REPOSITORY-AUTHORITY.md': '# authority\n',
     'docs/governance/AGENT-TEAM.md': '# team\n',
     'docs/ops/ai/CORE-RULES.md': '# core\n',
@@ -139,7 +140,7 @@ alwaysApply: false
 
 # Bootstrap
 
-Read Agent.md, docs/governance/REPOSITORY-AUTHORITY.md, docs/governance/AGENT-TEAM.md, docs/ops/ai/CORE-RULES.md,
+Read AGENTS.md, docs/governance/REPOSITORY-AUTHORITY.md, docs/governance/AGENT-TEAM.md, docs/ops/ai/CORE-RULES.md,
 docs/ops/ai/CURSOR-RULES.md, .agents/skills/lgfc-pr-governance/SKILL.md,
 .github/pull_request_template.md.
 `,
@@ -151,7 +152,7 @@ docs/ops/ai/CURSOR-RULES.md, .agents/skills/lgfc-pr-governance/SKILL.md,
 
   it('reports missing canonical path references', () => {
     const root = makeTempRepo(minimalBootstrapFixture({
-      'AGENTS.md': '# AGENTS.md\n\nRead Agent.md only.\n',
+      'AGENTS.md': '# AGENTS.md\n\nRead nothing else.\n',
       [BOOTSTRAP_RULE_FILES[0]]: `---
 description: test
 alwaysApply: true
@@ -159,7 +160,7 @@ alwaysApply: true
 
 # Bootstrap
 
-Read Agent.md only.
+Read nothing else.
 `,
       [BOOTSTRAP_RULE_FILES[1]]: `---
 description: test
@@ -168,7 +169,7 @@ alwaysApply: true
 
 # Bootstrap
 
-Read Agent.md only.
+Read nothing else.
 `,
       [BOOTSTRAP_RULE_FILES[2]]: `---
 description: test
@@ -177,7 +178,7 @@ alwaysApply: true
 
 # Bootstrap
 
-Read Agent.md only.
+Read nothing else.
 `,
     }));
 
@@ -207,7 +208,7 @@ Read Agent.md only.
 
   it('reports missing Cloud bootstrap hardening phrases in AGENTS.md', () => {
     const root = makeTempRepo(minimalBootstrapFixture({
-      'AGENTS.md': '# AGENTS.md\n\nRead Agent.md only.\n',
+      'AGENTS.md': '# AGENTS.md\n\nRead nothing else.\n',
     }));
 
     const failures = validateBootstrap(root);
@@ -240,13 +241,13 @@ ${AGENTS_MD_CLOUD_BOOTSTRAP_REQUIRED_PHRASES.join('\n')}
     const root = makeTempRepo(minimalBootstrapFixture({
       'AGENTS.md': `# AGENTS.md
 
-This file is a compatibility/router layer. Read the applicable product-specific pointer.
+This file is the single repository entry. Read the applicable product-specific pointer.
 
 When a Cloud Agent session loads this file, the bootstrap is not complete until the agent has read the canonical chain below.
 
 Do not merely report that these files are required. Read them before making any repo-work, readiness, implementation, or PR-governance claim:
 
-1. Agent.md
+1. AGENTS.md
 2. docs/governance/REPOSITORY-AUTHORITY.md
 3. docs/governance/AGENT-TEAM.md
 4. docs/ops/ai/CORE-RULES.md

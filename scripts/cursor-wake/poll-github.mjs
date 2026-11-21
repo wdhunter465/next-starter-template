@@ -40,7 +40,7 @@ function ghRaw(args) {
 function isRepoRoot(candidate) {
   if (!candidate) return false;
   return (
-    existsSync(join(candidate, 'Agent.md')) &&
+    existsSync(join(candidate, 'AGENTS.md')) &&
     existsSync(join(candidate, 'docs/governance/AGENT-EXECUTION.md')) &&
     existsSync(join(candidate, 'docs/governance/AGENT-TEAM.md')) &&
     existsSync(join(candidate, 'docs/ops/ai/CURSOR-RULES.md'))

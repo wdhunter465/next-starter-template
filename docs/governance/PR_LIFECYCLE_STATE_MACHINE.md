@@ -123,7 +123,7 @@ The exact approved candidate, full standards, Production authority, rollback, an
 
 The required role or deterministic policy has recorded the transition decision.
 
-For a Production-tier merge, approval is human only: Product Authority or the CMO holder recorded in `docs/governance/AGENT-TEAM.md`. CMO may not approve its own implementation (#4134). A non-production merge is approved and performed by the implementing agent after the gates pass; no CMO decision is required (`docs/governance/REPOSITORY-AUTHORITY.md`, Merge authority).
+For a Production-tier merge, approval is by Product Authority or a CMO holder recorded in `docs/governance/AGENT-TEAM.md` (the Engineering role holders act as the alternate, #5419). CMO may not approve its own implementation (#4134). A non-production merge is approved and performed by the implementing agent after the gates pass; no CMO decision is required (`docs/governance/REPOSITORY-AUTHORITY.md`, Merge authority).
 
 Before action recheck:
 

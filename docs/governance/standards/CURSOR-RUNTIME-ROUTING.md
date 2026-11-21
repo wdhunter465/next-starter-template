@@ -4,7 +4,7 @@ Audience: Human + AI
 Authority Level: Binding
 Owns: LGFC Cursor runtime selection, local-versus-cloud invocation boundary, assignment runtime metadata, and local resume routing
 Does Not Own: Cursor product configuration, local poller implementation, implementation scope, merge approval, or cloud billing
-Canonical Reference: /Agent.md
+Canonical Reference: /AGENTS.md
 Related Issues: #2477, #2489, #2667, #2997, #3013, #3212, #3424, #3605, #3611, #4296, #4311, #4783, #4982
 Last Reviewed: 2026-10-27
 ---

@@ -23,14 +23,14 @@ The shared law is `docs/governance/AGENT-EXECUTION.md`: the PRODUCT STARTUP FRAM
 - Follow the prepared hierarchy, scoped priority, dependencies, allowlist, tests, review, and closeout requirements.
 - Continue the next eligible item when one task is waiting on CI/review and other eligible work exists.
 - Claude Code may act as PR Approver / Engineering only for work it did not implement.
-- Merge authority is tiered (`docs/governance/REPOSITORY-AUTHORITY.md`, Merge authority). Claude Code merges a non-production PR it implemented once every required check passes and every thread is resolved, and leaves the merge record the constitution defines. It never approves or merges a Production-tier or protected change.
+- Merge authority is tiered (`docs/governance/REPOSITORY-AUTHORITY.md`, Merge authority). Claude Code merges a non-production PR it implemented once every required check passes and every thread is resolved, and leaves the merge record the constitution defines. As the primary CMO alternate (`docs/governance/AGENT-TEAM.md`, CMO role; #5419), Claude Code approves and merges a Production-tier PR for work it did not implement once every required check passes on the current head and every thread is resolved, and leaves the `CMO decision:` comment the constitution defines. It never approves or merges its own Production-tier PR, and never approves a protected decision (those stay with Product Authority).
 
 ## Startup
 
 When Product Authority says `run startup`, and at the start of every new session, perform orientation only:
 
 1. identify product as Claude Code;
-2. read `Agent.md` and the mandatory authority chain, this file, and the orientation digest `context.md`;
+2. read `AGENTS.md` and the mandatory authority chain, this file, and the orientation digest `context.md`;
 3. report every role Claude Code holds, with its work-selection order, from `docs/governance/AGENT-TEAM.md`;
 4. verify repository access (the local checkout and GitHub);
 5. confirm the connected sources this file needs: the Gmail connector for the permission inbox check;
@@ -51,7 +51,7 @@ After startup the run follows the shared law (`docs/governance/AGENT-EXECUTION.m
   5. Unassigned and not yet reviewed, primary then secondary: `is:issue is:open label:team:engineering,team:pmo` then `label:team:operations,team:governance`, each with `-label:agent:claude -label:agent:cursor -label:status:ready -label:wait:product -label:wait:review -label:wait:dependency -label:status:hold`
 - **Work order.** Each role's order is in `docs/governance/AGENT-TEAM.md`. PMO Admin duties (lifecycle and label reconciliation, current-state records, dashboard hygiene) are done under the PMO role as `docs/governance/PMO-PORTFOLIO.md` defines. They never outrank an Operations interrupt, and PMO Admin never merges a Production-tier PR or invents Product Go.
 - **Claims.** Set `agent:claude` only when starting work on an Issue. Release it when the Issue waits on a review, a Product Authority decision or another agent, and leave a short note saying what it waits on and what an eligible agent can do next. Never hold a claim on an Issue nobody is working. Only Product Authority releases a Product Authority reservation; report stale claims you did not set instead of removing them.
-- **Waiting PRs.** A Production-tier PR waits for the human approver while the run continues. Come back to a waiting PR only when a check fails, a reviewer comments, or a post-merge failure opens.
+- **Waiting PRs.** A Production-tier PR Claude Code implemented waits for Product Authority or the other CMO holder while the run continues. Come back to a waiting PR only when a check fails, a reviewer comments, or a post-merge failure opens.
 - **Post-merge exceptions.** Remediate in the same delivery lineage at once, following `docs/ops/as-built/post-merge-originating-agent-remediation-3069.md`.
 
 ## Safe-boundary pass
@@ -59,7 +59,7 @@ After startup the run follows the shared law (`docs/governance/AGENT-EXECUTION.m
 The Cursor-offline override (#5221) ended on 2026-11-17 (#5324). Claude Code holds the roles in `docs/governance/AGENT-TEAM.md` (Team assignment) and the five searches above apply as written, including the `-label:agent:cursor` exclusion. The pass below is not Cursor-specific; nothing here widens authority.
 
 - **One pass, in this order, at every safe task boundary** (do not stop after the first item that moves):
-  1. **My open PRs.** Read checks, threads and merge state. A non-production PR with every required check green and every thread resolved: merge it and leave the merge record (`Merged by: ...; head <sha>; checks green; threads resolved`). A Production-tier PR: confirm it is ready for the human approver, say so once on its source Issue, and move on.
+  1. **My open PRs.** Read checks, threads and merge state. A non-production PR with every required check green and every thread resolved: merge it and leave the merge record (`Merged by: ...; head <sha>; checks green; threads resolved`). A Production-tier PR I implemented: confirm it is ready for Product Authority or the other CMO holder, say so once on its source Issue, and move on. A Production-tier PR another agent implemented: review it, and approve and merge it as CMO alternate when it is ready and holds no protected decision; otherwise comment once and move on.
   2. **Closeout.** For each merged PR whose source Issue is still open, confirm post-merge verification and acceptance criteria; close the Issue with the evidence, or record exactly what remains. Project and Program closeout stays a PMO/Governance/Product decision.
   3. **Lifecycle and labels (PMO Admin).** Fix deterministic defects where they occur: missing `pmo:closed`, stale `status:*`, orphaned claims.
   4. **Ready queue.** Take the next `status:ready` Issue in role order. Claim it only when starting; release it with a note when it waits.
@@ -89,7 +89,7 @@ Product Authority direction, 2026-10-20: Claude Code monitors the permission inb
 ## Operating notes (verified 2026-10-20)
 
 - Only the source line in a PR body may begin with the word `Issue`. `scripts/ci/issue_accounting.mjs` treats any body line that starts with `Issue` as a source-Issue line, so prose such as `Issue criteria met:` fails post-merge closeout (`invalid_source_issue_reference`, `duplicate_source_issue_metadata`; see #4711 and #4712). Write `Acceptance criteria met:` instead.
-- A PR that changes any path outside the approved Model C documentation namespaces (`docs/governance/DELIVERY-AND-RELEASE.md`, Model C), such as `Agent.md`, `AGENTS.md`, `CLAUDE.md`, `context.md`, `.claude/**` or `.github/**`, cannot use Model C. Use the Model A profile #4661 used. Such a PR is Production-tier.
+- A PR that changes any path outside the approved Model C documentation namespaces (`docs/governance/DELIVERY-AND-RELEASE.md`, Model C), such as `AGENTS.md`, `CLAUDE.md`, `context.md`, `.claude/**` or `.github/**`, cannot use Model C. Use the Model A profile #4661 used. Such a PR is Production-tier.
 - Editing a PR body does not re-run `quality` or `model-c-path`; they read the live body when they run. After correcting the body, re-run the failed jobs.
 - **A partial-progress PR must say so, or the merge closes its source Issue (verified 2026-11-15).** The post-merge closeout closes the source Issue unless the PR body has a `POST-MERGE ISSUE DISPOSITION:` line (or heading) with keep-open wording, for example `POST-MERGE ISSUE DISPOSITION: keep #1234 open on merge; the Production write remains`. The template's "Follow-up issue ... stays open" line is not read. Since #4703 the reverse also holds: an Issue with unchecked acceptance criteria stays open on merge unless the PR says `POST-MERGE ISSUE DISPOSITION: close #N on merge`, so a PR that completes its Issue says so, or ticks every box on the Issue first. The wording is documented in `docs/reference/ci/post-merge-validation-surface.md`.
 - **Name only one Issue in a PR body.** Every other Issue or PR number in the prose is a candidate source. A bare `PR #N` beside the source line made the closeout fail with `multiple_source_issues` (PR #5268, exception #5272); fix by editing the live body and re-running the failed closeout job.

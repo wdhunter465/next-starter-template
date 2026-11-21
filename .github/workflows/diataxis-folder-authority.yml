@@ -5,7 +5,7 @@ on:
     types: [opened, synchronize, reopened, ready_for_review]
     paths:
       - 'docs/**'
-      - 'Agent.md'
+      - 'AGENTS.md'
       - 'scripts/ci/diataxis_folder_audit.mjs'
       - 'scripts/ci/diataxis_migration_ratchet.mjs'
       - '.github/workflows/diataxis-folder-authority.yml'

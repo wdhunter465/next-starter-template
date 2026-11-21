@@ -30,16 +30,16 @@ Last Reviewed: 2026-07-13
 
 | Current path | Current owner | Target owner | Action | Replacement / notes | Reference-update scope |
 | --- | --- | --- | --- | --- | --- |
-| \`docs/governance/legacy-migrate-source.md\` | Governance | Documentation and Knowledge | migrate | Move to \`docs/reference/diataxis/migrated-target.md\` | \`Agent.md\` |
+| \`docs/governance/legacy-migrate-source.md\` | Governance | Documentation and Knowledge | migrate | Move to \`docs/reference/diataxis/migrated-target.md\` | \`AGENTS.md\` |
 | \`docs/governance/legacy-consolidate-source.md\` | Governance | Documentation and Knowledge | consolidate | Merge into \`docs/governance/legacy-consolidate-target.md\` | \`docs/governance/DOCUMENT-ARCHITECTURE.md\` |
 | \`docs/governance/legacy-archive-source.md\` | Governance | Documentation and Knowledge | archive | Move to \`docs/archive/legacy-archive-source.md\` | \`docs/governance/DOCUMENT-ARCHITECTURE.md\` |
 | \`docs/governance/legacy-supersede-source.md\` | Governance | Documentation and Knowledge | supersede | Competing authority removed | Self, \`docs/governance/DOCUMENT-ARCHITECTURE.md\` |
 | \`docs/governance/legacy-delete-source.md\` | Governance | Documentation and Knowledge | delete | No retained value | \`docs/governance/DOCUMENT-ARCHITECTURE.md\` |
-| \`docs/governance/legacy-retain-source.md\` | Governance | Documentation and Knowledge | retain | Update content and references | \`Agent.md\` |
-| \`docs/governance/legacy-header-only.md\` | Governance | Documentation and Knowledge | retain | Header-only failure fixture | \`Agent.md\` |
-| \`docs/governance/legacy-stale-reference.md\` | Governance | Documentation and Knowledge | retain | Stale reference failure fixture | \`Agent.md\` |
-| \`docs/governance/legacy-emergency-source.md\` | Governance | Documentation and Knowledge | migrate | Move to \`docs/reference/diataxis/emergency-target.md\` | \`Agent.md\` |
-| \`docs/governance/legacy-untouched.md\` | Governance | Documentation and Knowledge | migrate | Pending migration | \`Agent.md\` |
+| \`docs/governance/legacy-retain-source.md\` | Governance | Documentation and Knowledge | retain | Update content and references | \`AGENTS.md\` |
+| \`docs/governance/legacy-header-only.md\` | Governance | Documentation and Knowledge | retain | Header-only failure fixture | \`AGENTS.md\` |
+| \`docs/governance/legacy-stale-reference.md\` | Governance | Documentation and Knowledge | retain | Stale reference failure fixture | \`AGENTS.md\` |
+| \`docs/governance/legacy-emergency-source.md\` | Governance | Documentation and Knowledge | migrate | Move to \`docs/reference/diataxis/emergency-target.md\` | \`AGENTS.md\` |
+| \`docs/governance/legacy-untouched.md\` | Governance | Documentation and Knowledge | migrate | Pending migration | \`AGENTS.md\` |
 `;
 
 const HEADER = `---
@@ -87,7 +87,7 @@ describe('DIATAXIS migration ratchet fixtures', () => {
       changedFiles: [
         { path: 'docs/governance/legacy-migrate-source.md', status: 'deleted' },
         { path: 'docs/reference/diataxis/migrated-target.md', status: 'added' },
-        { path: 'Agent.md', status: 'modified' },
+        { path: 'AGENTS.md', status: 'modified' },
       ],
       fileSnapshots: {
         'docs/governance/legacy-migrate-source.md': {
@@ -100,7 +100,7 @@ describe('DIATAXIS migration ratchet fixtures', () => {
           after: `${HEADER}\nMigrated content.\n`,
           status: 'added',
         },
-        'Agent.md': {
+        'AGENTS.md': {
           before: 'See docs/governance/legacy-migrate-source.md',
           after: 'See docs/reference/diataxis/migrated-target.md',
           status: 'modified',
@@ -253,7 +253,7 @@ describe('DIATAXIS migration ratchet fixtures', () => {
     const report = evaluateFixture({
       changedFiles: [
         'docs/governance/legacy-stale-reference.md',
-        'Agent.md',
+        'AGENTS.md',
       ],
       fileSnapshots: {
         'docs/governance/legacy-stale-reference.md': {
@@ -261,7 +261,7 @@ describe('DIATAXIS migration ratchet fixtures', () => {
           after: `${HEADER}\nUpdated body.\n`,
           status: 'modified',
         },
-        'Agent.md': {
+        'AGENTS.md': {
           before: 'docs/governance/legacy-stale-reference.md',
           after: 'docs/governance/legacy-stale-reference.md',
           status: 'modified',
