@@ -5,8 +5,8 @@ Authority Level: Procedure
 Owns: Single execution path for requesting, acknowledging, responding to, and completing cross-agent collaboration
 Does Not Own: Queue priority, source-Issue scope, implementation authority, PR approval, Production authorization, or recovery strategy
 Canonical Reference: /docs/governance/WORK-QUEUES-AND-COLLABORATION.md
-Related Issues: #2699, #2705, #2706, #5329
-Last Reviewed: 2026-11-20
+Related Issues: #2699, #2705, #2706, #5329, #5421
+Last Reviewed: 2026-11-21
 ---
 
 # Request Agent Collaboration
@@ -170,6 +170,18 @@ For a review-style request ("confirm the check list still stands"), the collabor
 ## Short form
 
 For a non-blocking request answered in one comment, the collaborator may post `COLLABORATION RESPONSE` without a separate `COLLABORATION ACKNOWLEDGED`, and the Issue owner closes the cycle with `COLLABORATION COMPLETE` when the response is applied. Anything that blocks current work keeps all four events.
+
+## Request a review when you open a PR
+
+When you open a ready pull request, post the request in the same pass. The rule, the reviewer and the response window are in `docs/governance/WORK-QUEUES-AND-COLLABORATION.md` (Pull-request review call-out). Use the format above with:
+
+- **Requested contribution:** formal independent review of PR `#<n>`, and what to check;
+- **Evidence:** the PR number and the full head SHA;
+- **Blocking scope:** Blocking current work;
+- **Authority retained by:** the PR's implementer for the change, and the controlling role for the merge;
+- **Completion condition:** a GitHub-native review and a `COLLABORATION RESPONSE` on the Issue.
+
+If there is still no review after the response window, post one reminder and continue your own queue.
 
 ## Pull-request use
 

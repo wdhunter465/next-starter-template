@@ -5,8 +5,8 @@ Authority Level: Domain Policy
 Owns: Repository work-queue classification, queue ownership, team/agent claim semantics, queue-state transitions, Operations interrupt behavior, role-work-selection integration, Project Graduation routing, and universal collaboration
 Does Not Own: Product outcome, final Product priority decisions, PMO lifecycle/stage deliverables, implementation methods, recovery strategy, PR approval decisions, or Production authorization
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3134, #3145, #3240, #3629, #3825, #4447, #4818, #4982, #5329
-Last Reviewed: 2026-11-20
+Related Issues: #3134, #3145, #3240, #3629, #3825, #4447, #4818, #4982, #5329, #5421
+Last Reviewed: 2026-11-21
 ---
 
 # Work Queues and Collaboration
@@ -222,6 +222,19 @@ COLLABORATION COMPLETE
 ```
 
 Product Authority should not be used as the routine relay when direct repository communication is available.
+
+### Pull-request review call-out (Product Authority, 2026-11-21)
+
+Open pull requests must not queue up, and an agent must not sit idle waiting on a review. The collaboration lifecycle is the way each agent tells the other a PR needs a reviewer.
+
+1. **Post on open.** The implementing agent posts a `COLLABORATION REQUEST` for formal review on the source Issue in the same pass in which it opens a ready PR. The request names the PR, the head SHA, the reviewer and what to check.
+2. **Reviewer.** The other Engineering role holder, who is also the CMO alternate (`docs/governance/AGENT-TEAM.md`): each reviews the other's PRs. A PR from any other agent goes to either holder. The implementer never reviews its own PR. All agents post as the same GitHub account, so the implementing agent is read from the branch name, `<agent>/<issue>-<task>` (`docs/governance/DELIVERY-AND-RELEASE.md`), and where the branch does not name an agent, from the PR body's `Implementation agent` field.
+3. **Answer in the next pass.** The reviewer answers with a GitHub-native review and a `COLLABORATION RESPONSE`, in its next continuous-run pass and at the latest within two hours.
+4. **Chase once.** If a PR still has no review after that, the implementer posts one reminder call-out on the Issue and continues its own queue. A second silence is raised to Product Authority once on the Issue, not by repeated pings.
+5. **Idle check.** Before an agent reports an empty queue, it checks for open PRs waiting on its review and for call-outs addressed to it.
+6. **Waiting on Product Authority only.** A PR that only Product Authority can decide (a protected decision) is marked once on its Issue, and the run continues.
+
+The call-out is a pointer and grants nothing. Who may approve or merge is decided only by `docs/governance/REPOSITORY-AUTHORITY.md` (Merge authority), and a review of a protected decision never replaces Product Authority.
 
 ### Joint recommendation when Product Authority is unavailable (Product Authority, 2026-11-17)
 
