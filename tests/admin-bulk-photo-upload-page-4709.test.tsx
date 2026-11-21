@@ -24,7 +24,7 @@ describe('admin bulk photo upload page (#4709 slice 2)', () => {
     expect(screen.getByRole('heading', { name: /Bulk Photo Upload/i })).toBeTruthy();
     expect(screen.getAllByText(/unpublished/i).length).toBeGreaterThan(0);
     expect(screen.getAllByText(/rights hold/i).length).toBeGreaterThan(0);
-    expect(screen.getByText(/LGFC-owned/i)).toBeTruthy();
+    expect(screen.getAllByText(/LGFC-owned/i).length).toBeGreaterThan(0);
     expect(screen.getByText(/Drop JPEG, PNG, or WebP/i)).toBeTruthy();
   });
 
