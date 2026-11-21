@@ -82,7 +82,9 @@ export async function fetchJobStatus(job, { repository, headers, branch, fetchIm
   if (workflow.status === 404) return { state: null, lastSuccessAt: null };
   if (!workflow.ok) throw new Error(`GET ${job.file} failed: ${workflow.status}`);
   const { state, created_at: createdAt = null } = await workflow.json();
-  const runs = await fetchImpl(`${base}/runs?branch=${encodeURIComponent(branch)}&status=success&per_page=1`, { headers });
+  // Use conclusion=success (not status=success). GitHub's status=success filter can
+  // return a stale older success and miss the latest one (#5416).
+  const runs = await fetchImpl(`${base}/runs?branch=${encodeURIComponent(branch)}&conclusion=success&per_page=1`, { headers });
   if (!runs.ok) throw new Error(`GET ${job.file} runs failed: ${runs.status}`);
   const latest = (await runs.json()).workflow_runs?.[0];
   return { state, createdAt, lastSuccessAt: latest?.updated_at || latest?.created_at || null };

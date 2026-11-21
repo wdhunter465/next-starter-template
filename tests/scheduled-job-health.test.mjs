@@ -113,7 +113,7 @@ describe('runCheck against a broken fixture', () => {
     const urls = [];
     const spy = async (url, init) => { urls.push(url); return fetchImpl(url, init); };
     await fetchJobStatus(jobs[0], { ...context, fetchImpl: spy });
-    expect(urls[1]).toContain('/actions/workflows/healthy.yml/runs?branch=main&status=success&per_page=1');
+    expect(urls[1]).toContain('/actions/workflows/healthy.yml/runs?branch=main&conclusion=success&per_page=1');
   });
 
   it('throws on an API error instead of reporting a false pass', async () => {
