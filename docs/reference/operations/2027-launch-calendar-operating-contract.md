@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: Durable 2027 launch-calendar taxonomy, Product-approved calendar of record, integrated source-program milestone matrix, 2026-12-31 Go/No-Go evidence packet, tabletop rehearsal record, and freeze/reporting handoff for parent #2093
 Does Not Own: Inventing public dates; publishing this calendar on the public website events calendar; website or fundraiser launch; public announcements; Production mutation; paid services; credentials; replacing source-project acceptance on #1700, #2039, #2084, or #2782
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2093, #3861, #3862, #3863, #3864, #3865, #3866, #1700, #2039, #2084, #2782, #2089, #4565
-Last Reviewed: 2026-10-12
+Related Issues: #2093, #3861, #3862, #3863, #3864, #3865, #3866, #1700, #2039, #2084, #2782, #2089, #4565, #4764
+Last Reviewed: 2026-11-21
 ---
 
 # 2027 launch calendar operating contract
@@ -95,7 +95,7 @@ Source: Product-specified table on #2093 dated 2026-09-20. No date below is infe
 | Date / window | Event | Taxonomy class | Owner | Evidence class |
 | --- | --- | --- | --- | --- |
 | 2026-12-31 | Final Go/No-Go decision | Deployment / Day-2 (decision gate) | Bill | Recorded GO, NO-GO, HOLD, or ADJUSTMENT on #2093 |
-| 2026-12-31 | Repository and website change freeze begins, assuming Go | Content freeze | Bill declares; Bill approves emergency changes | Freeze declaration on #2093; exception log |
+| 2027-01-01 | Repository and website change freeze begins, assuming Go (see Revision 2026-11-19) | Content freeze | Bill declares; Bill approves emergency changes | Freeze declaration on #2093; exception log |
 | 2027-01-01 | Website LIVE in Production; launch announcements on social platforms | Website completion; Announcement | Bill for Go; Operations for smoke; #2039/#1700 for announcement mechanism | Separate Production Go and announcement authorization; this row is not itself that Go |
 | 2027-02-01 | Fundraiser “coming soon” announcement; participant registration opens | Fundraiser readiness; Announcement | Bill; #1700 | Product-approved copy and channel list |
 | 2027-02-01 → 2027-03-01 | Daily “Fundraiser Details” posts (homepage-linked page, newest first); each day’s post also to every LGFC social platform | Fundraiser readiness; Announcement | Bill; #1700/#2039 | 10:00 AM website-then-social auto-publish remains a #1700/#2039 flag, not this contract’s runtime |
@@ -109,6 +109,8 @@ The public Fan Club Events Calendar may independently show **Lou Gehrig Day 2027
 
 **Revision 2026-10-12 (Product Authority, recorded on #2093 and #4565).** The fundraiser launches at 12:00 AM on 2027-03-25 and closes at 12:00 PM on 2027-06-07. It no longer closes on Lou Gehrig Day. Every MLB team hosts a Lou Gehrig Day in its home park, and teams that are away on Wednesday 2027-06-02 host it when they return, so observances run through the week; ending on Monday also gives participants the weekend after to gather donations. Lou Gehrig Day (2027-06-02) falls inside the donation window and the fundraiser stays open that day. The calendar does not state a time zone for any row; Product records one zone for all rows on #2093.
 
+**Revision 2026-11-19 (Product Authority, recorded on #4764).** The website freeze begins on **2027-01-01**, the day of the website production launch. It replaces the 2026-12-31 freeze start in earlier versions of this table; the final Go/No-Go decision stays on 2026-12-31. No changes are allowed from 2027-01-01. Targeted changes will still be needed in phases through 2027, and each is assessed rigorously before it goes in. A change is built as a package on the non-production Preview and tested there, then promoted to Production as one larger block, all at one time, inside a safe change window. Small separate Production changes are avoided. The safe change window (when, how often, who approves) is set by Product Authority on #4764; until it is recorded, no package is promoted.
+
 A date not in this table is rejected until Product records a replacement revision on #2093.
 
 ## Integrated source-program milestones (#3863)
@@ -117,10 +119,10 @@ Each row is PMO coordination only. A row that would grant Production or announce
 
 | Milestone | Owner | Source Issue | Depends on | Due window | Evidence | Fallback |
 | --- | --- | --- | --- | --- | --- | --- |
-| Website completion for 2027-01-01 live claim | Bill for Go; Operations for smoke | #2039 / #1685 | Freeze declared or Product waiver; #2782 deployment evidence | 2026-12-31 freeze through 2027-01-01 | Production-ready website evidence; smoke; no open protected stop | Slip visible on #2093; do not move the public live date |
+| Website completion for 2027-01-01 live claim | Bill for Go; Operations for smoke | #2039 / #1685 | Freeze declared or Product waiver; #2782 deployment evidence | 2027-01-01 freeze | Production-ready website evidence; smoke; no open protected stop | Slip visible on #2093; do not move the public live date |
 | Fundraiser readiness for coming-soon and launch | Bill; Operations | #1700 | Website homepage-linked surfaces if used; Product copy | 2027-02-01 coming-soon; 2027-03-25, 12:00 AM launch; 2027-06-07, 12:00 PM close | Registration/launch packet; donation-window boundaries | Hold the PMO row; do not open donations early |
 | Annual Lou Gehrig Day package | Bill for copy; Operations for checklist | #2084 | Fundraiser stays open on Lou Gehrig Day; June 2 public event remains #2084/#2859 | 2027-06-02 (day); fundraiser closeout 2027-06-07, 12:00 PM (PMO, not a Lou Gehrig Day row) | Annual instance; rehearsal; rights/privacy | Keep June 2 public event; do not add PMO closeout to D1 `events` |
-| Content freeze | Bill declares | #2093; #2039/#1700 content owners | Rehearsal complete or Product waiver | 2026-12-31 assuming Go | Freeze declaration; exception log | Missing freeze is a stop, not a guessed date |
+| Content freeze | Bill declares | #2093; #2039/#1700 content owners | Rehearsal complete or Product waiver | 2027-01-01 assuming Go | Freeze declaration; exception log | Missing freeze is a stop, not a guessed date |
 | Communications / auto-publish flag | Bill authorizes; #1700/#2039 own mechanism | #1700; #2039 | Product announcement Go per window | 10:00 AM on each Product-authorized announcement day | Channel list; authorization record | Flag only; this child does not implement cron or Zapier |
 | Rehearsal | Operations executes; PMO records | #2093 / #3865; #2084 pattern | Taxonomy + calendar of record | Before freeze declaration | Tabletop covering delay, No-Go, rollback, communications-hold | Failed rehearsal is a stop; no live sends |
 | Deployment identity | Bill for Production Go; Operations execute | #2782 | Freeze; rehearsal; #2089 when Production Go is claimed | Before 2027-01-01 live claim | Deployment identity; smoke; rollback path | This matrix does not authorize Production |
@@ -146,7 +148,7 @@ Source: #2093 launch-package “Validation and acceptance” plus parent accepta
 | Date-driven launch calendar exists | Calendar of record | pass | Calendar of record section; Product 2026-09-20 table on #2093 | none |
 | Dependencies listed with owners | Integration matrix | pass | Integrated source-program milestones (#3863) | none |
 | Final Go/No-Go criteria are explicit | This packet | pass | This section | none |
-| Content freeze window is defined | Freeze | pass | Calendar row 2026-12-31 defines the window. Freeze declaration itself is the Freeze named row below (not-ready). | none |
+| Content freeze window is defined | Freeze | pass | Calendar row 2027-01-01 defines the window. Freeze declaration itself is the Freeze named row below (not-ready). | none |
 | Smoke-test window is defined | Website / Production | pass | 2027-01-01 live claim is the smoke window. Smoke result itself is the Website / Production named row below (not-ready). | none |
 | Public announcement timing is controlled | Announcement authorization | pass | Calendar announcement rows define timing. Per-window authorization itself is the Announcement named row below (not-ready). | none |
 | Every milestone has owner, source Issue, dependency, window, evidence, fallback | Integration matrix | pass | #3863 matrix | none |
@@ -196,7 +198,7 @@ This section documents the freeze **start** and reporting vocabulary. **It does 
 
 | Control | Owner | Rule |
 | --- | --- | --- |
-| Freeze start | Bill declares on #2093 | **2026-12-31**, only if Bill has recorded calendar GO on #2093. This child does not start freeze. |
+| Freeze start | Bill declares on #2093 | **2027-01-01**, only if Bill has recorded calendar GO on #2093. This child does not start freeze. |
 | Emergency change during freeze | Bill approves | Editors/operations do not bypass Bill. Missing Bill approval is a stop. |
 | Freeze lift | Bill | Restore the last unfrozen calendar revision on #2093 only when Bill lifts freeze. |
 | Daily launch-window reporting | Operations captures; PMO records | After freeze declaration (or earlier if Bill directs), use exactly: blocked / at risk / ready / go / no-go / deployed / verified / monitoring |
