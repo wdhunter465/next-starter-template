@@ -18,7 +18,12 @@ function fakeGitHub(byFile) {
     const entry = byFile[match[1]];
     if (!entry) return jsonResponse(404, {});
     if (!match[2]) return jsonResponse(200, { state: entry.state, created_at: entry.createdAt });
-    return jsonResponse(200, { workflow_runs: entry.lastSuccessAt ? [{ updated_at: entry.lastSuccessAt }] : [] });
+    if (entry.runs) return jsonResponse(200, { workflow_runs: entry.runs });
+    return jsonResponse(200, {
+      workflow_runs: entry.lastSuccessAt
+        ? [{ conclusion: 'success', updated_at: entry.lastSuccessAt }]
+        : [],
+    });
   };
 }
 
@@ -109,11 +114,43 @@ describe('runCheck against a broken fixture', () => {
     expect(renderReport(check)).toContain('- Overall: PASS');
   });
 
-  it('queries successful runs on the given branch', async () => {
+  it('lists recent runs on the given branch without a conclusion query param', async () => {
     const urls = [];
     const spy = async (url, init) => { urls.push(url); return fetchImpl(url, init); };
     await fetchJobStatus(jobs[0], { ...context, fetchImpl: spy });
-    expect(urls[1]).toContain('/actions/workflows/healthy.yml/runs?branch=main&conclusion=success&per_page=1');
+    expect(urls[1]).toContain('/actions/workflows/healthy.yml/runs?branch=main&per_page=20');
+    expect(urls[1]).not.toContain('conclusion=');
+    expect(urls[1]).not.toContain('status=');
+  });
+
+  it('uses the newest success when a later run failed (#5418)', async () => {
+    const failedAt = hoursAgo(1);
+    const successAt = hoursAgo(5);
+    const fetchImpl = fakeGitHub({
+      'healthy.yml': {
+        state: 'active',
+        runs: [
+          { conclusion: 'failure', updated_at: failedAt },
+          { conclusion: 'success', updated_at: successAt },
+        ],
+      },
+    });
+    const status = await fetchJobStatus(jobs[0], { ...context, fetchImpl });
+    expect(status.lastSuccessAt).toBe(successAt);
+  });
+
+  it('reports no success when the page has none (#5418)', async () => {
+    const fetchImpl = fakeGitHub({
+      'healthy.yml': {
+        state: 'active',
+        runs: [
+          { conclusion: 'failure', updated_at: hoursAgo(1) },
+          { conclusion: 'cancelled', updated_at: hoursAgo(2) },
+        ],
+      },
+    });
+    const status = await fetchJobStatus(jobs[0], { ...context, fetchImpl });
+    expect(status.lastSuccessAt).toBeNull();
   });
 
   it('throws on an API error instead of reporting a false pass', async () => {
