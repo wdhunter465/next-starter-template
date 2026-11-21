@@ -5,7 +5,7 @@ Authority Level: Domain Policy
 Owns: Durable LGFC agent roles, recognized agent products, current member mapping, role work-selection order, approval authority, protected stops, and role-transition state
 Does Not Own: PMO lifecycle/stage semantics, detailed queue-label implementation, delivery-profile mechanics, CI implementation, or Production recovery procedure
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #3240, #3629, #3693, #3825, #4074, #4134, #4165, #4173, #4174, #4399, #4447, #4449, #4982, #5221, #5324, #5370, #5391
+Related Issues: #3240, #3629, #3693, #3825, #4074, #4134, #4165, #4173, #4174, #4399, #4447, #4449, #4982, #5221, #5324, #5370, #5391, #5392
 Last Reviewed: 2026-11-20
 ---
 
@@ -170,7 +170,7 @@ The operating rules for this role are in `docs/ops/ai/GROK-BOT-RULES.md`.
 | Retired member (#4165) | **Retired.** No current team role, wake path, or implementation authority. Historical record only (see #4165). |
 | GitHub Copilot | Pull Request review only; not a durable role holder |
 | Grok Bot | **Documentation maintenance** (primary), pilot 2026-11-23 to 2026-11-27 (#5370); documentation-only pull requests; never code; no PR Approver authority; no merge authority. Claim label: `agent:grok-bot`. Renamed from the prior "Grok (through Cursor)" wording under #5391 so it is not confused with Grok (AI Agent). |
-| Grok (AI Agent) | LGFC team member that works Issues and pull requests when Product Authority assigns them (#5391). Claim label: `agent:grok`. Remit (queues, roles, claim rules, cost cap) is **not** recorded yet; follow-up #5392 owns that package. Do not treat as Documentation maintenance. |
+| Grok (AI Agent) | LGFC team member; **no durable role**. Works Issues and pull requests only when Product Authority assigns them (or when Cursor/Claude Code hand off with Product Authority's direction recorded on that Issue) (#5391 / #5392). Claim label: `agent:grok`. Does not self-claim queues. May open pull requests for independent review; **no** PR approval and **no** merge authority until Product Authority decides otherwise after trial. Supplements Claude Code and Cursor; does not replace them. Do not treat as Documentation maintenance (that is Grok Bot). Remit detail: section below. |
 | Jules | Implementation resource only when explicitly assigned under a compatible role/source Issue |
 | Gemini | Research and repository monitoring/reporting; read-only unless separately authorized |
 | CloudflareAI | Evaluation/support only under recorded access |
@@ -179,7 +179,7 @@ The operating rules for this role are in `docs/ops/ai/GROK-BOT-RULES.md`.
 
 ## Team assignment (Product Authority, 2026-10-05)
 
-The LGFC Agentic Team is **Claude Code** and **Cursor (on Chromebook)**, both paid subscriptions. All work other than documentation maintenance is owned by one of the two. **Grok Bot** holds the Documentation maintenance role only (#5370 / #5391). **Grok (AI Agent)** is a separate team member (#5391); its remit is recorded only as Product Authority states it. GitHub Copilot (PR review only) is an unpaid supporting tool, not a role holder.
+The LGFC Agentic Team is **Claude Code** and **Cursor (on Chromebook)**, both paid subscriptions. All work other than documentation maintenance is owned by one of the two. **Grok Bot** holds the Documentation maintenance role only (#5370 / #5391). **Grok (AI Agent)** is a separate team member with no durable role (#5391 / #5392); it supplements the pair and does not replace either. GitHub Copilot (PR review only) is an unpaid supporting tool, not a role holder.
 
 | Role | Primary | Secondary |
 | --- | --- | --- |
@@ -189,6 +189,22 @@ The LGFC Agentic Team is **Claude Code** and **Cursor (on Chromebook)**, both pa
 | Operations | Cursor | Claude Code |
 | Governance | Cursor | Claude Code |
 | Documentation maintenance | Grok Bot | none recorded |
+
+### Grok (AI Agent) remit (#5392)
+
+Product Authority approved these decisions on #5392 (2026-11-20), adopting Claude Code's suggested answers into use. Naming: **Grok** / `agent:grok` is the AI Agent; **Grok Bot** / `agent:grok-bot` is Documentation maintenance only (#5391).
+
+| Field | Decision |
+| --- | --- |
+| Durable roles | None. Not Operations, Engineering, Governance, PMO, or Administration primary or secondary. |
+| Queues | None to self-claim. `agent:grok` is set only on a named Issue by Product Authority, or by Cursor/Claude Code when Product Authority's direction is recorded on that Issue. |
+| Claim rules | Issue-first; exact allowlist before edits; one open claim at a time; release the claim with a note when the Issue waits. Does not take unassigned ready items. |
+| Handoff | Cursor or Claude Code may hand an Issue to Grok only where Product Authority has said so on that Issue. Grok hands back to the Issue owner when it stops. |
+| PR / merge | May open pull requests. Independent review by Claude Code or Cursor (never by Grok). No PR approval and no merge authority until Product Authority decides otherwise after a trial. Same Production / credential / protected-path stops as every implementer. |
+| Relationship | Additive capacity only; does not replace Claude Code or Cursor as the Agentic Team pair. |
+| Cost / usage | Drawn from the plan it runs on (today the Cursor plan's shared pool); on-demand overage stays off. Stop and report at a per-task limit Product Authority sets; until one is set: one pull request per task, stop after two failed retries (same pattern as Grok Bot). |
+| Trial | Remit runs on two or three small Issues first; Product Authority then adopts, adjusts, or drops it. |
+| Out of bounds | No Production Go, no secrets, no Cloudflare plan/DNS changes, no Documentation-maintenance path (Grok Bot only). |
 
 Bill acts as Product Authority and CMO. Bill approves Production-tier Pull Requests; non-production Pull Requests are self-approved (`docs/governance/REPOSITORY-AUTHORITY.md`, Merge authority). Departures from this assignment are one-offs recorded on the Issue.
 
