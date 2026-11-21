@@ -32,7 +32,24 @@ describe('cursor inbound communication (#5379)', () => {
     ).toBe(false);
   });
 
-  it('treats AGREE / DISSENT as Cursor soft replies without changing shared detector vocabulary', () => {
+  it('does not treat Cursor-as-requester COLLABORATION REQUEST as Cursor-targeted (#5453)', () => {
+    const requesterOnly = `## COLLABORATION REQUEST
+
+Source Issue: #5253
+Requesting agent / role: Cursor (Implementation / Operations)
+Target agent / role: Claude Code (current \`agent:claude\` claim)
+
+This Issue has a clear Write path.`;
+    expect(targetsCursorRole(requesterOnly)).toBe(false);
+
+    expect(
+      targetsCursorRole(
+        '## RESPONSE\n\nTarget agent: Cursor — none required.\n\nThe COLLABORATION REQUEST targets Claude Code.',
+      ),
+    ).toBe(false);
+  });
+
+  it('treats AGREE / DISSENT / RESPONSE as Cursor soft replies without changing shared detector vocabulary', () => {
     expect(isCursorSoftCollaborationReply('## AGREE — Cursor (Governance)\nChecked.')).toBe(
       true,
     );
@@ -40,9 +57,33 @@ describe('cursor inbound communication (#5379)', () => {
     expect(
       isCursorSoftCollaborationReply('## COLLABORATION RESPONSE\nAcknowledged scope.'),
     ).toBe(true);
+    expect(
+      isCursorSoftCollaborationReply(
+        '## RESPONSE\n\nTarget agent: Cursor — none required.\nClearing inbound.',
+      ),
+    ).toBe(true);
     expect(isCursorSoftCollaborationReply('## COLLABORATION REQUEST\nTarget: Cursor')).toBe(
       false,
     );
+  });
+
+  it('does not surface a requester-only COLLABORATION REQUEST after the #5453 target rule', () => {
+    const open = findUnansweredCursorInbound(
+      [
+        {
+          id: 300,
+          createdAt: '2026-11-19T21:58:00.000Z',
+          body: `## COLLABORATION REQUEST
+
+Requesting agent / role: Cursor (Implementation / Operations)
+Target agent / role: Claude Code (current claim)
+
+Please KEEP or AGREE handoff.`,
+        },
+      ],
+      { now, issueNumber: 5253 },
+    );
+    expect(open).toHaveLength(0);
   });
 
   it('surfaces an unanswered Cursor-targeted request on an Issue claimed by another agent', () => {
