@@ -441,6 +441,20 @@ const RESUME_ISSUE_KINDS = new Set([
 ]);
 
 /**
+ * Deduplicate issue objects by number (later lists win). Used so wait-label
+ * lookup covers every pool that builds resume-queue rows (#5430 / #5292).
+ */
+export function mergeIssuesByNumber(...lists) {
+  const byNumber = new Map();
+  for (const list of lists) {
+    for (const issue of list || []) {
+      if (issue && typeof issue.number === 'number') byNumber.set(issue.number, issue);
+    }
+  }
+  return [...byNumber.values()];
+}
+
+/**
  * Mark resume-queue Issue rows waiting when the Issue carries any wait:* label
  * (#5292). Aligns nextExecutable with ready-queue skip-any-block (#4994).
  */
@@ -570,6 +584,8 @@ async function collectResumeQueue() {
     items.push(item);
   }
 
+  // Limit 100: ops interrupts and Cursor claims can exceed the old 30-page
+  // window; missing rows never received wait:* marking (#5430).
   const opsPool = gh([
     'issue',
     'list',
@@ -582,7 +598,7 @@ async function collectResumeQueue() {
     '--json',
     'number,title,url,labels',
     '--limit',
-    '30',
+    '100',
   ]);
   for (const issue of opsPool) {
     if (!isNumberedOps(issue)) continue;
@@ -609,7 +625,7 @@ async function collectResumeQueue() {
     '--json',
     'number,title,url,labels,body,state',
     '--limit',
-    '20',
+    '100',
   ]);
   const cursorClaims = gh([
     'issue',
@@ -623,7 +639,7 @@ async function collectResumeQueue() {
     '--json',
     'number,title,url,labels,body,state',
     '--limit',
-    '30',
+    '100',
   ]);
   if (!resolver) {
     for (const issue of assigned) {
@@ -741,7 +757,12 @@ async function collectResumeQueue() {
     item.waitingReason = item.waitingReason || 'handoff_ready_not_go';
   }
 
-  applyIssueWaitLabelsToResumeQueue(items, [...assigned, ...cursorClaims]);
+  // Include opsPool: unclaimed ops Issues with wait:* were previously
+  // nextExecutable while ready-queue correctly skipped them (#5430).
+  applyIssueWaitLabelsToResumeQueue(
+    items,
+    mergeIssuesByNumber(opsPool, assigned, cursorClaims),
+  );
 
   return items.sort((a, b) => a.rank - b.rank || a.number - b.number);
 }

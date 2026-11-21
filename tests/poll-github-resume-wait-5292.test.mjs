@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { applyIssueWaitLabelsToResumeQueue } from '../scripts/cursor-wake/poll-github.mjs';
+import {
+  applyIssueWaitLabelsToResumeQueue,
+  mergeIssuesByNumber,
+} from '../scripts/cursor-wake/poll-github.mjs';
 
 describe('poll-github resumeQueue wait:* (#5292)', () => {
   it('marks an active Cursor Issue with wait:product as waiting', () => {
@@ -50,5 +53,45 @@ describe('poll-github resumeQueue wait:* (#5292)', () => {
       { number: 2, labels: [{ name: 'wait:schedule' }, { name: 'handoff:ready' }] },
     ]);
     expect(items[0].waitingReason).toBe('handoff_ready_not_go');
+  });
+
+  it('marks ops_interrupt wait:dependency when opsPool is in the issue map (#5430)', () => {
+    const items = [
+      {
+        kind: 'ops_interrupt',
+        number: 4421,
+        title: 'Launch-readiness run',
+        detail: 'ops:priority:2',
+        rank: 2,
+      },
+    ];
+    applyIssueWaitLabelsToResumeQueue(
+      items,
+      mergeIssuesByNumber(
+        [
+          {
+            number: 4421,
+            labels: [
+              { name: 'team:operations' },
+              { name: 'ops:priority:2' },
+              { name: 'wait:dependency' },
+            ],
+          },
+        ],
+        [],
+        [],
+      ),
+    );
+    expect(items[0].waiting).toBe(true);
+    expect(items[0].waitingReason).toBe('wait_labels:wait:dependency');
+  });
+
+  it('mergeIssuesByNumber prefers later list for the same number (#5430)', () => {
+    const merged = mergeIssuesByNumber(
+      [{ number: 1, labels: [{ name: 'wait:dependency' }] }],
+      [{ number: 1, labels: [{ name: 'wait:product' }, { name: 'agent:cursor' }] }],
+    );
+    expect(merged).toHaveLength(1);
+    expect(merged[0].labels.map((l) => l.name)).toEqual(['wait:product', 'agent:cursor']);
   });
 });
