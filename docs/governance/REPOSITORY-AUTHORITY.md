@@ -5,7 +5,7 @@ Authority Level: Constitutional
 Owns: Repository precedence, the top-down document hierarchy, merge-authority tiers, pull-request readiness, GitHub Issue authority, domain ownership, lane topology, queue topology, role-based work-selection delegation, canonical-source rules, supersession, and unresolved-conflict escalation
 Does Not Own: Detailed PMO, delivery, agent, CI, Administration, Operations, collaboration, or platform procedures
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
-Related Issues: #2678, #3629, #3825, #4174, #4715, #5419
+Related Issues: #2678, #3629, #3825, #4174, #4715, #5419, #5423
 Last Reviewed: 2026-11-21
 ---
 
@@ -88,7 +88,7 @@ Limits on self-approval and on CMO approval, which do not move:
 - Neither covers a protected decision (see Protected boundaries), whatever the tier. Protected decisions stay with Product Authority.
 - Each needs every required deterministic check to pass on the current head, and every review thread to be resolved.
 - Each still needs the source Issue, the allowlist and the stable PR facts.
-- A CMO holder never approves or merges a Pull Request it implemented. The other holder, or Product Authority, decides it.
+- A CMO holder never approves or merges a Pull Request it implemented. The other holder, or Product Authority, decides it. The implementing agent is the prefix of the PR branch name (`docs/governance/DELIVERY-AND-RELEASE.md`, Branch names and the implementing agent), so a CMO holder's approval is valid when the prefix is not its own agent. A PR whose branch has no agent prefix has no recorded implementer: a CMO holder does not decide it. Product Authority does, or the work moves to a correctly named branch.
 - Only Product Authority and the CMO holders recorded in `docs/governance/AGENT-TEAM.md` supply Production approval. No other agent may.
 
 ## Pull-request readiness
