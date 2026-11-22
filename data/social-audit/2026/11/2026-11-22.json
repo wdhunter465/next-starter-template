@@ -1,0 +1,51 @@
+{
+  "schema": "social_audit_day/1",
+  "date": "2026-11-22",
+  "records": [
+    {
+      "schema": "social_post_evidence/1",
+      "post_id": "2026-11-22-daily",
+      "platform": "x",
+      "origin": "queue",
+      "version": 1,
+      "scheduled_for": "2026-11-22T10:00:00-05:00",
+      "text": "Lou Gehrig's name became synonymous with ALS. Our website will keep his legacy and the fight against the disease at its heart when it relaunches in 2027.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "text_sha256": "0beeb432d65dc44d741428b575a47df91d2ef681caec210b218822018b11d051",
+      "photo": {
+        "photo_id": 864,
+        "variant": "original",
+        "image_url": "https://www.lougehrigfanclub.com/api/social/image/2026-11-22-daily",
+        "image_sha256": "fe22aad5087af18efb0e499f835b4fef44268dbeb9d524e037c2524c9ea431d1",
+        "image_bytes": 3287027,
+        "width": 2424,
+        "height": 3397,
+        "alt_text": "Black-and-white printed portrait of Lou Gehrig in a cap and baseball jersey, smiling slightly. The page prints \"Henry Louis 'Lou' Gehrig. Idol of all American League fans and one of the greatest first basemen of all time. International News Photo.\"",
+        "rights_check": {
+          "verdict": "cleared",
+          "source": "data/social-post-queue.json rights_cleared_photo_ids and held_photo_ids",
+          "checked_at_utc": "2026-11-22T15:03:24.987+00:00"
+        }
+      },
+      "status": "confirmed",
+      "attempts": [
+        {
+          "at_utc": "2026-11-22T15:03:24.987Z",
+          "by": "GitHub job \"Social Post to X\"",
+          "outcome": "ok",
+          "detail": "Buffer reports the post sent at 2026-11-22T15:03:29.483Z"
+        }
+      ],
+      "platform_record": {
+        "post_id": "6b03043ec72676f5e93999bf",
+        "url": null,
+        "created_at_utc": "2026-11-22T15:03:29.483Z",
+        "created_at_new_york": "2026-11-22T10:03:29-05:00"
+      },
+      "verified": {
+        "on": "2026-11-22",
+        "by": "GitHub job \"Social Post to X\"",
+        "method": "Buffer get_post after create_post"
+      }
+    }
+  ]
+}
