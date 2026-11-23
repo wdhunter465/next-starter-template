@@ -1,0 +1,51 @@
+{
+  "schema": "social_audit_day/1",
+  "date": "2026-11-23",
+  "records": [
+    {
+      "schema": "social_post_evidence/1",
+      "post_id": "2026-11-23-daily",
+      "platform": "x",
+      "origin": "queue",
+      "version": 1,
+      "scheduled_for": "2026-11-23T10:00:00-05:00",
+      "text": "Meet the Friends of the Fan Club: ALS Cure Project, I AM ALS, Live Like Lou Foundation and more, all listed on our website, which is being rebuilt for 2027.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "text_sha256": "54535b96805baa3c1f9f103cdd04c13ad7716e63fb9d09635217a379815b0694",
+      "photo": {
+        "photo_id": 862,
+        "variant": "original",
+        "image_url": "https://www.lougehrigfanclub.com/api/social/image/2026-11-23-daily",
+        "image_sha256": "f70b89de63313c9b132ce9f5832574d70b4d9e5515bf16d3aca771833f7d5f2f",
+        "image_bytes": 319189,
+        "width": 1859,
+        "height": 2015,
+        "alt_text": "Sepia photo of four men standing in front of a crowd behind chicken-wire fencing. One wears a \"Larrupin' Lous\" jersey and one wears a \"Bustin' Babes\" jersey and a bowler hat. Between them a man in an overcoat and a cap marked \"LL\" holds a baseball, and at the left a man wears a white cardigan and a bow tie.",
+        "rights_check": {
+          "verdict": "cleared",
+          "source": "data/social-post-queue.json rights_cleared_photo_ids and held_photo_ids",
+          "checked_at_utc": "2026-11-23T15:03:56.621+00:00"
+        }
+      },
+      "status": "confirmed",
+      "attempts": [
+        {
+          "at_utc": "2026-11-23T15:03:56.621Z",
+          "by": "GitHub job \"Social Post to X\"",
+          "outcome": "ok",
+          "detail": "Buffer reports the post sent at 2026-11-23T15:04:02.181Z"
+        }
+      ],
+      "platform_record": {
+        "post_id": "6b0455de5fa57e36d0dfdd6f",
+        "url": null,
+        "created_at_utc": "2026-11-23T15:04:02.181Z",
+        "created_at_new_york": "2026-11-23T10:04:02-05:00"
+      },
+      "verified": {
+        "on": "2026-11-23",
+        "by": "GitHub job \"Social Post to X\"",
+        "method": "Buffer get_post after create_post"
+      }
+    }
+  ]
+}
