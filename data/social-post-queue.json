@@ -1,5 +1,5 @@
 {
-  "_comment": "Reviewed by pull request only (#5155, design #5143). Times are America/New_York. A post later than lateness_hours after publish_at is skipped, never sent late. Footer changes on 2026-12-01 and 2027-01-01 (#2093). Photos may repeat, but not within photo_reuse_min_gap_days (Product Authority, 2026-11-12). Instagram posts use a padded variant of the photo (fit inside 4:5, never cropped or distorted, #5196), so any cleared photo may list instagram. instagram_ok_photo_ids is kept as a record of the photos that need no padding.",
+  "_comment": "Reviewed by pull request only (#5155, design #5143). Times are America/New_York. A post later than lateness_hours after publish_at is skipped, never sent late. The footer stays the same on 2026-12-01 and 2027-01-01 (Product Authority, 2026-11-22, #5412 item 1; #2093). Photos may repeat, but not within photo_reuse_min_gap_days (Product Authority, 2026-11-12). Instagram posts use a padded variant of the photo (fit inside 4:5, never cropped or distorted, #5196), so any cleared photo may list instagram. instagram_ok_photo_ids is kept as a record of the photos that need no padding.",
   "lateness_hours": 4,
   "automation_starts_at": "2026-11-10T00:00:00-05:00",
   "rights_cleared_photo_ids": [
@@ -360,6 +360,998 @@
         "pinterest"
       ],
       "sources": "Club website (lougehrigfanclub.com) home page: biography section (born June 19, 1903, 17-year Yankees career 1923 to 1939, Columbia University, 493 home runs, 1,995 RBI, 7-time All-Star, 2-time AL MVP, 6-time World Series champion, died June 2, 1941), Weekly Photo Matchup, Join, FAQ, Friends of the Fan Club, events calendar, Lou Gehrig Day, and the page's own '2027 public relaunch' wording. No launch date is stated.",
+      "status": "approved"
+    },
+    {
+      "id": "2026-12-01-daily",
+      "publish_at": "2026-12-01T10:00:00-05:00",
+      "topic": "Debut June 15, 1923",
+      "text": "Lou Gehrig made his Yankees debut on June 15, 1923, four days before his 20th birthday. Follow his career on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 860,
+      "alt_text": "Black-and-white newspaper photo of baseball players at home plate, one raising a leg in a small kick toward another. The printed caption reads: \"Lou Gehrig congratulates Ruth with a little kick after the Babe had made his second homer.\"",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2026-12-02-daily",
+      "publish_at": "2026-12-02T10:00:00-05:00",
+      "topic": "Son of German immigrants, Manhattan",
+      "text": "Gehrig was the son of German immigrants and grew up in Manhattan. Our website tells more of his story.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 864,
+      "alt_text": "Black-and-white printed portrait of Lou Gehrig in a cap and baseball jersey, smiling slightly. The page prints \"Henry Louis 'Lou' Gehrig. Idol of all American League fans and one of the greatest first basemen of all time. International News Photo.\"",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "SABR biography of Lou Gehrig",
+      "status": "approved"
+    },
+    {
+      "id": "2026-12-03-daily",
+      "publish_at": "2026-12-03T10:00:00-05:00",
+      "topic": "1927 season and MVP",
+      "text": "In 1927 Gehrig hit .373 with 47 home runs and 175 RBI and won the American League MVP award. More on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 862,
+      "alt_text": "Sepia photo of four men standing in front of a crowd behind chicken-wire fencing. One wears a \"Larrupin' Lous\" jersey and one wears a \"Bustin' Babes\" jersey and a bowler hat. Between them a man in an overcoat and a cap marked \"LL\" holds a baseball, and at the left a man wears a white cardigan and a bow tie.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2026-12-04-daily",
+      "publish_at": "2026-12-04T10:00:00-05:00",
+      "topic": "Ruth and Gehrig 1927, 107 home runs",
+      "text": "In 1927 Babe Ruth hit 60 home runs and Lou Gehrig hit 47: 107 between them. Our website has more Gehrig history.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 858,
+      "alt_text": "Souvenir program with a decorative border. It reads \"Busting Babes vs. Larruping Lous\" above a halftone photo of Babe Ruth and Lou Gehrig in Yankees uniforms, each resting a hand on a bat, with \"Oakland Baseball Park, Sunday, October 23, 1927\" below.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2026-12-05-daily",
+      "publish_at": "2026-12-05T10:00:00-05:00",
+      "topic": "Website: Ask a Question form",
+      "text": "Have a question about Lou Gehrig or the club? Send it with the Ask a Question form on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 859,
+      "alt_text": "Black-and-white photo of four baseball players standing side by side in a ballpark. The two in the middle wear Yankees jerseys and the two on the ends wear jerseys with a large \"A\". The third player from the left holds a glove.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Club website (lougehrigfanclub.com) /ask page",
+      "status": "approved"
+    },
+    {
+      "id": "2026-12-06-daily",
+      "publish_at": "2026-12-06T10:00:00-05:00",
+      "topic": "1928 World Series",
+      "text": "In the 1928 World Series Gehrig hit .545 with four home runs as the Yankees swept the Cardinals. More on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 860,
+      "alt_text": "Black-and-white newspaper photo of baseball players at home plate, one raising a leg in a small kick toward another. The printed caption reads: \"Lou Gehrig congratulates Ruth with a little kick after the Babe had made his second homer.\"",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2026-12-07-daily",
+      "publish_at": "2026-12-07T10:00:00-05:00",
+      "topic": "13 straight 100-run seasons",
+      "text": "Gehrig scored 100 or more runs in 13 straight seasons, 1926 to 1938. Browse more Gehrig history on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 864,
+      "alt_text": "Black-and-white printed portrait of Lou Gehrig in a cap and baseball jersey, smiling slightly. The page prints \"Henry Louis 'Lou' Gehrig. Idol of all American League fans and one of the greatest first basemen of all time. International News Photo.\"",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2026-12-08-daily",
+      "publish_at": "2026-12-08T10:00:00-05:00",
+      "topic": "Seven 150-RBI seasons",
+      "text": "Seven times, Lou Gehrig drove in 150 or more runs in a season. His full record is a click away on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 862,
+      "alt_text": "Sepia photo of four men standing in front of a crowd behind chicken-wire fencing. One wears a \"Larrupin' Lous\" jersey and one wears a \"Bustin' Babes\" jersey and a bowler hat. Between them a man in an overcoat and a cap marked \"LL\" holds a baseball, and at the left a man wears a white cardigan and a bow tie.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2026-12-09-daily",
+      "publish_at": "2026-12-09T10:00:00-05:00",
+      "topic": "1930 season",
+      "text": "In 1930 Gehrig hit .379 with 41 home runs and 174 RBI. Read more about his career on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 858,
+      "alt_text": "Souvenir program with a decorative border. It reads \"Busting Babes vs. Larruping Lous\" above a halftone photo of Babe Ruth and Lou Gehrig in Yankees uniforms, each resting a hand on a bat, with \"Oakland Baseball Park, Sunday, October 23, 1927\" below.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2026-12-10-daily",
+      "publish_at": "2026-12-10T10:00:00-05:00",
+      "topic": "1931 home run tie with Ruth",
+      "text": "In 1931 Gehrig and Babe Ruth tied for the American League lead with 46 home runs each. More on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 859,
+      "alt_text": "Black-and-white photo of four baseball players standing side by side in a ballpark. The two in the middle wear Yankees jerseys and the two on the ends wear jerseys with a large \"A\". The third player from the left holds a glove.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2026-12-11-daily",
+      "publish_at": "2026-12-11T10:00:00-05:00",
+      "topic": "Lou Gehrig Memorial Award",
+      "text": "The Lou Gehrig Memorial Award, given since 1955, honors a player who shows Gehrig's character and integrity. More on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 860,
+      "alt_text": "Black-and-white newspaper photo of baseball players at home plate, one raising a leg in a small kick toward another. The printed caption reads: \"Lou Gehrig congratulates Ruth with a little kick after the Babe had made his second homer.\"",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Phi Epsilon Pi, Lou Gehrig Memorial Award history",
+      "status": "approved"
+    },
+    {
+      "id": "2026-12-12-daily",
+      "publish_at": "2026-12-12T10:00:00-05:00",
+      "topic": "Website: Contact page",
+      "text": "Questions about membership or the club? The Contact page on our website is the place to start.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 864,
+      "alt_text": "Black-and-white printed portrait of Lou Gehrig in a cap and baseball jersey, smiling slightly. The page prints \"Henry Louis 'Lou' Gehrig. Idol of all American League fans and one of the greatest first basemen of all time. International News Photo.\"",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Club website (lougehrigfanclub.com) /contact page",
+      "status": "approved"
+    },
+    {
+      "id": "2026-12-13-daily",
+      "publish_at": "2026-12-13T10:00:00-05:00",
+      "topic": "1932 World Series",
+      "text": "In the 1932 World Series Gehrig hit .529 with three home runs as the Yankees swept the Cubs. Explore more on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 862,
+      "alt_text": "Sepia photo of four men standing in front of a crowd behind chicken-wire fencing. One wears a \"Larrupin' Lous\" jersey and one wears a \"Bustin' Babes\" jersey and a bowler hat. Between them a man in an overcoat and a cap marked \"LL\" holds a baseball, and at the left a man wears a white cardigan and a bow tie.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2026-12-14-daily",
+      "publish_at": "2026-12-14T10:00:00-05:00",
+      "topic": "1936 season and second MVP",
+      "text": "In 1936 Gehrig hit 49 home runs, matching his career high, and won his second American League MVP award. More on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 858,
+      "alt_text": "Souvenir program with a decorative border. It reads \"Busting Babes vs. Larruping Lous\" above a halftone photo of Babe Ruth and Lou Gehrig in Yankees uniforms, each resting a hand on a bat, with \"Oakland Baseball Park, Sunday, October 23, 1927\" below.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2026-12-15-daily",
+      "publish_at": "2026-12-15T10:00:00-05:00",
+      "topic": "1937 season",
+      "text": "In 1937 Gehrig hit .351 with 37 home runs and 159 RBI. Explore more of his career on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 859,
+      "alt_text": "Black-and-white photo of four baseball players standing side by side in a ballpark. The two in the middle wear Yankees jerseys and the two on the ends wear jerseys with a large \"A\". The third player from the left holds a glove.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2026-12-16-daily",
+      "publish_at": "2026-12-16T10:00:00-05:00",
+      "topic": "Career OBP and slugging",
+      "text": "Gehrig's career on-base percentage was .447 and his slugging percentage was .632. See more numbers on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 860,
+      "alt_text": "Black-and-white newspaper photo of baseball players at home plate, one raising a leg in a small kick toward another. The printed caption reads: \"Lou Gehrig congratulates Ruth with a little kick after the Babe had made his second homer.\"",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2026-12-17-daily",
+      "publish_at": "2026-12-17T10:00:00-05:00",
+      "topic": "Yankees captain 1935",
+      "text": "In 1935 the Yankees named Lou Gehrig team captain. They did not name another until 1976. More on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 864,
+      "alt_text": "Black-and-white printed portrait of Lou Gehrig in a cap and baseball jersey, smiling slightly. The page prints \"Henry Louis 'Lou' Gehrig. Idol of all American League fans and one of the greatest first basemen of all time. International News Photo.\"",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "SABR biography of Lou Gehrig; Baseball-Reference Bullpen, Yankees captains",
+      "status": "approved"
+    },
+    {
+      "id": "2026-12-18-daily",
+      "publish_at": "2026-12-18T10:00:00-05:00",
+      "topic": "Website: accessibility statement",
+      "text": "Our website has an accessibility statement. We build toward WCAG 2.x Level AA so more fans can enjoy Gehrig history.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 862,
+      "alt_text": "Sepia photo of four men standing in front of a crowd behind chicken-wire fencing. One wears a \"Larrupin' Lous\" jersey and one wears a \"Bustin' Babes\" jersey and a bowler hat. Between them a man in an overcoat and a cap marked \"LL\" holds a baseball, and at the left a man wears a white cardigan and a bow tie.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Club website (lougehrigfanclub.com) /accessibility page",
+      "status": "approved"
+    },
+    {
+      "id": "2026-12-19-daily",
+      "publish_at": "2026-12-19T10:00:00-05:00",
+      "topic": "The Pride of the Yankees",
+      "text": "The 1942 film The Pride of the Yankees, starring Gary Cooper as Gehrig, earned 11 Academy Award nominations. More on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 858,
+      "alt_text": "Souvenir program with a decorative border. It reads \"Busting Babes vs. Larruping Lous\" above a halftone photo of Babe Ruth and Lou Gehrig in Yankees uniforms, each resting a hand on a bat, with \"Oakland Baseball Park, Sunday, October 23, 1927\" below.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Academy of Motion Picture Arts and Sciences, 15th Academy Awards",
+      "status": "approved"
+    },
+    {
+      "id": "2026-12-20-daily",
+      "publish_at": "2026-12-20T10:00:00-05:00",
+      "topic": "Career World Series record",
+      "text": "Lou Gehrig played in 34 World Series games and hit .361 with 10 home runs. Explore more of his career on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 859,
+      "alt_text": "Black-and-white photo of four baseball players standing side by side in a ballpark. The two in the middle wear Yankees jerseys and the two on the ends wear jerseys with a large \"A\". The third player from the left holds a glove.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2026-12-21-daily",
+      "publish_at": "2026-12-21T10:00:00-05:00",
+      "topic": "1926 season",
+      "text": "In 1926 Gehrig hit .313 with 112 RBI and led the American League with 20 triples. More on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 860,
+      "alt_text": "Black-and-white newspaper photo of baseball players at home plate, one raising a leg in a small kick toward another. The printed caption reads: \"Lou Gehrig congratulates Ruth with a little kick after the Babe had made his second homer.\"",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2026-12-22-daily",
+      "publish_at": "2026-12-22T10:00:00-05:00",
+      "topic": "Five 40-home-run seasons",
+      "text": "Lou Gehrig hit 40 or more home runs in five seasons: 1927, 1930, 1931, 1934 and 1936. More on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 864,
+      "alt_text": "Black-and-white printed portrait of Lou Gehrig in a cap and baseball jersey, smiling slightly. The page prints \"Henry Louis 'Lou' Gehrig. Idol of all American League fans and one of the greatest first basemen of all time. International News Photo.\"",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2026-12-23-daily",
+      "publish_at": "2026-12-23T10:00:00-05:00",
+      "topic": "Website: About page",
+      "text": "Learn about the Lou Gehrig Fan Club, who we are and what we do, on the About page of our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 862,
+      "alt_text": "Sepia photo of four men standing in front of a crowd behind chicken-wire fencing. One wears a \"Larrupin' Lous\" jersey and one wears a \"Bustin' Babes\" jersey and a bowler hat. Between them a man in an overcoat and a cap marked \"LL\" holds a baseball, and at the left a man wears a white cardigan and a bow tie.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Club website (lougehrigfanclub.com) /about page",
+      "status": "approved"
+    },
+    {
+      "id": "2026-12-24-daily",
+      "publish_at": "2026-12-24T10:00:00-05:00",
+      "topic": "Career hits, doubles, triples",
+      "text": "Gehrig reached 2,721 career hits, with 534 doubles and 163 triples. Browse more of his record on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 858,
+      "alt_text": "Souvenir program with a decorative border. It reads \"Busting Babes vs. Larruping Lous\" above a halftone photo of Babe Ruth and Lou Gehrig in Yankees uniforms, each resting a hand on a bat, with \"Oakland Baseball Park, Sunday, October 23, 1927\" below.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2026-12-25-daily",
+      "publish_at": "2026-12-25T10:00:00-05:00",
+      "topic": "Christmas greeting",
+      "text": "Merry Christmas from the Lou Gehrig Fan Club. Thank you for following along. Our website is here all year.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 859,
+      "alt_text": "Black-and-white photo of four baseball players standing side by side in a ballpark. The two in the middle wear Yankees jerseys and the two on the ends wear jerseys with a large \"A\". The third player from the left holds a glove.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Club website (lougehrigfanclub.com)",
+      "status": "approved"
+    },
+    {
+      "id": "2026-12-26-daily",
+      "publish_at": "2026-12-26T10:00:00-05:00",
+      "topic": "Marriage to Eleanor Twitchell",
+      "text": "On September 29, 1933, Lou Gehrig married Eleanor Twitchell. Read more about his life on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 860,
+      "alt_text": "Black-and-white newspaper photo of baseball players at home plate, one raising a leg in a small kick toward another. The printed caption reads: \"Lou Gehrig congratulates Ruth with a little kick after the Babe had made his second homer.\"",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "SABR biography of Lou Gehrig",
+      "status": "approved"
+    },
+    {
+      "id": "2026-12-27-daily",
+      "publish_at": "2026-12-27T10:00:00-05:00",
+      "topic": "1928 season",
+      "text": "In 1928 Gehrig hit .374 with 27 home runs and 142 RBI. More on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 864,
+      "alt_text": "Black-and-white printed portrait of Lou Gehrig in a cap and baseball jersey, smiling slightly. The page prints \"Henry Louis 'Lou' Gehrig. Idol of all American League fans and one of the greatest first basemen of all time. International News Photo.\"",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2026-12-28-daily",
+      "publish_at": "2026-12-28T10:00:00-05:00",
+      "topic": "Monument dedicated July 6, 1941",
+      "text": "The Yankees dedicated a monument to Lou Gehrig at Yankee Stadium on July 6, 1941. More of his story is on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 862,
+      "alt_text": "Sepia photo of four men standing in front of a crowd behind chicken-wire fencing. One wears a \"Larrupin' Lous\" jersey and one wears a \"Bustin' Babes\" jersey and a bowler hat. Between them a man in an overcoat and a cap marked \"LL\" holds a baseball, and at the left a man wears a white cardigan and a bow tie.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "SABR biography of Lou Gehrig; New York Yankees, Monument Park history",
+      "status": "approved"
+    },
+    {
+      "id": "2026-12-29-daily",
+      "publish_at": "2026-12-29T10:00:00-05:00",
+      "topic": "1931 RBI record",
+      "text": "In 1931 Gehrig drove in more than 180 runs, an American League record that still stands. More on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 858,
+      "alt_text": "Souvenir program with a decorative border. It reads \"Busting Babes vs. Larruping Lous\" above a halftone photo of Babe Ruth and Lou Gehrig in Yankees uniforms, each resting a hand on a bat, with \"Oakland Baseball Park, Sunday, October 23, 1927\" below.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2026-12-30-daily",
+      "publish_at": "2026-12-30T10:00:00-05:00",
+      "topic": "Career runs scored",
+      "text": "Lou Gehrig scored 1,888 runs in his career. Find more numbers and history on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 859,
+      "alt_text": "Black-and-white photo of four baseball players standing side by side in a ballpark. The two in the middle wear Yankees jerseys and the two on the ends wear jerseys with a large \"A\". The third player from the left holds a glove.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2026-12-31-daily",
+      "publish_at": "2026-12-31T10:00:00-05:00",
+      "topic": "Year-end thanks",
+      "text": "Thank you for following along this year. We look forward to sharing more Lou Gehrig history on our website in 2027.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 860,
+      "alt_text": "Black-and-white newspaper photo of baseball players at home plate, one raising a leg in a small kick toward another. The printed caption reads: \"Lou Gehrig congratulates Ruth with a little kick after the Babe had made his second homer.\"",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Club website (lougehrigfanclub.com)",
+      "status": "approved"
+    },
+    {
+      "id": "2027-01-01-daily",
+      "publish_at": "2027-01-01T10:00:00-05:00",
+      "topic": "New Year greeting",
+      "text": "Happy New Year from the Lou Gehrig Fan Club. Explore Lou Gehrig's story on our website in 2027.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 864,
+      "alt_text": "Black-and-white printed portrait of Lou Gehrig in a cap and baseball jersey, smiling slightly. The page prints \"Henry Louis 'Lou' Gehrig. Idol of all American League fans and one of the greatest first basemen of all time. International News Photo.\"",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Club website (lougehrigfanclub.com)",
+      "status": "approved"
+    },
+    {
+      "id": "2027-01-02-daily",
+      "publish_at": "2027-01-02T10:00:00-05:00",
+      "topic": "1929 season",
+      "text": "In 1929 Gehrig hit .300 with 35 home runs and 126 RBI. More Gehrig history is on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 862,
+      "alt_text": "Sepia photo of four men standing in front of a crowd behind chicken-wire fencing. One wears a \"Larrupin' Lous\" jersey and one wears a \"Bustin' Babes\" jersey and a bowler hat. Between them a man in an overcoat and a cap marked \"LL\" holds a baseball, and at the left a man wears a white cardigan and a bow tie.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2027-01-03-daily",
+      "publish_at": "2027-01-03T10:00:00-05:00",
+      "topic": "Walks and strikeouts",
+      "text": "Gehrig walked 1,508 times and struck out 790 times in his career. Explore more of his record on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 858,
+      "alt_text": "Souvenir program with a decorative border. It reads \"Busting Babes vs. Larruping Lous\" above a halftone photo of Babe Ruth and Lou Gehrig in Yankees uniforms, each resting a hand on a bat, with \"Oakland Baseball Park, Sunday, October 23, 1927\" below.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2027-01-04-daily",
+      "publish_at": "2027-01-04T10:00:00-05:00",
+      "topic": "1932 season",
+      "text": "In 1932 Gehrig hit .349 with 34 home runs and 151 RBI. Read more about his career on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 859,
+      "alt_text": "Black-and-white photo of four baseball players standing side by side in a ballpark. The two in the middle wear Yankees jerseys and the two on the ends wear jerseys with a large \"A\". The third player from the left holds a glove.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2027-01-05-daily",
+      "publish_at": "2027-01-05T10:00:00-05:00",
+      "topic": "Farewell speech, July 4, 1939",
+      "text": "On July 4, 1939, Lou Gehrig told the Yankee Stadium crowd he considered himself the luckiest man on the face of the earth. More on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 860,
+      "alt_text": "Black-and-white newspaper photo of baseball players at home plate, one raising a leg in a small kick toward another. The printed caption reads: \"Lou Gehrig congratulates Ruth with a little kick after the Babe had made his second homer.\"",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "SABR biography of Lou Gehrig; National Baseball Hall of Fame, Lou Gehrig",
+      "status": "approved"
+    },
+    {
+      "id": "2027-01-06-daily",
+      "publish_at": "2027-01-06T10:00:00-05:00",
+      "topic": "1933 season",
+      "text": "In 1933 Gehrig hit .334 with 32 home runs and 139 RBI. Explore more of his career on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 864,
+      "alt_text": "Black-and-white printed portrait of Lou Gehrig in a cap and baseball jersey, smiling slightly. The page prints \"Henry Louis 'Lou' Gehrig. Idol of all American League fans and one of the greatest first basemen of all time. International News Photo.\"",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2027-01-07-daily",
+      "publish_at": "2027-01-07T10:00:00-05:00",
+      "topic": "Left-handed first baseman",
+      "text": "Lou Gehrig played first base and batted left-handed. Read more about his career on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 862,
+      "alt_text": "Sepia photo of four men standing in front of a crowd behind chicken-wire fencing. One wears a \"Larrupin' Lous\" jersey and one wears a \"Bustin' Babes\" jersey and a bowler hat. Between them a man in an overcoat and a cap marked \"LL\" holds a baseball, and at the left a man wears a white cardigan and a bow tie.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2027-01-08-daily",
+      "publish_at": "2027-01-08T10:00:00-05:00",
+      "topic": "Website: member library",
+      "text": "Members can explore the Fan Club library, photos and memorabilia on our website. Joining is free.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 858,
+      "alt_text": "Souvenir program with a decorative border. It reads \"Busting Babes vs. Larruping Lous\" above a halftone photo of Babe Ruth and Lou Gehrig in Yankees uniforms, each resting a hand on a bat, with \"Oakland Baseball Park, Sunday, October 23, 1927\" below.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Club website member area (/fanclub); FAQ answer on joining",
+      "status": "approved"
+    },
+    {
+      "id": "2027-01-09-daily",
+      "publish_at": "2027-01-09T10:00:00-05:00",
+      "topic": "1938 season",
+      "text": "In 1938 Gehrig hit .295 with 29 home runs and 114 RBI in his last full season. More on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 859,
+      "alt_text": "Black-and-white photo of four baseball players standing side by side in a ballpark. The two in the middle wear Yankees jerseys and the two on the ends wear jerseys with a large \"A\". The third player from the left holds a glove.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2027-01-10-daily",
+      "publish_at": "2027-01-10T10:00:00-05:00",
+      "topic": "1935 season",
+      "text": "In 1935 Gehrig hit .329 with 30 home runs and 119 RBI. Read more about his career on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 860,
+      "alt_text": "Black-and-white newspaper photo of baseball players at home plate, one raising a leg in a small kick toward another. The printed caption reads: \"Lou Gehrig congratulates Ruth with a little kick after the Babe had made his second homer.\"",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2027-01-11-daily",
+      "publish_at": "2027-01-11T10:00:00-05:00",
+      "topic": "1927 Yankees",
+      "text": "Lou Gehrig's 1927 Yankees won 110 games and swept the Pirates in the World Series. Explore their story on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 864,
+      "alt_text": "Black-and-white printed portrait of Lou Gehrig in a cap and baseball jersey, smiling slightly. The page prints \"Henry Louis 'Lou' Gehrig. Idol of all American League fans and one of the greatest first basemen of all time. International News Photo.\"",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2027-01-12-daily",
+      "publish_at": "2027-01-12T10:00:00-05:00",
+      "topic": "1925 season",
+      "text": "In 1925 Gehrig hit .295 with 20 home runs and 68 RBI in 126 games. More on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 862,
+      "alt_text": "Sepia photo of four men standing in front of a crowd behind chicken-wire fencing. One wears a \"Larrupin' Lous\" jersey and one wears a \"Bustin' Babes\" jersey and a bowler hat. Between them a man in an overcoat and a cap marked \"LL\" holds a baseball, and at the left a man wears a white cardigan and a bow tie.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2027-01-13-daily",
+      "publish_at": "2027-01-13T10:00:00-05:00",
+      "topic": "Five RBI titles",
+      "text": "Lou Gehrig led the American League in RBI five times. Find his full record on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 858,
+      "alt_text": "Souvenir program with a decorative border. It reads \"Busting Babes vs. Larruping Lous\" above a halftone photo of Babe Ruth and Lou Gehrig in Yankees uniforms, each resting a hand on a bat, with \"Oakland Baseball Park, Sunday, October 23, 1927\" below.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2027-01-14-daily",
+      "publish_at": "2027-01-14T10:00:00-05:00",
+      "topic": "Three home run titles",
+      "text": "Gehrig led the American League in home runs three times: 1931, 1934 and 1936. More on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 859,
+      "alt_text": "Black-and-white photo of four baseball players standing side by side in a ballpark. The two in the middle wear Yankees jerseys and the two on the ends wear jerseys with a large \"A\". The third player from the left holds a glove.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2027-01-15-daily",
+      "publish_at": "2027-01-15T10:00:00-05:00",
+      "topic": "Website: member submissions",
+      "text": "Have Gehrig photos or memorabilia to share? Members can submit them through the Fan Club area of our website when submissions are open.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 860,
+      "alt_text": "Black-and-white newspaper photo of baseball players at home plate, one raising a leg in a small kick toward another. The printed caption reads: \"Lou Gehrig congratulates Ruth with a little kick after the Babe had made his second homer.\"",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Club website (lougehrigfanclub.com) FAQ, Can I contribute memorabilia or photos?",
+      "status": "approved"
+    },
+    {
+      "id": "2027-01-16-daily",
+      "publish_at": "2027-01-16T10:00:00-05:00",
+      "topic": "12 straight .300 seasons",
+      "text": "Gehrig hit .300 or better in 12 straight seasons, 1926 to 1937. Explore more of his career on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 864,
+      "alt_text": "Black-and-white printed portrait of Lou Gehrig in a cap and baseball jersey, smiling slightly. The page prints \"Henry Louis 'Lou' Gehrig. Idol of all American League fans and one of the greatest first basemen of all time. International News Photo.\"",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2027-01-17-daily",
+      "publish_at": "2027-01-17T10:00:00-05:00",
+      "topic": "13 straight 100-RBI seasons",
+      "text": "Gehrig drove in 100 or more runs in 13 straight seasons, 1926 to 1938. Browse more of his record on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 862,
+      "alt_text": "Sepia photo of four men standing in front of a crowd behind chicken-wire fencing. One wears a \"Larrupin' Lous\" jersey and one wears a \"Bustin' Babes\" jersey and a bowler hat. Between them a man in an overcoat and a cap marked \"LL\" holds a baseball, and at the left a man wears a white cardigan and a bow tie.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2027-01-18-daily",
+      "publish_at": "2027-01-18T10:00:00-05:00",
+      "topic": "All-Century Team 1999",
+      "text": "Lou Gehrig was a first baseman on Major League Baseball's All-Century Team, chosen in 1999. More on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 858,
+      "alt_text": "Souvenir program with a decorative border. It reads \"Busting Babes vs. Larruping Lous\" above a halftone photo of Babe Ruth and Lou Gehrig in Yankees uniforms, each resting a hand on a bat, with \"Oakland Baseball Park, Sunday, October 23, 1927\" below.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Major League Baseball, All-Century Team, 1999",
+      "status": "approved"
+    },
+    {
+      "id": "2027-01-19-daily",
+      "publish_at": "2027-01-19T10:00:00-05:00",
+      "topic": "Three straight titles 1936 to 1938",
+      "text": "With rookie Joe DiMaggio in 1936, the Yankees won three straight World Series, 1936 to 1938, with Gehrig at first base. More on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 859,
+      "alt_text": "Black-and-white photo of four baseball players standing side by side in a ballpark. The two in the middle wear Yankees jerseys and the two on the ends wear jerseys with a large \"A\". The third player from the left holds a glove.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2027-01-20-daily",
+      "publish_at": "2027-01-20T10:00:00-05:00",
+      "topic": "Film Rawhide, 1938",
+      "text": "In 1938 Lou Gehrig acted in a Western film, Rawhide. Read more about his life on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 860,
+      "alt_text": "Black-and-white newspaper photo of baseball players at home plate, one raising a leg in a small kick toward another. The printed caption reads: \"Lou Gehrig congratulates Ruth with a little kick after the Babe had made his second homer.\"",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "SABR biography of Lou Gehrig; American Film Institute catalog, Rawhide (1938)",
+      "status": "approved"
+    },
+    {
+      "id": "2027-01-21-daily",
+      "publish_at": "2027-01-21T10:00:00-05:00",
+      "topic": "Origin of number 4",
+      "text": "The Yankees began wearing uniform numbers in 1929, by batting order. Gehrig batted fourth and wore number 4. More on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 864,
+      "alt_text": "Black-and-white printed portrait of Lou Gehrig in a cap and baseball jersey, smiling slightly. The page prints \"Henry Louis 'Lou' Gehrig. Idol of all American League fans and one of the greatest first basemen of all time. International News Photo.\"",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "SABR biography of Lou Gehrig; Baseball-Reference Bullpen, uniform numbers",
+      "status": "approved"
+    },
+    {
+      "id": "2027-01-22-daily",
+      "publish_at": "2027-01-22T10:00:00-05:00",
+      "topic": "Website: member sign-in",
+      "text": "Members sign in on our website to reach the Fan Club area. New here? Joining is free.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 862,
+      "alt_text": "Sepia photo of four men standing in front of a crowd behind chicken-wire fencing. One wears a \"Larrupin' Lous\" jersey and one wears a \"Bustin' Babes\" jersey and a bowler hat. Between them a man in an overcoat and a cap marked \"LL\" holds a baseball, and at the left a man wears a white cardigan and a bow tie.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Club website (lougehrigfanclub.com) /login and /join pages",
+      "status": "approved"
+    },
+    {
+      "id": "2027-01-23-daily",
+      "publish_at": "2027-01-23T10:00:00-05:00",
+      "topic": "Hit for the cycle, June 25, 1934",
+      "text": "On June 25, 1934, Lou Gehrig hit for the cycle. Read more about his career on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 858,
+      "alt_text": "Souvenir program with a decorative border. It reads \"Busting Babes vs. Larruping Lous\" above a halftone photo of Babe Ruth and Lou Gehrig in Yankees uniforms, each resting a hand on a bat, with \"Oakland Baseball Park, Sunday, October 23, 1927\" below.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2027-01-24-daily",
+      "publish_at": "2027-01-24T10:00:00-05:00",
+      "topic": "Eight 200-hit seasons",
+      "text": "Gehrig had 200 or more hits in eight seasons. Find his full record on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 859,
+      "alt_text": "Black-and-white photo of four baseball players standing side by side in a ballpark. The two in the middle wear Yankees jerseys and the two on the ends wear jerseys with a large \"A\". The third player from the left holds a glove.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2027-01-25-daily",
+      "publish_at": "2027-01-25T10:00:00-05:00",
+      "topic": "High School of Commerce",
+      "text": "Lou Gehrig attended the High School of Commerce in Manhattan. Our website has more of his story.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 860,
+      "alt_text": "Black-and-white newspaper photo of baseball players at home plate, one raising a leg in a small kick toward another. The printed caption reads: \"Lou Gehrig congratulates Ruth with a little kick after the Babe had made his second homer.\"",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "SABR biography of Lou Gehrig",
+      "status": "approved"
+    },
+    {
+      "id": "2027-01-26-daily",
+      "publish_at": "2027-01-26T10:00:00-05:00",
+      "topic": "Signed by Paul Krichell, 1923",
+      "text": "Yankees scout Paul Krichell signed Lou Gehrig in 1923. Read more about his path to the Yankees on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 864,
+      "alt_text": "Black-and-white printed portrait of Lou Gehrig in a cap and baseball jersey, smiling slightly. The page prints \"Henry Louis 'Lou' Gehrig. Idol of all American League fans and one of the greatest first basemen of all time. International News Photo.\"",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "SABR biography of Lou Gehrig",
+      "status": "approved"
+    },
+    {
+      "id": "2027-01-27-daily",
+      "publish_at": "2027-01-27T10:00:00-05:00",
+      "topic": "Hartford Senators",
+      "text": "Before joining the Yankees full time, Gehrig played for the Hartford Senators in 1923 and 1924. More on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 862,
+      "alt_text": "Sepia photo of four men standing in front of a crowd behind chicken-wire fencing. One wears a \"Larrupin' Lous\" jersey and one wears a \"Bustin' Babes\" jersey and a bowler hat. Between them a man in an overcoat and a cap marked \"LL\" holds a baseball, and at the left a man wears a white cardigan and a bow tie.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2027-01-28-daily",
+      "publish_at": "2027-01-28T10:00:00-05:00",
+      "topic": "1936 runs scored",
+      "text": "In 1936 Gehrig scored 167 runs, a career high. Explore more of his numbers on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 858,
+      "alt_text": "Souvenir program with a decorative border. It reads \"Busting Babes vs. Larruping Lous\" above a halftone photo of Babe Ruth and Lou Gehrig in Yankees uniforms, each resting a hand on a bat, with \"Oakland Baseball Park, Sunday, October 23, 1927\" below.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, Lou Gehrig career and season pages",
+      "status": "approved"
+    },
+    {
+      "id": "2027-01-29-daily",
+      "publish_at": "2027-01-29T10:00:00-05:00",
+      "topic": "1934 Japan tour",
+      "text": "In late 1934 Gehrig toured Japan with Babe Ruth and other American stars. More Gehrig history is on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 859,
+      "alt_text": "Black-and-white photo of four baseball players standing side by side in a ballpark. The two in the middle wear Yankees jerseys and the two on the ends wear jerseys with a large \"A\". The third player from the left holds a glove.",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "SABR biography of Lou Gehrig",
+      "status": "approved"
+    },
+    {
+      "id": "2027-01-30-daily",
+      "publish_at": "2027-01-30T10:00:00-05:00",
+      "topic": "1937 All-Star Game home run",
+      "text": "In the 1937 All-Star Game Gehrig hit a home run off Dizzy Dean as the American League won 8 to 3. More on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 860,
+      "alt_text": "Black-and-white newspaper photo of baseball players at home plate, one raising a leg in a small kick toward another. The printed caption reads: \"Lou Gehrig congratulates Ruth with a little kick after the Babe had made his second homer.\"",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Baseball-Reference.com, 1937 All-Star Game; SABR biography of Lou Gehrig",
+      "status": "approved"
+    },
+    {
+      "id": "2027-01-31-daily",
+      "publish_at": "2027-01-31T10:00:00-05:00",
+      "topic": "End of January thanks",
+      "text": "As January ends, thank you for being part of the Lou Gehrig Fan Club. Keep exploring his story on our website.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "photo_id": 864,
+      "alt_text": "Black-and-white printed portrait of Lou Gehrig in a cap and baseball jersey, smiling slightly. The page prints \"Henry Louis 'Lou' Gehrig. Idol of all American League fans and one of the greatest first basemen of all time. International News Photo.\"",
+      "platforms": [
+        "x",
+        "facebook",
+        "instagram",
+        "pinterest"
+      ],
+      "sources": "Club website (lougehrigfanclub.com)",
       "status": "approved"
     }
   ],
