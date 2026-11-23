@@ -6,7 +6,7 @@ Owns: Production health, degraded-service routing, incident classification, cont
 Does Not Own: Cross-team queue semantics, Administration & Communications policy, delivery-model selection, PMO sizing, PR approval roles, CI implementation, project objectives, or daily operator checklists
 Canonical Reference: /docs/governance/REPOSITORY-AUTHORITY.md
 Related Issues: #2495, #2640, #2641, #2695, #2699, #4213, #4589, #4637
-Last Reviewed: 2026-11-18
+Last Reviewed: 2026-11-23
 ---
 
 # Operations and Recovery
@@ -168,7 +168,12 @@ What a halt does:
 2. Disables the workflow so it makes no further attempts.
 3. A halt is an Operations exception. Operations records the cause and fix on the Issue, then re-enables the workflow. The Action stays halted until a person re-enables it.
 
-Exception: a job that protects Production (backups, snapshot, production audit, site uptime probe) is not disabled. It alerts through the same Issue and keeps running, because silently stopping it is worse than repeated failure. Product Authority confirms the list of such jobs.
+Exception: two classes of scheduled workflow are not disabled. They alert through the same Issue and keep running, because silently stopping them is worse than repeated failure.
+
+1. Jobs that protect Production: the daily and quarterly D1 backups, the snapshot backup, the production audit, the site uptime probe, and the D1 daily sync.
+2. Health monitors whose failure is the signal (Product Authority, 2026-11-22, #4589 / #5412 item 24): `ops-scheduled-job-health.yml`, `ops-production-edge-health.yml`, and `lgfc-cursor-runner-health.yml`. Disabling these removes the signal and can create a halt/recovery cycle (#5271, #5058). `repository-runner-health.yml` is not on this list.
+
+Product Authority confirmed both lists. The sweeper enforces them through `ALERT_ONLY` in `scripts/ops/halt-repeated-failures.mjs`. Class 1 is already in that set. Class 2 is added under #5486. Until #5486 merges, the sweeper can still disable the three health monitors.
 
 Authority: halting uses the workflow's own repository token. It adds no credential, no Production access and no new approval authority. Changing the halt rule, the alert-only list or the permission it uses is a protected change.
 
