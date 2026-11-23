@@ -5,7 +5,7 @@ Authority Level: Supporting (proposal for Product Authority decision; not a Go p
 Owns: Review of what the website does against what the repository can see through monitoring, the gaps ranked by launch risk, and the proposed alert-to-response path, for go-live task P-26a (#4657)
 Does Not Own: Any workflow, alert or secret change, the freeze declaration, the Go packet, or any Production action
 Canonical Reference: /docs/reference/operations/2027-launch-calendar-operating-contract.md
-Last Reviewed: 2026-10-16
+Last Reviewed: 2026-11-23
 Related Issues: #4657, #4439, #4414, #4468, #4444, #3633, #4469
 ---
 
@@ -13,9 +13,49 @@ Related Issues: #4657, #4439, #4414, #4468, #4444, #3633, #4469
 
 ## Status
 
-`_DRAFT` — written 2026-10-16 from the repository only. Product Authority directed this review: the launch relies heavily on monitoring, so compare what the website does with what the repository can see, close the gaps, and connect alerts to the CI/CD response. Cursor holds Operations for the launch window; Claude Code holds Engineering and is secondary Operations.
+**Refreshed 2026-11-23.** Ten of the thirteen gaps below are closed; two wait on Product Authority and one is deferred. The table in "Status of the gaps, 2026-11-23" is current; the sections after it keep the 2026-10-16 analysis as written, so their "today" wording is the October position.
+
+Original status: `_DRAFT` — written 2026-10-16 from the repository only. Product Authority directed this review: the launch relies heavily on monitoring, so compare what the website does with what the repository can see, close the gaps, and connect alerts to the CI/CD response. Cursor holds Operations for the launch window; Claude Code holds Engineering and is secondary Operations.
 
 **Limits.** I read workflow files, scripts and specs on `main`. I did not view Cloudflare dashboard alerts, WAF or rate-limit rules, email routing, Pages deployment notifications, or current workflow run results. Anything that depends on them is marked "not checked". Nothing here changes a workflow.
+
+## Status of the gaps, 2026-11-23
+
+Read from the child Issues and Operations records on 2026-11-23. Nothing in this section changes a workflow or a secret.
+
+| Gap | Status | Evidence |
+| --- | --- | --- |
+| 1 Wake an agent on a new Operations Issue | **Closed** | Wake and escalation (#5281) and one automatic re-run (#5282) merged 2026-11-15; accepted on independent review 2026-11-20 (#4681) |
+| 2 Synthetic sign-in check | **Waiting on Product Authority** | Script and tests merged (#5283); test-account design merged (#5401). Option C chosen 2026-11-22 (member-only scheduled check plus the member-refused-by-admin check). Needs the exact addresses (the admin one by a non-public channel) and a Production Go (#4682) |
+| 3 Photo addresses | **Closed** | #4683 |
+| 4 Scheduled publish and the post-10:00 check | **Closed** | #4684 |
+| 5 Uptime probe coverage | **Closed** | #4685 |
+| 6 Watchers share one failure path | **Closed** | #4686 |
+| 7 Alerts reach Bill and the Operations holder | **Waiting on Product Authority** | Built and reviewed (#5308) but inert until the mail key and recipients are supplied, or Product Authority accepts close without a live send (#4687) |
+| 8 Certificate and DNS | **Closed** | #4688 |
+| 9 Failed Production deploy | **Closed** | #4689 |
+| 10 Email delivery | **Closed** | #4690 |
+| 11 Fundraiser widget and campaign state | **Deferred** | With the fundraiser work (Product Authority, 2026-11-12); high risk from 2027-03-25 |
+| 12 Secret expiry reminders | **Closed** | #4691 |
+| 13 Performance baselines | **Waiting on Product Authority** | The Lighthouse, axe and 390 px record from 2026-11-13 (#5228) exists; Product Authority confirms whether it counts for #3633 row 65 |
+
+### What the response path did on 2026-11-23
+
+The path was exercised for real, which is better evidence than the design:
+
+| Event | What happened |
+| --- | --- |
+| Asset register drift (#5465) | The scheduled check failed at 12:37 UTC and opened an Operations Issue; the wake notice followed within a minute; Claude Code acknowledged at 12:47, fixed the catalog in a reviewed pull request merged at 14:02, re-ran the check (zero drift) and closed the Issue |
+| Post-merge failures (#5469, #5470) | Two exception Issues opened by themselves within minutes of the merges, were assigned to the originating agent, and were closed with evidence (one was the expected result of a keep-open merge; one was a transient GitHub Pages artifact error that cleared on a later run) |
+| Content discovery outage | One run failed at 13:12 UTC because a source returned a rate limit; the job reported the outage on purpose, the next hourly run recovered, and no action was needed |
+
+### Weak points found
+
+1. **The Operations primary cannot be woken reliably.** The runner receives every Cursor wake and fails it with `cli_binary_missing` (#5409; the fix is on the host and waits on Product Authority). Until it is fixed, tier 2 of the path relies on the secondary holder, and nothing wakes an idle Claude Code session: the wake workflow is delivery-only for pull requests (`docs/ops/ai/CLAUDE-CODE-RULES.md`, Operations interrupt). A new Operations Issue is therefore seen quickly only while a session is running.
+2. **Automatic exception Issues carry no priority.** The asset-register Issue had no `ops:priority` label, so it did not match the Operations interrupt query. Product Authority approved the default (`ops:priority:2`, `1` for Production-protecting jobs) on 2026-11-22 (#5407); the build is still to do.
+3. **A stalled Cursor loop stays stopped** until a person says "Take over" (#5406); the approved rule is an alert at 30 minutes stopped.
+
+To close #4657: Product Authority answers on #4682, #4687 and the gap 13 baseline, and accepts the gap 11 deferral. Weak points 1 to 3 are tracked on their own Issues and do not block this review.
 
 ## What exists today
 
