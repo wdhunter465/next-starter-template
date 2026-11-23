@@ -62,6 +62,14 @@ made to CMG Worldwide on 2026-11-03.
   removal, set the photo's `rights_status` to `blocked`. It disappears from every
   public surface at once, and the daily B2 to D1 reconcile will not re-clear it. A
   revocation remains an Operations interrupt (`ops:priority:1`).
+- **Takedown steps (#5471).** Sign in as admin, open **Admin > Photos (Block/Restore)**
+  (`/admin/photos`), find the photo (the **Blocked / restricted** filter shows what is already
+  withheld), type the reason (for example, who asked and when) and press **Block photo**. The
+  photo leaves the public photo pages, search, Club Home and the social image route at once.
+  The page records `rights_status = 'blocked'`, your email and the date in `reviewed_by`,
+  `reviewed_at` and `rights_notes`. **Restore photo** moves a `blocked` photo back to
+  `unreviewed` when a request is withdrawn; it cannot lift a `copyright_restricted` photo.
+  Cached copies already shared on social platforms are not recalled by this control.
 - **Not changed:** member-submitted photos (`media_assets`) still go through member
   submission review, and the Weekly Matchup curation flag `is_matchup_eligible` still
   applies. `rights_hold` and `publication_eligible` are still recorded as review
