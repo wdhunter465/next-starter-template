@@ -18,6 +18,14 @@ function standing(participantId: string, displayName: string, raised: number, do
 }
 
 describe('fundraiser closeout computation (#4436)', () => {
+	it('records the confirmed donation cutoff and closeout start', () => {
+		const closeout = buildSampleFundraiserCloseout();
+
+		expect(closeout.window.cutoffLabel).toBe('2027-06-07 11:59 PM America/New_York');
+		expect(closeout.window.closeoutStartLabel).toBe('2027-06-08 12:00 PM America/New_York');
+		expect(closeout.window.endDate).toBe('2027-06-07');
+	});
+
 	it('computes the three award winners from sample data', () => {
 		const closeout = buildSampleFundraiserCloseout();
 
