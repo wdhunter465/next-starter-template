@@ -15,6 +15,8 @@ Last Reviewed: 2026-11-09
 
 This register is the single list of LGFC assets: what exists, who owns it, what depends on it, how its health is observed, and when it was last checked against live evidence.
 
+Every asset is held to the cost principle in the vendor inventory (`docs/reference/architecture/vendor-inventory.md`, "Cost principle", #5499): zero cost where a free option exists, and a spending cap or alert on any free service that can bill for usage.
+
 It does not replace the detailed inventories. It links to them:
 
 - Vendors: `docs/reference/architecture/vendor-inventory.md`
