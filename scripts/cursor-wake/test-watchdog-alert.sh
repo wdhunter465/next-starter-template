@@ -36,6 +36,13 @@ test -f "$tmp/mark"
 out="$("$watchdog" --once)"
 grep -q 'alert_already_open' <<<"$out"
 
+echo halt >"$tmp/halt-present"
+export LGFC_WAKE_HALT_FILE="$tmp/halt-present"
+out="$("$watchdog" --once)"
+grep -q 'skipped reason=halt' <<<"$out"
+test -f "$tmp/mark"
+
+export LGFC_WAKE_HALT_FILE="$tmp/halt-absent"
 export LGFC_WAKE_CTL="$tmp/ok"
 out="$("$watchdog" --once)"
 grep -q 'LGFC_WAKE_WATCHDOG ok' <<<"$out"
