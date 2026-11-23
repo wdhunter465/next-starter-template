@@ -32,7 +32,12 @@ type PhotoRow = {
   rights_notes?: string | null;
   rights_hold?: number;
   publication_eligible?: number;
+  rights_status?: string;
 };
+
+function isBlocked(photo: PhotoRow): boolean {
+  return ['blocked', 'copyright_restricted'].includes(photo.rights_status ?? 'unreviewed');
+}
 
 function makeRepairDb(options: {
   weekStart: string;
@@ -74,13 +79,8 @@ function makeRepairDb(options: {
     }
     if (sql.includes('FROM photos WHERE id = ?') && sql.includes('is_matchup_eligible')) {
       const photo = photos.find((row) => Number(row.id) === Number(args[0]));
-      return photo
-        ? {
-            is_matchup_eligible: photo.is_matchup_eligible,
-            rights_hold: Number((photo as { rights_hold?: number }).rights_hold ?? 1),
-            publication_eligible: Number((photo as { publication_eligible?: number }).publication_eligible ?? 0),
-          }
-        : null;
+      // #5467: the probe query now applies rightsClearedClause() itself.
+      return photo && photo.is_matchup_eligible === 1 && !isBlocked(photo) ? { id: photo.id } : null;
     }
     if (sql.includes('FROM weekly_matchups WHERE week_start = ?') && sql.includes('LIMIT 1')) {
       return matchups.find((row) => row.week_start === String(args[0])) ?? null;
@@ -105,9 +105,7 @@ function makeRepairDb(options: {
       return {
         results: photos.filter(
           (row) =>
-            row.is_matchup_eligible === 1 &&
-            Number((row as { publication_eligible?: number }).publication_eligible ?? 0) === 1 &&
-            Number((row as { rights_hold?: number }).rights_hold ?? 1) === 0,
+            row.is_matchup_eligible === 1 && !isBlocked(row),
         ),
       };
     }
@@ -122,6 +120,9 @@ function makeRepairDb(options: {
         target.rights_notes = String(args[1]);
         if (sql.includes('publication_eligible = 0')) {
           (target as { publication_eligible?: number }).publication_eligible = 0;
+        }
+        if (sql.includes("rights_status = 'blocked'")) {
+          (target as { rights_status?: string }).rights_status = 'blocked';
         }
       }
       return { meta: { changes: 1 } };
@@ -307,10 +308,11 @@ describe('matchup broken-image repair', () => {
     expect(body.items[0].id).toBe(10);
     expect(body.items.map((item: { id: number }) => item.id)).not.toContain(20);
     expect(photos.find((row) => row.id === 20)?.is_matchup_eligible).toBe(MATCHUP_EXCLUDED_ELIGIBILITY);
-    // #4261: excluding a confirmed-broken photo from Weekly Matchup must also
-    // clear publication_eligible so galleries/search/club-home (which gate on
+    // #4261 / #5467: excluding a confirmed-broken photo from Weekly Matchup must
+    // also mark it blocked so galleries/search/club-home (which gate on
     // rightsClearedClause, independent of is_matchup_eligible) stop serving it.
     expect(photos.find((row) => row.id === 20)?.publication_eligible).toBe(0);
+    expect((photos.find((row) => row.id === 20) as { rights_status?: string })?.rights_status).toBe('blocked');
     expect(matchups[0].photo_b_id).not.toBe(20);
     expect(votes).toHaveLength(0);
 

@@ -28,8 +28,7 @@ SELECT ci.id AS id,
           JOIN photos pp ON pp.id = m.media_id
          WHERE m.story_id = ci.id
            AND m.media_role IN ('primary_image', 'gallery_image', 'supporting_image')
-           AND pp.publication_eligible = 1
-           AND pp.rights_hold = 0
+           AND COALESCE(pp.rights_status, 'unreviewed') NOT IN ('blocked', 'copyright_restricted')
          ORDER BY m.display_order ASC, m.id ASC
          LIMIT 1)
   JOIN photos p ON p.id = cim.media_id

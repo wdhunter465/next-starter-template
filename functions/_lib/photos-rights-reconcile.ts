@@ -76,6 +76,7 @@ SET rights_hold = 0,
       strftime('%Y-%m-%dT%H:%M:%fZ', 'now')
     )
 WHERE photos.rights_hold = 1
+  AND COALESCE(photos.rights_status, 'unreviewed') NOT IN ('blocked', 'copyright_restricted')
   AND EXISTS (
     SELECT 1 FROM media_assets ma
     WHERE ma.b2_key = photos.photo_id AND ma.rights_hold = 0 AND ma.publish_blocked = 0
