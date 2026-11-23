@@ -1,0 +1,455 @@
+{
+  "batch_id": "story-batch-001-2026-11-23",
+  "stories": [
+    {
+      "tag": "gehrig-born-1903",
+      "title": "Born in New York, June 19, 1903",
+      "text": "Henry Louis Gehrig was born on June 19, 1903, in New York City. The boy the world would come to know as Lou grew up to play first base for the Yankees.",
+      "story_type": "brief",
+      "credit_line": "Lou Gehrig Fan Club",
+      "source_name": "SABR biography",
+      "source_url": "https://sabr.org/bioproj/person/lou-gehrig/",
+      "event_date": "1903-06-19",
+      "verification": {
+        "status": "three_source_verified",
+        "sources": [
+          {
+            "name": "SABR biography",
+            "url": "https://sabr.org/bioproj/person/lou-gehrig/"
+          },
+          {
+            "name": "Baseball-Reference",
+            "url": "https://www.baseball-reference.com/players/g/gehrilo01.shtml"
+          },
+          {
+            "name": "MLB.com, 75 years after death, Lou Gehrig an immortal",
+            "url": "https://www.mlb.com/news/75-years-after-death-lou-gehrig-an-immortal-c181717048"
+          }
+        ]
+      }
+    },
+    {
+      "tag": "gehrig-2130-straight-games",
+      "title": "2,130 games in a row",
+      "text": "Lou Gehrig played in 2,130 consecutive games for the New York Yankees. Day after day, season after season, his name was in the lineup.",
+      "story_type": "brief",
+      "credit_line": "Lou Gehrig Fan Club",
+      "source_name": "National Baseball Hall of Fame, Lou Gehrig",
+      "source_url": "https://baseballhall.org/hall-of-famers/gehrig-lou",
+      "verification": {
+        "status": "three_source_verified",
+        "sources": [
+          {
+            "name": "National Baseball Hall of Fame, Lou Gehrig",
+            "url": "https://baseballhall.org/hall-of-famers/gehrig-lou"
+          },
+          {
+            "name": "SABR biography",
+            "url": "https://sabr.org/bioproj/person/lou-gehrig/"
+          },
+          {
+            "name": "MLB.com, 75 years after death, Lou Gehrig an immortal",
+            "url": "https://www.mlb.com/news/75-years-after-death-lou-gehrig-an-immortal-c181717048"
+          }
+        ]
+      }
+    },
+    {
+      "tag": "gehrig-triple-crown-1934",
+      "title": "The 1934 Triple Crown",
+      "text": "In 1934 Lou Gehrig led the American League in batting average, home runs and runs batted in, baseball's Triple Crown. He hit .363 with 49 home runs and 166 runs batted in. It was a remarkable season.",
+      "story_type": "brief",
+      "credit_line": "Lou Gehrig Fan Club",
+      "source_name": "National Baseball Hall of Fame, Lou Gehrig",
+      "source_url": "https://baseballhall.org/hall-of-famers/gehrig-lou",
+      "event_date": "1934",
+      "verification": {
+        "status": "three_source_verified",
+        "sources": [
+          {
+            "name": "National Baseball Hall of Fame, Lou Gehrig",
+            "url": "https://baseballhall.org/hall-of-famers/gehrig-lou"
+          },
+          {
+            "name": "Baseball-Reference",
+            "url": "https://www.baseball-reference.com/players/g/gehrilo01.shtml"
+          },
+          {
+            "name": "MLB.com, 75 years after death, Lou Gehrig an immortal",
+            "url": "https://www.mlb.com/news/75-years-after-death-lou-gehrig-an-immortal-c181717048"
+          }
+        ]
+      }
+    },
+    {
+      "tag": "gehrig-career-numbers",
+      "title": "The numbers behind the legend",
+      "text": "Over his career Lou Gehrig hit 493 home runs, drove in 1,995 runs and batted .340. He did it in 17 seasons, all with the Yankees. The Baseball Hall of Fame calls him one of the most magnificent hitters and run producers in history.",
+      "story_type": "brief",
+      "credit_line": "Lou Gehrig Fan Club",
+      "source_name": "National Baseball Hall of Fame, Lou Gehrig",
+      "source_url": "https://baseballhall.org/hall-of-famers/gehrig-lou",
+      "verification": {
+        "status": "three_source_verified",
+        "sources": [
+          {
+            "name": "National Baseball Hall of Fame, Lou Gehrig",
+            "url": "https://baseballhall.org/hall-of-famers/gehrig-lou"
+          },
+          {
+            "name": "Baseball-Reference",
+            "url": "https://www.baseball-reference.com/players/g/gehrilo01.shtml"
+          },
+          {
+            "name": "MLB.com, 75 years after death, Lou Gehrig an immortal",
+            "url": "https://www.mlb.com/news/75-years-after-death-lou-gehrig-an-immortal-c181717048"
+          },
+          {
+            "name": "SABR biography",
+            "url": "https://sabr.org/bioproj/person/lou-gehrig/"
+          }
+        ]
+      }
+    },
+    {
+      "tag": "gehrig-hall-of-fame-1939",
+      "title": "Elected to the Hall of Fame in 1939",
+      "text": "Lou Gehrig was elected to the Baseball Hall of Fame in 1939, in a special election held after he left the game that year.",
+      "story_type": "brief",
+      "credit_line": "Lou Gehrig Fan Club",
+      "source_name": "National Baseball Hall of Fame, Lou Gehrig's legacy",
+      "source_url": "https://baseballhall.org/discover/lou-gehrigs-legacy-celebrated-every-day-at-hall-of-fame",
+      "event_date": "1939",
+      "verification": {
+        "status": "three_source_verified",
+        "sources": [
+          {
+            "name": "National Baseball Hall of Fame, Lou Gehrig's legacy",
+            "url": "https://baseballhall.org/discover/lou-gehrigs-legacy-celebrated-every-day-at-hall-of-fame"
+          },
+          {
+            "name": "MLB.com, 75 years after death, Lou Gehrig an immortal",
+            "url": "https://www.mlb.com/news/75-years-after-death-lou-gehrig-an-immortal-c181717048"
+          },
+          {
+            "name": "Baseball-Reference",
+            "url": "https://www.baseball-reference.com/players/g/gehrilo01.shtml"
+          }
+        ]
+      }
+    },
+    {
+      "tag": "gehrig-appreciation-day-1939",
+      "title": "Lou Gehrig Appreciation Day, July 4, 1939",
+      "text": "On July 4, 1939, the Yankees held Lou Gehrig Appreciation Day at Yankee Stadium. Speaking to the crowd, Gehrig said he considered himself the luckiest man on the face of the earth. ",
+      "story_type": "brief",
+      "credit_line": "Lou Gehrig Fan Club",
+      "source_name": "National Baseball Hall of Fame, Lou Gehrig's legacy",
+      "source_url": "https://baseballhall.org/discover/lou-gehrigs-legacy-celebrated-every-day-at-hall-of-fame",
+      "event_date": "1939-07-04",
+      "verification": {
+        "status": "three_source_verified",
+        "sources": [
+          {
+            "name": "National Baseball Hall of Fame, Lou Gehrig's legacy",
+            "url": "https://baseballhall.org/discover/lou-gehrigs-legacy-celebrated-every-day-at-hall-of-fame"
+          },
+          {
+            "name": "MLB.com, 75 years after death, Lou Gehrig an immortal",
+            "url": "https://www.mlb.com/news/75-years-after-death-lou-gehrig-an-immortal-c181717048"
+          },
+          {
+            "name": "SABR biography",
+            "url": "https://sabr.org/bioproj/person/lou-gehrig/"
+          }
+        ]
+      }
+    },
+    {
+      "tag": "gehrig-wally-pipp-1925",
+      "title": "How Lou Gehrig took over first base",
+      "text": "In 1925 the Yankees already had a first baseman, Wally Pipp. After Pipp sat out a game with a headache, Gehrig played first base, and he kept the job. He would go on to play every game there for the Yankees until 1939.",
+      "story_type": "brief",
+      "credit_line": "Lou Gehrig Fan Club",
+      "source_name": "National Baseball Hall of Fame, Lou Gehrig",
+      "source_url": "https://baseballhall.org/hall-of-famers/gehrig-lou",
+      "event_date": "1925",
+      "verification": {
+        "status": "unverified",
+        "sources": [
+          {
+            "name": "National Baseball Hall of Fame, Lou Gehrig",
+            "url": "https://baseballhall.org/hall-of-famers/gehrig-lou"
+          },
+          {
+            "name": "SABR biography",
+            "url": "https://sabr.org/bioproj/person/lou-gehrig/"
+          }
+        ]
+      }
+    },
+    {
+      "tag": "gehrig-yankees-captain-1935",
+      "title": "Named Yankees captain in 1935",
+      "text": "On April 21, 1935, manager Joe McCarthy named Lou Gehrig captain of the Yankees. Gehrig was not sure he was the right man, because he did not think of himself as a vocal leader. He held the title until his death in 1941.",
+      "story_type": "brief",
+      "credit_line": "Lou Gehrig Fan Club",
+      "source_name": "SABR biography",
+      "source_url": "https://sabr.org/bioproj/person/lou-gehrig/",
+      "event_date": "1935-04-21",
+      "verification": {
+        "status": "unverified",
+        "sources": [
+          {
+            "name": "SABR biography",
+            "url": "https://sabr.org/bioproj/person/lou-gehrig/"
+          },
+          {
+            "name": "National Baseball Hall of Fame, Lou Gehrig",
+            "url": "https://baseballhall.org/hall-of-famers/gehrig-lou"
+          }
+        ]
+      }
+    },
+    {
+      "tag": "gehrig-all-century-team-1999",
+      "title": "Lou Gehrig on the All-Century Team",
+      "text": "In 1999 Major League Baseball named its All-Century Team. Lou Gehrig was the leading vote-getter, and he was named the team's starting first baseman.",
+      "story_type": "brief",
+      "credit_line": "Lou Gehrig Fan Club",
+      "source_name": "National Baseball Hall of Fame, Lou Gehrig",
+      "source_url": "https://baseballhall.org/hall-of-famers/gehrig-lou",
+      "event_date": "1999",
+      "verification": {
+        "status": "unverified",
+        "sources": [
+          {
+            "name": "National Baseball Hall of Fame, Lou Gehrig",
+            "url": "https://baseballhall.org/hall-of-famers/gehrig-lou"
+          },
+          {
+            "name": "MLB.com, 75 years after death, Lou Gehrig an immortal",
+            "url": "https://www.mlb.com/news/75-years-after-death-lou-gehrig-an-immortal-c181717048"
+          }
+        ]
+      }
+    },
+    {
+      "tag": "gehrig-all-star-home-run-1937",
+      "title": "A home run in the 1937 All-Star Game",
+      "text": "In the 1937 All-Star Game at Griffith Stadium in Washington, Lou Gehrig hit a home run off National League starter Dizzy Dean, giving the American League a 2-0 lead. The American League went on to win. The game is also remembered for the injury Dean suffered in the same inning.",
+      "story_type": "brief",
+      "credit_line": "Lou Gehrig Fan Club",
+      "source_name": "SABR Games Project, July 7, 1937",
+      "source_url": "https://sabr.org/gamesproj/game/july-7-1937-yankees-lead-way-to-fourth-american-league-victory-in-five-games/",
+      "event_date": "1937-07-07",
+      "verification": {
+        "status": "unverified",
+        "sources": [
+          {
+            "name": "SABR Games Project, July 7, 1937",
+            "url": "https://sabr.org/gamesproj/game/july-7-1937-yankees-lead-way-to-fourth-american-league-victory-in-five-games/"
+          },
+          {
+            "name": "MLB.com, Dean's injury marred 1937 All-Star Game",
+            "url": "https://www.mlb.com/news/dizzy-dean-injured-in-1937-all-star-game/c-159226114"
+          }
+        ]
+      }
+    },
+    {
+      "tag": "gehrig-two-cycles",
+      "title": "Two cycles",
+      "text": "Lou Gehrig hit for the cycle twice: on June 25, 1934, against the White Sox, and again on August 1, 1937. A cycle means a single, a double, a triple and a home run in one game.",
+      "story_type": "brief",
+      "credit_line": "Lou Gehrig Fan Club",
+      "source_name": "MLB.com, players who hit for the cycle",
+      "source_url": "https://www.mlb.com/amp/news/players-who-hit-for-the-cycle-c265552018.html",
+      "verification": {
+        "status": "unverified",
+        "sources": [
+          {
+            "name": "MLB.com, players who hit for the cycle",
+            "url": "https://www.mlb.com/amp/news/players-who-hit-for-the-cycle-c265552018.html"
+          },
+          {
+            "name": "SABR Games Project, June 25, 1934",
+            "url": "https://sabr.org/gamesproj/game/june-25-1934-lou-gehrig-accidentally-hits-for-the-cycle/"
+          },
+          {
+            "name": "SABR Games Project, August 1, 1937",
+            "url": "https://sabr.org/gamesproj/game/august-1-1937-gehrig-hits-cycle-dimaggio-s-home-run-grabs-headlines"
+          }
+        ]
+      }
+    },
+    {
+      "tag": "gehrig-discovered-by-yankees-scout-1923",
+      "title": "A scout sees Columbia's Lou Gehrig",
+      "text": "In April 1923 Yankees scout Paul Krichell went to watch Columbia play Rutgers. Gehrig hit two home runs, and Krichell was so impressed that he phoned Yankees general manager Ed Barrow to say he had found another Babe Ruth.",
+      "story_type": "brief",
+      "credit_line": "Lou Gehrig Fan Club",
+      "source_name": "SABR biography",
+      "source_url": "https://sabr.org/bioproj/person/lou-gehrig/",
+      "event_date": "1923-04-26",
+      "verification": {
+        "status": "unverified",
+        "sources": [
+          {
+            "name": "SABR biography",
+            "url": "https://sabr.org/bioproj/person/lou-gehrig/"
+          }
+        ]
+      }
+    },
+    {
+      "tag": "gehrig-marries-eleanor-1933",
+      "title": "Lou marries Eleanor Twitchell",
+      "text": "Lou Gehrig met Eleanor Twitchell, a secretary from Chicago, at a party, and they stayed in touch mostly by letter. He proposed after the Yankees came to Chicago in May 1933, and they were married on September 29, 1933.",
+      "story_type": "brief",
+      "credit_line": "Lou Gehrig Fan Club",
+      "source_name": "SABR biography",
+      "source_url": "https://sabr.org/bioproj/person/lou-gehrig/",
+      "event_date": "1933-09-29",
+      "verification": {
+        "status": "unverified",
+        "sources": [
+          {
+            "name": "SABR biography",
+            "url": "https://sabr.org/bioproj/person/lou-gehrig/"
+          }
+        ]
+      }
+    },
+    {
+      "tag": "gehrig-ruth-barnstorming-tour-1927",
+      "title": "Gehrig's Larrupin' Lous against Ruth's Bustin' Babes",
+      "text": "After the 1927 season, Babe Ruth and Lou Gehrig set out on a three-week barnstorming tour. Each captained a team of local players: Gehrig's team was the Larrupin' Lous and Ruth's was the Bustin' Babes. More than 250,000 fans came out to see them.",
+      "story_type": "brief",
+      "credit_line": "Lou Gehrig Fan Club",
+      "source_name": "SABR biography",
+      "source_url": "https://sabr.org/bioproj/person/lou-gehrig/",
+      "event_date": "1927",
+      "verification": {
+        "status": "unverified",
+        "sources": [
+          {
+            "name": "SABR biography",
+            "url": "https://sabr.org/bioproj/person/lou-gehrig/"
+          }
+        ]
+      }
+    },
+    {
+      "tag": "gehrig-number-4",
+      "title": "Why Lou Gehrig wore number 4",
+      "text": "Lou Gehrig wore uniform number 4 because he batted behind Babe Ruth, the third hitter in the Yankees' lineup.",
+      "story_type": "brief",
+      "credit_line": "Lou Gehrig Fan Club",
+      "source_name": "National Baseball Hall of Fame, Lou Gehrig",
+      "source_url": "https://baseballhall.org/hall-of-famers/gehrig-lou",
+      "verification": {
+        "status": "unverified",
+        "sources": [
+          {
+            "name": "National Baseball Hall of Fame, Lou Gehrig",
+            "url": "https://baseballhall.org/hall-of-famers/gehrig-lou"
+          }
+        ]
+      }
+    },
+    {
+      "tag": "gehrig-greatest-first-baseman-1969",
+      "title": "The greatest first baseman, voted 1969",
+      "text": "In 1969 the Baseball Writers' Association of America voted Lou Gehrig the greatest first baseman of all time.",
+      "story_type": "brief",
+      "credit_line": "Lou Gehrig Fan Club",
+      "source_name": "National Baseball Hall of Fame, Lou Gehrig",
+      "source_url": "https://baseballhall.org/hall-of-famers/gehrig-lou",
+      "event_date": "1969",
+      "verification": {
+        "status": "unverified",
+        "sources": [
+          {
+            "name": "National Baseball Hall of Fame, Lou Gehrig",
+            "url": "https://baseballhall.org/hall-of-famers/gehrig-lou"
+          }
+        ]
+      }
+    },
+    {
+      "tag": "gehrig-dimaggio-arrives-1936",
+      "title": "Joe DiMaggio arrives, 1936",
+      "text": "In 1936 Joe DiMaggio joined the Yankees. The 21-year-old had already drawn national attention in the Pacific Coast League, and the New York press called him the replacement for Babe Ruth. Gehrig praised the newcomer.",
+      "story_type": "brief",
+      "credit_line": "Lou Gehrig Fan Club",
+      "source_name": "SABR biography",
+      "source_url": "https://sabr.org/bioproj/person/lou-gehrig/",
+      "event_date": "1936",
+      "verification": {
+        "status": "unverified",
+        "sources": [
+          {
+            "name": "SABR biography",
+            "url": "https://sabr.org/bioproj/person/lou-gehrig/"
+          },
+          {
+            "name": "Baseball-Reference",
+            "url": "https://www.baseball-reference.com/players/g/gehrilo01.shtml"
+          }
+        ]
+      }
+    },
+    {
+      "tag": "eig-prologue-appreciation-day-crowd",
+      "title": "Eig: the crowd at Yankee Stadium on July 4, 1939",
+      "text": "His Yankee teammates and their opponents that day, the Washington Senators, were lined up on the infield grass, waiting for the ceremony to begin. His wife and parents watched from box seats along the third-base line. More than 61,000 people sat elbow to elbow in the stands.",
+      "story_type": "brief",
+      "credit_line": "From Jonathan Eig, Luckiest Man: The Life and Death of Lou Gehrig (Simon & Schuster, 2005), Prologue",
+      "source_name": "NPR, 'Luckiest Man' Excerpt: Prologue (2005), posted with the book's copyright notice",
+      "source_url": "https://www.npr.org/2005/04/26/4620618/luckiest-man-explores-life-of-baseballs-gehrig",
+      "event_date": "1939-07-04",
+      "excerpt_of": {
+        "work": "Luckiest Man: The Life and Death of Lou Gehrig",
+        "author": "Jonathan Eig"
+      },
+      "verification": {
+        "status": "eig_verified"
+      }
+    },
+    {
+      "tag": "eig-prologue-iron-horse-and-the-babe",
+      "title": "Eig: the Iron Horse and the Babe",
+      "text": "The crowd applauded, but only politely. Here was Gehrig, the greatest first baseman the game had ever seen. Yet for all his accomplishments, his movie-star looks, and his gentlemanly manner, fans, somehow, had never shown overwhelming enthusiasm for him. Sportswriters said he lacked color. He was no Babe Ruth, they complained. The Babe was the Bambino, their child, and people loved him unconditionally. Gehrig's nickname -- the Iron Horse -- was inspired by a train, and it was perfectly apropos. Most people don't appreciate a train's strength and reliability until they're standing on the platform one day and it doesn't show up.",
+      "story_type": "brief",
+      "credit_line": "From Jonathan Eig, Luckiest Man: The Life and Death of Lou Gehrig (Simon & Schuster, 2005), Prologue",
+      "source_name": "NPR, 'Luckiest Man' Excerpt: Prologue (2005), posted with the book's copyright notice",
+      "source_url": "https://www.npr.org/2005/04/26/4620618/luckiest-man-explores-life-of-baseballs-gehrig",
+      "event_date": "1939-07-04",
+      "excerpt_of": {
+        "work": "Luckiest Man: The Life and Death of Lou Gehrig",
+        "author": "Jonathan Eig"
+      },
+      "verification": {
+        "status": "eig_verified"
+      }
+    },
+    {
+      "tag": "eig-prologue-we-want-lou",
+      "title": "Eig: 'We want Lou!'",
+      "text": "When the presentations were over, the emcee, Sid Mercer, asked if the guest of honor had anything to say. Gehrig answered with a slight, almost imperceptible shake of the head, no. He was afraid he'd collapse if he tried to speak. Workers moved into position, ready to roll up the wires and pull down the microphones. Only then did it dawn on the men and women in the stands that he was going away. Cries of protest rang out. The shouting grew louder and spread like a fever through the stadium. Soon, all the fans were on their feet. Their voices came together in a chant that shook the grandstand: \"We want Lou! We want Lou!\"",
+      "story_type": "brief",
+      "credit_line": "From Jonathan Eig, Luckiest Man: The Life and Death of Lou Gehrig (Simon & Schuster, 2005), Prologue",
+      "source_name": "NPR, 'Luckiest Man' Excerpt: Prologue (2005), posted with the book's copyright notice",
+      "source_url": "https://www.npr.org/2005/04/26/4620618/luckiest-man-explores-life-of-baseballs-gehrig",
+      "event_date": "1939-07-04",
+      "excerpt_of": {
+        "work": "Luckiest Man: The Life and Death of Lou Gehrig",
+        "author": "Jonathan Eig"
+      },
+      "verification": {
+        "status": "eig_verified"
+      }
+    }
+  ]
+}

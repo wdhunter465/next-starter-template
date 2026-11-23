@@ -6,7 +6,7 @@ Owns: Design, threat model, and test evidence for the #3163 magic-bytes upload v
 Does Not Own: #2857 photo-intake route/API implementation, moderation workflow, B2/D1 wiring, or Production promotion authority
 Canonical Reference: /docs/ops/pmo/pmo-backlog.md
 Related Issues: #3163, #2857, #2878
-Last Reviewed: 2026-08-08
+Last Reviewed: 2026-11-23
 ---
 
 # Magic-bytes upload validation — design and test evidence (#3163)
@@ -32,7 +32,7 @@ Implement the "reject SVG, executable/polyglot formats, mismatched MIME/magic by
 | Fixed-offset dangerous-signature check (PDF, Windows EXE, ELF, ZIP-family) | Files disguised as photos that are actually executables or archives |
 | Allowlisted signature detection (JPEG/PNG/WebP only) | Anything not one of the three accepted formats, including SVG (SVG is XML text and never matches a binary image prefix, so it is rejected here even without a dedicated SVG rule) |
 | Declared-MIME-type cross-check against the detected signature | Renamed-extension attacks (e.g., a `.php` file uploaded with a spoofed `image/jpeg` `Content-Type`) |
-| Bounded textual polyglot scan (`<?php`, `<%`, `<script`, `<svg`, `<?xml`, `<html` in the first 64 KiB) | Files that pass the binary signature check but carry an executable/script payload appended or embedded near the start (a real, documented image-polyglot pattern) |
+| Textual polyglot scan (`<?php`, `<script`, `<svg`, `<?xml`, `<html`, and specific ASP/JSP server-code openers such as `<%@ page` or `<%eval`). **Revised 2026-11-23 (#5477):** the bare two-character `<%` was removed, because it occurs by chance in about 63% of the first 64 KiB of compressed picture data and rejected about half of ordinary JPEGs. A JPEG is now searched only in its header segments, stray bytes between segments and everything after the final end-of-image marker (the whole trailer, not just the first 64 KiB); the entropy-coded picture data is skipped. PNG and WebP keep the first-64 KiB scan with the specific markers. | Files that pass the binary signature check but carry an executable/script payload appended or embedded near the start (a real, documented image-polyglot pattern) |
 | Full-buffer scan for an embedded ZIP local-file-header (`PK\x03\x04`) | JPEG/PNG-plus-ZIP polyglots, where a valid image is concatenated with an archive structure that a different parser (or a misconfigured server) would recognize |
 | Format-specific structural/dimension parsing (PNG IHDR, JPEG SOF marker scan, WebP VP8X extended header) | Truncated/malformed files and absurd dimension claims; fails closed (rejects) when a file claims to be one of the three formats but its structure can't be read |
 
