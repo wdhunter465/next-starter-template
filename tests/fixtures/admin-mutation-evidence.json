@@ -45,6 +45,7 @@
 		"functions/api/admin/member-operations/revoke-sessions.ts": "none",
 		"functions/api/admin/membership-card.ts": "none",
 		"functions/api/admin/permission-exchanges/index.ts": "none",
+		"functions/api/admin/photos/block.ts": "row-actor",
 		"functions/api/admin/photos/bulk-upload.ts": "none",
 		"functions/api/admin/photos/purge.ts": "none",
 		"functions/api/admin/photos/update.ts": "none",

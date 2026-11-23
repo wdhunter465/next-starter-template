@@ -47,6 +47,7 @@
     "/admin/rights-review",
     "/admin/archive-items",
     "/admin/bulk-photo-upload",
+    "/admin/photos",
     "/admin/worklist",
     "/ai-review/admin",
     "/ai-review/fanclub",
