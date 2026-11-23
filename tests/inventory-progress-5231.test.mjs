@@ -86,9 +86,9 @@ describe('inventory progress SQL (#5231)', () => {
     const db = new DatabaseSync(':memory:');
     db.exec(`
       CREATE TABLE content_inventory (id INTEGER PRIMARY KEY, canonical INTEGER, status TEXT);
-      CREATE TABLE photos (id INTEGER PRIMARY KEY, publication_eligible INTEGER, rights_hold INTEGER);
+      CREATE TABLE photos (id INTEGER PRIMARY KEY, rights_status TEXT);
       CREATE TABLE content_inventory_media (id INTEGER PRIMARY KEY, story_id INTEGER, media_id INTEGER, media_role TEXT);
-      INSERT INTO photos VALUES (1, 1, 0), (2, 1, 1), (3, 0, 0), (4, 1, 0), (5, 1, 0);
+      INSERT INTO photos VALUES (1, 'permission_granted'), (2, 'blocked'), (3, 'unreviewed'), (4, 'permission_granted'), (5, 'permission_granted'), (6, 'copyright_restricted');
       INSERT INTO content_inventory VALUES
         (1, 1, 'published'), (2, 1, 'published'), (3, 1, 'published'), (4, 1, 'published'),
         (5, 1, 'published'), (6, 1, 'draft'), (7, 0, 'published'), (8, 1, 'published');
@@ -105,9 +105,9 @@ describe('inventory progress SQL (#5231)', () => {
     expect(Number(row.stories_total)).toBe(7);
     expect(Number(row.stories_published)).toBe(6);
     expect(Number(row.stories_draft)).toBe(1);
-    // Story 1 and story 8 (two cleared pictures, counted once). Not: 2 (rights hold), 3 (not eligible),
-    // 4 (no picture), 5 (picture only as an OCR source), 7 (not canonical).
-    expect(Number(row.stories_cleared)).toBe(2);
+    // #5467: an unreviewed picture counts. Stories 1, 3 and 8 (story 8 has two public pictures, counted
+    // once). Not: 2 (blocked), 4 (no picture), 5 (picture only as an OCR source), 7 (not canonical).
+    expect(Number(row.stories_cleared)).toBe(3);
     expect(Number(row.drafts_with_cleared_picture)).toBe(1);
   });
 });

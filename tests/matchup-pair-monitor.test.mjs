@@ -182,3 +182,12 @@ describe('matchup pair monitor helpers', () => {
     expect(body).toContain('adopt-current');
   });
 });
+
+describe('matchup pair monitor photo gate (#5473)', () => {
+  it('uses the shared public-photo rule, not the retired rights_hold and publication_eligible test', () => {
+    const source = fs.readFileSync(path.join(process.cwd(), 'scripts/ci/matchup_pair_monitor.mjs'), 'utf8');
+    expect(source).not.toMatch(/rights_hold\s*=\s*0/);
+    expect(source).not.toMatch(/publication_eligible\s*=\s*1/);
+    expect(source).toContain("NOT IN ('blocked', 'copyright_restricted')");
+  });
+});
