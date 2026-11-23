@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useCallback, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
 import AdminStatusText from '@/components/admin/AdminStatusText';
 import {
@@ -27,6 +27,41 @@ const HEIC_GUIDANCE =
 
 function newId(): string {
   return `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+// #5475: statuses whose row shows a thumbnail, so a failed picture can be recognised by sight.
+// Uploaded and queued rows show none, which keeps memory low for large batches.
+export const THUMBNAIL_STATUSES = ['failed', 'rejected', 'check_these', 'duplicate_skipped', 'cancelled'];
+
+export function wantsThumbnail(status: string | undefined): boolean {
+  return status !== undefined && THUMBNAIL_STATUSES.includes(status);
+}
+
+// A preview made in the browser from the file the person chose. Nothing is uploaded or stored.
+function FileThumbnail({ file }: { file: File }) {
+  const [url, setUrl] = useState<string | null>(null);
+  useEffect(() => {
+    let created: string | null = null;
+    try {
+      created = URL.createObjectURL(file);
+      setUrl(created);
+    } catch {
+      setUrl(null);
+    }
+    return () => {
+      if (created) URL.revokeObjectURL(created);
+    };
+  }, [file]);
+  if (!url) return null;
+  return (
+    <img
+      src={url}
+      alt={file.name}
+      width={96}
+      height={96}
+      style={{ width: 96, height: 96, objectFit: 'cover', borderRadius: 8, flexShrink: 0 }}
+    />
+  );
 }
 
 function downloadBlob(filename: string, text: string, type: string) {
@@ -314,7 +349,19 @@ export default function BulkPhotoUploadPanel() {
         {items.map((item) => {
           const r = item.result;
           return (
-            <div key={item.id} style={{ border: '1px solid rgba(0,0,0,0.12)', borderRadius: 12, padding: 10 }}>
+            <div
+              key={item.id}
+              style={{
+                border: '1px solid rgba(0,0,0,0.12)',
+                borderRadius: 12,
+                padding: 10,
+                display: 'flex',
+                gap: 12,
+                alignItems: 'flex-start',
+              }}
+            >
+              {wantsThumbnail(r?.status) ? <FileThumbnail file={item.file} /> : null}
+              <div style={{ minWidth: 0, flex: 1 }}>
               <div style={{ fontWeight: 800 }}>{item.file.name}</div>
               <div style={{ opacity: 0.85, marginTop: 4 }}>
                 {r?.status || 'queued'}
@@ -352,6 +399,7 @@ export default function BulkPhotoUploadPanel() {
                   <Link href="/admin/rights-review">Open rights review</Link>
                 </div>
               ) : null}
+              </div>
             </div>
           );
         })}
