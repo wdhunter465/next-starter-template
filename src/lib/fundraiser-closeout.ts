@@ -9,6 +9,9 @@ import {
 } from '@/lib/fundraiser-leaderboard';
 
 export const FUNDRAISER_CLOSEOUT_CUTOFF_LABEL = `${FUNDRAISER_LEADERBOARD_WINDOW_END} 11:59 PM ${FUNDRAISER_LEADERBOARD_TIME_ZONE}`;
+// Product Authority, 2026-11-22 (#4436 / #5412 items 8 and 38): donations end the
+// night of 2027-06-07; closeout starts the next day at noon Eastern.
+export const FUNDRAISER_CLOSEOUT_START_LABEL = `2027-06-08 12:00 PM ${FUNDRAISER_LEADERBOARD_TIME_ZONE}`;
 
 export type FundraiserCloseoutAwardKey = 'fundingTheFight' | 'raisingAwareness' | 'champion';
 
@@ -29,6 +32,7 @@ export type FundraiserCloseoutResult = {
 		startDate: string;
 		endDate: string;
 		cutoffLabel: string;
+		closeoutStartLabel: string;
 		timeZone: string;
 	};
 	awards: Record<FundraiserCloseoutAwardKey, FundraiserCloseoutAwardWinner>;
@@ -291,6 +295,7 @@ export function computeFundraiserCloseout(
 			startDate: FUNDRAISER_LEADERBOARD_WINDOW_START,
 			endDate: FUNDRAISER_LEADERBOARD_WINDOW_END,
 			cutoffLabel: FUNDRAISER_CLOSEOUT_CUTOFF_LABEL,
+			closeoutStartLabel: FUNDRAISER_CLOSEOUT_START_LABEL,
 			timeZone: FUNDRAISER_LEADERBOARD_TIME_ZONE,
 		},
 		awards,
