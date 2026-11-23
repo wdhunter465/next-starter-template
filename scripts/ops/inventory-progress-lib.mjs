@@ -9,15 +9,15 @@ export const PLAN_END = '2027-12-31';
 export const MARKER = '<!-- inventory-progress-5231 -->';
 
 // A story is a canonical content_inventory row. "Approved" means published. A "cleared picture" is an associated
-// photos row that is publication_eligible and off rights hold, the same test the site uses to show a picture.
+// photos row the site will show: since the 2026-11-23 decision (#5467) that is every photo except one whose
+// rights_status is 'blocked' or 'copyright_restricted', the same test the site uses to show a picture.
 const CLEARED_PICTURE_EXISTS = `EXISTS (
          SELECT 1
            FROM content_inventory_media cim
            JOIN photos p ON p.id = cim.media_id
           WHERE cim.story_id = ci.id
             AND cim.media_role IN ('primary_image', 'gallery_image', 'supporting_image')
-            AND p.publication_eligible = 1
-            AND p.rights_hold = 0)`;
+            AND COALESCE(p.rights_status, 'unreviewed') NOT IN ('blocked', 'copyright_restricted'))`;
 
 export const COUNTS_SQL = `
 SELECT
@@ -112,6 +112,6 @@ export function renderMarkdown(progress) {
     '',
     `**Weekday fallback check:** ${POSTING_TEXT[progress.posting]}`,
     '',
-    '_Limits: a cleared picture is an associated photo that is publication-eligible and off rights hold. Stories already used for a post are not subtracted yet. Read-only; nothing was written._',
+    '_Limits: a cleared picture is an associated photo that is not blocked or copyright-restricted (#5467). Stories already used for a post are not subtracted yet. Read-only; nothing was written._',
   ].join('\n');
 }
