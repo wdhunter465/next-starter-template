@@ -84,7 +84,7 @@ The site is run by an individual at zero cost, with no organisation behind it, a
 
 | # | Control | Rule | State on 2026-11-23 |
 | --- | --- | --- | --- |
-| 1 | **Remove fast** | A valid rights request is acted on at once: a photo is blocked on the Photos (Block/Restore) page within **one business day** of a valid request and the request is acknowledged within **two business days** (response times are the recommended defaults until Product Authority sets them). Blocking is suppression, not deletion, and is reversible on the same page. | The act is built (#5471). The intake and the stated response time are not (#5496). |
+| 1 | **Remove fast** | A valid rights request is acted on promptly, as the operator's time allows: a photo is blocked on the Photos (Block/Restore) page. **There is no committed or published response time or service level** (Product Authority, 2026-11-23: the site is hosted and run at the operator's own expense with no compensation, so no service level is promised to anyone). Blocking is suppression, not deletion, and is reversible on the same page. | The act is built (#5471). The intake is not (#5496). |
 | 2 | **Log every request** | Every request is recorded with: date received, requester organisation, the item, the type (removal, permission offer, credit correction, question), the action taken (blocked, credit fixed, declined, referred), the date answered and who acted. **"No action" is an outcome and is recorded too.** The record holds no personal names, addresses or message bodies; the full message stays in the mailbox (the repository is public). The record is append-only. Blocking from the admin page attaches to the request record. | Designed 2026-08-04 (#2919 finding F5: fields `suppression_reason` and `takedown_request_source`, internal admin workflow, intake kept at `/contact`) and **never built** (#5496). Today the block action records who, when and why in the photo row, but not the request. |
 | 3 | **Prefer cleared images** | When a surface chooses one photo, it takes the best rights status available, in this order: `permission_granted` (includes club-owned and permitted), then `public_domain_candidate`, then `unreviewed`, `unknown`, `permission_needed` and `permission_requested`. `blocked` and `copyright_restricted` are never chosen. A lower rank is used only when nothing higher fits the surface, so no surface runs dry. Public photo lists and galleries still show every photo that is not blocked. | **Not in the design before this record** (#5497). |
 
@@ -94,12 +94,16 @@ What the operator tells a rights holder, the public or a reviewer about how phot
 
 ### Build order
 
-1. #5496: Contact topic, request record, admin view, response-time line. Needs a D1 migration, which needs its own Go, applied on Development first.
+1. #5496: Contact topic, request record, admin view. Needs a D1 migration, which needs its own Go, applied on Development first.
 2. #5497: one shared rank function, applied to Club Home, the social edition plan, the Weekly Matchup pool order and story picture matching. No migration.
 
-### Decisions needed from Product Authority
+### Decisions already made (Product Authority, 2026-11-23)
 
-- The response times above, or different ones.
+- No committed or published response time or service level, to CMG or anyone else.
+- If a rights holder objects to the Store, the Store is closed.
+
+### Decisions still needed from Product Authority
+
 - A Go for the request-record migration.
 - The public wording of the Contact topic.
 
