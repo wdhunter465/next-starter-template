@@ -116,6 +116,42 @@ function buildJpeg(width: number, height: number, options: { includeSof?: boolea
   return concatBytes(parts);
 }
 
+
+/**
+ * A JPEG with a start-of-scan header and entropy-coded picture data (#5477). Picture data is escaped the way
+ * a real encoder does it (every 0xFF byte is followed by 0x00), so it is a valid scan to a parser.
+ */
+function buildJpegWithScan(
+  width: number,
+  height: number,
+  options: { entropy?: number[]; comment?: string; trailer?: number[] } = {},
+): Uint8Array {
+  const { entropy = [], comment, trailer = [] } = options;
+  const escaped: number[] = [];
+  for (const b of entropy) {
+    escaped.push(b);
+    if (b === 0xff) escaped.push(0x00);
+  }
+  const app0 = jpegSegment(0xe0, [...asciiBytes('JFIF'), 0x00, 0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00]);
+  const sof0 = jpegSegment(0xc0, [8, (height >> 8) & 0xff, height & 0xff, (width >> 8) & 0xff, width & 0xff, 1, 1, 0x11, 0x00]);
+  const sos = jpegSegment(0xda, [1, 1, 0x00, 0, 63, 0]);
+  const parts: number[][] = [[0xff, 0xd8], app0];
+  if (comment !== undefined) parts.push(jpegSegment(0xfe, asciiBytes(comment)));
+  parts.push(sof0, sos, escaped, [0xff, 0xd9], trailer);
+  return concatBytes(parts);
+}
+
+/** Small deterministic generator so the random-picture-data test is repeatable. */
+function seededBytes(seed: number, length: number): number[] {
+  let state = seed >>> 0;
+  const out: number[] = [];
+  for (let i = 0; i < length; i += 1) {
+    state = (Math.imul(state, 1664525) + 1013904223) >>> 0;
+    out.push(state >>> 24);
+  }
+  return out;
+}
+
 // --- WebP --------------------------------------------------------------------
 
 function u32le(value: number): number[] {
@@ -304,6 +340,54 @@ describe('validatePhotoUpload', () => {
       const result = validatePhotoUpload({ bytes: polyglot });
       expect(result.ok).toBe(false);
       expect(!result.ok && result.code).toBe('dangerous_signature');
+    });
+  });
+
+
+  describe('text markers in ordinary photos (#5477)', () => {
+    it('accepts a JPEG whose picture data contains the two characters "<%"', () => {
+      const entropy = [...seededBytes(1, 500), ...asciiBytes('<%'), ...seededBytes(2, 500), ...asciiBytes('<%'), ...seededBytes(3, 500)];
+      const result = validatePhotoUpload({ bytes: buildJpegWithScan(64, 64, { entropy }), declaredMimeType: 'image/jpeg' });
+      expect(result).toMatchObject({ ok: true, format: 'jpeg' });
+    });
+
+    it('accepts every one of 200 random-picture-data JPEGs, including many that contain "<%" (the old check rejected about 60%)', () => {
+      let withMarker = 0;
+      for (let seed = 1; seed <= 200; seed += 1) {
+        const entropy = seededBytes(seed, 70000);
+        const raw = String.fromCharCode(...entropy.slice(0, 70000));
+        if (raw.includes('<%')) withMarker += 1;
+        const result = validatePhotoUpload({ bytes: buildJpegWithScan(64, 64, { entropy }), declaredMimeType: 'image/jpeg' });
+        expect(result.ok, `seed ${seed}`).toBe(true);
+      }
+      expect(withMarker).toBeGreaterThan(80);
+    });
+
+    it('still rejects a JPEG with PHP code in a comment segment', () => {
+      const bytes = buildJpegWithScan(64, 64, { comment: '<?php system($_GET["c"]); ?>' });
+      const result = validatePhotoUpload({ bytes });
+      expect(result.ok).toBe(false);
+      expect(!result.ok && result.code).toBe('dangerous_signature');
+    });
+
+    it('still rejects a JPEG with a JSP or ASP directive in a comment segment', () => {
+      for (const comment of ['<%@ page import="java.io.*" %>', '<%eval request("c")%>', '<% Response.Write("x") %>']) {
+        const result = validatePhotoUpload({ bytes: buildJpegWithScan(64, 64, { comment }) });
+        expect(result.ok, comment).toBe(false);
+        expect(!result.ok && result.code).toBe('dangerous_signature');
+      }
+    });
+
+    it('rejects code appended after the end of the image even when it sits beyond the first 64 KiB', () => {
+      const trailer = [...new Array(100000).fill(0), ...asciiBytes('<?php system($_GET["c"]); ?>')];
+      const result = validatePhotoUpload({ bytes: buildJpegWithScan(64, 64, { entropy: seededBytes(9, 200), trailer }) });
+      expect(result.ok).toBe(false);
+      expect(!result.ok && result.code).toBe('dangerous_signature');
+    });
+
+    it('accepts a JPEG with a longer comment that has no server-code marker', () => {
+      const bytes = buildJpegWithScan(64, 64, { comment: 'Taken at Yankee Stadium, 100% original, 50 < 60 and <b>bold</b>' });
+      expect(validatePhotoUpload({ bytes }).ok).toBe(true);
     });
   });
 

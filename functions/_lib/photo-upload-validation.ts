@@ -107,24 +107,143 @@ function detectDangerousPrefixSignature(bytes: Uint8Array): string | null {
   return null;
 }
 
-// --- Step 2: textual polyglot markers (bounded prefix scan) --------------------------------
+// --- Step 2: textual polyglot markers ---------------------------------------------------------
+//
+// A script hidden inside an image file is the risk this step covers. Two rules keep it from rejecting
+// ordinary photos (#5477, Product Authority's choice of option 1 on 2026-11-23):
+//
+//  1. Markers are specific. The bare two characters "<%" were a marker before, and they occur by chance in
+//     about 63% of the first 64 KiB of any JPEG (compressed picture data is effectively random), so about
+//     half of ordinary photos were rejected. Server-code openers now need a recognisable directive or call.
+//  2. A JPEG is searched only where text can actually hide: the header segments (APPn, COM and the rest),
+//     any stray bytes between segments, and everything after the final end-of-image marker, all of it, not
+//     just the first 64 KiB. The compressed picture data between a start-of-scan header and the next marker
+//     is skipped; code there cannot run, and scanning it is what produced the false rejections.
+//
+// PNG and WebP keep the bounded prefix scan, now with the specific markers.
 
-const TEXT_POLYGLOT_SCAN_WINDOW = 65536; // first 64 KiB
-const TEXT_POLYGLOT_MARKERS: readonly string[] = ['<?php', '<%', '<script', '<svg', '<?xml', '<html'];
+const TEXT_POLYGLOT_SCAN_WINDOW = 65536; // first 64 KiB (PNG, WebP)
+const TEXT_POLYGLOT_MAX_SCANNED_BYTES = 8 * 1024 * 1024; // cap for the JPEG regions
 
-function containsTextPolyglotMarker(bytes: Uint8Array): string | null {
-  const windowLength = Math.min(bytes.length, TEXT_POLYGLOT_SCAN_WINDOW);
-  // Decode defensively; malformed UTF-8 in a real image prefix is expected and fine to ignore byte-for-byte.
-  let text = '';
-  try {
-    text = new TextDecoder('utf-8', { fatal: false }).decode(bytes.subarray(0, windowLength)).toLowerCase();
-  } catch {
-    return null;
-  }
+const TEXT_POLYGLOT_MARKERS: readonly string[] = ['<?php', '<script', '<svg', '<?xml', '<html'];
+
+// ASP, ASP.NET and JSP server-code openers: a directive or a call right after "<%".
+const SERVER_CODE_MARKERS: ReadonlyArray<{ label: string; pattern: RegExp }> = [
+  {
+    label: '<%@ (server directive)',
+    pattern: /<%@\s*(page|language|import|taglib|include|assembly|control|master|register|implements|reference|outputcache|webservice|application)\b/,
+  },
+  {
+    label: '<% (server code)',
+    pattern: /<%=?\s*(eval|execute|exec|request|response|runtime|server|session|createobject|process)\b/,
+  },
+];
+
+function findTextPolyglotMarker(text: string): string | null {
   for (const marker of TEXT_POLYGLOT_MARKERS) {
     if (text.includes(marker)) return marker;
   }
+  for (const { label, pattern } of SERVER_CODE_MARKERS) {
+    if (pattern.test(text)) return label;
+  }
   return null;
+}
+
+function decodeLowercase(bytes: Uint8Array): string {
+  try {
+    // Malformed UTF-8 in a real image is expected and fine to ignore byte-for-byte.
+    return new TextDecoder('utf-8', { fatal: false }).decode(bytes).toLowerCase();
+  } catch {
+    return '';
+  }
+}
+
+/**
+ * Byte ranges of a JPEG where text can hide: segment payloads before and between scans, stray bytes
+ * between segments, and all bytes after the final end-of-image marker. Entropy-coded picture data is
+ * not included. Returns ranges as [start, end) offsets.
+ */
+function jpegTextScanRegions(bytes: Uint8Array): Array<[number, number]> {
+  const regions: Array<[number, number]> = [];
+  const n = bytes.length;
+  let pos = 2; // after SOI, already verified by the caller
+
+  while (pos < n) {
+    if (bytes[pos] !== 0xff) {
+      // Stray bytes between segments: not picture data, so scan them up to the next marker.
+      let next = pos;
+      while (next < n && bytes[next] !== 0xff) next += 1;
+      regions.push([pos, next]);
+      pos = next;
+      continue;
+    }
+    let markerOffset = pos + 1;
+    while (markerOffset < n && bytes[markerOffset] === 0xff) markerOffset += 1; // fill bytes
+    if (markerOffset >= n) break;
+    const marker = bytes[markerOffset];
+
+    if (marker === 0x00) {
+      // A stuffed byte outside a scan is not a marker; keep it in the scan so nothing slips past.
+      regions.push([pos, markerOffset + 1]);
+      pos = markerOffset + 1;
+      continue;
+    }
+    if (marker === 0x01 || marker === 0xd8 || (marker >= 0xd0 && marker <= 0xd7)) {
+      pos = markerOffset + 1; // standalone markers carry no payload
+      continue;
+    }
+    if (marker === 0xd9) {
+      // End of image: everything after it is trailing data.
+      if (markerOffset + 1 < n) regions.push([markerOffset + 1, n]);
+      return regions;
+    }
+
+    if (markerOffset + 2 >= n) break;
+    const segmentLength = readU16BE(bytes, markerOffset + 1);
+    if (segmentLength < 2) {
+      // Malformed length: stop trusting the structure and scan the rest of the legacy window.
+      regions.push([pos, Math.min(n, pos + TEXT_POLYGLOT_SCAN_WINDOW)]);
+      return regions;
+    }
+    const payloadStart = markerOffset + 3;
+    const segmentEnd = Math.min(n, markerOffset + 1 + segmentLength);
+    if (payloadStart < segmentEnd) regions.push([payloadStart, segmentEnd]);
+    pos = segmentEnd;
+
+    if (marker === 0xda) {
+      // Start of scan: skip the entropy-coded picture data up to the next real marker.
+      // Inside a scan, 0xFF is followed by 0x00 (a stuffed byte) or RSTn (0xD0 to 0xD7).
+      while (pos + 1 < n) {
+        if (bytes[pos] === 0xff) {
+          const following = bytes[pos + 1];
+          if (following === 0xff) {
+            pos += 1; // fill byte before a marker
+            continue;
+          }
+          if (following !== 0x00 && !(following >= 0xd0 && following <= 0xd7)) break;
+        }
+        pos += 1;
+      }
+      if (pos + 1 >= n) return regions; // truncated inside picture data: nothing more to search
+    }
+  }
+  return regions;
+}
+
+function containsTextPolyglotMarker(bytes: Uint8Array, format: string | null): string | null {
+  if (format === 'jpeg') {
+    let budget = TEXT_POLYGLOT_MAX_SCANNED_BYTES;
+    for (const [start, end] of jpegTextScanRegions(bytes)) {
+      if (budget <= 0) break;
+      const slice = bytes.subarray(start, Math.min(end, start + budget));
+      budget -= slice.length;
+      const hit = findTextPolyglotMarker(decodeLowercase(slice));
+      if (hit) return hit;
+    }
+    return null;
+  }
+  const windowLength = Math.min(bytes.length, TEXT_POLYGLOT_SCAN_WINDOW);
+  return findTextPolyglotMarker(decodeLowercase(bytes.subarray(0, windowLength)));
 }
 
 // --- Step 3: embedded archive polyglot (full-buffer scan for a 4-byte pattern) -------------
@@ -291,7 +410,7 @@ export function validatePhotoUpload(input: PhotoUploadValidationInput): PhotoUpl
     }
   }
 
-  const textPolyglotMarker = containsTextPolyglotMarker(bytes);
+  const textPolyglotMarker = containsTextPolyglotMarker(bytes, format);
   if (textPolyglotMarker) {
     return fail('dangerous_signature', `File contains an embedded marker inconsistent with an image file: "${textPolyglotMarker}".`);
   }
