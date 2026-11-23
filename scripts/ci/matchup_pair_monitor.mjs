@@ -261,7 +261,7 @@ export function remediateBothSlotsViaD1(
   });
 
   const refreshed = d1(
-    `SELECT m.id AS matchup_id, m.week_start AS week_start, m.photo_a_id AS photo_a_id, m.photo_b_id AS photo_b_id, a.url AS photo_a_url, b.url AS photo_b_url FROM weekly_matchups m JOIN photos a ON a.id = m.photo_a_id AND a.rights_hold = 0 AND a.publication_eligible = 1 JOIN photos b ON b.id = m.photo_b_id AND b.rights_hold = 0 AND b.publication_eligible = 1 WHERE m.id = ${Number(live.matchup_id)} LIMIT 1;`,
+    `SELECT m.id AS matchup_id, m.week_start AS week_start, m.photo_a_id AS photo_a_id, m.photo_b_id AS photo_b_id, a.url AS photo_a_url, b.url AS photo_b_url FROM weekly_matchups m JOIN photos a ON a.id = m.photo_a_id AND COALESCE(a.rights_status, 'unreviewed') NOT IN ('blocked', 'copyright_restricted') JOIN photos b ON b.id = m.photo_b_id AND COALESCE(b.rights_status, 'unreviewed') NOT IN ('blocked', 'copyright_restricted') WHERE m.id = ${Number(live.matchup_id)} LIMIT 1;`,
     { dbName, dryRun },
   );
   const row = dryRun
