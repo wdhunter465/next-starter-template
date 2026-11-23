@@ -5,8 +5,8 @@ Authority Level: Procedure
 Owns: How a failed scheduled or post-merge workflow becomes an Operations exception Issue, how to add a workflow to the watch list, and how a scheduled workflow is halted and re-enabled after 3 consecutive failures
 Does Not Own: Incident command, rollback decisions, or the content of individual workflows
 Canonical Reference: /docs/governance/OPERATIONS-AND-RECOVERY.md
-Related Issues: #4444, #3268, #4589, #4637, #4670, #4674, #4681
-Last Reviewed: 2026-11-19
+Related Issues: #4444, #3268, #4589, #4637, #4670, #4674, #4681, #5486
+Last Reviewed: 2026-11-23
 ---
 
 # Workflow Failure Exception Issues
@@ -78,7 +78,10 @@ How it works:
 1. The sweeper lists every workflow in `.github/workflows` that has a `schedule:` trigger. Pull request, push and `workflow_run` workflows are never touched.
 2. For each one it reads the newest completed runs on the default branch. Cancelled and skipped runs are ignored. A success, including a manual `workflow_dispatch` run, restarts the count.
 3. When the 3 newest counted runs are all `failure` or `timed_out`, it opens one Issue (`OPS HALTED: <workflow> halted after 3 consecutive failures`, labels `team:operations`, `ops-exception`, `ops-halted`, `ops:priority:2`) naming the three runs, then disables the workflow. It reports first so a halt is never silent.
-4. These Production-protecting jobs are never disabled. They get an `OPS ALERT` Issue (`ops:priority:1`) and keep running: the daily and quarterly D1 backups, the snapshot backup, the production audit, the site uptime probe and the D1 daily sync. Product Authority confirms this list.
+4. These jobs are never disabled. They get an `OPS ALERT` Issue (`ops:priority:1`) and keep running. Product Authority confirmed the list (class 1 on #4637; class 2 on 2026-11-22, #4589 / #5412 item 24).
+   - Production-protecting: the daily and quarterly D1 backups, the snapshot backup, the production audit, the site uptime probe, and the D1 daily sync.
+   - Health monitors whose failure is the signal: `ops-scheduled-job-health.yml`, `ops-production-edge-health.yml`, and `lgfc-cursor-runner-health.yml`. `repository-runner-health.yml` is not on this list.
+   - The script set is `ALERT_ONLY` in `scripts/ops/halt-repeated-failures.mjs`. Class 1 is in that set. Class 2 is added under #5486. Until that change merges, a 3-failure streak can still disable those three health monitors.
 5. An Operations Issue is an actionable interrupt only when it carries an `ops:priority:N` label, so both Issues carry one. The Issue records the newest failed run it covers. After a person re-enables the workflow, only newer runs count, so the old failures do not halt it again.
 
 ### Re-enable a halted workflow
@@ -111,7 +114,7 @@ Run `GITHUB_TOKEN=<token> GITHUB_REPOSITORY=wdhunter465/next-starter-template no
 - A failed run of a watched workflow on the default branch produces exactly one open `ops-exception` Issue for that workflow.
 - A second failure adds a comment, not a second Issue.
 - The Issue appears in the `team:operations` queue.
-- A scheduled workflow with 3 consecutive failures on the default branch is disabled and has exactly one `OPS HALTED` Issue. A Production-protecting job has one `OPS ALERT` Issue and stays enabled.
+- A scheduled workflow with 3 consecutive failures on the default branch is disabled and has exactly one `OPS HALTED` Issue. A job on the alert-only list (Production-protecting, or one of the three confirmed health monitors) has one `OPS ALERT` Issue and stays enabled. Until #5486 merges, the three health monitors are confirmed in policy and are not yet in the sweeper set.
 
 ## Rollback
 
