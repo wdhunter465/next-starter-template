@@ -47,6 +47,29 @@ that cannot be hosted stays as a collection record and is held for permission or
 rejected; it is not converted into a link on the site. Existing `link-only` rows
 move to `permission-needed` or `rejected`.
 
+## B2 photo display decision (Product Authority, 2026-11-23, #5467)
+
+As of 2026-11-23 every photo in B2 (every row of the `photos` table) is used on the
+website and in social media posts, whether or not a rights review is recorded. The
+purpose is to stress-test the design before the January 2027 production launch. The
+decision is permanent pending contrary responses from rights holders. It supersedes
+the earlier practice of holding unknown-rights B2 photos, including the statement
+made to CMG Worldwide on 2026-11-03.
+
+- **Public:** a photo is served unless its `rights_status` is `blocked` or
+  `copyright_restricted`. Unreviewed photos are served.
+- **Removal on request stays.** When a rights holder denies, revokes or asks for
+  removal, set the photo's `rights_status` to `blocked`. It disappears from every
+  public surface at once, and the daily B2 to D1 reconcile will not re-clear it. A
+  revocation remains an Operations interrupt (`ops:priority:1`).
+- **Not changed:** member-submitted photos (`media_assets`) still go through member
+  submission review, and the Weekly Matchup curation flag `is_matchup_eligible` still
+  applies. `rights_hold` and `publication_eligible` are still recorded as review
+  history but no longer decide public display.
+- **The clearance table above and "The simple rule" below still govern collected
+  content items** (`content_items`), which is a separate pipeline from B2 photos.
+- **Counsel review** of the CMG, MLB and Yankees threads is not decided here.
+
 ## The simple rule (Product Authority, 2026-10-10)
 
 Every found item ends in one of two outcomes:

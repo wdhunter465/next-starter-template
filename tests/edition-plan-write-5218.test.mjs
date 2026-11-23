@@ -26,8 +26,8 @@ function freshDb() {
   return d;
 }
 
-function addStory(d, { tag, title, status = 'published', canonical = 1, eligible = 1, hold = 0, alt = null, caption = null, roles = ['primary_image'] }) {
-  const photo = d.prepare('INSERT INTO photos (url, publication_eligible, rights_hold) VALUES (?, ?, ?)').run(`https://media.example/${tag}.jpg`, eligible, hold);
+function addStory(d, { tag, title, status = 'published', canonical = 1, blocked = 0, alt = null, caption = null, roles = ['primary_image'] }) {
+  const photo = d.prepare('INSERT INTO photos (url, rights_status) VALUES (?, ?)').run(`https://media.example/${tag}.jpg`, blocked ? 'blocked' : 'unreviewed');
   const story = d
     .prepare("INSERT INTO content_inventory (tag, title, text, credit_line, source_name, status, canonical, summary) VALUES (?, ?, ?, 'LGFC', 'Source', ?, ?, ?)")
     .run(tag, title, `Body of ${title}. `.repeat(20), status, canonical, `Summary of ${title}`);
@@ -48,8 +48,7 @@ describe('edition plan writer (#5218): the pool', () => {
     const good = addStory(d, { tag: 'good', title: 'Good story', alt: 'A clear alt' });
     addStory(d, { tag: 'draft', title: 'Draft', status: 'draft' });
     addStory(d, { tag: 'dup', title: 'Duplicate', canonical: 0 });
-    addStory(d, { tag: 'held', title: 'Held', hold: 1 });
-    addStory(d, { tag: 'ineligible', title: 'Ineligible', eligible: 0 });
+    addStory(d, { tag: 'blocked', title: 'Blocked', blocked: 1 });
     addStory(d, { tag: 'logo', title: 'Wrong role', roles: ['ocr_source', 'newspaper_source'] });
     const rows = d.prepare(POOL_SQL).all();
     expect(rows.map((r) => r.id)).toEqual([good]);

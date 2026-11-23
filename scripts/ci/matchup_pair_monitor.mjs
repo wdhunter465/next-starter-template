@@ -231,13 +231,13 @@ export function remediateBothSlotsViaD1(
   // (excluded) are both refused -- see functions/api/matchup/current.ts and
   // docs/reference/platform/Backblaze_B2.md.
   const candidates = d1(
-    `SELECT id FROM photos WHERE url IS NOT NULL AND TRIM(url) != '' AND is_matchup_eligible = 1 AND COALESCE(is_memorabilia, 0) = 0 AND rights_hold = 0 AND publication_eligible = 1 ORDER BY RANDOM() LIMIT 40;`,
+    `SELECT id FROM photos WHERE url IS NOT NULL AND TRIM(url) != '' AND is_matchup_eligible = 1 AND COALESCE(is_memorabilia, 0) = 0 AND COALESCE(rights_status, 'unreviewed') NOT IN ('blocked', 'copyright_restricted') ORDER BY RANDOM() LIMIT 40;`,
     { dbName, dryRun },
   );
   let ids = (candidates.rows || []).map((r) => Number(r.id));
   if (ids.length < 2) {
     const fallback = d1(
-      `SELECT id FROM photos WHERE url IS NOT NULL AND TRIM(url) != '' AND is_matchup_eligible = 1 AND rights_hold = 0 AND publication_eligible = 1 ORDER BY RANDOM() LIMIT 40;`,
+      `SELECT id FROM photos WHERE url IS NOT NULL AND TRIM(url) != '' AND is_matchup_eligible = 1 AND COALESCE(rights_status, 'unreviewed') NOT IN ('blocked', 'copyright_restricted') ORDER BY RANDOM() LIMIT 40;`,
       { dbName, dryRun },
     );
     ids = (fallback.rows || []).map((r) => Number(r.id));

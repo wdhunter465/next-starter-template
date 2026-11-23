@@ -20,6 +20,23 @@ const CLEARED_PHOTO = {
   created_at: '2026-08-17T00:00:00Z',
   rights_hold: 0,
   publication_eligible: 1,
+  rights_status: 'permission_granted',
+};
+
+// #5467: a photo with no review recorded is now public.
+const UNREVIEWED_PHOTO = {
+  id: 4,
+  photo_id: 'p4',
+  url: 'https://example.com/unreviewed.jpg',
+  is_memorabilia: 0,
+  title: 'Unreviewed photo',
+  description: 'No rights review recorded',
+  tags: null,
+  source: 'b2',
+  created_at: '2026-11-23T00:00:00Z',
+  rights_hold: 1,
+  publication_eligible: 0,
+  rights_status: 'unreviewed',
 };
 
 const HELD_PHOTO = {
@@ -34,6 +51,7 @@ const HELD_PHOTO = {
   created_at: '2026-08-01T00:00:00Z',
   rights_hold: 1,
   publication_eligible: 0,
+  rights_status: 'blocked',
 };
 
 // Minimal D1 stand-in that actually evaluates the `rights_hold = 0` predicate
@@ -41,11 +59,8 @@ const HELD_PHOTO = {
 function makeRightsAwareDb(photos: Array<Record<string, unknown>>) {
   function apply(sql: string, args: unknown[]) {
     let rows = photos.slice();
-    if (sql.includes('rights_hold = 0')) {
-      rows = rows.filter((row) => Number(row.rights_hold) === 0);
-    }
-    if (sql.includes('publication_eligible = 1')) {
-      rows = rows.filter((row) => Number(row.publication_eligible) === 1);
+    if (sql.includes("NOT IN ('blocked', 'copyright_restricted')")) {
+      rows = rows.filter((row) => !['blocked', 'copyright_restricted'].includes(String(row.rights_status ?? 'unreviewed')));
     }
     if (sql.includes('WHERE id = ?')) {
       const id = args.find((arg) => typeof arg === 'number');
@@ -76,27 +91,27 @@ function photosRequest(path: string): Request {
   return new Request(`https://www.lougehrigfanclub.com${path}`);
 }
 
-describe('rights-hold quarantine (#3552)', () => {
+describe('public photo gate (#3552, replaced by #5467)', () => {
   it('rightsClearedClause defaults to the unaliased column and supports an alias', () => {
-    expect(rightsClearedClause()).toBe('rights_hold = 0 AND publication_eligible = 1');
-    expect(rightsClearedClause('p')).toBe('p.rights_hold = 0 AND p.publication_eligible = 1');
+    expect(rightsClearedClause()).toBe("COALESCE(rights_status, 'unreviewed') NOT IN ('blocked', 'copyright_restricted')");
+    expect(rightsClearedClause('p')).toBe("COALESCE(p.rights_status, 'unreviewed') NOT IN ('blocked', 'copyright_restricted')");
   });
 
-  it('/api/photos excludes held legacy rows', async () => {
-    const env = { DB: makeRightsAwareDb([CLEARED_PHOTO, HELD_PHOTO]) };
+  it('/api/photos serves unreviewed photos and excludes blocked ones', async () => {
+    const env = { DB: makeRightsAwareDb([CLEARED_PHOTO, HELD_PHOTO, UNREVIEWED_PHOTO]) };
     const res = await photosListGet({ env, request: photosRequest('/api/photos') });
     const body = await res.json();
-    expect(body.items.map((i: { id: number }) => i.id)).toEqual([1]);
+    expect(body.items.map((i: { id: number }) => i.id)).toEqual([1, 4]);
   });
 
-  it('/api/photos/list excludes held legacy rows', async () => {
-    const env = { DB: makeRightsAwareDb([CLEARED_PHOTO, HELD_PHOTO]) };
+  it('/api/photos/list serves unreviewed photos and excludes blocked ones', async () => {
+    const env = { DB: makeRightsAwareDb([CLEARED_PHOTO, HELD_PHOTO, UNREVIEWED_PHOTO]) };
     const res = await photosListLegacyGet({ env, request: photosRequest('/api/photos/list') });
     const body = await res.json();
-    expect(body.items.map((i: { id: number }) => i.id)).toEqual([1]);
+    expect(body.items.map((i: { id: number }) => i.id)).toEqual([1, 4]);
   });
 
-  it('/api/photos/get returns 404 for a held photo instead of leaking it', async () => {
+  it('/api/photos/get returns 404 for a blocked photo instead of leaking it', async () => {
     const env = { DB: makeRightsAwareDb([CLEARED_PHOTO, HELD_PHOTO]) };
     const held = await photosGetOne({ env, params: { id: '2' }, request: photosRequest('/api/photos/get?id=2') });
     expect(held.status).toBe(404);
@@ -105,15 +120,18 @@ describe('rights-hold quarantine (#3552)', () => {
     expect(cleared.status).toBe(200);
     const body = await cleared.json();
     expect(body.item.id).toBe(1);
+
+    const unreviewed = await photosGetOne({ env: { DB: makeRightsAwareDb([UNREVIEWED_PHOTO]) }, params: { id: '4' }, request: photosRequest('/api/photos/get?id=4') });
+    expect(unreviewed.status).toBe(200);
   });
 
-  it('resolvePhotoByReference refuses to resolve a held photo', async () => {
+  it('resolvePhotoByReference refuses to resolve a blocked photo', async () => {
     const db = makeRightsAwareDb([CLEARED_PHOTO, HELD_PHOTO]);
     await expect(resolvePhotoByReference(db, '1')).resolves.toMatchObject({ id: 1 });
     await expect(resolvePhotoByReference(db, '2')).resolves.toBeNull();
   });
 
-  it('listStoryMediaAssociations drops held photos from the join', async () => {
+  it('listStoryMediaAssociations drops blocked photos from the join', async () => {
     const associations = [
       { id: 10, story_id: 1, media_id: 1, media_role: 'primary_image', display_order: 0 },
       { id: 11, story_id: 1, media_id: 2, media_role: 'gallery_image', display_order: 1 },
@@ -138,12 +156,12 @@ describe('rights-hold quarantine (#3552)', () => {
     expect(rows.map((r) => Number(r.media_id))).toEqual([1]);
   });
 
-  it('club-home media fallback never surfaces a held photo', async () => {
+  it('club-home media fallback never surfaces a blocked photo', async () => {
     const db = {
       prepare: vi.fn((sql: string) => ({
         first: async () => {
           if (sql.includes('COUNT(1)')) return { n: 0 };
-          if (sql.includes('rights_hold = 0') && sql.includes('publication_eligible = 1')) return CLEARED_PHOTO;
+          if (sql.includes("NOT IN ('blocked', 'copyright_restricted')")) return CLEARED_PHOTO;
           return HELD_PHOTO;
         },
         all: async () => ({ results: [] }),
@@ -155,13 +173,9 @@ describe('rights-hold quarantine (#3552)', () => {
     expect(payload.media_feature).toBeNull();
   });
 
-  it('/api/photos excludes a row that is rights_hold=0 but not publication_eligible', async () => {
-    const drifted = {
-      ...CLEARED_PHOTO,
-      id: 3,
-      publication_eligible: 0,
-    };
-    const env = { DB: makeRightsAwareDb([CLEARED_PHOTO, drifted]) };
+  it('a copyright_restricted photo is excluded too', async () => {
+    const restricted = { ...CLEARED_PHOTO, id: 5, rights_status: 'copyright_restricted' };
+    const env = { DB: makeRightsAwareDb([CLEARED_PHOTO, restricted]) };
     const res = await photosListGet({ env, request: photosRequest('/api/photos') });
     const body = await res.json();
     expect(body.items.map((i: { id: number }) => i.id)).toEqual([1]);

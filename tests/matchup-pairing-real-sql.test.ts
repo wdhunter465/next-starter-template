@@ -48,7 +48,7 @@ function freshDb() {
 let sqlite: DatabaseSync;
 let nextId = 100;
 
-type PhotoOpts = { eligible?: number; hold?: number; published?: number; memorabilia?: number; url?: string | null };
+type PhotoOpts = { eligible?: number; blocked?: number; published?: number; memorabilia?: number; url?: string | null };
 
 /** Adds a photo that is fully approved unless overridden; returns its id. */
 function addPhoto(opts: PhotoOpts = {}): number {
@@ -56,9 +56,9 @@ function addPhoto(opts: PhotoOpts = {}): number {
   const url = opts.url === undefined ? `https://img.test/p${id}.jpg` : opts.url;
   sqlite
     .prepare(
-      'INSERT INTO photos (id, url, is_memorabilia, is_matchup_eligible, rights_hold, publication_eligible) VALUES (?, ?, ?, ?, ?, ?)',
+      'INSERT INTO photos (id, url, is_memorabilia, is_matchup_eligible, rights_status, publication_eligible) VALUES (?, ?, ?, ?, ?, ?)',
     )
-    .run(id, url, opts.memorabilia ?? 0, opts.eligible ?? 1, opts.hold ?? 0, opts.published ?? 1);
+    .run(id, url, opts.memorabilia ?? 0, opts.eligible ?? 1, opts.blocked ? 'blocked' : 'permission_granted', opts.published ?? 1);
   return id;
 }
 
@@ -125,8 +125,7 @@ describe('insufficient eligible-image pool (row 38)', () => {
   it.each([
     ['unreviewed (0)', { eligible: 0 }],
     ['excluded (-1)', { eligible: -1 }],
-    ['rights hold', { hold: 1 }],
-    ['not publication eligible', { published: 0 }],
+    ['blocked (rights removed, #5467)', { blocked: 1 }],
     ['blank url', { url: '   ' }],
   ] as Array<[string, PhotoOpts]>)('does not count a photo that is %s', async (_label, opts) => {
     addPhoto();
@@ -151,8 +150,7 @@ describe('selection stays inside the eligible pool (row 39)', () => {
     const ineligible = [
       addPhoto({ eligible: 0 }),
       addPhoto({ eligible: -1 }),
-      addPhoto({ hold: 1 }),
-      addPhoto({ published: 0 }),
+      addPhoto({ blocked: 1 }),
     ];
 
     const seen = new Set<number>();
@@ -252,7 +250,7 @@ describe('pairing, placement and edition history (row 40)', () => {
     const week = currentWeek();
     sqlite.prepare("INSERT INTO weekly_matchups (week_start, photo_a_id, photo_b_id, status) VALUES (?, ?, ?, 'active')").run(week, a, b);
     sqlite.prepare("INSERT INTO weekly_votes (week_start, choice, source_hash) VALUES (?, 'a', 'h1')").run(week);
-    sqlite.prepare('UPDATE photos SET rights_hold = 1 WHERE id = ?').run(a);
+    sqlite.prepare("UPDATE photos SET rights_status = 'blocked' WHERE id = ?").run(a);
 
     const { body } = await getCurrent();
 

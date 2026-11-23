@@ -123,16 +123,11 @@ async function fetchEligiblePhotos(db: any): Promise<EligiblePhoto[]> {
 async function isPhotoMatchupEligible(db: any, photoId: number): Promise<boolean> {
   const row = await db
     .prepare(
-      `SELECT is_matchup_eligible, rights_hold, publication_eligible FROM photos WHERE id = ? LIMIT 1;`,
+      `SELECT id FROM photos WHERE id = ? AND is_matchup_eligible = ${MATCHUP_ELIGIBILITY.APPROVED} AND ${rightsClearedClause()} LIMIT 1;`,
     )
     .bind(photoId)
     .first();
-  if (!row) return false;
-  return (
-    Number(row.is_matchup_eligible) === MATCHUP_ELIGIBILITY.APPROVED &&
-    Number(row.rights_hold) === 0 &&
-    Number(row.publication_eligible) === 1
-  );
+  return Boolean(row);
 }
 
 function shuffleInPlace<T>(items: T[]): T[] {
@@ -552,16 +547,18 @@ export async function repairBrokenActiveMatchupPhoto(options: {
     statements.push(
       db
         .prepare(
-          // #4261: also clear publication_eligible. is_matchup_eligible only
-          // gates the Weekly Matchup rotation; every other public/member
+          // #4261 / #5467: also set rights_status = 'blocked'. is_matchup_eligible
+          // only gates the Weekly Matchup rotation; every other public/member
           // surface (galleries, search, club-home lead-photo picker) gates on
-          // rightsClearedClause() (rights_hold=0 AND publication_eligible=1),
-          // which is independent of is_matchup_eligible. Without this, a photo
-          // this probe just confirmed is missing/unreachable would stop
-          // rotating here but keep rendering a dead <img> everywhere else.
+          // rightsClearedClause() (rights_status not blocked or
+          // copyright_restricted), which is independent of is_matchup_eligible.
+          // Without this, a photo this probe just confirmed is missing/unreachable
+          // would stop rotating here but keep rendering a dead <img> everywhere
+          // else. publication_eligible = 0 is kept for the review record.
           `UPDATE photos
            SET is_matchup_eligible = ?,
                publication_eligible = 0,
+               rights_status = 'blocked',
                rights_notes = CASE
                  WHEN rights_notes IS NULL OR TRIM(rights_notes) = '' THEN ?
                  ELSE rights_notes || ' | ' || ?

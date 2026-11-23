@@ -137,7 +137,7 @@ describe('social image route', () => {
     expect((await call(db, 'not-a-post')).status).toBe(404);
   });
 
-  it('streams the photo after the publish time, and 404s a photo that is no longer rights-cleared', async () => {
+  it('streams the photo after the publish time, and 404s a photo that is blocked (#5467)', async () => {
     const { sqlite, db } = makeDb();
     sqlite
       .prepare("INSERT INTO photos (id, url, rights_hold, publication_eligible) VALUES (858, 'https://s3.us-east-005.backblazeb2.com/LouGehrigFanClub/a.jpg', 0, 1)")
@@ -150,7 +150,7 @@ describe('social image route', () => {
     expect(ok.headers.get('Content-Type')).toBe('image/jpeg');
     expect(await ok.text()).toBe('IMG');
 
-    sqlite.prepare('UPDATE photos SET rights_hold = 1 WHERE id = 858').run();
+    sqlite.prepare("UPDATE photos SET rights_status = 'blocked' WHERE id = 858").run();
     expect((await call(db, POST)).status).toBe(404);
   });
 
@@ -180,7 +180,7 @@ describe('social image route', () => {
     fetchMock.mockImplementationOnce(async () => new Response('missing', { status: 404 }));
     expect((await call(db, POST, '?for=facebook')).status).toBe(502);
 
-    sqlite.prepare('UPDATE photos SET rights_hold = 1 WHERE id = 858').run();
+    sqlite.prepare("UPDATE photos SET rights_status = 'blocked' WHERE id = 858").run();
     expect((await call(db, POST, '?for=facebook')).status).toBe(404);
   });
 });

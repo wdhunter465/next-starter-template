@@ -32,6 +32,7 @@ type PhotoRow = {
   title?: string;
   rights_hold?: number;
   publication_eligible?: number;
+  rights_status?: string;
 };
 
 type PhotoInput = Omit<PhotoRow, 'is_matchup_eligible'> & { is_matchup_eligible?: number };
@@ -91,6 +92,10 @@ function makeWeekStartDb(nowYmd: string) {
   return { db, expected };
 }
 
+function isBlocked(photo: { rights_status?: string }): boolean {
+  return ['blocked', 'copyright_restricted'].includes(photo.rights_status ?? 'unreviewed');
+}
+
 function makeRotationDb(options: {
   weekStart?: string;
   matchups?: MatchupRow[];
@@ -135,13 +140,8 @@ function makeRotationDb(options: {
 
     if (sql.includes('FROM photos WHERE id = ?') && sql.includes('is_matchup_eligible')) {
       const photo = photos.find((row) => Number(row.id) === Number(args[0]));
-      return {
-        is_matchup_eligible: photo?.is_matchup_eligible ?? 0,
-        rights_hold: Number((photo as { rights_hold?: number } | undefined)?.rights_hold ?? 1),
-        publication_eligible: Number(
-          (photo as { publication_eligible?: number } | undefined)?.publication_eligible ?? 0,
-        ),
-      };
+      // #5467: the probe query applies rightsClearedClause() itself.
+      return photo && photo.is_matchup_eligible === 1 && !isBlocked(photo) ? { id: photo.id } : null;
     }
 
     if (sql.includes('FROM weekly_matchups WHERE week_start = ?') && sql.includes('LIMIT 1')) {
@@ -171,9 +171,7 @@ function makeRotationDb(options: {
       return {
         results: photos.filter(
           (row) =>
-            row.is_matchup_eligible === 1 &&
-            Number((row as { publication_eligible?: number }).publication_eligible ?? 0) === 1 &&
-            Number((row as { rights_hold?: number }).rights_hold ?? 1) === 0,
+            row.is_matchup_eligible === 1 && !isBlocked(row),
         ),
       };
     }
@@ -687,7 +685,7 @@ describe('public matchup current rotation', () => {
     expect(maxInFlight).toBe(2);
   });
 
-  it('does not select photos that are not publication_eligible (#3553)', async () => {
+  it('does not select photos that are blocked (#3553, #5467)', async () => {
     const currentWeek = '2026-06-30';
     const { db, matchups } = makeRotationDb({
       weekStart: currentWeek,
@@ -700,6 +698,7 @@ describe('public matchup current rotation', () => {
           is_matchup_eligible: 1,
           publication_eligible: 0,
           rights_hold: 1,
+          rights_status: 'blocked',
         },
         {
           id: 502,
@@ -708,6 +707,7 @@ describe('public matchup current rotation', () => {
           is_matchup_eligible: 1,
           publication_eligible: 0,
           rights_hold: 1,
+          rights_status: 'blocked',
         },
       ],
     });

@@ -33,9 +33,8 @@ export const onRequestGet = async (context: any): Promise<Response> => {
     const page = parsePage(url.searchParams.get('page'));
     const offset = (page - 1) * PAGE_SIZE;
 
-    // rightsClearedClause() is the approval gate (#3552 / #3553): only rows a
-    // rights reviewer has explicitly cleared (rights_hold = 0 and
-    // publication_eligible = 1) are visible here.
+    // rightsClearedClause() is the public-display gate (#5467): every photo is
+    // visible except one marked blocked or copyright_restricted.
     const where: string[] = ['(is_memorabilia IS NULL OR is_memorabilia = 0)', rightsClearedClause()];
     const args: any[] = [];
 
