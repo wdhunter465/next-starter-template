@@ -5,8 +5,8 @@ Authority Level: Supporting
 Owns: Current LGFC vendor inventory for architecture and workflow documentation
 Does Not Own: Vendor contracts, credentials, runtime configuration, implementation code, or diagram assets
 Canonical Reference: /docs/reference/architecture/vendor-inventory.md
-Related Issues: #4442, #4416, #4430, #4399, #4165, #4173, #4074, #4749, #5114, #5116, #5370
-Last Reviewed: 2026-11-19
+Related Issues: #5499, #4442, #4416, #4430, #4399, #4165, #4173, #4074, #4749, #5114, #5116, #5370
+Last Reviewed: 2026-11-23
 ---
 
 # LGFC Vendor Inventory
@@ -98,6 +98,17 @@ Retired, not in use: the OpenAI-based members ChatGPT, Work and Codex ChatBot (#
 ## Future / Available Vendors
 
 - Zapier — chosen candidate for social cross-posting, not activated, and not in use.
+
+## Cost principle (Product Authority, 2026-11-23, #5499)
+
+The site is run by an individual at his own expense, earns no money and is not monetized (#4368). The rule for every vendor and service:
+
+1. **Zero cost where a free option exists.** A paid service is used only where no free version exists.
+2. **No agent adds a paid service, upgrades a plan or turns on a usage-based charge** without Product Authority's explicit Go. A cost commitment is already a protected stop (`docs/governance/AGENT-TEAM.md`).
+3. **A service that is free today but can bill for usage needs a spending cap or an alert,** recorded in the asset register (`docs/reference/platform/lgfc-asset-register.md`), because growth in site use must never become an uncapped personal cost. Examples to keep capped or watched: Cloudflare, Backblaze B2, MailChannels.
+4. **Anything a vendor or rights holder asks that implies a fee, minimum or indemnity** is reported to Product Authority and not accepted by an agent.
+
+An audit of every register row against this rule has not been done yet; it is proposed to Product Authority.
 
 ## Notes
 
