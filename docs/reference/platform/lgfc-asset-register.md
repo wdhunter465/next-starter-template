@@ -95,7 +95,7 @@ When this register and a detailed inventory disagree, the detailed inventory's c
 
 ## Secret and variable name catalog
 
-Names referenced by `.github/workflows/**` or `.env.example` on 2026-10-10. Values are never recorded. A name used in a workflow but missing here is drift (#4539).
+Names referenced by `.github/workflows/**` or `.env.example` on 2026-10-10; `ALERT_MAILCHANNELS_API_KEY` and `SOCIAL_HANDOFF_TOKEN` added 2026-11-23 (#5465). Values are never recorded. A name used in a workflow but missing here is drift (#4539).
 
 <!-- asset-register:secrets:start -->
 | name | used_by | asset_id |
@@ -139,6 +139,8 @@ Names referenced by `.github/workflows/**` or `.env.example` on 2026-10-10. Valu
 | DPLA_API_KEY | workflows | saas:dpla:api |
 | HF_TOKEN | workflows | saas:huggingface:api |
 | BUFFER_API_KEY | workflows | saas:buffer:social-scheduling |
+| ALERT_MAILCHANNELS_API_KEY | workflows; `scripts/ops/alert-email.mjs` | email:mailchannels:transactional |
+| SOCIAL_HANDOFF_TOKEN | workflows; `scripts/ops/social-post-dispatch.mjs` | saas:social:accounts |
 <!-- asset-register:secrets:end -->
 
 ## Vendor lifecycle and renewal (#4541)
