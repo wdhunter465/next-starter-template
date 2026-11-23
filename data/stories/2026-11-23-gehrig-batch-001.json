@@ -399,6 +399,57 @@
           }
         ]
       }
+    },
+    {
+      "tag": "eig-prologue-appreciation-day-crowd",
+      "title": "Eig: the crowd at Yankee Stadium on July 4, 1939",
+      "text": "His Yankee teammates and their opponents that day, the Washington Senators, were lined up on the infield grass, waiting for the ceremony to begin. His wife and parents watched from box seats along the third-base line. More than 61,000 people sat elbow to elbow in the stands.",
+      "story_type": "brief",
+      "credit_line": "From Jonathan Eig, Luckiest Man: The Life and Death of Lou Gehrig (Simon & Schuster, 2005), Prologue",
+      "source_name": "NPR, 'Luckiest Man' Excerpt: Prologue (2005), posted with the book's copyright notice",
+      "source_url": "https://www.npr.org/2005/04/26/4620618/luckiest-man-explores-life-of-baseballs-gehrig",
+      "event_date": "1939-07-04",
+      "excerpt_of": {
+        "work": "Luckiest Man: The Life and Death of Lou Gehrig",
+        "author": "Jonathan Eig"
+      },
+      "verification": {
+        "status": "eig_verified"
+      }
+    },
+    {
+      "tag": "eig-prologue-iron-horse-and-the-babe",
+      "title": "Eig: the Iron Horse and the Babe",
+      "text": "The crowd applauded, but only politely. Here was Gehrig, the greatest first baseman the game had ever seen. Yet for all his accomplishments, his movie-star looks, and his gentlemanly manner, fans, somehow, had never shown overwhelming enthusiasm for him. Sportswriters said he lacked color. He was no Babe Ruth, they complained. The Babe was the Bambino, their child, and people loved him unconditionally. Gehrig's nickname -- the Iron Horse -- was inspired by a train, and it was perfectly apropos. Most people don't appreciate a train's strength and reliability until they're standing on the platform one day and it doesn't show up.",
+      "story_type": "brief",
+      "credit_line": "From Jonathan Eig, Luckiest Man: The Life and Death of Lou Gehrig (Simon & Schuster, 2005), Prologue",
+      "source_name": "NPR, 'Luckiest Man' Excerpt: Prologue (2005), posted with the book's copyright notice",
+      "source_url": "https://www.npr.org/2005/04/26/4620618/luckiest-man-explores-life-of-baseballs-gehrig",
+      "event_date": "1939-07-04",
+      "excerpt_of": {
+        "work": "Luckiest Man: The Life and Death of Lou Gehrig",
+        "author": "Jonathan Eig"
+      },
+      "verification": {
+        "status": "eig_verified"
+      }
+    },
+    {
+      "tag": "eig-prologue-we-want-lou",
+      "title": "Eig: 'We want Lou!'",
+      "text": "When the presentations were over, the emcee, Sid Mercer, asked if the guest of honor had anything to say. Gehrig answered with a slight, almost imperceptible shake of the head, no. He was afraid he'd collapse if he tried to speak. Workers moved into position, ready to roll up the wires and pull down the microphones. Only then did it dawn on the men and women in the stands that he was going away. Cries of protest rang out. The shouting grew louder and spread like a fever through the stadium. Soon, all the fans were on their feet. Their voices came together in a chant that shook the grandstand: \"We want Lou! We want Lou!\"",
+      "story_type": "brief",
+      "credit_line": "From Jonathan Eig, Luckiest Man: The Life and Death of Lou Gehrig (Simon & Schuster, 2005), Prologue",
+      "source_name": "NPR, 'Luckiest Man' Excerpt: Prologue (2005), posted with the book's copyright notice",
+      "source_url": "https://www.npr.org/2005/04/26/4620618/luckiest-man-explores-life-of-baseballs-gehrig",
+      "event_date": "1939-07-04",
+      "excerpt_of": {
+        "work": "Luckiest Man: The Life and Death of Lou Gehrig",
+        "author": "Jonathan Eig"
+      },
+      "verification": {
+        "status": "eig_verified"
+      }
     }
   ]
 }
