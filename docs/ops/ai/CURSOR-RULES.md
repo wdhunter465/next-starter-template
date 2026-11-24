@@ -5,8 +5,8 @@ Authority Level: Agent-Specific
 Owns: Cursor product identity, the Cursor startup contract, background-service definitions, continuous-workflow orientation, and the keepalive statement
 Does Not Own: Agent-team policy, role assignment, PMO lifecycle, shared execution law, merge authority, or approval authority
 Canonical Reference: /docs/governance/AGENT-EXECUTION.md
-Related Issues: #3825, #4449, #4596, #4676, #4716, #4783, #4928, #4982, #4994, #5012, #5016, #5034, #5379, #3188, #5383, #5408, #5426, #5432
-Last Reviewed: 2026-11-21
+Related Issues: #3825, #4449, #4596, #4676, #4716, #4783, #4928, #4982, #4994, #5012, #5016, #5034, #5379, #3188, #5383, #5406, #5408, #5426, #5432, #5489
+Last Reviewed: 2026-11-23
 ---
 
 # CURSOR-RULES.md
@@ -57,7 +57,7 @@ These host services keep the Cursor Local chat connected. They are **not** the a
 | Wake tick / tick prompt | Keepalive message into this chat | Not an assignment and not a stop |
 | GitHub poller (`poll-github.mjs`) | Updates the poll inbox / ready-queue snapshot from GitHub | Not continuous workflow itself |
 | Poll inbox (`~/.cursor/lgfc-wake-poll-inbox.json`) | Keepalive record of recent polls | Not the queue |
-| Wake watchdog (`lgfc-wake-watchdog`) | Restarts a stalled loop after bind grace | Not a task dispatcher |
+| Wake watchdog (`lgfc-wake-watchdog`) | Reports a stopped loop and leaves it stopped. After 30 minutes with no halt file, opens one Operations Issue (#5406, #5489) | Not a task dispatcher and not a loop starter |
 | `lgfc-wake-ctl.sh` | Bind / status / halt / resume / rebind control for this chat’s loop | Not Issue authorization |
 | Self-hosted runner `lgfc-cursor-chromebook` (label `lgfc-cursor`) | Lets `lgfc-cursor-dispatch` reach this host | Not continuous workflow; online/idle does not mean “wait for dispatch” |
 

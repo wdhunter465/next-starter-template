@@ -5,8 +5,8 @@ Authority Level: Controlled
 Owns: Clearance states, public-domain review, privacy review, excerpt/summary treatment, and no-publish conditions
 Does Not Own: Legal conclusions, runtime enforcement, or public publication
 Canonical Reference: /docs/ops/pmo/lou-gehrig-content-collection-expansion-readiness.md
-Related issues: #1738, #1742, #1741, #4524, #4727
-Last Reviewed: 2026-10-26
+Related issues: #1738, #1742, #1741, #4524, #4727, #5467, #5495, #5496, #5497
+Last Reviewed: 2026-11-23
 ---
 
 # Lou Gehrig Rights, Privacy, and Publication Review Model
@@ -77,6 +77,35 @@ made to CMG Worldwide on 2026-11-03.
 - **The clearance table above and "The simple rule" below still govern collected
   content items** (`content_items`), which is a separate pipeline from B2 photos.
 - **Counsel review** of the CMG, MLB and Yankees threads is not decided here.
+
+## Rights risk controls (Product Authority, 2026-11-23, #5495)
+
+The site is run by an individual at zero cost, with no organisation behind it, and is not monetized (decision on #4368). Since #5467 every B2 photo is public unless blocked. An infringement claim from a photographer, agency or publisher would fall on the operator personally, and a rights holder's permission (for example CMG's, which covers the estate's name and likeness, not third-party photographs or text) does not remove that. These three controls are how the design limits that exposure. They are requirements, not suggestions.
+
+| # | Control | Rule | State on 2026-11-23 |
+| --- | --- | --- | --- |
+| 1 | **Remove fast** | A valid rights request is acted on promptly, as the operator's time allows: a photo is blocked on the Photos (Block/Restore) page. **There is no committed or published response time or service level** (Product Authority, 2026-11-23: the site is hosted and run at the operator's own expense with no compensation, so no service level is promised to anyone). Blocking is suppression, not deletion, and is reversible on the same page. | The act is built (#5471). The intake is not (#5496). |
+| 2 | **Log every request** | Every request is recorded with: date received, requester organisation, the item, the type (removal, permission offer, credit correction, question), the action taken (blocked, credit fixed, declined, referred), the date answered and who acted. **"No action" is an outcome and is recorded too.** The record holds no personal names, addresses or message bodies; the full message stays in the mailbox (the repository is public). The record is append-only. Blocking from the admin page attaches to the request record. | Designed 2026-08-04 (#2919 finding F5: fields `suppression_reason` and `takedown_request_source`, internal admin workflow, intake kept at `/contact`) and **never built** (#5496). Today the block action records who, when and why in the photo row, but not the request. |
+| 3 | **Prefer cleared images** | When a surface chooses one photo, it takes the best rights status available, in this order: `permission_granted` (includes club-owned and permitted), then `public_domain_candidate`, then `unreviewed`, `unknown`, `permission_needed` and `permission_requested`. `blocked` and `copyright_restricted` are never chosen. A lower rank is used only when nothing higher fits the surface, so no surface runs dry. Public photo lists and galleries still show every photo that is not blocked. | **Not in the design before this record** (#5497). |
+
+### Statements about rights practice must match the live site
+
+What the operator tells a rights holder, the public or a reviewer about how photos are handled has to be true on the day it is said. The statement made to CMG on 2026-11-03 (unknown-rights items are held) stopped being true on 2026-11-23 (#5467). Do not claim that all sources are tagged and credited, or that unreviewed items are held, unless the live site does that. Describe what is true: items are shown with their source where known, and any item is removed promptly on request.
+
+### Build order
+
+1. #5496: Contact topic, request record, admin view. Needs a D1 migration, which needs its own Go, applied on Development first.
+2. #5497: one shared rank function, applied to Club Home, the social edition plan, the Weekly Matchup pool order and story picture matching. No migration.
+
+### Decisions already made (Product Authority, 2026-11-23)
+
+- No committed or published response time or service level, to CMG or anyone else.
+- If a rights holder objects to the Store, the Store is closed.
+
+### Decisions still needed from Product Authority
+
+- A Go for the request-record migration.
+- The public wording of the Contact topic.
 
 ## The simple rule (Product Authority, 2026-10-10)
 
