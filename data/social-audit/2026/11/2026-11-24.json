@@ -1,0 +1,51 @@
+{
+  "schema": "social_audit_day/1",
+  "date": "2026-11-24",
+  "records": [
+    {
+      "schema": "social_post_evidence/1",
+      "post_id": "2026-11-24-daily",
+      "platform": "x",
+      "origin": "queue",
+      "version": 1,
+      "scheduled_for": "2026-11-24T10:00:00-05:00",
+      "text": "Major League Baseball observes Lou Gehrig Day every June 2. The Fan Club website is being rebuilt for 2027 so you can follow along.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "text_sha256": "24434ac6c2da79ef7236e00e2fa21a4e31f359286de7184530c68f15c0b863b3",
+      "photo": {
+        "photo_id": 858,
+        "variant": "original",
+        "image_url": "https://www.lougehrigfanclub.com/api/social/image/2026-11-24-daily",
+        "image_sha256": "952d6db96f72f0f698decb7dd8a289f40df6c95a411900c63e43f3f2cd681fc1",
+        "image_bytes": 1762737,
+        "width": 1858,
+        "height": 2914,
+        "alt_text": "Souvenir program with a decorative border. It reads \"Busting Babes vs. Larruping Lous\" above a halftone photo of Babe Ruth and Lou Gehrig in Yankees uniforms, each resting a hand on a bat, with \"Oakland Baseball Park, Sunday, October 23, 1927\" below.",
+        "rights_check": {
+          "verdict": "cleared",
+          "source": "data/social-post-queue.json rights_cleared_photo_ids and held_photo_ids",
+          "checked_at_utc": "2026-11-24T15:03:57.323+00:00"
+        }
+      },
+      "status": "confirmed",
+      "attempts": [
+        {
+          "at_utc": "2026-11-24T15:03:57.323Z",
+          "by": "GitHub job \"Social Post to X\"",
+          "outcome": "ok",
+          "detail": "Buffer reports the post sent at 2026-11-24T15:04:03.284Z"
+        }
+      ],
+      "platform_record": {
+        "post_id": "6b05a7600b598b725189c3a0",
+        "url": null,
+        "created_at_utc": "2026-11-24T15:04:03.284Z",
+        "created_at_new_york": "2026-11-24T10:04:03-05:00"
+      },
+      "verified": {
+        "on": "2026-11-24",
+        "by": "GitHub job \"Social Post to X\"",
+        "method": "Buffer get_post after create_post"
+      }
+    }
+  ]
+}
