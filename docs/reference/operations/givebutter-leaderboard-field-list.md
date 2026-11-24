@@ -22,6 +22,8 @@ This document is a list and a checklist. It changes no code, no Givebutter setti
 - The leaderboard shows the participant's **Givebutter display name** (Product Authority, 2026-11-24), or a team name where teams are used. It never shows a real name, email address or phone number (#4139).
 - Three boards: Funding the Fight (most dollars), Raising Awareness (most donors), Champion (dollars plus donors). Only donations dated **2027-03-25 12:00 AM through 2027-06-07 11:59 PM America/New_York** count (#4432, 2026-11-12 and 2026-11-22). In UTC that is 2027-03-25T04:00:00Z through 2027-06-08T03:59:59Z (daylight time).
 - The API is the source for the live leaderboard. The Claude connector is for checking and design work only: it runs inside a Claude session under one login, so no scheduled job can call it.
+- The website shows no auction content beyond one link to the auction. The auction is promoted in the daily social posts (Product Authority, 2026-11-24).
+- The headline total is the **grand total**: donations plus auction proceeds, shown against the $10,000 goal. Product Authority expects Givebutter to report it as one figure. After the fundraiser the website shows the final grand total with a thank-you message to all participants and donors.
 - Aggregate numbers only are stored. Donor details are read in memory if needed and dropped.
 
 ## Source 1: the campaign
@@ -95,7 +97,7 @@ If donations were held closed until 2027-03-25, the member and team totals would
 | Auction `start_at`, `end_at`, `is_started` | Countdown and gating | Yes |
 | Auction items (`campaign_items`) | Item preview on the website, if Product wants it | None imported yet |
 
-The auction items are not a leaderboard input unless Product decides auction proceeds count toward participants.
+The auction items are not a leaderboard input and are not shown on the website; the website links to the auction only. What does matter is the grand total: check that the campaign `raised` figure includes auction proceeds (checklist step 2), because the headline total and the progress bar depend on it. Whether auction proceeds also count toward a participant's own total is a separate Product decision.
 
 ## What the connector confirmed on 2026-11-24
 
@@ -117,7 +119,7 @@ The auction items are not a leaderboard input unless Product decides auction pro
 ## Verification checklist (run once the API key exists)
 
 1. Confirm the key is read-only and as narrow as Givebutter allows. Record only that fact, never the value.
-2. `GET /v1/campaigns/594479` returns the Source 1 fields. Check `status`, `goal` and `end_at`.
+2. `GET /v1/campaigns/594479` returns the Source 1 fields. Check `status`, `goal` and `end_at`. After the auction has bids, check that `raised` equals donations plus auction proceeds (the grand total Product expects) and compare it with the transaction totals by type (`donation_total`, `auction_total`).
 3. `GET /v1/campaigns/594479/members` returns an empty list now, and after 2027-02-01 rows with `display_name`, `raised`, `donors`, `url`, team fields and `public`. Check that `url` is present and points to givebutter.com.
 4. Register one test participant (ask Givebutter Help whether this is possible while unpublished). Check what `display_name` holds when the person sets no alias. If it defaults to the real name, say so to Product Authority before the board is public.
 5. `GET /v1/campaigns/594479/teams` returns the Source 3 fields, if teams are used.
