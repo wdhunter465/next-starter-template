@@ -17,9 +17,9 @@ before it is actually mergeable.
 
 ## Session start and continuous workflow
 
-Every new session begins with the Claude Code startup in `docs/ops/ai/CLAUDE-CODE-RULES.md`. It includes the read-only permission inbox check (`.claude/skills/permission-inbox-check/SKILL.md`). Startup is orientation only and stops; the run then continues from the ready queue in role order. No task list is required, and a list from Product Authority only sets priority (`docs/governance/AGENT-EXECUTION.md`, Session lifecycle).
+`run startup` means the Startup section of `docs/ops/ai/CLAUDE-CODE-RULES.md`. It is not a skill, and it applies to Claude Code sessions only, not chats. Every new Claude Code session begins with it: a short STARTUP report (including the read-only permission inbox check, `.claude/skills/permission-inbox-check/SKILL.md`), then a short CATCH-UP report, both in the fixed formats in that file. Claude Code then stops and waits for Product Authority to set the session topic (a continuation of a prior session or a new topic). It does not read the queue or start work until then. A task list from Product Authority only sets priority (`docs/governance/AGENT-EXECUTION.md`, Session lifecycle). At the end of a session, post the hand-off summary the rules define.
 
-After that, work continuously: finishing one assignment is not a stop, and waiting on review, checks or a merge is not a stop. The sequence is `docs/governance/AGENT-EXECUTION.md` (Session lifecycle, Assigned-queue continuation); the mechanics are in `docs/ops/ai/CLAUDE-CODE-RULES.md`; the working checklist is the `continuous-workflow` skill (`.claude/skills/continuous-workflow/SKILL.md`).
+Once the topic is set, work continuously: finishing one assignment is not a stop, and waiting on review, checks or a merge is not a stop. The sequence is `docs/governance/AGENT-EXECUTION.md` (Session lifecycle, Assigned-queue continuation); the mechanics are in `docs/ops/ai/CLAUDE-CODE-RULES.md`; the working checklist is the `continuous-workflow` skill (`.claude/skills/continuous-workflow/SKILL.md`).
 
 Continuing never crosses a protected stop. One Issue, one pull request; no mixed
 intent; no merging your own Production-tier pull request (Product Authority or a CMO

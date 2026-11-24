@@ -219,7 +219,7 @@ Administration & Communications spans all steps.
 
 ## Startup orientation
 
-When Product Authority says `run startup`, the literal command resolves according to the active product. Each recognized product identifies itself and performs its own product-specific orientation-only startup, then ends startup and begins Session lifecycle phase 2 in the same turn (#5012):
+When Product Authority says `run startup`, the literal command resolves according to the active product. Each recognized product identifies itself and performs its own product-specific orientation-only startup, then ends startup and begins Session lifecycle phase 2 in the same turn (#5012). Claude Code is the exception: after its startup and catch-up reports it waits for Product Authority to set the session topic (#5513):
 
 - ChatGPT: `docs/ops/ai/CHATGPT-RULES.md` (retired #4173; historical only)
 - Work: `docs/ops/ai/WORK-RULES.md` (retired #4074; historical only)
@@ -228,7 +228,7 @@ When Product Authority says `run startup`, the literal command resolves accordin
 - Cursor: `docs/ops/ai/CURSOR-RULES.md` (Startup section), reached through `AGENTS.md` for Cloud and `.cursor/rules/*.mdc` for Local
 - Claude (conversational): no product-specific startup contract; outside the operational delivery chain unless bounded collaboration is authorized
 
-Shared skeleton, session-boundary rules, and the full list of what startup must never authorize: `docs/governance/AGENT-EXECUTION.md`, "PRODUCT STARTUP FRAMEWORK." Ending startup is not going idle: the session continues through the work list and the continuous run in the same turn (`docs/governance/AGENT-EXECUTION.md`, "Session lifecycle," #5012). Current product/role inventory: `docs/governance/AGENT-TEAM.md`.
+Shared skeleton, session-boundary rules, and the full list of what startup must never authorize: `docs/governance/AGENT-EXECUTION.md`, "PRODUCT STARTUP FRAMEWORK." Ending startup is not going idle: the session continues through the work list and the continuous run in the same turn (`docs/governance/AGENT-EXECUTION.md`, "Session lifecycle," #5012), except Claude Code, which waits for the session topic after its catch-up (#5513). Current product/role inventory: `docs/governance/AGENT-TEAM.md`.
 
 Startup itself does not authorize, for any product:
 

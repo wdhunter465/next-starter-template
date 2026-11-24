@@ -76,9 +76,9 @@ PMO lifecycle terms and pull-request lifecycle states are different systems. PMO
 
 ## Run startup
 
-`run startup` is an orientation command. Each recognized product identifies itself, reads its own startup contract, reports orientation, ends startup, and begins Session lifecycle phase 2 in the same turn (#5012). The shared steps are in `docs/governance/AGENT-EXECUTION.md` (PRODUCT STARTUP FRAMEWORK). Ending startup is not going idle. The product list is in `AGENTS.md` and `docs/governance/AGENT-TEAM.md`.
+`run startup` is an orientation command. Each recognized product identifies itself, reads its own startup contract, reports orientation, ends startup, and begins Session lifecycle phase 2 in the same turn (#5012); Claude Code instead gives a short startup report and a catch-up report, then waits for the session topic (#5513). The shared steps are in `docs/governance/AGENT-EXECUTION.md` (PRODUCT STARTUP FRAMEWORK). Ending startup is not going idle. The product list is in `AGENTS.md` and `docs/governance/AGENT-TEAM.md`.
 
-Startup itself does not authorize a queue audit, inferred next work, GitHub mutation, PMO advance, work packaging, or implementation. Startup completion is not task authorization. After startup ends, the agent reads its working list from GitHub and continues. A source Issue, its acceptance criteria, an exact file allowlist, and an explicit implementation Go are still required before edits.
+Startup itself does not authorize a queue audit, inferred next work, GitHub mutation, PMO advance, work packaging, or implementation. Startup completion is not task authorization. After startup ends, the agent reads its working list from GitHub and continues (Claude Code waits for the session topic first). A source Issue, its acceptance criteria, an exact file allowlist, and an explicit implementation Go are still required before edits.
 
 ## Execution discipline
 

@@ -5,8 +5,8 @@ Authority Level: Agent-Specific
 Owns: Claude Code product identity, startup steps, continuous-run mechanics, claim handling, Operations monitoring, permission-email monitoring, connector access (Cloudflare, Buffer, Zapier), and Claude-specific operating notes
 Does Not Own: Agent-team policy, role mapping, PMO lifecycle, Governance authority, shared execution law, merge approval, or the permission-request policy
 Canonical Reference: /docs/governance/AGENT-TEAM.md
-Related Issues: #3825, #4053, #4718, #4749, #4994, #5108, #5192, #5194, #5221, #5324, #5421
-Last Reviewed: 2026-11-21
+Related Issues: #3825, #4053, #4718, #4749, #4994, #5108, #5192, #5194, #5221, #5324, #5421, #5513
+Last Reviewed: 2026-11-24
 ---
 
 # CLAUDE-CODE-RULES.md
@@ -27,7 +27,9 @@ The shared law is `docs/governance/AGENT-EXECUTION.md`: the PRODUCT STARTUP FRAM
 
 ## Startup
 
-When Product Authority says `run startup`, and at the start of every new session, perform orientation only:
+`run startup` applies to Claude Code sessions only, not to chat sessions. When Product Authority says `run startup`, and at the start of every new Claude Code session, Claude Code does three things in order, then waits (Product Authority, 2026-11-24, #5513): the startup steps and Report 1, the catch-up and Report 2, and a stop.
+
+### Startup steps (orientation only)
 
 1. identify product as Claude Code;
 2. read `AGENTS.md` and the mandatory authority chain, this file, and the orientation digest `context.md`;
@@ -35,13 +37,68 @@ When Product Authority says `run startup`, and at the start of every new session
 4. verify repository access (the local checkout and GitHub);
 5. confirm the connected sources this file needs: the Gmail connector for the permission inbox check;
 6. run the permission inbox check below, read-only, and report what it found;
-7. report that startup authorizes no work, end startup, and continue to the ready queue (Session lifecycle phase 2 in the same turn; #5012).
+7. report that startup authorizes no work and end startup.
 
-Startup makes no claim, branch, edit or GitHub change. Ending startup is not going idle. If the permission check finds a response that needs an Issue, the Issue is opened in the continuous run, not during startup.
+Startup makes no claim, branch, edit or GitHub change. If the permission check finds a response that needs an Issue, the Issue is opened in the continuous run, not during startup.
+
+### Report 1: STARTUP
+
+Every line is always present. A line with nothing to report says `none` or `n/a`. Section headings and bullets, in this order:
+
+```text
+STARTUP: Claude Code
+- Authority chain: read | Roles: PMO, Engineering, PMO Admin (primary); Operations, Governance (secondary); CMO alternate
+- Repo: branch <name> @ <sha>; GitHub OK; Gmail OK
+- Permission inbox: <N> threads; <none | reply needs review: organization, classification>
+- No changes made.
+```
+
+### Catch-up and Report 2: CATCH-UP
+
+The catch-up is read-only. It informs Product Authority; it authorizes no claim, edit or PR. It reads:
+
+- **Prior sessions.** The 5 most recent Claude Code sessions by last activity, excluding chat sessions and the session being set up. The newest of them is "the last session"; "since the last catch-up" means since that session's last activity.
+- **Hand-off summaries.** Each session writes a hand-off summary at its end (below). The catch-up reads the summaries of the 5 sessions from the tracking Issue labelled `session-handoff` (one comment per session). It does not page through transcripts. If a prior session has no summary, the catch-up asks that session to write one (`send_message`) and reads it; if the session cannot answer, Report 2 names the session and continues.
+
+Report 2, same style (headings and bullets), every section always present:
+
+```text
+CATCH-UP
+Repo status (since the last session)
+- Outages, errors or failures since the last session's last activity, or "none"
+Pull requests
+- <N> pull requests ready to merge (open, carrying the `ready-for-merge` label); any other pull request is still being prepared by an agent
+Operations issues
+- <N> open (`team:operations` with `ops:priority:1` to `ops:priority:4`). One bullet per issue: number, title, current status.
+  One line; two lines at most. An issue that needs more than two lines is flagged NEEDS ATTENTION.
+Top 5 priorities for the LGFC agentic team
+- Issues of any type that need attention before any team meeting (PMO, Engineering and so on): outages to fix and project deadlines at risk (a deadline within 14 days).
+  Fewer than 5 if fewer qualify; "none" if none do.
+Prior-session context
+- Confirms the prior 5 sessions' summaries were read.
+- Topics discussed that remain relevant and open. No closed topics and no sidebar discussions.
+```
+
+### Stop
+
+After Report 2, Claude Code stops and waits for Product Authority to set the session topic. The topic may continue a prior session or be new, depending on the LGFC team role needed. Claude Code reads no queue, claims nothing and starts no work until the topic is set. The Operations interrupt stays on: an Operations issue flagged NEEDS ATTENTION is raised in Report 2, not started. This replaces the earlier rule to continue to the ready queue in the same turn (Session lifecycle phase 2; #5012) for Claude Code only. Other products are unchanged.
+
+### Hand-off summary (end of every session)
+
+At the end of a session, before it is closed, Claude Code posts one comment on the tracking Issue labelled `session-handoff`, at most 10 lines:
+
+```text
+HANDOFF: <session title>, <date>
+- Open topics: <topic, one line each>
+- Waiting on: <Product Authority | Cursor | CI | nothing>, per topic
+- Closed this session: <topic list, for the record>
+```
+
+The catch-up reports only the open topics. Until a `session-handoff` Issue exists, the catch-up uses the on-demand request above.
 
 ## Continuous run
 
-After startup the run follows the shared law (`docs/governance/AGENT-EXECUTION.md`, Session lifecycle and Assigned-queue continuation). No task list is needed from Product Authority; a list sets priority only. Claude Code's mechanics:
+Once Product Authority has set the topic, the run follows the shared law (`docs/governance/AGENT-EXECUTION.md`, Session lifecycle and Assigned-queue continuation) as the topic requires. No task list is needed from Product Authority; a list sets priority only. Claude Code's mechanics:
 
 - **Reading the queue.** Claude Code has no host poller. At every safe task boundary, and on every PR event or scheduled check-in, run these GitHub searches in order (the order and the skip, cycle and repeat rules are in the shared law). Subscribe to PR activity so check failures and reviews arrive as events.
   1. `is:issue is:open label:team:operations label:ops:priority:1,ops:priority:2,ops:priority:3,ops:priority:4`
