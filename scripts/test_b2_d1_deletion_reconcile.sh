@@ -181,7 +181,7 @@ fi
 case "$payload" in
   "PRAGMA table_info(photos);")
     emit '[{"name":"id","type":"INTEGER"},{"name":"url","type":"TEXT"},{"name":"photo_id","type":"TEXT"},{"name":"is_matchup_eligible","type":"INTEGER"},{"name":"rights_notes","type":"TEXT"}]' ;;
-  "SELECT \"photo_id\" AS k FROM photos"*)
+  "SELECT \"photo_id\" AS k"*)
     emit "$FAKE_PHOTO_KEYS" ;;
   "SELECT name FROM sqlite_master"*)
     emit '[{"name":"media_assets"},{"name":"content_items"}]' ;;
@@ -260,6 +260,16 @@ if ! grep -q "UPDATE photos SET is_matchup_eligible = -1" "$RUN_DIR/writes.sql";
 if grep -qE 'DELETE[[:space:]]+FROM' "$RUN_DIR/writes.sql"; then echo "  ✗ FAILED: no hard delete may be issued"; exit 1; fi
 rm -rf "$RUN_DIR"
 echo "  ✓ PASSED (photos row with missing object: retired in Phase 1, finding raised, no delete)"
+
+# Case F (#5523): a bulk-upload row has a content-hash photo_id and the object key only in its URL.
+# It must not be retired while its object is in B2; a row whose object is gone still is.
+run_phase2b 0 '[{"k":"p1.jpg","u":"u1"}]' '[{"k":"p1.jpg"},{"k":"hashabc","u":"https://s3.us-west-004.backblazeb2.com/bucket/p2.jpg?X-Amz-Expires=3600"},{"k":"hashdef","u":"https://s3.us-west-004.backblazeb2.com/bucket/missing.jpg"}]'
+if [[ "$RUN_EXIT" -ne 0 ]]; then echo "  ✗ FAILED (bulk url match): script exited $RUN_EXIT"; cat "$RUN_DIR/stderr"; exit 1; fi
+if grep -q "hashabc" "$RUN_DIR/writes.sql"; then echo "  ✗ FAILED: a row whose URL points at a live object must not be retired"; cat "$RUN_DIR/writes.sql"; exit 1; fi
+if ! grep -q "hashdef" "$RUN_DIR/writes.sql"; then echo "  ✗ FAILED: a row whose object is gone must still be retired"; cat "$RUN_DIR/writes.sql"; exit 1; fi
+if grep -qE 'DELETE[[:space:]]+FROM' "$RUN_DIR/writes.sql"; then echo "  ✗ FAILED: no hard delete may be issued"; exit 1; fi
+rm -rf "$RUN_DIR"
+echo "  ✓ PASSED (hash photo_id with a live object is kept; a gone object is retired)"
 
 echo ""
 echo "============================================"
