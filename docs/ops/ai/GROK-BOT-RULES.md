@@ -82,7 +82,7 @@ Excluded: see HARD LIMITS.
 
 # PILOT
 
-Product Authority set the pilot (#5370): it begins Monday 2026-11-23 and ends Friday 2026-11-27, or sooner.
+Product Authority set the pilot (#5370): it begins Monday 2026-11-30 and ends Friday 2026-12-11, or sooner. Product Authority postponed it on 2026-11-25 (originally 2026-11-23 to 2026-11-27; #5377).
 
 - **Phase 1:** Grok Bot is assigned specific documents.
 - **Phase 2:** Grok Bot is started by events and detects for itself that a document needs updating.
