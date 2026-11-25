@@ -346,8 +346,11 @@ while IFS= read -r new_key; do
     [[ "$HAS_DESC" -eq 1 ]] && { col_list+=",description"; val_list+=",''"; }
     [[ "$HAS_CREATED_AT" -eq 1 ]] && { col_list+=",created_at"; val_list+=",'$esc_uploaded'"; }
 
-    printf 'INSERT INTO photos (%s) SELECT %s WHERE NOT EXISTS (SELECT 1 FROM photos WHERE "%s" = '\''%s'\'');\n' \
-      "$col_list" "$val_list" "$KEY_COL" "$esc_id" >> "$SQL_FILE"
+    # #5518: a row can already exist for this object under a different photo_id
+    # (bulk upload stores the content SHA, not the object key). Also match on the
+    # object URL so the sync never adds a second published row for the same file.
+    printf 'INSERT INTO photos (%s) SELECT %s WHERE NOT EXISTS (SELECT 1 FROM photos WHERE "%s" = '\''%s'\'' OR "%s" = '\''%s'\'');\n' \
+      "$col_list" "$val_list" "$KEY_COL" "$esc_id" "$URL_COL" "$esc_url" >> "$SQL_FILE"
   else
     url="$new_key"
     obj="$(jq --arg u "$url" -c '.objects[] | select(.public_url == $u)' "$OBJECTS_FILE")" || true
