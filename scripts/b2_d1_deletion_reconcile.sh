@@ -311,7 +311,11 @@ fi
 # Read eligible/unreviewed D1 keys that should be reconciled
 # ----------------------------------------------------------------------------
 log "Querying D1 for candidate keys (is_matchup_eligible >= 0)..."
-D1_OUT="$(wrangler_exec command "SELECT \"$KEY_COL\" AS k FROM photos WHERE \"$KEY_COL\" IS NOT NULL AND TRIM(\"$KEY_COL\") != '' AND is_matchup_eligible >= 0;")" || {
+# #5523: in photo_id mode also read each row's URL. Bulk upload stores a content hash in photo_id and the
+# object key only in url, so a photo_id that is not a B2 key does not mean the object is gone.
+URL_SEL=""
+[[ "$KEY_MODE" == "photo_id" ]] && URL_SEL=", \"$URL_COL\" AS u"
+D1_OUT="$(wrangler_exec command "SELECT \"$KEY_COL\" AS k${URL_SEL} FROM photos WHERE \"$KEY_COL\" IS NOT NULL AND TRIM(\"$KEY_COL\") != '' AND is_matchup_eligible >= 0;")" || {
   log "ERROR: Failed SELECT candidate keys"
   log "$D1_OUT"
   exit 3
@@ -337,7 +341,34 @@ EXISTING_COUNT="$(wc -l < "$EXISTING_KEYS_FILE" | tr -d ' ')"
 log "Candidate D1 key count (eligible/unreviewed): $EXISTING_COUNT"
 
 # Keys in D1 but not in B2
-comm -23 "$EXISTING_KEYS_FILE" "$B2_KEYS_FILE" > "$STALE_KEYS_FILE" || true
+if [[ "$KEY_MODE" == "photo_id" ]]; then
+  # #5523: a row is stale only when neither its photo_id nor the object key in its URL is in B2.
+  # Rows with a content-hash photo_id (bulk upload) and a live object are not stale.
+  PAIRS_FILE="$WORKDIR/existing_pairs.tsv"
+  : > "$PAIRS_FILE"
+  if echo "$D1_OUT" | jq -e '.' >/dev/null 2>&1; then
+    echo "$D1_OUT" | jq -r '
+      [.. | arrays?] as $arrs
+      | ($arrs | map(select((.[0]?|type)=="object" and (.[0]?|has("k"))))) as $cands
+      | ($cands[0] // [])
+      | .[]?
+      | [(.k // ""), (.u // "")]
+      | @tsv
+    ' 2>/dev/null >> "$PAIRS_FILE" || true
+  fi
+  awk -F'\t' -v base="${PUBLIC_BASE_URL}/" -v ep="${B2_ENDPOINT%/}/${B2_BUCKET}/" '
+    NR == FNR { live[$0] = 1; next }
+    {
+      k = $1; u = $2
+      sub(/\?.*/, "", u)
+      if (index(u, base) == 1) u = substr(u, length(base) + 1)
+      else if (index(u, ep) == 1) u = substr(u, length(ep) + 1)
+      if (k != "" && !(k in live) && !(u in live)) print k
+    }
+  ' "$B2_KEYS_FILE" "$PAIRS_FILE" | LC_ALL=C sort -u > "$STALE_KEYS_FILE" || true
+else
+  comm -23 "$EXISTING_KEYS_FILE" "$B2_KEYS_FILE" > "$STALE_KEYS_FILE" || true
+fi
 STALE_COUNT="$(wc -l < "$STALE_KEYS_FILE" | tr -d ' ')"
 log "Stale keys to retire: $STALE_COUNT"
 
