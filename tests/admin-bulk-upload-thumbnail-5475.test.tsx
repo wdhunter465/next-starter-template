@@ -11,6 +11,16 @@ vi.mock('next/link', () => ({
   ),
 }));
 
+// #5526: jsdom has no createImageBitmap, so the in-browser JPEG conversion is replaced by a
+// pass-through here. The conversion itself is covered in tests/bulk-photo-convert-5526.test.ts.
+vi.mock('../src/lib/bulkPhotoConvert', () => ({
+  convertToJpeg: async (file: File) => ({
+    file,
+    original: { name: file.name, format: 'jpeg', width: 100, height: 100, bytes: file.size, cameraData: true },
+    resized: false,
+  }),
+}));
+
 import BulkPhotoUploadPanel, { THUMBNAIL_STATUSES, wantsThumbnail } from '../src/components/admin/BulkPhotoUploadPanel';
 
 // #5475: a failed upload shows a thumbnail made from the local file.

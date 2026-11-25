@@ -104,6 +104,8 @@ export function classifyBulkScreenshot(input: {
   format: PhotoUploadImageFormat;
   dimensions: PhotoUploadDimensions | null;
   bytes: Uint8Array;
+  /** #5526: camera data read from the original file when the browser converted it. */
+  cameraData?: boolean;
 }): ScreenshotClassification {
   return classifyScreenshot(input);
 }
