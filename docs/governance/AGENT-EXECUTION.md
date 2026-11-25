@@ -493,9 +493,9 @@ Every product-specific startup contract must, at minimum:
 7. Read the complete mandatory authority chain from `AGENTS.md`.
 8. Read the product-specific rules file.
 9. Read the orientation digest, `context.md`: the stack, the vendors, and where the design and platform authorities live. It orients at a high level; follow its pointers when a task needs the detail.
-10. Report only explicitly supplied active context — no queue audit, no inferred work. This "no queue audit" rule applies only inside the startup steps themselves; reading the queue in Session lifecycle phase 2 is not a breach of it.
+10. Report only explicitly supplied active context — no queue audit, no inferred work. This "no queue audit" rule applies only inside the startup steps themselves; reading the queue in Session lifecycle phase 2 is not a breach of it. A product rules file may add a read-only catch-up report after these steps (Claude Code: `docs/ops/ai/CLAUDE-CODE-RULES.md`, Startup); the catch-up authorizes no work.
 11. Determine and report whether any work is authorized (it is not, by startup alone).
-12. End startup. Startup has made no claim, edit, or GitHub change. Begin Session lifecycle phase 2 in the same turn.
+12. End startup. Startup has made no claim, edit, or GitHub change. Begin Session lifecycle phase 2 in the same turn, except Claude Code: after its startup and catch-up reports it waits for Product Authority to set the session topic (Product Authority, 2026-11-24, #5513).
 
 ## Startup provenance invariant
 
@@ -507,7 +507,7 @@ This grounding requirement remains in force after startup for every LGFC factual
 
 Regardless of product, startup completion never authorizes:
 
-- queue or backlog audits;
+- queue or backlog audits (the Claude Code catch-up is a read-only report and authorizes no work);
 - inferred next work;
 - issue or PR administration;
 - branch creation, file edits, commits, or pushes;
@@ -524,7 +524,7 @@ A source Issue, its acceptance criteria, an exact file-touch allowlist, the appl
 
 A working session has three phases, in this order. This section is the only statement of the sequence; product rules files add their own mechanics and do not redefine the phases.
 
-1. **Run startup: orientation only.** The agent identifies its product and roles, confirms access, reads the authority chain, its product file and the orientation digest, reports that startup authorizes no work, and ends startup (Shared startup steps above). Ending startup is not going idle: phase 2 begins in the same turn (#5012).
+1. **Run startup: orientation only.** The agent identifies its product and roles, confirms access, reads the authority chain, its product file and the orientation digest, reports that startup authorizes no work, and ends startup (Shared startup steps above). Ending startup is not going idle: phase 2 begins in the same turn (#5012). Claude Code is the exception: after its startup and catch-up reports it waits for Product Authority to set the session topic, then phase 2 and the continuous run follow as the topic requires (#5513).
 2. **Work list (#4982).** The agent reads its working list from GitHub, in the queue order of Assigned-queue continuation; it is not defined again each session. Product Authority may define or reorder a priority list at any time. Such a list sets priority and is never a precondition to work. A read-only look at the Operations queue may inform the list; that look authorizes no claim, edit or PR. A task is **ready** when it has a source Issue, acceptance criteria, an exact file allowlist, role authority and an explicit implementation Go recorded. The `status:ready` label records that. A task inside a graduated Project's prepared child graph is ready without the label (standing authority, below).
 3. **Continuous run.** The agent works the list without being re-prompted:
    - it prepares each assigned task to a ready-to-merge PR, then starts the next eligible task while that PR waits (Assigned-queue continuation, above);
