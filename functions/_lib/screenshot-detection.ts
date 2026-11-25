@@ -17,6 +17,12 @@ export type ScreenshotDetectionInput = {
   format: PhotoUploadImageFormat;
   dimensions: PhotoUploadDimensions | null;
   bytes: Uint8Array;
+  /**
+   * #5526: when the browser converted the file to JPEG before upload, the stored bytes carry no
+   * EXIF. The page reads the original file and sends whether it had camera data. When set, this
+   * replaces the byte scan.
+   */
+  cameraData?: boolean;
 };
 
 const SCREENSHOT_NAME_PATTERN = /screen[\s_-]?shot|screen[\s_-]?capture|screen[\s_-]?grab|screen[\s_-]?recording/i;
@@ -104,7 +110,8 @@ export function classifyScreenshot(input: ScreenshotDetectionInput): ScreenshotC
     return { verdict: 'deny', reasons: ['file name says screenshot'] };
   }
 
-  const cameraData = hasCameraData(input.bytes, input.format);
+  const cameraData =
+    typeof input.cameraData === 'boolean' ? input.cameraData : hasCameraData(input.bytes, input.format);
   const screenSized = matchesScreenSize(input.dimensions);
 
   if (!cameraData && screenSized && input.format === 'png') {

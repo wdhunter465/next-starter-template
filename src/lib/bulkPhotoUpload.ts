@@ -32,6 +32,8 @@ export type UploadFileResult = {
   identicalPhashPhotoId?: number | null;
   nearDuplicateMatches?: Array<{ photoId: number; distance: number }>;
   httpStatus?: number;
+  /** #5526: true when trying again could succeed (network failure, 429, 5xx). */
+  retryable?: boolean;
 };
 
 export type NearDuplicateMatchField = { photoId: number; distance: number };
@@ -146,6 +148,17 @@ export function buildBulkUploadFormData(input: {
   batchId: string;
   rightsClass: BulkRightsClass;
   source?: string;
+  /** #5526: facts about the file as picked, sent when the browser converted it to JPEG. */
+  original?: {
+    name: string;
+    format: 'jpeg' | 'png' | 'webp';
+    width: number;
+    height: number;
+    bytes: number;
+    cameraData: boolean;
+  };
+  /** #5526: batch setting "Include screenshots". */
+  allowScreenshots?: boolean;
 }): FormData {
   const form = new FormData();
   form.append('file', input.file, input.file.name);
@@ -154,8 +167,32 @@ export function buildBulkUploadFormData(input: {
   if (input.rightsClass === 'someone_elses' && input.source) {
     form.append('source', input.source);
   }
+  if (input.original) {
+    form.append('client_converted', '1');
+    form.append('original_name', input.original.name);
+    form.append('original_format', input.original.format);
+    form.append('original_width', String(input.original.width));
+    form.append('original_height', String(input.original.height));
+    form.append('original_bytes', String(input.original.bytes));
+    form.append('original_camera_data', input.original.cameraData ? '1' : '0');
+  }
+  if (input.allowScreenshots) form.append('allow_screenshots', '1');
   // Never send publish.
   return form;
+}
+
+/** 429 and 5xx can succeed on a later try. Every other non-OK answer is a refusal of the file. */
+export function isRetryableHttpStatus(status: number): boolean {
+  return status === 429 || (status >= 500 && status <= 599);
+}
+
+/**
+ * #5526: rows the "Retry failed" button resubmits. Refused files (screenshot rule, bad image, too
+ * large) would be refused again, so they are left alone. Failed and cancelled rows can succeed.
+ */
+export function isRetryWorkResult(result: UploadFileResult | null | undefined): boolean {
+  if (!result) return false;
+  return result.status === 'failed' || result.status === 'cancelled';
 }
 
 export function classifyUploadResponse(
@@ -174,7 +211,11 @@ export function classifyUploadResponse(
     return { ...base, status: 'cancelled', error: 'cancelled' };
   }
   if (result.status === 0) {
-    return { ...base, status: 'failed', error: result.error || 'Network failure.' };
+    return { ...base, status: 'failed', error: result.error || 'Network failure.', retryable: true };
+  }
+  if (!result.ok && isRetryableHttpStatus(result.status)) {
+    // #5526: a server or storage hiccup is not a refusal of the file. Show it as failed.
+    return { ...base, status: 'failed', error: result.error, retryable: true };
   }
   if (!result.ok) {
     const data = result.data || {};
@@ -308,9 +349,28 @@ export type QueueItem = {
   result: UploadFileResult | null;
 };
 
+export const AUTO_RETRY_LIMIT = 2;
+export const AUTO_RETRY_BASE_DELAY_MS = 1500;
+
+function defaultSleep(ms: number, signal: AbortSignal): Promise<void> {
+  return new Promise((resolve) => {
+    if (signal.aborted) return resolve();
+    const timer = setTimeout(resolve, ms);
+    signal.addEventListener(
+      'abort',
+      () => {
+        clearTimeout(timer);
+        resolve();
+      },
+      { once: true },
+    );
+  });
+}
+
 /**
  * Run uploads with concurrency limit. Calls `onItem` after each completes.
- * Stops the whole run on 401/403. Does not auto-retry 4xx.
+ * Stops the whole run on 401/403. Never retries a refusal (4xx). #5526: retries a retryable
+ * failure (network, 429, 5xx) up to AUTO_RETRY_LIMIT times with a growing pause.
  */
 export async function runUploadQueue(input: {
   items: QueueItem[];
@@ -318,8 +378,12 @@ export async function runUploadQueue(input: {
   signal: AbortSignal;
   uploadOne: (item: QueueItem, signal: AbortSignal) => Promise<UploadFileResult>;
   onItem: (itemId: string, result: UploadFileResult) => void;
+  sleep?: (ms: number, signal: AbortSignal) => Promise<void>;
+  retryLimit?: number;
 }): Promise<{ stoppedAuth: boolean }> {
   const pending = [...input.items];
+  const sleep = input.sleep ?? defaultSleep;
+  const retryLimit = input.retryLimit ?? AUTO_RETRY_LIMIT;
   let stoppedAuth = false;
   let index = 0;
 
@@ -328,7 +392,14 @@ export async function runUploadQueue(input: {
       const i = index++;
       if (i >= pending.length) return;
       const item = pending[i];
-      const result = await input.uploadOne(item, input.signal);
+      let result = await input.uploadOne(item, input.signal);
+      let attempt = 0;
+      while (result.retryable && attempt < retryLimit && !input.signal.aborted) {
+        attempt += 1;
+        await sleep(AUTO_RETRY_BASE_DELAY_MS * attempt, input.signal);
+        if (input.signal.aborted) break;
+        result = await input.uploadOne(item, input.signal);
+      }
       if (result.httpStatus === 401 || result.httpStatus === 403) {
         stoppedAuth = true;
       }
