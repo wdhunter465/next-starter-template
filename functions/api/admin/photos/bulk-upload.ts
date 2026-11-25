@@ -37,17 +37,56 @@ function bulkB2ObjectUrl(cfg: B2Bindings, key: string): string {
   return `${cfg.B2_ENDPOINT}/${pathBucket}/${pathKey}`;
 }
 
+type OriginalFacts = {
+  name: string;
+  format: 'jpeg' | 'png' | 'webp';
+  width: number | null;
+  height: number | null;
+  bytes: number | null;
+  cameraData: boolean;
+};
+
+function asPositiveInt(value: unknown): number | null {
+  const n = Number(typeof value === 'string' ? value.trim() : NaN);
+  return Number.isInteger(n) && n > 0 && n <= 1_000_000_000 ? n : null;
+}
+
+/**
+ * #5526: the admin page converts every photo to JPEG in the browser and sends facts about the
+ * file it started with. The screenshot check must see those, because conversion drops the PNG
+ * format, the camera data and the exact screen size. Admin-only endpoint, so the facts are trusted.
+ */
+export function readOriginalFacts(form: FormData): OriginalFacts | null {
+  if (asTrimmed(form.get('client_converted')) !== '1') return null;
+  const format = asTrimmed(form.get('original_format')).toLowerCase();
+  if (format !== 'jpeg' && format !== 'png' && format !== 'webp') return null;
+  const name = asTrimmed(form.get('original_name')).slice(0, 255);
+  if (!name) return null;
+  return {
+    name,
+    format,
+    width: asPositiveInt(form.get('original_width')),
+    height: asPositiveInt(form.get('original_height')),
+    bytes: asPositiveInt(form.get('original_bytes')),
+    cameraData: asTrimmed(form.get('original_camera_data')) === '1',
+  };
+}
+
 function buildTags(input: {
   batchId: string;
   perceptualHash: string | null;
   screenshotVerdict: string;
   flatCopyFlagged: boolean;
+  original: OriginalFacts | null;
+  screenshotAllowed: boolean;
 }): string {
   const parts = [
     `bulk_batch:${input.batchId}`,
     input.perceptualHash ? `phash:${input.perceptualHash}` : null,
     `screenshot:${input.screenshotVerdict}`,
+    input.screenshotAllowed ? 'screenshot_allowed' : null,
     input.flatCopyFlagged ? 'flat_copy_review' : null,
+    input.original ? `original_format:${input.original.format}` : null,
   ].filter(Boolean);
   return parts.join(',');
 }
@@ -64,9 +103,22 @@ function buildRightsNotes(input: {
   flatCopyReasons: string[];
   identicalPhashPhotoId: number | null;
   nearDuplicateMatches: BulkNearDuplicateMatch[];
+  original: OriginalFacts | null;
+  screenshotAllowed: boolean;
 }): string {
   return JSON.stringify({
     bulk_batch_id: input.batchId,
+    original: input.original
+      ? {
+          name: input.original.name,
+          format: input.original.format,
+          width: input.original.width,
+          height: input.original.height,
+          bytes: input.original.bytes,
+          camera_data: input.original.cameraData,
+        }
+      : null,
+    screenshot_allowed: input.screenshotAllowed,
     b2_key: input.b2Key,
     rights_class: input.rightsClass,
     rights_holder: input.rightsHolder,
@@ -143,12 +195,26 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     return jsonResponse({ ok: false, error: validated.error, code: validated.code }, 400);
   }
 
-  const screenshot = classifyBulkScreenshot({
-    fileName,
-    format: validated.format,
-    dimensions: validated.dimensions,
+  const original = readOriginalFacts(form);
+  const allowScreenshots = asTrimmed(form.get('allow_screenshots')) === '1';
+  const checkName = original ? original.name : fileName;
+
+  let screenshot = classifyBulkScreenshot({
+    fileName: checkName,
+    format: original ? original.format : validated.format,
+    dimensions:
+      original && original.width && original.height
+        ? { width: original.width, height: original.height }
+        : validated.dimensions,
     bytes,
+    cameraData: original ? original.cameraData : undefined,
   });
+  let screenshotAllowed = false;
+  if (screenshot.verdict === 'deny' && allowScreenshots) {
+    // #5526 batch setting "Include screenshots": store for a person to keep or reject.
+    screenshot = { verdict: 'check', reasons: [...screenshot.reasons, 'allowed by the batch setting'] };
+    screenshotAllowed = true;
+  }
   if (screenshot.verdict === 'deny') {
     return jsonResponse({
       ok: false,
@@ -158,7 +224,7 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     }, 400);
   }
 
-  const flatCopy = flagFlatCopyLookAlike(fileName);
+  const flatCopy = flagFlatCopyLookAlike(checkName);
   const contentSha = await sha256Hex(bytes);
 
   const exact = await d1.db
@@ -230,6 +296,8 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     perceptualHash,
     screenshotVerdict: screenshot.verdict,
     flatCopyFlagged: flatCopy.flagged,
+    original,
+    screenshotAllowed,
   });
   const rightsNotes = buildRightsNotes({
     batchId,
@@ -243,6 +311,8 @@ export const onRequestPost = async (context: any): Promise<Response> => {
     flatCopyReasons: flatCopy.reasons,
     identicalPhashPhotoId,
     nearDuplicateMatches,
+    original,
+    screenshotAllowed,
   });
 
   const insert = await d1.db
@@ -257,7 +327,7 @@ export const onRequestPost = async (context: any): Promise<Response> => {
       contentSha,
       url,
       sourceValue,
-      fileName,
+      checkName,
       tags,
       rightsNotes,
       'bulk_upload_unpublished',

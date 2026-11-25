@@ -9,6 +9,7 @@ import {
   classifyUploadResponse,
   isAcceptedImageFile,
   isHeicClientFileName,
+  isRetryWorkResult,
   isValidBulkBatchId,
   resultsToCsv,
   resultsToJson,
@@ -19,6 +20,7 @@ import {
   type QueueItem,
   type UploadFileResult,
 } from '@/lib/bulkPhotoUpload';
+import { convertToJpeg } from '@/lib/bulkPhotoConvert';
 
 const CONCURRENCY = 3;
 const ENDPOINT = '/api/admin/photos/bulk-upload';
@@ -78,6 +80,7 @@ export default function BulkPhotoUploadPanel() {
   const [batchId, setBatchId] = useState(() => suggestBatchId());
   const [rightsClass, setRightsClass] = useState<BulkRightsClass>('lgfc_collection');
   const [source, setSource] = useState('');
+  const [allowScreenshots, setAllowScreenshots] = useState(false);
   const [items, setItems] = useState<QueueItem[]>([]);
   const [status, setStatus] = useState('Set batch options, then drop files.');
   const [running, setRunning] = useState(false);
@@ -127,11 +130,27 @@ export default function BulkPhotoUploadPanel() {
 
   const uploadOne = useCallback(
     async (item: QueueItem, signal: AbortSignal): Promise<UploadFileResult> => {
+      // #5526: every photo is re-encoded as a capped JPEG in the browser. The original file's
+      // format, size and camera data are sent so the screenshot check still sees the original.
+      let converted: Awaited<ReturnType<typeof convertToJpeg>>;
+      try {
+        converted = await convertToJpeg(item.file);
+      } catch (err) {
+        return {
+          fileName: item.file.name,
+          status: 'rejected',
+          error: err instanceof Error ? err.message : 'Could not convert the image.',
+          batchId,
+          rightsClass,
+        };
+      }
       const form = buildBulkUploadFormData({
-        file: item.file,
+        file: converted.file,
         batchId,
         rightsClass,
         source: rightsClass === 'someone_elses' ? source : undefined,
+        original: converted.original,
+        allowScreenshots,
       });
       // Guard: never attach publish
       if (form.has('publish') || form.has('published')) {
@@ -146,7 +165,7 @@ export default function BulkPhotoUploadPanel() {
       const raw = await adminMultipartUpload(ENDPOINT, form, { signal });
       return classifyUploadResponse(item.file.name, raw, { batchId, rightsClass });
     },
-    [batchId, rightsClass, source],
+    [batchId, rightsClass, source, allowScreenshots],
   );
 
   const startRun = useCallback(
@@ -162,13 +181,15 @@ export default function BulkPhotoUploadPanel() {
 
       const work = items.filter((i) => {
         if (!onlyFailed) return !i.result || i.result.status === 'queued';
-        return (
-          i.result &&
-          (i.result.status === 'failed' || i.result.status === 'rejected' || i.result.status === 'cancelled')
-        );
+        // #5526: refused files would be refused again; only failed and cancelled rows are retried.
+        return isRetryWorkResult(i.result);
       });
       if (!work.length) {
-        setStatus(onlyFailed ? 'No failed items to retry.' : 'No queued files.');
+        setStatus(
+          onlyFailed
+            ? 'Nothing to retry. Refused files need a different file or a changed setting, not a retry.'
+            : 'No queued files.',
+        );
         return;
       }
 
@@ -272,6 +293,22 @@ export default function BulkPhotoUploadPanel() {
             />
           </label>
         )}
+        <label style={{ display: 'flex', gap: 8, alignItems: 'flex-start', marginTop: 10 }}>
+          <input
+            type="checkbox"
+            checked={allowScreenshots}
+            disabled={running}
+            onChange={(e) => setAllowScreenshots(e.target.checked)}
+          />
+          <span>
+            Include screenshots. Screenshot-like files are stored for review as &quot;check these&quot;
+            instead of being refused. Nothing is published.
+          </span>
+        </label>
+        <p style={{ margin: '8px 0 0', opacity: 0.85 }}>
+          Every photo is converted to JPEG here in the browser and its long edge is capped at 4000 px
+          before upload.
+        </p>
       </fieldset>
 
       <div

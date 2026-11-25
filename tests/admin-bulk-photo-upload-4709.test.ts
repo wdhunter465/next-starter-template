@@ -429,4 +429,92 @@ describe('POST /api/admin/photos/bulk-upload (#4709)', () => {
     );
     expect(notes.near_duplicate_matches.length).toBeGreaterThanOrEqual(1);
   });
+
+  describe('browser-converted uploads (#5526)', () => {
+    const CONVERTED = { bytes: ORDINARY_PNG, name: 'clip.jpg', type: 'image/png' };
+    const screenSizedPngFacts = {
+      client_converted: '1',
+      original_name: 'IMG_0042.PNG',
+      original_format: 'png',
+      original_width: '1170',
+      original_height: '2532',
+      original_bytes: '2400000',
+      original_camera_data: '0',
+    };
+
+    async function post(extra: Record<string, string>) {
+      const { sqlite, db } = freshDb();
+      seedAdminSession(sqlite);
+      mockB2Put();
+      const res = await onRequestPost({
+        request: formRequest(
+          { batch_id: 'b9', rights_class: 'lgfc_collection', ...extra },
+          CONVERTED,
+          ADMIN_SESSION_COOKIE,
+        ),
+        env: { DB: withAdminSession(db), ...B2_ENV },
+      });
+      return { res, sqlite };
+    }
+
+    it('judges the screenshot rule on the original file, not the converted JPEG', async () => {
+      const { res } = await post(screenSizedPngFacts);
+      expect(res.status).toBe(400);
+      const body = await res.json();
+      expect(body.code).toBe('screenshot_denied');
+      expect(body.reasons).toContain('PNG at an exact screen size with no camera data');
+    });
+
+    it('does not deny a screen-sized original that has camera data', async () => {
+      const { res } = await post({ ...screenSizedPngFacts, original_camera_data: '1' });
+      expect(res.status).toBe(201);
+    });
+
+    it('"Include screenshots" stores a denied screenshot as check, tagged and unpublished', async () => {
+      const { res, sqlite } = await post({ ...screenSizedPngFacts, allow_screenshots: '1' });
+      expect(res.status).toBe(201);
+      const body = await res.json();
+      expect(body.screenshot).toBe('check');
+      expect(body.screenshot_reasons).toContain('allowed by the batch setting');
+      const row = sqlite
+        .prepare('SELECT tags, description, rights_hold, publication_eligible, rights_notes FROM photos')
+        .get() as { tags: string; description: string; rights_hold: number; publication_eligible: number; rights_notes: string };
+      expect(row.tags).toContain('screenshot:check');
+      expect(row.tags).toContain('screenshot_allowed');
+      expect(row.tags).toContain('original_format:png');
+      expect(row.description).toBe('IMG_0042.PNG');
+      expect(row.rights_hold).toBe(1);
+      expect(row.publication_eligible).toBe(0);
+      const notes = JSON.parse(row.rights_notes);
+      expect(notes.original.format).toBe('png');
+      expect(notes.original.width).toBe(1170);
+      expect(notes.screenshot_allowed).toBe(true);
+    });
+
+    it('still denies a screenshot file name from the original when converted', async () => {
+      const { res } = await post({ ...screenSizedPngFacts, original_name: 'Screenshot 2026-11-25.png', original_camera_data: '1' });
+      expect(res.status).toBe(400);
+    });
+
+    it('ignores original facts unless client_converted is 1', async () => {
+      const { res } = await post({ ...screenSizedPngFacts, client_converted: '0' });
+      expect(res.status).toBe(201);
+    });
+
+    it('"Include screenshots" without conversion facts also stores a denied name as check', async () => {
+      const { sqlite, db } = freshDb();
+      seedAdminSession(sqlite);
+      mockB2Put();
+      const res = await onRequestPost({
+        request: formRequest(
+          { batch_id: 'b10', rights_class: 'lgfc_collection', allow_screenshots: '1' },
+          { bytes: ORDINARY_PNG, name: 'Screenshot 2026-11-20.png', type: 'image/png' },
+          ADMIN_SESSION_COOKIE,
+        ),
+        env: { DB: withAdminSession(db), ...B2_ENV },
+      });
+      expect(res.status).toBe(201);
+      expect((await res.json()).screenshot).toBe('check');
+    });
+  });
 });
