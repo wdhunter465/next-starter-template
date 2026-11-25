@@ -1,0 +1,51 @@
+{
+  "schema": "social_audit_day/1",
+  "date": "2026-11-25",
+  "records": [
+    {
+      "schema": "social_post_evidence/1",
+      "post_id": "2026-11-25-daily",
+      "platform": "x",
+      "origin": "queue",
+      "version": 1,
+      "scheduled_for": "2026-11-25T10:00:00-05:00",
+      "text": "Looking for something on the Lou Gehrig Fan Club website? Search it for Gehrig history and club pages. The relaunch is coming in 2027.\n\nExplore his story with the Lou Gehrig Fan Club:\nhttps://lougehrigfanclub.com",
+      "text_sha256": "291ab205b182ee6ee5b6a97ec042252ac9d1ecc610b8ba9d025d1d199a9c6081",
+      "photo": {
+        "photo_id": 859,
+        "variant": "original",
+        "image_url": "https://www.lougehrigfanclub.com/api/social/image/2026-11-25-daily",
+        "image_sha256": "c45b3d44ca254e3b33d3b59f850ab1ba9b6cdde3b79f9dfd8a9b5d63f4e5846a",
+        "image_bytes": 379403,
+        "width": 1024,
+        "height": 768,
+        "alt_text": "Black-and-white photo of four baseball players standing side by side in a ballpark. The two in the middle wear Yankees jerseys and the two on the ends wear jerseys with a large \"A\". The third player from the left holds a glove.",
+        "rights_check": {
+          "verdict": "cleared",
+          "source": "data/social-post-queue.json rights_cleared_photo_ids and held_photo_ids",
+          "checked_at_utc": "2026-11-25T15:04:13.667+00:00"
+        }
+      },
+      "status": "confirmed",
+      "attempts": [
+        {
+          "at_utc": "2026-11-25T15:04:13.667Z",
+          "by": "GitHub job \"Social Post to X\"",
+          "outcome": "ok",
+          "detail": "Buffer reports the post sent at 2026-11-25T15:04:18.430Z"
+        }
+      ],
+      "platform_record": {
+        "post_id": "6b06f8f05eca991e76771509",
+        "url": null,
+        "created_at_utc": "2026-11-25T15:04:18.430Z",
+        "created_at_new_york": "2026-11-25T10:04:18-05:00"
+      },
+      "verified": {
+        "on": "2026-11-25",
+        "by": "GitHub job \"Social Post to X\"",
+        "method": "Buffer get_post after create_post"
+      }
+    }
+  ]
+}
