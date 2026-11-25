@@ -154,7 +154,7 @@ export async function convertToJpeg(
     canvas.height = size.height;
     const ctx = canvas.getContext('2d');
     if (!ctx) throw new Error('This browser could not prepare the image.');
-    ctx.fillStyle = '#ffffff';
+    ctx.fillStyle = 'white';
     ctx.fillRect(0, 0, size.width, size.height);
     ctx.imageSmoothingQuality = 'high';
     ctx.drawImage(bitmap, 0, 0, size.width, size.height);
