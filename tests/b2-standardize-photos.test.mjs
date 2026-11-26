@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import sharp from 'sharp';
 import { describe, expect, it } from 'vitest';
-import { convertBuffer, d1CountSql, jpgKeyFor, planFor, renderMarkdown, repointSql, run } from '../scripts/ops/b2-standardize-photos.mjs';
+import { convertBuffer, d1CountSql, execRetry, jpgKeyFor, planFor, renderMarkdown, repointSql, run } from '../scripts/ops/b2-standardize-photos.mjs';
 
 const keys = new Set(['a.png']);
 
@@ -17,9 +17,8 @@ describe('planFor', () => {
   it('converts a PNG to a new .jpg key', () => {
     expect(planFor({ key: 'bulk/b/x.png', bytes: 1e6, format: 'png', width: 100, height: 100, objectKeys: keys })).toEqual({ action: 'convert', newKey: 'bulk/b/x.jpg' });
   });
-  it('flags when the target key exists, and for transparency', () => {
+  it('flags when the target key exists', () => {
     expect(planFor({ key: 'a.png', bytes: 1, format: 'png', width: 1, height: 1, objectKeys: new Set(['a.jpg']) }).action).toBe('flag');
-    expect(planFor({ key: 'a.png', bytes: 1, format: 'png', width: 1, height: 1, objectKeys: keys, transparent: true }).action).toBe('flag');
   });
   it('leaves objects with no D1 row alone', () => {
     expect(planFor({ key: 'a.png', bytes: 1, format: 'png', width: 1, height: 1, objectKeys: keys, d1Matched: false }).action).toBe('skip');
@@ -37,6 +36,15 @@ describe('sql', () => {
   it('jpgKeyFor handles dots in folders', () => {
     expect(jpgKeyFor('a.b/c.PNG')).toBe('a.b/c.jpg');
     expect(jpgKeyFor('a.b/c')).toBe('a.b/c.jpg');
+  });
+});
+
+describe('execRetry', () => {
+  it('retries, then reports the stderr tail', () => {
+    let n = 0;
+    const exec = () => { n++; const e = new Error('Command failed: aws ...'); e.stderr = 'x\nAn error occurred (NoSuchKey)'; throw e; };
+    expect(() => execRetry(exec, 'aws', [])).toThrow('NoSuchKey');
+    expect(n).toBe(3);
   });
 });
 

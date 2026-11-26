@@ -10,7 +10,7 @@
  *   3. PNG / WebP: writes `<name>.jpg`, repoints the D1 `photos` row (photo_id and url) to it, checks the
  *      row now points there, and only then deletes the old object (so the daily sync cannot re-add it).
  *
- * Anything that cannot be standardized is listed under "Needs attention" with the reason, so the person
+ * Transparent PNGs are flattened onto white. Anything that cannot be standardized is listed under "Needs attention" with the reason, so the person
  * can see the current photo and re-upload it. Objects with no D1 `photos` row are never touched when
  * applying (logos and site assets live in the same bucket).
  *
@@ -37,7 +37,7 @@ export function jpgKeyFor(key) {
 }
 
 /** Decide what to do with one object from its facts. Pure. */
-export function planFor({ key, bytes, format, width, height, objectKeys, d1Matched, transparent = false }) {
+export function planFor({ key, bytes, format, width, height, objectKeys, d1Matched }) {
   const ext = extensionOf(key);
   const longEdge = Math.max(width, height);
   const isJpegKey = ext === 'jpg' || ext === 'jpeg';
@@ -45,7 +45,6 @@ export function planFor({ key, bytes, format, width, height, objectKeys, d1Match
   if (compliant) return { action: 'ok' };
   if (d1Matched === false) return { action: 'skip', flag: 'No photos row in D1: left alone (site asset or unsynced file)' };
   if (isJpegKey && format === 'jpeg') return { action: 'rewrite', newKey: key };
-  if (transparent) return { action: 'flag', flag: 'Has transparency (logo or graphic): JPEG would put it on white. Your decision' };
   const newKey = jpgKeyFor(key);
   if (objectKeys.has(newKey) && newKey !== key) return { action: 'flag', flag: `Cannot convert: ${newKey} already exists in B2` };
   return { action: 'convert', newKey };
@@ -97,6 +96,20 @@ export async function convertBuffer(sharp, input) {
   return { format: meta.format, width, height, out: last };
 }
 
+/** Run an aws call, retrying twice; errors carry the tail of stderr, not the command line. */
+export function execRetry(exec, cmd, args, tries = 3) {
+  let last;
+  for (let i = 0; i < tries; i++) {
+    try {
+      return exec(cmd, args);
+    } catch (error) {
+      last = error;
+    }
+  }
+  const detail = String(last?.stderr || last?.message || last).trim().split('\n').pop().slice(-200);
+  throw new Error(detail);
+}
+
 const mb = (n) => `${(n / 1024 / 1024).toFixed(2)} MB`;
 
 export async function run({ endpoint, bucket, prefix = '', limit = 0, apply = false, backupDir, exec, d1, log = () => {} }) {
@@ -110,16 +123,17 @@ export async function run({ endpoint, bucket, prefix = '', limit = 0, apply = fa
     const row = { key, before: size, action: 'ok', flag: null };
     try {
       const src = join(tmp, 'src.bin');
-      exec('aws', ['s3api', 'get-object', '--endpoint-url', endpoint, '--bucket', bucket, '--key', key, src]);
+      execRetry(exec, 'aws', ['s3api', 'get-object', '--endpoint-url', endpoint, '--bucket', bucket, '--key', key, src]);
       const input = readFileSync(src);
       const probe = await sharp(input, { failOn: 'none' }).metadata();
       const swap = (probe.orientation ?? 1) >= 5;
       const w = swap ? probe.height : probe.width;
       const h = swap ? probe.width : probe.height;
-      const transparent = probe.format !== 'jpeg' && probe.hasAlpha ? (await sharp(input, { failOn: 'none' }).stats()).isOpaque === false : false;
+      const flattened = probe.format !== 'jpeg' && probe.hasAlpha ? (await sharp(input, { failOn: 'none' }).stats()).isOpaque === false : false;
       let d1Matched;
       if (apply && d1) d1Matched = d1.count(key) > 0;
-      const plan = planFor({ key, bytes: size, format: probe.format, width: w, height: h, objectKeys, d1Matched, transparent });
+      const plan = planFor({ key, bytes: size, format: probe.format, width: w, height: h, objectKeys, d1Matched });
+      if (flattened) row.note = 'transparency flattened onto white';
       Object.assign(row, { action: plan.action, flag: plan.flag ?? null, newKey: plan.newKey, from: `${w}x${h} ${probe.format}` });
       if (plan.action === 'rewrite' || plan.action === 'convert') {
         const c = await convertBuffer(sharp, input);
@@ -149,7 +163,7 @@ export async function run({ endpoint, bucket, prefix = '', limit = 0, apply = fa
       }
     } catch (error) {
       row.action = 'flag';
-      row.flag = `Could not process: ${String(error?.message ?? error).slice(0, 160)}`;
+      row.flag = `Could not process: ${String(error?.message ?? error).slice(0, 220)}`;
     }
     rows.push(row);
     log(`${row.action.padEnd(8)} ${key}${row.flag ? `  [${row.flag}]` : ''}`);
