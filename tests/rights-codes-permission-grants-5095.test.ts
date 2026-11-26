@@ -176,7 +176,8 @@ describe('permission grants and the computed status (#5095)', () => {
     grant(db, { party: 'yankees', status: 'not_in_purview', permitted_website: 0, permitted_social: 0 });
     expect(status(db, id)).toMatchObject({ website: 'permitted' });
     db.exec(fs.readFileSync(path.join(process.cwd(), 'scripts/ops/rollback/0065_archive_acquisition_core_rollback.sql'), 'utf8'));
-    expect((db.prepare('SELECT COUNT(*) AS n FROM permission_grants').get() as { n: number }).n).toBe(3);
+    // The three grants added above; migration 0103 (#5226) also seeds one 'eig' grant, which is not counted here.
+    expect((db.prepare("SELECT COUNT(*) AS n FROM permission_grants WHERE party <> 'eig'").get() as { n: number }).n).toBe(3);
     expect(status(db, id)).toMatchObject({ website: 'permitted', social: 'permitted' });
     const views = db.prepare("SELECT name FROM sqlite_master WHERE type = 'view' AND name IN ('content_item_party_grants', 'content_item_permission_status', 'permission_grant_matches') ORDER BY name").all().map((r) => (r as { name: string }).name);
     expect(views).toEqual(['content_item_party_grants', 'content_item_permission_status', 'permission_grant_matches']);
