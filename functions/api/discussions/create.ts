@@ -1,49 +1,59 @@
 /**
  * POST /api/discussions/create
- * Create a new discussion post — requires authenticated member session.
+ * Create a topic { title, body, notify? } or a reply { parent_id, body }. Requires a member session. (#5550)
+ *
+ * A reply goes to a topic only (one level deep). A closed or hidden topic refuses replies (409).
+ * The author's email comes from the session, never from the request.
  */
 import { requireMember } from '../../_lib/session';
+import { BODY_MAX, BODY_MIN, TITLE_MAX, TITLE_MIN, cleanText, json } from '../../_lib/discussions';
 
 export async function onRequestPost(ctx: any): Promise<Response> {
   const auth = await requireMember(ctx);
-  if (!auth.ok) {
-    return new Response(JSON.stringify(auth.body), {
-      status: auth.status,
-      headers: { 'Content-Type': 'application/json' },
-    });
-  }
+  if (!auth.ok) return json(auth.body, auth.status);
 
   try {
-    const body = await ctx.request.json();
-    const { title, body: postBody } = body;
+    const input = (await ctx.request.json().catch(() => null)) as any;
+    const postBody = cleanText(input?.body);
+    if (postBody.length < BODY_MIN) return json({ ok: false, error: 'body_required' }, 400);
+    if (postBody.length > BODY_MAX) return json({ ok: false, error: 'body_too_long' }, 400);
 
-    // Validate inputs
-    if (!title || !postBody) {
-      return Response.json({ ok: false, error: 'Title and body are required.' }, { status: 400 });
+    if (input?.parent_id != null) {
+      const parentId = Number(input.parent_id);
+      if (!Number.isInteger(parentId) || parentId <= 0) return json({ ok: false, error: 'invalid_parent' }, 400);
+      const topic = (await auth.db
+        .prepare(`SELECT id, closed_at FROM discussions WHERE id = ?1 AND status = 'posted' AND parent_id IS NULL`)
+        .bind(parentId)
+        .first()) as { id: number; closed_at: string | null } | null;
+      if (!topic) return json({ ok: false, error: 'not_found' }, 404);
+      if (topic.closed_at) return json({ ok: false, error: 'thread_closed' }, 409);
+      const reply = await auth.db
+        .prepare(
+          `INSERT INTO discussions (title, body, author_email, status, created_at, parent_id)
+           VALUES ('', ?1, ?2, 'posted', datetime('now'), ?3)
+           RETURNING id, created_at`,
+        )
+        .bind(postBody, auth.email, parentId)
+        .first();
+      return json({ ok: true, reply });
     }
 
-    // author_email is derived from the authenticated session — never trust client input
-    const author_email = auth.email;
-
-    // Insert into discussions table
-    const result = await auth.db.prepare(
-      `INSERT INTO discussions (title, body, author_email, status, created_at)
-       VALUES (?, ?, ?, 'posted', datetime('now'))
-       RETURNING id, title, body, author_email, created_at`
-    )
-      .bind(title, postBody, author_email)
+    const title = cleanText(input?.title);
+    if (title.length < TITLE_MIN) return json({ ok: false, error: 'title_required' }, 400);
+    if (title.length > TITLE_MAX) return json({ ok: false, error: 'title_too_long' }, 400);
+    const notify = input?.notify === false ? 0 : 1;
+    const topic = await auth.db
+      .prepare(
+        `INSERT INTO discussions (title, body, author_email, status, created_at, notify_author)
+         VALUES (?1, ?2, ?3, 'posted', datetime('now'), ?4)
+         RETURNING id, title, body, created_at`,
+      )
+      .bind(title, postBody, auth.email, notify)
       .first();
-
-    if (!result) {
-      return Response.json({ ok: false, error: 'Failed to create discussion.' }, { status: 500 });
-    }
-
-    return Response.json({ ok: true, discussion: result });
+    if (!topic) return json({ ok: false, error: 'create_failed' }, 500);
+    return json({ ok: true, discussion: topic });
   } catch (err) {
     console.error('Error creating discussion:', err);
-    return Response.json(
-      { ok: false, error: 'Internal server error.' },
-      { status: 500 }
-    );
+    return json({ ok: false, error: 'create_failed' }, 500);
   }
 }

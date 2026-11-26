@@ -392,8 +392,8 @@ describe('Fan Club operational pages', () => {
 
     render(<FanclubChatPage />);
 
-    expect(await screen.findByText('No posts yet.')).toBeInTheDocument();
-    expect(fetchMock).toHaveBeenCalledWith('/api/discussions/list?limit=20', {
+    expect(await screen.findByText('No topics yet.')).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledWith('/api/discussions/list?limit=50', {
       credentials: 'include',
       cache: 'no-store',
     });
@@ -411,10 +411,10 @@ describe('Fan Club operational pages', () => {
       .mockResolvedValueOnce(jsonResponse({ ok: false, error: 'create_failed' }, 500) as never);
 
     render(<FanclubChatPage />);
-    await screen.findByText('No posts yet.');
+    await screen.findByText('No topics yet.');
 
-    fireEvent.change(screen.getByPlaceholderText('Title'), { target: { value: 'Hello club' } });
-    fireEvent.change(screen.getByPlaceholderText('Write your message…'), { target: { value: 'Checking in today' } });
+    fireEvent.change(screen.getByLabelText('Title'), { target: { value: 'Hello club' } });
+    fireEvent.change(screen.getByLabelText('Message'), { target: { value: 'Checking in today' } });
     fireEvent.click(screen.getByRole('button', { name: 'Post' }));
 
     expect(await screen.findByText(/error: create_failed/i)).toBeInTheDocument();
