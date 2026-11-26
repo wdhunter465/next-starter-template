@@ -183,3 +183,27 @@
     white-space: normal;
   }
 }
+
+.linkButton {
+  background: none;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: underline;
+}
+
+.check {
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  line-height: 1.5;
+}
+
+.authorControls {
+  display: grid;
+  gap: 8px;
+  margin-top: 12px;
+}
