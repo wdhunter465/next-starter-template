@@ -5,124 +5,126 @@ Authority Level: Navigation
 Owns: Repository overview, contributor entrypoints, local orientation
 Does Not Own: Product design, route authority, auth model, implementation scope, PR governance, deployment secrets
 Canonical Reference: /AGENTS.md
-Last Reviewed: 2026-06-23
+Last Reviewed: 2026-11-26
 ---
 
-# Lou Gehrig Fan Club (LGFC) — Website Repository
+# Lou Gehrig Fan Club — Website Repository
 
-This repository contains the official Lou Gehrig Fan Club website and FanClub member area for `www.lougehrigfanclub.com`.
+This repository holds the source for the fan club's public website, its member area, and the admin tools used to run them.
 
-The codebase is a Next.js App Router application built as a Cloudflare Pages static export, with runtime read/write behavior handled by Cloudflare Pages Functions under `functions/api/**`.
+It is a Next.js App Router application built as a static export for Cloudflare Pages. Runtime behavior (sign-in, membership, member actions, data reads and writes) is handled by Cloudflare Pages Functions under `functions/api/**`.
 
-## Current Platform
+## Platform
 
-| Area | Current implementation |
+| Area | Implementation |
 | --- | --- |
-| Framework | Next.js App Router + TypeScript |
-| UI runtime | React |
+| Framework | Next.js App Router, TypeScript, React |
 | Hosting | Cloudflare Pages |
 | Runtime APIs | Cloudflare Pages Functions (`functions/api/**`) |
 | Build output | Static export to `out/` |
-| Database | Cloudflare D1 |
-| Media storage | Backblaze B2 for image/media assets |
-| Production domain | `www.lougehrigfanclub.com` |
+| Database | Cloudflare D1 (schema in `migrations/`) |
+| Media storage | S3-compatible object storage for images and other media |
+| Automation | GitHub Actions for checks, scheduled jobs and deployment support |
 
-This is not a pure static-only site. Static pages are exported by Next.js, but authentication, membership flows, CMS/data reads, discussion/member actions, D1-backed content, and API behavior depend on Cloudflare Pages Functions.
+This is not a static-only site. Pages are exported by Next.js, but sign-in, membership, content reads and member actions depend on Pages Functions and the database.
 
 ## Start Here
 
-For orientation, read:
+Read these in order:
 
-1. `AGENTS.md` — mandatory entrypoint and authority-routing file for all AI and agent work.
-2. `context.md` — high-level repository purpose, stack, route summary, and design-source links.
-3. `docs/reference/design/LGFC-Production-Design-and-Standards.md` — canonical production behavior, route/navigation rules, data model references, and homepage order.
-4. `docs/reference/design/auth-model.md` — canonical authentication/session/redirect model.
+1. `AGENTS.md` is the mandatory entrypoint and authority-routing file for all AI and agent work.
+2. `context.md` gives the repository purpose, stack, route summary and design-source links.
+3. `docs/reference/design/LGFC-Production-Design-and-Standards.md` is the canonical source for production behavior, routes, navigation and data-model references.
+4. `docs/reference/design/auth-model.md` is the canonical authentication, session and redirect model.
 
-For any repository work, do not stop at this README. Follow the full mandatory chain in `AGENTS.md`, including:
+For any repository work, do not stop at this README. Follow the full chain in `AGENTS.md`, which includes:
 
-- `docs/governance/REPOSITORY-AUTHORITY.md`.
-- `docs/governance/AGENT-TEAM.md`.
-- `docs/ops/ai/CORE-RULES.md`.
-- The applicable agent-specific rule file under `docs/ops/ai/`.
-- The source GitHub issue and task-linked design, architecture, governance, or implementation-plan files.
-- `.agents/skills/lgfc-pr-governance/SKILL.md` when PR, issue, label, lifecycle, review, or merge-readiness work is involved.
-- `.github/pull_request_template.md`.
-- Applicable governance docs under `docs/governance/`.
-- Applicable `.agents/skills/*/SKILL.md` files for the task.
+- `docs/governance/REPOSITORY-AUTHORITY.md` (who decides what).
+- `docs/governance/AGENT-TEAM.md` (current role holders).
+- `docs/ops/ai/CORE-RULES.md` and the rule file for your role under `docs/ops/ai/`.
+- The source GitHub issue and any design, architecture or implementation-plan files it links.
+- `.agents/skills/lgfc-pr-governance/SKILL.md` for pull request, issue, label, review and merge work, and the other `.agents/skills/*/SKILL.md` files that apply.
+- `.github/pull_request_template.md` and the governance documents under `docs/governance/`.
+
+## Roles
+
+This repository is run by roles, not by named individuals. The roles and what each may decide are defined in `docs/governance/REPOSITORY-AUTHORITY.md`; who currently holds each role is in `docs/governance/AGENT-TEAM.md`.
+
+- **Product Authority** decides product behavior, dates, rights and privacy questions, public announcements, and approves protected changes.
+- **Engineering** builds and tests changes.
+- **Operations** runs scheduled jobs, monitoring and deployment support.
+- **AI agents** work inside the role they are assigned and follow the same rules as everyone else.
+
+Merge authority is tiered. The rules for which pull requests need Product Authority approval are in `docs/governance/REPOSITORY-AUTHORITY.md`.
 
 ## Authority Model
 
-This README is an orientation document only. It does not define product behavior, routes, navigation, authentication, implementation scope, PR acceptance, or deployment policy.
+This README is an orientation document only. It does not define product behavior, routes, navigation, authentication, implementation scope, pull request acceptance or deployment policy.
 
-Document precedence is defined by `docs/governance/standards/document-authority-hierarchy_MASTER.md`:
+Document precedence is set by `docs/governance/standards/document-authority-hierarchy_MASTER.md`:
 
 1. Governance.
 2. Standards.
-3. Operations As-Built (`_MASTER`).
-4. Project Reference (`_INCOMPLETE`).
-5. Project Intent (`_DRAFT`).
+3. Operations as-built (`_MASTER`).
+4. Project reference (`_INCOMPLETE`).
+5. Project intent (`_DRAFT`).
 
-If documents disagree, governance and `_MASTER` documents override lower-authority materials. Within that framework, use `AGENTS.md` as the active routing entrypoint for repository work and follow the full task-specific authority chain it defines.
+If documents disagree, governance and `_MASTER` documents override lower-authority material. Use `AGENTS.md` as the active routing entrypoint and follow the full task-specific chain it defines.
 
-For active repository work, GitHub issues and PRs are the operational source of truth. Historical tracker/status files may exist, but they are not the normal source of truth unless a source issue explicitly scopes tracker governance, tracker reconciliation, or status-index maintenance.
+For active work, GitHub issues and pull requests are the operational source of truth. Historical tracker and status files may exist, but they are not the normal source of truth unless an issue explicitly scopes tracker maintenance.
 
 ## Product Scope
 
-The repository supports four logical website areas:
+The repository supports four logical areas:
 
-- Public site.
-- FanClub member area.
+- The public site.
+- The member area.
 - Admin surfaces.
-- External Store link behavior.
+- Links to an external store.
 
-The canonical route list, navigation behavior, redirect behavior, header rules, mobile hamburger rules, footer rules, homepage section order, FanClub behavior, and Store handling are defined in `docs/reference/design/LGFC-Production-Design-and-Standards.md`.
+Routes, navigation, redirects, header and footer rules, homepage section order, member-area behavior and store handling are defined in `docs/reference/design/LGFC-Production-Design-and-Standards.md`. Do not use this README as a route source of truth.
 
-Do not use this README as a route source of truth.
+## Authentication
 
-## Authentication Model
+The canonical reference is `docs/reference/design/auth-model.md`. In summary:
 
-Canonical auth reference: `docs/reference/design/auth-model.md`.
+- Members sign in with a server-side session held in a cookie and stored in the database.
+- A new member verifies their email address through a single-use emailed link before first entering the member area.
+- Member-area routes are protected by that session; admin tools additionally require an admin role.
 
-Current Day 1 auth uses:
-
-- Cookie-backed session: `lgfc_session`.
-- D1 session table: `member_sessions`.
-- D1 member table: `members`.
-- Session lookup endpoint: `/api/session/me`.
-- Join/Login canonical page: `/join`.
-- Login tab entry point: `/join?mode=login`.
-- FanClub route protection for `/fanclub` and `/fanclub/**`.
-
-Do not reintroduce localStorage as the member auth source of truth, external auth providers, magic-link auth, `ADMIN_EMAILS` as the primary member auth gate, or hybrid cookie/localStorage member-auth narratives in active docs or implementation. This does not prohibit documented admin-token browser storage flows that are governed separately by the access-model documentation.
+The auth model lists approaches that are not allowed, such as browser storage as the source of truth for membership, external identity providers, and magic-link sign-in as a general method. Read it before changing anything related to sign-in.
 
 ## Repository Layout
 
 | Path | Purpose |
 | --- | --- |
-| `src/app/` | Next.js App Router pages, layouts, and route-level UI. |
-| `src/components/` | Shared UI components and feature components. |
-| `src/hooks/` | Client hooks, including session/auth helpers. |
+| `src/app/` | App Router pages, layouts and route-level UI. |
+| `src/components/` | Shared and feature components. |
+| `src/hooks/` | Client hooks, including session helpers. |
+| `src/lib/` | Client-side libraries and helpers. |
 | `functions/api/` | Cloudflare Pages Functions API endpoints. |
-| `functions/_lib/` | Shared Cloudflare Function helpers. |
-| `migrations/` | Cloudflare D1 schema/data migrations. |
-| `data/` | Seed/reference data and local content assets used by tooling or tests. |
+| `functions/_lib/` | Shared helpers for the Functions. |
+| `migrations/` | Database schema and data migrations. |
+| `data/`, `seed/` | Seed and reference data used by tooling and tests. |
 | `public/` | Static public assets. |
 | `tests/` | Vitest and Playwright tests. |
-| `scripts/` | CI, verification, migration, sync, assessment, and operational scripts. |
-| `docs/` | DIATAXIS documentation, design authority, governance, reports, and how-to material. |
+| `scripts/` | CI, verification, migration, sync, reporting and operational scripts. |
+| `config/` | Tool and workflow configuration. |
+| `site/` | Generated and static support sites, such as the project dashboard. |
+| `docs/` | Documentation: design authority, governance, reference, how-to, explanation and reports. |
 | `.agents/` | Repository-scoped agent skills and checks. |
-| `.github/` | GitHub Actions, templates, governance maps, and PR/issue automation. |
+| `.github/` | Workflows, templates, governance maps and pull request automation. |
 
 ## Local Development
 
-Use Node 22.x.
+Use Node 22.
 
 ```bash
 npm install
 npm run dev
 ```
 
-Cloudflare Pages local preview after build:
+To preview with the Cloudflare Pages runtime after a build:
 
 ```bash
 npm run build
@@ -133,63 +135,45 @@ npm run dev:cf
 
 | Command | Purpose |
 | --- | --- |
-| `npm run build` | Clean static build into `out/` and copy `_routes.json`. |
+| `npm run dev` | Start the Next.js development server. |
+| `npm run build` | Clean static build into `out/`, with the post-build steps. |
 | `npm run build:cf` | Cloudflare Pages build alias. |
-| `npm run dev` | Start Next.js local dev server. |
-| `npm run dev:cf` | Run Cloudflare Pages local dev against `out/`. |
-| `npm run typecheck` | Run TypeScript type checking. |
-| `npm run test` | Run Vitest unit/component tests. |
-| `npm run test:e2e` | Run Playwright tests. |
-| `npm run verify:invariants` | Run LGFC invariant verification. |
-| `npm run launch-readiness` | Run launch-readiness orchestration. |
-| `npm run deploy:prod` | Build and deploy `out/` through Wrangler Pages. |
+| `npm run dev:cf` | Run Cloudflare Pages locally against `out/`. |
+| `npm run lint` | Lint `src/`. |
+| `npm run typecheck` | TypeScript type checking. |
+| `npm run test` | Vitest unit and component tests. |
+| `npm run test:e2e` | Playwright end-to-end tests. |
+| `npm run check:structure` | Check repository structure rules. |
+| `npm run verify:invariants` | Verify the repository's locked invariants. |
+| `npm run launch-readiness` | Run launch-readiness checks. |
+| `npm run deploy:prod` | Build and deploy `out/` with Wrangler Pages (Operations, with approval). |
 
-## Deployment Model
+## Deployment
 
-Cloudflare configuration is in `wrangler.toml`.
+Cloudflare configuration lives in `wrangler.toml`. Key points:
 
-Key constraints:
+- The Pages build output is `./out`.
+- The database binding is named `DB`, with separate production and non-production databases.
+- Node compatibility is enabled for the Functions runtime.
+- Next.js image optimization is off, because Cloudflare Pages does not provide the Node.js optimizer for this export model.
 
-- Pages build output is `./out`.
-- D1 binding name is `DB`.
-- Production D1 database name is `lgfc_lite`; Preview/Development D1 is `lgfc-litedev` (#3357).
-- Node compatibility is enabled for the Cloudflare runtime.
-- Next.js image optimization is disabled because Cloudflare Pages does not provide the Node.js image optimizer for this export model.
+Do not change deployment configuration casually. Changes to deployment, runtime, database, object storage or Cloudflare behavior need a source issue and validation against the governance documents. Production changes follow the approval rules in `docs/governance/REPOSITORY-AUTHORITY.md`.
 
-Do not change deployment configuration casually. Deployment, runtime, D1, B2, or Cloudflare behavior changes must be scoped through a source issue and validated against the Cloudflare/static-export skill and governance docs.
+## Data
 
-## Data Model References
+The data model is described in `docs/reference/design/LGFC-Production-Design-and-Standards.md` and the related architecture and reference documents. In outline it covers members and sessions, join and verification records, photos and other media, library and content records, and submission queues. The exact schema is whatever the migrations in `migrations/` produce; use them and the reference documents for schema work, not this README.
 
-The canonical Day 1 data references are defined in `docs/reference/design/LGFC-Production-Design-and-Standards.md` and related architecture/reference docs.
+## Governance and Pull Requests
 
-Important D1 concepts include:
+Every change is accounted for by an issue and a pull request, unless Product Authority explicitly authorizes an exception.
 
-- `members`.
-- `member_sessions`.
-- `join_requests`.
-- `photos`.
-- `library_entries`.
-- `content_inventory`.
-- `submission_queue`.
-- `membership_card_content`.
+- One task, one issue, one pull request.
+- No mixed intent and no scope expansion.
+- Changed files must match the pull request's allowed-paths list, and its description must match the final diff.
+- Documentation-only changes stay documentation-only.
+- Review comments, bot findings and review threads are accounted for before a pull request is called ready to merge.
 
-Implementation-level schema definitions and migrations live outside this README. Use migrations, D1 docs, and canonical design/reference docs for schema work.
-
-## Governance and PR Workflow
-
-All repository changes require scoped issue and PR accounting unless Bill explicitly authorizes an exception.
-
-Required discipline:
-
-- One task → one issue → one PR.
-- No mixed intent.
-- No scope expansion.
-- Changed files must match the PR allowlist.
-- PR body must match the final diff.
-- Documentation-only changes must remain documentation-only.
-- Reviewer comments, bot comments, review threads, and post-merge closeout expectations must be accounted for before merge readiness is claimed.
-
-For PR work, read and follow:
+For pull request work, read:
 
 - `AGENTS.md`.
 - `.agents/skills/lgfc-pr-governance/SKILL.md`.
@@ -200,21 +184,18 @@ For PR work, read and follow:
 
 ## Design and UX Invariants
 
-The locked design and behavior authority is `docs/reference/design/LGFC-Production-Design-and-Standards.md`.
+`docs/reference/design/LGFC-Production-Design-and-Standards.md` is the locked authority for design and behavior. Keep these unless an issue explicitly scopes a change:
 
-Preserve these invariants unless a source issue explicitly scopes a change:
+- The canonical public, member, admin and external-store route behavior.
+- Join and login behavior, and member-area access control.
+- Header, mobile menu and footer rules.
+- Homepage section order and the floating logo.
+- The store stays an external link; there is no in-site store route unless the design changes.
 
-- Canonical public, FanClub, Admin, and external Store route behavior.
-- Join/Login behavior.
-- FanClub auth gating.
-- Header and mobile hamburger rules.
-- Footer link set and behavior.
-- Homepage section order.
-- Floating logo scope and behavior.
-- Store remains an external Bonfire link; no `/store` route exists unless the canonical design changes.
+## Contributing, Security and Conduct
+
+See `CONTRIBUTING.md`, `SECURITY.md` and `CODE_OF_CONDUCT.md`.
 
 ## License
 
-This repository is source-available for transparency and reference. Reuse, redistribution, or creation of derivative works is prohibited without explicit written permission from the Lou Gehrig Fan Club.
-
-See `LICENSE` for the full license terms.
+This repository is source-available for transparency and reference. Reuse, redistribution or derivative works are not permitted without the club's written permission. See `LICENSE` for the full terms.
