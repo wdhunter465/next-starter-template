@@ -1,0 +1,93 @@
+name: OPS — B2 photo standardization (#5542)
+
+# Brings stored photos to the upload standard (JPEG, long edge at most 4000 px, under 10 MiB).
+# Manual only. mode=dry-run (default) writes nothing to B2 or D1. mode=apply saves the originals of
+# every changed object as an artifact first, then rewrites JPEGs in place and converts PNG/WebP to
+# .jpg with the D1 photos row repointed before the old object is deleted. Uses existing secrets.
+
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: dry-run (report only) or apply (writes to B2 and D1)
+        required: false
+        default: dry-run
+        type: choice
+        options: [dry-run, apply]
+      limit:
+        description: Only process the first N images (0 = all). Use a small number for a trial.
+        required: false
+        default: '0'
+      prefix:
+        description: Only process keys under this prefix (empty = the whole bucket)
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ops-b2-standardize-photos
+  cancel-in-progress: false
+
+jobs:
+  standardize:
+    name: Standardize B2 photos
+    if: github.repository == 'wdhunter465/next-starter-template'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      B2_ENDPOINT: ${{ secrets.B2_ENDPOINT }}
+      B2_BUCKET: ${{ secrets.B2_BUCKET }}
+      B2_KEY_ID: ${{ secrets.B2_KEY_ID }}
+      B2_APP_KEY: ${{ secrets.B2_APP_KEY }}
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      D1_DATABASE_NAME: ${{ secrets.D1_DATABASE_NAME }}
+      D1_DATABASE_ID: ${{ secrets.D1_DATABASE_ID }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run
+        env:
+          MODE: ${{ inputs.mode }}
+          LIMIT: ${{ inputs.limit }}
+          STD_PREFIX: ${{ inputs.prefix }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/b2-originals"
+          flags=()
+          if [ "$MODE" = "apply" ]; then flags+=(--apply); fi
+          node scripts/ops/b2-standardize-photos.mjs "${flags[@]}" \
+            --limit "${LIMIT:-0}" \
+            --prefix "${STD_PREFIX}" \
+            --backup-dir "$RUNNER_TEMP/b2-originals" \
+            --out "$RUNNER_TEMP/b2-standardize.json"
+
+      - name: Upload the report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: b2-standardize-report
+          path: |
+            ${{ runner.temp }}/b2-standardize.json
+            ${{ runner.temp }}/b2-standardize.md
+          if-no-files-found: ignore
+          retention-days: 30
+
+      - name: Upload the originals (restore source)
+        if: ${{ always() && inputs.mode == 'apply' }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: b2-originals-before-standardize
+          path: ${{ runner.temp }}/b2-originals
+          if-no-files-found: ignore
+          retention-days: 30
