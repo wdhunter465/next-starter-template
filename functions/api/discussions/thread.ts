@@ -3,7 +3,7 @@
  * One topic and its replies in time order, with display names. Requires a member session. (#5550)
  */
 import { requireMember } from '../../_lib/session';
-import { AUTHOR_JOIN, DISPLAY_NAME_SQL, TOPIC_COLUMNS, json } from '../../_lib/discussions';
+import { AUTHOR_JOIN, DISPLAY_NAME_SQL, POST_FLAG_COLUMNS, TOPIC_COLUMNS, json } from '../../_lib/discussions';
 
 export const onRequestGet = async (context: any): Promise<Response> => {
   const auth = await requireMember(context);
@@ -15,7 +15,7 @@ export const onRequestGet = async (context: any): Promise<Response> => {
   try {
     const topic = await auth.db
       .prepare(
-        `SELECT ${TOPIC_COLUMNS}
+        `SELECT ${TOPIC_COLUMNS}, ${POST_FLAG_COLUMNS}
            FROM discussions d ${AUTHOR_JOIN}
           WHERE d.id = ?2 AND d.status = 'posted' AND d.parent_id IS NULL`,
       )
@@ -27,7 +27,8 @@ export const onRequestGet = async (context: any): Promise<Response> => {
       .prepare(
         `SELECT d.id, d.body, d.created_at,
                 (lower(d.author_email) = lower(?1)) AS mine,
-                ${DISPLAY_NAME_SQL} AS author_name
+                ${DISPLAY_NAME_SQL} AS author_name,
+                ${POST_FLAG_COLUMNS}
            FROM discussions d ${AUTHOR_JOIN}
           WHERE d.parent_id = ?2 AND d.status = 'posted'
           ORDER BY d.created_at ASC, d.id ASC

@@ -44,6 +44,7 @@
 		"functions/api/admin/member-operations/delete.ts": "row-actor",
 		"functions/api/admin/member-operations/revoke-sessions.ts": "none",
 		"functions/api/admin/discussions/hide.ts": "none",
+		"functions/api/admin/discussions/resolve-flag.ts": "row-actor",
 		"functions/api/admin/membership-card.ts": "none",
 		"functions/api/admin/permission-exchanges/index.ts": "none",
 		"functions/api/admin/photos/block.ts": "row-actor",

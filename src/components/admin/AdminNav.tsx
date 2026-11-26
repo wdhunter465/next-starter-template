@@ -7,6 +7,7 @@ import styles from './AdminNav.module.css';
 const items: Array<{ href: string; label: string }> = [
   { href: '/admin', label: 'Dashboard' },
   { href: '/admin/moderation', label: 'Moderation' },
+  { href: '/admin/chat-flags', label: 'Chat Flags' },
   { href: '/admin/audit', label: 'Audit & Reporting' },
   { href: '/admin/faq', label: 'FAQ Queue' },
   { href: '/admin/content', label: 'Page Content' },
