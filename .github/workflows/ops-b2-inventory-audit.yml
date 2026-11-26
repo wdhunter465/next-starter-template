@@ -1,0 +1,66 @@
+name: OPS — B2 inventory audit (#5537)
+
+# Read-only audit of the B2 photo inventory against the upload standard (JPEG, long edge at most
+# 4000 px, under the 10 MiB limit). Manual only. It lists objects and reads the first 256 KiB of the
+# largest JPEG, PNG and WebP files; it writes nothing to B2, D1 or GitHub except this run's summary
+# and artifact. Uses the existing B2 secrets; no new credential.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dimension_reads:
+        description: How many of the largest JPEG, PNG and WebP objects to read for pixel size (0 = listing only)
+        required: false
+        default: '500'
+      prefix:
+        description: Only audit keys under this prefix (empty = the whole bucket)
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ops-b2-inventory-audit
+  cancel-in-progress: false
+
+jobs:
+  audit:
+    name: Audit B2 photo inventory
+    if: github.repository == 'wdhunter465/next-starter-template'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      B2_ENDPOINT: ${{ secrets.B2_ENDPOINT }}
+      B2_BUCKET: ${{ secrets.B2_BUCKET }}
+      B2_KEY_ID: ${{ secrets.B2_KEY_ID }}
+      B2_APP_KEY: ${{ secrets.B2_APP_KEY }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+
+      - name: Run the audit
+        env:
+          DIMENSION_READS: ${{ inputs.dimension_reads }}
+          AUDIT_PREFIX: ${{ inputs.prefix }}
+        run: |
+          node scripts/ops/b2-inventory-audit.mjs \
+            --dimension-reads "${DIMENSION_READS:-500}" \
+            --prefix "${AUDIT_PREFIX}" \
+            --out "$RUNNER_TEMP/b2-inventory-audit.json"
+
+      - name: Upload the report
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v4
+        with:
+          name: b2-inventory-audit
+          path: |
+            ${{ runner.temp }}/b2-inventory-audit.json
+            ${{ runner.temp }}/b2-inventory-audit.md
+          if-no-files-found: ignore
+          retention-days: 30
