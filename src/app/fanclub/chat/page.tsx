@@ -17,9 +17,22 @@ type Topic = {
   author_name: string;
   reply_count: number;
   last_activity: string;
+  open_question?: number;
+  question_open?: number;
+  reported_by_me?: number;
+  is_admin?: number;
 };
 
-type Reply = { id: number; body: string; created_at: string; mine: number; author_name: string };
+type Reply = {
+  id: number;
+  body: string;
+  created_at: string;
+  mine: number;
+  author_name: string;
+  question_open?: number;
+  reported_by_me?: number;
+  is_admin?: number;
+};
 
 const when = (value: string) => new Date(value.includes('T') ? value : `${value.replace(' ', 'T')}Z`).toLocaleString();
 
@@ -56,6 +69,12 @@ export default function FanclubChatPage() {
   useEffect(() => {
     if (!isLoading && isAuthenticated) load();
   }, [isLoading, isAuthenticated, load]);
+
+  // A link such as /fanclub/chat?topic=12 (from the admin Chat Flags page) opens that topic.
+  useEffect(() => {
+    const id = Number(new URLSearchParams(window.location.search).get('topic'));
+    if (Number.isInteger(id) && id > 0) setOpenId(id);
+  }, []);
 
   if (isLoading || !isAuthenticated) return null;
 
@@ -115,6 +134,7 @@ export default function FanclubChatPage() {
                 <div className={styles.meta}>
                   Started by {t.author_name} · {t.reply_count} {t.reply_count === 1 ? 'reply' : 'replies'}
                   {t.closed_at ? ' · Closed' : ''}
+                  {t.open_question ? <span className={styles.badgeQuestion}>Question for the admin</span> : null}
                 </div>
               </article>
             ))}
@@ -161,6 +181,7 @@ function TopicComposer({ disabled, onCreated }: { disabled: boolean; onCreated: 
           Message
           <textarea id="chat-body" className={styles.textarea} value={body} onChange={(e) => setBody(e.target.value)} rows={4} maxLength={4000} />
         </label>
+        <p className={styles.muted}>Type @admin in a post to ask the admin a question.</p>
         <label className={styles.check}>
           <input type="checkbox" checked={notify} onChange={(e) => setNotify(e.target.checked)} /> Email me when someone replies
           (one email a day at most)
@@ -233,8 +254,13 @@ function ThreadView({ id, onBack }: { id: number; onBack: () => void }) {
               <h1 className={styles.articleTitle}>{topic.title}</h1>
               <span className={styles.timestamp}>{when(topic.created_at)}</span>
             </div>
-            <div className={styles.meta}>{topic.author_name} started this topic{topic.closed_at ? ' · Closed' : ''}</div>
+            <div className={styles.meta}>
+              {topic.author_name}
+              {topic.is_admin ? <span className={styles.badgeAdmin}>Admin</span> : null} started this topic{topic.closed_at ? ' · Closed' : ''}
+              {topic.question_open ? <span className={styles.badgeQuestion}>Question for the admin</span> : null}
+            </div>
             <p className={styles.body}>{topic.body}</p>
+            <ReportLink postId={topic.id} reported={Boolean(topic.reported_by_me)} onDone={load} />
             {topic.mine ? (
               <div className={styles.authorControls}>
                 <label className={styles.check}>
@@ -255,9 +281,12 @@ function ThreadView({ id, onBack }: { id: number; onBack: () => void }) {
               <article key={r.id} className={styles.article}>
                 <div className={styles.articleHead}>
                   <strong>{r.author_name}</strong>
+                  {r.is_admin ? <span className={styles.badgeAdmin}>Admin</span> : null}
+                  {r.question_open ? <span className={styles.badgeQuestion}>Question for the admin</span> : null}
                   <span className={styles.timestamp}>{when(r.created_at)}</span>
                 </div>
                 <p className={styles.body}>{r.body}</p>
+                <ReportLink postId={r.id} reported={Boolean(r.reported_by_me)} onDone={load} />
               </article>
             ))}
           </div>
@@ -269,7 +298,7 @@ function ThreadView({ id, onBack }: { id: number; onBack: () => void }) {
               <h2 className={styles.composerTitle}>Reply</h2>
               <div className={styles.formGrid}>
                 <label className={styles.field} htmlFor="chat-reply">
-                  Your reply
+                  Your reply (type @admin to ask the admin a question)
                   <textarea id="chat-reply" className={styles.textarea} value={text} onChange={(e) => setText(e.target.value)} rows={3} maxLength={4000} />
                 </label>
                 <button className={styles.button} onClick={sendReply} disabled={busy || text.trim().length < 2}>
@@ -282,5 +311,55 @@ function ThreadView({ id, onBack }: { id: number; onBack: () => void }) {
         </>
       )}
     </>
+  );
+}
+
+function ReportLink({ postId, reported, onDone }: { postId: number; reported: boolean; onDone: () => Promise<void> | void }) {
+  const [open, setOpen] = useState(false);
+  const [reason, setReason] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  if (reported) return <div className={styles.reportNote}>You reported this.</div>;
+
+  async function send() {
+    if (busy || reason.trim().length < 3) return;
+    setBusy(true);
+    setError('');
+    try {
+      await post('/api/discussions/report', { id: postId, reason: reason.trim() });
+      setOpen(false);
+      setReason('');
+      await onDone();
+    } catch (e: unknown) {
+      setError(e instanceof Error && e.message === 'too_many_reports' ? 'You have sent several reports; please try again later.' : 'Could not send the report.');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  if (!open) {
+    return (
+      <button className={styles.reportLink} onClick={() => setOpen(true)}>
+        Report
+      </button>
+    );
+  }
+  return (
+    <div className={styles.reportBox}>
+      <label className={styles.field} htmlFor={`report-${postId}`}>
+        Why are you reporting this? (required)
+        <textarea id={`report-${postId}`} className={styles.textarea} value={reason} onChange={(e) => setReason(e.target.value)} rows={2} maxLength={500} />
+      </label>
+      <div className={styles.reportActions}>
+        <button className={styles.button} onClick={send} disabled={busy || reason.trim().length < 3}>
+          {busy ? 'Sending…' : 'Send report'}
+        </button>
+        <button className={styles.refresh} onClick={() => setOpen(false)}>
+          Cancel
+        </button>
+      </div>
+      {error ? <p className={styles.error}>{error}</p> : null}
+    </div>
   );
 }

@@ -207,3 +207,48 @@
   gap: 8px;
   margin-top: 12px;
 }
+
+.badgeAdmin,
+.badgeQuestion {
+  display: inline-block;
+  margin-left: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  border: 1px solid currentColor;
+}
+
+.badgeQuestion {
+  font-style: italic;
+}
+
+.reportLink {
+  background: none;
+  border: 0;
+  padding: 0;
+  margin-top: 6px;
+  font: inherit;
+  font-size: 12px;
+  opacity: 0.7;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.reportNote {
+  margin-top: 6px;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.reportBox {
+  margin-top: 8px;
+  display: grid;
+  gap: 8px;
+}
+
+.reportActions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
