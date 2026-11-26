@@ -11,11 +11,10 @@
  * Idempotent: the ledger (and a search of existing Issues) stops a second hand-off.
  * Dry run unless APPLY=true.
  *
- * Dedicated hand-off repositories (#5321): Zapier's Free plan has no Filter step and its GitHub "New Issue"
- * trigger cannot filter by label, so a Zap would post every Issue it sees. When SOCIAL_HANDOFF_REPO_<PLATFORM>
- * (for example SOCIAL_HANDOFF_REPO_FACEBOOK=owner/lgfc-social-facebook) is set, that platform's hand-off Issues
- * open in that repository, which holds nothing else, so its Zap needs no filter. SOCIAL_HANDOFF_TOKEN (a token
- * with Issues write on those repositories) is used for them; unset platforms keep using GITHUB_REPOSITORY.
+ * Zapier Free (#5321): the project uses the Free plan, which has no Filter step. Each Zap uses the GitHub
+ * "New Labeled Issue" trigger (or "New Issue Matching Search") set to its own social:<platform> label, so all
+ * hand-offs open in this repository and no extra repositories are needed. SOCIAL_HANDOFF_REPO_<PLATFORM> and
+ * SOCIAL_HANDOFF_TOKEN still work if ever set, but are not used and need not be configured.
  *
  * Env: GITHUB_TOKEN, GITHUB_REPOSITORY, SOCIAL_HANDOFF_TOKEN, SOCIAL_HANDOFF_REPO_<PLATFORM>,
  *      SCHEDULED_CONTENT_BRIDGE_TOKEN, BASE_URL, APPLY, NOW (tests)
