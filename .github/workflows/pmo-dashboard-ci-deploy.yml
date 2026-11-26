@@ -146,6 +146,25 @@ jobs:
         with:
           path: pages-artifact
 
+      # #5532: deploy-pages lists this run's artifacts once, right after the upload, and does not retry.
+      # GitHub's artifact list can lag a moment behind a finished upload, which made every deploy fail
+      # with "Found 0 artifact(s)". Wait until the artifact is listed (about 2 minutes at most).
+      - name: Wait for the Pages artifact to be listed
+        if: ${{ steps.pages.outputs.enabled == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for attempt in $(seq 1 24); do
+            count="$(gh api "repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts" --jq '[.artifacts[] | select(.name == "github-pages" and (.expired | not))] | length' 2>/dev/null || echo 0)"
+            if [ "${count:-0}" -ge 1 ]; then
+              echo "github-pages artifact is listed (attempt ${attempt})"
+              exit 0
+            fi
+            echo "github-pages artifact not listed yet (attempt ${attempt}); waiting 5s"
+            sleep 5
+          done
+          echo "::warning title=Pages artifact not listed::github-pages was not listed after about 2 minutes; the deploy step will report the error."
+
       - name: Deploy to GitHub Pages
         if: ${{ steps.pages.outputs.enabled == 'true' }}
         id: deployment
